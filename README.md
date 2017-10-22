@@ -1,5 +1,4 @@
-# matsim-example-project
+# matsim-sbb
 
-A small example of how to use MATSim as a library.
+MATSim for project MEMO-P (Multimodale Erweiterung der Modell-Landschaft P)
 
-By default, this project uses the last stable version. In order to get the development snapshot, edit `pom.xml`.
