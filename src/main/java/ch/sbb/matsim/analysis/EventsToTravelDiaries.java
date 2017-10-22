@@ -8,8 +8,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -40,6 +42,8 @@ import org.matsim.api.core.v01.events.handler.PersonStuckEventHandler;
 import org.matsim.api.core.v01.events.handler.TransitDriverStartsEventHandler;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.Config;
+import org.matsim.core.mobsim.qsim.pt.TransitVehicle;
+import org.matsim.vehicles.Vehicles;
 import ch.sbb.matsim.analysis.travelcomponents.Activity;
 import ch.sbb.matsim.analysis.travelcomponents.Journey;
 import ch.sbb.matsim.analysis.travelcomponents.Transfer;
@@ -90,6 +94,7 @@ public class EventsToTravelDiaries implements
     private HashMap<Id, Id> driverIdFromVehicleId = new HashMap<>();
     private int stuck = 0;
     private TransitSchedule transitSchedule;
+    private Vehicles transitVehicles;
     private boolean isTransitScenario = false;
     private String diagnosticString = "39669_2";
     private Logger log = Logger.getLogger(EventsToTravelDiaries.class);
@@ -102,7 +107,7 @@ public class EventsToTravelDiaries implements
         isTransitScenario = scenario.getConfig().transit().isUseTransit();
         if (isTransitScenario) {
             this.transitSchedule = scenario.getTransitSchedule();
-
+            this.transitVehicles = scenario.getTransitVehicles();
             readVehiclesFromSchedule();
         }
         this.config = scenario.getConfig();
@@ -121,7 +126,7 @@ public class EventsToTravelDiaries implements
                     if (ptVehicles.containsKey(vehicleId)) {
                         log.error("vehicleId already in Map!");
                     } else {
-                        this.ptVehicles.put(vehicleId, new PTVehicle(tL.getId(), tR.getId()));
+                        this.ptVehicles.put(vehicleId, new PTVehicle(tL.getId(), tR.getId(), vehicleId));
                     }
                 }
             }
@@ -352,8 +357,8 @@ public class EventsToTravelDiaries implements
         try {
             ptVehicles.put(
                     event.getVehicleId(),
-                    new PTVehicle(event.getTransitLineId(), event
-                            .getTransitRouteId()));
+                    new PTVehicle(event.getTransitLineId(), event.getTransitRouteId(),
+                            event.getVehicleId()));
             transitDriverIds.add(event.getDriverId());
         } catch (Exception e) {
             System.err.println(e.getStackTrace());
@@ -446,7 +451,7 @@ public class EventsToTravelDiaries implements
 
         BufferedWriter journeyWriter = IOUtils.getBufferedWriter(path + "/" + journeyTableName);
         journeyWriter.write("journey_id\tperson_id\tstart_time\t" +
-                "end_time\tdistance\tmain_mode\tfrom_act\tto_act\t" +
+                "end_time\tdistance\tmain_mode\tmain_mode_mikrozensus\tfrom_act\tto_act\t" +
                 "in_vehicle_distance\tin_vehicle_time\t" +
                 "access_walk_distance\taccess_walk_time\taccess_wait_time\t" +
                 "first_boarding_stop\tegress_walk_distance\t" +
@@ -457,7 +462,8 @@ public class EventsToTravelDiaries implements
         BufferedWriter tripWriter = IOUtils.getBufferedWriter(path + "/" + tripTableName);
         tripWriter.write("trip_id\tjourney_id\tstart_time\tend_time\t" +
                 "distance\tmode\tline\troute\tboarding_stop\t" +
-                "alighting_stop\tdeparture_time\tdeparture_delay\tsample_selector\tfrom_x\tfrom_y\tto_x\tto_y\n");
+                "alighting_stop\tdeparture_time\tdeparture_delay\tsample_selector\t" +
+                 "from_x\tfrom_y\tto_x\tto_y\tprevious_trip_id\tnext_trip_id\n");
 
         BufferedWriter transferWriter = IOUtils.getBufferedWriter(path + "/" + transferTableName);
         transferWriter.write("transfer_id\tjourney_id\tstart_time\t" +
@@ -488,13 +494,14 @@ public class EventsToTravelDiaries implements
             for (Journey journey : chain.getJourneys()) {
                 try {
                     journeyWriter.write(String.format(
-                            "%d\t%s\t%d\t%d\t%.3f\t%s\t%d\t%d\t%.3f\t%d\t%.3f\t%d\t%d\t%s\t%.3f\t%d\t%s\t%.3f\t%d\t%d\t%f\t%b\n",
+                            "%d\t%s\t%d\t%d\t%.3f\t%s\t%s\t%d\t%d\t%.3f\t%d\t%.3f\t%d\t%d\t%s\t%.3f\t%d\t%s\t%.3f\t%d\t%d\t%f\t%b\n",
                             journey.getElementId(),
                             pax_id,
                             (int) journey.getStartTime(),
                             (int) journey.getEndTime(),
                             journey.getDistance(),
                             journey.getMainMode(),
+                            journey.getMainModeMikroZensus(),
                             journey.getFromAct().getElementId(),
                             journey.getToAct().getElementId(),
                             journey.getInVehDistance(),
@@ -514,10 +521,21 @@ public class EventsToTravelDiaries implements
                     );
                     counter.incCounter();
 
+                    // oomment (PManser): in my opinion, isCarJourney() does not mean anything
                     if (!(journey.isCarJourney() || journey.isTeleportJourney())) {
+                        int ind = 0;
                         for (Trip trip : journey.getTrips()) {
+
+                            String previous_trip_id = null;
+                            String next_trip_id = null;
+                            if(ind > 0)
+                                previous_trip_id = Integer.toString(journey.getTrips().get(ind - 1).getElementId());
+                            if(ind < journey.getTrips().size() - 1)
+                                next_trip_id = Integer.toString(journey.getTrips().get(ind + 1).getElementId());
+                            ind++;
+
                             tripWriter.write(String.format(
-                                    "%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%f\t%f\t%f\t%f\t%f\n",
+                                    "%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\t%s\n",
                                     trip.getElementId(),
                                     journey.getElementId(),
                                     (int) trip.getStartTime(),
@@ -530,7 +548,9 @@ public class EventsToTravelDiaries implements
                                     trip.getOrig().getX(),
                                     trip.getOrig().getY(),
                                     trip.getDest().getX(),
-                                    trip.getDest().getY()));
+                                    trip.getDest().getY(),
+                                    previous_trip_id,
+                                    next_trip_id));
                             counter.incCounter();
                         }
                         for (Transfer transfer : journey.getTransfers()) {
@@ -602,6 +622,7 @@ public class EventsToTravelDiaries implements
         // Attributes
         private final Id transitLineId;
         private final Id transitRouteId;
+        private final Id vehicleId;
         private final Map<Id, Double> passengers = new HashMap<>();
         boolean in = false;
         Id lastStop;
@@ -609,9 +630,10 @@ public class EventsToTravelDiaries implements
         private double linkEnterTime = 0.0;
 
         // Constructors
-        public PTVehicle(Id transitLineId, Id transitRouteId) {
+        public PTVehicle(Id transitLineId, Id transitRouteId, Id vehicleId) {
             this.transitLineId = transitLineId;
             this.transitRouteId = transitRouteId;
+            this.vehicleId = vehicleId;
         }
 
         // Methods

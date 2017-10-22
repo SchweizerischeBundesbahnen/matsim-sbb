@@ -14,10 +14,8 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
-
 import ch.sbb.matsim.analysis.SBBPostProcessing;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
-
 
 /**
  * @author denism
@@ -57,7 +55,7 @@ public class RunSBB {
                 addTravelDisutilityFactoryBinding("privateSFF").to(carTravelDisutilityFactoryKey());
             }
         });
-        controler.addOverridingModule(new AbstractModule() {
+         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
                 addTravelTimeBinding("taxiSFF").to(networkTravelTime());

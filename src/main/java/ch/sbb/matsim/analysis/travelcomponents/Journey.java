@@ -14,6 +14,7 @@ import org.matsim.core.config.Config;
 public class Journey extends TravelComponent {
 	private String trip_idx;
 	private String mainmode = null;
+	private String mainmode_mz = null;
 	private Activity fromAct;
 	private Activity toAct;
 	private boolean carJourney = false;
@@ -157,6 +158,28 @@ public class Journey extends TravelComponent {
 		} catch (NoSuchElementException e) {
 			return "walk";
 
+		}
+	}
+
+	public String getMainModeMikroZensus() {
+		if (!(mainmode_mz == null)) {
+			return mainmode_mz;
+		}
+		if (isCarJourney()) {
+			return "car";
+		}
+		try {
+			Trip firstTrip = getTrips().getFirst();
+			if (getTrips().size() > 1) {
+				return "pt";
+			}
+			if(firstTrip.getMode().equals("transit_walk"))
+				return "walk";
+			else
+				return firstTrip.getMode();
+
+		} catch (NoSuchElementException e) {
+			return "walk";
 		}
 	}
 

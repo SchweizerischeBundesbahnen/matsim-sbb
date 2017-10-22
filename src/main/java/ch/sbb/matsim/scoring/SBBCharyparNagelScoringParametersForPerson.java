@@ -1,9 +1,5 @@
 package ch.sbb.matsim.scoring;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
@@ -19,6 +15,10 @@ import org.matsim.core.scoring.functions.ModeUtilityParameters;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.config.TransitConfigGroup;
 import org.matsim.utils.objectattributes.ObjectAttributes;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author jlie based on org.matsim.core.scoring.functions.RandomizedCharyparNagelScoringParameters
