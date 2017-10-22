@@ -4,10 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.matsim</groupId>
 	<artifactId>matsim-sbb</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-
-	<name>MATSim example project</name>
-	<description>MATSim example project</description>
+	<version>0.0.1-SNAPSHOT-${git.build.time}-${git.commit.id.abbrev}-${git.build.user.name}</version>
+	<name>MATSim SBB Project</name>
+	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P</description>
 
 	<repositories>
 		<repository>
@@ -35,6 +34,26 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>2.1.13</version>
+				<executions>
+					<execution>
+						<id>get-the-git-infos</id>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+					<dateFormat>yyyyMMdd_HHmmss</dateFormat>
+				</configuration>
+
+
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
