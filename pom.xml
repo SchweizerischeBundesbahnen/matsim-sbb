@@ -2,9 +2,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.matsim</groupId>
+	<groupId>ch.sbb</groupId>
 	<artifactId>matsim-sbb</artifactId>
-	<version>0.0.1-SNAPSHOT-${git.build.time}-${git.commit.id.abbrev}-${git.build.user.name}</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>MATSim SBB Project</name>
 	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P</description>
 
@@ -106,4 +106,16 @@
 			</plugin>
 		</plugins>
 	</build>
+
+		<distributionManagement>
+			<repository>
+				<id>repo</id>
+				<url>http://repo.sbb.ch/content/repositories/hosted.memop.releases/</url>
+			</repository>
+			<snapshotRepository>
+				<id>repo</id>
+				<url>http://repo.sbb.ch/content/repositories/hosted.memop.snapshots/</url>
+			</snapshotRepository>
+		</distributionManagement>
+
 </project>
