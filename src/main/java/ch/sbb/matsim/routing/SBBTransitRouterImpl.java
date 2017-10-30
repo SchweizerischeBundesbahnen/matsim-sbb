@@ -18,7 +18,7 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Route;
-import org.matsim.core.population.LegImpl;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.population.routes.GenericRouteImpl;
 import org.matsim.core.router.util.LeastCostPathCalculator.Path;
 import org.matsim.core.router.util.TravelTime;
@@ -134,7 +134,7 @@ public class SBBTransitRouterImpl implements TransitRouter {
 
     private List<Leg> createDirectWalkLegList(Person person, Coord fromCoord, Coord toCoord) {
         List<Leg> legs = new ArrayList<>();
-        Leg leg = new LegImpl(TransportMode.transit_walk);
+        Leg leg =  new LegImpl(TransportMode.transit_walk);
         double walkTime = getWalkTime(person, fromCoord, toCoord);
         leg.setTravelTime(walkTime);
         Route walkRoute = new GenericRouteImpl(null, null);

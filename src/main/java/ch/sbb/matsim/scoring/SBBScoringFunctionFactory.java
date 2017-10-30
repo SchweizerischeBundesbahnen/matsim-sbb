@@ -10,8 +10,8 @@ import org.matsim.core.scoring.functions.CharyparNagelActivityScoring;
 import org.matsim.core.scoring.functions.CharyparNagelAgentStuckScoring;
 import org.matsim.core.scoring.functions.CharyparNagelLegScoring;
 import org.matsim.core.scoring.functions.CharyparNagelMoneyScoring;
-import org.matsim.core.scoring.functions.CharyparNagelScoringParameters;
-import org.matsim.core.scoring.functions.CharyparNagelScoringParametersForPerson;
+import org.matsim.core.scoring.functions.ScoringParameters;
+import org.matsim.core.scoring.functions.ScoringParametersForPerson;
 
 
 /**
@@ -20,7 +20,7 @@ import org.matsim.core.scoring.functions.CharyparNagelScoringParametersForPerson
  */
 public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 
-    private final CharyparNagelScoringParametersForPerson paramsForPerson;
+    private final ScoringParametersForPerson paramsForPerson;
     private final Scenario scenario;
     private Logger log = Logger.getLogger(SBBScoringFunctionFactory.class);
 
@@ -32,7 +32,7 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 
     @Override
     public ScoringFunction createNewScoringFunction(Person person) {
-        final CharyparNagelScoringParameters params = paramsForPerson.getScoringParameters(person);
+        final ScoringParameters params = paramsForPerson.getScoringParameters(person);
         SumScoringFunction sumScoringFunction = new SumScoringFunction();
         sumScoringFunction.addScoringFunction(new CharyparNagelActivityScoring(params));
         sumScoringFunction.addScoringFunction(new CharyparNagelLegScoring(params, this.scenario.getNetwork()));

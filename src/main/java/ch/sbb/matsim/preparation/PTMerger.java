@@ -13,7 +13,7 @@ import org.matsim.api.core.v01.network.NetworkWriter;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.network.NetworkReaderMatsimV1;
+import org.matsim.core.network.io.NetworkReaderMatsimV1;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
@@ -46,7 +46,7 @@ public class PTMerger {
         this.log.info("Running Public Transport Merger. Enjoy :)");
 
         this.scenario = ScenarioUtils.createScenario(config);
-        new NetworkReaderMatsimV1(scenario.getNetwork()).parse(config.network().getInputFile());
+        new NetworkReaderMatsimV1(scenario.getNetwork()).readFile(config.network().getInputFile());
         new TransitScheduleReader(this.scenario).readFile(config.transit().getTransitScheduleFile());
         new VehicleReaderV1(this.scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
 
@@ -57,7 +57,7 @@ public class PTMerger {
         config2.transit().setTransitScheduleFile(mergerConfig.getScheduleFile());
         config2.transit().setVehiclesFile(mergerConfig.getVehiclesFile());
 
-        new NetworkReaderMatsimV1(scenario2.getNetwork()).parse(mergerConfig.getNetworkFile());
+        new NetworkReaderMatsimV1(scenario2.getNetwork()).readFile(mergerConfig.getNetworkFile());
         new TransitScheduleReader(scenario2).readFile(config2.transit().getTransitScheduleFile());
         new VehicleReaderV1(scenario2.getTransitVehicles()).readFile(config2.transit().getVehiclesFile());
 
