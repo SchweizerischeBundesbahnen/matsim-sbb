@@ -1,3 +1,4 @@
+
 /* *********************************************************************** *
  * project: org.matsim.*
  * TranitRouter.java
@@ -19,9 +20,7 @@
  * *********************************************************************** */
 
 package ch.sbb.matsim.routing;
-import org.matsim.pt.router.PreparedTransitSchedule;
-import org.matsim.pt.router.TransitLeastCostPathTree;
-import org.matsim.pt.router.TransitRouter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -44,7 +43,10 @@ import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
+import org.matsim.pt.router.PreparedTransitSchedule;
+import org.matsim.pt.router.TransitLeastCostPathTree;
 import org.matsim.pt.router.TransitLeastCostPathTree.InitialNode;
+import org.matsim.pt.router.TransitRouter;
 import org.matsim.pt.router.TransitRouterConfig;
 import org.matsim.pt.router.TransitRouterNetwork;
 import org.matsim.pt.router.TransitRouterNetwork.TransitRouterNetworkLink;
