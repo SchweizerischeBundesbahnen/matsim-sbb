@@ -26,6 +26,7 @@ import org.matsim.core.scenario.MutableScenario;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.router.FakeFacility;
 import org.matsim.pt.router.TransitRouterConfig;
+import org.matsim.pt.router.TransitRouterImplTest;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -51,7 +52,11 @@ import static org.junit.Assert.assertEquals;
  *
  */
 
-public class SBBTransitRouterTest {
+public class SBBTransitRouterTest extends TransitRouterImplTest {
+
+    public SBBTransitRouterTest(String routerType ) {
+        super( routerType ) ;
+    }
 
     @Test
     public void testTransferWalkDistance() {
