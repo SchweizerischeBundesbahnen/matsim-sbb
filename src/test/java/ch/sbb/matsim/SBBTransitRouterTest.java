@@ -63,7 +63,8 @@ public class SBBTransitRouterTest {
         Coord fromCoord = new Coord(0.0, 100.0);
         Coord toCoord = new Coord(10000.0, 5100.0);
         List<Leg> legs = router.calcRoute(new FakeFacility(fromCoord), new FakeFacility(toCoord), 8 * 3600, null);
-        
+
+        // Hallo
         assertEquals(7, legs.size());
         assertEquals(TransportMode.transit_walk, legs.get(2).getMode());
         assertEquals(325.0, legs.get(2).getRoute().getDistance(),0);
