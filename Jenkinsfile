@@ -16,7 +16,7 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('Sonar SBB CFF FFS AG') {
-                    sh 'mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent deploy sonar:sonar -Dsonar.branch=$BRANCH_NAME'
+                    sh 'mvn -B clean deploy'
                 }
             }
         }
