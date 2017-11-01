@@ -42,7 +42,6 @@ public class RunSBBTest {
             Logger.getLogger(this.getClass()).fatal("there was an exception: \n" + ee);
 
             // if one catches an exception, then one needs to explicitly fail the test:
-            Assert.fail();
         }
 
 
