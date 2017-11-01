@@ -7,7 +7,7 @@ pipeline {
     agent { label 'java' }
     tools {
         maven 'Apache Maven 3.3'
-        jdk 'OpenJDK 1.8 64-Bit'
+        jdk 'Oracle JDK 1.8 64-Bit'
     }
     stages {
         stage('When on develop, Deploy Snapshot and analyze for sonar') {
@@ -22,7 +22,7 @@ pipeline {
         }
         stage('Unit Tests') {
             steps {
-                sh 'mvn -B test'
+                sh 'mvn -B clean compile test'
                 junit '**/target/surefire-reports/*.xml'
             }
         }
