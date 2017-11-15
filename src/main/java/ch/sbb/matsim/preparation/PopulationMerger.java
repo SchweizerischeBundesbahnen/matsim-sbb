@@ -18,37 +18,60 @@ import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 public class PopulationMerger {
+    private PopulationMergerConfigGroup mergerConfig;
+    private Scenario scenario;
+    private PopulationReader reader;
+    private PopulationWriter writer;
+    private ObjectAttributes personAttributes;
+    private ObjectAttributesXmlReader attributesReader;
+    private ObjectAttributesXmlWriter attributesWriter;
+
     public static void main(final String[] args) {
-        final Config config = ConfigUtils.loadConfig(args[0], new PopulationMergerConfigGroup());
-        final PopulationMergerConfigGroup mergerConfig = (PopulationMergerConfigGroup) config.getModule(PopulationMergerConfigGroup.GROUP_NAME);
+        Config config = ConfigUtils.loadConfig(args[0], new PopulationMergerConfigGroup());
 
-        final Scenario scenario = ScenarioUtils.createScenario(config);
-        final PopulationReader reader = new PopulationReaderMatsimV5(scenario);
-        final PopulationWriter writer = new PopulationWriter(scenario.getPopulation());
+        PopulationMerger merger = new PopulationMerger(config);
 
-        final ObjectAttributes personAttributes = scenario.getPopulation().getPersonAttributes();
-        final ObjectAttributesXmlReader attributesReader = new ObjectAttributesXmlReader(personAttributes);
-        final ObjectAttributesXmlWriter attributesWriter = new ObjectAttributesXmlWriter(personAttributes);
+        merger.mergeInputPlanFiles();
+        merger.putPersonAttributes();
+        merger.writeOutputFiles();
+    }
 
-        reader.readFile(config.plans().getInputFile());
-        attributesReader.parse(config.plans().getInputPersonAttributeFile());
+    public PopulationMerger(Config config) {
+        this.mergerConfig = (PopulationMergerConfigGroup) config.getModule(PopulationMergerConfigGroup.GROUP_NAME);
 
+        this.scenario = ScenarioUtils.createScenario(config);
+        this.reader = new PopulationReaderMatsimV5(this.scenario);
+        this.writer = new PopulationWriter(this.scenario.getPopulation());
+
+        this.personAttributes = this.scenario.getPopulation().getPersonAttributes();
+        this.attributesReader = new ObjectAttributesXmlReader(this.personAttributes);
+        this.attributesWriter = new ObjectAttributesXmlWriter(this.personAttributes);
+
+        this.reader.readFile(config.plans().getInputFile());
+        this.attributesReader.parse(config.plans().getInputPersonAttributeFile());
+    }
+
+    protected void mergeInputPlanFiles() {
         String inputPlanFile = null;
-        while ((inputPlanFile = mergerConfig.shiftInputPlansFiles()) != null) {
-            reader.readFile(inputPlanFile);
+        while ((inputPlanFile = this.mergerConfig.shiftInputPlansFiles()) != null) {
+            this.reader.readFile(inputPlanFile);
         }
+    }
 
-        for (final Person person : scenario.getPopulation().getPersons().values()) {
-            if (personAttributes.getAttribute(person.getId().toString(), mergerConfig.getMergedPersonAttributeKey()) == null) {
-                personAttributes.putAttribute(
+    protected void putPersonAttributes() {
+        for (final Person person : this.scenario.getPopulation().getPersons().values()) {
+            if (this.personAttributes.getAttribute(person.getId().toString(), this.mergerConfig.getMergedPersonAttributeKey()) == null) {
+                this.personAttributes.putAttribute(
                         person.getId().toString(),
-                        mergerConfig.getMergedPersonAttributeKey(),
-                        mergerConfig.getMergedPersonAttributeValue()
+                        this.mergerConfig.getMergedPersonAttributeKey(),
+                        this.mergerConfig.getMergedPersonAttributeValue()
                 );
             }
         }
+    }
 
-        writer.write(mergerConfig.getOutputPlansFile());
-        attributesWriter.writeFile(mergerConfig.getOutputPersonAttributesFile());
+    protected void writeOutputFiles() {
+        this.writer.write(this.mergerConfig.getOutputPlansFile());
+        this.attributesWriter.writeFile(this.mergerConfig.getOutputPersonAttributesFile());
     }
 }
