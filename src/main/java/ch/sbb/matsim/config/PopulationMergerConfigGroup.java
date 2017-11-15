@@ -7,15 +7,13 @@ package ch.sbb.matsim.config;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
 
     static public final String GROUP_NAME = "populationMerger";
 
-    private List<String> inputPlansFiles;
+    private final List<String> inputPlansFiles;
     private String outputPlansFile = "";
     private String outputPersonAttributesFile = "";
     private String mergedPersonAttributeKey = "";
@@ -23,7 +21,7 @@ public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
 
     public PopulationMergerConfigGroup() {
         super(GROUP_NAME);
-        this.inputPlansFiles = new ArrayList<String>();
+        this.inputPlansFiles = new ArrayList<>();
     }
 
     @StringGetter("inputPlansFiles")

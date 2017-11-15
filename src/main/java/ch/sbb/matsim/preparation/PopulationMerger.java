@@ -5,7 +5,6 @@
 package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.config.PopulationMergerConfigGroup;
-import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
@@ -29,7 +28,7 @@ public class PopulationMerger {
 
         final ObjectAttributes personAttributes = scenario.getPopulation().getPersonAttributes();
         final ObjectAttributesXmlReader attributesReader = new ObjectAttributesXmlReader(personAttributes);
-        final ObjectAttributesXmlWriter attributesWriter = new ObjectAttributesXmlWriter(personAttributes);;
+        final ObjectAttributesXmlWriter attributesWriter = new ObjectAttributesXmlWriter(personAttributes);
 
         reader.readFile(config.plans().getInputFile());
         attributesReader.parse(config.plans().getInputPersonAttributeFile());
