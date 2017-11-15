@@ -17,6 +17,9 @@ public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
 
     private List<String> inputPlansFiles;
     private String outputPlansFile = "";
+    private String outputPersonAttributesFile = "";
+    private String mergedPersonAttributeKey = "";
+    private String mergedPersonAttributeValue = "";
 
     public PopulationMergerConfigGroup() {
         super(GROUP_NAME);
@@ -53,5 +56,35 @@ public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
     @StringSetter("outputPlansFile")
     public void setOutputPlansFile(String outputPlansFile) {
         this.outputPlansFile = outputPlansFile;
+    }
+
+    @StringGetter("outputPersonAttributesFile")
+    public String getOutputPersonAttributesFile() {
+        return outputPersonAttributesFile;
+    }
+
+    @StringSetter("outputPersonAttributesFile")
+    public void setOutputPersonAttributesFile(String outputPersonAttributesFile) {
+        this.outputPersonAttributesFile = outputPersonAttributesFile;
+    }
+
+    @StringGetter("mergedPersonAttributeKey")
+    public String getMergedPersonAttributeKey() {
+        return mergedPersonAttributeKey;
+    }
+
+    @StringSetter("mergedPersonAttributeKey")
+    public void setMergedPersonAttributeKey(String mergedPersonAttributeKey) {
+        this.mergedPersonAttributeKey = mergedPersonAttributeKey;
+    }
+
+    @StringGetter("mergedPersonAttributeValue")
+    public String getMergedPersonAttributeValue() {
+        return mergedPersonAttributeValue;
+    }
+
+    @StringSetter("mergedPersonAttributeValue")
+    public void setMergedPersonAttributeValue(String mergedPersonAttributeValue) {
+        this.mergedPersonAttributeValue = mergedPersonAttributeValue;
     }
 }
