@@ -8,6 +8,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
+import javafx.util.Pair;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.gis.ShapeFileReader;
@@ -39,13 +40,42 @@ public class LocateAct {
                 return feature;
             }
         }
-
         return null;
+    }
+
+    public SimpleFeature getNearestZone(Coord coord) {
+        SimpleFeature nearestFeature = null;
+        double nearestDistance = Double.MAX_VALUE;
+        for (SimpleFeature feature: features) {
+            MultiPolygon mp = (MultiPolygon) feature.getDefaultGeometry();
+            Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
+            if (nearestFeature == null) {
+                nearestFeature = feature;
+                nearestDistance = mp.distance(point);
+            }
+            else {
+                double actDistance = mp.distance(point);
+                if (actDistance < nearestDistance) {
+                    nearestFeature = feature;
+                    nearestDistance = mp.distance(point);
+                }
+                if (nearestDistance == 0.0) return nearestFeature;
+            }
+        }
+        return nearestFeature;
     }
 
     public String getZoneAttribute(Coord coord){
         SimpleFeature zone = getZone(coord);
         if(zone == null){
+            return "undefined";
+        }
+        return zone.getAttribute(attribute).toString();
+    }
+
+    public String getNearestZoneAttribute(Coord coord) {
+        SimpleFeature zone = getNearestZone(coord);
+        if (zone == null) {
             return "undefined";
         }
         return zone.getAttribute(attribute).toString();
