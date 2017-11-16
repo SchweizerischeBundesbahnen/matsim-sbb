@@ -23,6 +23,9 @@ import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 import ch.sbb.matsim.analysis.LocateAct;
 
 public class ZonePerPerson {
+
+    public static String ZONE = "zone";
+
     public static void main(final String[] args) {
         final Config config = ConfigUtils.createConfig();
         final String planFile = args[0];
@@ -68,7 +71,7 @@ public class ZonePerPerson {
                     notDefinedLog += String.join(";", l) + "\n";
                     nbUndefined += 1;
                 }
-                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), "zone", zone);
+                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), ZONE, zone);
             } else
                 throw new IllegalStateException("first planelement of person " +
                         person.getId().toString() + " cannot be not an activity");
