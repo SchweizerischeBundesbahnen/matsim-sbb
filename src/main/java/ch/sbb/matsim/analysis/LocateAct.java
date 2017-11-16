@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LocateAct {
+    public static String UNDEFINED = "undefined";
+
     Logger log = Logger.getLogger(LocateAct.class);
     Collection<SimpleFeature> features = null;
     GeometryFactory geometryFactory = new GeometryFactory();
@@ -64,19 +66,22 @@ public class LocateAct {
 
     }
 
-    public SimpleFeature getNearestZone(Coord coord) {
+    public SimpleFeature getNearestZone(Coord coord, double acceptance) {
         SimpleFeature nearestFeature = null;
         double nearestDistance = Double.MAX_VALUE;
         for (SimpleFeature feature: features) {
             MultiPolygon mp = (MultiPolygon) feature.getDefaultGeometry();
             Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
             if (nearestFeature == null) {
-                nearestFeature = feature;
-                nearestDistance = mp.distance(point);
+                Double actDistance = mp.distance(point);
+                if (actDistance <= acceptance) {
+                    nearestFeature = feature;
+                    nearestDistance = actDistance;
+                }
             }
             else {
                 double actDistance = mp.distance(point);
-                if (actDistance < nearestDistance) {
+                if (actDistance < nearestDistance && actDistance <= acceptance) {
                     nearestFeature = feature;
                     nearestDistance = mp.distance(point);
                 }
@@ -89,15 +94,15 @@ public class LocateAct {
     public String getZoneAttribute(Coord coord){
         SimpleFeature zone = getZone(coord);
         if(zone == null){
-            return "undefined";
+            return UNDEFINED;
         }
         return zone.getAttribute(attribute).toString();
     }
 
-    public String getNearestZoneAttribute(Coord coord) {
-        SimpleFeature zone = getNearestZone(coord);
+    public String getNearestZoneAttribute(Coord coord, double acceptance) {
+        SimpleFeature zone = getNearestZone(coord, acceptance);
         if (zone == null) {
-            return "undefined";
+            return UNDEFINED;
         }
         return zone.getAttribute(attribute).toString();
     }
