@@ -1,4 +1,4 @@
-package ch.sbb.matsim.utils;
+package ch.sbb.matsim.preparation;
 
 import java.io.IOException;
 import java.util.Arrays;
