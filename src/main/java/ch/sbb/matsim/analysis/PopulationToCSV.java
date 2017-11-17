@@ -6,15 +6,15 @@ package ch.sbb.matsim.analysis;
 
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.ActivityImpl;
-import org.matsim.core.population.LegImpl;
-import org.matsim.core.population.PopulationReaderMatsimV5;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.households.HouseholdsReaderV10;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
@@ -89,16 +89,16 @@ public class PopulationToCSV {
                     planelem.put("plan_score", score);
                     planelem.put("planelement_id", Integer.toString(i));
 
-                    if (planelement instanceof LegImpl) {
-                        LegImpl leg = ((LegImpl) planelement);
+                    if (planelement instanceof Leg) {
+                        Leg leg = ((Leg) planelement);
                         planelem.put("mode", leg.getMode().toString());
                         planelem.put("start_time", Double.toString(leg.getDepartureTime()));
-                        planelem.put("end_time", Double.toString(leg.getArrivalTime()));
+                        planelem.put("end_time", Double.toString(leg.getDepartureTime()+leg.getTravelTime()));
                         planelem.put("type", "leg");
 
                     }
-                    if (planelement instanceof ActivityImpl) {
-                        ActivityImpl activity = ((ActivityImpl) planelement);
+                    if (planelement instanceof Activity) {
+                        Activity activity = ((Activity) planelement);
                         planelem.put("activity_type", activity.getType().toString());
                         planelem.put("start_time", Double.toString(activity.getStartTime()));
                         planelem.put("end_time", Double.toString(activity.getEndTime()));
@@ -146,17 +146,17 @@ public class PopulationToCSV {
 
         config.plans().setInputFile(populationFile);
 
-        new PopulationReaderMatsimV5(scenario).readFile(config.plans().getInputFile());
+        new PopulationReader(scenario).readFile(config.plans().getInputFile());
 
 
         if (config.plans().getInputPersonAttributeFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).parse(config.plans().getInputPersonAttributeFile());
+            new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(config.plans().getInputPersonAttributeFile());
         }
         if (config.households().getInputFile() != null) {
             new HouseholdsReaderV10(scenario.getHouseholds()).readFile(config.households().getInputFile());
         }
         if (config.households().getInputHouseholdAttributesFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes()).parse(config.households().getInputHouseholdAttributesFile());
+            new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes()).readFile(config.households().getInputHouseholdAttributesFile());
         }
 
         new PopulationToCSV(scenario).write("agents.csv", "planelements.csv");

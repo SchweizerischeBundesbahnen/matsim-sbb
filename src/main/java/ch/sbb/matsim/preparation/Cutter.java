@@ -14,6 +14,8 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
@@ -21,15 +23,13 @@ import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
-import org.matsim.core.network.NetworkReaderMatsimV1;
+import org.matsim.core.network.io.NetworkReaderMatsimV1;
 import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.network.NetworkWriter;
+import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.network.algorithms.NetworkCleaner;
-import org.matsim.core.population.ActivityImpl;
-import org.matsim.core.population.LegImpl;
-import org.matsim.core.population.PopulationReaderMatsimV5;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.population.PopulationWriter;
+import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.population.routes.GenericRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -106,12 +106,12 @@ public class Cutter {
             this.radius = cutterConfig.getRadius();
         }
 
-        new PopulationReaderMatsimV5(scenario).readFile(config.plans().getInputFile());
+        new PopulationReader(scenario).readFile(config.plans().getInputFile());
 //        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).parse(config.plans().getInputPersonAttributeFile());
 //        new HouseholdsReaderV10(scenario.getHouseholds()).readFile(config.households().getInputFile());
 //        new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes()).parse(config.households().getInputHouseholdAttributesFile());
 //        new FacilitiesReaderMatsimV1(scenario).readFile(config.facilities().getInputFile());
-        new NetworkReaderMatsimV1(scenario.getNetwork()).parse(config.network().getInputFile());
+        new NetworkReaderMatsimV1(scenario.getNetwork()).readFile(config.network().getInputFile());
         new TransitScheduleReader(scenario).readFile(config.transit().getTransitScheduleFile());
         new VehicleReaderV1(scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
 //
@@ -169,8 +169,8 @@ public class Cutter {
         Set<Id<Link>> linksToKeep = new HashSet<>();
         for(Person p: population.getPersons().values()){
             for(PlanElement pe: p.getSelectedPlan().getPlanElements()){
-                if (pe instanceof LegImpl) {
-                    LegImpl leg = (LegImpl) pe;
+                if (pe instanceof Leg) {
+                    Leg leg = (Leg) pe;
 
                     if(leg.getRoute() == null){
                         continue;
@@ -186,7 +186,7 @@ public class Cutter {
                     }
                 }
                 else{
-                    ActivityImpl act = (ActivityImpl) pe;
+                    Activity act = (Activity) pe;
                     linksToKeep.add(act.getLinkId());
 
                 }
@@ -354,7 +354,7 @@ public class Cutter {
         return false;
     }
 
-    private Boolean intersects(LegImpl leg, TransitSchedule transit){
+    private Boolean intersects(Leg leg, TransitSchedule transit){
         boolean intersection = false;
         List<Id<Link>> linkIds = new ArrayList<>();
         if(leg.getRoute() instanceof ExperimentalTransitRoute){
@@ -400,9 +400,9 @@ public class Cutter {
                 intersection = false;
                 actNotInArea = false;
                 for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
-                    if (pe instanceof ActivityImpl) {
+                    if (pe instanceof Activity) {
 
-                        ActivityImpl act = (ActivityImpl) pe;
+                        Activity act = (Activity) pe;
                         if (inArea(act.getCoord())) {
                             actInArea = true;
                         } else {
@@ -410,13 +410,13 @@ public class Cutter {
                         }
                     }
 
-                    else if (pe instanceof LegImpl) {
-                        if(((LegImpl) pe).getRoute() == null){
+                    else if (pe instanceof Leg) {
+                        if(((Leg) pe).getRoute() == null){
                             actInArea = false;
                             intersection = false;
                             break;
                         }
-                        intersection = intersects( (LegImpl) pe, transit);
+                        intersection = intersects( (Leg) pe, transit);
                     }
                 }
 
@@ -441,8 +441,8 @@ public class Cutter {
 
         for(Person p: filteredPopulation.getPersons().values()){
             for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
-                     if (pe instanceof LegImpl) {
-                        Route route = ((LegImpl) pe).getRoute();
+                     if (pe instanceof Leg) {
+                        Route route = ((Leg) pe).getRoute();
                         if (route instanceof ExperimentalTransitRoute) {
                             ExperimentalTransitRoute myRoute = (ExperimentalTransitRoute) route;
                             if(!usedTransitRouteIds.containsKey(myRoute.getLineId())){
@@ -489,8 +489,8 @@ public class Cutter {
         for (Person person : filteredAgents.values()) {
             if (person.getSelectedPlan() != null) {
                 for (PlanElement pe : person.getSelectedPlan().getPlanElements()) {
-                    if (pe instanceof ActivityImpl) {
-                        ActivityImpl act = (ActivityImpl) pe;
+                    if (pe instanceof Activity) {
+                        Activity act = (Activity) pe;
                         if (act.getFacilityId() != null && !filteredFacilities.getFacilities().containsKey(act.getFacilityId())) {
                             filteredFacilities.addActivityFacility(scenario.getActivityFacilities().getFacilities().get(act.getFacilityId()));
                         }
