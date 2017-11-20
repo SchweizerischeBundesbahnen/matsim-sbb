@@ -93,6 +93,9 @@ public class RaumtypPerPerson {
                 else {
                     raumTyp = raumtypProGemeinde.get(gemeindeNr);
                 }
+                if (raumTyp == null) {
+                    throw new IllegalStateException("raumTyp == null. person: " + person.getId().toString() + " gemeindenr: " + gemeindeNr);
+                }
                 scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RAUMTYP, raumTyp);
             } else
                 throw new IllegalStateException("first planelement of person " +
