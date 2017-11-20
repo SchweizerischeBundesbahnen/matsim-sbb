@@ -79,8 +79,8 @@ public class AttributeMerger {
                 }
             }
 
-            Object raumTyp = personAttributesRaumtyp.getAttribute(person.getId().toString(), ZonePerPerson.ZONE);
-            scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), ZonePerPerson.ZONE, raumTyp);
+            Object raumTyp = personAttributesRaumtyp.getAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP);
+            scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP, raumTyp);
 
 
         }
