@@ -11,8 +11,8 @@ import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.PopulationReaderMatsimV5;
-import org.matsim.core.population.PopulationWriter;
+import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.router.TransitActsRemover;
 
@@ -39,7 +39,7 @@ public class Cleaner {
         config.plans().setInputFile(planFile);
 
         Scenario scenario = ScenarioUtils.createScenario(config);
-        new PopulationReaderMatsimV5(scenario).readFile(config.plans().getInputFile());
+        new PopulationReader(scenario).readFile(config.plans().getInputFile());
 
         Cleaner cleaner = new Cleaner(scenario.getPopulation());
         cleaner.clean();

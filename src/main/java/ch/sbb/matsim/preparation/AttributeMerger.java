@@ -10,8 +10,8 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PersonUtils;
-import org.matsim.core.population.PopulationReaderMatsimV5;
-import org.matsim.core.population.PopulationWriter;
+import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
@@ -33,13 +33,13 @@ public class AttributeMerger {
 
         Scenario scenario = ScenarioUtils.createScenario(config);
 
-        new PopulationReaderMatsimV5(scenario).readFile(config.plans().getInputFile());
+        new PopulationReader(scenario).readFile(config.plans().getInputFile());
 
         final ObjectAttributes personAttributesA = new ObjectAttributes();
         final ObjectAttributes personAttributesB = new ObjectAttributes();
 
-        new ObjectAttributesXmlReader(personAttributesA).parse(attributeFileA);
-        new ObjectAttributesXmlReader(personAttributesB).parse(attributeFileB);
+        new ObjectAttributesXmlReader(personAttributesA).readFile(attributeFileA);
+        new ObjectAttributesXmlReader(personAttributesB).readFile(attributeFileB);
 
 
         String[] attributes = attributesStr.split(",");

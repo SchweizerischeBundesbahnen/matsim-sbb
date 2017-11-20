@@ -42,9 +42,9 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsManagerImpl;
 import org.matsim.core.events.MatsimEventsReader;
-import org.matsim.core.network.NetworkReaderMatsimV1;
+import org.matsim.core.network.io.NetworkReaderMatsimV1;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.population.PopulationWriter;
+import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
@@ -298,7 +298,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
         Config config = ConfigUtils.createConfig();
         Scenario scenario = ScenarioUtils.createScenario(config);
 
-        new NetworkReaderMatsimV1(scenario.getNetwork()).parse(networkFile);
+        new NetworkReaderMatsimV1(scenario.getNetwork()).readFile(networkFile);
         PlansFromEvents plansHandler = new PlansFromEvents(scenario.getNetwork());
 
         events.addHandler(plansHandler);
