@@ -1,7 +1,11 @@
 package ch.sbb.matsim.scoring;
 
-import ch.sbb.matsim.preparation.RaumtypPerPerson;
-import javafx.util.Pair;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
@@ -18,13 +22,12 @@ import org.matsim.pt.PtConstants;
 import org.matsim.pt.config.TransitConfigGroup;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import ch.sbb.matsim.preparation.RaumtypPerPerson;
+import javafx.util.Pair;
 
 /**
  * @author jlie based on org.matsim.core.scoring.functions.RandomizedCharyparNagelScoringParameters
- * adding: the default CharyparNagelScoringParametersForPerson seems to be org.matsim.core.scoring.functions.SubpopulationCharyparNagelScoringParameters
+ *         adding: the default CharyparNagelScoringParametersForPerson seems to be org.matsim.core.scoring.functions.SubpopulationCharyparNagelScoringParameters
  */
 
 public class SBBCharyparNagelScoringParametersForPerson implements ScoringParametersForPerson {
@@ -38,6 +41,8 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
     Map<String, PlanCalcScoreConfigGroup.ModeParams> paramsPerMode;
     Map<Pair<String, String>, Double> modeConstCorrectionPerModeAndRaumtyp;
     private Logger log = Logger.getLogger(SBBCharyparNagelScoringParametersForPerson.class);
+    private static List<String> MODES_WITH_CONST_CORRECTION = Arrays.asList(new String[] {
+            TransportMode.walk, TransportMode.bike, TransportMode.car, TransportMode.pt, TransportMode.ride});
 
     public SBBCharyparNagelScoringParametersForPerson(Scenario scenario) {
         this(scenario.getConfig().plans(),
@@ -59,25 +64,22 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
         this.subpopulationAttributeName = plansConfigGroup.getSubpopulationAttributeName();
         this.transitConfigGroup = transitConfigGroup;
         this.paramsPerMode = new HashMap<>();
-        for (Map.Entry<String, PlanCalcScoreConfigGroup.ModeParams> aModeEntry: this.config.getModes().entrySet()) {
+        for (Map.Entry<String, PlanCalcScoreConfigGroup.ModeParams> aModeEntry : this.config.getModes().entrySet()) {
             String mode = aModeEntry.getKey();
             PlanCalcScoreConfigGroup.ModeParams modeParams = aModeEntry.getValue();
             String[] splitted = mode.split("_");
             if (splitted.length == 2) {
                 if (splitted[0].equals(TransportMode.pt)) {
                     this.paramsPerMode.put(splitted[1], modeParams);
-                }
-                else if (mode.equals(TransportMode.transit_walk)) {
+                } else if (mode.equals(TransportMode.transit_walk)) {
                     this.paramsPerMode.put(mode, modeParams);
-                }
-                else {
+                } else {
                     throw new IllegalArgumentException("mode separated by exactly one _, but first argument is not pt " + mode);
                 }
-            }
-            else if (splitted.length == 1) {
+            } else if (splitted.length == 1) {
                 this.paramsPerMode.put(mode, modeParams);
-            }
-            else throw new IllegalArgumentException("not well SBB-formatted mode " + mode);
+            } else
+                throw new IllegalArgumentException("not well SBB-formatted mode " + mode);
         }
         this.modeConstCorrectionPerModeAndRaumtyp = new HashMap<>();
         this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.walk, "1"), 0.0);
@@ -100,6 +102,12 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
         this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "2"), 0.0);
         this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "3"), 0.0);
         this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "4"), 0.0);
+        for (Pair<String, String> pair: this.modeConstCorrectionPerModeAndRaumtyp.keySet()) {
+            if (!MODES_WITH_CONST_CORRECTION.contains(pair.getKey())) {
+                throw new IllegalStateException("mode " + pair.getKey() +
+                        " with const-correction ist not contained in " + MODES_WITH_CONST_CORRECTION);
+            }
+        }
     }
 
     @Override
@@ -134,11 +142,14 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
             }
             builder.setModeParameters(TransportMode.pt, new ModeUtilityParameters.Builder(modeParams));
 
-            for (String mode: new String[] {TransportMode.walk, TransportMode.bike, TransportMode.car, TransportMode.ride}) {
-                builder.getModeParameters(mode).setConstant(paramsPerMode.get(mode).getConstant() +
-                        modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(mode, raumtyp)));
+            for (String mode: MODES_WITH_CONST_CORRECTION) {
+                if (!mode.equals(TransportMode.pt)) {
+                    builder.getModeParameters(mode).setConstant(paramsPerMode.get(mode).getConstant() +
+                            modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(mode, raumtyp)));
+                }
             }
-            this.paramsPerPerson.put(person, builder.build());
+            CharyparNagelScoringParameters paramas = builder.build();
+            this.paramsPerPerson.put(person, paramas);
         }
         return this.paramsPerPerson.get(person);
     }
