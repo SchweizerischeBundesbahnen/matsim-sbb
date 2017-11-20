@@ -148,8 +148,8 @@ public class SBBCharyparNagelScoringParametersForPerson implements CharyparNagel
                             modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(mode, raumtyp)));
                 }
             }
-            CharyparNagelScoringParameters paramas = builder.build();
-            this.paramsPerPerson.put(person, paramas);
+            CharyparNagelScoringParameters params = builder.build();
+            this.paramsPerPerson.put(person, params);
         }
         return this.paramsPerPerson.get(person);
     }
