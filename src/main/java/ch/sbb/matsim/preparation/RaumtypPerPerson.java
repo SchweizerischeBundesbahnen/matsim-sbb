@@ -94,7 +94,12 @@ public class RaumtypPerPerson {
                     raumTyp = raumtypProGemeinde.get(gemeindeNr);
                 }
                 if (raumTyp == null) {
-                    throw new IllegalStateException("raumTyp == null. person: " + person.getId().toString() + " gemeindenr: " + gemeindeNr);
+                    // it seems that even if shape-file and bfs-excel are from the same year, there are differences!
+                    log.info("raumTyp == null. person: " + person.getId().toString() + " gemeindenr: " + gemeindeNr);
+                    List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
+                    notDefinedLog += String.join(";", l) + "\n";
+                    nbUndefined += 1;
+                    raumTyp = DEFALUT_RAUMTYP;
                 }
                 scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RAUMTYP, raumTyp);
             } else
