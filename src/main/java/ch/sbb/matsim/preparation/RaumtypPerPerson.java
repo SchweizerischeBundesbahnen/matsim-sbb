@@ -30,7 +30,7 @@ public class RaumtypPerPerson {
     public static String GEMEINDE_BFSNR = "gemeinde_bfsnr";
     public static String GEMEINDETYP = "gemeindetyp2000_9";
     public static String RAUMTYP = "raumtyp";
-    public static String DEFALUT_RAUMTYP = "3";
+    public static String DEFALUT_RAUMTYP = "4";
 
 
     public static void main(final String[] args) {
