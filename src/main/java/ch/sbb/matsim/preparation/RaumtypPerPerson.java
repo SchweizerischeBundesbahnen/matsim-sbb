@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ch.sbb.matsim.csv.CSVReader;
 import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
@@ -24,6 +23,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 import ch.sbb.matsim.analysis.LocateAct;
+import ch.sbb.matsim.csv.CSVReader;
 
 public class RaumtypPerPerson {
 
@@ -60,46 +60,46 @@ public class RaumtypPerPerson {
 
         Scenario scenario = ScenarioUtils.createScenario(config);
 
-        CSVReader csvReader = new CSVReader(new String[]{GEMEINDE_BFSNR, GEMEINDETYP, RAUMTYP});
+        CSVReader csvReader = new CSVReader(new String[] { GEMEINDE_BFSNR, GEMEINDETYP, RAUMTYP });
         csvReader.read(pathBFSNrToGemeindetyp, ";");
 
-        Map<String, String> raumtypProGemeinde= new HashMap<>();
-        for (Map<String, String> entry: csvReader.data) {
+        Map<String, String> raumtypProGemeinde = new HashMap<>();
+        for (Map<String, String> entry : csvReader.data) {
             raumtypProGemeinde.put(entry.get(GEMEINDE_BFSNR), entry.get(RAUMTYP));
         }
-
         new PopulationReaderMatsimV5(scenario).readFile(config.plans().getInputFile());
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
             Plan firstPlan = person.getPlans().get(0);
             PlanElement firstPlanElement = firstPlan.getPlanElements().get(0);
             if (firstPlanElement instanceof ActivityImpl) {
+                String raumTyp = "";
                 String type = ((ActivityImpl) firstPlanElement).getType();
-                if (!type.equals("home")) { // hm, ... it seems that home is not defined as static string
+                if (!type.equals("home")) {
+                    raumTyp = DEFALUT_RAUMTYP;
                     log.info("first plan element of person " + person.getId().toString() +
                             " is not of type home");
                     nbNotHomeType += 1;
-                }
-                Coord coord = ((ActivityImpl) firstPlanElement).getCoord();
-                String gemeindeNr = locAct.getNearestZoneAttribute(coord, 200.0);
-                String raumTyp = "";
-                if (gemeindeNr.equals(LocateAct.UNDEFINED)) {
-                    log.info("no zone defined for person " + person.getId().toString());
-                    List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
-                    notDefinedLog += String.join(";", l) + "\n";
-                    nbUndefined += 1;
-                    raumTyp = DEFALUT_RAUMTYP;
-                }
-                else {
-                    raumTyp = raumtypProGemeinde.get(gemeindeNr);
-                }
-                if (raumTyp == null) {
-                    // it seems that even if shape-file and bfs-excel are from the same year, there are differences!
-                    log.info("raumTyp == null. person: " + person.getId().toString() + " gemeindenr: " + gemeindeNr);
-                    List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
-                    notDefinedLog += String.join(";", l) + "\n";
-                    nbUndefined += 1;
-                    raumTyp = DEFALUT_RAUMTYP;
+                } else {
+                    Coord coord = ((ActivityImpl) firstPlanElement).getCoord();
+                    String gemeindeNr = locAct.getNearestZoneAttribute(coord, 200.0);
+                    if (gemeindeNr.equals(LocateAct.UNDEFINED)) {
+                        log.info("no zone defined for person " + person.getId().toString());
+                        List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
+                        notDefinedLog += String.join(";", l) + "\n";
+                        nbUndefined += 1;
+                        raumTyp = DEFALUT_RAUMTYP;
+                    } else {
+                        raumTyp = raumtypProGemeinde.get(gemeindeNr);
+                    }
+                    if (raumTyp == null) {
+                        // it seems that even if shape-file and bfs-excel are from the same year, there are differences!
+                        log.info("raumTyp == null. person: " + person.getId().toString() + " gemeindenr: " + gemeindeNr);
+                        List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
+                        notDefinedLog += String.join(";", l) + "\n";
+                        nbUndefined += 1;
+                        raumTyp = DEFALUT_RAUMTYP;
+                    }
                 }
                 scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RAUMTYP, raumTyp);
             } else
