@@ -124,6 +124,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                     throw new IllegalStateException("mode parameters for pt must be defined");
                 }
             }
+
             modeParams.setConstant(modeParams.getConstant() + modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(TransportMode.pt, raumtyp)));
             ScoringParameters.Builder builder = new ScoringParameters.Builder(
                     this.config, this.config.getScoringParameters(subpopulation),
@@ -140,12 +141,18 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 modeParamsBuilder.setScoreAtAll(false);
                 builder.setActivityParameters(PtConstants.TRANSIT_ACTIVITY_TYPE, modeParamsBuilder);
             }
-            builder.setModeParameters(TransportMode.pt, new ModeUtilityParameters.Builder(modeParams));
+            final ModeUtilityParameters.Builder ptParameteresBuilder = new ModeUtilityParameters.Builder(modeParams);
+            ptParameteresBuilder.setConstant(modeParams.getConstant() +
+                    modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(TransportMode.pt, raumtyp)));
+            builder.setModeParameters(TransportMode.pt, ptParameteresBuilder);
 
             for (String mode: MODES_WITH_CONST_CORRECTION) {
                 if (!mode.equals(TransportMode.pt)) {
-                    builder.getModeParameters(mode).setConstant(paramsPerMode.get(mode).getConstant() +
+                    final PlanCalcScoreConfigGroup.ModeParams defaultModeParams = this.paramsPerMode.get(mode);
+                    final ModeUtilityParameters.Builder modeParameteresBuilder = new ModeUtilityParameters.Builder(defaultModeParams);
+                    modeParameteresBuilder.setConstant(defaultModeParams.getConstant() +
                             modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(mode, raumtyp)));
+                    builder.setModeParameters(mode, modeParameteresBuilder);
                 }
             }
             CharyparNagelScoringParameters params = builder.build();
