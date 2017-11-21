@@ -42,7 +42,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements CharyparNagel
     Map<Pair<String, String>, Double> modeConstCorrectionPerModeAndRaumtyp;
     private Logger log = Logger.getLogger(SBBCharyparNagelScoringParametersForPerson.class);
     private static List<String> MODES_WITH_CONST_CORRECTION = Arrays.asList(new String[] {
-            TransportMode.walk, TransportMode.bike, TransportMode.car, TransportMode.pt, TransportMode.ride});
+            TransportMode.walk, TransportMode.bike, TransportMode.car, TransportMode.pt, TransportMode.ride });
 
     public SBBCharyparNagelScoringParametersForPerson(Scenario scenario) {
         this(scenario.getConfig().plans(),
@@ -102,7 +102,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements CharyparNagel
         this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "2"), 0.0);
         this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "3"), 0.0);
         this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "4"), 0.0);
-        for (Pair<String, String> pair: this.modeConstCorrectionPerModeAndRaumtyp.keySet()) {
+        for (Pair<String, String> pair : this.modeConstCorrectionPerModeAndRaumtyp.keySet()) {
             if (!MODES_WITH_CONST_CORRECTION.contains(pair.getKey())) {
                 throw new IllegalStateException("mode " + pair.getKey() +
                         " with const-correction ist not contained in " + MODES_WITH_CONST_CORRECTION);
@@ -133,18 +133,20 @@ public class SBBCharyparNagelScoringParametersForPerson implements CharyparNagel
                 // yyyy this should go away somehow. :-)
                 PlanCalcScoreConfigGroup.ActivityParams transitActivityParams = new PlanCalcScoreConfigGroup.ActivityParams(PtConstants.TRANSIT_ACTIVITY_TYPE);
                 transitActivityParams.setTypicalDuration(120.0);
-                transitActivityParams.setOpeningTime(0.) ;
-                transitActivityParams.setClosingTime(0.) ;
+                transitActivityParams.setOpeningTime(0.);
+                transitActivityParams.setClosingTime(0.);
                 ActivityUtilityParameters.Builder modeParamsBuilder = new ActivityUtilityParameters.Builder(transitActivityParams);
                 modeParamsBuilder.setScoreAtAll(false);
                 builder.setActivityParameters(PtConstants.TRANSIT_ACTIVITY_TYPE, modeParamsBuilder);
             }
             final ModeUtilityParameters.Builder ptParameteresBuilder = new ModeUtilityParameters.Builder(modeParams);
+            // TODO the season-ticket-dependent correction should be done in the same manner as other corrections such as the raumtyp-dependent correction. to be implemented with a proper concept for
+            // the verhaltenshomogene gruppen
             ptParameteresBuilder.setConstant(modeParams.getConstant() +
                     modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(TransportMode.pt, raumtyp)));
             builder.setModeParameters(TransportMode.pt, ptParameteresBuilder);
 
-            for (String mode: MODES_WITH_CONST_CORRECTION) {
+            for (String mode : MODES_WITH_CONST_CORRECTION) {
                 if (!mode.equals(TransportMode.pt)) {
                     final PlanCalcScoreConfigGroup.ModeParams defaultModeParams = this.paramsPerMode.get(mode);
                     final ModeUtilityParameters.Builder modeParameteresBuilder = new ModeUtilityParameters.Builder(defaultModeParams);
