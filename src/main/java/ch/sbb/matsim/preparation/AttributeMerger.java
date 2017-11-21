@@ -83,10 +83,12 @@ public class AttributeMerger {
                 if (attribute.equals("gender") || attribute.equals("sex")) {
                     person.getCustomAttributes().put("gender", C);
                 }
-            }
-            if (attributeFileRaumtypen != null) {
-                Object raumTyp = personAttributesRaumtyp.getAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP);
-                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP, raumTyp);
+                if (attribute.equals("raumtyp")) {
+                    if (attributeFileRaumtypen != null) {
+                        Object raumTyp = personAttributesRaumtyp.getAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP);
+                        scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP, raumTyp);
+                    }
+                }
             }
         }
         new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFile);
