@@ -107,7 +107,6 @@ public class RaumtypPerPerson {
                         person.getId().toString() + " cannot be not an activity");
         }
         new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFileOut);
-        log.info("agents with undefined gemeinde:");
         log.info(notDefinedLog);
         log.info("nb persons with first activity not of type home " + nbNotHomeType);
         log.info("nb persons with undefined zone " + nbUndefined);
