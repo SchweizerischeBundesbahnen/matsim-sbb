@@ -27,7 +27,12 @@ public class AttributeMerger {
         final String attributeFile = args[3];
         final String attributesStr = args[4];
         final String populationFile = args[5];
-        final String attributeFileRaumtypen = args[6];
+        final String attributeFileRaumtypen;
+        if (args.length == 7) {
+            attributeFileRaumtypen = args[6];
+        } else {
+            attributeFileRaumtypen = null;
+        }
 
         config.plans().setInputFile(planFile);
 
@@ -41,7 +46,8 @@ public class AttributeMerger {
 
         new ObjectAttributesXmlReader(personAttributesA).parse(attributeFileA);
         new ObjectAttributesXmlReader(personAttributesB).parse(attributeFileB);
-        new ObjectAttributesXmlReader(personAttributesRaumtyp).parse(attributeFileRaumtypen);
+        if (attributeFileRaumtypen != null)
+            new ObjectAttributesXmlReader(personAttributesRaumtyp).parse(attributeFileRaumtypen);
 
 
         String[] attributes = attributesStr.split(",");
@@ -78,11 +84,10 @@ public class AttributeMerger {
                     person.getCustomAttributes().put("gender", C);
                 }
             }
-
-            Object raumTyp = personAttributesRaumtyp.getAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP);
-            scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP, raumTyp);
-
-
+            if (attributeFileRaumtypen != null) {
+                Object raumTyp = personAttributesRaumtyp.getAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP);
+                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP, raumTyp);
+            }
         }
         new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFile);
         new PopulationWriter(scenario.getPopulation()).write(populationFile);
