@@ -17,6 +17,10 @@ import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 public class AttributeMerger {
     public static void main(final String[] args) {
         Logger log = Logger.getLogger(Cutter.class);
@@ -50,7 +54,8 @@ public class AttributeMerger {
             new ObjectAttributesXmlReader(personAttributesRaumtyp).parse(attributeFileRaumtypen);
 
 
-        String[] attributes = attributesStr.split(",");
+        List<String> attributes =new LinkedList<>(Arrays.asList(attributesStr.split(",")));
+        attributes.remove(RaumtypPerPerson.RAUMTYP);
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
 
@@ -83,12 +88,10 @@ public class AttributeMerger {
                 if (attribute.equals("gender") || attribute.equals("sex")) {
                     person.getCustomAttributes().put("gender", C);
                 }
-                if (attribute.equals("raumtyp")) {
-                    if (attributeFileRaumtypen != null) {
-                        Object raumTyp = personAttributesRaumtyp.getAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP);
-                        scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP, raumTyp);
-                    }
-                }
+            }
+            if (attributeFileRaumtypen != null) {
+                Object raumTyp = personAttributesRaumtyp.getAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP);
+                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP, raumTyp);
             }
         }
         new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFile);
