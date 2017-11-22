@@ -16,7 +16,7 @@ import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.scoring.SumScoringFunction;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.scoring.functions.CharyparNagelLegScoring;
-import org.matsim.core.scoring.functions.CharyparNagelScoringParameters;
+import org.matsim.core.scoring.functions.ScoringParameters;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import java.util.Set;
 public class Scoring implements  ScoringFunctionFactory{
     private final Scenario scenario;
     private final StageActivityTypes blackList;
-    private final Map<Id, CharyparNagelScoringParameters> individualParameters = new HashMap<>();
+    private final Map<Id, ScoringParameters> individualParameters = new HashMap<>();
 
     public Scoring(final Scenario scenario, final StageActivityTypes typesNotToScore) {
         this.scenario = scenario;
@@ -41,13 +41,13 @@ public class Scoring implements  ScoringFunctionFactory{
         final PlanCalcScoreConfigGroup config = scenario.getConfig().planCalcScore();
         final ObjectAttributes personAttributes = scenario.getPopulation().getPersonAttributes();
 
-        final CharyparNagelScoringParameters params = createParams(person, config, scenario.getConfig().scenario(), personAttributes);
+        final ScoringParameters params = createParams(person, config, scenario.getConfig().scenario(), personAttributes);
         scoringFunctionAccumulator.addScoringFunction(new CharyparNagelLegScoring(params, scenario.getNetwork()));
         return scoringFunctionAccumulator;
     }
 
 
-    private CharyparNagelScoringParameters createParams(
+    private ScoringParameters createParams(
             final Person person,
             final PlanCalcScoreConfigGroup config,
             final ScenarioConfigGroup scenarioConfig,
@@ -56,7 +56,7 @@ public class Scoring implements  ScoringFunctionFactory{
             return individualParameters.get(person.getId());
         }
 
-        final CharyparNagelScoringParameters.Builder builder = new CharyparNagelScoringParameters.Builder(config, config.getScoringParameters(null), scenarioConfig);
+        final ScoringParameters.Builder builder = new ScoringParameters.Builder(config, config.getScoringParameters(null), scenarioConfig);
         final Set<String> handledTypes = new HashSet<>();
         for (Activity act : TripStructureUtils.getActivities(person.getSelectedPlan(), blackList)) {
             // XXX works only if no variation of type of activities between plans
@@ -109,7 +109,7 @@ public class Scoring implements  ScoringFunctionFactory{
                     typeBuilder);
         }
 
-        final CharyparNagelScoringParameters params = builder.build();
+        final ScoringParameters params = builder.build();
         individualParameters.put(person.getId(), params);
         return params;
     }

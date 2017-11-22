@@ -9,8 +9,8 @@ import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansConfigGroup;
 import org.matsim.core.config.groups.ScenarioConfigGroup;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
-import org.matsim.core.scoring.functions.CharyparNagelScoringParameters;
-import org.matsim.core.scoring.functions.CharyparNagelScoringParametersForPerson;
+import org.matsim.core.scoring.functions.ScoringParameters;
+import org.matsim.core.scoring.functions.ScoringParametersForPerson;
 import org.matsim.core.scoring.functions.ModeUtilityParameters;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.config.TransitConfigGroup;
@@ -25,11 +25,11 @@ import java.util.Map;
  * adding: the default CharyparNagelScoringParametersForPerson seems to be org.matsim.core.scoring.functions.SubpopulationCharyparNagelScoringParameters
  */
 
-public class SBBCharyparNagelScoringParametersForPerson implements CharyparNagelScoringParametersForPerson {
+public class SBBCharyparNagelScoringParametersForPerson implements ScoringParametersForPerson {
 
     private final PlanCalcScoreConfigGroup config;
     private final ScenarioConfigGroup scConfig;
-    private final Map<Person, CharyparNagelScoringParameters> paramsPerPerson = new LinkedHashMap<>();
+    private final Map<Person, ScoringParameters> paramsPerPerson = new LinkedHashMap<>();
     private final ObjectAttributes personAttributes;
     private final String subpopulationAttributeName;
     private final TransitConfigGroup transitConfigGroup;
@@ -79,7 +79,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements CharyparNagel
     }
 
     @Override
-    public CharyparNagelScoringParameters getScoringParameters(Person person) {
+    public ScoringParameters getScoringParameters(Person person) {
         if (!this.paramsPerPerson.containsKey(person)) {
             final String subpopulation = (String) personAttributes.getAttribute(person.getId().toString(), subpopulationAttributeName);
             final String aboType = (String) personAttributes.getAttribute(person.getId().toString(), "season_ticket"); // TODO define "season_ticket" as static string?
@@ -91,7 +91,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements CharyparNagel
                     throw new IllegalStateException("mode parameters for pt must be defined");
                 }
             }
-            CharyparNagelScoringParameters.Builder builder = new CharyparNagelScoringParameters.Builder(
+            ScoringParameters.Builder builder = new ScoringParameters.Builder(
                     this.config, this.config.getScoringParameters(subpopulation),
                     scConfig);
             if (transitConfigGroup.isUseTransit()) {
