@@ -30,10 +30,12 @@ import java.util.Map;
 import java.util.Set;
 
 import ch.sbb.matsim.analysis.LocateAct;
+import ch.sbb.matsim.config.AccessTimeConfigGroup;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.PopulationFactory;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
@@ -77,11 +79,9 @@ public class SBBNetworkRouter implements Provider<RoutingModule>
 
 	private LocateAct actLocator;
 
-	public SBBNetworkRouter(String mode, String shapefile) {
+	public SBBNetworkRouter(String mode, AccessTimeConfigGroup accessTimeConfigGroup) {
 		this.mode = mode;
-
-		this.actLocator = new LocateAct(shapefile, "GMDNAME");
-
+		this.actLocator = new LocateAct(accessTimeConfigGroup.getShapefile(), "GMDNAME");
 	}
 
 	private final String mode;

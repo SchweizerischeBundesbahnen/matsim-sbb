@@ -8,6 +8,7 @@ package ch.sbb.matsim;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
@@ -16,8 +17,10 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 
 import ch.sbb.matsim.analysis.SBBPostProcessing;
+import ch.sbb.matsim.config.AccessTimeConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
+import ch.sbb.matsim.routing.network.SBBNetworkRouter;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 
 /**
@@ -35,7 +38,7 @@ public class RunSBB {
 
         log.info(configFile);
 
-        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup());
+        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new AccessTimeConfigGroup());
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
@@ -54,11 +57,17 @@ public class RunSBB {
 
                 addTravelTimeBinding("privateSFF").to(networkTravelTime());
                 addTravelDisutilityFactoryBinding("privateSFF").to(carTravelDisutilityFactoryKey());
-
-                addTravelTimeBinding("taxiSFF").to(networkTravelTime());
-                addTravelDisutilityFactoryBinding("taxiSFF").to(carTravelDisutilityFactoryKey());
-
                 install(new SBBQSimModule());
+
+            }
+        });
+
+        AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
+
+        controler.addOverridingModule(new AbstractModule() {
+            @Override
+            public void install() {
+                addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, accessTimeConfigGroup));
             }
         });
 

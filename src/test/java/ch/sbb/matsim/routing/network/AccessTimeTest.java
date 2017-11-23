@@ -15,6 +15,7 @@ import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup;
@@ -24,12 +25,15 @@ import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import ch.sbb.matsim.config.AccessTimeConfigGroup;
+
 
 public class AccessTimeTest {
 
-    private Coord bern = new Coord(600000, 200000);
-    private Coord stleo = new Coord(598345.54, 122581.99);
-    private Coord thun = new Coord(613843.82, 178094.54);
+    private Coord bern = new Coord(600000, 200000); // 20
+    private Coord stleo = new Coord(598345.54, 122581.99); // 2
+    private Coord thun = new Coord(613843.82, 178094.54); // 3
+    private Coord lausanne = new Coord(613843.82, 178094.54); // 11
     private String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP";
 
 
@@ -39,16 +43,17 @@ public class AccessTimeTest {
         controler.run();
 
         Person person = controler.getScenario().getPopulation().getPersons().get(Id.createPersonId("1"));
-        for(PlanElement pe :person.getSelectedPlan().getPlanElements()){
-            if(pe instanceof Leg){
+        for (PlanElement pe : person.getSelectedPlan().getPlanElements()) {
+            if (pe instanceof Leg) {
                 Leg leg = (Leg) pe;
                 System.out.println(leg.getTravelTime());
             }
         }
     }
 
-    private Controler makeScenario(Coord start, Coord end){
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+    private Controler makeScenario(Coord start, Coord end) {
+        Config config = ConfigUtils.createConfig(new AccessTimeConfigGroup());
+        Scenario scenario = ScenarioUtils.createScenario(config);
 
         Population population = scenario.getPopulation();
         Network network = scenario.getNetwork();
@@ -69,14 +74,14 @@ public class AccessTimeTest {
         Person person = populationFactory.createPerson(Id.createPersonId("1"));
 
         Activity home = populationFactory.createActivityFromCoord("home", start);
-        home.setEndTime(8*60*60);
+        home.setEndTime(8 * 60 * 60);
         plan.addActivity(home);
         Leg leg = populationFactory.createLeg("car");
 
         plan.addLeg(leg);
 
         Activity work = populationFactory.createActivityFromCoord("work", end);
-        work.setStartTime(10*60*60);
+        work.setStartTime(10 * 60 * 60);
 
         plan.addActivity(work);
         person.addPlan(plan);
@@ -84,10 +89,10 @@ public class AccessTimeTest {
 
         population.addPerson(person);
 
-        PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("home" ) ;
+        PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("home");
         scenario.getConfig().planCalcScore().addActivityParams(params);
 
-        PlanCalcScoreConfigGroup.ActivityParams params2 = new PlanCalcScoreConfigGroup.ActivityParams("work" ) ;
+        PlanCalcScoreConfigGroup.ActivityParams params2 = new PlanCalcScoreConfigGroup.ActivityParams("work");
         scenario.getConfig().planCalcScore().addActivityParams(params2);
 
         scenario.getConfig().plansCalcRoute().setInsertingAccessEgressWalk(true);
@@ -99,12 +104,16 @@ public class AccessTimeTest {
         scenario.getConfig().strategy().addStrategySettings(settings);
 
         Controler controler = new Controler(scenario);
+        AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
+
+        accessTimeConfigGroup.setShapefile(shapefile);
 
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
-                addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, shapefile));
-            }});
+                addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, accessTimeConfigGroup));
+            }
+        });
 
         controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
         controler.getConfig().controler().setLastIteration(1);
