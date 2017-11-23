@@ -81,7 +81,9 @@ public class SBBNetworkRouter implements Provider<RoutingModule>
 
 	public SBBNetworkRouter(String mode, AccessTimeConfigGroup accessTimeConfigGroup) {
 		this.mode = mode;
-		this.actLocator = new LocateAct(accessTimeConfigGroup.getShapefile(), "GMDNAME");
+		if(accessTimeConfigGroup.getInsertingAccessEgressWalk()){
+			this.actLocator = new LocateAct(accessTimeConfigGroup.getShapefile(), "GMDNAME");
+		}
 	}
 
 	private final String mode;
@@ -121,7 +123,8 @@ public class SBBNetworkRouter implements Provider<RoutingModule>
 			return new SBBNetworkRoutingInclAccessEgressModule(mode, populationFactory, filteredNetwork, routeAlgo,
 					plansCalcRouteConfigGroup, this.actLocator) ;
 		} else {
-			return DefaultRoutingModules.createPureNetworkRouter(mode, populationFactory, filteredNetwork, routeAlgo);
+			//return DefaultRoutingModules.createPureNetworkRouter(mode, populationFactory, filteredNetwork, routeAlgo);
+			throw new RuntimeException("You should not use this router or activate isInaertingAccessEgressWalk");
 		}
 	}
 }

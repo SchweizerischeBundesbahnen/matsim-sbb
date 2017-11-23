@@ -63,13 +63,16 @@ public class RunSBB {
         });
 
         AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
+        if(accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
 
-        controler.addOverridingModule(new AbstractModule() {
-            @Override
-            public void install() {
-                addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, accessTimeConfigGroup));
-            }
-        });
+            config.plansCalcRoute().setInsertingAccessEgressWalk(true);
+            controler.addOverridingModule(new AbstractModule() {
+                @Override
+                public void install() {
+                    addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, accessTimeConfigGroup));
+                }
+            });
+        }
 
         controler.run();
         postProcessing.write();

@@ -1,5 +1,6 @@
 package ch.sbb.matsim.routing.network;
 
+import ch.sbb.matsim.analysis.LocateAct;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -95,9 +96,6 @@ public class AccessTimeTest {
         PlanCalcScoreConfigGroup.ActivityParams params2 = new PlanCalcScoreConfigGroup.ActivityParams("work");
         scenario.getConfig().planCalcScore().addActivityParams(params2);
 
-        scenario.getConfig().plansCalcRoute().setInsertingAccessEgressWalk(true);
-
-
         StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
         settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator_ReRoute.toString());
         settings.setWeight(1.0);
@@ -107,6 +105,11 @@ public class AccessTimeTest {
         AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
 
         accessTimeConfigGroup.setShapefile(shapefile);
+        accessTimeConfigGroup.setInsertingAccessEgressWalk(true);
+
+        if(accessTimeConfigGroup.getInsertingAccessEgressWalk()){
+			config.plansCalcRoute().setInsertingAccessEgressWalk(true);
+		}
 
         controler.addOverridingModule(new AbstractModule() {
             @Override

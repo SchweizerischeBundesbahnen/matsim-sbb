@@ -7,6 +7,7 @@ public class AccessTimeConfigGroup extends ReflectiveConfigGroup{
     static public final String GROUP_NAME = "AccessTime";
 
     private String shapefile = "";
+    private Boolean isInsertingAccessEgressWalk = false;
 
     public AccessTimeConfigGroup() {
         super(GROUP_NAME);
@@ -22,4 +23,13 @@ public class AccessTimeConfigGroup extends ReflectiveConfigGroup{
         this.shapefile = shapefile;
     }
 
+    @StringGetter("isInsertingAccessEgressWalk")
+    public Boolean getInsertingAccessEgressWalk() {
+        return isInsertingAccessEgressWalk;
+    }
+
+    @StringSetter("isInsertingAccessEgressWalk")
+    public void setInsertingAccessEgressWalk(Boolean insertingAccessEgressWalk) {
+        isInsertingAccessEgressWalk = insertingAccessEgressWalk;
+    }
 }
