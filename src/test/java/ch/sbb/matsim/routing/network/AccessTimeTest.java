@@ -1,12 +1,10 @@
 package ch.sbb.matsim.routing.network;
 
-import ch.sbb.matsim.RunSBB;
-import ch.sbb.matsim.analysis.LocateAct;
+import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
@@ -21,12 +19,12 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup;
-import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.AccessTimeConfigGroup;
 
 
@@ -51,6 +49,12 @@ public class AccessTimeTest {
                 System.out.println(leg.getTravelTime());
             }
         }
+
+        Leg accessLeg = (Leg) person.getSelectedPlan().getPlanElements().get(1);
+        Leg egressLeg = (Leg) person.getSelectedPlan().getPlanElements().get(5);
+
+        Assert.assertEquals(40.0, accessLeg.getTravelTime(), 1e-10);
+        Assert.assertEquals(4.0, egressLeg.getTravelTime(), 1e-10);
     }
 
 
@@ -66,6 +70,12 @@ public class AccessTimeTest {
                 System.out.println(leg.getTravelTime());
             }
         }
+
+        Leg accessLeg = (Leg) person.getSelectedPlan().getPlanElements().get(1);
+        Leg egressLeg = (Leg) person.getSelectedPlan().getPlanElements().get(5);
+
+        Assert.assertEquals(20.0, accessLeg.getTravelTime(), 1e-10);
+        Assert.assertEquals(2.0, egressLeg.getTravelTime(), 1e-10);
     }
 
     private Controler makeScenario(Coord start, Coord end, String mode) {
