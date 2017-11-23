@@ -23,6 +23,7 @@ import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRouter;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 
+
 /**
  * @author denism
  *
@@ -30,6 +31,8 @@ import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 public class RunSBB {
 
     private static Logger log = Logger.getLogger(RunSBB.class);
+    private Controler controler;
+    private SBBPostProcessing postProcessing;
 
     public static void main(String[] args) {
         System.setProperty("matsim.preferLocalDtds", "true");
@@ -39,15 +42,27 @@ public class RunSBB {
         log.info(configFile);
 
         final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new AccessTimeConfigGroup());
+        RunSBB sbb = new RunSBB();
 
+        sbb.prepare(configFile);
+        sbb.run();
+    }
+
+    public void prepare(String configFile) {
+        final Config config = this.loadConfig(configFile);
         Scenario scenario = ScenarioUtils.loadScenario(config);
+        this.prepare(scenario);
 
-        Controler controler = new Controler(scenario);
+    }
+
+    public void prepare(Scenario scenario) {
+
+        controler = new Controler(scenario);
 
         ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
         controler.setScoringFunctionFactory(scoringFunctionFactory);
 
-        SBBPostProcessing postProcessing = new SBBPostProcessing(controler);
+        postProcessing = new SBBPostProcessing(controler);
 
         controler.addOverridingModule(new AbstractModule() {
             @Override
@@ -62,6 +77,8 @@ public class RunSBB {
             }
         });
 
+        Config config = scenario.getConfig();
+
         AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
         if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
 
@@ -74,6 +91,22 @@ public class RunSBB {
             });
         }
 
+
+    }
+
+    public Config loadConfig(String configFile) {
+        return ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new AccessTimeConfigGroup());
+    }
+
+    public Config createConfig() {
+        return ConfigUtils.createConfig(new PostProcessingConfigGroup(), new AccessTimeConfigGroup());
+    }
+
+    public Controler getControler() {
+        return this.controler;
+    }
+
+    public void run() {
         controler.run();
         postProcessing.write();
     }

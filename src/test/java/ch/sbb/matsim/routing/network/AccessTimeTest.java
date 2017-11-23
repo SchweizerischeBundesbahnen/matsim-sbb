@@ -1,5 +1,6 @@
 package ch.sbb.matsim.routing.network;
 
+import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.LocateAct;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
@@ -53,7 +54,10 @@ public class AccessTimeTest {
     }
 
     private Controler makeScenario(Coord start, Coord end) {
-        Config config = ConfigUtils.createConfig(new AccessTimeConfigGroup());
+
+        RunSBB sbb = new RunSBB();
+
+        Config config = sbb.createConfig();
         Scenario scenario = ScenarioUtils.createScenario(config);
 
         Population population = scenario.getPopulation();
@@ -101,28 +105,20 @@ public class AccessTimeTest {
         settings.setWeight(1.0);
         scenario.getConfig().strategy().addStrategySettings(settings);
 
-        Controler controler = new Controler(scenario);
+
         AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
 
         accessTimeConfigGroup.setShapefile(shapefile);
         accessTimeConfigGroup.setInsertingAccessEgressWalk(true);
 
-        if(accessTimeConfigGroup.getInsertingAccessEgressWalk()){
-			config.plansCalcRoute().setInsertingAccessEgressWalk(true);
-		}
 
-        controler.addOverridingModule(new AbstractModule() {
-            @Override
-            public void install() {
-                addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, accessTimeConfigGroup));
-            }
-        });
+        sbb.prepare(scenario);
 
-        controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
-        controler.getConfig().controler().setLastIteration(1);
-        controler.getConfig().controler().setWriteEventsUntilIteration(1);
-        controler.getConfig().controler().setWritePlansInterval(1);
+        sbb.getControler().getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
+        sbb.getControler().getConfig().controler().setLastIteration(1);
+        sbb.getControler().getConfig().controler().setWriteEventsUntilIteration(1);
+        sbb.getControler().getConfig().controler().setWritePlansInterval(1);
 
-        return controler;
+        return sbb.getControler();
     }
 }
