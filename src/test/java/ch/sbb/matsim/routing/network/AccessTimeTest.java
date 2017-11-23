@@ -40,8 +40,8 @@ public class AccessTimeTest {
 
 
     @Test
-    public final void testCar() {
-        Controler controler = makeScenario(bern, stleo);
+    public final void testBike() {
+        Controler controler = makeScenario(bern, stleo, "bike");
         controler.run();
 
         Person person = controler.getScenario().getPopulation().getPersons().get(Id.createPersonId("1"));
@@ -53,7 +53,22 @@ public class AccessTimeTest {
         }
     }
 
-    private Controler makeScenario(Coord start, Coord end) {
+
+    @Test
+    public final void testCar() {
+        Controler controler = makeScenario(bern, stleo, "car");
+        controler.run();
+
+        Person person = controler.getScenario().getPopulation().getPersons().get(Id.createPersonId("1"));
+        for (PlanElement pe : person.getSelectedPlan().getPlanElements()) {
+            if (pe instanceof Leg) {
+                Leg leg = (Leg) pe;
+                System.out.println(leg.getTravelTime());
+            }
+        }
+    }
+
+    private Controler makeScenario(Coord start, Coord end, String mode) {
 
         RunSBB sbb = new RunSBB();
 
@@ -81,7 +96,7 @@ public class AccessTimeTest {
         Activity home = populationFactory.createActivityFromCoord("home", start);
         home.setEndTime(8 * 60 * 60);
         plan.addActivity(home);
-        Leg leg = populationFactory.createLeg("car");
+        Leg leg = populationFactory.createLeg(mode);
 
         plan.addLeg(leg);
 

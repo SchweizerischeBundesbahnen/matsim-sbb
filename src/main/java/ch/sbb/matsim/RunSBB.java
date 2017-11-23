@@ -21,8 +21,8 @@ import ch.sbb.matsim.config.AccessTimeConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRouter;
+import ch.sbb.matsim.routing.teleportation.SBBBeelineTeleportationRouting;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
-
 
 /**
  * @author denism
@@ -87,7 +87,10 @@ public class RunSBB {
                 @Override
                 public void install() {
                     addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, accessTimeConfigGroup));
+                    addRoutingModuleBinding(TransportMode.bike)
+                            .toProvider(new SBBBeelineTeleportationRouting(config.plansCalcRoute().getModeRoutingParams().get(TransportMode.bike), accessTimeConfigGroup));
                 }
+
             });
         }
 
