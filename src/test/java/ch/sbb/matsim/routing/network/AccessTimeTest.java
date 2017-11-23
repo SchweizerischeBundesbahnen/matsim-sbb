@@ -30,6 +30,8 @@ public class AccessTimeTest {
     private Coord bern = new Coord(600000, 200000);
     private Coord stleo = new Coord(598345.54, 122581.99);
     private Coord thun = new Coord(613843.82, 178094.54);
+    private String shapefile = "\\\\V00925\\Simba\\10_Daten\\70_Geodaten\\400_Geodaten\\Raumgliederung_CH\\BFS_CH14\\BFS_CH14_Gemeinden.shp";
+
 
     @Test
     public final void testCar() {
@@ -101,7 +103,7 @@ public class AccessTimeTest {
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
-                addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car));
+                addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, shapefile));
             }});
 
         controler.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);

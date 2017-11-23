@@ -77,10 +77,9 @@ public class SBBNetworkRouter implements Provider<RoutingModule>
 
 	private LocateAct actLocator;
 
-	public SBBNetworkRouter(String mode) {
+	public SBBNetworkRouter(String mode, String shapefile) {
 		this.mode = mode;
 
-		String shapefile = "\\\\V00925\\Simba\\10_Daten\\70_Geodaten\\400_Geodaten\\Raumgliederung_CH\\BFS_CH14\\BFS_CH14_Gemeinden.shp";
 		this.actLocator = new LocateAct(shapefile, "GMDNAME");
 
 	}
