@@ -41,7 +41,6 @@ public class SBBTeleportationRoutingModule extends TeleportationRoutingModule {
         now = accessEgress.addAccess(fromFacility, accessActLink, now, result, person);
         List<? extends PlanElement> planElements = super.calcRoute(fromFacility, toFacility, now, person);
         Leg leg = (Leg) planElements.get(0);
-        System.out.println(leg);
         result.add(leg);
 
         now = leg.getDepartureTime() + leg.getTravelTime();

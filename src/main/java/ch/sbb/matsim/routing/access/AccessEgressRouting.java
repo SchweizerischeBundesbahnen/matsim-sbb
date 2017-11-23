@@ -113,7 +113,6 @@ public class AccessEgressRouting {
         SimpleFeature zone = this.actLocator.getZone(fromCoord);
         int travTime = 0;
         if (zone != null) {
-            System.out.println(zone);
             travTime = (int) zone.getAttribute("ACC" + mode.toUpperCase());
         }
         route.setTravelTime(travTime);
