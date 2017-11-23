@@ -27,6 +27,7 @@ import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.facilities.Facility;
 import org.matsim.vehicles.Vehicle;
+import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -216,9 +217,13 @@ public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingMod
 		double beelineDistanceFactor = 1.3 ;
 
 		double estimatedNetworkDistance = dist * beelineDistanceFactor;
-		int travTime = (int) 999;
-		System.out.println(this.actLocator.getZoneAttribute(fromCoord));
-		System.out.println(fromCoord);
+
+		SimpleFeature zone = this.actLocator.getZone(fromCoord);
+		int travTime = 0;
+		if(zone != null){
+			System.out.println(zone);
+			travTime = (int) zone.getAttribute("ACC"+mode.toUpperCase());
+		}
 		route.setTravelTime(travTime);
 		route.setDistance(estimatedNetworkDistance);
 		leg.setRoute(route);
