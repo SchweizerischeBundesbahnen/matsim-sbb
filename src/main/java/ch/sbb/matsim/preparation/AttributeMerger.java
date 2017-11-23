@@ -72,14 +72,15 @@ public class AttributeMerger {
                        PersonUtils.setLicence(person, "no");
                    }
                }
-               if(attribute.equals("age") && C != ""){
+
+               if (attribute.equals("age") && C != "") {
                    person.getCustomAttributes().put("age", Integer.parseInt(C.toString()));
                }
-               if(attribute.equals("gender") || attribute.equals("sex")){
+
+               if (attribute.equals("gender") || attribute.equals("sex")) {
                    person.getCustomAttributes().put("gender", C);
                  }
            }
-
        }
         new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile( attributeFile);
         new PopulationWriter(scenario.getPopulation()).write(populationFile);
