@@ -63,7 +63,7 @@ public class RunSBB {
         });
 
         AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
-        if(accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
+        if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
 
             config.plansCalcRoute().setInsertingAccessEgressWalk(true);
             controler.addOverridingModule(new AbstractModule() {
@@ -77,4 +77,6 @@ public class RunSBB {
         controler.run();
         postProcessing.write();
     }
+
+
 }
