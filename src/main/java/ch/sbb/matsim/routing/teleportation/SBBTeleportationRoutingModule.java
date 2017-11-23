@@ -19,13 +19,9 @@ import ch.sbb.matsim.routing.access.AccessEgressRouting;
 
 public class SBBTeleportationRoutingModule extends TeleportationRoutingModule {
     private AccessEgressRouting accessEgress;
-    private PopulationFactory populationFactory;
-    private String mode;
 
     public SBBTeleportationRoutingModule(String mode, PopulationFactory populationFactory, double networkTravelSpeed, double beelineDistanceFactor, LocateAct actLocator, Network network) {
         super(mode, populationFactory, networkTravelSpeed, beelineDistanceFactor);
-        this.populationFactory = populationFactory;
-        this.mode = mode;
         this.accessEgress = new AccessEgressRouting(actLocator, populationFactory, mode, network);
     }
 
