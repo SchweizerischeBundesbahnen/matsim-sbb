@@ -8,7 +8,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.Event;
+import org.matsim.api.core.v01.events.PersonArrivalEvent;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
+import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
+import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -68,6 +71,11 @@ public class SBBTransitQSimEngineTest {
         List<AbstractQSimPlugin> plugins = new ArrayList<>();
         plugins.add(new ActivityEnginePlugin(f.config));
         plugins.add(new SBBTransitEnginePlugin(f.config));
+
+        // to compare to original TransitQSimEngine, use the following two instead of the SBBTransitEnginePlugin
+//        plugins.add(new TransitEnginePlugin(f.config));
+//        plugins.add(new QNetsimEnginePlugin(f.config));
+
         QSim qSim = QSimUtils.createQSim(f.scenario, eventsManager, plugins);
 
         Assert.assertEquals(SBBTransitQSimEngine.class, qSim.getTransitEngine().getClass());
@@ -81,20 +89,22 @@ public class SBBTransitQSimEngineTest {
             System.out.println(event.toString());
         }
 
-        Assert.assertEquals("wrong number of events.", 13, allEvents.size());
+        Assert.assertEquals("wrong number of events.", 15, allEvents.size());
         assertEqualEvent(TransitDriverStartsEvent.class,      30000, allEvents.get(0));
         assertEqualEvent(PersonDepartureEvent.class,          30000, allEvents.get(1));
-        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30000, allEvents.get(2));
-        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30000, allEvents.get(3));
-        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30100, allEvents.get(4));
-        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30120, allEvents.get(5));
-        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30300, allEvents.get(6));
-        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30300, allEvents.get(7));
-        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30570, allEvents.get(8));
-        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30600, allEvents.get(9));
-        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30720, allEvents.get(10));
-        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30750, allEvents.get(11));
-        assertEqualEvent(TransitDriverStartsEvent.class,      30750, allEvents.get(12));
+        assertEqualEvent(PersonEntersVehicleEvent.class,      30000, allEvents.get(2));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30000, allEvents.get(3));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30000, allEvents.get(4));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30100, allEvents.get(5));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30120, allEvents.get(6));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30300, allEvents.get(7));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30300, allEvents.get(8));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30570, allEvents.get(9));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30600, allEvents.get(10));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30720, allEvents.get(11));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30750, allEvents.get(12));
+        assertEqualEvent(PersonLeavesVehicleEvent.class,      30750, allEvents.get(13));
+        assertEqualEvent(PersonArrivalEvent.class,            30750, allEvents.get(14));
     }
 
     private static void assertEqualEvent(Class<? extends Event> eventClass, double time, Event event) {
