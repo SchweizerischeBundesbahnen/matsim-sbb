@@ -1,0 +1,109 @@
+/*
+ * Copyright (C) Schweizerische Bundesbahnen SBB, 2017.
+ */
+
+package ch.sbb.matsim.mobsim.qsim.pt;
+
+import org.matsim.core.api.experimental.events.EventsManager;
+import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
+import org.matsim.core.api.experimental.events.VehicleDepartsAtFacilityEvent;
+import org.matsim.core.mobsim.qsim.InternalInterface;
+import org.matsim.core.mobsim.qsim.pt.TransitDriverAgentImpl;
+import org.matsim.core.mobsim.qsim.pt.TransitStopAgentTracker;
+import org.matsim.core.utils.misc.Time;
+import org.matsim.pt.Umlauf;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import java.util.LinkedList;
+
+/**
+ * @author mrieser / SBB
+ */
+public class SBBTransitDriverAgent extends TransitDriverAgentImpl {
+
+    private TransitRouteStop currentStop;
+    private TransitRouteStop nextStop;
+    private final EventsManager eventsManager;
+    private TransitRoute currentTransitRoute;
+    private LinkedList<TransitRouteStop> remainingRouteStops = null;
+
+    SBBTransitDriverAgent(Umlauf umlauf, String transportMode, TransitStopAgentTracker thisAgentTracker, InternalInterface internalInterface) {
+        super(umlauf, transportMode, thisAgentTracker, internalInterface);
+        this.eventsManager = internalInterface.getMobsim().getEventsManager();
+        checkCurrentRoute();
+    }
+
+    @Override
+    public double handleTransitStop(TransitStopFacility stop, double now) {
+        checkCurrentRoute();
+        assertExpectedStop(stop);
+        processVehicleArrival(stop, now);
+
+        // let passengers exit and board:
+
+
+
+        // figure out if it's time to depart or not
+        double departureOffset = this.currentStop.getDepartureOffset();
+        if (departureOffset == Time.UNDEFINED_TIME) {
+            departureOffset = this.currentStop.getArrivalOffset();
+        }
+        double scheduledDepartureTime = this.getDeparture().getDepartureTime() + departureOffset;
+        double stopTime = scheduledDepartureTime - now;
+
+        if (stopTime <= 0.0) {
+            stopTime = 0.0;
+        }
+
+        return stopTime;
+    }
+
+    void depart(TransitStopFacility stop, double now) {
+        handleDeparture(stop, now);
+    }
+
+    private void handleDeparture(TransitStopFacility stop, double now) {
+        assertExpectedStop(stop);
+        processVehicleDeparture(stop, now);
+    }
+
+    TransitRouteStop getNextRouteStop() {
+        return this.nextStop;
+    }
+
+    private void assertExpectedStop(final TransitStopFacility stop) {
+        if (this.currentStop != null && stop == this.currentStop.getStopFacility()) {
+            return;
+        }
+        if (stop != this.nextStop.getStopFacility() || this.currentStop != null) {
+            throw new RuntimeException("Expected stop " + this.nextStop.getStopFacility().getId() + ", got " + stop.getId());
+        }
+    }
+
+    private void checkCurrentRoute() {
+        TransitRoute route = super.getTransitRoute();
+        if (route != null && route != this.currentTransitRoute) {
+            this.currentTransitRoute = route;
+            this.remainingRouteStops = new LinkedList<>(route.getStops());
+            this.nextStop = this.remainingRouteStops.getFirst();
+        }
+    }
+
+    private void processVehicleArrival(final TransitStopFacility stop, final double now) {
+        if (this.currentStop == null) {
+            this.currentStop = this.nextStop;
+            this.eventsManager.processEvent(new VehicleArrivesAtFacilityEvent(now, this.getVehicle().getId(), stop.getId(), 0.0));
+            this.remainingRouteStops.removeFirst();
+            this.nextStop = this.remainingRouteStops.isEmpty() ? null : this.remainingRouteStops.getFirst();
+        }
+    }
+
+    private void processVehicleDeparture(final TransitStopFacility stop, final double now) {
+        if (this.currentStop != null) {
+            this.currentStop = null;
+            this.eventsManager.processEvent(new VehicleDepartsAtFacilityEvent(now, this.getVehicle().getId(), stop.getId(), 0.0));
+        }
+    }
+}

@@ -22,7 +22,6 @@ import org.matsim.core.mobsim.qsim.pt.AbstractTransitDriverAgent;
 import org.matsim.core.mobsim.qsim.pt.PTPassengerAgent;
 import org.matsim.core.mobsim.qsim.pt.SimpleTransitStopHandlerFactory;
 import org.matsim.core.mobsim.qsim.pt.TransitDriverAgentFactory;
-import org.matsim.core.mobsim.qsim.pt.TransitDriverAgentImpl;
 import org.matsim.core.mobsim.qsim.pt.TransitQSimEngine;
 import org.matsim.core.mobsim.qsim.pt.TransitQVehicle;
 import org.matsim.core.mobsim.qsim.pt.TransitStopAgentTracker;
@@ -52,6 +51,8 @@ import java.util.PriorityQueue;
 public class SBBTransitQSimEngine extends TransitQSimEngine /*implements DepartureHandler, MobsimEngine, AgentSource*/ {
 
     private static final Logger log = Logger.getLogger(SBBTransitQSimEngine.class);
+
+    static final double DEPARTURE_OFFSET_IF_UNDEFINED = 30;
 
     private final SBBTransitConfigGroup config;
     private final QSim qSim;
@@ -222,7 +223,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     }
 
     private void handleDeterministicDriverDeparture(MobsimAgent agent) {
-        TransitDriverAgentImpl driver = (TransitDriverAgentImpl) agent;
+        SBBTransitDriverAgent driver = (SBBTransitDriverAgent) agent;
         Iterator<TransitRouteStop> stopIter = driver.getTransitRoute().getStops().iterator();
         TransitRouteStop firstStop = stopIter.next();
         double firstDepartureTime = driver.getDeparture().getDepartureTime() + firstStop.getDepartureOffset();
@@ -240,13 +241,10 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     }
 
     private void handleArrivalAtStop(TransitEvent event) {
-        double stopTime;
-        do {
-            stopTime = event.driver.handleTransitStop(event.stop.getStopFacility(), event.time);
-        } while (stopTime > 0);
+        event.driver.handleTransitStop(event.stop.getStopFacility(), event.time);
         double depOffset = event.stop.getDepartureOffset();
         if (depOffset == Time.UNDEFINED_TIME) {
-            depOffset = event.stop.getArrivalOffset() + 30;
+            depOffset = event.stop.getArrivalOffset() + DEPARTURE_OFFSET_IF_UNDEFINED;
         }
         double depTime = event.driver.getDeparture().getDepartureTime() + depOffset;
         TransitEvent depEvent = new TransitEvent(depTime, TransitEventType.DepartureAtStop, event.driver, event.stopIter, event.stop);
@@ -254,8 +252,10 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     }
 
     private void handleDepartureAtStop(TransitEvent event) {
-        // TODO the departure event was already sent when handleTransitStop return 0.0, and thus too early
-        // so we just need to update our internal data structures and schedule a new event
+        // check again if new people have arrived in the mean time, and let them board first
+        event.driver.handleTransitStop(event.stop.getStopFacility(), event.time);
+        event.driver.depart(event.stop.getStopFacility(), event.time);
+
         if (event.stopIter.hasNext()) {
             TransitRouteStop nextStop = event.stopIter.next();
             double arrOffset = nextStop.getArrivalOffset();
@@ -277,11 +277,11 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     private static class TransitEvent implements Comparable<TransitEvent> {
         double time;
         TransitEventType type;
-        TransitDriverAgentImpl driver;
+        SBBTransitDriverAgent driver;
         Iterator<TransitRouteStop> stopIter;
         TransitRouteStop stop;
 
-        TransitEvent(double time, TransitEventType type, TransitDriverAgentImpl driver, Iterator<TransitRouteStop> stopIter, TransitRouteStop stop) {
+        TransitEvent(double time, TransitEventType type, SBBTransitDriverAgent driver, Iterator<TransitRouteStop> stopIter, TransitRouteStop stop) {
             this.time = time;
             this.type = type;
             this.driver = driver;
