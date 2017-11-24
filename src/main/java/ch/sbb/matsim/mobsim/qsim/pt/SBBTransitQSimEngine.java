@@ -19,6 +19,7 @@ import org.matsim.core.mobsim.framework.PassengerAgent;
 import org.matsim.core.mobsim.qsim.InternalInterface;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.pt.AbstractTransitDriverAgent;
+import org.matsim.core.mobsim.qsim.pt.DefaultTransitDriverAgentFactory;
 import org.matsim.core.mobsim.qsim.pt.PTPassengerAgent;
 import org.matsim.core.mobsim.qsim.pt.SimpleTransitStopHandlerFactory;
 import org.matsim.core.mobsim.qsim.pt.TransitDriverAgentFactory;
@@ -52,16 +53,17 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
 
     private static final Logger log = Logger.getLogger(SBBTransitQSimEngine.class);
 
-    static final double DEPARTURE_OFFSET_IF_UNDEFINED = 30;
+    private static final double DEPARTURE_OFFSET_IF_UNDEFINED = 30;
 
     private final SBBTransitConfigGroup config;
     private final QSim qSim;
     private final TransitStopAgentTracker agentTracker;
     private final TransitSchedule schedule;
     private InternalInterface internalInterface;
-    private TransitDriverAgentFactory transitDriverFactory;
+    private TransitDriverAgentFactory deterministicDriverFactory;
+    private TransitDriverAgentFactory networkDriverFactory;
     private TransitStopHandlerFactory stopHandlerFactory = new SimpleTransitStopHandlerFactory();
-    private PriorityQueue<TransitEvent> eventQueue = new PriorityQueue<>();
+    private final PriorityQueue<TransitEvent> eventQueue = new PriorityQueue<>();
 
     @Inject
     public SBBTransitQSimEngine(QSim qSim) {
@@ -80,7 +82,8 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     @Override
     public void setInternalInterface(InternalInterface internalInterface) {
         this.internalInterface = internalInterface;
-        this.transitDriverFactory = new SBBTransitDriverAgentFactory(internalInterface, this.agentTracker, this.config.getDeterministicServiceModes());
+        this.deterministicDriverFactory = new SBBTransitDriverAgentFactory(internalInterface, this.agentTracker, this.config.getDeterministicServiceModes());
+        this.networkDriverFactory = new DefaultTransitDriverAgentFactory(internalInterface, this.agentTracker);
     }
 
     @Override
@@ -97,12 +100,11 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         } else if (this.config.getDeterministicServiceModes().contains(mode)) {
             handleDeterministicDriverDeparture(agent);
             return true;
-        } else if (this.config.getNetworkServiceModes().contains(mode)) {
-            // this should actually be handled as a qsim mainMode, not sure how to
-            // simplify the configuration for that and if networkServiceModes are
-            // actually needed at all.
-            // TODO
         }
+        // network service modes should actually be handled as a qsim mainMode,
+        // not sure how to simplify the configuration for that and if
+        // networkServiceModes are actually needed at all in the end.
+        // TODO
         return false;
     }
 
@@ -156,34 +158,27 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
                 boolean isDeterministic = this.config.getDeterministicServiceModes().contains(mode);
                 for (Departure dep : route.getDepartures().values()) {
                     Vehicle veh = vehicles.getVehicles().get(dep.getVehicleId());
-//                    if (isDeterministic) {
-//                        createAndScheduleDeterministicDriver(veh, line, route, dep);
-//                    } else {
-                        Umlauf umlauf = createUmlauf(line, route, dep);
-                        createAndScheduleNetworkDriver(veh, umlauf);
-//                    }
+                    Umlauf umlauf = createUmlauf(line, route, dep);
+                    createAndScheduleDriver(veh, umlauf, isDeterministic);
                 }
             }
         }
     }
 
-//    private void createAndScheduleDeterministicDriver(Vehicle veh, TransitLine line, TransitRoute route, Departure dep) {
-//        TransitQVehicle qVeh = new TransitQVehicle(veh);
-//
-//    }
-
-    private void createAndScheduleNetworkDriver(Vehicle veh, Umlauf umlauf) {
+    private void createAndScheduleDriver(Vehicle veh, Umlauf umlauf, boolean isDeterministic) {
+        AbstractTransitDriverAgent driver;
+        if (isDeterministic) {
+            driver = this.deterministicDriverFactory.createTransitDriver(umlauf);
+        } else {
+            driver = this.networkDriverFactory.createTransitDriver(umlauf);
+        }
         TransitQVehicle qVeh = new TransitQVehicle(veh);
-        AbstractTransitDriverAgent driver = this.transitDriverFactory.createTransitDriver(umlauf);
         qVeh.setDriver(driver);
         qVeh.setStopHandler(this.stopHandlerFactory.createTransitStopHandler(veh));
         driver.setVehicle(qVeh);
 
         Leg firstLeg = (Leg) driver.getNextPlanElement();
-        String firstMode = firstLeg.getMode(); // we assume that all legs should have the same mode for a vehicle
-        boolean isDeterministic = this.config.getDeterministicServiceModes().contains(firstMode);
         if (!isDeterministic) {
-            // insert vehicle into qSim
             Id<Link> startLinkId = firstLeg.getRoute().getStartLinkId();
             this.qSim.addParkedVehicle(qVeh, startLinkId);
         }
@@ -197,7 +192,6 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         umlauf.getUmlaufStuecke().add(part);
         return umlauf;
     }
-
 
     private void handlePassengerDeparture(MobsimAgent agent, Id<Link> linkId) {
         PTPassengerAgent passenger = (PTPassengerAgent) agent;
