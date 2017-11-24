@@ -29,12 +29,11 @@ public class SBBTransitDriverAgentFactory implements TransitDriverAgentFactory {
         this.deterministicModes = deterministicModes;
     }
 
-
     @Override
     public AbstractTransitDriverAgent createTransitDriver(Umlauf umlauf) {
         String mode = umlauf.getUmlaufStuecke().get(0).getRoute().getTransportMode();
         if (this.deterministicModes.contains(mode)) {
-            return new TransitDriverAgentImpl(umlauf, mode, this.transitStopAgentTracker, this.internalInterface);
+            return new SBBTransitDriverAgent(umlauf, mode, this.transitStopAgentTracker, this.internalInterface);
         }
         return new TransitDriverAgentImpl(umlauf, TransportMode.car, this.transitStopAgentTracker, this.internalInterface);
     }

@@ -23,7 +23,10 @@ import org.matsim.core.mobsim.qsim.AbstractQSimPlugin;
 import org.matsim.core.mobsim.qsim.ActivityEnginePlugin;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.QSimUtils;
-import org.matsim.core.mobsim.qsim.pt.TransitDriverAgent;
+import org.matsim.core.utils.misc.Time;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.testcases.utils.EventsCollector;
 
 import java.util.ArrayList;
@@ -49,18 +52,33 @@ public class SBBTransitQSimEngineTest {
         Map<Id<Person>, MobsimAgent> agents = qSim.getAgents();
         Assert.assertEquals("Expected one driver as agent.", 1, agents.size());
         MobsimAgent agent = agents.values().iterator().next();
-        TransitDriverAgent driver = (TransitDriverAgent) agent;
-        Assert.assertEquals(f.stopA, driver.getNextTransitStop());
-        driver.handleTransitStop(f.stopA, 0);
-        Assert.assertEquals(f.stopB, driver.getNextTransitStop());
-        driver.handleTransitStop(f.stopB, 0);
-        Assert.assertEquals(f.stopC, driver.getNextTransitStop());
-        driver.handleTransitStop(f.stopC, 0);
-        Assert.assertEquals(f.stopD, driver.getNextTransitStop());
-        driver.handleTransitStop(f.stopD, 0);
-        Assert.assertEquals(f.stopE, driver.getNextTransitStop());
-        driver.handleTransitStop(f.stopE, 0);
-        Assert.assertNull(driver.getNextTransitStop());
+        Assert.assertTrue(agent instanceof SBBTransitDriverAgent);
+        SBBTransitDriverAgent driver = (SBBTransitDriverAgent) agent;
+        TransitRoute route = driver.getTransitRoute();
+        List<TransitRouteStop> stops = route.getStops();
+        double depTime = driver.getActivityEndTime();
+
+        assertNextStop(driver, stops.get(0), depTime);
+        assertNextStop(driver, stops.get(1), depTime);
+        assertNextStop(driver, stops.get(2), depTime);
+        assertNextStop(driver, stops.get(3), depTime);
+        assertNextStop(driver, stops.get(4), depTime);
+
+        Assert.assertNull(driver.getNextRouteStop());
+    }
+
+    private void assertNextStop(SBBTransitDriverAgent driver, TransitRouteStop stop, double routeDepTime) {
+        double arrOffset = stop.getArrivalOffset();
+        double depOffset = stop.getDepartureOffset();
+        if (arrOffset == Time.UNDEFINED_TIME) arrOffset = depOffset;
+        if (depOffset == Time.UNDEFINED_TIME) depOffset = arrOffset;
+        TransitStopFacility f = stop.getStopFacility();
+
+        Assert.assertEquals(stop, driver.getNextRouteStop());
+        double stopTime = driver.handleTransitStop(f, routeDepTime + arrOffset);
+        Assert.assertEquals(depOffset - arrOffset, stopTime, 1e-7);
+        Assert.assertEquals(0.0, driver.handleTransitStop(f, routeDepTime + arrOffset + stopTime), 1e-7);
+        driver.depart(f, routeDepTime + depOffset);
     }
 
     @Test
