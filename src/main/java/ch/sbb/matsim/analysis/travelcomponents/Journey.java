@@ -9,6 +9,7 @@ import java.util.NoSuchElementException;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 
 public class Journey extends TravelComponent {
@@ -145,10 +146,16 @@ public class Journey extends TravelComponent {
 			return "car";
 		}
 		try {
-			Trip longestTrip = getTrips().getFirst();
+			Trip longestTrip = null;
 			if (getTrips().size() > 1) {
 				for (int i = 1; i < getTrips().size(); i++) {
-					if (getTrips().get(i).getDistance() > longestTrip.getDistance()) {
+					Trip trip = getTrips().get(i);
+					if(trip.getMode().equals(TransportMode.egress_walk) || trip.getMode().equals(TransportMode.access_walk)){
+					}
+					else if(longestTrip == null){
+						longestTrip = trip;
+					}
+					else if (trip.getDistance() > longestTrip.getDistance()) {
 						longestTrip = getTrips().get(i);
 					}
 				}
