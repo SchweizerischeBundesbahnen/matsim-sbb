@@ -26,12 +26,14 @@ public class SBBTransitDriverAgent extends TransitDriverAgentImpl {
     private TransitRouteStop currentStop;
     private TransitRouteStop nextStop;
     private final EventsManager eventsManager;
+    private final SBBPassengerAccessEgress accessEgress;
     private TransitRoute currentTransitRoute;
     private LinkedList<TransitRouteStop> remainingRouteStops = null;
 
-    SBBTransitDriverAgent(Umlauf umlauf, String transportMode, TransitStopAgentTracker thisAgentTracker, InternalInterface internalInterface) {
-        super(umlauf, transportMode, thisAgentTracker, internalInterface);
+    SBBTransitDriverAgent(Umlauf umlauf, String transportMode, TransitStopAgentTracker agentTracker, InternalInterface internalInterface) {
+        super(umlauf, transportMode, agentTracker, internalInterface);
         this.eventsManager = internalInterface.getMobsim().getEventsManager();
+        this.accessEgress = new SBBPassengerAccessEgress(internalInterface, agentTracker, internalInterface.getMobsim().getScenario(), this.eventsManager);
         checkCurrentRoute();
     }
 
@@ -41,9 +43,7 @@ public class SBBTransitDriverAgent extends TransitDriverAgentImpl {
         assertExpectedStop(stop);
         processVehicleArrival(stop, now);
 
-        // let passengers exit and board:
-
-
+        this.accessEgress.handlePassengers(stop, this.getVehicle(), this.getTransitLine(), this.currentTransitRoute, this.remainingRouteStops, now);
 
         // figure out if it's time to depart or not
         double departureOffset = this.currentStop.getDepartureOffset();
