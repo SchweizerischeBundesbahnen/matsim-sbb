@@ -8,6 +8,8 @@ import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
+import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.PersonStuckEvent;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Leg;
@@ -224,6 +226,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         Iterator<TransitRouteStop> stopIter = driver.getTransitRoute().getStops().iterator();
         TransitRouteStop firstStop = stopIter.next();
         double firstDepartureTime = driver.getDeparture().getDepartureTime() + firstStop.getDepartureOffset();
+        this.qSim.getEventsManager().processEvent(new PersonEntersVehicleEvent(firstDepartureTime, driver.getId(), driver.getVehicle().getId()));
         TransitEvent event = new TransitEvent(firstDepartureTime, TransitEventType.ArrivalAtStop, driver, stopIter, firstStop);
         this.eventQueue.add(event);
     }
@@ -263,6 +266,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
             TransitEvent arrEvent = new TransitEvent(arrTime, TransitEventType.ArrivalAtStop, event.driver, event.stopIter, nextStop);
             this.eventQueue.add(arrEvent);
         } else {
+            this.qSim.getEventsManager().processEvent(new PersonLeavesVehicleEvent(event.time, event.driver.getId(), event.driver.getVehicle().getId()));
             event.driver.endLegAndComputeNextState(event.time);
             this.internalInterface.arrangeNextAgentState(event.driver);
         }
