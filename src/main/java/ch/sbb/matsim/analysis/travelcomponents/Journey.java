@@ -159,8 +159,11 @@ public class Journey extends TravelComponent {
 						longestTrip = getTrips().get(i);
 					}
 				}
+				return longestTrip.getMode();
 			}
-			return longestTrip.getMode();
+			else{
+				return getTrips().getFirst().getMode();
+			}
 
 		} catch (NoSuchElementException e) {
 			return "walk";
