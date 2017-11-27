@@ -11,36 +11,55 @@ import com.vividsolutions.jts.geom.Point;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.gis.ShapeFileReader;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LocateAct {
     Logger log = Logger.getLogger(LocateAct.class);
     Collection<SimpleFeature> features = null;
     GeometryFactory geometryFactory = new GeometryFactory();
     private String attribute = "";
+    private final Map<Coord, SimpleFeature> coordCache = new HashMap();
+
+
+    public LocateAct(String shapefile) {
+        this.readShapeFile(shapefile);
+    }
+
 
     public LocateAct(String shapefile, String attribute) {
-
-        ShapeFileReader shapeFileReader = new ShapeFileReader();
-        shapeFileReader.readFileAndInitialize(shapefile);
-        this.features = shapeFileReader.getFeatureSet();
-        log.info(shapeFileReader.getSchema().getAttributeDescriptors());
+        this.readShapeFile(shapefile);
         this.attribute = attribute;
     }
 
+    private void readShapeFile(String shapefile){
+        ShapeFileReader shapeFileReader = new ShapeFileReader();
+        shapeFileReader.readFileAndInitialize(shapefile);
+        this.features = shapeFileReader.getFeatureSet();
+    }
+
     public SimpleFeature getZone(Coord coord){
-        for (SimpleFeature feature : features) {
-            MultiPolygon p = (MultiPolygon) feature.getDefaultGeometry();
 
-            Point point = geometryFactory.createPoint( new Coordinate(coord.getX(), coord.getY()));
-            if(p.contains(point)){
-                return feature;
+        if (coordCache.containsKey(coord)) {
+            return coordCache.get(coord);
+        } else {
+
+            for (SimpleFeature feature : features) {
+                MultiPolygon p = (MultiPolygon) feature.getDefaultGeometry();
+
+                Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
+                if (p.contains(point)) {
+                    coordCache.put(coord, feature);
+                    return feature;
+                }
             }
-        }
 
-        return null;
+            return null;
+        }
     }
 
     public String getZoneAttribute(Coord coord){
