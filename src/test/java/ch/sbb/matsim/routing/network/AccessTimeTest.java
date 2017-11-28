@@ -39,8 +39,10 @@ public class AccessTimeTest {
 
     @Test
     public final void testBike() {
-        Controler controler = makeScenario(bern, stleo, "bike");
-        controler.run();
+        RunSBB sbb = makeScenario(bern, stleo, "bike");
+
+        Controler controler = sbb.getControler();
+        sbb.run();
 
         Person person = controler.getScenario().getPopulation().getPersons().get(Id.createPersonId("1"));
         for (PlanElement pe : person.getSelectedPlan().getPlanElements()) {
@@ -60,8 +62,10 @@ public class AccessTimeTest {
 
     @Test
     public final void testCar() {
-        Controler controler = makeScenario(bern, stleo, "car");
-        controler.run();
+        RunSBB sbb = makeScenario(bern, stleo, "car");
+
+        Controler controler = sbb.getControler();
+        sbb.run();
 
         Person person = controler.getScenario().getPopulation().getPersons().get(Id.createPersonId("1"));
         for (PlanElement pe : person.getSelectedPlan().getPlanElements()) {
@@ -78,7 +82,7 @@ public class AccessTimeTest {
         Assert.assertEquals(2.0, egressLeg.getTravelTime(), 1e-10);
     }
 
-    private Controler makeScenario(Coord start, Coord end, String mode) {
+    private RunSBB makeScenario(Coord start, Coord end, String mode) {
 
         RunSBB sbb = new RunSBB();
 
@@ -144,6 +148,6 @@ public class AccessTimeTest {
         sbb.getControler().getConfig().controler().setWriteEventsUntilIteration(1);
         sbb.getControler().getConfig().controler().setWritePlansInterval(1);
 
-        return sbb.getControler();
+        return sbb;
     }
 }
