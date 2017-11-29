@@ -8,10 +8,15 @@ import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.events.LinkEnterEvent;
+import org.matsim.api.core.v01.events.LinkLeaveEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.PersonStuckEvent;
+import org.matsim.api.core.v01.events.VehicleEntersTrafficEvent;
+import org.matsim.api.core.v01.events.VehicleLeavesTrafficEvent;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.mobsim.framework.MobsimAgent;
@@ -27,6 +32,8 @@ import org.matsim.core.mobsim.qsim.pt.TransitQSimEngine;
 import org.matsim.core.mobsim.qsim.pt.TransitQVehicle;
 import org.matsim.core.mobsim.qsim.pt.TransitStopAgentTracker;
 import org.matsim.core.mobsim.qsim.pt.TransitStopHandlerFactory;
+import org.matsim.core.mobsim.qsim.pt.TransitVehicle;
+import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.Umlauf;
 import org.matsim.pt.UmlaufImpl;
@@ -41,10 +48,12 @@ import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.Vehicles;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author mrieser / SBB
@@ -64,14 +73,26 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     private TransitDriverAgentFactory networkDriverFactory;
     private TransitStopHandlerFactory stopHandlerFactory = new SimpleTransitStopHandlerFactory();
     private final PriorityQueue<TransitEvent> eventQueue = new PriorityQueue<>();
+    private final boolean createLinkEvents;
+    private final Map<TransitRoute, List<Link[]>> linksCache;
+    private final PriorityQueue<LinkEvent> linkEventQueue;
 
     @Inject
     public SBBTransitQSimEngine(QSim qSim) {
         super(qSim);
         this.qSim = qSim;
         this.config = ConfigUtils.addOrGetModule(qSim.getScenario().getConfig(), SBBTransitConfigGroup.GROUP_NAME, SBBTransitConfigGroup.class);
+        this.createLinkEvents = this.config.isCreateLinkEvents();
         this.schedule = qSim.getScenario().getTransitSchedule();
         this.agentTracker = new TransitStopAgentTracker(qSim.getEventsManager());
+        if (this.createLinkEvents) {
+            this.linkEventQueue = new PriorityQueue<>();
+            this.linksCache = new ConcurrentHashMap<>();
+        } else {
+            this.linkEventQueue = null;
+            this.linksCache = null;
+        }
+
     }
 
     @Inject
@@ -115,6 +136,14 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
 
     @Override
     public void doSimStep(double time) {
+        LinkEvent linkEvent = this.linkEventQueue.peek();
+        while (linkEvent != null && linkEvent.time <= time) {
+            this.linkEventQueue.poll();
+            this.qSim.getEventsManager().processEvent(new LinkLeaveEvent(time, linkEvent.vehicleId, linkEvent.fromLinkId));
+            this.qSim.getEventsManager().processEvent(new LinkEnterEvent(time, linkEvent.vehicleId, linkEvent.toLinkId));
+            linkEvent = this.linkEventQueue.peek();
+        }
+
         TransitEvent event = this.eventQueue.peek();
         while (event != null && event.time <= time) {
             handleTransitEvent(this.eventQueue.poll());
@@ -138,8 +167,8 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         // check for agents still in a vehicle
         TransitEvent event;
         while ((event = this.eventQueue.poll()) != null) {
-            Id<Link> nextStopLinkId = event.stop.getStopFacility().getLinkId();
-            for (PassengerAgent agent : event.driver.getVehicle().getPassengers()) {
+            Id<Link> nextStopLinkId = event.context.nextStop.getStopFacility().getLinkId();
+            for (PassengerAgent agent : event.context.driver.getVehicle().getPassengers()) {
                 this.qSim.getEventsManager().processEvent(new PersonStuckEvent(now, agent.getId(), nextStopLinkId, agent.getMode()));
                 this.qSim.getAgentCounter().decLiving();
                 this.qSim.getAgentCounter().incLost();
@@ -213,16 +242,22 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         } else {
             throw new TransitQSimEngine.TransitAgentTriesToTeleportException("Agent " + passenger.getId() + " tries to enter a transit stop at link "+stop.getLinkId()+" but really is at "+linkId+"!");
         }
-
     }
 
     private void handleDeterministicDriverDeparture(MobsimAgent agent) {
         SBBTransitDriverAgent driver = (SBBTransitDriverAgent) agent;
-        Iterator<TransitRouteStop> stopIter = driver.getTransitRoute().getStops().iterator();
-        TransitRouteStop firstStop = stopIter.next();
+        TransitRoute trRoute = driver.getTransitRoute();
+        List<Link[]> links = this.createLinkEvents ? this.linksCache.computeIfAbsent(trRoute, r -> getLinksPerStopAlongRoute(r, this.qSim.getScenario().getNetwork())) : null;
+        TransitContext context = new TransitContext(driver, links);
+        TransitRouteStop firstStop = context.nextStop;
         double firstDepartureTime = driver.getDeparture().getDepartureTime() + firstStop.getDepartureOffset();
         this.qSim.getEventsManager().processEvent(new PersonEntersVehicleEvent(firstDepartureTime, driver.getId(), driver.getVehicle().getId()));
-        TransitEvent event = new TransitEvent(firstDepartureTime, TransitEventType.ArrivalAtStop, driver, stopIter, firstStop);
+        if (this.createLinkEvents) {
+            Id<Link> linkId = driver.getCurrentLinkId();
+            String mode = driver.getMode();
+            this.qSim.getEventsManager().processEvent(new VehicleEntersTrafficEvent(firstDepartureTime, driver.getId(), linkId, driver.getVehicle().getId(), mode, 1.0));
+        }
+        TransitEvent event = new TransitEvent(firstDepartureTime, TransitEventType.ArrivalAtStop, context);
         this.eventQueue.add(event);
     }
 
@@ -235,34 +270,162 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     }
 
     private void handleArrivalAtStop(TransitEvent event) {
-        event.driver.handleTransitStop(event.stop.getStopFacility(), event.time);
-        double depOffset = event.stop.getDepartureOffset();
+        SBBTransitDriverAgent driver = event.context.driver;
+        TransitRouteStop stop = event.context.nextStop;
+        driver.handleTransitStop(stop.getStopFacility(), event.time);
+        double depOffset = stop.getDepartureOffset();
         if (depOffset == Time.UNDEFINED_TIME) {
-            depOffset = event.stop.getArrivalOffset() + DEPARTURE_OFFSET_IF_UNDEFINED;
+            depOffset = stop.getArrivalOffset() + DEPARTURE_OFFSET_IF_UNDEFINED;
         }
-        double depTime = event.driver.getDeparture().getDepartureTime() + depOffset;
-        TransitEvent depEvent = new TransitEvent(depTime, TransitEventType.DepartureAtStop, event.driver, event.stopIter, event.stop);
+        double depTime = driver.getDeparture().getDepartureTime() + depOffset;
+        TransitEvent depEvent = new TransitEvent(depTime, TransitEventType.DepartureAtStop, event.context);
         this.eventQueue.add(depEvent);
     }
 
     private void handleDepartureAtStop(TransitEvent event) {
+        SBBTransitDriverAgent driver = event.context.driver;
+        TransitRouteStop stop = event.context.nextStop;
         // check again if new people have arrived in the mean time, and let them board first
-        event.driver.handleTransitStop(event.stop.getStopFacility(), event.time);
-        event.driver.depart(event.stop.getStopFacility(), event.time);
+        driver.handleTransitStop(stop.getStopFacility(), event.time);
+        driver.depart(stop.getStopFacility(), event.time);
 
-        if (event.stopIter.hasNext()) {
-            TransitRouteStop nextStop = event.stopIter.next();
+        TransitRouteStop nextStop = event.context.advanceStop();
+        if (nextStop != null) {
             double arrOffset = nextStop.getArrivalOffset();
             if (arrOffset == Time.UNDEFINED_TIME) {
                 arrOffset = nextStop.getDepartureOffset();
             }
-            double arrTime = event.driver.getDeparture().getDepartureTime() + arrOffset;
-            TransitEvent arrEvent = new TransitEvent(arrTime, TransitEventType.ArrivalAtStop, event.driver, event.stopIter, nextStop);
+            double arrTime = driver.getDeparture().getDepartureTime() + arrOffset;
+            TransitEvent arrEvent = new TransitEvent(arrTime, TransitEventType.ArrivalAtStop, event.context);
             this.eventQueue.add(arrEvent);
+            if (this.createLinkEvents) {
+                precomputeLinkEvents(event.time, arrTime, event.context.linksToNextStop, driver.getVehicle(), driver);
+            }
         } else {
-            this.qSim.getEventsManager().processEvent(new PersonLeavesVehicleEvent(event.time, event.driver.getId(), event.driver.getVehicle().getId()));
-            event.driver.endLegAndComputeNextState(event.time);
-            this.internalInterface.arrangeNextAgentState(event.driver);
+            if (this.createLinkEvents) {
+                Id<Link> linkId = driver.getDestinationLinkId();
+                String mode = driver.getMode();
+                this.qSim.getEventsManager().processEvent(new VehicleLeavesTrafficEvent(event.time, driver.getId(), linkId, driver.getVehicle().getId(), mode, 1.0));
+            }
+            this.qSim.getEventsManager().processEvent(new PersonLeavesVehicleEvent(event.time, driver.getId(), driver.getVehicle().getId()));
+            driver.endLegAndComputeNextState(event.time);
+            this.internalInterface.arrangeNextAgentState(driver);
+        }
+    }
+
+    private void precomputeLinkEvents(double depTime, double arrTime, Link[] linksToNextStop, TransitVehicle vehicle, SBBTransitDriverAgent driver) {
+        double travelTime = arrTime - depTime;
+        double totalLength = 0.0;
+        boolean isDepartureLink = true;
+        for (Link link : linksToNextStop) {
+            if (isDepartureLink) {
+                isDepartureLink = false;
+            } else {
+                totalLength += link.getLength();
+            }
+        }
+        if (totalLength > 0) {
+            double secondsPerMeter = travelTime / totalLength;
+            double travelledLength = 0;
+            Link fromLink = null;
+            for (Link toLink : linksToNextStop) {
+                if (fromLink != null) {
+                    double time = depTime + travelledLength * secondsPerMeter;
+                    this.linkEventQueue.add(new LinkEvent(time, fromLink.getId(), toLink.getId(), vehicle.getId()));
+                    travelledLength += fromLink.getLength();
+                }
+                fromLink = toLink;
+            }
+        }
+    }
+
+    /**
+     * Returns for each TransitRouteStop the Links leading from that stop to the next one.
+     * The returned list has the same number of entries as the TransitRoute has stops.
+     * The list for the last stop might contain some links, depending on the provided
+     * NetworkRoute. If the NetworkRoute contains links before the first stop, they will
+     * be ignored and not returned.
+     *
+     * The first link of each link-list is the departure link, the last link in the list
+     * is the arrival link.
+     *
+     * @param trRoute TransitRoute for which to get the links
+     * @return list containing the links leading from each stop to the next, ordered by the sequence of TransitRouteStops in the TransitRoute
+     */
+    private List<Link[]> getLinksPerStopAlongRoute(TransitRoute trRoute, Network network) {
+        Iterator<TransitRouteStop> stopIter = trRoute.getStops().iterator();
+        TransitRouteStop nextStop = stopIter.hasNext() ? stopIter.next() : null;
+        Id<Link> nextStopLinkId = nextStop.getStopFacility().getLinkId();
+
+        NetworkRoute netRoute = trRoute.getRoute();
+        List<Id<Link>> allLinkIds = new ArrayList<>();
+        allLinkIds.add(netRoute.getStartLinkId());
+        allLinkIds.addAll(netRoute.getLinkIds());
+        if (!netRoute.getStartLinkId().equals(netRoute.getEndLinkId()) || allLinkIds.size() > 1) {
+            // either the start- and end link are different, or there are additional links in between
+            allLinkIds.add(netRoute.getEndLinkId());
+        }
+
+        List<Link[]> result = new ArrayList<>();
+        List<Link> links = new ArrayList<>();
+        TransitRouteStop lastStop = null;
+        for (Id<Link> linkId : allLinkIds) {
+            Link link = network.getLinks().get(linkId);
+            links.add(link);
+            boolean recheckLink = true;
+            while (recheckLink) {
+                recheckLink = false;
+                if (linkId.equals(nextStopLinkId)) {
+                    if (lastStop != null) {
+                        int linkCount = links.size();
+                        if (linkCount > 1) {
+                            // if it's only 1 link, it means we're still on the same link as the previous stop, so ignore it.
+                            result.add(links.toArray(new Link[linkCount]));
+                        } else {
+                            result.add(new Link[0]);
+                        }
+                    }
+                    links.clear();
+                    links.add(link); // add this link again for the linkLeaveEvent
+                    lastStop = nextStop;
+                    nextStop = stopIter.hasNext() ? stopIter.next() : null;
+                    nextStopLinkId = nextStop == null ? null : nextStop.getStopFacility().getLinkId();
+                    recheckLink = nextStopLinkId != null;
+                }
+            }
+        }
+        // add any potential links after the last stop
+        result.add(links.toArray(new Link[links.size()]));
+        return result;
+    }
+
+    private static class TransitContext {
+        SBBTransitDriverAgent driver;
+        Iterator<TransitRouteStop> stopIter;
+        TransitRouteStop nextStop;
+        Iterator<Link[]> linksIter;
+        Link[] linksToNextStop;
+
+        TransitContext(SBBTransitDriverAgent driver, List<Link[]> links) {
+            this.driver = driver;
+            this.stopIter = driver.getTransitRoute().getStops().iterator();
+            this.nextStop = this.stopIter.next();
+            this.linksIter = links == null ? null : links.iterator();
+            this.linksToNextStop = links == null ? null : new Link[0]; // the route to the first stop is empty by definition
+        }
+
+        private TransitRouteStop advanceStop() {
+            if (this.stopIter.hasNext()) {
+                this.nextStop = this.stopIter.next();
+            } else {
+                this.nextStop = null;
+            }
+            if (this.linksIter != null && this.linksIter.hasNext()) {
+                this.linksToNextStop = this.linksIter.next();
+            } else {
+                this.linksToNextStop = null;
+            }
+            return this.nextStop;
         }
     }
 
@@ -271,16 +434,12 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     private static class TransitEvent implements Comparable<TransitEvent> {
         double time;
         TransitEventType type;
-        SBBTransitDriverAgent driver;
-        Iterator<TransitRouteStop> stopIter;
-        TransitRouteStop stop;
+        TransitContext context;
 
-        TransitEvent(double time, TransitEventType type, SBBTransitDriverAgent driver, Iterator<TransitRouteStop> stopIter, TransitRouteStop stop) {
+        TransitEvent(double time, TransitEventType type, TransitContext context) {
             this.time = time;
             this.type = type;
-            this.driver = driver;
-            this.stopIter = stopIter;
-            this.stop = stop;
+            this.context = context;
         }
 
         @Override
@@ -288,7 +447,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
             int result = Double.compare(this.time, o.time);
             if (result == 0) {
                 if (this.type == o.type) {
-                    result = this.driver.getId().compareTo(o.driver.getId());
+                    result = this.context.driver.getId().compareTo(o.context.driver.getId());
                 } else {
                     // arrivals should come before departures
                     result = this.type == TransitEventType.ArrivalAtStop ? -1 : +1;
@@ -297,4 +456,28 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
             return result;
         }
     }
+
+    private static class LinkEvent implements Comparable<LinkEvent> {
+        double time;
+        Id<Link> fromLinkId;
+        Id<Link> toLinkId;
+        Id<Vehicle> vehicleId;
+
+        LinkEvent(double time, Id<Link> fromLinkId, Id<Link> toLinkId, Id<Vehicle> vehicleId) {
+            this.time = time;
+            this.fromLinkId = fromLinkId;
+            this.toLinkId = toLinkId;
+            this.vehicleId = vehicleId;
+        }
+
+        @Override
+        public int compareTo(LinkEvent o) {
+            int result = Double.compare(this.time, o.time);
+            if (result == 0) {
+                result = this.vehicleId.compareTo(o.vehicleId);
+            }
+            return result;
+        }
+    }
+
 }
