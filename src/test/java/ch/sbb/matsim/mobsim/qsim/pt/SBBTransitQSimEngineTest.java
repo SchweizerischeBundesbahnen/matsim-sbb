@@ -10,11 +10,15 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.ActivityStartEvent;
 import org.matsim.api.core.v01.events.Event;
+import org.matsim.api.core.v01.events.LinkEnterEvent;
+import org.matsim.api.core.v01.events.LinkLeaveEvent;
 import org.matsim.api.core.v01.events.PersonArrivalEvent;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
+import org.matsim.api.core.v01.events.VehicleEntersTrafficEvent;
+import org.matsim.api.core.v01.events.VehicleLeavesTrafficEvent;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.AgentWaitingForPtEvent;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -180,6 +184,60 @@ public class SBBTransitQSimEngineTest {
         assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30750, allEvents.get(19));
         assertEqualEvent(PersonLeavesVehicleEvent.class,      30750, allEvents.get(20));
         assertEqualEvent(PersonArrivalEvent.class,            30750, allEvents.get(21));
+    }
+
+
+    @Test
+    public void testEvents_withoutPassengers_withLinks() {
+        TestFixture f = new TestFixture();
+        f.sbbConfig.setCreateLinkEvents(true);
+
+        EventsManager eventsManager = EventsUtils.createEventsManager(f.config);
+        List<AbstractQSimPlugin> plugins = new ArrayList<>();
+        plugins.add(new ActivityEnginePlugin(f.config));
+        plugins.add(new SBBTransitEnginePlugin(f.config));
+
+        // to compare to original TransitQSimEngine, use the following two instead of the SBBTransitEnginePlugin
+//        plugins.add(new TransitEnginePlugin(f.config));
+//        plugins.add(new QNetsimEnginePlugin(f.config));
+
+        QSim qSim = QSimUtils.createQSim(f.scenario, eventsManager, plugins);
+
+        Assert.assertEquals(SBBTransitQSimEngine.class, qSim.getTransitEngine().getClass());
+
+        EventsCollector collector = new EventsCollector();
+        eventsManager.addHandler(collector);
+        qSim.run();
+        List<Event> allEvents = collector.getEvents();
+
+        for (Event event : allEvents) {
+            System.out.println(event.toString());
+        }
+
+        Assert.assertEquals("wrong number of events.", 23, allEvents.size());
+        assertEqualEvent(TransitDriverStartsEvent.class,      30000, allEvents.get(0));
+        assertEqualEvent(PersonDepartureEvent.class,          30000, allEvents.get(1));
+        assertEqualEvent(PersonEntersVehicleEvent.class,      30000, allEvents.get(2));
+        assertEqualEvent(VehicleEntersTrafficEvent.class,     30000, allEvents.get(3));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30000, allEvents.get(4));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30000, allEvents.get(5));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30100, allEvents.get(6));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30120, allEvents.get(7));
+        assertEqualEvent(LinkLeaveEvent.class,                30121, allEvents.get(8)); // link 1
+        assertEqualEvent(LinkEnterEvent.class,                30121, allEvents.get(9)); // link 2
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30300, allEvents.get(10));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30300, allEvents.get(11));
+        assertEqualEvent(LinkLeaveEvent.class,                30301, allEvents.get(12)); // link 2
+        assertEqualEvent(LinkEnterEvent.class,                30301, allEvents.get(13)); // link 3
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30570, allEvents.get(14));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30600, allEvents.get(15));
+        assertEqualEvent(LinkLeaveEvent.class,                30601, allEvents.get(16)); // link 3
+        assertEqualEvent(LinkEnterEvent.class,                30601, allEvents.get(17)); // link 4
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30720, allEvents.get(18));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30750, allEvents.get(19));
+        assertEqualEvent(VehicleLeavesTrafficEvent.class,     30750, allEvents.get(20));
+        assertEqualEvent(PersonLeavesVehicleEvent.class,      30750, allEvents.get(21));
+        assertEqualEvent(PersonArrivalEvent.class,            30750, allEvents.get(22));
     }
 
     private static void assertEqualEvent(Class<? extends Event> eventClass, double time, Event event) {
