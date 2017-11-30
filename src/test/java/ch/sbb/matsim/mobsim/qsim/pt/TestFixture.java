@@ -107,6 +107,9 @@ class TestFixture {
         vehCapacity.setStandingRoom(150);
         vehType1.setCapacity(vehCapacity);
         vehicles.addVehicleType(vehType1);
+        vehType1.setDoorOperationMode(VehicleType.DoorOperationMode.serial);
+        vehType1.setAccessTime(2); // 1 person takes 2 seconds to board
+        vehType1.setEgressTime(2);
         Vehicle veh1 = vf.createVehicle(Id.create("train1", Vehicle.class), vehType1);
         vehicles.addVehicle(veh1);
 
@@ -179,5 +182,26 @@ class TestFixture {
         plan.addActivity(act2);
         person.addPlan(plan);
         population.addPerson(person);
+    }
+
+    void addTripleTransitDemand() {
+        Population population = this.scenario.getPopulation();
+        PopulationFactory pf = population.getFactory();
+        for (int i = 1; i <= 3; i++) {
+            Person person = pf.createPerson(Id.create(i, Person.class));
+            Plan plan = pf.createPlan();
+            Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
+            act1.setEndTime(29500);
+            Leg leg = pf.createLeg("pt");
+            Route route = new ExperimentalTransitRoute(this.stopB, this.line1, this.route1, this.stopD);
+            leg.setRoute(route);
+            Activity act2 = pf.createActivityFromLinkId("work", Id.create(3, Link.class));
+
+            plan.addActivity(act1);
+            plan.addLeg(leg);
+            plan.addActivity(act2);
+            person.addPlan(plan);
+            population.addPerson(person);
+        }
     }
 }

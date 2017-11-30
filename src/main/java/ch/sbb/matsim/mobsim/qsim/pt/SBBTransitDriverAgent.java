@@ -37,24 +37,28 @@ public class SBBTransitDriverAgent extends TransitDriverAgentImpl {
         checkCurrentRoute();
     }
 
+    void arrive(TransitRouteStop stop, double now) {
+        TransitStopFacility facility = stop.getStopFacility();
+        assertExpectedStop(facility);
+        processVehicleArrival(facility, now);
+    }
+
     @Override
     public double handleTransitStop(TransitStopFacility stop, double now) {
-        checkCurrentRoute();
         assertExpectedStop(stop);
-        processVehicleArrival(stop, now);
 
-        this.accessEgress.handlePassengers(stop, this.getVehicle(), this.getTransitLine(), this.currentTransitRoute, this.remainingRouteStops, now);
-
-        // figure out if it's time to depart or not
-        double departureOffset = this.currentStop.getDepartureOffset();
-        if (departureOffset == Time.UNDEFINED_TIME) {
-            departureOffset = this.currentStop.getArrivalOffset();
-        }
-        double scheduledDepartureTime = this.getDeparture().getDepartureTime() + departureOffset;
-        double stopTime = scheduledDepartureTime - now;
+        double stopTime = this.accessEgress.handlePassengersWithPhysicalLimits(stop, this.getVehicle(), this.getTransitLine(), this.currentTransitRoute, this.remainingRouteStops, now);
 
         if (stopTime <= 0.0) {
-            stopTime = 0.0;
+            // figure out if it's already time to depart or not
+            double departureOffset = this.currentStop.getDepartureOffset();
+            if (departureOffset == Time.UNDEFINED_TIME) {
+                departureOffset = this.currentStop.getArrivalOffset();
+            }
+            double scheduledDepartureTime = this.getDeparture().getDepartureTime() + departureOffset;
+            if (scheduledDepartureTime > now) {
+                stopTime = 1.0; // allow agents arriving in the next time step to board
+            }
         }
 
         return stopTime;
@@ -74,6 +78,7 @@ public class SBBTransitDriverAgent extends TransitDriverAgentImpl {
     }
 
     private void assertExpectedStop(final TransitStopFacility stop) {
+        checkCurrentRoute();
         if (this.currentStop != null && stop == this.currentStop.getStopFacility()) {
             return;
         }
