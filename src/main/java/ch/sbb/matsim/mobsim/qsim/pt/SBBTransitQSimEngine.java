@@ -62,8 +62,6 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
 
     private static final Logger log = Logger.getLogger(SBBTransitQSimEngine.class);
 
-    private static final double DEPARTURE_OFFSET_IF_UNDEFINED = 30;
-
     private final SBBTransitConfigGroup config;
     private final QSim qSim;
     private final TransitStopAgentTracker agentTracker;
@@ -136,12 +134,14 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
 
     @Override
     public void doSimStep(double time) {
-        LinkEvent linkEvent = this.linkEventQueue.peek();
-        while (linkEvent != null && linkEvent.time <= time) {
-            this.linkEventQueue.poll();
-            this.qSim.getEventsManager().processEvent(new LinkLeaveEvent(time, linkEvent.vehicleId, linkEvent.fromLinkId));
-            this.qSim.getEventsManager().processEvent(new LinkEnterEvent(time, linkEvent.vehicleId, linkEvent.toLinkId));
-            linkEvent = this.linkEventQueue.peek();
+        if (this.createLinkEvents) {
+            LinkEvent linkEvent = this.linkEventQueue.peek();
+            while (linkEvent != null && linkEvent.time <= time) {
+                this.linkEventQueue.poll();
+                this.qSim.getEventsManager().processEvent(new LinkLeaveEvent(time, linkEvent.vehicleId, linkEvent.fromLinkId));
+                this.qSim.getEventsManager().processEvent(new LinkEnterEvent(time, linkEvent.vehicleId, linkEvent.toLinkId));
+                linkEvent = this.linkEventQueue.peek();
+            }
         }
 
         TransitEvent event = this.eventQueue.peek();
@@ -195,6 +195,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     }
 
     private void createAndScheduleDriver(Vehicle veh, Umlauf umlauf, boolean isDeterministic) {
+        log.info("Using StopHandlerFactory: " + this.stopHandlerFactory.getClass().getName());
         AbstractTransitDriverAgent driver;
         if (isDeterministic) {
             driver = this.deterministicDriverFactory.createTransitDriver(umlauf);
@@ -264,29 +265,33 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     private void handleTransitEvent(TransitEvent event) {
         switch (event.type) {
             case ArrivalAtStop: handleArrivalAtStop(event); break;
+            case PassengerExchange: handlePassengerExchange(event); break;
             case DepartureAtStop: handleDepartureAtStop(event); break;
             default: throw new RuntimeException("Unsupported TransitEvent type.");
         }
     }
 
     private void handleArrivalAtStop(TransitEvent event) {
+        event.context.driver.arrive(event.context.nextStop, event.time);
+        handlePassengerExchange(event);
+    }
+
+    private void handlePassengerExchange(TransitEvent event) {
         SBBTransitDriverAgent driver = event.context.driver;
         TransitRouteStop stop = event.context.nextStop;
-        driver.handleTransitStop(stop.getStopFacility(), event.time);
-        double depOffset = stop.getDepartureOffset();
-        if (depOffset == Time.UNDEFINED_TIME) {
-            depOffset = stop.getArrivalOffset() + DEPARTURE_OFFSET_IF_UNDEFINED;
+        double stopTime = driver.handleTransitStop(stop.getStopFacility(), event.time);
+        if (stopTime > 0) {
+            TransitEvent depEvent = new TransitEvent(event.time + stopTime, TransitEventType.PassengerExchange, event.context);
+            this.eventQueue.add(depEvent);
+        } else {
+            handleDepartureAtStop(new TransitEvent(event.time, TransitEventType.DepartureAtStop, event.context));
         }
-        double depTime = driver.getDeparture().getDepartureTime() + depOffset;
-        TransitEvent depEvent = new TransitEvent(depTime, TransitEventType.DepartureAtStop, event.context);
-        this.eventQueue.add(depEvent);
+
     }
 
     private void handleDepartureAtStop(TransitEvent event) {
         SBBTransitDriverAgent driver = event.context.driver;
         TransitRouteStop stop = event.context.nextStop;
-        // check again if new people have arrived in the mean time, and let them board first
-        driver.handleTransitStop(stop.getStopFacility(), event.time);
         driver.depart(stop.getStopFacility(), event.time);
 
         TransitRouteStop nextStop = event.context.advanceStop();
@@ -296,6 +301,12 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
                 arrOffset = nextStop.getDepartureOffset();
             }
             double arrTime = driver.getDeparture().getDepartureTime() + arrOffset;
+            if (arrTime < event.time) {
+                // looks like we had a huge delay before.
+                // MATSim does not allow to send events with an earlier time than the last time,
+                // so we have to adapt a bit here.
+                arrTime = event.time;
+            }
             TransitEvent arrEvent = new TransitEvent(arrTime, TransitEventType.ArrivalAtStop, event.context);
             this.eventQueue.add(arrEvent);
             if (this.createLinkEvents) {
@@ -429,7 +440,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         }
     }
 
-    private enum TransitEventType { ArrivalAtStop, DepartureAtStop }
+    private enum TransitEventType { ArrivalAtStop, PassengerExchange, DepartureAtStop }
 
     private static class TransitEvent implements Comparable<TransitEvent> {
         double time;

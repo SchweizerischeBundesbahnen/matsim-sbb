@@ -20,6 +20,7 @@ import org.matsim.core.mobsim.qsim.interfaces.MobsimVehicle;
 import org.matsim.core.mobsim.qsim.pt.PTPassengerAgent;
 import org.matsim.core.mobsim.qsim.pt.PassengerAccessEgress;
 import org.matsim.core.mobsim.qsim.pt.TransitStopAgentTracker;
+import org.matsim.core.mobsim.qsim.pt.TransitStopHandler;
 import org.matsim.core.mobsim.qsim.pt.TransitVehicle;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -31,6 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class contains a lot of code from {@link org.matsim.core.mobsim.qsim.pt.PassengerAccessEgressImpl},
+ * some methods with small adaptations, other directly copied. The aforementioned class is package-protected
+ * and thus not visible from this package, making it impossible to inherit from it and re-use parts of the code.
+ *
  * @author mrieser / SBB
  */
 public class SBBPassengerAccessEgress implements PassengerAccessEgress {
@@ -39,17 +44,47 @@ public class SBBPassengerAccessEgress implements PassengerAccessEgress {
     private final TransitStopAgentTracker agentTracker;
     private final EventsManager eventsManager;
     private final boolean isGeneratingDeniedBoardingEvents;
-    private final List<PTPassengerAgent> deniedBoarding;
 
     SBBPassengerAccessEgress(InternalInterface internalInterface, TransitStopAgentTracker agentTracker, Scenario scenario, EventsManager eventsManager) {
         this.internalInterface = internalInterface;
         this.agentTracker = agentTracker;
         this.eventsManager = eventsManager;
         this.isGeneratingDeniedBoardingEvents = scenario.getConfig().vspExperimental().isGeneratingBoardingDeniedEvents() ;
-        this.deniedBoarding = this.isGeneratingDeniedBoardingEvents ? new ArrayList<>() : null;
     }
 
-    void handlePassengers(TransitStopFacility stop, TransitVehicle vehicle, TransitLine line, TransitRoute route, List<TransitRouteStop> upcomingStops, double now) {
+    /**
+     * Allows passengers to leave and/or board a vehicle according to the vehicle's
+     * accessTime, egressTime and doorOperation mode.
+     *
+     * The code is to a large part a copy of PassengerAccessEgressImpl.calculateStopTimeAndTriggerBoarding.
+     * It could not be directly used as the class itself is package-protected and not visible in our package.
+     *
+     * @return 0.0 (no more agents currently to board or leave), or
+      *        1.0 (there were passenger actions this time step, need to recheck next time step again)
+     */
+    double handlePassengersWithPhysicalLimits(TransitStopFacility stop, TransitVehicle vehicle, TransitLine line, TransitRoute route, List<TransitRouteStop> upcomingStops, double now) {
+        ArrayList<PTPassengerAgent> passengersLeaving = findPassengersLeaving(vehicle, stop);
+        int freeCapacity = vehicle.getPassengerCapacity() -  vehicle.getPassengers().size() + passengersLeaving.size();
+        List<PTPassengerAgent> passengersEntering = findPassengersEntering(route, line, vehicle, stop, upcomingStops, freeCapacity, now);
+
+        TransitStopHandler stopHandler = vehicle.getStopHandler();
+        double stopTime = stopHandler.handleTransitStop(stop, now, passengersLeaving, passengersEntering, this, vehicle);
+        if (stopTime == 0.0) { // (de-)boarding is complete when the additional stopTime is 0.0
+            if (this.isGeneratingDeniedBoardingEvents) {
+                List<PTPassengerAgent> stillWaiting = findAllPassengersWaiting(route, line, vehicle, stop, upcomingStops, now);
+                this.fireBoardingDeniedEvents(vehicle, now, stillWaiting);
+            }
+        }
+        return stopTime;
+    }
+
+    /**
+     * Allows all passengers wanting to leave the vehicle to do so immediately in the current time step,
+     * not taking constraints like number of doors and their passenger capacity into account.
+     * Allows all passengers wanting to board the vehicle to do so immediately, given there is still some
+     * free capacity left in the vehicle.
+     */
+    double handleAllPassengersImmediately(TransitStopFacility stop, TransitVehicle vehicle, TransitLine line, TransitRoute route, List<TransitRouteStop> upcomingStops, double now) {
         List<PTPassengerAgent> leavingPassengers = findPassengersLeaving(vehicle, stop);
         for (PTPassengerAgent passenger : leavingPassengers) {
             handlePassengerLeaving(passenger, vehicle, passenger.getDestinationLinkId(), now);
@@ -57,18 +92,15 @@ public class SBBPassengerAccessEgress implements PassengerAccessEgress {
 
         int freeCapacity = vehicle.getPassengerCapacity() -  vehicle.getPassengers().size();
 
-        List<PTPassengerAgent> boardingPassengers = findPassengersBoarding(route, line, vehicle, stop, upcomingStops, freeCapacity, now);
+        List<PTPassengerAgent> boardingPassengers = findPassengersEntering(route, line, vehicle, stop, upcomingStops, freeCapacity, now);
         for (PTPassengerAgent passenger : boardingPassengers) {
-            boolean entered = handlePassengerEntering(passenger, vehicle, passenger.getDesiredAccessStopId(), now);
-            if (!entered && this.isGeneratingDeniedBoardingEvents) {
-                this.deniedBoarding.add(passenger);
-            }
+            handlePassengerEntering(passenger, vehicle, passenger.getDesiredAccessStopId(), now);
         }
-        if (this.isGeneratingDeniedBoardingEvents && !this.deniedBoarding.isEmpty()) {
-            for (PTPassengerAgent passenger : this.deniedBoarding) {
-                fireBoardingDeniedEvents(vehicle, now);
-            }
+        if (this.isGeneratingDeniedBoardingEvents) {
+            List<PTPassengerAgent> stillWaiting = findAllPassengersWaiting(route, line, vehicle, stop, upcomingStops, now);
+            this.fireBoardingDeniedEvents(vehicle, now, stillWaiting);
         }
+        return 0.0;
     }
 
     @Override
@@ -109,40 +141,40 @@ public class SBBPassengerAccessEgress implements PassengerAccessEgress {
         return passengersLeaving;
     }
 
-    private List<PTPassengerAgent> findPassengersBoarding(TransitRoute transitRoute, TransitLine transitLine, TransitVehicle vehicle,
+    /**
+     * Finds all agents that want to enter the specified line.
+     */
+    private List<PTPassengerAgent> findPassengersEntering(TransitRoute transitRoute, TransitLine transitLine, TransitVehicle vehicle,
                                                           final TransitStopFacility stop, List<TransitRouteStop> stopsToCome, int freeCapacity, double now) {
         ArrayList<PTPassengerAgent> passengersEntering = new ArrayList<>();
-        if (this.isGeneratingDeniedBoardingEvents) {
-            for (PTPassengerAgent agent : this.agentTracker.getAgentsAtStop(stop.getId())) {
-                if (agent.getEnterTransitRoute(transitLine, transitRoute, stopsToCome, vehicle)) {
-                    if (freeCapacity >= 1) {
-                        passengersEntering.add(agent);
-                        freeCapacity--;
-                    } else {
-                        this.deniedBoarding.add(agent);
-                    }
-                }
+        for (PTPassengerAgent agent : this.agentTracker.getAgentsAtStop(stop.getId())) {
+            if (freeCapacity == 0) {
+                break;
             }
-        } else {
-            for (PTPassengerAgent agent : this.agentTracker.getAgentsAtStop(stop.getId())) {
-                if (freeCapacity == 0) {
-                    break;
-                }
-                if (agent.getEnterTransitRoute(transitLine, transitRoute, stopsToCome, vehicle)) {
-                    passengersEntering.add(agent);
-                    freeCapacity--;
-                }
+            if (agent.getEnterTransitRoute(transitLine, transitRoute, stopsToCome, vehicle)) {
+                passengersEntering.add(agent);
+                freeCapacity--;
             }
         }
         return passengersEntering;
     }
 
-    private void fireBoardingDeniedEvents(TransitVehicle vehicle, double now){
+    private List<PTPassengerAgent> findAllPassengersWaiting(TransitRoute transitRoute, TransitLine transitLine, TransitVehicle vehicle,
+                                                          final TransitStopFacility stop, List<TransitRouteStop> stopsToCome, double now) {
+        ArrayList<PTPassengerAgent> passengersEntering = new ArrayList<>();
+        for (PTPassengerAgent agent : this.agentTracker.getAgentsAtStop(stop.getId())) {
+            if (agent.getEnterTransitRoute(transitLine, transitRoute, stopsToCome, vehicle)) {
+                passengersEntering.add(agent);
+            }
+        }
+        return passengersEntering;
+    }
+
+    private void fireBoardingDeniedEvents(TransitVehicle vehicle, double now, List<PTPassengerAgent> agents){
         Id<Vehicle> vehicleId = vehicle.getId();
-        for (PTPassengerAgent agent : this.deniedBoarding) {
+        for (PTPassengerAgent agent : agents) {
             this.eventsManager.processEvent(new BoardingDeniedEvent(now, agent.getId(), vehicleId));
         }
-        this.deniedBoarding.clear();
     }
 
 }
