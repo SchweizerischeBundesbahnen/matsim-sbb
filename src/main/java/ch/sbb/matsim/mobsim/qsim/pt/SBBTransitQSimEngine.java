@@ -90,7 +90,13 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
             this.linkEventQueue = null;
             this.linksCache = null;
         }
+        checkSettings();
+    }
 
+    private void checkSettings() {
+        if (this.config.getDeterministicServiceModes().isEmpty()) {
+            log.warn("There are no modes registered for the deterministic transit simulation, so no transit vehicle will be handled by this engine.");
+        }
     }
 
     @Inject
@@ -195,7 +201,6 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     }
 
     private void createAndScheduleDriver(Vehicle veh, Umlauf umlauf, boolean isDeterministic) {
-        log.info("Using StopHandlerFactory: " + this.stopHandlerFactory.getClass().getName());
         AbstractTransitDriverAgent driver;
         if (isDeterministic) {
             driver = this.deterministicDriverFactory.createTransitDriver(umlauf);
@@ -342,7 +347,13 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
             for (Link toLink : linksToNextStop) {
                 if (fromLink != null) {
                     double time = depTime + travelledLength * secondsPerMeter;
-                    this.linkEventQueue.add(new LinkEvent(time, fromLink.getId(), toLink.getId(), vehicle.getId()));
+                    if (travelTime == 0) {
+                        // create the events right now, so they stay in correct order before next arrival
+                        this.qSim.getEventsManager().processEvent(new LinkLeaveEvent(time, vehicle.getId(), fromLink.getId()));
+                        this.qSim.getEventsManager().processEvent(new LinkEnterEvent(time, vehicle.getId(), toLink.getId()));
+                    } else {
+                        this.linkEventQueue.add(new LinkEvent(time, fromLink.getId(), toLink.getId(), vehicle.getId()));
+                    }
                     travelledLength += fromLink.getLength();
                 }
                 fromLink = toLink;

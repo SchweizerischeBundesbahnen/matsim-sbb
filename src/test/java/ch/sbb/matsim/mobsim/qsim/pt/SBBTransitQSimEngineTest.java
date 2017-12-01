@@ -316,6 +316,102 @@ public class SBBTransitQSimEngineTest {
         assertEqualEvent(PersonArrivalEvent.class,            30720, allEvents.get(22));
     }
 
+    @Test
+    public void testEvents_withoutPassengers_withLinks_Sesselbahn() {
+        TestFixture f = new TestFixture();
+        f.addSesselbahn(true, false);
+        f.sbbConfig.setCreateLinkEvents(true);
+
+        EventsManager eventsManager = EventsUtils.createEventsManager(f.config);
+        List<AbstractQSimPlugin> plugins = new ArrayList<>();
+        plugins.add(new ActivityEnginePlugin(f.config));
+        plugins.add(new SBBTransitEnginePlugin(f.config));
+
+        // to compare to original TransitQSimEngine, use the following two instead of the SBBTransitEnginePlugin
+//        plugins.add(new TransitEnginePlugin(f.config));
+//        plugins.add(new QNetsimEnginePlugin(f.config));
+
+        QSim qSim = QSimUtils.createQSim(f.scenario, eventsManager, plugins);
+
+        Assert.assertEquals(SBBTransitQSimEngine.class, qSim.getTransitEngine().getClass());
+
+        EventsCollector collector = new EventsCollector();
+        eventsManager.addHandler(collector);
+        qSim.run();
+        List<Event> allEvents = collector.getEvents();
+
+        for (Event event : allEvents) {
+            System.out.println(event.toString());
+        }
+
+        Assert.assertEquals("wrong number of events.", 13, allEvents.size());
+        assertEqualEvent(TransitDriverStartsEvent.class,      35000, allEvents.get(0));
+        assertEqualEvent(PersonDepartureEvent.class,          35000, allEvents.get(1));
+        assertEqualEvent(PersonEntersVehicleEvent.class,      35000, allEvents.get(2));
+        assertEqualEvent(VehicleEntersTrafficEvent.class,     35000, allEvents.get(3));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 35000, allEvents.get(4)); // stop B
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 35000, allEvents.get(5)); // stop B
+        assertEqualEvent(LinkLeaveEvent.class,                35001, allEvents.get(6)); // link 1
+        assertEqualEvent(LinkEnterEvent.class,                35001, allEvents.get(7)); // link 2
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 35120, allEvents.get(8)); // stop C
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 35120, allEvents.get(9));
+        assertEqualEvent(VehicleLeavesTrafficEvent.class,     35120, allEvents.get(10));
+        assertEqualEvent(PersonLeavesVehicleEvent.class,      35120, allEvents.get(11));
+        assertEqualEvent(PersonArrivalEvent.class,            35120, allEvents.get(12));
+    }
+
+    /** during development, I had a case where the traveltime-offset between two stops was 0 seconds.
+     * This resulted in the 2nd stop being immediately handled, and only after that the
+     * linkLeave/linkEnter-Events were generated. As the 2nd stop happened to be the last one, the
+     * driver already left the vehicle, which then resulted in an exception in some event handler
+     * trying to figure out the driver of the vehicle driving around.
+     * This tests reproduces this situation in order to check that the code can correctly cope with
+     * such a situation.
+     */
+    @Test
+    public void testEvents_withoutPassengers_withLinks_SesselbahnMalformed() {
+        TestFixture f = new TestFixture();
+        f.addSesselbahn(true, true);
+        f.sbbConfig.setCreateLinkEvents(true);
+
+        EventsManager eventsManager = EventsUtils.createEventsManager(f.config);
+        List<AbstractQSimPlugin> plugins = new ArrayList<>();
+        plugins.add(new ActivityEnginePlugin(f.config));
+        plugins.add(new SBBTransitEnginePlugin(f.config));
+
+        // to compare to original TransitQSimEngine, use the following two instead of the SBBTransitEnginePlugin
+//        plugins.add(new TransitEnginePlugin(f.config));
+//        plugins.add(new QNetsimEnginePlugin(f.config));
+
+        QSim qSim = QSimUtils.createQSim(f.scenario, eventsManager, plugins);
+
+        Assert.assertEquals(SBBTransitQSimEngine.class, qSim.getTransitEngine().getClass());
+
+        EventsCollector collector = new EventsCollector();
+        eventsManager.addHandler(collector);
+        qSim.run();
+        List<Event> allEvents = collector.getEvents();
+
+        for (Event event : allEvents) {
+            System.out.println(event.toString());
+        }
+
+        Assert.assertEquals("wrong number of events.", 13, allEvents.size());
+        assertEqualEvent(TransitDriverStartsEvent.class,      35000, allEvents.get(0));
+        assertEqualEvent(PersonDepartureEvent.class,          35000, allEvents.get(1));
+        assertEqualEvent(PersonEntersVehicleEvent.class,      35000, allEvents.get(2));
+        assertEqualEvent(VehicleEntersTrafficEvent.class,     35000, allEvents.get(3));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 35000, allEvents.get(4)); // stop B
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 35000, allEvents.get(5)); // stop B
+        assertEqualEvent(LinkLeaveEvent.class,                35000, allEvents.get(6)); // link 1
+        assertEqualEvent(LinkEnterEvent.class,                35000, allEvents.get(7)); // link 2
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 35000, allEvents.get(8)); // stop C
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 35000, allEvents.get(9));
+        assertEqualEvent(VehicleLeavesTrafficEvent.class,     35000, allEvents.get(10));
+        assertEqualEvent(PersonLeavesVehicleEvent.class,      35000, allEvents.get(11));
+        assertEqualEvent(PersonArrivalEvent.class,            35000, allEvents.get(12));
+    }
+
     private static void assertEqualEvent(Class<? extends Event> eventClass, double time, Event event) {
         Assert.assertTrue(event.getClass().isAssignableFrom(event.getClass()));
         Assert.assertEquals(time, event.getTime(), 1e-7);
