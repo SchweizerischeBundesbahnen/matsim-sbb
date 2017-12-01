@@ -204,4 +204,33 @@ class TestFixture {
             population.addPerson(person);
         }
     }
+
+    void addSesselbahn(boolean removeExistingLines, boolean malformed) {
+        if (removeExistingLines) {
+            removeExistingLines();
+        }
+
+        TransitSchedule schedule = this.scenario.getTransitSchedule();
+        TransitScheduleFactory f = schedule.getFactory();
+
+        TransitLine line = f.createTransitLine(Id.create("SB", TransitLine.class));
+        NetworkRoute netRoute = new LinkNetworkRouteImpl(this.stopB.getLinkId(), Collections.emptyList(), this.stopC.getLinkId());
+        List<TransitRouteStop> stops = new ArrayList<>();
+        stops.add(f.createTransitRouteStop(this.stopB, Time.UNDEFINED_TIME, 0));
+        stops.add(f.createTransitRouteStop(this.stopC, malformed ? 0 : 120, Time.UNDEFINED_TIME));
+        TransitRoute route = f.createTransitRoute(Id.create("SB1", TransitRoute.class), netRoute, stops, "train");
+        Departure dep1 = f.createDeparture(Id.create("SB1_1", Departure.class), 35000);
+        dep1.setVehicleId(Id.create("train1", Vehicle.class));
+        route.addDeparture(dep1);
+        line.addRoute(route);
+        schedule.addTransitLine(line);
+    }
+
+    private void removeExistingLines() {
+        TransitSchedule schedule = this.scenario.getTransitSchedule();
+        List<TransitLine> lines = new ArrayList<>(schedule.getTransitLines().values());
+        for (TransitLine line : lines) {
+            schedule.removeTransitLine(line);
+        }
+    }
 }
