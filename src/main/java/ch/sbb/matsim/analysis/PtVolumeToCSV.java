@@ -51,18 +51,12 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     public static final String[] COLS_STOPS = new String[]{COL_INDEX, COL_STOP_ID, COL_BOARDING, COL_ALIGHTING, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
     public static final String[] COLS_VEHJOURNEYS = new String[]{COL_INDEX, COL_FROM_STOP_ID, COL_TO_STOP_ID, COL_PASSENGERS, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
 
-    Scenario scenario;
     Logger log = Logger.getLogger(PTObjective.class);
 
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> ptAgents = new HashSet<>();
     private CSVWriter stopsWriter = new CSVWriter(COLS_STOPS);
     private CSVWriter vehJourneyWriter = new CSVWriter(COLS_VEHJOURNEYS);
-
-
-    public PtVolumeToCSV(Scenario scenario){
-        this.scenario = scenario;
-    }
 
     // Methods
     @Override

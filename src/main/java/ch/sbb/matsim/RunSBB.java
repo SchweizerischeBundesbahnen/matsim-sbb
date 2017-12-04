@@ -5,6 +5,7 @@
 package ch.sbb.matsim;
 
 
+import ch.sbb.matsim.analysis.SBBPostProcessingEventsHandling;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -39,7 +40,12 @@ public class RunSBB {
         ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
         controler.setScoringFunctionFactory(scoringFunctionFactory);
 
-        SBBPostProcessing postProcessing = new SBBPostProcessing(controler);
+        controler.addOverridingModule(new AbstractModule() {
+            @Override
+            public void install() {
+                this.addControlerListenerBinding().to(SBBPostProcessingEventsHandling.class);
+            }
+        });
 
         controler.addOverridingModule(new AbstractModule() {
             @Override
@@ -64,6 +70,6 @@ public class RunSBB {
         });
 
         controler.run();
-        postProcessing.write();
+//        postProcessing.write();
     }
 }

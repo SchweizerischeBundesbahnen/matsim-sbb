@@ -36,7 +36,7 @@ public class SBBPostProcessing {
         ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
 
         if(ppConfig.getPtVolumes()){
-            ptHandler = new PtVolumeToCSV(scenario);
+            ptHandler = new PtVolumeToCSV();
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {

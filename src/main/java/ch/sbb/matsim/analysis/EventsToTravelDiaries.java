@@ -87,6 +87,8 @@ public class EventsToTravelDiaries implements
     private double walkSpeed;
     // Attributes
 
+    private int iteration;
+
     private Map<Id, TravellerChain> chains = new HashMap<>();
     private Map<Id, Coord> locations = new HashMap<>();
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
@@ -415,6 +417,7 @@ public class EventsToTravelDiaries implements
     // Methods
     @Override
     public void reset(int iteration) {
+        this.iteration = iteration;
         chains = new HashMap<>();
         locations = new HashMap<>();
         ptVehicles = new HashMap<>();
