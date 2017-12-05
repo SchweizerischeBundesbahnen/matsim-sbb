@@ -251,8 +251,8 @@ public class ExportPTSupplyFromVisum {
         int nrOfTimeProfiles = Integer.valueOf(Dispatch.call(timeProfiles, "Count").toString());
         int i = 0;
 
-        //while (i < nrOfTimeProfiles) {
-        while (i < 250) {
+        while (i < nrOfTimeProfiles) {
+        //while (i < 250) {
             log.info("Processing Time Profile " + i + " of " + nrOfTimeProfiles);
             Dispatch item = Dispatch.get(timeProfileIterator, "Item").toDispatch();
 
@@ -262,7 +262,6 @@ public class ExportPTSupplyFromVisum {
                 TransitLine line = this.scheduleBuilder.createTransitLine(lineID);
                 this.schedule.addTransitLine(line);
             }
-
 
             // Fahrplanfahrten
             Dispatch vehicleJourneys = Dispatch.get(item, "VehJourneys").toDispatch();
@@ -296,8 +295,10 @@ public class ExportPTSupplyFromVisum {
                     this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "05_Name", name);
                     String operatorName = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\Name").toString();
                     this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "06_OperatorName", operatorName);
-                    double operatorNo = Double.valueOf(Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\No").toString());
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "07_OperatorNo", (int) operatorNo);
+                    if(!Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\No").toString().equals("null")) {
+                        double operatorNo = Double.valueOf(Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\No").toString());
+                        this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "07_OperatorNo", (int) operatorNo);
+                    }
                     String tSysName = Dispatch.call(item, "AttValue", "LineRoute\\Line\\TSysName").toString();
                     this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "08_TSysName", tSysName);
 
@@ -353,23 +354,43 @@ public class ExportPTSupplyFromVisum {
                                 newLink.setCapacity(10000);
                                 newLink.setNumberOfLanes(10000);
                                 newLink.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
-
                                 this.network.addLink(newLink);
                             }
-
+                            // differentiate between links with the same from- and to-node but different length
+                            else    {
+                                boolean hasLinkWithSameLength = false;
+                                if(this.network.getLinks().get(newLinkID).getLength() != postlength * 1000) {
+                                    int m = 1;
+                                    Id<Link> linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
+                                    while (this.network.getLinks().containsKey(linkID)) {
+                                        if(this.network.getLinks().get(linkID).getLength() == postlength * 1000) {
+                                            hasLinkWithSameLength = true;
+                                            break;
+                                        }
+                                        m++;
+                                        linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
+                                    }
+                                    if(!hasLinkWithSameLength)  {
+                                        Link link = this.networkBuilder.createLink(linkID, fromNode, toNode);
+                                        link.setLength(postlength * 1000);
+                                        link.setFreespeed(10000);
+                                        link.setCapacity(10000);
+                                        link.setNumberOfLanes(10000);
+                                        link.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+                                        this.network.addLink(link);
+                                        newLinkID = linkID;
+                                    }
+                                }
+                            }
                             routeLinks.add(newLinkID);
                             routeLinks.add(stop.getLinkId());
-
-                            // TODO: Links mit gleichen From- und To-Node, aber unterschiedlichen Längen, müssen noch differenziert werden.
                         }
-
                         postlength = Double.valueOf(Dispatch.call(item__, "AttValue", "PostLength").toString());
                         fromStop = stop;
 
                         l++;
                         Dispatch.call(fzpVerlaufIterator, "Next");
                     }
-
                     routeLinks.remove(routeLinks.size() - 1);
                     NetworkRoute netRoute = new LinkNetworkRouteImpl(startLink, endLink);
                     netRoute.setLinkIds(startLink, routeLinks, endLink);
