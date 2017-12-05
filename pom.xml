@@ -49,6 +49,13 @@
 			<type>pom</type>
 		</dependency>
 
+		<!-- Include the jacobs library to use to COM interface -->
+		<dependency>
+			<groupId>com.hynnet</groupId>
+			<artifactId>jacob</artifactId>
+			<version>1.18</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
