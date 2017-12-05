@@ -338,8 +338,7 @@ public class ExportPTSupplyFromVisum {
 
                         double arrTime = Double.valueOf(Dispatch.call(item__, "AttValue", "Arr").toString());
                         double depTime = Double.valueOf(Dispatch.call(item__, "AttValue", "Dep").toString());
-                        // TODO: delta auch auf arrivaloffset oder departureoffset anwenden? delta auch auf departure anwenden?
-                        TransitRouteStop rst = this.scheduleBuilder.createTransitRouteStop(stop, arrTime - delta, depTime);
+                        TransitRouteStop rst = this.scheduleBuilder.createTransitRouteStop(stop, arrTime - delta, depTime - delta);
                         rst.setAwaitDepartureTime(true);
                         transitRouteStops.add(rst);
 
