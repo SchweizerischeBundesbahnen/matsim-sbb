@@ -46,7 +46,6 @@ public class PopulationToCSVTest {
 
         Set d = tool.agents_writer.getData().get(0).keySet();
         Assert.assertEquals(t, d);
-        System.out.println();
 
     }
 
