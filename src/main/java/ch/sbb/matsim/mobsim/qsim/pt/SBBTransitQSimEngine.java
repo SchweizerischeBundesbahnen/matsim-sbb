@@ -125,14 +125,11 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         if (this.config.getPassengerModes().contains(mode)) {
             handlePassengerDeparture(agent, linkId);
             return true;
-        } else if (this.config.getDeterministicServiceModes().contains(mode)) {
+        }
+        if (this.config.getDeterministicServiceModes().contains(mode)) {
             handleDeterministicDriverDeparture(agent);
             return true;
         }
-        // network service modes should actually be handled as a qsim mainMode,
-        // not sure how to simplify the configuration for that and if
-        // networkServiceModes are actually needed at all in the end.
-        // TODO
         return false;
     }
 
