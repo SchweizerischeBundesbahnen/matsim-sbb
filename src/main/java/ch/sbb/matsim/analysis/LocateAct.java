@@ -63,7 +63,6 @@ public class LocateAct {
 
             return null;
         }
-
     }
 
     public SimpleFeature getNearestZone(Coord coord, double acceptance) {
