@@ -261,7 +261,7 @@ public class EventsToTravelDiaries implements
         try {
             if (isTransitDriver(event.getPersonId()))
                 return;
-            if (ptVehicles.keySet().contains(event.getVehicleId())) {
+            if (ptVehicles.containsKey(event.getVehicleId())) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 Journey journey = chain.getJourneys().getLast();
                 // first, handle the end of the wait
@@ -294,7 +294,7 @@ public class EventsToTravelDiaries implements
         if (isTransitDriver(event.getPersonId()))
             return;
         try {
-            if (ptVehicles.keySet().contains(event.getVehicleId())) {
+            if (ptVehicles.containsKey(event.getVehicleId())) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 chain.traveledVehicle = true;
                 PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
@@ -315,7 +315,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(LinkEnterEvent event) {
         try {
-            if (ptVehicles.keySet().contains(event.getVehicleId())) {
+            if (ptVehicles.containsKey(event.getVehicleId())) {
                 PTVehicle ptVehicle = ptVehicles.get(event.getVehicleId());
                 ptVehicle.in = true;
                 ptVehicle.setLinkEnterTime(event.getTime());
@@ -333,7 +333,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(LinkLeaveEvent event) {
         try {
-            if (ptVehicles.keySet().contains(event.getVehicleId())) {
+            if (ptVehicles.containsKey(event.getVehicleId())) {
                 PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
                 if (vehicle.in)
                     vehicle.in = false;
