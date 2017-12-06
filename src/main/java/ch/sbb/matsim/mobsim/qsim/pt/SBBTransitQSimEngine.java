@@ -34,6 +34,7 @@ import org.matsim.core.mobsim.qsim.pt.TransitStopAgentTracker;
 import org.matsim.core.mobsim.qsim.pt.TransitStopHandlerFactory;
 import org.matsim.core.mobsim.qsim.pt.TransitVehicle;
 import org.matsim.core.population.routes.NetworkRoute;
+import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.Umlauf;
 import org.matsim.pt.UmlaufImpl;
@@ -49,10 +50,12 @@ import org.matsim.vehicles.Vehicles;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -186,11 +189,18 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         Scenario scenario = this.qSim.getScenario();
         TransitSchedule schedule = scenario.getTransitSchedule();
         Vehicles vehicles = scenario.getTransitVehicles();
+        Set<String> deterministicModes = this.config.getDeterministicServiceModes();
+        Set<String> passengerModes = this.qSim.getScenario().getConfig().transit().getTransitModes();
+        Set<String> commonModes = new HashSet<>(deterministicModes);
+        commonModes.retainAll(passengerModes);
+        if (!commonModes.isEmpty()) {
+            throw new RuntimeException("There are modes configured to be pt passenger modes as well as deterministic service modes. This will not work! common modes = " + CollectionUtils.setToString(commonModes));
+        }
 
         for (TransitLine line : schedule.getTransitLines().values()) {
             for (TransitRoute route : line.getRoutes().values()) {
                 String mode = route.getTransportMode();
-                boolean isDeterministic = this.config.getDeterministicServiceModes().contains(mode);
+                boolean isDeterministic = deterministicModes.contains(mode);
                 for (Departure dep : route.getDepartures().values()) {
                     Vehicle veh = vehicles.getVehicles().get(dep.getVehicleId());
                     Umlauf umlauf = createUmlauf(line, route, dep);

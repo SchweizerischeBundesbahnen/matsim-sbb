@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.mobsim.qsim.pt;
 
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
@@ -31,6 +32,7 @@ import org.matsim.core.mobsim.qsim.ActivityEnginePlugin;
 import org.matsim.core.mobsim.qsim.PopulationPlugin;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.QSimUtils;
+import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitRouteStop;
@@ -45,6 +47,8 @@ import java.util.Map;
  * @author mrieser / SBB
  */
 public class SBBTransitQSimEngineTest {
+
+    private static final Logger log = Logger.getLogger(SBBTransitQSimEngineTest.class);
 
     @Test
     public void testDriver() {
@@ -410,6 +414,26 @@ public class SBBTransitQSimEngineTest {
         assertEqualEvent(VehicleLeavesTrafficEvent.class,     35000, allEvents.get(10));
         assertEqualEvent(PersonLeavesVehicleEvent.class,      35000, allEvents.get(11));
         assertEqualEvent(PersonArrivalEvent.class,            35000, allEvents.get(12));
+    }
+
+    @Test
+    public void testMisconfiguration() {
+        TestFixture f = new TestFixture();
+        f.config.transit().setTransitModes(CollectionUtils.stringToSet("pt,train,bus"));
+        f.sbbConfig.setDeterministicServiceModes(CollectionUtils.stringToSet("train,tram,ship"));
+
+        EventsManager eventsManager = EventsUtils.createEventsManager(f.config);
+        List<AbstractQSimPlugin> plugins = new ArrayList<>();
+        plugins.add(new ActivityEnginePlugin(f.config));
+        plugins.add(new SBBTransitEnginePlugin(f.config));
+        QSim qSim = QSimUtils.createQSim(f.scenario, eventsManager, plugins);
+        try {
+            qSim.run();
+            Assert.fail("Expected a RuntimeException due misconfiguration, but got none.");
+        } catch (RuntimeException e) {
+            log.info("Caught expected exception, all is fine.", e);
+        }
+
     }
 
     private static void assertEqualEvent(Class<? extends Event> eventClass, double time, Event event) {
