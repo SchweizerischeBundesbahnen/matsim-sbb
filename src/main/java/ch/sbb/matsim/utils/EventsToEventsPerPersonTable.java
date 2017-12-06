@@ -1,5 +1,6 @@
 package ch.sbb.matsim.utils;
 
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
@@ -54,6 +55,8 @@ public class EventsToEventsPerPersonTable implements
         TeleportationArrivalEventHandler,
         TransitDriverStartsEventHandler {
 
+    private static final Logger log = Logger.getLogger(EventsToEventsPerPersonTable.class);
+
     private final static String SEPARATOR = ";";
 
     private final Network network;
@@ -106,8 +109,7 @@ public class EventsToEventsPerPersonTable implements
                     "",
                     ""));
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -126,8 +128,7 @@ public class EventsToEventsPerPersonTable implements
                     "",
                     ""));
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -146,8 +147,7 @@ public class EventsToEventsPerPersonTable implements
                     "",
                     ""));
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -167,8 +167,7 @@ public class EventsToEventsPerPersonTable implements
                     ""));
 
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -187,8 +186,7 @@ public class EventsToEventsPerPersonTable implements
                     "",
                     ""));
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -207,8 +205,7 @@ public class EventsToEventsPerPersonTable implements
                     event.getVehicleId().toString(),
                     ""));
         } catch (Exception e) {
-            e.printStackTrace(System.out);
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -228,8 +225,7 @@ public class EventsToEventsPerPersonTable implements
                     ""));
 
         } catch (Exception e) {
-            e.printStackTrace(System.out);
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -249,8 +245,7 @@ public class EventsToEventsPerPersonTable implements
                     String.valueOf(event.getDistance())));
         } catch (Exception e) {
             e.printStackTrace(System.out);
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -259,8 +254,7 @@ public class EventsToEventsPerPersonTable implements
         try {
             transitDriverIds.add(event.getDriverId());
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
