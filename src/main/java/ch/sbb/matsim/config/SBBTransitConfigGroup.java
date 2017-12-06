@@ -21,12 +21,10 @@ public class SBBTransitConfigGroup extends ReflectiveConfigGroup {
 
     static private final String PARAM_PASSENGER_MODES = "passengerModes";
     static private final String PARAM_DETERMINISTIC_SERVICE_MODES = "deterministicServiceModes";
-    static private final String PARAM_NETWORK_SERVICE_MODES = "networkServiceModes";
     static private final String PARAM_CREATE_LINK_EVENTS = "createLinkEvents";
 
     private Set<String> passengerModes = new HashSet<>();
     private Set<String> deterministicServiceModes = new HashSet<>();
-    private Set<String> networkServiceModes = new HashSet<>();
     private boolean createLinkEvents = false;
 
     public SBBTransitConfigGroup() {
@@ -72,25 +70,6 @@ public class SBBTransitConfigGroup extends ReflectiveConfigGroup {
         this.deterministicServiceModes.addAll(modes);
     }
 
-    @StringGetter(PARAM_NETWORK_SERVICE_MODES)
-    private String getNetworkServiceModesAsString() {
-        return CollectionUtils.setToString(this.networkServiceModes);
-    }
-
-    public Set<String> getNetworkServiceModes() {
-        return this.networkServiceModes;
-    }
-
-    @StringSetter(PARAM_NETWORK_SERVICE_MODES)
-    private void setNetworkServiceModes(String modes) {
-        setNetworkServiceModes(CollectionUtils.stringToSet(modes));
-    }
-
-    public void setNetworkServiceModes(Set<String> modes) {
-        this.networkServiceModes.clear();
-        this.networkServiceModes.addAll(modes);
-    }
-
     @StringGetter(PARAM_CREATE_LINK_EVENTS)
     private String getCreateLinkEventsAsString() {
         return Boolean.toString(this.createLinkEvents);
@@ -114,7 +93,6 @@ public class SBBTransitConfigGroup extends ReflectiveConfigGroup {
         Map<String, String> comments = super.getComments();
         comments.put(PARAM_PASSENGER_MODES, "Leg modes used by agents that should be handled as public transport legs.");
         comments.put(PARAM_DETERMINISTIC_SERVICE_MODES, "Leg modes used by the created transit drivers that should be simulated strictly according to the schedule.");
-        comments.put(PARAM_NETWORK_SERVICE_MODES, "Leg modes used by the created transit drivers that should be simulated on the (Queue-)Network and which might deviate from the schedule (being early or late at stops).");
         comments.put(PARAM_CREATE_LINK_EVENTS, "Specifies whether the deterministic simulation should create linkEnter- and linkLeave-events, useful for visualization purposes. Defaults to false.");
         return comments;
     }
