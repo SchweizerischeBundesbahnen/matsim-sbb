@@ -112,9 +112,14 @@ public class AccessEgressRouting {
 
         SimpleFeature zone = this.actLocator.getZone(fromCoord);
         int travTime = 0;
+
+        String attribute = "ACC" + mode.toUpperCase();
+
         if (zone != null) {
-            travTime = (int) zone.getAttribute("ACC" + mode.toUpperCase());
+            travTime = (int) zone.getAttribute(attribute);
         }
+
+
         route.setTravelTime(travTime);
         route.setDistance(estimatedNetworkDistance);
         leg.setRoute(route);
