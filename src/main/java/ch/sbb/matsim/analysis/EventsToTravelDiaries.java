@@ -79,6 +79,8 @@ public class EventsToTravelDiaries implements
         TeleportationArrivalEventHandler, VehicleArrivesAtFacilityEventHandler,
         VehicleDepartsAtFacilityEventHandler {
 
+    private static final Logger log = Logger.getLogger(EventsToTravelDiaries.class);
+
     private final Network network;
     private double walkSpeed;
     // Attributes
@@ -92,7 +94,6 @@ public class EventsToTravelDiaries implements
     private TransitSchedule transitSchedule;
     private Vehicles transitVehicles;
     private boolean isTransitScenario = false;
-    private Logger log = Logger.getLogger(EventsToTravelDiaries.class);
     private LocateAct locateAct = null;
     private Config config = null;
 

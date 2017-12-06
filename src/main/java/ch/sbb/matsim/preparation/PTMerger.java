@@ -33,7 +33,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class PTMerger {
-    private Logger log =Logger.getLogger(PTMerger.class);
+    private final static Logger log =Logger.getLogger(PTMerger.class);
+
     private Scenario scenario;
 
     public static void main(final String[] args) {
@@ -43,7 +44,7 @@ public class PTMerger {
     }
 
     private PTMerger(Config config) {
-        this.log.info("Running Public Transport Merger. Enjoy :)");
+        log.info("Running Public Transport Merger. Enjoy :)");
 
         this.scenario = ScenarioUtils.createScenario(config);
         new NetworkReaderMatsimV1(scenario.getNetwork()).readFile(config.network().getInputFile());
@@ -159,14 +160,14 @@ public class PTMerger {
 
             if(!toKeep.containsKey(tl.getId())){
                 remove = false;
-                this.log.info("Not in file but keeping " + tl.getId());
+                log.info("Not in file but keeping " + tl.getId());
             }
             else if(toKeep.get(tl.getId()).equals("1")){
                 remove = true;
-                this.log.info("Removing " + tl.getId());
+                log.info("Removing " + tl.getId());
             }
             else{
-                this.log.info("Keeping " + tl.getId());
+                log.info("Keeping " + tl.getId());
             }
 
             ArrayList<TransitRoute> routeToDelete = new ArrayList<>();

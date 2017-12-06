@@ -27,6 +27,8 @@ import java.util.Map;
 
 public class SBBCharyparNagelScoringParametersForPerson implements ScoringParametersForPerson {
 
+    private final static Logger log = Logger.getLogger(SBBCharyparNagelScoringParametersForPerson.class);
+
     private final PlanCalcScoreConfigGroup config;
     private final ScenarioConfigGroup scConfig;
     private final Map<Person, ScoringParameters> paramsPerPerson = new LinkedHashMap<>();
@@ -34,7 +36,6 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
     private final String subpopulationAttributeName;
     private final TransitConfigGroup transitConfigGroup;
     Map<String, PlanCalcScoreConfigGroup.ModeParams> paramsPerMode;
-    private Logger log = Logger.getLogger(SBBCharyparNagelScoringParametersForPerson.class);
 
     public SBBCharyparNagelScoringParametersForPerson(Scenario scenario) {
         this(scenario.getConfig().plans(),

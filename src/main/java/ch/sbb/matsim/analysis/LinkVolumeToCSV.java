@@ -4,18 +4,19 @@
 
 package ch.sbb.matsim.analysis;
 
-import java.util.HashMap;
-import java.util.Set;
-
+import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
-import org.matsim.analysis.VolumesAnalyzer;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
-import ch.sbb.matsim.csv.CSVWriter;
+
+import java.util.HashMap;
+import java.util.Set;
 
 
 public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
+
+    private final static Logger log = Logger.getLogger(LinkVolumeToCSV.class);
 
     public static final String FILENAME_VOLUMES = "matsim_linkvolumes.csv";
     public static final String COL_LINK_ID = "link_id";
@@ -26,7 +27,6 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
     public static final String[] COLUMNS = new String[]{COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME, COL_NBPASSENGERS};
 
     Scenario scenario;
-    Logger log = Logger.getLogger(LinkVolumeToCSV.class);
 
     private final CSVWriter linkVolumesWriter = new CSVWriter(COLUMNS);
 
