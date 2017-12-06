@@ -76,7 +76,7 @@ public class NetworkToVisumNetFile {
                     "pt;pt\n" +
                     "ride;ride\n";
 
-    private Logger log = Logger.getLogger(NetworkToVisumNetFile.class);
+    private final static Logger log = Logger.getLogger(NetworkToVisumNetFile.class);
 
     public NetworkToVisumNetFile(Controler controler, PostProcessingConfigGroup ppConfig) {
         this.controler = controler;

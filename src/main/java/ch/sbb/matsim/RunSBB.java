@@ -23,9 +23,10 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
  */
 public class RunSBB {
 
+    private final static Logger log = Logger.getLogger(RunSBB.class);
+
     public static void main(String[] args) {
 
-        Logger log = Logger.getLogger(RunSBB.class);
         final String configFile = args[0];
 
         log.info(configFile);
