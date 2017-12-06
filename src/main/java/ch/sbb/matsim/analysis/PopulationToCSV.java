@@ -42,7 +42,8 @@ public class PopulationToCSV {
         cleaner.clean();
 
         String[] attributes = ppConfig.getPersonAttributes().split(",");
-        agents_writer = new CSVWriter(getColumns(scenario.getPopulation(), attributes));
+        String[] customAttributes = ppConfig.getPersonCustomAttributes().split(",");
+        agents_writer = new CSVWriter(getColumns(customAttributes, attributes));
         planelements_writer = new CSVWriter(new String[]{"person_id", "plan_id", "planelement_id", "selected", "plan_score", "start_time", "end_time", "type", "mode", "activity_type", "x", "y"});
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
@@ -116,22 +117,20 @@ public class PopulationToCSV {
         planelements_writer.write(planElementFilename);
     }
 
-    public String[] getColumns(final Population population, String[] attributes) {
+    public String[] getColumns(String[] customAttributes, String[] attributes) {
 
         ArrayList<String> columns = new ArrayList<>();
 
         columns.add("person_id");
 
-        for (Person person : population.getPersons().values()) {
-            for (String key : person.getCustomAttributes().keySet()) {
-                columns.add(key);
-            }
-            break;
+        for(String attribute: customAttributes){
+            columns.add(attribute);
         }
 
         for (String attibute : attributes) {
             columns.add(attibute);
         }
+
 
         return columns.toArray(new String[0]);
     }

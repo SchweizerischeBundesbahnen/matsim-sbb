@@ -19,6 +19,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private Boolean linkVolumes = false;
     private Boolean eventsPerPerson = false;
     private String personAttributes = "";
+    private String personCustomAttributes = "";
     private Boolean writePlansCSV = false;
     private Boolean visumNetFile = false;
     private String linkCountDataFile = null;
@@ -39,9 +40,19 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
         return personAttributes;
     }
 
+    @StringGetter("personCustomAttributes")
+    public String getPersonCustomAttributes() {
+        return personCustomAttributes;
+    }
+
     @StringSetter("personAttributes")
     public void setPersonAttributes(String personAttributes) {
         this.personAttributes = personAttributes;
+    }
+
+    @StringSetter("personCustomAttributes")
+    public void setPersonCustumAttributes(String personAttributes) {
+        this.personCustomAttributes = personAttributes;
     }
 
     public PostProcessingConfigGroup() {
