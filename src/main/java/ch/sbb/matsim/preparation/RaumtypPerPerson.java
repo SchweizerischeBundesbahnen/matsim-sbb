@@ -17,8 +17,8 @@ import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.ActivityImpl;
-import org.matsim.core.population.PopulationReaderMatsimV5;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
@@ -32,7 +32,6 @@ public class RaumtypPerPerson {
     public static String RAUMTYP = "raumtyp";
     public static String DEFALUT_RAUMTYP = "4";
 
-
     public static void main(final String[] args) {
         final Config config = ConfigUtils.createConfig();
         final String planFile = args[0];
@@ -40,7 +39,6 @@ public class RaumtypPerPerson {
         final String attributeFileOut = args[2];
         final String pathLog = args[3];
         final String pathBFSNrToGemeindetyp = args[4];
-
 
         Logger log = Logger.getLogger(RaumtypPerPerson.class);
         log.info("start");
@@ -67,21 +65,21 @@ public class RaumtypPerPerson {
         for (Map<String, String> entry : csvReader.data) {
             raumtypProGemeinde.put(entry.get(GEMEINDE_BFSNR), entry.get(RAUMTYP));
         }
-        new PopulationReaderMatsimV5(scenario).readFile(config.plans().getInputFile());
+        new PopulationReader(scenario).readFile(config.plans().getInputFile());
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
             Plan firstPlan = person.getPlans().get(0);
             PlanElement firstPlanElement = firstPlan.getPlanElements().get(0);
-            if (firstPlanElement instanceof ActivityImpl) {
-                String raumTyp = "";
-                String type = ((ActivityImpl) firstPlanElement).getType();
+            if (firstPlanElement instanceof Activity) {
+                String raumTyp;
+                String type = ((Activity) firstPlanElement).getType();
                 if (!type.equals("home")) {
                     raumTyp = DEFALUT_RAUMTYP;
                     log.info("first plan element of person " + person.getId().toString() +
                             " is not of type home");
                     nbNotHomeType += 1;
                 } else {
-                    Coord coord = ((ActivityImpl) firstPlanElement).getCoord();
+                    Coord coord = ((Activity) firstPlanElement).getCoord();
                     String gemeindeNr = locAct.getNearestZoneAttribute(coord, 200.0);
                     if (gemeindeNr.equals(LocateAct.UNDEFINED)) {
                         log.info("no zone defined for person " + person.getId().toString());

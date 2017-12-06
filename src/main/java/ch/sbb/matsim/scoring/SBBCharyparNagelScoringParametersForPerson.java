@@ -2,10 +2,12 @@ package ch.sbb.matsim.scoring;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.sbb.matsim.csv.CSVReader;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
@@ -32,17 +34,23 @@ import javafx.util.Pair;
 
 public class SBBCharyparNagelScoringParametersForPerson implements ScoringParametersForPerson {
 
+    private Logger log = Logger.getLogger(SBBCharyparNagelScoringParametersForPerson.class);
+
     private final PlanCalcScoreConfigGroup config;
     private final ScenarioConfigGroup scConfig;
     private final Map<Person, ScoringParameters> paramsPerPerson = new LinkedHashMap<>();
     private final ObjectAttributes personAttributes;
     private final String subpopulationAttributeName;
     private final TransitConfigGroup transitConfigGroup;
-    Map<String, PlanCalcScoreConfigGroup.ModeParams> paramsPerMode;
+
+    private final static String ATTRIBUTEABOTYPE = "season_ticket";
+
     Map<Pair<String, String>, Double> modeConstCorrectionPerModeAndRaumtyp;
-    private Logger log = Logger.getLogger(SBBCharyparNagelScoringParametersForPerson.class);
+    Map<Pair<String, String>, Double> ptAboCorrection;
+
+    private static List<String> PT_ABO_TYPES = Arrays.asList(new String[] {"none", "Halbtaxabo", "Generalabo"});
     private static List<String> MODES_WITH_CONST_CORRECTION = Arrays.asList(new String[] {
-            TransportMode.walk, TransportMode.bike, TransportMode.car, TransportMode.pt, TransportMode.ride });
+            TransportMode.walk, TransportMode.transit_walk, TransportMode.bike, TransportMode.car, TransportMode.pt, TransportMode.ride });
 
     public SBBCharyparNagelScoringParametersForPerson(Scenario scenario) {
         this(scenario.getConfig().plans(),
@@ -52,7 +60,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 scenario.getConfig().transit());
     }
 
-    SBBCharyparNagelScoringParametersForPerson(
+    SBBCharyparNagelScoringParametersForPerson  (
             PlansConfigGroup plansConfigGroup,
             PlanCalcScoreConfigGroup planCalcScoreConfigGroup,
             ScenarioConfigGroup scenarioConfigGroup,
@@ -63,72 +71,22 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
         this.personAttributes = population.getPersonAttributes();
         this.subpopulationAttributeName = plansConfigGroup.getSubpopulationAttributeName();
         this.transitConfigGroup = transitConfigGroup;
-        this.paramsPerMode = new HashMap<>();
-        for (Map.Entry<String, PlanCalcScoreConfigGroup.ModeParams> aModeEntry : this.config.getModes().entrySet()) {
-            String mode = aModeEntry.getKey();
-            PlanCalcScoreConfigGroup.ModeParams modeParams = aModeEntry.getValue();
-            String[] splitted = mode.split("_");
-            if (splitted.length == 2) {
-                if (splitted[0].equals(TransportMode.pt)) {
-                    this.paramsPerMode.put(splitted[1], modeParams);
-                } else if (mode.equals(TransportMode.transit_walk)) {
-                    this.paramsPerMode.put(mode, modeParams);
-                } else {
-                    throw new IllegalArgumentException("mode separated by exactly one _, but first argument is not pt " + mode);
-                }
-            } else if (splitted.length == 1) {
-                this.paramsPerMode.put(mode, modeParams);
-            } else
-                throw new IllegalArgumentException("not well SBB-formatted mode " + mode);
-        }
-        this.modeConstCorrectionPerModeAndRaumtyp = new HashMap<>();
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.walk, "1"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.walk, "2"), -0.24);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.walk, "3"), -0.06);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.walk, "4"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.bike, "1"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.bike, "2"), -0.43);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.bike, "3"), -0.40);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.bike, "4"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.car, "1"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.car, "2"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.car, "3"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.car, "4"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.pt, "1"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.pt, "2"), -0.24);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.pt, "3"), -0.30);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.pt, "4"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "1"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "2"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "3"), 0.0);
-        this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(TransportMode.ride, "4"), 0.0);
-        for (Pair<String, String> pair : this.modeConstCorrectionPerModeAndRaumtyp.keySet()) {
-            if (!MODES_WITH_CONST_CORRECTION.contains(pair.getKey())) {
-                throw new IllegalStateException("mode " + pair.getKey() +
-                        " with const-correction ist not contained in " + MODES_WITH_CONST_CORRECTION);
-            }
-        }
+
+        readPTAboCorrection();
+        readModeConstCorrectionPerModeAndRaumtyp();
     }
 
     @Override
     public ScoringParameters getScoringParameters(Person person) {
         if (!this.paramsPerPerson.containsKey(person)) {
             final String subpopulation = (String) personAttributes.getAttribute(person.getId().toString(), subpopulationAttributeName);
-            final String aboType = (String) personAttributes.getAttribute(person.getId().toString(), "season_ticket"); // TODO define "season_ticket" as static string?
+            final String aboType = (String) personAttributes.getAttribute(person.getId().toString(), ATTRIBUTEABOTYPE);
             final String raumtyp = (String) personAttributes.getAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP);
-            PlanCalcScoreConfigGroup.ModeParams modeParams = paramsPerMode.get(aboType);
-            if (modeParams == null) {
-                log.info("no mode parameters defined for season-ticket " + aboType);
-                modeParams = paramsPerMode.get(TransportMode.pt);
-                if (modeParams == null) {
-                    throw new IllegalStateException("mode parameters for pt must be defined");
-                }
-            }
 
-            modeParams.setConstant(modeParams.getConstant() + modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(TransportMode.pt, raumtyp)));
             ScoringParameters.Builder builder = new ScoringParameters.Builder(
                     this.config, this.config.getScoringParameters(subpopulation),
                     scConfig);
+
             if (transitConfigGroup.isUseTransit()) {
                 // jlie (17.08.2017): this is from org.matsim.core.scoring.functions.SubpopulationCharyparNagelScoringParameters
                 // without this MATSim does not know "pt interaction" and throws an IllegalArgumentException in CharyparNagelActivityScoring
@@ -141,25 +99,69 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 modeParamsBuilder.setScoreAtAll(false);
                 builder.setActivityParameters(PtConstants.TRANSIT_ACTIVITY_TYPE, modeParamsBuilder);
             }
-            final ModeUtilityParameters.Builder ptParameteresBuilder = new ModeUtilityParameters.Builder(modeParams);
-            // TODO the season-ticket-dependent correction should be done in the same manner as other corrections such as the raumtyp-dependent correction. to be implemented with a proper concept for
-            // the verhaltenshomogene gruppen
-            ptParameteresBuilder.setConstant(modeParams.getConstant() +
-                    modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(TransportMode.pt, raumtyp)));
-            builder.setModeParameters(TransportMode.pt, ptParameteresBuilder);
 
-            for (String mode : MODES_WITH_CONST_CORRECTION) {
-                if (!mode.equals(TransportMode.pt)) {
-                    final PlanCalcScoreConfigGroup.ModeParams defaultModeParams = this.paramsPerMode.get(mode);
-                    final ModeUtilityParameters.Builder modeParameteresBuilder = new ModeUtilityParameters.Builder(defaultModeParams);
+            for(String mode: this.config.getModes().keySet())   {
+                final PlanCalcScoreConfigGroup.ModeParams defaultModeParams = this.config.getModes().get(mode);
+                final ModeUtilityParameters.Builder modeParameteresBuilder = new ModeUtilityParameters.Builder(defaultModeParams);
+
+                // Korrektur nach Abotyp kombiniert mit Raumtyp
+                if(mode.equals(TransportMode.pt))   {
+                    modeParameteresBuilder.setConstant(ptAboCorrection.get(new Pair<>("constant", aboType)) +
+                            modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(mode, raumtyp)));
+                    modeParameteresBuilder.setMarginalUtilityOfDistance_m(ptAboCorrection.get(new Pair<>("marginalUtilityOfDistance_util_m", aboType)));
+                    modeParameteresBuilder.setMarginalUtilityOfTraveling_s(ptAboCorrection.get(new Pair<>("marginalUtilityOfTraveling_util_hr", aboType)) / 3600);
+                    modeParameteresBuilder.setMonetaryDistanceRate(ptAboCorrection.get(new Pair<>("monetaryDistanceRate", aboType)));
+                }
+                // Korrektur nach Raumtyp
+                else if(MODES_WITH_CONST_CORRECTION.contains(mode))  {
                     modeParameteresBuilder.setConstant(defaultModeParams.getConstant() +
                             modeConstCorrectionPerModeAndRaumtyp.get(new Pair<>(mode, raumtyp)));
-                    builder.setModeParameters(mode, modeParameteresBuilder);
                 }
+                builder.setModeParameters(mode, modeParameteresBuilder);
             }
-            CharyparNagelScoringParameters params = builder.build();
+            ScoringParameters params = builder.build();
             this.paramsPerPerson.put(person, params);
         }
         return this.paramsPerPerson.get(person);
+    }
+
+    private void readPTAboCorrection()  {
+        this.ptAboCorrection = new HashMap<>();
+
+        // TODO: this is still not a proper solution
+        String[] cols = new String[]{"param", "none", "Generalabo", "Halbtaxabo"};
+        CSVReader reader = new CSVReader(cols);
+        reader.read("KorrekturPTAbo.csv", ";");
+        Iterator<HashMap<String, String>> iterator = reader.data.iterator();
+        iterator.next(); // header line
+        while (iterator.hasNext()) {
+            HashMap<String, String> aRow = iterator.next();
+            for(String aboType: PT_ABO_TYPES)
+                this.ptAboCorrection.put(new Pair<>(aRow.get("param"), aboType), Double.valueOf(aRow.get(aboType)));
+        }
+    }
+
+    private void readModeConstCorrectionPerModeAndRaumtyp() {
+        this.modeConstCorrectionPerModeAndRaumtyp = new HashMap<>();
+
+        // TODO: first step towards more flexible code, but still not very nice
+        String[] cols = new String[]{"mode", "type1", "type2", "type3", "type4"};
+        CSVReader reader = new CSVReader(cols);
+        reader.read("KorrekturKonstantenRaumtypen.csv", ";");
+        Iterator<HashMap<String, String>> iterator = reader.data.iterator();
+        iterator.next(); // header line
+        while (iterator.hasNext()) {
+            HashMap<String, String> aRow = iterator.next();
+            this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(aRow.get("mode"), "1"), Double.valueOf(aRow.get("type1")));
+            this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(aRow.get("mode"), "2"), Double.valueOf(aRow.get("type2")));
+            this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(aRow.get("mode"), "3"), Double.valueOf(aRow.get("type3")));
+            this.modeConstCorrectionPerModeAndRaumtyp.put(new Pair<>(aRow.get("mode"), "4"), Double.valueOf(aRow.get("type4")));
+        }
+        for (Pair<String, String> pair : this.modeConstCorrectionPerModeAndRaumtyp.keySet()) {
+            if (!MODES_WITH_CONST_CORRECTION.contains(pair.getKey())) {
+                throw new IllegalStateException("mode " + pair.getKey() +
+                        " with const-correction ist not contained in " + MODES_WITH_CONST_CORRECTION);
+            }
+        }
     }
 }
