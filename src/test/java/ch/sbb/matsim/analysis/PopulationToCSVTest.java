@@ -1,6 +1,7 @@
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
@@ -13,7 +14,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
-import java.util.Set;
+import ch.sbb.matsim.config.PostProcessingConfigGroup;
 
 public class PopulationToCSVTest {
 
