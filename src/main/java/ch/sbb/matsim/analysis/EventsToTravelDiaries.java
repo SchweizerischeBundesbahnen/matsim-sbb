@@ -92,7 +92,6 @@ public class EventsToTravelDiaries implements
     private TransitSchedule transitSchedule;
     private Vehicles transitVehicles;
     private boolean isTransitScenario = false;
-    private String diagnosticString = "39669_2";
     private Logger log = Logger.getLogger(EventsToTravelDiaries.class);
     private LocateAct locateAct = null;
     private Config config = null;
@@ -429,13 +428,13 @@ public class EventsToTravelDiaries implements
         String journeyTableName;
         String transferTableName;
         String tripTableName;
-        if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
+        if (appendage.endsWith("_")) {
             actTableName = appendage + "matsim_activities.txt";
             journeyTableName = appendage + "matsim_journeys.txt";
             transferTableName = appendage + "matsim_transfers.txt";
             tripTableName = appendage + "matsim_trips.txt";
         } else {
-            if (appendage.matches("[a-zA-Z0-9]*"))
+            if (!appendage.startsWith("_"))
                 appendage = "_" + appendage;
             actTableName = "matsim_activities" + appendage + ".txt";
             journeyTableName = "matsim_journeys" + appendage + ".txt";
