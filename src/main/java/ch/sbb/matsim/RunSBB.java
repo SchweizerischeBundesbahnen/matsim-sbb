@@ -6,9 +6,15 @@ package ch.sbb.matsim;
 
 
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
+import ch.sbb.matsim.analysis.LocateAct;
 import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
@@ -23,6 +29,13 @@ import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRouter;
 import ch.sbb.matsim.routing.teleportation.SBBBeelineTeleportationRouting;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
+import org.matsim.core.utils.collections.QuadTree;
+import org.matsim.facilities.ActivityFacility;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author denism
@@ -82,11 +95,15 @@ public class RunSBB {
         AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
         if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
 
+            LocateAct locateAct = new LocateAct(accessTimeConfigGroup.getShapefile(), "GMDNAME");
+
+            locateAct.fillCache(scenario.getPopulation());
+
             config.plansCalcRoute().setInsertingAccessEgressWalk(true);
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
-                    addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, accessTimeConfigGroup));
+                    addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, accessTimeConfigGroup, locateAct));
                     addRoutingModuleBinding(TransportMode.bike)
                             .toProvider(new SBBBeelineTeleportationRouting(config.plansCalcRoute().getModeRoutingParams().get(TransportMode.bike), accessTimeConfigGroup));
                 }

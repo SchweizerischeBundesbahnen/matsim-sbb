@@ -79,10 +79,11 @@ public class SBBNetworkRouter implements Provider<RoutingModule>
 
 	private LocateAct actLocator;
 
-	public SBBNetworkRouter(String mode, AccessTimeConfigGroup accessTimeConfigGroup) {
+	public SBBNetworkRouter(String mode, AccessTimeConfigGroup accessTimeConfigGroup, LocateAct actLocator) {
 		this.mode = mode;
 		if(accessTimeConfigGroup.getInsertingAccessEgressWalk()){
-			this.actLocator = new LocateAct(accessTimeConfigGroup.getShapefile(), "GMDNAME");
+			this.actLocator = actLocator;
+
 		}
 	}
 
