@@ -39,6 +39,7 @@ import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.Umlauf;
 import org.matsim.pt.UmlaufImpl;
 import org.matsim.pt.UmlaufStueck;
+import org.matsim.pt.config.TransitConfigGroup;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -66,6 +67,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     private static final Logger log = Logger.getLogger(SBBTransitQSimEngine.class);
 
     private final SBBTransitConfigGroup config;
+    private final TransitConfigGroup ptConfig;
     private final QSim qSim;
     private final TransitStopAgentTracker agentTracker;
     private final TransitSchedule schedule;
@@ -83,6 +85,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         super(qSim);
         this.qSim = qSim;
         this.config = ConfigUtils.addOrGetModule(qSim.getScenario().getConfig(), SBBTransitConfigGroup.GROUP_NAME, SBBTransitConfigGroup.class);
+        this.ptConfig = qSim.getScenario().getConfig().transit();
         this.createLinkEvents = this.config.isCreateLinkEvents();
         this.schedule = qSim.getScenario().getTransitSchedule();
         this.agentTracker = new TransitStopAgentTracker(qSim.getEventsManager());
@@ -122,7 +125,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
     @Override
     public boolean handleDeparture(double time, MobsimAgent agent, Id<Link> linkId) {
         String mode = agent.getMode();
-        if (this.config.getPassengerModes().contains(mode)) {
+        if (this.ptConfig.getTransitModes().contains(mode)) {
             handlePassengerDeparture(agent, linkId);
             return true;
         }
@@ -187,7 +190,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         TransitSchedule schedule = scenario.getTransitSchedule();
         Vehicles vehicles = scenario.getTransitVehicles();
         Set<String> deterministicModes = this.config.getDeterministicServiceModes();
-        Set<String> passengerModes = this.qSim.getScenario().getConfig().transit().getTransitModes();
+        Set<String> passengerModes = this.ptConfig.getTransitModes();
         Set<String> commonModes = new HashSet<>(deterministicModes);
         commonModes.retainAll(passengerModes);
         if (!commonModes.isEmpty()) {
