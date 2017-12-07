@@ -36,12 +36,13 @@ public class LocateAct {
     }
 
     private void readShapeFile(String shapefile){
+    private void readShapeFile(String shapefile) {
         ShapeFileReader shapeFileReader = new ShapeFileReader();
         shapeFileReader.readFileAndInitialize(shapefile);
         this.features = shapeFileReader.getFeatureSet();
     }
 
-    public SimpleFeature getZone(Coord coord){
+    public SimpleFeature getZone(Coord coord) {
 
         if (coordCache.containsKey(coord)) {
             return coordCache.get(coord);
@@ -62,9 +63,9 @@ public class LocateAct {
         }
     }
 
-    public String getZoneAttribute(Coord coord){
+    public String getZoneAttribute(Coord coord) {
         SimpleFeature zone = getZone(coord);
-        if(zone == null){
+        if (zone == null) {
             return "undefined";
         }
         return zone.getAttribute(attribute).toString();
