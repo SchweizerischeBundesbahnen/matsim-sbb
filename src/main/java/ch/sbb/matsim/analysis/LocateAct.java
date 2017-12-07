@@ -57,6 +57,7 @@ public class LocateAct {
                 }
             }
 
+            coordCache.put(coord, null);
             return null;
         }
     }
