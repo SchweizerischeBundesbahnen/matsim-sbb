@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.config;
 
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.ReflectiveConfigGroup;
 import org.matsim.core.utils.collections.CollectionUtils;
 
@@ -19,36 +18,14 @@ public class SBBTransitConfigGroup extends ReflectiveConfigGroup {
 
     static public final String GROUP_NAME = "sbbPt";
 
-    static private final String PARAM_PASSENGER_MODES = "passengerModes";
     static private final String PARAM_DETERMINISTIC_SERVICE_MODES = "deterministicServiceModes";
     static private final String PARAM_CREATE_LINK_EVENTS = "createLinkEvents";
 
-    private Set<String> passengerModes = new HashSet<>();
     private Set<String> deterministicServiceModes = new HashSet<>();
     private boolean createLinkEvents = false;
 
     public SBBTransitConfigGroup() {
         super(GROUP_NAME);
-        this.passengerModes.add(TransportMode.pt);
-    }
-
-    @StringGetter(PARAM_PASSENGER_MODES)
-    private String getPassengerModesAsString() {
-        return CollectionUtils.setToString(this.passengerModes);
-    }
-
-    public Set<String> getPassengerModes() {
-        return this.passengerModes;
-    }
-
-    @StringSetter(PARAM_PASSENGER_MODES)
-    private void setPassengerModes(String modes) {
-        setPassengerModes(CollectionUtils.stringToSet(modes));
-    }
-
-    public void setPassengerModes(Set<String> modes) {
-        this.passengerModes.clear();
-        this.passengerModes.addAll(modes);
     }
 
     @StringGetter(PARAM_DETERMINISTIC_SERVICE_MODES)
@@ -91,7 +68,6 @@ public class SBBTransitConfigGroup extends ReflectiveConfigGroup {
     @Override
     public Map<String, String> getComments() {
         Map<String, String> comments = super.getComments();
-        comments.put(PARAM_PASSENGER_MODES, "Leg modes used by agents that should be handled as public transport legs.");
         comments.put(PARAM_DETERMINISTIC_SERVICE_MODES, "Leg modes used by the created transit drivers that should be simulated strictly according to the schedule.");
         comments.put(PARAM_CREATE_LINK_EVENTS, "Specifies whether the deterministic simulation should create linkEnter- and linkLeave-events, useful for visualization purposes. Defaults to false.");
         return comments;
