@@ -45,6 +45,8 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
     private final static String ATTRIBUTEABOTYPE = "season_ticket";
 
+    // map mit verhaltenshomogene Gruppe -> Typ, Mode, Param -> Korrektur
+
     Map<Pair<String, String>, Double> modeConstCorrectionPerModeAndRaumtyp;
     Map<Pair<String, String>, Double> ptAboCorrection;
 
@@ -72,6 +74,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
         this.subpopulationAttributeName = plansConfigGroup.getSubpopulationAttributeName();
         this.transitConfigGroup = transitConfigGroup;
 
+        // TODO: Nur einmal alles zusammen einlesen ->
         readPTAboCorrection();
         readModeConstCorrectionPerModeAndRaumtyp();
     }
@@ -100,6 +103,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 builder.setActivityParameters(PtConstants.TRANSIT_ACTIVITY_TYPE, modeParamsBuilder);
             }
 
+            // TODO: make this code more flexible
             for(String mode: this.config.getModes().keySet())   {
                 final PlanCalcScoreConfigGroup.ModeParams defaultModeParams = this.config.getModes().get(mode);
                 final ModeUtilityParameters.Builder modeParameteresBuilder = new ModeUtilityParameters.Builder(defaultModeParams);

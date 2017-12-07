@@ -1,71 +1,72 @@
 package ch.sbb.matsim.preparation;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import ch.sbb.matsim.analysis.LocateAct;
+import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.SimpleLayout;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.api.core.v01.population.Activity;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
-import ch.sbb.matsim.analysis.LocateAct;
-import ch.sbb.matsim.csv.CSVReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 public class RaumtypPerPerson {
 
-    public static String GEMEINDE_BFSNR = "gemeinde_bfsnr";
-    public static String GEMEINDETYP = "gemeindetyp2000_9";
     public static String RAUMTYP = "raumtyp";
-    public static String DEFALUT_RAUMTYP = "4";
+    public static String DEFAULT_RAUMTYP = "4";
+
+    public static final String[] COLUMNS = new String[]{"x", "y", "raumtyp"};
+    private final CSVWriter coordinateWriter = new CSVWriter(COLUMNS);
+
+    public RaumtypPerPerson(){
+    }
+
+    private void addRow(Coord coord, String raumtyp)    {
+        HashMap<String, String> aRow = coordinateWriter.addRow();
+        aRow.put("x", Double.toString(coord.getX()));
+        aRow.put("y", Double.toString(coord.getY()));
+        aRow.put("raumtyp", raumtyp);
+    }
+
+    private void write()    {
+        coordinateWriter.write("validation.csv");
+    }
 
     public static void main(final String[] args) {
-        final Config config = ConfigUtils.createConfig();
         final String planFile = args[0];
         final String shapeFile = args[1];
-        final String attributeFileOut = args[2];
-        final String pathLog = args[3];
-        final String pathBFSNrToGemeindetyp = args[4];
+        final String outputLog = args[2];
+        final String outputAttributes = args[3];
+
+        RaumtypPerPerson rperson = new RaumtypPerPerson();
 
         Logger log = Logger.getLogger(RaumtypPerPerson.class);
-        log.info("start");
         int nbUndefined = 0;
         int nbNotHomeType = 0;
         String notDefinedLog = "\n";
         try {
-            Appender fileAppender = new FileAppender(new SimpleLayout(), pathLog);
+            Appender fileAppender = new FileAppender(new SimpleLayout(), outputLog);
             log.addAppender(fileAppender);
         } catch (IOException e) {
             log.info("no logging to file " + e.toString());
         }
 
-        config.plans().setInputFile(planFile);
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new PopulationReader(scenario).readFile(planFile);
 
-        LocateAct locAct = new LocateAct(shapeFile, "GMDNR");
-
-        Scenario scenario = ScenarioUtils.createScenario(config);
-
-        CSVReader csvReader = new CSVReader(new String[] { GEMEINDE_BFSNR, GEMEINDETYP, RAUMTYP });
-        csvReader.read(pathBFSNrToGemeindetyp, ";");
-
-        Map<String, String> raumtypProGemeinde = new HashMap<>();
-        for (Map<String, String> entry : csvReader.data) {
-            raumtypProGemeinde.put(entry.get(GEMEINDE_BFSNR), entry.get(RAUMTYP));
-        }
-        new PopulationReader(scenario).readFile(config.plans().getInputFile());
+        LocateAct locAct = new LocateAct(shapeFile, "GT9");
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
             Plan firstPlan = person.getPlans().get(0);
@@ -74,29 +75,22 @@ public class RaumtypPerPerson {
                 String raumTyp;
                 String type = ((Activity) firstPlanElement).getType();
                 if (!type.equals("home")) {
-                    raumTyp = DEFALUT_RAUMTYP;
+                    raumTyp = DEFAULT_RAUMTYP;
                     log.info("first plan element of person " + person.getId().toString() +
                             " is not of type home");
                     nbNotHomeType += 1;
                 } else {
                     Coord coord = ((Activity) firstPlanElement).getCoord();
-                    String gemeindeNr = locAct.getNearestZoneAttribute(coord, 200.0);
-                    if (gemeindeNr.equals(LocateAct.UNDEFINED)) {
+                    String raumTyp9 = locAct.getNearestZoneAttribute(coord, 200.0);
+                    if (raumTyp9.equals(LocateAct.UNDEFINED)) {
                         log.info("no zone defined for person " + person.getId().toString());
                         List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
                         notDefinedLog += String.join(";", l) + "\n";
                         nbUndefined += 1;
-                        raumTyp = DEFALUT_RAUMTYP;
+                        raumTyp = DEFAULT_RAUMTYP;
                     } else {
-                        raumTyp = raumtypProGemeinde.get(gemeindeNr);
-                    }
-                    if (raumTyp == null) {
-                        // it seems that even if shape-file and bfs-excel are from the same year, there are differences!
-                        log.info("raumTyp == null. person: " + person.getId().toString() + " gemeindenr: " + gemeindeNr);
-                        List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
-                        notDefinedLog += String.join(";", l) + "\n";
-                        nbUndefined += 1;
-                        raumTyp = DEFALUT_RAUMTYP;
+                        raumTyp = raumTyp9.substring(0, 1);
+                        rperson.addRow(coord, raumTyp);
                     }
                 }
                 scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RAUMTYP, raumTyp);
@@ -104,7 +98,8 @@ public class RaumtypPerPerson {
                 throw new IllegalStateException("first planelement of person " +
                         person.getId().toString() + " cannot be not an activity");
         }
-        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFileOut);
+        rperson.write();
+        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(outputAttributes);
         log.info(notDefinedLog);
         log.info("nb persons with first activity not of type home " + nbNotHomeType);
         log.info("nb persons with undefined zone " + nbUndefined);
