@@ -53,7 +53,7 @@ import java.util.List;
 
 public class ExportPTSupplyFromVisum {
 
-    private Logger log;
+    private static Logger log;
 
     private Scenario scenario;
     private Network network;
@@ -63,6 +63,8 @@ public class ExportPTSupplyFromVisum {
     private TransitScheduleFactory scheduleBuilder;
     private NetworkFactory networkBuilder;
     private VehiclesFactory vehicleBuilder;
+
+    private final String PATHTOJACOBLIBRARY = "C:\\Users\\u225744\\Downloads\\jacob-1.18\\jacob-1.18";
 
     private final String PATHTOVISUM = "\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\10_Modelle_vonDritten\\40_NPVM2016\\OEVAngebot_NPVM2016_Patrick.ver";
 
@@ -76,6 +78,9 @@ public class ExportPTSupplyFromVisum {
 
     private ExportPTSupplyFromVisum() {
         log = Logger.getLogger(ExportPTSupplyFromVisum.class);
+
+        // set path to jacob library
+        System.setProperty("java.library.path", PATHTOJACOBLIBRARY);
 
         ActiveXComponent visum = new ActiveXComponent("Visum.Visum.16");
         log.info("VISUM Client gestartet.");
