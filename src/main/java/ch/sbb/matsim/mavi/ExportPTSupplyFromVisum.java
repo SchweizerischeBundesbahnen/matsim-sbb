@@ -21,6 +21,7 @@ import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -323,6 +324,7 @@ public class ExportPTSupplyFromVisum {
 
                     int nrFZPVerlaufe = Integer.valueOf(Dispatch.call(fzpVerlaufe, "Count").toString());
                     int l = 0;
+                    boolean isFirstRouteStop = true;
 
                     while (l < nrFZPVerlaufe) {
                         Dispatch item__ = Dispatch.get(fzpVerlaufIterator, "Item").toDispatch();
@@ -337,7 +339,7 @@ public class ExportPTSupplyFromVisum {
                         }
                         else if(from_tp_index == index) {
                             startLink = Id.createLinkId("pt_" + ((int) stopPointNo));
-                            delta = Double.valueOf(Dispatch.call(item__, "AttValue", "Arr").toString());
+                            delta = Double.valueOf(Dispatch.call(item__, "AttValue", "Dep").toString());
                         }
                         else if(to_tp_index == index) { endLink = Id.createLinkId("pt_" + ((int) stopPointNo)); }
 
@@ -346,7 +348,14 @@ public class ExportPTSupplyFromVisum {
 
                         double arrTime = Double.valueOf(Dispatch.call(item__, "AttValue", "Arr").toString());
                         double depTime = Double.valueOf(Dispatch.call(item__, "AttValue", "Dep").toString());
-                        TransitRouteStop rst = this.scheduleBuilder.createTransitRouteStop(stop, arrTime - delta, depTime - delta);
+                        TransitRouteStop rst;
+                        if(isFirstRouteStop) {
+                            rst = this.scheduleBuilder.createTransitRouteStop(stop, Time.UNDEFINED_TIME, depTime - delta);
+                            isFirstRouteStop = false;
+                        }
+                        else {
+                            rst = this.scheduleBuilder.createTransitRouteStop(stop, arrTime - delta, depTime - delta);
+                        }
                         rst.setAwaitDepartureTime(true);
                         transitRouteStops.add(rst);
 
