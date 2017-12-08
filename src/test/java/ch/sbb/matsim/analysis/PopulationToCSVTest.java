@@ -12,6 +12,7 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.population.PersonUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
@@ -23,8 +24,7 @@ public class PopulationToCSVTest {
 
         PostProcessingConfigGroup pg = new PostProcessingConfigGroup();
 
-        pg.setPersonCustumAttributes("carAvail,gender");
-        pg.setPersonAttributes("subpopulation");
+        pg.setPersonAttributes("carAvail,hasLicense,gender,subpopulation");
 
         Config config = ConfigUtils.createConfig(pg);
         Scenario scenario = ScenarioUtils.createScenario(config);
@@ -41,6 +41,7 @@ public class PopulationToCSVTest {
         t.add("carAvail");
         t.add("gender");
         t.add("subpopulation");
+        t.add("hasLicense");
 
         // automatically added
         t.add("person_id");

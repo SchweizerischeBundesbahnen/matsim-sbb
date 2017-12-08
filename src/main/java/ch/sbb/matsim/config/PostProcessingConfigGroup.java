@@ -18,8 +18,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private Boolean ptVolumes = false;
     private Boolean linkVolumes = false;
     private Boolean eventsPerPerson = false;
-    private String personAttributes = "season_ticket,subpopulation";
-    private String personCustomAttributes = "carAvail,license,";
+    private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
     private Boolean writePlansCSV = false;
     private Boolean visumNetFile = false;
     private String linkCountDataFile = null;
@@ -40,19 +39,9 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
         return personAttributes;
     }
 
-    @StringGetter("personCustomAttributes")
-    public String getPersonCustomAttributes() {
-        return personCustomAttributes;
-    }
-
     @StringSetter("personAttributes")
     public void setPersonAttributes(String personAttributes) {
         this.personAttributes = personAttributes;
-    }
-
-    @StringSetter("personCustomAttributes")
-    public void setPersonCustumAttributes(String personAttributes) {
-        this.personCustomAttributes = personAttributes;
     }
 
     public PostProcessingConfigGroup() {
