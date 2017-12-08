@@ -271,7 +271,9 @@ public class ExportPTSupplyFromVisum {
             // Fahrplanfahrten
             Dispatch vehicleJourneys = Dispatch.get(item, "VehJourneys").toDispatch();
             Dispatch vehicleJourneyIterator = Dispatch.get(vehicleJourneys, "Iterator").toDispatch();
-            String mode = Dispatch.call(item, "AttValue", "TSysCode").toString();
+            // to make sure that the deterministic transit simulation runs fine, we should use one route mode for now
+            String mode = "detPt";
+            //String mode = Dispatch.call(item, "AttValue", "TSysCode").toString();
 
             int nrOfVehicleJourneys = Integer.valueOf(Dispatch.call(vehicleJourneys, "Count").toString());
             int k = 0;
