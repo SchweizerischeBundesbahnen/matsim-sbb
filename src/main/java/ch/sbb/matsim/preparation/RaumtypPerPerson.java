@@ -25,32 +25,14 @@ import java.util.List;
 public class RaumtypPerPerson {
 
     public static String RAUMTYP = "raumtyp";
+    // pmanser: I'm not sure if we actually need Typ 4, since this type just uses the standard scoring parameters.
     public static String DEFAULT_RAUMTYP = "4";
-
-    public static final String[] COLUMNS = new String[]{"x", "y", "raumtyp"};
-    private final CSVWriter coordinateWriter = new CSVWriter(COLUMNS);
-
-    public RaumtypPerPerson(){
-    }
-
-    private void addRow(Coord coord, String raumtyp)    {
-        HashMap<String, String> aRow = coordinateWriter.addRow();
-        aRow.put("x", Double.toString(coord.getX()));
-        aRow.put("y", Double.toString(coord.getY()));
-        aRow.put("raumtyp", raumtyp);
-    }
-
-    private void write()    {
-        coordinateWriter.write("validation.csv");
-    }
 
     public static void main(final String[] args) {
         final String planFile = args[0];
         final String shapeFile = args[1];
         final String outputLog = args[2];
         final String outputAttributes = args[3];
-
-        RaumtypPerPerson rperson = new RaumtypPerPerson();
 
         Logger log = Logger.getLogger(RaumtypPerPerson.class);
         int nbUndefined = 0;
@@ -90,7 +72,6 @@ public class RaumtypPerPerson {
                         raumTyp = DEFAULT_RAUMTYP;
                     } else {
                         raumTyp = raumTyp9.substring(0, 1);
-                        rperson.addRow(coord, raumTyp);
                     }
                 }
                 scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RAUMTYP, raumTyp);
@@ -98,7 +79,6 @@ public class RaumtypPerPerson {
                 throw new IllegalStateException("first planelement of person " +
                         person.getId().toString() + " cannot be not an activity");
         }
-        rperson.write();
         new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(outputAttributes);
         log.info(notDefinedLog);
         log.info("nb persons with first activity not of type home " + nbNotHomeType);
