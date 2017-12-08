@@ -130,7 +130,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
             return true;
         }
         if (this.config.getDeterministicServiceModes().contains(mode)) {
-            handleDeterministicDriverDeparture(agent);
+            handleDeterministicDriverDeparture(agent, time);
             return true;
         }
         return false;
@@ -260,20 +260,19 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         }
     }
 
-    private void handleDeterministicDriverDeparture(MobsimAgent agent) {
+    private void handleDeterministicDriverDeparture(MobsimAgent agent, double now) {
         SBBTransitDriverAgent driver = (SBBTransitDriverAgent) agent;
         TransitRoute trRoute = driver.getTransitRoute();
         List<Link[]> links = this.createLinkEvents ? this.linksCache.computeIfAbsent(trRoute, r -> getLinksPerStopAlongRoute(r, this.qSim.getScenario().getNetwork())) : null;
         TransitContext context = new TransitContext(driver, links);
         TransitRouteStop firstStop = context.nextStop;
-        double firstDepartureTime = driver.getDeparture().getDepartureTime() + firstStop.getDepartureOffset();
-        this.qSim.getEventsManager().processEvent(new PersonEntersVehicleEvent(firstDepartureTime, driver.getId(), driver.getVehicle().getId()));
+        this.qSim.getEventsManager().processEvent(new PersonEntersVehicleEvent(now, driver.getId(), driver.getVehicle().getId()));
         if (this.createLinkEvents) {
             Id<Link> linkId = driver.getCurrentLinkId();
             String mode = driver.getMode();
-            this.qSim.getEventsManager().processEvent(new VehicleEntersTrafficEvent(firstDepartureTime, driver.getId(), linkId, driver.getVehicle().getId(), mode, 1.0));
+            this.qSim.getEventsManager().processEvent(new VehicleEntersTrafficEvent(now, driver.getId(), linkId, driver.getVehicle().getId(), mode, 1.0));
         }
-        TransitEvent event = new TransitEvent(firstDepartureTime, TransitEventType.ArrivalAtStop, context);
+        TransitEvent event = new TransitEvent(now, TransitEventType.ArrivalAtStop, context);
         this.eventQueue.add(event);
     }
 

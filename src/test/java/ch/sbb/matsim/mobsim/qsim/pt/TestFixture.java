@@ -40,6 +40,7 @@ import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -232,5 +233,27 @@ class TestFixture {
         for (TransitLine line : lines) {
             schedule.removeTransitLine(line);
         }
+    }
+
+    void delayDepartureAtFirstStop() {
+        this.line1.removeRoute(this.route1);
+
+        Id<TransitRoute> routeId = this.route1.getId();
+        NetworkRoute netRoute = this.route1.getRoute();
+        List<TransitRouteStop> stops = new ArrayList<>(this.route1.getStops());
+        String mode = this.route1.getTransportMode();
+        Collection<Departure> departures = this.route1.getDepartures().values();
+
+        TransitScheduleFactory f = this.scenario.getTransitSchedule().getFactory();
+
+        TransitRouteStop oldStop = stops.get(0);
+        TransitRouteStop stop = f.createTransitRouteStop(oldStop.getStopFacility(), Time.UNDEFINED_TIME, 20.0);
+        stops.set(0, stop);
+
+        this.route1 = f.createTransitRoute(routeId, netRoute, stops, mode);
+        for (Departure dep : departures) {
+            this.route1.addDeparture(dep);
+        }
+        this.line1.addRoute(this.route1);
     }
 }
