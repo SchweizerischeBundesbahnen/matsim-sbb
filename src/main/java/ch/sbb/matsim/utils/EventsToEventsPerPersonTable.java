@@ -40,6 +40,7 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.TeleportationArrivalEvent;
 import org.matsim.core.api.experimental.events.handler.TeleportationArrivalEventHandler;
+import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
@@ -61,7 +62,8 @@ public class EventsToEventsPerPersonTable implements
         ActivityEndEventHandler,
         PersonStuckEventHandler,
         TeleportationArrivalEventHandler,
-        TransitDriverStartsEventHandler {
+        TransitDriverStartsEventHandler,
+        EventWriter {
 
     private final static String SEPARATOR = ";";
 
@@ -72,7 +74,9 @@ public class EventsToEventsPerPersonTable implements
     private Map<Id, List<PersonEvent>> eventsPerPerson = new HashMap<>();
     private HashSet<Id> transitDriverIds = new HashSet<>();
     private int stuck = 0;
+
     private String personIdString = null;
+    private String filename;
 
     public EventsToEventsPerPersonTable(Scenario scenario) {
         this.network = scenario.getNetwork();
@@ -82,8 +86,12 @@ public class EventsToEventsPerPersonTable implements
         }
     }
 
-    public EventsToEventsPerPersonTable(Scenario scenario, String personIdString) {
+    public EventsToEventsPerPersonTable(Scenario scenario, String filename) {
         this(scenario);
+        this.filename = filename;
+    }
+
+    public void setPersonIdString(String personIdString) {
         this.personIdString = personIdString;
     }
 
@@ -303,7 +311,7 @@ public class EventsToEventsPerPersonTable implements
         String eventPerPersonTableName;
         eventPerPersonTableName = "events_per_person" + appendage + ".csv";
 
-        BufferedWriter eventsPerPersonWriter = IOUtils.getBufferedWriter(path + "/" + eventPerPersonTableName);
+        BufferedWriter eventsPerPersonWriter = IOUtils.getBufferedWriter(path + eventPerPersonTableName);
         eventsPerPersonWriter.write(String.join(SEPARATOR, getPersonEventHeaderAttributList()) + "\n");
         for (Entry<Id, List<PersonEvent>> entry: eventsPerPerson.entrySet()) {
             for (PersonEvent personEvent: entry.getValue()) {
@@ -332,6 +340,15 @@ public class EventsToEventsPerPersonTable implements
             return;
         }
         eventsPerPersonList.add(personEvent);
+    }
+
+    @Override
+    public void closeFile() {
+        try {
+            this.writeSimulationResultsToTabSeparated(this.filename, "");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private class PersonEvent {

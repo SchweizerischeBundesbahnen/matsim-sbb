@@ -74,8 +74,13 @@ public class RunEventsToEventsPerPersonTable {
                     .readFile(config.transit().getVehiclesFile());
         }
         EventsToEventsPerPersonTable handler;
-        if (personIdString == null)  handler = new EventsToEventsPerPersonTable(scenario);
-        else handler = new EventsToEventsPerPersonTable(scenario, personIdString);
+        if (personIdString == null) {
+            handler = new EventsToEventsPerPersonTable(scenario);
+        }
+        else {
+            handler = new EventsToEventsPerPersonTable(scenario);
+            handler.setPersonIdString(personIdString);
+        }
 
         EventsManager events = new EventsManagerImpl();
 

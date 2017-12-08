@@ -6,7 +6,6 @@ package ch.sbb.matsim.analysis;
 
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
@@ -17,10 +16,12 @@ import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
 import org.matsim.core.api.experimental.events.VehicleDepartsAtFacilityEvent;
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
+import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.vehicles.Vehicle;
 import ch.sbb.matsim.calibration.PTObjective;
 import ch.sbb.matsim.csv.CSVWriter;
 
+import java.io.BufferedWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,8 +30,12 @@ import java.util.Map;
 public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         VehicleArrivesAtFacilityEventHandler,
         PersonEntersVehicleEventHandler,
-        PersonLeavesVehicleEventHandler, VehicleDepartsAtFacilityEventHandler {
+        PersonLeavesVehicleEventHandler,
+        VehicleDepartsAtFacilityEventHandler,
+        EventWriter {
+    private BufferedWriter out = null;
 
+    public String filename;
     public static final String FILENAME_STOPS =  "matsim_stops.csv";
     public static final String FILENMAE_VEHJOURNEYS = "matsim_vehjourneys.csv";
 
@@ -58,6 +63,10 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     private CSVWriter stopsWriter = new CSVWriter(COLS_STOPS);
     private CSVWriter vehJourneyWriter = new CSVWriter(COLS_VEHJOURNEYS);
 
+    public PtVolumeToCSV(String filename) {
+        this.filename = filename;
+    }
+
     // Methods
     @Override
     public void reset(int iteration) {
@@ -67,9 +76,9 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         ptVehicles.clear();
     }
 
-    public void write(String path){
-        stopsWriter.write(path + "/" + FILENAME_STOPS);
-        vehJourneyWriter.write(path+ "/" + FILENMAE_VEHJOURNEYS);
+    public void write(){
+        stopsWriter.write(this.filename + FILENAME_STOPS);
+        vehJourneyWriter.write(this.filename + FILENMAE_VEHJOURNEYS);
     }
 
     @Override
@@ -117,6 +126,11 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
             PTVehicle ptVehicle = ptVehicles.get(vId);
             ptVehicle.removePassenger();
         }
+    }
+
+    @Override
+    public void closeFile() {
+        this.write();
     }
 
 

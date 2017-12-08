@@ -11,6 +11,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.events.EventsManagerImpl;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -29,14 +30,17 @@ public class SBBPostProcessing {
     Controler controler;
     PostProcessingConfigGroup ppConfig;
 
-    public SBBPostProcessing(Controler controler){
+    private OutputDirectoryHierarchy controlerIO ;
 
+    public SBBPostProcessing(Controler controler){
         this.controler = controler;
+        this.controlerIO = controler.getControlerIO();
+
         Scenario scenario = controler.getScenario();
         ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
 
-        if(ppConfig.getPtVolumes()){
-            ptHandler = new PtVolumeToCSV();
+        if (ppConfig.getPtVolumes()) {
+            ptHandler = new PtVolumeToCSV(this.controlerIO.getOutputFilename(""));
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
@@ -46,8 +50,8 @@ public class SBBPostProcessing {
         }
 
 
-        if(ppConfig.getTravelDiaries()){
-            diariesHandler = new EventsToTravelDiaries(scenario);
+        if (ppConfig.getTravelDiaries()) {
+            diariesHandler = new EventsToTravelDiaries(scenario, this.controlerIO.getOutputFilename(""));
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
@@ -56,7 +60,7 @@ public class SBBPostProcessing {
             });
         }
 
-        if(ppConfig.getEventsPerPerson()){
+        if (ppConfig.getEventsPerPerson()) {
             eventsPerPersonHandler = new EventsToEventsPerPersonTable(scenario);
             controler.addOverridingModule(new AbstractModule() {
                 @Override
@@ -67,7 +71,7 @@ public class SBBPostProcessing {
         }
 
         if(ppConfig.getLinkVolumes()) {
-            linkVolumeHandler = new LinkVolumeToCSV(scenario);
+            linkVolumeHandler = new LinkVolumeToCSV(scenario, null);
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
@@ -79,7 +83,6 @@ public class SBBPostProcessing {
     }
 
     public void write(){
-
         String output = controler.getConfig().controler().getOutputDirectory();
         if(ppConfig.getWritePlansCSV()){
             new PopulationToCSV(controler.getScenario()).write(output+"/agents.csv", output+"/plan_elements.csv");
@@ -87,13 +90,13 @@ public class SBBPostProcessing {
 
         if(diariesHandler != null) {
             try {
-                diariesHandler.writeSimulationResultsToTabSeparated(output, "");
+                diariesHandler.writeSimulationResultsToTabSeparated("");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         if(ptHandler != null) {
-            ptHandler.write(output);
+            ptHandler.write();
         }
         if(eventsPerPersonHandler != null) {
             try {

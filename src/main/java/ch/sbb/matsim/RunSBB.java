@@ -70,6 +70,5 @@ public class RunSBB {
         });
 
         controler.run();
-//        postProcessing.write();
     }
 }

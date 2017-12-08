@@ -13,9 +13,10 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import ch.sbb.matsim.csv.CSVWriter;
+import org.matsim.core.events.algorithms.EventWriter;
 
 
-public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
+public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
 
     public static final String FILENAME_VOLUMES = "matsim_linkvolumes.csv";
     public static final String COL_LINK_ID = "link_id";
@@ -24,6 +25,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
     public static final String COL_VOLUME = "volume";
     public static final String COL_NBPASSENGERS = "nb_passengers";
     public static final String[] COLUMNS = new String[]{COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME, COL_NBPASSENGERS};
+    private String filename;
 
     Scenario scenario;
     Logger log = Logger.getLogger(LinkVolumeToCSV.class);
@@ -31,9 +33,10 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
     private final CSVWriter linkVolumesWriter = new CSVWriter(COLUMNS);
 
 
-    public LinkVolumeToCSV(Scenario scenario){
+    public LinkVolumeToCSV(Scenario scenario, String filename){
         super(3600, 24 * 3600 - 1, scenario.getNetwork());
         this.scenario = scenario;
+        this.filename = filename;
     }
 
     // Methods
@@ -62,6 +65,11 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
                 }
             }
         }
-        linkVolumesWriter.write(path + "/" + FILENAME_VOLUMES);
+        linkVolumesWriter.write(path + FILENAME_VOLUMES);
+    }
+
+    @Override
+    public void closeFile() {
+        this.write(this.filename);
     }
 }
