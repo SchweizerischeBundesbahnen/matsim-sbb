@@ -416,6 +416,65 @@ public class SBBTransitQSimEngineTest {
         assertEqualEvent(PersonArrivalEvent.class,            35000, allEvents.get(12));
     }
 
+    /** During first tests, some events were out-of-order in time, leading to an exception, due
+     * to the first stop on a route having a departure offset > 0.
+     * This tests reproduces this situation in order to check that the code can correctly cope with
+     * such a situation.
+     */
+    @Test
+    public void testEvents_withoutPassengers_withLinks_DelayedFirstDeparture() {
+        TestFixture f = new TestFixture();
+        f.delayDepartureAtFirstStop();
+        f.sbbConfig.setCreateLinkEvents(true);
+
+        EventsManager eventsManager = EventsUtils.createEventsManager(f.config);
+        List<AbstractQSimPlugin> plugins = new ArrayList<>();
+        plugins.add(new ActivityEnginePlugin(f.config));
+        plugins.add(new SBBTransitEnginePlugin(f.config));
+
+        // to compare to original TransitQSimEngine, use the following two instead of the SBBTransitEnginePlugin
+//        plugins.add(new TransitEnginePlugin(f.config));
+//        plugins.add(new QNetsimEnginePlugin(f.config));
+
+        QSim qSim = QSimUtils.createQSim(f.scenario, eventsManager, plugins);
+
+        Assert.assertEquals(SBBTransitQSimEngine.class, qSim.getTransitEngine().getClass());
+
+        EventsCollector collector = new EventsCollector();
+        eventsManager.addHandler(collector);
+        qSim.run();
+        List<Event> allEvents = collector.getEvents();
+
+        for (Event event : allEvents) {
+            System.out.println(event.toString());
+        }
+
+        Assert.assertEquals("wrong number of events.", 23, allEvents.size());
+        assertEqualEvent(TransitDriverStartsEvent.class,      30000, allEvents.get(0));
+        assertEqualEvent(PersonDepartureEvent.class,          30000, allEvents.get(1));
+        assertEqualEvent(PersonEntersVehicleEvent.class,      30000, allEvents.get(2));
+        assertEqualEvent(VehicleEntersTrafficEvent.class,     30000, allEvents.get(3));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30000, allEvents.get(4));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30020, allEvents.get(5));
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30100, allEvents.get(6));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30120, allEvents.get(7));
+        assertEqualEvent(LinkLeaveEvent.class,                30121, allEvents.get(8)); // link 1
+        assertEqualEvent(LinkEnterEvent.class,                30121, allEvents.get(9)); // link 2
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30300, allEvents.get(10));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30300, allEvents.get(11));
+        assertEqualEvent(LinkLeaveEvent.class,                30301, allEvents.get(12)); // link 2
+        assertEqualEvent(LinkEnterEvent.class,                30301, allEvents.get(13)); // link 3
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30570, allEvents.get(14));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30600, allEvents.get(15));
+        assertEqualEvent(LinkLeaveEvent.class,                30601, allEvents.get(16)); // link 3
+        assertEqualEvent(LinkEnterEvent.class,                30601, allEvents.get(17)); // link 4
+        assertEqualEvent(VehicleArrivesAtFacilityEvent.class, 30720, allEvents.get(18));
+        assertEqualEvent(VehicleDepartsAtFacilityEvent.class, 30720, allEvents.get(19));
+        assertEqualEvent(VehicleLeavesTrafficEvent.class,     30720, allEvents.get(20));
+        assertEqualEvent(PersonLeavesVehicleEvent.class,      30720, allEvents.get(21));
+        assertEqualEvent(PersonArrivalEvent.class,            30720, allEvents.get(22));
+    }
+
     @Test
     public void testMisconfiguration() {
         TestFixture f = new TestFixture();
