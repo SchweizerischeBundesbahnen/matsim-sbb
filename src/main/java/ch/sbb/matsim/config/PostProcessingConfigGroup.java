@@ -18,7 +18,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private Boolean ptVolumes = false;
     private Boolean linkVolumes = false;
     private Boolean eventsPerPerson = false;
-    private String personAttributes = "";
+    private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
     private Boolean writePlansCSV = false;
     private Boolean visumNetFile = false;
     private String linkCountDataFile = null;
