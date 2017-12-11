@@ -62,23 +62,23 @@ public class AttributeMerger {
 
                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), attribute, C);
 
-               if(attribute.equals("availability: car")){
-                   if(!"never".equals(C.toString())){
-                       person.getCustomAttributes().put("carAvail", "always");
+               if (attribute.equals("availability: car")) {
+                   if (!"never".equals(C.toString())) {
+                       PersonUtils.setCarAvail(person, "always");
                        PersonUtils.setLicence(person, "yes");
                    }
-                   else{
-                       person.getCustomAttributes().put("carAvail", "never");
+                   else {
+                       PersonUtils.setCarAvail(person, "never");
                        PersonUtils.setLicence(person, "no");
                    }
                }
 
                if (attribute.equals("age") && C != "") {
-                   person.getCustomAttributes().put("age", Integer.parseInt(C.toString()));
+                   PersonUtils.setAge(person, Integer.parseInt(C.toString()));
                }
 
                if (attribute.equals("gender") || attribute.equals("sex")) {
-                   person.getCustomAttributes().put("gender", C);
+                   PersonUtils.setSex(person, C.toString());
                  }
            }
        }
