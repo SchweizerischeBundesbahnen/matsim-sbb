@@ -109,9 +109,9 @@ public class SBBPostProcessing {
             linkVolumeHandler.write(output);
         }
 
-        if(ppConfig.getVisumNetFile()) {
-            networkToVisumNetFileHandler = new NetworkToVisumNetFile(controler, ppConfig);
-            networkToVisumNetFileHandler.write(output);
+        if (ppConfig.getVisumNetFile()) {
+            networkToVisumNetFileHandler = new NetworkToVisumNetFile(this.controler.getScenario(),output, ppConfig);
+            networkToVisumNetFileHandler.write(output + "net.net");
         }
     }
 

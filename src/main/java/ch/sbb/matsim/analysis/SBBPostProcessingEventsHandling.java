@@ -74,11 +74,6 @@ public class SBBPostProcessingEventsHandling implements BeforeMobsimListener, It
                     this.controlerIO.getOutputFilename("plan_elements.csv")
             );
         }
-
-/*        if (this.ppConfig.getVisumNetFile()) {
-            NetworkToVisumNetFile networkToVisumNetFileHandler = new NetworkToVisumNetFile(controler, ppConfig);
-            networkToVisumNetFileHandler.write(output);
-        }*/
     }
 
     private List<EventWriter> buildEventWriters(BeforeMobsimEvent event) {
@@ -106,6 +101,12 @@ public class SBBPostProcessingEventsHandling implements BeforeMobsimListener, It
             LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(
                     this.scenario, this.controlerIO.getIterationFilename(event.getIteration(), ""));
             eventWriters.add(linkVolumeWriter);
+        }
+
+        if (this.ppConfig.getVisumNetFile()) {
+            NetworkToVisumNetFile networkToVisumNetFileWriter = new NetworkToVisumNetFile(
+                    this.scenario, this.controlerIO.getIterationFilename(event.getIteration(), ""), ppConfig);
+            eventWriters.add(networkToVisumNetFileWriter);
         }
 
         return eventWriters;
