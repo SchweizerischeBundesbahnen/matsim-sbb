@@ -30,17 +30,15 @@ public class SBBPostProcessing {
     Controler controler;
     PostProcessingConfigGroup ppConfig;
 
-    private OutputDirectoryHierarchy controlerIO ;
-
     public SBBPostProcessing(Controler controler){
         this.controler = controler;
-        this.controlerIO = controler.getControlerIO();
+        String output = this.controler.getConfig().controler().getOutputDirectory();
 
         Scenario scenario = controler.getScenario();
         ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
 
         if (ppConfig.getPtVolumes()) {
-            ptHandler = new PtVolumeToCSV(this.controlerIO.getOutputFilename(""));
+            ptHandler = new PtVolumeToCSV(output + "/");
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
@@ -51,7 +49,7 @@ public class SBBPostProcessing {
 
 
         if (ppConfig.getTravelDiaries()) {
-            diariesHandler = new EventsToTravelDiaries(scenario, this.controlerIO.getOutputFilename(""));
+            diariesHandler = new EventsToTravelDiaries(scenario, output + "/");
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
@@ -106,12 +104,12 @@ public class SBBPostProcessing {
             }
         }
         if (linkVolumeHandler != null)  {
-            linkVolumeHandler.write(output);
+            linkVolumeHandler.write(output + "/");
         }
 
         if (ppConfig.getVisumNetFile()) {
-            networkToVisumNetFileHandler = new NetworkToVisumNetFile(this.controler.getScenario(),output, ppConfig);
-            networkToVisumNetFileHandler.write(output + "net.net");
+            networkToVisumNetFileHandler = new NetworkToVisumNetFile(this.controler.getScenario(),output + "/", ppConfig);
+            networkToVisumNetFileHandler.write(output + "/net.net");
         }
     }
 

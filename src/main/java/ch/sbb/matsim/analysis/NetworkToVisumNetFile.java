@@ -127,7 +127,7 @@ public class NetworkToVisumNetFile implements EventWriter {
             readPassengerVolumeDataPerLink(this.filename + LinkVolumeToCSV.FILENAME_VOLUMES, network, nbPassengersPerLink, scaleFactor);
         }
         try {
-            BufferedWriter writer = IOUtils.getBufferedWriter(filename + "net.net");
+            BufferedWriter writer = IOUtils.getBufferedWriter(filename);
             writer.write(HEADER);
             writer.write(BENDEFATTR_NET_STRING);
             writer.write(VSY_NET_STRING);
@@ -423,7 +423,7 @@ public class NetworkToVisumNetFile implements EventWriter {
 
     @Override
     public void closeFile() {
-        this.write(this.filename);
+        this.write(this.filename + "net.net");
     }
 
     @Override
