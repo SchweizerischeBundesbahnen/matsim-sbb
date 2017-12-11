@@ -65,23 +65,18 @@ public class ExportPTSupplyFromVisum {
     private NetworkFactory networkBuilder;
     private VehiclesFactory vehicleBuilder;
 
-    private final String PATHTOJACOBLIBRARY = "C:\\Users\\u225744\\Downloads\\jacob-1.18\\jacob-1.18";
+    private static final String PATHTOVISUM = "\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\10_Modelle_vonDritten\\40_NPVM2016\\OEVAngebot_NPVM2016_Patrick.ver";
 
-    private final String PATHTOVISUM = "\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\10_Modelle_vonDritten\\40_NPVM2016\\OEVAngebot_NPVM2016_Patrick.ver";
-
-    private final String NETWORKFILE = "NPVM_Schedule_Network.xml.gz";
-    private final String SCHEDULEFILE = "NPVM_Schedule.xml.gz";
-    private final String VEHICLEFILE = "NPVM_Vehicles.xml.gz";
-    private final String STOPATTRIBUTES = "NPVM_Stop_Attributes.xml.gz";
-    private final String ROUTEATTRIBUTES = "NPVM_Route_Attributes.xml.gz";
+    private static final String NETWORKFILE = "NPVM_Schedule_Network2.xml.gz";
+    private static final String SCHEDULEFILE = "NPVM_Schedule2.xml.gz";
+    private static final String VEHICLEFILE = "NPVM_Vehicles2.xml.gz";
+    private static final String STOPATTRIBUTES = "NPVM_Stop_Attributes2.xml.gz";
+    private static final String ROUTEATTRIBUTES = "NPVM_Route_Attributes2.xml.gz";
 
     public static void main(String[] args) { new ExportPTSupplyFromVisum(); }
 
     private ExportPTSupplyFromVisum() {
         log = Logger.getLogger(ExportPTSupplyFromVisum.class);
-
-        // set path to jacob library
-        System.setProperty("java.library.path", PATHTOJACOBLIBRARY);
 
         ActiveXComponent visum = new ActiveXComponent("Visum.Visum.16");
         log.info("VISUM Client gestartet.");
@@ -428,7 +423,8 @@ public class ExportPTSupplyFromVisum {
                 dep.setVehicleId(vehicleId);
                 route.addDeparture(dep);
 
-                Id<VehicleType> vehicleTypeId = Id.create(mode, VehicleType.class);
+                String vehicleType = Dispatch.call(item, "AttValue", "TSysCode").toString();
+                Id<VehicleType> vehicleTypeId = Id.create(vehicleType, VehicleType.class);
                 Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, this.vehicles.getVehicleTypes().get(vehicleTypeId));
                 this.vehicles.addVehicle(vehicle);
 
