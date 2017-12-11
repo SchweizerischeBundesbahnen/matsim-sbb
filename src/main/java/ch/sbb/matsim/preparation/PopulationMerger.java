@@ -39,8 +39,8 @@ public class PopulationMerger {
         attributes.put("season_ticket", "none");
 
         merger.mergeInputPlanFiles(mergerConfig);
-        merger.putPersonAttributes(attributes);
-        merger.putPersonCustomAttributes();
+        merger.putMergedPersonAttributes(attributes);
+        merger.putPersonAttributes();
         merger.writeOutputFiles(mergerConfig);
     }
 
@@ -64,11 +64,12 @@ public class PopulationMerger {
         }
     }
 
-    protected void putPersonAttributes(Map<String, String> attributes) {
+    protected void putMergedPersonAttributes(Map<String, String> attributes) {
         for (final Person person : this.scenario.getPopulation().getPersons().values()) {
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
+
                 if (this.personAttributes.getAttribute(person.getId().toString(), key) == null) {
                     this.personAttributes.putAttribute(person.getId().toString(), key, value);
                 }
@@ -76,28 +77,28 @@ public class PopulationMerger {
         }
     }
 
-    protected void putPersonCustomAttributes() {
+    protected void putPersonAttributes() {
         for (final Person person : this.scenario.getPopulation().getPersons().values()) {
             Object carAvail = this.personAttributes.getAttribute(person.getId().toString(), "availability: car");
 
             if (carAvail != null && (!carAvail.toString().equals("never"))) {
-                person.getCustomAttributes().put("carAvail", "always");
+                PersonUtils.setCarAvail(person, "always");
                 PersonUtils.setLicence(person, "yes");
             } else{
-                person.getCustomAttributes().put("carAvail", "never");
+                PersonUtils.setCarAvail(person, "never");
                 PersonUtils.setLicence(person, "no");
             }
 
             Object age = this.personAttributes.getAttribute(person.getId().toString(), "age");
 
             if (age != null){
-                person.getCustomAttributes().put("age", age);
+                PersonUtils.setAge(person, Integer.parseInt(age.toString()));
             }
 
             Object gender = this.personAttributes.getAttribute(person.getId().toString(), "gender");
 
             if (gender != null && (!gender.toString().isEmpty())){
-                person.getCustomAttributes().put("gender", gender.toString());
+                PersonUtils.setSex(person, gender.toString());
             }
         }
     }
