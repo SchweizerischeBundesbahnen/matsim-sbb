@@ -342,15 +342,17 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
         double travelTime = arrTime - depTime;
         double totalLength = 0.0;
         boolean isDepartureLink = true;
+        boolean hasLinks = false;
         for (Link link : linksToNextStop) {
             if (isDepartureLink) {
                 isDepartureLink = false;
             } else {
                 totalLength += link.getLength();
+                hasLinks = true;
             }
         }
-        if (totalLength > 0) {
-            double secondsPerMeter = travelTime / totalLength;
+        if (hasLinks) {
+            double secondsPerMeter = totalLength > 0 ? travelTime / totalLength : 0;
             double travelledLength = 0;
             Link fromLink = null;
             for (Link toLink : linksToNextStop) {
@@ -363,7 +365,7 @@ public class SBBTransitQSimEngine extends TransitQSimEngine /*implements Departu
                     } else {
                         this.linkEventQueue.add(new LinkEvent(time, fromLink.getId(), toLink.getId(), vehicle.getId()));
                     }
-                    travelledLength += fromLink.getLength();
+                    travelledLength += toLink.getLength();
                 }
                 fromLink = toLink;
             }
