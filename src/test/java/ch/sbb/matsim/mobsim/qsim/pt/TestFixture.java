@@ -227,6 +227,64 @@ class TestFixture {
         schedule.addTransitLine(line);
     }
 
+    void addLoopyRoute(boolean removeExistingLines) {
+        if (removeExistingLines) {
+            removeExistingLines();
+        }
+
+        Network n = this.scenario.getNetwork();
+        NetworkFactory nf = n.getFactory();
+
+        Node node2 = n.getNodes().get(Id.create(2, Node.class));
+        Node node3 = n.getNodes().get(Id.create(3, Node.class));
+
+        Link link1 = n.getLinks().get(Id.create(1, Link.class));
+        Link link2 = n.getLinks().get(Id.create(2, Link.class));
+        Link link3 = n.getLinks().get(Id.create(3, Link.class));
+
+        Link loopLink2 = createLink(nf, -2, 0, node2, node2);
+        Link loopLink3 = createLink(nf, -3, 0, node3, node3);
+        n.addLink(loopLink2);
+        n.addLink(loopLink3);
+
+        TransitSchedule schedule = this.scenario.getTransitSchedule();
+        TransitScheduleFactory f = schedule.getFactory();
+
+        TransitStopFacility stopBLoop = f.createTransitStopFacility(Id.create("BLoop", TransitStopFacility.class), node2.getCoord(), false);
+        TransitStopFacility stopCLoop = f.createTransitStopFacility(Id.create("CLoop", TransitStopFacility.class), node3.getCoord(), false);
+
+        stopBLoop.setLinkId(loopLink2.getId());
+        stopCLoop.setLinkId(loopLink3.getId());
+
+        schedule.addStopFacility(stopBLoop);
+        schedule.addStopFacility(stopCLoop);
+
+        TransitLine line = f.createTransitLine(Id.create("Loopy", TransitLine.class));
+
+        List<Id<Link>> linkIdList = new ArrayList<>();
+        linkIdList.add(loopLink2.getId());
+        linkIdList.add(link2.getId());
+        linkIdList.add(loopLink3.getId());
+        NetworkRoute networkRoute = new LinkNetworkRouteImpl(link1.getId(), linkIdList, link3.getId());
+
+        List<TransitRouteStop> stops = new ArrayList<>(5);
+        stops.add(f.createTransitRouteStop(this.stopA, Time.UNDEFINED_TIME, 0.0));
+        stops.add(f.createTransitRouteStop(stopBLoop, 100, 120.0));
+        stops.add(f.createTransitRouteStop(stopCLoop, Time.UNDEFINED_TIME, 300.0));
+        stops.add(f.createTransitRouteStop(this.stopD, 570, Time.UNDEFINED_TIME));
+
+        TransitRoute route = f.createTransitRoute(Id.create("A2D", TransitRoute.class), networkRoute, stops, "train");
+
+        Vehicle veh1 = this.scenario.getTransitVehicles().getVehicles().get(Id.create("train1", Vehicle.class));
+
+        Departure departure1 = f.createDeparture(Id.create(1, Departure.class), 30000.0);
+        departure1.setVehicleId(veh1.getId());
+        route.addDeparture(departure1);
+
+        line.addRoute(route);
+        schedule.addTransitLine(line);
+    }
+
     private void removeExistingLines() {
         TransitSchedule schedule = this.scenario.getTransitSchedule();
         List<TransitLine> lines = new ArrayList<>(schedule.getTransitLines().values());
