@@ -16,7 +16,7 @@ import java.util.Set;
  */
 public class SBBTransitConfigGroup extends ReflectiveConfigGroup {
 
-    static public final String GROUP_NAME = "sbbPt";
+    static public final String GROUP_NAME = "SBBPt";
 
     static private final String PARAM_DETERMINISTIC_SERVICE_MODES = "deterministicServiceModes";
     static private final String PARAM_CREATE_LINK_EVENTS = "createLinkEvents";
