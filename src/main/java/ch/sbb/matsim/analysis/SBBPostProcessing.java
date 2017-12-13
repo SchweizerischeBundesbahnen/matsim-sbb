@@ -22,6 +22,8 @@ import java.io.IOException;
 
 public class SBBPostProcessing {
 
+    private final static Logger log = Logger.getLogger(SBBPostProcessing.class);
+
     PtVolumeToCSV ptHandler = null;
     EventsToTravelDiaries diariesHandler = null;
     EventsToEventsPerPersonTable eventsPerPersonHandler = null;
@@ -114,8 +116,6 @@ public class SBBPostProcessing {
     }
 
     public static void main(String[] args) {
-
-        Logger log = Logger.getLogger(SBBPostProcessing.class);
 
         final String configFile = args[0];
         final String eventsFileName = args[1];

@@ -4,14 +4,12 @@
 
 package ch.sbb.matsim.analysis;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import ch.sbb.matsim.analysis.travelcomponents.Activity;
+import ch.sbb.matsim.analysis.travelcomponents.Journey;
+import ch.sbb.matsim.analysis.travelcomponents.Transfer;
+import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
+import ch.sbb.matsim.analysis.travelcomponents.Trip;
+import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -37,20 +35,15 @@ import org.matsim.api.core.v01.events.handler.PersonLeavesVehicleEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonStuckEventHandler;
 import org.matsim.api.core.v01.events.handler.TransitDriverStartsEventHandler;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.core.config.Config;
-import org.matsim.core.events.algorithms.EventWriter;
-import org.matsim.vehicles.Vehicles;
-import ch.sbb.matsim.analysis.travelcomponents.Activity;
-import ch.sbb.matsim.analysis.travelcomponents.Journey;
-import ch.sbb.matsim.analysis.travelcomponents.Transfer;
-import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
-import ch.sbb.matsim.analysis.travelcomponents.Trip;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.TeleportationArrivalEvent;
 import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
 import org.matsim.core.api.experimental.events.VehicleDepartsAtFacilityEvent;
 import org.matsim.core.api.experimental.events.handler.TeleportationArrivalEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
+import org.matsim.core.config.Config;
+import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
@@ -59,7 +52,15 @@ import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import org.matsim.vehicles.Vehicles;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * @author pieterfourie, sergioo
@@ -80,6 +81,8 @@ public class EventsToTravelDiaries implements
         VehicleDepartsAtFacilityEventHandler,
         EventWriter {
 
+    private static final Logger log = Logger.getLogger(EventsToTravelDiaries.class);
+
     private final Network network;
     private double walkSpeed;
     // Attributes
@@ -96,8 +99,6 @@ public class EventsToTravelDiaries implements
     private TransitSchedule transitSchedule;
     private Vehicles transitVehicles;
     private boolean isTransitScenario = false;
-    private String diagnosticString = "39669_2";
-    private Logger log = Logger.getLogger(EventsToTravelDiaries.class);
     private LocateAct locateAct = null;
     private Config config = null;
 
@@ -134,12 +135,15 @@ public class EventsToTravelDiaries implements
         }
     }
 
+    private boolean isTransitDriver(Id<Person> personId) {
+        return isTransitScenario && transitDriverIds.contains(personId);
+    }
+
     @Override
     public void handleEvent(ActivityEndEvent event) {
         try {
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
+            if (isTransitDriver(event.getPersonId())) {
+                return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
             locations.put(event.getPersonId(), network.getLinks().get(event.getLinkId()).getCoord());
@@ -166,9 +170,8 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(ActivityStartEvent event) {
         try {
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
+            if (isTransitDriver(event.getPersonId())) {
+                return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
             boolean beforeInPT = chain.isInPT();
@@ -198,9 +201,8 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonArrivalEvent event) {
         try {
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
+            if (isTransitDriver(event.getPersonId())) {
+                return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
             Journey journey = chain.getJourneys().getLast();
@@ -219,8 +221,9 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonDepartureEvent event) {
         try {
-            if (transitDriverIds.contains(event.getPersonId()))
+            if (isTransitDriver(event.getPersonId())) {
                 return;
+            }
             TravellerChain chain = chains.get(event.getPersonId());
             Journey journey;
             Trip trip;
@@ -246,7 +249,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonStuckEvent event) {
         try {
-            if (!transitDriverIds.contains(event.getPersonId())) {
+            if (!isTransitDriver(event.getPersonId())) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 setStuck(getStuck() + 1);
                 chain.setStucked();
@@ -262,9 +265,9 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
         try {
-            if (transitDriverIds.contains(event.getPersonId()))
+            if (isTransitDriver(event.getPersonId()))
                 return;
-            if (ptVehicles.keySet().contains(event.getVehicleId())) {
+            if (ptVehicles.containsKey(event.getVehicleId())) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 Journey journey = chain.getJourneys().getLast();
                 // first, handle the end of the wait
@@ -294,10 +297,10 @@ public class EventsToTravelDiaries implements
 
     @Override
     public void handleEvent(PersonLeavesVehicleEvent event) {
-        if (transitDriverIds.contains(event.getPersonId()))
+        if (isTransitDriver(event.getPersonId()))
             return;
         try {
-            if (ptVehicles.keySet().contains(event.getVehicleId())) {
+            if (ptVehicles.containsKey(event.getVehicleId())) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 chain.traveledVehicle = true;
                 PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
@@ -318,7 +321,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(LinkEnterEvent event) {
         try {
-            if (ptVehicles.keySet().contains(event.getVehicleId())) {
+            if (ptVehicles.containsKey(event.getVehicleId())) {
                 PTVehicle ptVehicle = ptVehicles.get(event.getVehicleId());
                 ptVehicle.in = true;
                 ptVehicle.setLinkEnterTime(event.getTime());
@@ -336,7 +339,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(LinkLeaveEvent event) {
         try {
-            if (ptVehicles.keySet().contains(event.getVehicleId())) {
+            if (ptVehicles.containsKey(event.getVehicleId())) {
                 PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
                 if (vehicle.in)
                     vehicle.in = false;
@@ -370,7 +373,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(TeleportationArrivalEvent event) {
         try {
-            if (transitDriverIds.contains(event.getPersonId()))
+            if (isTransitDriver(event.getPersonId()))
                 return;
             TravellerChain chain = chains.get(event.getPersonId());
             Journey journey = chain.getJourneys().getLast();
@@ -434,13 +437,13 @@ public class EventsToTravelDiaries implements
         String transferTableName;
         String tripTableName;
 
-        if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
+        if (appendage.endsWith("_")) {
             actTableName = appendage + "matsim_activities.txt";
             journeyTableName = appendage + "matsim_journeys.txt";
             transferTableName = appendage + "matsim_transfers.txt";
             tripTableName = appendage + "matsim_trips.txt";
         } else {
-            if (appendage.matches("[a-zA-Z0-9]*"))
+            if (!appendage.startsWith("_"))
                 appendage = "_" + appendage;
             actTableName = "matsim_activities" + appendage + ".txt";
             journeyTableName = "matsim_journeys" + appendage + ".txt";

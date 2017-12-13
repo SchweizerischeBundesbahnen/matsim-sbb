@@ -35,6 +35,8 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         EventWriter {
     private BufferedWriter out = null;
 
+    private final static Logger log = Logger.getLogger(PTObjective.class);
+
     public String filename;
     public static final String FILENAME_STOPS =  "matsim_stops.csv";
     public static final String FILENMAE_VEHJOURNEYS = "matsim_vehjourneys.csv";
@@ -55,8 +57,6 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
 
     public static final String[] COLS_STOPS = new String[]{COL_INDEX, COL_STOP_ID, COL_BOARDING, COL_ALIGHTING, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
     public static final String[] COLS_VEHJOURNEYS = new String[]{COL_INDEX, COL_FROM_STOP_ID, COL_TO_STOP_ID, COL_PASSENGERS, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
-
-    Logger log = Logger.getLogger(PTObjective.class);
 
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> ptAgents = new HashSet<>();
@@ -91,8 +91,8 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     @Override
     public void handleEvent(VehicleDepartsAtFacilityEvent event) {
         Id<Vehicle> vId = event.getVehicleId();
-        if(ptVehicles.containsKey(vId)){
-            PTVehicle ptVehicle = ptVehicles.get(vId);
+        PTVehicle ptVehicle = ptVehicles.get(vId);
+        if(ptVehicle != null){
             ptVehicle.setDeparture(event.getTime(), event.getFacilityId());
         }
     }
@@ -100,20 +100,18 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     @Override
     public void handleEvent(VehicleArrivesAtFacilityEvent event) {
         Id<Vehicle> vId = event.getVehicleId();
-        if(ptVehicles.containsKey(vId)){
-            PTVehicle ptVehicle = ptVehicles.get(vId);
+        PTVehicle ptVehicle = ptVehicles.get(vId);
+        if(ptVehicle != null){
             ptVehicle.setArrival(event.getTime(), event.getFacilityId());
         }
     }
 
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
-        Id<Vehicle> vId = event.getVehicleId();
-
         if(ptAgents.contains(event.getPersonId())){return;}
-
-        if(ptVehicles.containsKey(vId)){
-            PTVehicle ptVehicle = ptVehicles.get(vId);
+        Id<Vehicle> vId = event.getVehicleId();
+        PTVehicle ptVehicle = ptVehicles.get(vId);
+        if(ptVehicle != null){
             ptVehicle.addPassenger();
         }
     }
@@ -122,8 +120,8 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     public void handleEvent(PersonLeavesVehicleEvent event) {
         if(ptAgents.contains(event.getPersonId())){return;}
         Id<Vehicle> vId = event.getVehicleId();
-        if(ptVehicles.containsKey(vId)){
-            PTVehicle ptVehicle = ptVehicles.get(vId);
+        PTVehicle ptVehicle = ptVehicles.get(vId);
+        if(ptVehicle != null){
             ptVehicle.removePassenger();
         }
     }

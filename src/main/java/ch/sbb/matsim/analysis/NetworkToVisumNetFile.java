@@ -78,7 +78,7 @@ public class NetworkToVisumNetFile implements EventWriter {
                     "pt;pt\n" +
                     "ride;ride\n";
 
-    private Logger log = Logger.getLogger(NetworkToVisumNetFile.class);
+    private final static Logger log = Logger.getLogger(NetworkToVisumNetFile.class);
 
     public NetworkToVisumNetFile(Scenario scenario, String filename, PostProcessingConfigGroup ppConfig) {
         this.filename = filename;

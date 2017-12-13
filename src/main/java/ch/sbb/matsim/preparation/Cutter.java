@@ -8,6 +8,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -23,12 +24,11 @@ import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
-import org.matsim.core.network.io.NetworkReaderMatsimV1;
 import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.io.NetworkReaderMatsimV1;
 import org.matsim.core.network.io.NetworkWriter;
-import org.matsim.core.network.algorithms.NetworkCleaner;
-import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.population.routes.GenericRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
@@ -56,6 +56,7 @@ import org.matsim.vehicles.VehicleReaderV1;
 import org.matsim.vehicles.VehicleUtils;
 import org.matsim.vehicles.VehicleWriterV1;
 import org.matsim.vehicles.Vehicles;
+import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,11 +69,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.log4j.Logger;
-import org.opengis.feature.simple.SimpleFeature;
 
 
 public class Cutter {
+
+    private final static Logger log = Logger.getLogger(Cutter.class);
+
     private Map<Coord, Boolean> coordCache = new HashMap<>();
     private Map<Id<Person>, Person> filteredAgents = new HashMap<>();
     private Map<Id<TransitLine>, Set<Id<TransitRoute>>> usedTransitRouteIds = new HashMap<>();
@@ -81,7 +83,6 @@ public class Cutter {
     private String commuterTag;
     private String popTag;
     private Scenario scenario;
-    private Logger log = Logger.getLogger(Cutter.class);
 
     private boolean useShapeFile = false;
     private GeometryFactory geometryFactory = new GeometryFactory();
