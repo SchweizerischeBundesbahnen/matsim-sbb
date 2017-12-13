@@ -28,13 +28,13 @@ import java.util.Map;
 
 public class PopulationToCSV {
 
+    private final static Logger log = Logger.getLogger(PopulationToCSV.class);
 
     CSVWriter agents_writer = null;
     CSVWriter planelements_writer = null;
 
     public PopulationToCSV(Scenario scenario) {
 
-        Logger log = Logger.getLogger(PopulationToCSV.class);
 
         PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
 

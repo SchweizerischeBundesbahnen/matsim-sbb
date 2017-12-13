@@ -72,7 +72,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 
     private List<String> toIgnore = Arrays.asList("vehicle_interaction", "vehicle_parking", "egress_walk", "access_walk");
 
-    Logger log = Logger.getLogger(PlansFromEvents.class);
+    private final static Logger log = Logger.getLogger(PlansFromEvents.class);
 
     public PlansFromEvents(Network network){
         this.population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
