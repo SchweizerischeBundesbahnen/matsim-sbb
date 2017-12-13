@@ -43,6 +43,9 @@ import com.vividsolutions.jts.geom.Polygon;
  *
  */
 
+
+// could serve as a future validation script of pt supply but is not ready yet
+
 public final class ValidatePTSupply {
 
     private GeometryFactory factory;
@@ -57,6 +60,7 @@ public final class ValidatePTSupply {
 
     private final String PATHTOPT = "";
 
+    /*
     public static void main(final String[] args) { new ValidatePTSupply(); }
 
     private ValidatePTSupply()	{
@@ -202,4 +206,5 @@ public final class ValidatePTSupply {
         }
         return false;
     }
+    */
 }

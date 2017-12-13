@@ -52,6 +52,9 @@ import java.util.List;
  *
  */
 
+// TODO importieren EINER Datenquelle (über Filter ODER if-Abfrage beim Einlesen)
+// TODO Stop (und damit verbundenes Network-Cleaning)
+
 public class ExportPTSupplyFromVisum {
 
     private static Logger log;
@@ -67,11 +70,15 @@ public class ExportPTSupplyFromVisum {
 
     private static final String PATHTOVISUM = "\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\10_Modelle_vonDritten\\40_NPVM2016\\OEVAngebot_NPVM2016_Patrick.ver";
 
-    private static final String NETWORKFILE = "NPVM_Schedule_Network2.xml.gz";
-    private static final String SCHEDULEFILE = "NPVM_Schedule2.xml.gz";
-    private static final String VEHICLEFILE = "NPVM_Vehicles2.xml.gz";
-    private static final String STOPATTRIBUTES = "NPVM_Stop_Attributes2.xml.gz";
-    private static final String ROUTEATTRIBUTES = "NPVM_Route_Attributes2.xml.gz";
+    // at the moment, the NPVM has the three options "2015", "2016" and "Prognose"
+    private static final String SIMBASUPPLY = "2016";
+
+    // names of the output files
+    private static final String NETWORKFILE = "NPVM_Output/transitNetwork.xml.gz";
+    private static final String SCHEDULEFILE = "NPVM_Output/transitSchedule.xml.gz";
+    private static final String VEHICLEFILE = "NPVM_Output/transitVehicles.xml.gz";
+    private static final String STOPATTRIBUTES = "NPVM_Output/routeAttributes.xml.gz";
+    private static final String ROUTEATTRIBUTES = "NPVM_Output/stopAttributes.xml.gz";
 
     public static void main(String[] args) { new ExportPTSupplyFromVisum(); }
 
@@ -93,6 +100,8 @@ public class ExportPTSupplyFromVisum {
         loadVersion(visum);
         createMATSimScenario();
 
+        // TODO setFilter
+        setFilter();
         Dispatch net = Dispatch.get(visum, "Net").toDispatch();
 
         loadStopPoints(net);
@@ -100,6 +109,9 @@ public class ExportPTSupplyFromVisum {
 
         createVehicleTypes(net);
         loadTransitLines(net);
+
+        // TODO
+        cleanStops();
 
         writeFiles();
     }
@@ -127,6 +139,12 @@ public class ExportPTSupplyFromVisum {
         this.network = this.scenario.getNetwork();
         this.schedule = this.scenario.getTransitSchedule();
         this.vehicles = this.scenario.getTransitVehicles();
+    }
+
+    private void setFilter()    {
+
+
+
     }
 
     private void loadStopPoints(Dispatch net) {
@@ -417,7 +435,7 @@ public class ExportPTSupplyFromVisum {
                 double depName = Double.valueOf(Dispatch.call(item_, "AttValue", "No").toString());
                 Id<Departure> depID = Id.create((int) depName, Departure.class);
                 double depTime = Double.valueOf(Dispatch.call(item_, "AttValue", "Dep").toString());
-                Departure dep =this.scheduleBuilder.createDeparture(depID, depTime);
+                Departure dep = this.scheduleBuilder.createDeparture(depID, depTime);
 
                 Id<Vehicle> vehicleId = Id.createVehicleId(depID.toString());
                 dep.setVehicleId(vehicleId);
@@ -435,6 +453,12 @@ public class ExportPTSupplyFromVisum {
             Dispatch.call(timeProfileIterator, "Next");
         }
         log.info("Loading transit routes finished");
+    }
+
+    private void cleanStops()   {
+
+
+
     }
 
     private void writeFiles()   {
