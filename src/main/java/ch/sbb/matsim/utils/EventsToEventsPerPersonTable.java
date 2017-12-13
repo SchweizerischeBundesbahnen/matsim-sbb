@@ -272,11 +272,11 @@ public class EventsToEventsPerPersonTable implements
         eventsPerPerson = new HashMap<>();
     }
 
-    public void writeSimulationResultsToTabSeparated(String path, String appendage) throws IOException {
+    public void writeSimulationResultsToTabSeparated(String appendage) throws IOException {
         String eventPerPersonTableName;
         eventPerPersonTableName = "events_per_person" + appendage + ".csv";
 
-        BufferedWriter eventsPerPersonWriter = IOUtils.getBufferedWriter(path + eventPerPersonTableName);
+        BufferedWriter eventsPerPersonWriter = IOUtils.getBufferedWriter(this.filename + eventPerPersonTableName);
         eventsPerPersonWriter.write(String.join(SEPARATOR, getPersonEventHeaderAttributList()) + "\n");
         for (Entry<Id, List<PersonEvent>> entry: eventsPerPerson.entrySet()) {
             for (PersonEvent personEvent: entry.getValue()) {
@@ -310,7 +310,7 @@ public class EventsToEventsPerPersonTable implements
     @Override
     public void closeFile() {
         try {
-            this.writeSimulationResultsToTabSeparated(this.filename, "");
+            this.writeSimulationResultsToTabSeparated("");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -86,7 +86,7 @@ public class NetworkToVisumNetFile implements EventWriter {
         this.ppConfig = ppConfig;
     }
 
-    public void write(String filename) {
+    public void write() {
         log.info("start preprocessing to visum-net-file");
         Network network = scenario.getNetwork();
         TransitSchedule schedule = scenario.getTransitSchedule();
@@ -127,7 +127,7 @@ public class NetworkToVisumNetFile implements EventWriter {
             readPassengerVolumeDataPerLink(this.filename + LinkVolumeToCSV.FILENAME_VOLUMES, network, nbPassengersPerLink, scaleFactor);
         }
         try {
-            BufferedWriter writer = IOUtils.getBufferedWriter(filename);
+            BufferedWriter writer = IOUtils.getBufferedWriter(this.filename + "net.net");
             writer.write(HEADER);
             writer.write(BENDEFATTR_NET_STRING);
             writer.write(VSY_NET_STRING);
@@ -423,7 +423,7 @@ public class NetworkToVisumNetFile implements EventWriter {
 
     @Override
     public void closeFile() {
-        this.write(this.filename + "net.net");
+        this.write();
     }
 
     @Override

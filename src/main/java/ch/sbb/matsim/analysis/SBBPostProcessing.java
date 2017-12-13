@@ -61,7 +61,7 @@ public class SBBPostProcessing {
         }
 
         if (ppConfig.getEventsPerPerson()) {
-            eventsPerPersonHandler = new EventsToEventsPerPersonTable(scenario);
+            eventsPerPersonHandler = new EventsToEventsPerPersonTable(scenario, output + "/");
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
@@ -71,7 +71,7 @@ public class SBBPostProcessing {
         }
 
         if(ppConfig.getLinkVolumes()) {
-            linkVolumeHandler = new LinkVolumeToCSV(scenario, null);
+            linkVolumeHandler = new LinkVolumeToCSV(scenario, output + "/");
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
@@ -100,18 +100,18 @@ public class SBBPostProcessing {
         }
         if(eventsPerPersonHandler != null) {
             try {
-                eventsPerPersonHandler.writeSimulationResultsToTabSeparated(output, "");
+                eventsPerPersonHandler.writeSimulationResultsToTabSeparated("");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         if (linkVolumeHandler != null)  {
-            linkVolumeHandler.write(output + "/");
+            linkVolumeHandler.write();
         }
 
         if (ppConfig.getVisumNetFile()) {
             networkToVisumNetFileHandler = new NetworkToVisumNetFile(this.controler.getScenario(),output + "/", ppConfig);
-            networkToVisumNetFileHandler.write(output + "/net.net");
+            networkToVisumNetFileHandler.write();
         }
     }
 

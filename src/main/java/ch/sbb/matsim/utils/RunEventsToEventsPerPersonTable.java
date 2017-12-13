@@ -75,10 +75,10 @@ public class RunEventsToEventsPerPersonTable {
         }
         EventsToEventsPerPersonTable handler;
         if (personIdString == null) {
-            handler = new EventsToEventsPerPersonTable(scenario);
+            handler = new EventsToEventsPerPersonTable(scenario, outputDirectory);
         }
         else {
-            handler = new EventsToEventsPerPersonTable(scenario);
+            handler = new EventsToEventsPerPersonTable(scenario, outputDirectory);
             handler.setPersonIdString(personIdString);
         }
 
@@ -89,7 +89,7 @@ public class RunEventsToEventsPerPersonTable {
         new MatsimEventsReader(events).readFile(eventsFileName);
 
         try {
-            handler.writeSimulationResultsToTabSeparated(outputDirectory, appendage);
+            handler.writeSimulationResultsToTabSeparated(appendage);
         } catch (IOException e) {
             e.printStackTrace();
         }

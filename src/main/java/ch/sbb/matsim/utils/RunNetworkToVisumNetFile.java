@@ -18,6 +18,6 @@ public class RunNetworkToVisumNetFile {
         System.out.println(controler.getConfig().controler().getOutputDirectory());
         PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
         NetworkToVisumNetFile networkToVisum = new NetworkToVisumNetFile(scenario, controler.getConfig().controler().getOutputDirectory() + "/", ppConfig);
-        networkToVisum.write(controler.getConfig().controler().getOutputDirectory() + "/net.net");
+        networkToVisum.write();
     }
 }

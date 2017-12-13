@@ -46,7 +46,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
         linkVolumesWriter.clear();
     }
 
-    public void write(String path){
+    public void write(){
         log.info("write linkvolumes");
         Set<String> modes = super.getModes();
         for (Id<Link> linkId: super.getLinkIds()) {
@@ -65,11 +65,11 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
                 }
             }
         }
-        linkVolumesWriter.write(path + FILENAME_VOLUMES);
+        linkVolumesWriter.write(this.filename + FILENAME_VOLUMES);
     }
 
     @Override
     public void closeFile() {
-        this.write(this.filename);
+        this.write();
     }
 }
