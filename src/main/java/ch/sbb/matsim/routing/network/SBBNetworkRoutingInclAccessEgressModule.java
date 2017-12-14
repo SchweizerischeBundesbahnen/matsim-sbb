@@ -3,35 +3,27 @@ package ch.sbb.matsim.routing.network;
 import java.util.ArrayList;
 import java.util.List;
 
-import ch.sbb.matsim.routing.access.AccessEgressRouting;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
-import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.PopulationFactory;
-import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.NetworkRoutingInclAccessEgressModule;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.util.LeastCostPathCalculator;
-import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.facilities.Facility;
-import org.opengis.feature.simple.SimpleFeature;
 
 import ch.sbb.matsim.analysis.LocateAct;
+import ch.sbb.matsim.routing.access.AccessEgressRouting;
 
 public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingModule {
     private static final Logger log = Logger.getLogger(NetworkRoutingInclAccessEgressModule.class);
