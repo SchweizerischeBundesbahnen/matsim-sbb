@@ -5,6 +5,7 @@
 package ch.sbb.matsim;
 
 
+import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -30,7 +31,7 @@ public class RunSBB {
 
         log.info(configFile);
 
-        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup());
+        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBBehaviorGroupsConfigGroup());
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
