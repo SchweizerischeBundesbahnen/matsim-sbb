@@ -5,16 +5,9 @@
 package ch.sbb.matsim;
 
 
-import ch.sbb.matsim.config.SBBTransitConfigGroup;
-import ch.sbb.matsim.analysis.LocateAct;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
@@ -22,20 +15,16 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 
+import ch.sbb.matsim.analysis.LocateAct;
 import ch.sbb.matsim.analysis.SBBPostProcessing;
 import ch.sbb.matsim.config.AccessTimeConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRouter;
 import ch.sbb.matsim.routing.teleportation.SBBBeelineTeleportationRouting;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
-import org.matsim.core.utils.collections.QuadTree;
-import org.matsim.facilities.ActivityFacility;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author denism
@@ -54,7 +43,6 @@ public class RunSBB {
 
         log.info(configFile);
 
-        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new AccessTimeConfigGroup());
         RunSBB sbb = new RunSBB();
 
         sbb.prepare(configFile);
@@ -115,11 +103,11 @@ public class RunSBB {
     }
 
     public Config loadConfig(String configFile) {
-        return ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new AccessTimeConfigGroup());
+        return ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new AccessTimeConfigGroup());
     }
 
     public Config createConfig() {
-        return ConfigUtils.createConfig(new PostProcessingConfigGroup(), new AccessTimeConfigGroup());
+        return ConfigUtils.createConfig(new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new AccessTimeConfigGroup());
     }
 
     public Controler getControler() {
