@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.preparation;
 
-import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
@@ -17,11 +16,8 @@ import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
-import java.io.File;
-
 public class AttributeMerger {
     public static void main(final String[] args) {
-        Logger log = Logger.getLogger(Cutter.class);
         final Config config = ConfigUtils.createConfig();
         final String planFile = args[0];
         final String attributeFileA = args[1];
@@ -62,23 +58,23 @@ public class AttributeMerger {
 
                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), attribute, C);
 
-               if(attribute.equals("availability: car")){
-                   if(!"never".equals(C.toString())){
-                       person.getCustomAttributes().put("carAvail", "always");
+               if (attribute.equals("availability: car")) {
+                   if (!"never".equals(C.toString())) {
+                       PersonUtils.setCarAvail(person, "always");
                        PersonUtils.setLicence(person, "yes");
                    }
-                   else{
-                       person.getCustomAttributes().put("carAvail", "never");
+                   else {
+                       PersonUtils.setCarAvail(person, "never");
                        PersonUtils.setLicence(person, "no");
                    }
                }
 
                if (attribute.equals("age") && C != "") {
-                   person.getCustomAttributes().put("age", Integer.parseInt(C.toString()));
+                   PersonUtils.setAge(person, Integer.parseInt(C.toString()));
                }
 
                if (attribute.equals("gender") || attribute.equals("sex")) {
-                   person.getCustomAttributes().put("gender", C);
+                   PersonUtils.setSex(person, C.toString());
                  }
            }
        }

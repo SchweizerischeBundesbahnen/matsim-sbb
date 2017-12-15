@@ -11,7 +11,6 @@ import com.vividsolutions.jts.geom.Point;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.gis.ShapeFileReader;
-import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.Collection;
@@ -19,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LocateAct {
-    Logger log = Logger.getLogger(LocateAct.class);
+    private final static Logger log = Logger.getLogger(LocateAct.class);
     Collection<SimpleFeature> features = null;
     GeometryFactory geometryFactory = new GeometryFactory();
     private String attribute = "";

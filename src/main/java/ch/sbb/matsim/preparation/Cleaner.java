@@ -17,7 +17,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.router.TransitActsRemover;
 
 public class Cleaner {
-    private Logger log =Logger.getLogger(Cleaner.class);
+    private static final Logger log =Logger.getLogger(Cleaner.class);
     private Population population;
 
     public Cleaner(Population population) {
