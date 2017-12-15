@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.mavi;
 
-
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
@@ -43,17 +42,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /***
  *
- * @author Patrick Manser
- * @version 1.0
- * @since November 2017
+ * @author pmanser / SBB
+ *
+ * IMPORTANT:
+ * Download the JACOB library version 1.18 and
+ * set path to the library in the VM Options (e.g. -Djava.library.path="C:\Users\u225744\Downloads\jacob-1.18\jacob-1.18")
  *
  */
-
-// TODO importieren EINER Datenquelle (über Filter ODER if-Abfrage beim Einlesen)
-// TODO Stop (und damit verbundenes Network-Cleaning)
 
 public class ExportPTSupplyFromVisum {
 
@@ -70,15 +69,18 @@ public class ExportPTSupplyFromVisum {
 
     private static final String PATHTOVISUM = "\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\10_Modelle_vonDritten\\40_NPVM2016\\OEVAngebot_NPVM2016_Patrick.ver";
 
-    // at the moment, the NPVM has the three options "2015", "2016" and "Prognose"
-    private static final String SIMBASUPPLY = "2016";
+    // at the moment, the NPVM has the three options "2015", "2016" and "2030"
+    private static final int SIMBASUPPLY = 2016;
+
+    // we should use detPt for now as we do not make any differentiation between modes
+    private static final boolean USEDETPTASMODE = true;
 
     // names of the output files
-    private static final String NETWORKFILE = "NPVM_Output/transitNetwork.xml.gz";
-    private static final String SCHEDULEFILE = "NPVM_Output/transitSchedule.xml.gz";
-    private static final String VEHICLEFILE = "NPVM_Output/transitVehicles.xml.gz";
-    private static final String STOPATTRIBUTES = "NPVM_Output/routeAttributes.xml.gz";
-    private static final String ROUTEATTRIBUTES = "NPVM_Output/stopAttributes.xml.gz";
+    private static final String NETWORKFILE = "NPVM_Output/transitNetwork" + SIMBASUPPLY + ".xml.gz";
+    private static final String SCHEDULEFILE = "NPVM_Output/transitSchedule" + SIMBASUPPLY + ".xml.gz";
+    private static final String VEHICLEFILE = "NPVM_Output/transitVehicles" + SIMBASUPPLY + ".xml.gz";
+    private static final String STOPATTRIBUTES = "NPVM_Output/stopAttributes" + SIMBASUPPLY + ".xml.gz";
+    private static final String ROUTEATTRIBUTES = "NPVM_Output/routeAttributes" + SIMBASUPPLY + ".xml.gz";
 
     public static void main(String[] args) { new ExportPTSupplyFromVisum(); }
 
@@ -100,17 +102,13 @@ public class ExportPTSupplyFromVisum {
         loadVersion(visum);
         createMATSimScenario();
 
-        // TODO setFilter
-        setFilter();
-        Dispatch net = Dispatch.get(visum, "Net").toDispatch();
+        setFilter(visum);
 
+        Dispatch net = Dispatch.get(visum, "Net").toDispatch();
         loadStopPoints(net);
         writeStopAttributes();
-
         createVehicleTypes(net);
         loadTransitLines(net);
-
-        // TODO
         cleanStops();
 
         writeFiles();
@@ -126,13 +124,10 @@ public class ExportPTSupplyFromVisum {
     private void createMATSimScenario()   {
         this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         log.info("MATSim scenario created");
-
         this.scheduleBuilder = scenario.getTransitSchedule().getFactory();
         log.info("Schedule builder initialized");
-
         this.vehicleBuilder = scenario.getTransitVehicles().getFactory();
         log.info("Vehicle builder initialized");
-
         this.networkBuilder = scenario.getNetwork().getFactory();
         log.info("Network builder initialized");
 
@@ -141,10 +136,28 @@ public class ExportPTSupplyFromVisum {
         this.vehicles = this.scenario.getTransitVehicles();
     }
 
-    private void setFilter()    {
-
-
-
+    private void setFilter(ActiveXComponent visum)    {
+        Dispatch filters = Dispatch.get(visum, "Filters").toDispatch();
+        Dispatch filter = Dispatch.call(filters, "LineGroupFilter").toDispatch();
+        Dispatch tpFilter = Dispatch.call(filter, "TimeProfileFilter").toDispatch();
+        Dispatch.call(tpFilter, "Init");
+        switch ( SIMBASUPPLY ) {
+            case 2015:
+                Dispatch.call(tpFilter, "AddCondition", "OP_NONE",false,"LineRoute\\Line\\Datenherkunft",9,"Hafas_2015");
+                Dispatch.call(tpFilter, "AddCondition", "OP_OR",false,"LineRoute\\Line\\Datenherkunft",9,"SBB_Simba.CH_2015");
+                break;
+            case 2016:
+                Dispatch.call(tpFilter, "AddCondition", "OP_NONE",false,"LineRoute\\Line\\Datenherkunft",9,"Hafas_2015");
+                Dispatch.call(tpFilter, "AddCondition", "OP_OR",false,"LineRoute\\Line\\Datenherkunft",9,"SBB_Simba.CH_2016");
+                break;
+            case 2030:
+                Dispatch.call(tpFilter, "AddCondition", "OP_NONE",false,"LineRoute\\Line\\Datenherkunft",9,"Hafas_2015");
+                Dispatch.call(tpFilter, "AddCondition", "OP_OR",false,"LineRoute\\Line\\Datenherkunft",9,"SBB_Simba.CH_Prognose");
+                break;
+            default:
+                throw new IllegalArgumentException( "The model does not contain the SIMBA version " + SIMBASUPPLY );
+        }
+        Dispatch.put(filter, "UseFilterForTimeProfiles", true);
     }
 
     private void loadStopPoints(Dispatch net) {
@@ -267,11 +280,14 @@ public class ExportPTSupplyFromVisum {
         log.info("Loading transit routes started...");
         Dispatch timeProfileIterator = Dispatch.get(timeProfiles, "Iterator").toDispatch();
 
-        int nrOfTimeProfiles = Integer.valueOf(Dispatch.call(timeProfiles, "Count").toString());
+        int nrOfTimeProfiles = Integer.valueOf(Dispatch.call(timeProfiles, "CountActive").toString());
+        log.info("Number of active time profiles: " + nrOfTimeProfiles);
         int i = 0;
 
+        //while (i < 150) { // for test purposes
         while (i < nrOfTimeProfiles) {
-        //while (i < 250) {
+            if(!Dispatch.call(timeProfileIterator, "Active").getBoolean())   continue;
+
             log.info("Processing Time Profile " + i + " of " + nrOfTimeProfiles);
             Dispatch item = Dispatch.get(timeProfileIterator, "Item").toDispatch();
 
@@ -285,9 +301,12 @@ public class ExportPTSupplyFromVisum {
             // Fahrplanfahrten
             Dispatch vehicleJourneys = Dispatch.get(item, "VehJourneys").toDispatch();
             Dispatch vehicleJourneyIterator = Dispatch.get(vehicleJourneys, "Iterator").toDispatch();
-            // to make sure that the deterministic transit simulation runs fine, we should use one route mode for now
-            String mode = "detPt";
-            //String mode = Dispatch.call(item, "AttValue", "TSysCode").toString();
+
+            String mode;
+            if(USEDETPTASMODE)
+                mode = "detPt";
+            else
+                mode = Dispatch.call(item, "AttValue", "TSysCode").toString();
 
             int nrOfVehicleJourneys = Integer.valueOf(Dispatch.call(vehicleJourneys, "Count").toString());
             int k = 0;
@@ -456,9 +475,30 @@ public class ExportPTSupplyFromVisum {
     }
 
     private void cleanStops()   {
+        Set<Id<TransitStopFacility>> stopsToKeep = new HashSet<>();
+        Set<Id<TransitStopFacility>> stopsToRemove = new HashSet<>();
 
+        for(TransitLine line: this.schedule.getTransitLines().values())   {
+            for(TransitRoute route: line.getRoutes().values())  {
+                for(TransitRouteStop stops: route.getStops()) {
+                    stopsToKeep.add(stops.getStopFacility().getId());
+                }
+            }
+        }
 
+        for(Id<TransitStopFacility> stopId: this.schedule.getFacilities().keySet()) {
+            if(!stopsToKeep.contains(stopId))
+                stopsToRemove.add(stopId);
+        }
 
+        for(Id<TransitStopFacility> stopId: stopsToRemove)  {
+            this.schedule.removeStopFacility(this.schedule.getFacilities().get(stopId));
+
+            Id<Node> stopNodeID = Id.createNodeId("pt_" + stopId.toString());
+            Id<Link> loopLinkID = Id.createLinkId("pt_" + stopId.toString());
+            this.network.removeNode(stopNodeID);
+            this.network.removeLink(loopLinkID);
+        }
     }
 
     private void writeFiles()   {
