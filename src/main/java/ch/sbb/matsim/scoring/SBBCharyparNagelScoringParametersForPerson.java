@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansConfigGroup;
 import org.matsim.core.config.groups.ScenarioConfigGroup;
@@ -46,7 +47,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 scenario.getConfig().scenario(),
                 scenario.getPopulation(),
                 scenario.getConfig().transit(),
-                (SBBBehaviorGroupsConfigGroup) scenario.getConfig().getModules().get(SBBBehaviorGroupsConfigGroup.GROUP_NAME));
+                ConfigUtils.addOrGetModule(scenario.getConfig(), SBBBehaviorGroupsConfigGroup.class));
     }
 
     SBBCharyparNagelScoringParametersForPerson  (
@@ -99,7 +100,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bgp : behaviorGroupsConfigGroup.getBehaviorGroupParams().values()) {
                     String behGroup = (String) personAttributes.getAttribute(person.getId().toString(), bgp.getPersonAttribute());
                     if (behGroup == null) {
-                        log.warn("Population attribute " + bgp.getPersonAttribute() + " not defined for Person " + person.getId());
+                        log.info("Population attribute " + bgp.getPersonAttribute() + " not defined for Person " + person.getId());
                         continue;
                     }
                     for (SBBBehaviorGroupsConfigGroup.PersonGroupTypes pgt : bgp.getPersonGroupTypeParamsPerType().values()) {

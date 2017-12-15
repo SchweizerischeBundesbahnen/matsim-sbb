@@ -46,8 +46,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         switch ( type ) {
             case BehaviorGroupParams.SET_TYPE:
                 return new BehaviorGroupParams();
-            case PersonGroupTypes.SET_TYPE:
-                return new PersonGroupTypes();
             default:
                 throw new IllegalArgumentException( type );
         }
@@ -206,15 +204,18 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
             return this.getPersonGroupTypeParamsPerType().keySet();
         }
 
-        public Collection<PersonGroupTypes> getPersonGroupTypeParams() {
-            @SuppressWarnings("unchecked")
-            Collection<PersonGroupTypes> collection = (Collection<PersonGroupTypes>) getParameterSets( PersonGroupTypes.SET_TYPE );
-            for ( PersonGroupTypes params : collection ) {
+        public Map<String, PersonGroupTypes> getPersonGroupTypeParams() {
+            final Map<String, PersonGroupTypes> map = new LinkedHashMap< >();
+
+            for ( ConfigGroup pars : getParameterSets( PersonGroupTypes.SET_TYPE ) ) {
                 if ( this.isLocked() ) {
-                    params.setLocked();
+                    pars.setLocked();
                 }
+                final String type = ((PersonGroupTypes) pars).getPersonGroupType();
+                final PersonGroupTypes old = map.put( type , (PersonGroupTypes) 	pars );
+                if ( old != null ) throw new IllegalStateException( "several parameter sets for group type " + type );
             }
-            return collection ;
+            return map;
         }
 
         public PersonGroupTypes getPersonGroupTypeParams(final String type) {
@@ -224,10 +225,22 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         public Map<String, PersonGroupTypes> getPersonGroupTypeParamsPerType() {
             final Map<String, PersonGroupTypes> map = new LinkedHashMap< >();
 
-            for ( PersonGroupTypes pars : getPersonGroupTypeParams() ) {
+            for ( PersonGroupTypes pars : getPersonGroupTypeParams().values() ) {
                 map.put( pars.getPersonGroupType() , pars );
             }
             return map;
+        }
+
+        public void addPersonGroupType(final PersonGroupTypes type) {
+            final PersonGroupTypes previous = this.getPersonGroupTypeParams().get(type);
+
+            if ( previous != null ) {
+
+                final boolean removed = removeParameterSet( previous );
+                if ( !removed ) throw new RuntimeException( "problem replacing behavior group params " );
+            }
+
+            super.addParameterSet( type );
         }
     }
 
@@ -295,15 +308,19 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
             return this.getPersonGroupTypeParamsPerMode().keySet();
         }
 
-        public Collection<ModeCorrection> getModeCorrectionParams() {
-            @SuppressWarnings("unchecked")
-            Collection<ModeCorrection> collection = (Collection<ModeCorrection>) getParameterSets( ModeCorrection.SET_TYPE );
-            for ( ModeCorrection params : collection ) {
+
+        public Map<String, ModeCorrection> getModeCorrectionParams() {
+            final Map<String, ModeCorrection> map = new LinkedHashMap< >();
+
+            for ( ConfigGroup pars : getParameterSets( ModeCorrection.SET_TYPE ) ) {
                 if ( this.isLocked() ) {
-                    params.setLocked();
+                    pars.setLocked();
                 }
+                final String mode = ((ModeCorrection) pars).getMode();
+                final ModeCorrection old = map.put( mode , (ModeCorrection) 	pars );
+                if ( old != null ) throw new IllegalStateException( "several parameter sets for group type " + mode );
             }
-            return collection ;
+            return map;
         }
 
         public ModeCorrection getModeCorrectionParams(final String type) {
@@ -313,10 +330,22 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         public Map<String, ModeCorrection> getPersonGroupTypeParamsPerMode() {
             final Map<String, ModeCorrection> map = new LinkedHashMap< >();
 
-            for ( ModeCorrection pars : getModeCorrectionParams() ) {
+            for ( ModeCorrection pars : getModeCorrectionParams().values() ) {
                 map.put( pars.getMode() , pars );
             }
             return map;
+        }
+
+        public void addModeCorrection(final ModeCorrection modeCorrection) {
+            final ModeCorrection previous = this.getModeCorrectionParams().get(modeCorrection.mode);
+
+            if ( previous != null ) {
+
+                final boolean removed = removeParameterSet( previous );
+                if ( !removed ) throw new RuntimeException( "problem replacing behavior group params " );
+            }
+
+            super.addParameterSet( modeCorrection );
         }
     }
 
