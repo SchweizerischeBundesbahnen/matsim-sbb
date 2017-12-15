@@ -1,25 +1,10 @@
 package ch.sbb.matsim.utils;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-
-import org.matsim.api.core.v01.Coord;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.ActivityStartEvent;
-import org.matsim.api.core.v01.events.LinkEnterEvent;
-import org.matsim.api.core.v01.events.LinkLeaveEvent;
 import org.matsim.api.core.v01.events.PersonArrivalEvent;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
@@ -28,8 +13,6 @@ import org.matsim.api.core.v01.events.PersonStuckEvent;
 import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
 import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
 import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
-import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
-import org.matsim.api.core.v01.events.handler.LinkLeaveEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonArrivalEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonDepartureEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
@@ -42,6 +25,15 @@ import org.matsim.core.api.experimental.events.TeleportationArrivalEvent;
 import org.matsim.core.api.experimental.events.handler.TeleportationArrivalEventHandler;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * @author jlie
@@ -62,6 +54,8 @@ public class EventsToEventsPerPersonTable implements
         PersonStuckEventHandler,
         TeleportationArrivalEventHandler,
         TransitDriverStartsEventHandler {
+
+    private static final Logger log = Logger.getLogger(EventsToEventsPerPersonTable.class);
 
     private final static String SEPARATOR = ";";
 
@@ -95,15 +89,16 @@ public class EventsToEventsPerPersonTable implements
         else return true;
     }
 
+    private boolean isTransitDriver(Id<Person> personId) {
+        return isTransitScenario && transitDriverIds.contains(personId);
+    }
+
 
     @Override
     public void handleEvent(ActivityEndEvent event) {
         try {
             if (!checkIfPersonMatches(event.getPersonId())) return;
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
-            }
+            if (isTransitDriver(event.getPersonId())) return;
             addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
                     event.getPersonId(),
                     event.getTime(),
@@ -114,8 +109,7 @@ public class EventsToEventsPerPersonTable implements
                     "",
                     ""));
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -123,10 +117,7 @@ public class EventsToEventsPerPersonTable implements
     public void handleEvent(ActivityStartEvent event) {
         try {
             if (!checkIfPersonMatches(event.getPersonId())) return;
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
-            }
+            if (isTransitDriver(event.getPersonId())) return;
             addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
                     event.getPersonId(),
                     event.getTime(),
@@ -137,8 +128,7 @@ public class EventsToEventsPerPersonTable implements
                     "",
                     ""));
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -146,10 +136,7 @@ public class EventsToEventsPerPersonTable implements
     public void handleEvent(PersonArrivalEvent event) {
         try {
             if (!checkIfPersonMatches(event.getPersonId())) return;
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
-            }
+            if (isTransitDriver(event.getPersonId())) return;
             addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
                     event.getPersonId(),
                     event.getTime(),
@@ -160,8 +147,7 @@ public class EventsToEventsPerPersonTable implements
                     "",
                     ""));
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -169,10 +155,7 @@ public class EventsToEventsPerPersonTable implements
     public void handleEvent(PersonDepartureEvent event) {
         try {
             if (!checkIfPersonMatches(event.getPersonId())) return;
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
-            }
+            if (isTransitDriver(event.getPersonId())) return;
             addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
                     event.getPersonId(),
                     event.getTime(),
@@ -184,8 +167,7 @@ public class EventsToEventsPerPersonTable implements
                     ""));
 
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -193,10 +175,7 @@ public class EventsToEventsPerPersonTable implements
     public void handleEvent(PersonStuckEvent event) {
         try {
             if (!checkIfPersonMatches(event.getPersonId())) return;
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
-            }
+            if (isTransitDriver(event.getPersonId())) return;
             addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
                     event.getPersonId(),
                     event.getTime(),
@@ -207,8 +186,7 @@ public class EventsToEventsPerPersonTable implements
                     "",
                     ""));
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -216,10 +194,7 @@ public class EventsToEventsPerPersonTable implements
     public void handleEvent(PersonEntersVehicleEvent event) {
         try {
             if (!checkIfPersonMatches(event.getPersonId())) return;
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
-            }
+            if (isTransitDriver(event.getPersonId())) return;
             addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
                     event.getPersonId(),
                     event.getTime(),
@@ -230,8 +205,7 @@ public class EventsToEventsPerPersonTable implements
                     event.getVehicleId().toString(),
                     ""));
         } catch (Exception e) {
-            e.printStackTrace(System.out);
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -239,10 +213,7 @@ public class EventsToEventsPerPersonTable implements
     public void handleEvent(PersonLeavesVehicleEvent event) {
         try {
             if (!checkIfPersonMatches(event.getPersonId())) return;
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
-            }
+            if (isTransitDriver(event.getPersonId())) return;
             addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
                     event.getPersonId(),
                     event.getTime(),
@@ -254,8 +225,7 @@ public class EventsToEventsPerPersonTable implements
                     ""));
 
         } catch (Exception e) {
-            e.printStackTrace(System.out);
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -263,10 +233,7 @@ public class EventsToEventsPerPersonTable implements
     public void handleEvent(TeleportationArrivalEvent event) {
         try {
             if (!checkIfPersonMatches(event.getPersonId())) return;
-            if (isTransitScenario) {
-                if (transitDriverIds.contains(event.getPersonId()))
-                    return;
-            }
+            if (isTransitDriver(event.getPersonId())) return;
             addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
                     event.getPersonId(),
                     event.getTime(),
@@ -278,8 +245,7 @@ public class EventsToEventsPerPersonTable implements
                     String.valueOf(event.getDistance())));
         } catch (Exception e) {
             e.printStackTrace(System.out);
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 
@@ -288,8 +254,7 @@ public class EventsToEventsPerPersonTable implements
         try {
             transitDriverIds.add(event.getDriverId());
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while working on event: " + event.toString(), e);
         }
     }
 

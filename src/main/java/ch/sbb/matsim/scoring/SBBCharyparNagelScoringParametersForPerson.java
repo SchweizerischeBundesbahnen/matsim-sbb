@@ -31,7 +31,7 @@ import java.util.Map;
 
 public class SBBCharyparNagelScoringParametersForPerson implements ScoringParametersForPerson {
 
-    private Logger log = Logger.getLogger(SBBCharyparNagelScoringParametersForPerson.class);
+    private final static Logger log = Logger.getLogger(SBBCharyparNagelScoringParametersForPerson.class);
 
     private final PlanCalcScoreConfigGroup config;
     private final ScenarioConfigGroup scConfig;

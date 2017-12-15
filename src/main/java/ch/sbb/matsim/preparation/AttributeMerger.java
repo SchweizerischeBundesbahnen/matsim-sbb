@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.preparation;
 
-import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
@@ -23,7 +22,6 @@ import java.util.List;
 
 public class AttributeMerger {
     public static void main(final String[] args) {
-        Logger log = Logger.getLogger(Cutter.class);
         final Config config = ConfigUtils.createConfig();
         final String planFile = args[0];
         final String attributeFileA = args[1];
@@ -94,7 +92,6 @@ public class AttributeMerger {
             }
         }
         new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFile);
-
         new PopulationWriter(scenario.getPopulation()).write(populationFile);
     }
 }
