@@ -20,8 +20,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * @author jlie/pmanser based on org.matsim.core.scoring.functions.RandomizedCharyparNagelScoringParameters
- *         adding: the default CharyparNagelScoringParametersForPerson seems to be org.matsim.core.scoring.functions.SubpopulationCharyparNagelScoringParameters
+ * @author jlie/pmanser / SBB
+ * based on org.matsim.core.scoring.functions.RandomizedCharyparNagelScoringParameters
+ *
+ * extended the code to allow customized personal scoring parameters depending on different behaviorally
+ * homogeneous groups.
  *
  */
 
@@ -101,13 +104,13 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                     }
                     for (SBBBehaviorGroupsConfigGroup.PersonGroupTypes pgt : bgp.getPersonGroupTypeParamsPerType().values()) {
                         if (!behGroup.equals(pgt.getPersonGroupType())) continue;
-                        SBBBehaviorGroupsConfigGroup.ModeCorrection mc = pgt.getPersonGroupTypeParamsPerMode().get(mode);
-                        if(mc == null)  continue;
+                        SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = pgt.getPersonGroupTypeParamsPerMode().get(mode);
+                        if(modeCorrection == null)  continue;
 
-                        constant += mc.getConstant();
-                        margUtilTime += mc.getMargUtilOfTime();
-                        margUtilDistance += mc.getMargUtilOfDistance();
-                        monDistRate += mc.getDistanceRate();
+                        constant += modeCorrection.getConstant();
+                        margUtilTime += modeCorrection.getMargUtilOfTime();
+                        margUtilDistance += modeCorrection.getMargUtilOfDistance();
+                        monDistRate += modeCorrection.getDistanceRate();
                     }
                 }
                 modeParameteresBuilder.setConstant(constant);

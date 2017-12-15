@@ -22,6 +22,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * @author jlie/pmanser / SBB
+ *
+ * assigns the Raumtyp to each person as a custom attribute. The categorization is based on the shape file
+ * containing the UVEK-zones
+ *
+ */
+
+// TODO: we should merge the new custom attribute directly into the Senozon population attributes and not write as a separate attribute file.
+// Doing so, no more extra step is necessary after this process.
+
 public class RaumtypPerPerson {
 
     public static String RAUMTYP = "raumtyp";
