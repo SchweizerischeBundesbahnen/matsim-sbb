@@ -286,7 +286,10 @@ public class ExportPTSupplyFromVisum {
 
         //while (i < 150) { // for test purposes
         while (i < nrOfTimeProfiles) {
-            if(!Dispatch.call(timeProfileIterator, "Active").getBoolean())   continue;
+            if(!Dispatch.call(timeProfileIterator, "Active").getBoolean())   {
+                Dispatch.call(timeProfileIterator, "Next");
+                continue;
+            }
 
             log.info("Processing Time Profile " + i + " of " + nrOfTimeProfiles);
             Dispatch item = Dispatch.get(timeProfileIterator, "Item").toDispatch();
