@@ -46,8 +46,6 @@ public class RaumtypPerPerson {
         final String outputLog = args[3];
         final String outputAttributes = args[4];
 
-        final ObjectAttributes personAttributes = new ObjectAttributes();
-
         Logger log = Logger.getLogger(RaumtypPerPerson.class);
         int nbUndefined = 0;
         int nbNotHomeType = 0;
