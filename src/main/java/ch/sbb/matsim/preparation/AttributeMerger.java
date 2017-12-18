@@ -40,44 +40,44 @@ public class AttributeMerger {
 
         String[] attributes = attributesStr.split(",");
 
-       for(Person person: scenario.getPopulation().getPersons().values()){
+        for(Person person: scenario.getPopulation().getPersons().values()){
 
-           for(String attribute: attributes) {
-               Object A = personAttributesA.getAttribute(person.getId().toString(), attribute);
-               Object B = personAttributesB.getAttribute(person.getId().toString(), attribute);
-               Object C = "";
-               if(A != null && B == null){
-                   C = A;
-               }
-               else if(A == null && B!= null){
-                   C = B;
-               }
-               else if(A != null && B!= null){
-                   C = A.toString()+"_"+B.toString();
-               }
+            for(String attribute: attributes) {
+                Object A = personAttributesA.getAttribute(person.getId().toString(), attribute);
+                Object B = personAttributesB.getAttribute(person.getId().toString(), attribute);
+                Object C = "";
+                if(A != null && B == null){
+                    C = A;
+                }
+                else if(A == null && B!= null){
+                    C = B;
+                }
+                else if(A != null && B!= null){
+                    C = A.toString()+"_"+B.toString();
+                }
 
-               scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), attribute, C);
+                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), attribute, C);
 
-               if (attribute.equals("availability: car")) {
-                   if (!"never".equals(C.toString())) {
-                       PersonUtils.setCarAvail(person, "always");
-                       PersonUtils.setLicence(person, "yes");
-                   }
-                   else {
-                       PersonUtils.setCarAvail(person, "never");
-                       PersonUtils.setLicence(person, "no");
-                   }
-               }
+                if (attribute.equals("availability: car")) {
+                    if (!"never".equals(C.toString())) {
+                        PersonUtils.setCarAvail(person, "always");
+                        PersonUtils.setLicence(person, "yes");
+                    }
+                    else {
+                        PersonUtils.setCarAvail(person, "never");
+                        PersonUtils.setLicence(person, "no");
+                    }
+                }
 
-               if (attribute.equals("age") && C != "") {
-                   PersonUtils.setAge(person, Integer.parseInt(C.toString()));
-               }
+                if (attribute.equals("age") && C != "") {
+                    PersonUtils.setAge(person, Integer.parseInt(C.toString()));
+                }
 
-               if (attribute.equals("gender") || attribute.equals("sex")) {
-                   PersonUtils.setSex(person, C.toString());
-                 }
-           }
-       }
+                if (attribute.equals("gender") || attribute.equals("sex")) {
+                    PersonUtils.setSex(person, C.toString());
+                }
+            }
+        }
         new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile( attributeFile);
         new PopulationWriter(scenario.getPopulation()).write(populationFile);
     }
