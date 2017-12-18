@@ -9,18 +9,15 @@ import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.router.RoutingModule;
 
 import ch.sbb.matsim.analysis.LocateAct;
-import ch.sbb.matsim.config.AccessTimeConfigGroup;
 
 public class SBBBeelineTeleportationRouting implements Provider<RoutingModule> {
 
     private final PlansCalcRouteConfigGroup.ModeRoutingParams params;
     private LocateAct actLocator;
 
-    public SBBBeelineTeleportationRouting(PlansCalcRouteConfigGroup.ModeRoutingParams params, AccessTimeConfigGroup accessTimeConfigGroup) {
+    public SBBBeelineTeleportationRouting(PlansCalcRouteConfigGroup.ModeRoutingParams params, LocateAct locateAct) {
         this.params = params;
-        if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
-            this.actLocator = new LocateAct(accessTimeConfigGroup.getShapefile(), "GMDNAME");
-        }
+        this.actLocator = locateAct;
 
     }
 

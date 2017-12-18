@@ -91,9 +91,9 @@ public class RunSBB {
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
-                    addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, accessTimeConfigGroup, locateAct));
+                    addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, locateAct));
                     addRoutingModuleBinding(TransportMode.bike)
-                            .toProvider(new SBBBeelineTeleportationRouting(config.plansCalcRoute().getModeRoutingParams().get(TransportMode.bike), accessTimeConfigGroup));
+                            .toProvider(new SBBBeelineTeleportationRouting(config.plansCalcRoute().getModeRoutingParams().get(TransportMode.bike), locateAct));
                 }
 
             });

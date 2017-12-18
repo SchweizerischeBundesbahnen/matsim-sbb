@@ -41,7 +41,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import ch.sbb.matsim.analysis.LocateAct;
-import ch.sbb.matsim.config.AccessTimeConfigGroup;
 
 /**
  * Not thread-safe because MultiNodeDijkstra is not. Does not expect the TransitSchedule to change once constructed! michaz '13
@@ -75,12 +74,10 @@ public class SBBNetworkRouter implements Provider<RoutingModule>
 
     private LocateAct actLocator;
 
-    public SBBNetworkRouter(String mode, AccessTimeConfigGroup accessTimeConfigGroup, LocateAct actLocator) {
+    public SBBNetworkRouter(String mode, LocateAct actLocator) {
         this.mode = mode;
-        if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
-            this.actLocator = actLocator;
+        this.actLocator = actLocator;
 
-        }
     }
 
     private final String mode;
