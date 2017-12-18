@@ -16,10 +16,6 @@ import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 public class AttributeMerger {
     public static void main(final String[] args) {
         final Config config = ConfigUtils.createConfig();
@@ -29,13 +25,6 @@ public class AttributeMerger {
         final String attributeFile = args[3];
         final String attributesStr = args[4];
         final String populationFile = args[5];
-        final String attributeFileRaumtypen;
-        if (args.length == 7) {
-            attributeFileRaumtypen = args[6];
-        } else {
-            attributeFileRaumtypen = null;
-        }
-
         config.plans().setInputFile(planFile);
 
         Scenario scenario = ScenarioUtils.createScenario(config);
@@ -44,54 +33,52 @@ public class AttributeMerger {
 
         final ObjectAttributes personAttributesA = new ObjectAttributes();
         final ObjectAttributes personAttributesB = new ObjectAttributes();
-        final ObjectAttributes personAttributesRaumtyp = new ObjectAttributes();
 
         new ObjectAttributesXmlReader(personAttributesA).readFile(attributeFileA);
         new ObjectAttributesXmlReader(personAttributesB).readFile(attributeFileB);
-        if (attributeFileRaumtypen != null)
-            new ObjectAttributesXmlReader(personAttributesRaumtyp).readFile(attributeFileRaumtypen);
 
-        List<String> attributes = new LinkedList<>(Arrays.asList(attributesStr.split(",")));
-        attributes.remove(RaumtypPerPerson.RAUMTYP);
 
-        for (Person person : scenario.getPopulation().getPersons().values()) {
+        String[] attributes = attributesStr.split(",");
 
-            for (String attribute : attributes) {
+        for(Person person: scenario.getPopulation().getPersons().values()){
+
+            for(String attribute: attributes) {
                 Object A = personAttributesA.getAttribute(person.getId().toString(), attribute);
                 Object B = personAttributesB.getAttribute(person.getId().toString(), attribute);
                 Object C = "";
-                if (A != null && B == null) {
+                if(A != null && B == null){
                     C = A;
-                } else if (A == null && B != null) {
+                }
+                else if(A == null && B!= null){
                     C = B;
-                } else if (A != null && B != null) {
-                    C = A.toString() + "_" + B.toString();
+                }
+                else if(A != null && B!= null){
+                    C = A.toString()+"_"+B.toString();
                 }
 
                 scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), attribute, C);
 
                 if (attribute.equals("availability: car")) {
                     if (!"never".equals(C.toString())) {
-                        person.getCustomAttributes().put("carAvail", "always");
+                        PersonUtils.setCarAvail(person, "always");
                         PersonUtils.setLicence(person, "yes");
-                    } else {
-                        person.getCustomAttributes().put("carAvail", "never");
+                    }
+                    else {
+                        PersonUtils.setCarAvail(person, "never");
                         PersonUtils.setLicence(person, "no");
                     }
                 }
+
                 if (attribute.equals("age") && C != "") {
-                    person.getCustomAttributes().put("age", Integer.parseInt(C.toString()));
+                    PersonUtils.setAge(person, Integer.parseInt(C.toString()));
                 }
+
                 if (attribute.equals("gender") || attribute.equals("sex")) {
-                    person.getCustomAttributes().put("gender", C);
+                    PersonUtils.setSex(person, C.toString());
                 }
-            }
-            if (attributeFileRaumtypen != null) {
-                Object raumTyp = personAttributesRaumtyp.getAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP);
-                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RaumtypPerPerson.RAUMTYP, raumTyp);
             }
         }
-        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFile);
+        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile( attributeFile);
         new PopulationWriter(scenario.getPopulation()).write(populationFile);
     }
 }

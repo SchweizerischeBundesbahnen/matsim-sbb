@@ -15,6 +15,8 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.utils.objectattributes.ObjectAttributes;
+import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 import java.io.IOException;
@@ -30,8 +32,6 @@ import java.util.List;
  *
  */
 
-// TODO: we should merge the new custom attribute directly into the Senozon population attributes and not write as a separate attribute file.
-// Doing so, no more extra step is necessary after this process.
 
 public class RaumtypPerPerson {
 
@@ -41,9 +41,12 @@ public class RaumtypPerPerson {
 
     public static void main(final String[] args) {
         final String planFile = args[0];
-        final String shapeFile = args[1];
-        final String outputLog = args[2];
-        final String outputAttributes = args[3];
+        final String attributeFile = args[1];
+        final String shapeFile = args[2];
+        final String outputLog = args[3];
+        final String outputAttributes = args[4];
+
+        final ObjectAttributes personAttributes = new ObjectAttributes();
 
         Logger log = Logger.getLogger(RaumtypPerPerson.class);
         int nbUndefined = 0;
@@ -58,6 +61,7 @@ public class RaumtypPerPerson {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(planFile);
+        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(attributeFile);
 
         LocateAct locAct = new LocateAct(shapeFile, "GT9");
 
