@@ -5,6 +5,9 @@
 package ch.sbb.matsim;
 
 
+import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
+import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
@@ -103,11 +106,11 @@ public class RunSBB {
     }
 
     public Config loadConfig(String configFile) {
-        return ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new AccessTimeConfigGroup());
+        return ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new AccessTimeConfigGroup(), new SBBBehaviorGroupsConfigGroup());
     }
 
     public Config createConfig() {
-        return ConfigUtils.createConfig(new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new AccessTimeConfigGroup());
+        return ConfigUtils.createConfig(new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new AccessTimeConfigGroup(), new SBBBehaviorGroupsConfigGroup());
     }
 
     public Controler getControler() {

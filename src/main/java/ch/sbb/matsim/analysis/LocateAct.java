@@ -25,6 +25,9 @@ import com.vividsolutions.jts.geom.Point;
 
 public class LocateAct {
     private final static Logger log = Logger.getLogger(LocateAct.class);
+
+    public static String UNDEFINED = "undefined";
+
     Collection<SimpleFeature> features = null;
     GeometryFactory geometryFactory = new GeometryFactory();
     private String attribute = "";
@@ -82,10 +85,43 @@ public class LocateAct {
         }
     }
 
-    public String getZoneAttribute(Coord coord) {
+    public SimpleFeature getNearestZone(Coord coord, double acceptance) {
+        SimpleFeature nearestFeature = null;
+        double nearestDistance = Double.MAX_VALUE;
+        for (SimpleFeature feature: features) {
+            MultiPolygon mp = (MultiPolygon) feature.getDefaultGeometry();
+            Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
+            if (nearestFeature == null) {
+                Double actDistance = mp.distance(point);
+                if (actDistance <= acceptance) {
+                    nearestFeature = feature;
+                    nearestDistance = actDistance;
+                }
+            }
+            else {
+                double actDistance = mp.distance(point);
+                if (actDistance < nearestDistance && actDistance <= acceptance) {
+                    nearestFeature = feature;
+                    nearestDistance = mp.distance(point);
+                }
+                if (nearestDistance == 0.0) return nearestFeature;
+            }
+        }
+        return nearestFeature;
+    }
+
+    public String getZoneAttribute(Coord coord){
         SimpleFeature zone = getZone(coord);
+        if(zone == null){
+            return UNDEFINED;
+        }
+        return zone.getAttribute(attribute).toString();
+    }
+
+    public String getNearestZoneAttribute(Coord coord, double acceptance) {
+        SimpleFeature zone = getNearestZone(coord, acceptance);
         if (zone == null) {
-            return "undefined";
+            return UNDEFINED;
         }
         return zone.getAttribute(attribute).toString();
     }
