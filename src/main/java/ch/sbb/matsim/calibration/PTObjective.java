@@ -4,6 +4,8 @@
 
 package ch.sbb.matsim.calibration;
 
+import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -17,16 +19,10 @@ import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
 import org.matsim.core.api.experimental.events.VehicleDepartsAtFacilityEvent;
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
-import org.matsim.core.utils.misc.Counter;
 import org.matsim.vehicles.Vehicle;
-import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.csv.CSVReader;
 
-import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,11 +31,13 @@ public class PTObjective implements TransitDriverStartsEventHandler,
         VehicleArrivesAtFacilityEventHandler,
         PersonEntersVehicleEventHandler,
         PersonLeavesVehicleEventHandler, VehicleDepartsAtFacilityEventHandler {
+
+    private final static Logger log = Logger.getLogger(PTObjective.class);
+
     Scenario scenario;
 
     CSVWriter csvWriter = new CSVWriter(new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers", "visum_passengers"});
 
-    Logger log = Logger.getLogger(PTObjective.class);
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> ptAgents = new HashSet<>();
     private CSVReader visumVolume = new CSVReader(new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers"});

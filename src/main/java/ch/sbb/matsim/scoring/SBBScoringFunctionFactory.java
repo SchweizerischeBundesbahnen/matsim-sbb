@@ -20,9 +20,10 @@ import org.matsim.core.scoring.functions.ScoringParametersForPerson;
  */
 public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 
+    private final static Logger log = Logger.getLogger(SBBScoringFunctionFactory.class);
+
     private final ScoringParametersForPerson paramsForPerson;
     private final Scenario scenario;
-    private Logger log = Logger.getLogger(SBBScoringFunctionFactory.class);
 
     public SBBScoringFunctionFactory(Scenario scenario) {
         this.scenario = scenario;
