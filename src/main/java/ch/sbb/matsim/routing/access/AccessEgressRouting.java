@@ -101,14 +101,14 @@ public class AccessEgressRouting {
         // for completeness. Note that if we are walking to a parked car, this can be different from the car link id!! kai, dec'15
 
         // make simple assumption about distance and walking speed
-        double dist = CoordUtils.calcEuclideanDistance(fromCoord, toCoord);
+        //double dist = CoordUtils.calcEuclideanDistance(fromCoord, toCoord);
 
         // create an empty route, but with realistic travel time
         Route route = this.populationFactory.getRouteFactories().createRoute(Route.class, dpLinkId, arLinkId);
 
-        double beelineDistanceFactor = 1.3;
+        //double beelineDistanceFactor = 1.3;
 
-        double estimatedNetworkDistance = dist * beelineDistanceFactor;
+        double estimatedNetworkDistance = 0.0; //dist * beelineDistanceFactor;
 
         SimpleFeature zone = this.actLocator.getZone(fromCoord);
         int travTime = 0;
