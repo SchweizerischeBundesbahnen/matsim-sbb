@@ -31,6 +31,7 @@ public class AccessEgressRouting {
     private String stageActivityType;
     private String mode;
     private Network network;
+    private String attribute;
 
     public AccessEgressRouting(LocateAct locateAct, PopulationFactory populationFactory, String mode, Network network) {
         this.network = network;
@@ -38,6 +39,7 @@ public class AccessEgressRouting {
         this.populationFactory = populationFactory;
         this.mode = mode;
         this.stageActivityType = this.mode + " interaction";
+        this.attribute = "ACC" + mode.toUpperCase();
     }
 
     public double addAccess(Facility fromFacility, Link accessActLink, double now, List<PlanElement> result, Person person) {
@@ -113,7 +115,6 @@ public class AccessEgressRouting {
         SimpleFeature zone = this.actLocator.getZone(fromCoord);
         int travTime = 0;
 
-        String attribute = "ACC" + mode.toUpperCase();
 
         if (zone != null) {
             travTime = (int) zone.getAttribute(attribute);
