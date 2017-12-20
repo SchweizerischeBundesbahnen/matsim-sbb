@@ -1,7 +1,12 @@
 package ch.sbb.matsim.routing.network.AccessTime;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
+import ch.sbb.matsim.routing.network.SBBNetworkRoutingInclAccessEgressModule;
+import com.google.inject.Inject;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -14,20 +19,36 @@ import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup;
+import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.controler.Injector;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
+import org.matsim.core.router.RoutingModule;
+import org.matsim.core.router.TripRouter;
+import org.matsim.core.router.TripRouterModule;
+import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
+import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutilityFactory;
+import org.matsim.core.router.util.LeastCostPathCalculator;
+import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.scoring.ScoringFunction;
+import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.FacilitiesUtils;
+import org.matsim.facilities.Facility;
 import org.matsim.testcases.utils.EventsCollector;
 
-import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.AccessTimeConfigGroup;
+import ch.sbb.matsim.routing.access.AccessEgress;
+import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 
 public class TestFixture {
     private String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP";
@@ -41,8 +62,13 @@ public class TestFixture {
     PlanCalcScoreConfigGroup.ModeParams accessParams;
     PlanCalcScoreConfigGroup.ModeParams egressParams;
 
+    Activity home;
+    Activity work;
 
-    TestFixture(Coord start, Coord end, String mode, boolean withAccess, double constant) {
+    Person person;
+
+    TestFixture(Coord start, Coord end, String mode, boolean withAccess, double constant, String modesWithAccess) {
+
 
         Config config = ConfigUtils.createConfig(new AccessTimeConfigGroup());
         scenario = ScenarioUtils.createScenario(config);
@@ -84,16 +110,16 @@ public class TestFixture {
         PopulationFactory populationFactory = population.getFactory();
         Plan plan = populationFactory.createPlan();
 
-        Person person = populationFactory.createPerson(Id.createPersonId("1"));
+        person = populationFactory.createPerson(Id.createPersonId("1"));
 
-        Activity home = populationFactory.createActivityFromCoord("home", start);
+        home = populationFactory.createActivityFromCoord("home", start);
         home.setEndTime(6 * 60 * 60);
         plan.addActivity(home);
         Leg leg = populationFactory.createLeg(mode);
 
         plan.addLeg(leg);
 
-        Activity work = populationFactory.createActivityFromCoord("work", end);
+        work = populationFactory.createActivityFromCoord("work", end);
         work.setStartTime(6 * 60 * 60);
         work.setEndTime(8 * 60 * 60);
         plan.addActivity(work);
@@ -137,21 +163,46 @@ public class TestFixture {
 
         accessTimeConfigGroup.setShapefile(shapefile);
         accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
-        accessTimeConfigGroup.setModesWithAccessTime("car,bike");
+        accessTimeConfigGroup.setModesWithAccessTime(modesWithAccess);
 
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
         config.controler().setLastIteration(0);
         config.controler().setWriteEventsUntilIteration(1);
         config.controler().setWritePlansInterval(1);
         config.qsim().setEndTime(10 * 60 * 60);
+    }
 
+
+    public double scoreRoute(Coord from, Coord to, RoutingModule router) {
+        Controler _controler = new Controler(scenario);
+        AccessEgress ae = new AccessEgress(_controler, shapefile);
+        Facility fromFacility = FacilitiesUtils.createActivityFacilities().getFactory().createActivityFacility(Id.create("from", ActivityFacility.class), from);
+        Facility toFacility = FacilitiesUtils.createActivityFacilities().getFactory().createActivityFacility(Id.create("to", ActivityFacility.class), to);
+        double departureTime = 6 * 60 * 60;
+        List<? extends PlanElement> elements = router.calcRoute(fromFacility, toFacility, departureTime, person);
+        return getScoreOfRoute(elements);
+    }
+
+    private double getScoreOfRoute(List<? extends PlanElement> elements) {
+        SBBScoringFunctionFactory fact = new SBBScoringFunctionFactory(scenario);
+        ScoringFunction sf = fact.createNewScoringFunction(person);
+
+        for (PlanElement pe : elements) {
+            if (pe instanceof Leg) {
+                sf.handleLeg((Leg) pe);
+            } else if (pe instanceof Activity) {
+                sf.handleActivity((Activity) pe);
+            }
+
+        }
+
+        return sf.getScore();
 
     }
 
     public void run() {
         controler = new Controler(scenario);
-        new RunSBB().installAccessTime(controler);
-
+        new AccessEgress(controler, shapefile).installAccessTime();
 
         EventsCollector collector = new EventsCollector();
         controler.getEvents().addHandler(collector);
