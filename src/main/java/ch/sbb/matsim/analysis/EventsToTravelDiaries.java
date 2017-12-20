@@ -429,13 +429,13 @@ public class EventsToTravelDiaries implements
         String journeyTableName;
         String transferTableName;
         String tripTableName;
-        if (appendage.endsWith("_")) {
+        if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
             actTableName = appendage + "matsim_activities.txt";
             journeyTableName = appendage + "matsim_journeys.txt";
             transferTableName = appendage + "matsim_transfers.txt";
             tripTableName = appendage + "matsim_trips.txt";
         } else {
-            if (!appendage.startsWith("_"))
+            if (appendage.matches("[a-zA-Z0-9]*"))
                 appendage = "_" + appendage;
             actTableName = "matsim_activities" + appendage + ".txt";
             journeyTableName = "matsim_journeys" + appendage + ".txt";
