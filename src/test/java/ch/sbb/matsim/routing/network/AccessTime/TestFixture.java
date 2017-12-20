@@ -137,6 +137,7 @@ public class TestFixture {
 
         accessTimeConfigGroup.setShapefile(shapefile);
         accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
+        accessTimeConfigGroup.setModesWithAccessTime("car,bike");
 
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
         config.controler().setLastIteration(0);

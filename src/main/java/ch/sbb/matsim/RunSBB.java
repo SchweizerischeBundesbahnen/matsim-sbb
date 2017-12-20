@@ -5,9 +5,10 @@
 package ch.sbb.matsim;
 
 
+import java.util.Collection;
+
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
@@ -95,15 +96,24 @@ public class RunSBB {
 
             locateAct.fillCache(scenario.getPopulation());
 
+
             config.plansCalcRoute().setInsertingAccessEgressWalk(true);
+
             controler.addOverridingModule(new AbstractModule() {
                 @Override
                 public void install() {
-                    addRoutingModuleBinding(TransportMode.car).toProvider(new SBBNetworkRouter(TransportMode.car, locateAct));
-                    addRoutingModuleBinding(TransportMode.bike)
-                            .toProvider(new SBBBeelineTeleportationRouting(config.plansCalcRoute().getModeRoutingParams().get(TransportMode.bike), locateAct));
-                }
 
+                    Collection<String> mainModes = config.qsim().getMainModes();
+                    for (String mode : accessTimeConfigGroup.getModesWithAccessTime()) {
+                        if (mainModes.contains(mode)) {
+                            addRoutingModuleBinding(mode).toProvider(new SBBNetworkRouter(mode, locateAct));
+                        } else {
+
+                            addRoutingModuleBinding(mode)
+                                    .toProvider(new SBBBeelineTeleportationRouting(config.plansCalcRoute().getModeRoutingParams().get(mode), locateAct));
+                        }
+                    }
+                }
             });
         }
 

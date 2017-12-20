@@ -44,7 +44,7 @@ public class AccessTimeTest {
     }
 
 
-    private double getScoring(Boolean withAccessTime, double constant, double utilityOfTravaleling) {
+    private double getScoring(Boolean withAccessTime, double constant, double utilityOfTravaleling, double expected) {
         TestFixture fixture = new TestFixture(bern, stleo, "car", withAccessTime, constant);
 
         fixture.egressParams.setMarginalUtilityOfTraveling(utilityOfTravaleling);
@@ -53,7 +53,9 @@ public class AccessTimeTest {
 
 
         Person person = fixture.population.getPersons().get(Id.createPersonId("1"));
-        return person.getSelectedPlan().getScore();
+        Double score = person.getSelectedPlan().getScore();
+        Assert.assertEquals(expected, score, 0.001);
+        return score;
 
     }
 
@@ -61,27 +63,14 @@ public class AccessTimeTest {
     public final void testCarEgressNull() {
 
         ArrayList<Double> scores = new ArrayList<>();
-        Double score = 0.0;
 
-        score = getScoring(false, 0.0, -1.68);
-        Assert.assertEquals(-432.0, score, 0.001);
-        scores.add(score);
-
-        scores.add(getScoring(true, 0.0, -1.68));
-        scores.add(getScoring(true, -1.0, -1.68));
-        scores.add(getScoring(true, -10.0, -1.68));
-        scores.add(getScoring(true, -10.0, -30));
+        scores.add(getScoring(false, 0.0, -1.68, -432));
+        scores.add(getScoring(true, 0.0, -1.68, -432.009));
+        scores.add(getScoring(true, -1.0, -1.68, -433.009));
+        scores.add(getScoring(true, -10.0, -1.68, -442.009));
+        scores.add(getScoring(true, -10.0, -30,-874.1666 ));
 
         System.out.println(scores.toString());
-
-        ArrayList<Double> expectedScores = new ArrayList<>();
-        expectedScores.add(-432.0);
-        expectedScores.add(-432.009);
-        expectedScores.add(-433.009);
-        expectedScores.add(-442.009);
-        expectedScores.add(-442.016);
-
-
     }
 
 
