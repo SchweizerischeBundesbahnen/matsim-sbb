@@ -7,6 +7,7 @@ package ch.sbb.matsim;
 
 import java.util.Collection;
 
+import ch.sbb.matsim.routing.access.AccessEgress;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
@@ -71,52 +72,11 @@ public class RunSBB {
         });
 
 
-        new RunSBB().installAccessTime(controler);
+        new AccessEgress(controler).installAccessTime();
 
 
         controler.run();
         postProcessing.write();
     }
 
-    public RunSBB() {
-    }
-
-
-    public void installAccessTime(Controler controler) {
-
-        Scenario scenario = controler.getScenario();
-
-        Config config = scenario.getConfig();
-
-
-        AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
-        if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
-
-            LocateAct locateAct = new LocateAct(accessTimeConfigGroup.getShapefile(), "GMDNAME");
-
-            locateAct.fillCache(scenario.getPopulation());
-
-
-            config.plansCalcRoute().setInsertingAccessEgressWalk(true);
-
-            controler.addOverridingModule(new AbstractModule() {
-                @Override
-                public void install() {
-
-                    Collection<String> mainModes = config.qsim().getMainModes();
-                    for (String mode : accessTimeConfigGroup.getModesWithAccessTime()) {
-                        if (mainModes.contains(mode)) {
-                            addRoutingModuleBinding(mode).toProvider(new SBBNetworkRouter(mode, locateAct));
-                        } else {
-
-                            addRoutingModuleBinding(mode)
-                                    .toProvider(new SBBBeelineTeleportationRouting(config.plansCalcRoute().getModeRoutingParams().get(mode), locateAct));
-                        }
-                    }
-                }
-            });
-        }
-
-
-    }
 }
