@@ -6,6 +6,7 @@ package ch.sbb.matsim;
 
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import org.apache.log4j.Logger;
@@ -60,6 +61,7 @@ public class RunSBB {
                 addTravelDisutilityFactoryBinding("taxiSFF").to(carTravelDisutilityFactoryKey());
 
                 install(new SBBQSimModule());
+                install(new SwissRailRaptorModule());
             }
         });
 
