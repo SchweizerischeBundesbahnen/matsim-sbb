@@ -38,7 +38,7 @@ public class AccessEgressRouting {
         this.populationFactory = populationFactory;
         this.mode = mode;
         this.stageActivityType = this.mode + " interaction";
-        this.attribute = "ACC" + mode.toUpperCase();
+        this.attribute = "ACC" + mode.toUpperCase(); // ?
     }
 
     public double addAccess(Facility fromFacility, Link accessActLink, double now, List<PlanElement> result, Person person) {
@@ -86,6 +86,8 @@ public class AccessEgressRouting {
         }
 
         route.setTravelTime(travTime);
+
+        //
         route.setDistance(0);
         leg.setRoute(route);
         leg.setDepartureTime(depTime);

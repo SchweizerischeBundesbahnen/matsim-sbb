@@ -20,8 +20,8 @@ public class AccessTimeTest {
 
         fixture.egressParams.setMarginalUtilityOfTraveling(utilityOfTravaleling);
         fixture.accessParams.setMarginalUtilityOfTraveling(utilityOfTravaleling);
-        fixture.run();
 
+        fixture.run();
 
         Person person = fixture.population.getPersons().get(Id.createPersonId("1"));
         Double score = person.getSelectedPlan().getScore();
@@ -36,6 +36,7 @@ public class AccessTimeTest {
         ArrayList<Double> scores = new ArrayList<>();
 
         scores.add(assetScoring(false, 0.0, -1.68, -432));
+        scores.add(assetScoring(true, 0.0, 0.0, -432));
         scores.add(assetScoring(true, 0.0, -1.68, -432.009));
         scores.add(assetScoring(true, -1.0, -1.68, -433.009));
         scores.add(assetScoring(true, -10.0, -1.68, -442.009));

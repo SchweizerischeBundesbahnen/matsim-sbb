@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import ch.sbb.matsim.routing.SBBTransitRouterImplFactory;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingInclAccessEgressModule;
 import com.google.inject.Inject;
 import org.matsim.api.core.v01.Coord;
@@ -32,18 +33,27 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.Injector;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
+import org.matsim.core.router.DefaultRoutingModules;
 import org.matsim.core.router.RoutingModule;
+import org.matsim.core.router.TransitRouterWrapper;
 import org.matsim.core.router.TripRouter;
 import org.matsim.core.router.TripRouterModule;
 import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutilityFactory;
+import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
+import org.matsim.core.router.util.DijkstraFactory;
 import org.matsim.core.router.util.LeastCostPathCalculator;
+import org.matsim.core.router.util.LeastCostPathCalculatorFactory;
+import org.matsim.core.router.util.TravelDisutility;
+import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.FacilitiesUtils;
 import org.matsim.facilities.Facility;
+import org.matsim.pt.router.TransitRouterConfig;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.testcases.utils.EventsCollector;
 
 import ch.sbb.matsim.config.AccessTimeConfigGroup;
@@ -154,7 +164,7 @@ public class TestFixture {
         egressParams.setConstant(constant);
 
         StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
-        settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator_ReRoute.toString());
+        settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator.toString());
         settings.setWeight(1.0);
         scenario.getConfig().strategy().addStrategySettings(settings);
 
