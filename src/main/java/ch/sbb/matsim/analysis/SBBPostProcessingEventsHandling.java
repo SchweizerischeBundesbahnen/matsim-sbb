@@ -28,7 +28,6 @@ public class SBBPostProcessingEventsHandling implements BeforeMobsimListener, It
     private OutputDirectoryHierarchy controlerIO ;
     private final EventsManager eventsManager;
     private List<EventWriter> eventWriters = new LinkedList<>();
-    private int writeEventsInterval;
     private PostProcessingConfigGroup ppConfig;
 
     @Inject
@@ -36,18 +35,16 @@ public class SBBPostProcessingEventsHandling implements BeforeMobsimListener, It
             final EventsManager eventsManager,
             final Scenario scenario,
             final OutputDirectoryHierarchy controlerIO,
-            final ControlerConfigGroup config,
             final PostProcessingConfigGroup ppConfig) {
         this.eventsManager = eventsManager;
         this.scenario = scenario;
         this.controlerIO = controlerIO;
-        this.writeEventsInterval = config.getWriteEventsInterval();
         this.ppConfig = ppConfig;
     }
 
     @Override
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
-        if ((this.writeEventsInterval > 0) && (event.getIteration() % writeEventsInterval == 0)) {
+        if ((this.ppConfig.getWriteOutputsInterval() > 0) && (event.getIteration() % this.ppConfig.getWriteOutputsInterval() == 0)) {
             this.eventWriters = this.buildEventWriters(event);
 
             for (EventWriter eventWriter : this.eventWriters) {

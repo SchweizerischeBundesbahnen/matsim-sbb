@@ -19,10 +19,17 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private Boolean linkVolumes = false;
     private Boolean eventsPerPerson = false;
     private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
+    private int writeOutputsInterval = 10;
     private Boolean writePlansCSV = false;
     private Boolean visumNetFile = false;
     private String linkCountDataFile = null;
     private String stopCountDataFile = null;
+
+    @StringGetter("writeOutputsInterval")
+    public int getWriteOutputsInterval() { return this.writeOutputsInterval; }
+
+    @StringSetter("writeOutputsInterval")
+    public void setWriteOutputsInterval(final int writeOutputsInterval) { this.writeOutputsInterval = writeOutputsInterval; }
 
     @StringGetter("writePlansCSV")
     public Boolean getWritePlansCSV() {
