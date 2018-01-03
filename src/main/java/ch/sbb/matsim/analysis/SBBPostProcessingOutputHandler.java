@@ -28,6 +28,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     private OutputDirectoryHierarchy controlerIO ;
     private final EventsManager eventsManager;
     private List<EventWriter> eventWriters = new LinkedList<>();
+    private ControlerConfigGroup config;
     private PostProcessingConfigGroup ppConfig;
 
     @Inject
@@ -35,21 +36,31 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
             final EventsManager eventsManager,
             final Scenario scenario,
             final OutputDirectoryHierarchy controlerIO,
+            final ControlerConfigGroup config,
             final PostProcessingConfigGroup ppConfig) {
         this.eventsManager = eventsManager;
         this.scenario = scenario;
         this.controlerIO = controlerIO;
+        this.config = config;
         this.ppConfig = ppConfig;
     }
 
     @Override
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
         if ((this.ppConfig.getWriteOutputsInterval() > 0) && (event.getIteration() % this.ppConfig.getWriteOutputsInterval() == 0)) {
-            this.eventWriters = this.buildEventWriters(event);
+            this.eventWriters = this.buildEventWriters(this.controlerIO.getIterationFilename(event.getIteration(), ""));
+        }
 
-            for (EventWriter eventWriter : this.eventWriters) {
-                eventsManager.addHandler(eventWriter);
+        if (event.getIteration() == this.config.getLastIteration()) {
+            List<EventWriter> finalEventWriters = this.buildEventWriters(this.controlerIO.getOutputFilename(""));
+
+            for (EventWriter eventWriter : finalEventWriters) {
+                this.eventWriters.add(eventWriter);
             }
+        }
+
+        for (EventWriter eventWriter : this.eventWriters) {
+            eventsManager.addHandler(eventWriter);
         }
     }
 
@@ -73,36 +84,31 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         }
     }
 
-    private List<EventWriter> buildEventWriters(BeforeMobsimEvent event) {
+    private List<EventWriter> buildEventWriters(final String path) {
         List<EventWriter> eventWriters = new LinkedList<>();
 
         if (this.ppConfig.getPtVolumes()){
-            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(
-                    this.controlerIO.getIterationFilename(event.getIteration(),""));
+            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(path);
             eventWriters.add(ptVolumeWriter);
         }
 
         if (this.ppConfig.getTravelDiaries()){
-            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(
-                    this.scenario, this.controlerIO.getIterationFilename(event.getIteration(), ""));
+            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(this.scenario, path);
             eventWriters.add(diariesWriter);
         }
 
         if (this.ppConfig.getEventsPerPerson()){
-            EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(
-                    this.scenario, this.controlerIO.getIterationFilename(event.getIteration(), ""));
+            EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(this.scenario, path);
             eventWriters.add(eventsPerPersonWriter);
         }
 
         if (this.ppConfig.getLinkVolumes()) {
-            LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(
-                    this.scenario, this.controlerIO.getIterationFilename(event.getIteration(), ""));
+            LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(this.scenario, path);
             eventWriters.add(linkVolumeWriter);
         }
 
         if (this.ppConfig.getVisumNetFile()) {
-            NetworkToVisumNetFile networkToVisumNetFileWriter = new NetworkToVisumNetFile(
-                    this.scenario, this.controlerIO.getIterationFilename(event.getIteration(), ""), ppConfig);
+            NetworkToVisumNetFile networkToVisumNetFileWriter = new NetworkToVisumNetFile(this.scenario, path, ppConfig);
             eventWriters.add(networkToVisumNetFileWriter);
         }
 
