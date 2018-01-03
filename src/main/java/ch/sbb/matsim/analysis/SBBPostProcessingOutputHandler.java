@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class SBBPostProcessingEventsHandling implements BeforeMobsimListener, IterationEndsListener, ShutdownListener {
+public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, IterationEndsListener, ShutdownListener {
     private final Scenario scenario;
     private OutputDirectoryHierarchy controlerIO ;
     private final EventsManager eventsManager;
@@ -31,7 +31,7 @@ public class SBBPostProcessingEventsHandling implements BeforeMobsimListener, It
     private PostProcessingConfigGroup ppConfig;
 
     @Inject
-    public SBBPostProcessingEventsHandling(
+    public SBBPostProcessingOutputHandler(
             final EventsManager eventsManager,
             final Scenario scenario,
             final OutputDirectoryHierarchy controlerIO,

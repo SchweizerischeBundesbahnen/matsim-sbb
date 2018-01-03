@@ -5,7 +5,7 @@
 package ch.sbb.matsim;
 
 
-import ch.sbb.matsim.analysis.SBBPostProcessingEventsHandling;
+import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
@@ -17,7 +17,6 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
-import ch.sbb.matsim.analysis.SBBPostProcessing;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
 
@@ -49,7 +48,7 @@ public class RunSBB {
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
-                this.addControlerListenerBinding().to(SBBPostProcessingEventsHandling.class);
+                this.addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
             }
         });
 
