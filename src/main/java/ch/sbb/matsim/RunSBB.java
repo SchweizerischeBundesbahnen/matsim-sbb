@@ -6,6 +6,7 @@ package ch.sbb.matsim;
 
 
 import ch.sbb.matsim.analysis.SBBPostProcessingEventsHandling;
+import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import org.apache.log4j.Logger;
@@ -16,11 +17,9 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
-
 import ch.sbb.matsim.analysis.SBBPostProcessing;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
-import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 
 /**
  * @author denism
@@ -37,7 +36,8 @@ public class RunSBB {
 
         log.info(configFile);
 
-        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup());
+        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+                new SBBBehaviorGroupsConfigGroup());
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
