@@ -96,13 +96,15 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         }
 
         if (includeFinalOutputs) {
+            if (ppConfig.getWritePlansCSV()) {
+                PopulationToCSV populationWriter = new PopulationToCSV(scenario, filename);
+                eventWriters.add(populationWriter);
+            }
+
             if (ppConfig.getVisumNetFile()) {
                 NetworkToVisumNetFile networkToVisumNetFileWriter = new NetworkToVisumNetFile(scenario, filename, ppConfig);
                 eventWriters.add(networkToVisumNetFileWriter);
             }
-
-            PopulationToCSV populationWriter = new PopulationToCSV(scenario, filename);
-            eventWriters.add(populationWriter);
         }
 
         return eventWriters;

@@ -19,7 +19,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import java.util.List;
 
 public class RunSBBPostProcessing {
-    private final static Logger log = Logger.getLogger(SBBPostProcessing.class);
+    private final static Logger log = Logger.getLogger(RunSBBPostProcessing.class);
 
     public static void main(String[] args) {
         final String configFile = args[0];
