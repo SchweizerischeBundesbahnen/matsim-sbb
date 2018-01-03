@@ -83,8 +83,8 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
 
     @Override
     public void handleEvent(TransitDriverStartsEvent event) {
-        PTVehicle ptVehilce = new PTVehicle(event.getTransitLineId(), event.getTransitRouteId(), event.getDepartureId(), event.getVehicleId());
-        ptVehicles.put(event.getVehicleId(), ptVehilce);
+        PTVehicle ptVehicle = new PTVehicle(event.getTransitLineId(), event.getTransitRouteId(), event.getDepartureId(), event.getVehicleId());
+        ptVehicles.put(event.getVehicleId(), ptVehicle);
         ptAgents.add(event.getDriverId());
     }
 
