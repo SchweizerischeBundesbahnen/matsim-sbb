@@ -46,11 +46,11 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     @Override
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
         if ((this.ppConfig.getWriteOutputsInterval() > 0) && (event.getIteration() % this.ppConfig.getWriteOutputsInterval() == 0)) {
-            this.eventWriters = this.buildEventWriters(this.controlerIO.getIterationFilename(event.getIteration(), ""), false);
+            this.eventWriters = this.buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""), false);
         }
 
         if (event.getIteration() == this.config.getLastIteration()) {
-            List<EventWriter> finalEventWriters = this.buildEventWriters(this.controlerIO.getOutputFilename(""), true);
+            List<EventWriter> finalEventWriters = this.buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""), true);
 
             for (EventWriter eventWriter : finalEventWriters) {
                 this.eventWriters.add(eventWriter);
@@ -72,36 +72,36 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         this.eventWriters.clear();
     }
 
-    private List<EventWriter> buildEventWriters(final String filename, final boolean includeFinalOutputs) {
+    public static List<EventWriter> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final boolean includeFinalOutputs) {
         List<EventWriter> eventWriters = new LinkedList<>();
 
-        if (this.ppConfig.getPtVolumes()){
+        if (ppConfig.getPtVolumes()){
             PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(filename);
             eventWriters.add(ptVolumeWriter);
         }
 
-        if (this.ppConfig.getTravelDiaries()){
-            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(this.scenario, filename);
+        if (ppConfig.getTravelDiaries()){
+            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename);
             eventWriters.add(diariesWriter);
         }
 
-        if (this.ppConfig.getEventsPerPerson()){
-            EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(this.scenario, filename);
+        if (ppConfig.getEventsPerPerson()){
+            EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(scenario, filename);
             eventWriters.add(eventsPerPersonWriter);
         }
 
-        if (this.ppConfig.getLinkVolumes()) {
-            LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(this.scenario, filename);
+        if (ppConfig.getLinkVolumes()) {
+            LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(scenario, filename);
             eventWriters.add(linkVolumeWriter);
         }
 
         if (includeFinalOutputs) {
-            if (this.ppConfig.getVisumNetFile()) {
-                NetworkToVisumNetFile networkToVisumNetFileWriter = new NetworkToVisumNetFile(this.scenario, filename, ppConfig);
+            if (ppConfig.getVisumNetFile()) {
+                NetworkToVisumNetFile networkToVisumNetFileWriter = new NetworkToVisumNetFile(scenario, filename, ppConfig);
                 eventWriters.add(networkToVisumNetFileWriter);
             }
 
-            PopulationToCSV populationWriter = new PopulationToCSV(this.scenario, filename);
+            PopulationToCSV populationWriter = new PopulationToCSV(scenario, filename);
             eventWriters.add(populationWriter);
         }
 

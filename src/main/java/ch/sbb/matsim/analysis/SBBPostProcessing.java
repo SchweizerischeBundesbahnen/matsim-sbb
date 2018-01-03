@@ -127,21 +127,21 @@ public class SBBPostProcessing {
         Controler controler = new Controler(scenario);
         SBBPostProcessing postProcessing = new SBBPostProcessing(controler);
 
-        EventsManager events = new EventsManagerImpl();
+        EventsManager eventsManager = new EventsManagerImpl();
 
         if(postProcessing.ppConfig.getPtVolumes()){
-            events.addHandler(postProcessing.ptHandler);
+            eventsManager.addHandler(postProcessing.ptHandler);
         }
 
         if (postProcessing.ppConfig.getLinkVolumes()) {
-            events.addHandler(postProcessing.linkVolumeHandler);
+            eventsManager.addHandler(postProcessing.linkVolumeHandler);
         }
 
         if(postProcessing.ppConfig.getTravelDiaries()){
-            events.addHandler(postProcessing.diariesHandler);
+            eventsManager.addHandler(postProcessing.diariesHandler);
         }
 
-        new MatsimEventsReader(events).readFile(eventsFileName);
+        new MatsimEventsReader(eventsManager).readFile(eventsFileName);
 
         postProcessing.write();
     }
