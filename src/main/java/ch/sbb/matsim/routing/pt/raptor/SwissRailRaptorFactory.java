@@ -22,16 +22,16 @@ public class SwissRailRaptorFactory implements Provider<TransitRouter> {
     private final RaptorConfig raptorConfig;
 
     @Inject
-    public SwissRailRaptorFactory(final TransitSchedule schedule, final Config config, final RaptorConfig raptorConfig) {
+    public SwissRailRaptorFactory(final TransitSchedule schedule, final Config config) {
         this.schedule = schedule;
         this.config = config;
-        this.raptorConfig = raptorConfig;
+        this.raptorConfig = RaptorUtils.createRaptorConfig(config);
     }
 
     @Override
     public TransitRouter get() {
         SwissRailRaptorData data = getData();
-        return new SwissRailRaptor(data, this.raptorConfig);
+        return new SwissRailRaptor(data);
     }
 
     private SwissRailRaptorData getData() {
@@ -47,7 +47,7 @@ public class SwissRailRaptorFactory implements Provider<TransitRouter> {
             // prevent doing the work twice.
             return this.data;
         }
-        this.data = SwissRailRaptorData.create(this.schedule, this.config);
+        this.data = SwissRailRaptorData.create(this.schedule, this.raptorConfig);
         return this.data;
     }
 

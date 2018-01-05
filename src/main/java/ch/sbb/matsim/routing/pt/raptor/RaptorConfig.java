@@ -41,6 +41,13 @@ public class RaptorConfig {
 
     private double marginalUtilityOfTravelTimeEgressWalk_utl_s;
 
+    private double marginalUtilityOfTravelTimePt_utl_s;
+
+    private double marginalUtilityOfWaitingPt_utl_s;
+
+    private double minimalTransferTime = 60;
+
+    private double transferPenaltyCost = 0;
 
 
     public double getSearchRadius() {
@@ -97,5 +104,37 @@ public class RaptorConfig {
 
     public void setMarginalUtilityOfTravelTimeEgressWalk_utl_s(double marginalUtilityOfTravelTimeEgressWalk_utl_s) {
         this.marginalUtilityOfTravelTimeEgressWalk_utl_s = marginalUtilityOfTravelTimeEgressWalk_utl_s;
+    }
+
+    public double getMarginalUtilityOfTravelTimePt_utl_s() {
+        return this.marginalUtilityOfTravelTimePt_utl_s;
+    }
+
+    public void setMarginalUtilityOfTravelTimePt_utl_s(double marginalUtilityOfTravelTimePt_utl_s) {
+        this.marginalUtilityOfTravelTimePt_utl_s = marginalUtilityOfTravelTimePt_utl_s;
+    }
+
+    public double getMarginalUtilityOfWaitingPt_utl_s() {
+        return this.marginalUtilityOfWaitingPt_utl_s;
+    }
+
+    public void setMarginalUtilityOfWaitingPt_utl_s(double marginalUtilityOfWaitingPt_utl_s) {
+        this.marginalUtilityOfWaitingPt_utl_s = marginalUtilityOfWaitingPt_utl_s;
+    }
+
+    public double getMinimalTransferTime() {
+        return this.minimalTransferTime;
+    }
+
+    public void setMinimalTransferTime(double minimalTransferTime) {
+        this.minimalTransferTime = minimalTransferTime;
+    }
+
+    public double getTransferPenaltyCost() {
+        return this.transferPenaltyCost;
+    }
+
+    public void setTransferPenaltyCost(double transferPenaltyCost) {
+        this.transferPenaltyCost = transferPenaltyCost;
     }
 }

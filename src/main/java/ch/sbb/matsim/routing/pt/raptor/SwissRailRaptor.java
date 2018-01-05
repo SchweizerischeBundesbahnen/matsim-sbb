@@ -35,16 +35,16 @@ public class SwissRailRaptor implements TransitRouter {
     private final SwissRailRaptorCore raptor;
     private final RaptorConfig config;
 
-    public SwissRailRaptor(final SwissRailRaptorData data, RaptorConfig config) {
+    public SwissRailRaptor(final SwissRailRaptorData data) {
         this.data = data;
-        this.config = config;
-        this.raptor = new SwissRailRaptorCore(this.data);
+        this.config = data.config;
+        this.raptor = new SwissRailRaptorCore(data);
     }
 
     @Override
     public List<Leg> calcRoute(Facility<?> fromFacility, Facility<?> toFacility, double departureTime, Person person) {
-        List<InitialStop> accessStops = findAccessStops(fromFacility, departureTime, person);
-        List<InitialStop> egressStops = findEgressStops(fromFacility, departureTime, person);
+        List<InitialStop> accessStops = findAccessStops(fromFacility, person);
+        List<InitialStop> egressStops = findEgressStops(toFacility, person);
 
         RaptorRoute foundRoute = this.raptor.calcLeastCostRoute(departureTime, accessStops, egressStops);
         RaptorRoute directWalk = createDirectWalk(fromFacility, toFacility, departureTime, person);
@@ -56,7 +56,7 @@ public class SwissRailRaptor implements TransitRouter {
         return legs;
     }
 
-    private List<InitialStop> findAccessStops(Facility<?> facility, double departuretime, Person person) {
+    private List<InitialStop> findAccessStops(Facility<?> facility, Person person) {
         List<TransitStopFacility> stops = findNearbyStops(facility);
         List<InitialStop> initialStops = stops.stream().map(stop -> {
             double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
@@ -67,7 +67,7 @@ public class SwissRailRaptor implements TransitRouter {
         return initialStops;
     }
 
-    private List<InitialStop> findEgressStops(Facility<?> facility, double departuretime, Person person) {
+    private List<InitialStop> findEgressStops(Facility<?> facility, Person person) {
         List<TransitStopFacility> stops = findNearbyStops(facility);
         List<InitialStop> initialStops = stops.stream().map(stop -> {
             double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
@@ -96,7 +96,8 @@ public class SwissRailRaptor implements TransitRouter {
     private RaptorRoute createDirectWalk(Facility<?> fromFacility, Facility<?> toFacility, double departureTime, Person person) {
         double beelineDistance = CoordUtils.calcEuclideanDistance(fromFacility.getCoord(), toFacility.getCoord());
         double walkTime = beelineDistance / this.config.getBeelineWalkSpeed();
-        double walkCost = this.config.getMarginalUtilityOfTravelTimeWalk_utl_s();
+        double walkCost_per_s = -this.config.getMarginalUtilityOfTravelTimeWalk_utl_s();
+        double walkCost = walkTime * walkCost_per_s;
 
         RaptorRoute route = new RaptorRoute(fromFacility, toFacility, walkCost);
         route.addNonPt(null, null, departureTime, walkTime, TransportMode.transit_walk);
@@ -104,9 +105,9 @@ public class SwissRailRaptor implements TransitRouter {
     }
 
     private List<Leg> convertRouteToLegs(RaptorRoute route) {
-        List<Leg> legs = new ArrayList<>();
+        List<Leg> legs = new ArrayList<>(route.parts.size());
         for (RaptorRoute.RoutePart part : route.parts) {
-            if (part.line == null) {
+            if (part.line != null) {
                 // a pt leg
                 Leg ptLeg = PopulationUtils.createLeg(part.mode);
                 ptLeg.setDepartureTime(part.depTime);
@@ -120,8 +121,10 @@ public class SwissRailRaptor implements TransitRouter {
                 Leg walkLeg = PopulationUtils.createLeg(part.mode);
                 walkLeg.setDepartureTime(part.depTime);
                 walkLeg.setTravelTime(part.travelTime);
-                Id<Link> startLinkId = part.fromStop == null ? route.fromFacility.getLinkId() : part.fromStop.getLinkId();
-                Id<Link> endLinkId =  part.toStop == null ? route.toFacility.getLinkId() : part.toStop.getLinkId();
+                Id<Link> startLinkId = part.fromStop == null ? null : part.fromStop.getLinkId();
+                Id<Link> endLinkId =  part.toStop == null ? null : part.toStop.getLinkId();
+//                Id<Link> startLinkId = part.fromStop == null ? route.fromFacility.getLinkId() : part.fromStop.getLinkId();
+//                Id<Link> endLinkId =  part.toStop == null ? route.toFacility.getLinkId() : part.toStop.getLinkId();
                 Route walkRoute = new GenericRouteImpl(startLinkId, endLinkId);
                 walkRoute.setTravelTime(part.travelTime);
                 walkLeg.setRoute(walkRoute);
