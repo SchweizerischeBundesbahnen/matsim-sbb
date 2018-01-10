@@ -99,7 +99,9 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     }
 
     @StringGetter("linkCountDataFile")
-    public String getLinkCountDataFile() { return linkCountDataFile; }
+    public String getLinkCountDataFile() {
+        return linkCountDataFile;
+    }
 
     @StringSetter("linkCountDataFile")
     public void setLinkCountDataFile(String linkCountDataFile) {
@@ -108,7 +110,9 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
 
     @StringGetter("stopCountDataFile")
-    public String getStopCountDataFile() { return stopCountDataFile; }
+    public String getStopCountDataFile() {
+        return stopCountDataFile;
+    }
 
     @StringSetter("stopCountDataFile")
     public void setStopCountDataFile(String stopCountDataFile) {
