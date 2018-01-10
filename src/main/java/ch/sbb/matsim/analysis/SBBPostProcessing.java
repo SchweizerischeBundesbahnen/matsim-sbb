@@ -97,6 +97,15 @@ public class SBBPostProcessing {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            if (ppConfig.getWriteVisumPuTSurvey()) {
+                Double scaleFactor = 1.0/controler.getConfig().qsim().getFlowCapFactor();
+                VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(diariesHandler.getChains(), this.controler.getScenario().getTransitSchedule(), scaleFactor);
+                visumPuTSurvey.write(output);
+
+            }
+
+
         }
         if (ptHandler != null) {
             ptHandler.write(output);

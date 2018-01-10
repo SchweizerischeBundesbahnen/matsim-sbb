@@ -23,6 +23,17 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private Boolean visumNetFile = false;
     private String linkCountDataFile = null;
     private String stopCountDataFile = null;
+    private Boolean writeVisumPuTSurvey = false;
+
+    @StringGetter("writeVisumPuTSurvey")
+    public Boolean getWriteVisumPuTSurvey() {
+        return writeVisumPuTSurvey;
+    }
+
+    @StringSetter("writeVisumPuTSurvey")
+    public void setWriteVisumPuTSurvey(Boolean write) {
+        this.writeVisumPuTSurvey = write;
+    }
 
     @StringGetter("writePlansCSV")
     public Boolean getWritePlansCSV() {
