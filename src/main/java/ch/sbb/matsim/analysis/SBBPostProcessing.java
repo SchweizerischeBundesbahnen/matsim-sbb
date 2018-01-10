@@ -4,6 +4,8 @@
 
 package ch.sbb.matsim.analysis;
 
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -14,10 +16,10 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.events.EventsManagerImpl;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.scenario.ScenarioUtils;
+
+import ch.sbb.matsim.analysis.VisumPuTSurvey.VisumPuTSurvey;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
-
-import java.io.IOException;
 
 public class SBBPostProcessing {
 
@@ -31,13 +33,13 @@ public class SBBPostProcessing {
     Controler controler;
     PostProcessingConfigGroup ppConfig;
 
-    public SBBPostProcessing(Controler controler){
+    public SBBPostProcessing(Controler controler) {
 
         this.controler = controler;
         Scenario scenario = controler.getScenario();
         ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
 
-        if(ppConfig.getPtVolumes()){
+        if (ppConfig.getPtVolumes()) {
             ptHandler = new PtVolumeToCSV(scenario);
             controler.addOverridingModule(new AbstractModule() {
                 @Override
@@ -48,7 +50,7 @@ public class SBBPostProcessing {
         }
 
 
-        if(ppConfig.getTravelDiaries()){
+        if (ppConfig.getTravelDiaries()) {
             diariesHandler = new EventsToTravelDiaries(scenario);
             controler.addOverridingModule(new AbstractModule() {
                 @Override
@@ -56,9 +58,11 @@ public class SBBPostProcessing {
                     this.addEventHandlerBinding().toInstance(diariesHandler);
                 }
             });
+
+
         }
 
-        if(ppConfig.getEventsPerPerson()){
+        if (ppConfig.getEventsPerPerson()) {
             eventsPerPersonHandler = new EventsToEventsPerPersonTable(scenario);
             controler.addOverridingModule(new AbstractModule() {
                 @Override
@@ -68,7 +72,7 @@ public class SBBPostProcessing {
             });
         }
 
-        if(ppConfig.getLinkVolumes()) {
+        if (ppConfig.getLinkVolumes()) {
             linkVolumeHandler = new LinkVolumeToCSV(scenario);
             controler.addOverridingModule(new AbstractModule() {
                 @Override
@@ -80,35 +84,35 @@ public class SBBPostProcessing {
 
     }
 
-    public void write(){
+    public void write() {
 
         String output = controler.getConfig().controler().getOutputDirectory();
-        if(ppConfig.getWritePlansCSV()){
-            new PopulationToCSV(controler.getScenario()).write(output+"/agents.csv", output+"/plan_elements.csv");
+        if (ppConfig.getWritePlansCSV()) {
+            new PopulationToCSV(controler.getScenario()).write(output + "/agents.csv", output + "/plan_elements.csv");
         }
 
-        if(diariesHandler != null) {
+        if (diariesHandler != null) {
             try {
                 diariesHandler.writeSimulationResultsToTabSeparated(output, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        if(ptHandler != null) {
+        if (ptHandler != null) {
             ptHandler.write(output);
         }
-        if(eventsPerPersonHandler != null) {
+        if (eventsPerPersonHandler != null) {
             try {
                 eventsPerPersonHandler.writeSimulationResultsToTabSeparated(output, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        if (linkVolumeHandler != null)  {
+        if (linkVolumeHandler != null) {
             linkVolumeHandler.write(output);
         }
 
-        if(ppConfig.getVisumNetFile()) {
+        if (ppConfig.getVisumNetFile()) {
             networkToVisumNetFileHandler = new NetworkToVisumNetFile(controler, ppConfig);
             networkToVisumNetFileHandler.write(output);
         }
@@ -128,7 +132,7 @@ public class SBBPostProcessing {
 
         EventsManager events = new EventsManagerImpl();
 
-        if(postProcessing.ppConfig.getPtVolumes()){
+        if (postProcessing.ppConfig.getPtVolumes()) {
             events.addHandler(postProcessing.ptHandler);
         }
 
@@ -136,7 +140,7 @@ public class SBBPostProcessing {
             events.addHandler(postProcessing.linkVolumeHandler);
         }
 
-        if(postProcessing.ppConfig.getTravelDiaries()){
+        if (postProcessing.ppConfig.getTravelDiaries()) {
             events.addHandler(postProcessing.diariesHandler);
         }
 
