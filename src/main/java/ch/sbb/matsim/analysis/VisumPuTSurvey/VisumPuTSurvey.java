@@ -65,7 +65,7 @@ public class VisumPuTSurvey {
                 for (Departure dep : tR.getDepartures().values()) {
                     Id<org.matsim.vehicles.Vehicle> vehicleId = dep.getVehicleId();
                     if (ptVehicles.containsKey(vehicleId)) {
-                        log.error("vehicleId already in Map!");
+                        log.error("vehicleId already in Map: " + vehicleId);
                     } else {
                         this.ptVehicles.put(vehicleId, new PTVehicle(tL, tR));
                     }
