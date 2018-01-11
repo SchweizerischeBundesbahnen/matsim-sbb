@@ -1,19 +1,20 @@
 package ch.sbb.matsim.analysis.VisumPuTSurvey;
-import ch.sbb.matsim.analysis.EventsToTravelDiaries;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import ch.sbb.matsim.analysis.EventsToTravelDiaries;
 
 public class VisumPuTSurveyIntegrationTest {
 
     @Test
-    public void test() {
+    public void test() throws IOException {
 
         TestFixture fixture = new TestFixture();
         fixture.addSingleTransitDemand();
@@ -36,28 +37,17 @@ public class VisumPuTSurveyIntegrationTest {
 
 
         // Add Assert
-        try {
-            BufferedReader br = new BufferedReader(new FileReader("./matsim_put_survey.att"));
-            try {
-                StringBuilder sb = new StringBuilder();
-                String line = br.readLine();
+        BufferedReader br = new BufferedReader(new FileReader("./matsim_put_survey.att"));
+        StringBuilder sb = new StringBuilder();
+        String line = br.readLine();
 
-                while (line != null) {
-                    sb.append(line);
-                    sb.append("\n");
-                    line = br.readLine();
-                }
-                String everything = sb.toString();
-                System.out.println(everything);
-                Assert.assertEquals(expected, everything);
-            } finally {
-                br.close();
-            }
-        }catch (FileNotFoundException e){
-            Assert.assertTrue(false);
+        while (line != null) {
+            sb.append(line);
+            sb.append("\n");
+            line = br.readLine();
         }
-        catch (IOException e){
-            Assert.assertTrue(false);
-        }
+        String everything = sb.toString();
+        System.out.println(everything);
+        Assert.assertEquals(expected, everything);
     }
 }
