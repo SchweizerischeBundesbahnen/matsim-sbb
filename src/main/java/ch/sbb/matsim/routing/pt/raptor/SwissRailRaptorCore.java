@@ -9,6 +9,7 @@ import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RRouteStop;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RStop;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RTransfer;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
@@ -67,7 +68,7 @@ public class SwissRailRaptorCore {
             for (int routeStopIndex : routeStopIndices) {
                 this.improvedRouteStopIndices.set(routeStopIndex);
                 RRouteStop toRouteStop = this.data.routeStops[routeStopIndex];
-                this.arrivalPathPerRouteStop[routeStopIndex] = new PathElement(-1, null, toRouteStop, depTime + stop.accessTime, stop.accessCost, true);
+                this.arrivalPathPerRouteStop[routeStopIndex] = new PathElement(-1, null, toRouteStop, depTime + stop.accessTime, stop.accessCost, 0, true);
             }
         }
 
@@ -98,6 +99,7 @@ public class SwissRailRaptorCore {
                 double currentBoardingRouteStopAgentEnterTime = Time.UNDEFINED_TIME;
                 double currentBoardingRouteStopAgentWaitingTime = Time.UNDEFINED_TIME;
                 double currentBoardingRouteStopCost = Double.NaN;
+                int currentTransferCount = -1;
                 for (int routeStopIndex = route.indexFirstRouteStop; routeStopIndex < route.indexFirstRouteStop + route.countRouteStops; routeStopIndex++) {
                     RRouteStop routeStop = this.data.routeStops[routeStopIndex];
                     PathElement pe = this.arrivalPathPerRouteStop[routeStopIndex];
@@ -105,16 +107,32 @@ public class SwissRailRaptorCore {
                         // this means we reached this stop in an earlier round
                         double time = pe.arrivalTime;
                         int nextDepartureIndex = findNextDepartureIndex(route, routeStop, time);
-                        if (nextDepartureIndex >= 0 && (currentEarliestDepartureIndex < 0 || nextDepartureIndex < currentEarliestDepartureIndex)) {
-                            currentEarliestDepartureIndex = nextDepartureIndex;
-                            currentEarliestDeparture = this.data.departures[nextDepartureIndex];
-                            currentBoardingStopIndex = routeStopIndex;
-                            currentBoardingRouteStop = routeStop;
-                            currentBoardingRouteStopCost = pe.arrivalCost;
-                            double vehicleArrivalTime = currentEarliestDeparture.getDepartureTime() + currentBoardingRouteStop.arrivalOffset;
-                            currentBoardingRouteStopAgentEnterTime = (time < vehicleArrivalTime) ? vehicleArrivalTime : time;
-                            currentBoardingRouteStopAgentWaitingTime = currentBoardingRouteStopAgentEnterTime - time;
-                            this.reachedRouteStopIndices.set(routeStopIndex);
+                        if (nextDepartureIndex >= 0) {
+                            if (currentEarliestDepartureIndex < 0 || nextDepartureIndex < currentEarliestDepartureIndex) {
+                                // it's either the first time we can board, or we can board an earlier service
+                                currentEarliestDepartureIndex = nextDepartureIndex;
+                                currentEarliestDeparture = this.data.departures[nextDepartureIndex];
+                                currentBoardingStopIndex = routeStopIndex;
+                                currentBoardingRouteStop = routeStop;
+                                currentBoardingRouteStopCost = pe.arrivalCost;
+                                currentTransferCount = pe.transferCount;
+                                double vehicleArrivalTime = currentEarliestDeparture.getDepartureTime() + currentBoardingRouteStop.arrivalOffset;
+                                currentBoardingRouteStopAgentEnterTime = (time < vehicleArrivalTime) ? vehicleArrivalTime : time;
+                                currentBoardingRouteStopAgentWaitingTime = currentBoardingRouteStopAgentEnterTime - time;
+//                                this.reachedRouteStopIndices.set(routeStopIndex); we only board here, so we don't reach it.
+                            } else if (currentEarliestDepartureIndex < nextDepartureIndex) {
+                                // we can arrive here earlier by arriving with the current service
+                                double arrivalTime = currentEarliestDeparture.getDepartureTime() + routeStop.arrivalOffset;
+                                double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
+                                double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
+                                double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * currentBoardingRouteStopAgentWaitingTime;
+                                double arrivalCost = currentBoardingRouteStopCost + waitingCost + inVehicleCost;
+                                if (arrivalCost < pe.arrivalCost) {
+                                    // we can actually improve the arrival by cost
+                                    this.arrivalPathPerRouteStop[routeStopIndex] = new PathElement(currentBoardingStopIndex, currentBoardingRouteStop, routeStop, arrivalTime, arrivalCost, currentTransferCount, false);
+                                    this.reachedRouteStopIndices.set(routeStopIndex);
+                                }
+                            }
                         }
                     } else if (currentBoardingStopIndex >= 0) {
                         double arrivalTime = currentEarliestDeparture.getDepartureTime() + routeStop.arrivalOffset;
@@ -122,7 +140,7 @@ public class SwissRailRaptorCore {
                         double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
                         double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * currentBoardingRouteStopAgentWaitingTime;
                         double arrivalCost = currentBoardingRouteStopCost + waitingCost + inVehicleCost;
-                        this.arrivalPathPerRouteStop[routeStopIndex] = new PathElement(currentBoardingStopIndex, currentBoardingRouteStop, routeStop, arrivalTime, arrivalCost, false);
+                        this.arrivalPathPerRouteStop[routeStopIndex] = new PathElement(currentBoardingStopIndex, currentBoardingRouteStop, routeStop, arrivalTime, arrivalCost, currentTransferCount, false);
                         this.reachedRouteStopIndices.set(routeStopIndex);
                     }
                 }
@@ -149,10 +167,10 @@ public class SwissRailRaptorCore {
                        if (pe == null) {
                            // it's the first time we arrive at this stop
                            this.improvedRouteStopIndices.set(toRouteStopIndex);
-                           this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromRouteStopIndex, fromRouteStop, toRouteStop, newArrivalTime, newArrivalCost, true);
-                       } else if (newArrivalTime < pe.arrivalTime) {
+                           this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromRouteStopIndex, fromRouteStop, toRouteStop, newArrivalTime, newArrivalCost, fromPE.transferCount + 1, true);
+                       } else if (newArrivalCost < pe.arrivalCost) {
                            this.improvedRouteStopIndices.set(toRouteStopIndex);
-                           this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromRouteStopIndex, fromRouteStop, toRouteStop, newArrivalTime, newArrivalCost, true);
+                           this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromRouteStopIndex, fromRouteStop, toRouteStop, newArrivalTime, newArrivalCost, fromPE.transferCount + 1, true);
                        }
                    }
                }
@@ -177,9 +195,9 @@ public class SwissRailRaptorCore {
                 if (egressStop != null) {
                     double arrivalTime = pe.arrivalTime + egressStop.accessTime;
                     double totalCost = pe.arrivalCost + egressStop.accessCost;
-                    if (totalCost < leastCost) {
+                    if ((totalCost < leastCost) || (totalCost == leastCost && pe.transferCount < leastCostPath.transferCount)) {
                         leastCost = totalCost;
-                        leastCostPath = new PathElement(routeStopIndex, routeStop, null, arrivalTime, totalCost, true); // this is the egress leg
+                        leastCostPath = new PathElement(routeStopIndex, routeStop, null, arrivalTime, totalCost, pe.transferCount, true); // this is the egress leg
                     }
                 }
             }
@@ -202,14 +220,18 @@ public class SwissRailRaptorCore {
             TransitStopFacility toStop = pe.toRouteStop == null ? null : pe.toRouteStop.routeStop.getStopFacility();
             double travelTime = pe.arrivalTime - time;
             if (pe.isTransfer) {
-                String mode = TransportMode.transit_walk;
-                if (fromStop == null && toStop != null) {
-                    mode = TransportMode.access_walk;
+                boolean differentFromTo = (fromStop == null || toStop == null) || (fromStop != toStop);
+                if (differentFromTo) {
+                    // do not create a transfer-leg if we stay at the same stop facility
+                    String mode = TransportMode.transit_walk;
+                    if (fromStop == null && toStop != null) {
+                        mode = TransportMode.access_walk;
+                    }
+                    if (fromStop != null && toStop == null) {
+                        mode = TransportMode.egress_walk;
+                    }
+                    raptorRoute.addNonPt(fromStop, toStop, time, travelTime, mode);
                 }
-                if (fromStop != null && toStop == null) {
-                    mode = TransportMode.egress_walk;
-                }
-                raptorRoute.addNonPt(fromStop, toStop, time, travelTime, mode);
             } else {
                 TransitLine line = pe.fromRouteStop.line;
                 TransitRoute route = pe.fromRouteStop.route;
@@ -252,7 +274,10 @@ public class SwissRailRaptorCore {
     }
 
     private double getTransferTime(RRouteStop fromRouteStop, RRouteStop toRouteStop, double timeOfDay) {
-        return this.config.getMinimalTransferTime(); // TODO make it dependent on stops
+        double beelineDistance = CoordUtils.calcEuclideanDistance(fromRouteStop.routeStop.getStopFacility().getCoord(), toRouteStop.routeStop.getStopFacility().getCoord());
+        double transferTime = beelineDistance / this.config.getBeelineWalkSpeed();
+        double minimalTime = this.config.getMinimalTransferTime();  // TODO make it dependent on stops
+        return transferTime < minimalTime ? minimalTime : transferTime;
     }
 
     private double getTransferCost(RRouteStop fromRouteStop, RRouteStop toRouteStop, double timeOfDay, double transferTime) {
@@ -280,14 +305,16 @@ public class SwissRailRaptorCore {
         RRouteStop toRouteStop;
         double arrivalTime;
         double arrivalCost;
+        int transferCount;
         boolean isTransfer;
 
-        public PathElement(int comingFrom, RRouteStop fromRouteStop, RRouteStop toRouteStop, double arrivalTime, double arrivalCost, boolean isTransfer) {
+        public PathElement(int comingFrom, RRouteStop fromRouteStop, RRouteStop toRouteStop, double arrivalTime, double arrivalCost, int transferCount, boolean isTransfer) {
             this.comingFrom = comingFrom;
             this.fromRouteStop = fromRouteStop;
             this.toRouteStop = toRouteStop;
             this.arrivalTime = arrivalTime;
             this.arrivalCost = arrivalCost;
+            this.transferCount = transferCount;
             this.isTransfer = isTransfer;
         }
     }

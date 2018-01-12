@@ -197,7 +197,8 @@ class SwissRailRaptorData {
         return data;
     }
 
-    // a very basic implementation for transfers, just connecting every transit stop facility with any other nearby.
+    // a very basic implementation for transfers, just connecting every transit stop facility with any other nearby,
+    // including itself, as there could be other lines/routes departing at the same stop facility.
     private static Map<TransitStopFacility, RTransfer[]> calculateTransfers(QuadTree<TransitStopFacility> stopsQT, Map<TransitStopFacility, Integer> stopIndices, RaptorConfig config) {
         Map<TransitStopFacility, RTransfer[]> transfers = new HashMap<>((int) (stopsQT.size() * 1.5));
         double maxBeelineWalkConnectionDistance = config.getBeelineWalkConnectionDistance();
@@ -212,17 +213,15 @@ class SwissRailRaptorData {
             Coord stopCoord = stopFacility.getCoord();
             Collection<TransitStopFacility> nearbyStops = stopsQT.getDisk(stopCoord.getX(), stopCoord.getY(), maxBeelineWalkConnectionDistance);
             for (TransitStopFacility nearbyStop : nearbyStops) {
-                if (stopFacility != nearbyStop) {
-                    int toStop = stopIndices.get(nearbyStop);
-                    double distance = CoordUtils.calcEuclideanDistance(stopCoord, nearbyStop.getCoord());
-                    double transferTime = distance / beelineWalkSpeed;
-                    if (transferTime < minimalTransferTime) {
-                        transferTime = minimalTransferTime;
-                    }
-                    double transferUtil = transferTime * transferUtilPerS;
-                    double transferCost = -transferUtil;
-                    stopTransfers.add(new RTransfer(fromStop, toStop, transferTime, transferCost));
+                int toStop = stopIndices.get(nearbyStop);
+                double distance = CoordUtils.calcEuclideanDistance(stopCoord, nearbyStop.getCoord());
+                double transferTime = distance / beelineWalkSpeed;
+                if (transferTime < minimalTransferTime) {
+                    transferTime = minimalTransferTime;
                 }
+                double transferUtil = transferTime * transferUtilPerS;
+                double transferCost = -transferUtil;
+                stopTransfers.add(new RTransfer(fromStop, toStop, transferTime, transferCost));
             }
             transfers.put(stopFacility, stopTransfers.toArray(new RTransfer[stopTransfers.size()]));
         }
