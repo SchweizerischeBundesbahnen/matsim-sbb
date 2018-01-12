@@ -19,6 +19,8 @@ public class CSVWriter {
     private final String[] columns;
     private List<HashMap<String, String>> data = new ArrayList<>();
 
+    private String header = "";
+
     public CSVWriter(final String[] columns) {
         this.columns = columns;
     }
@@ -36,6 +38,10 @@ public class CSVWriter {
         return this.data;
     }
 
+    public void setHeader(String header){
+        this.header = header;
+    }
+
     public void clear(){
         data.clear();
     }
@@ -44,7 +50,7 @@ public class CSVWriter {
         try {
             BufferedWriter Writer = IOUtils.getBufferedWriter(filename);
 
-            String s = "";
+            String s = header;
             for (String c : columns) {
                 s += c + ";";
             }
