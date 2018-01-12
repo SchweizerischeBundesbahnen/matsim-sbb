@@ -4,7 +4,6 @@
 
 package playgrounds.mrieser.pt.routers.perftest;
 
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
@@ -30,10 +29,8 @@ import org.matsim.pt.router.TransitRouterImpl;
 import org.matsim.pt.routes.ExperimentalTransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.pt.utils.TransitScheduleValidator;
 
 import java.io.BufferedWriter;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -42,10 +39,14 @@ import java.util.List;
 public class PerformanceTest {
 
     public static void main(String[] args) throws IOException {
-        String testPopulation = "\\\\v00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\04_TestSzenario\\02_simulation\\output\\TestSample.output_plans.xml.gz";
-        String testSchedule = "\\\\v00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\04_TestSzenario\\02_simulation\\output\\TestSample.output_transitSchedule.xml.gz";
+//        String testPopulation = "\\\\v00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\04_TestSzenario\\02_simulation\\output\\TestSample.output_plans.xml.gz";
+//        String testSchedule = "\\\\v00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\04_TestSzenario\\02_simulation\\output\\TestSample.output_transitSchedule.xml.gz";
 //        String testNetwork = "\\\\v00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\04_TestSzenario\\02_simulation\\output\\TestSample.output_network.xml.gz";
-        int maxPlans = 100;
+
+        String testPopulation = "D:\\devsbb\\mrieser\\data\\runs\\matsim-runs\\prepared\\attributeMerged\\population.xml.gz";
+        String testSchedule = "D:\\devsbb\\mrieser\\data\\runs\\matsim-runs\\prepared\\cut\\transitSchedule.xml.gz";
+
+        int maxPlans = 1000;
 
         System.setProperty("matsim.preferLocalDtds", "true");
 
