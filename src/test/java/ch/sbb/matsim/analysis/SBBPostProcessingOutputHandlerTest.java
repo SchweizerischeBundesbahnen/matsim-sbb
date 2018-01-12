@@ -3,6 +3,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.Event;
@@ -18,12 +19,15 @@ import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.mobsim.framework.Steppable;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.testcases.MatsimTestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SBBPostProcessingOutputHandlerTest {
 
+    @Rule
+    public MatsimTestUtils utils = new MatsimTestUtils();
     /*
     * all CSV writers are set to false, so we expect no eventHendlers to be configured
     * */
@@ -203,7 +207,8 @@ public class SBBPostProcessingOutputHandlerTest {
     }
 
     private OutputDirectoryHierarchy getOutputDirectoryHierarchy() {
-        OutputDirectoryHierarchy outputDirectoryHierarchy = new OutputDirectoryHierarchy("/dev/null/", OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
+        String outputPath = this.utils.getOutputDirectory();
+        OutputDirectoryHierarchy outputDirectoryHierarchy = new OutputDirectoryHierarchy(outputPath, OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 
         return outputDirectoryHierarchy;
     }
