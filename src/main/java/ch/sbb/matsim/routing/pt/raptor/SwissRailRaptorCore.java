@@ -203,7 +203,7 @@ public class SwissRailRaptorCore {
             }
         }
         LinkedList<PathElement> pes = new LinkedList<>();
-        {
+        if (leastCostPath != null) {
             PathElement pe = leastCostPath;
             while (pe.comingFrom >= 0) {
                 pes.addFirst(pe);

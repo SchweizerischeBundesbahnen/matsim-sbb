@@ -168,7 +168,6 @@ class SwissRailRaptorData {
             stopFacilities[stopIndex] = stopFacility;
         }
 
-        indexRouteStops = 0;
         RStop[] stops = new RStop[countStopFacilities];
         RTransfer[] transfers = new RTransfer[(int) countTransfers];
         int indexTransfer = 0;
