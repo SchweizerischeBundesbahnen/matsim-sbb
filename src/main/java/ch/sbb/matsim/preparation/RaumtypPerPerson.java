@@ -61,7 +61,7 @@ public class RaumtypPerPerson {
         new PopulationReader(scenario).readFile(planFile);
         new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(attributeFile);
 
-        LocateAct locAct = new LocateAct(shapeFile, "GT9");
+        LocateAct locAct = new LocateAct(shapeFile, "SL3");
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
             Plan firstPlan = person.getPlans().get(0);

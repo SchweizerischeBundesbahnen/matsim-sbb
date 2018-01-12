@@ -24,6 +24,17 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private Boolean visumNetFile = false;
     private String linkCountDataFile = null;
     private String stopCountDataFile = null;
+    private Boolean writeVisumPuTSurvey = false;
+
+    @StringGetter("writeVisumPuTSurvey")
+    public Boolean getWriteVisumPuTSurvey() {
+        return writeVisumPuTSurvey;
+    }
+
+    @StringSetter("writeVisumPuTSurvey")
+    public void setWriteVisumPuTSurvey(Boolean write) {
+        this.writeVisumPuTSurvey = write;
+    }
 
     @StringGetter("writeOutputsInterval")
     public int getWriteOutputsInterval() { return this.writeOutputsInterval; }
@@ -106,7 +117,9 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     }
 
     @StringGetter("linkCountDataFile")
-    public String getLinkCountDataFile() { return linkCountDataFile; }
+    public String getLinkCountDataFile() {
+        return linkCountDataFile;
+    }
 
     @StringSetter("linkCountDataFile")
     public void setLinkCountDataFile(String linkCountDataFile) {
@@ -115,7 +128,9 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
 
     @StringGetter("stopCountDataFile")
-    public String getStopCountDataFile() { return stopCountDataFile; }
+    public String getStopCountDataFile() {
+        return stopCountDataFile;
+    }
 
     @StringSetter("stopCountDataFile")
     public void setStopCountDataFile(String stopCountDataFile) {

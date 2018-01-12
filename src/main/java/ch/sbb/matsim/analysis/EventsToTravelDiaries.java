@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.analysis.VisumPuTSurvey.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.Activity;
 import ch.sbb.matsim.analysis.travelcomponents.Journey;
 import ch.sbb.matsim.analysis.travelcomponents.Transfer;
@@ -99,6 +100,7 @@ public class EventsToTravelDiaries implements
     private TransitSchedule transitSchedule;
     private Vehicles transitVehicles;
     private boolean isTransitScenario = false;
+    private boolean writeVisumPuTSurvey = false;
     private LocateAct locateAct = null;
     private Config config = null;
 
@@ -108,6 +110,7 @@ public class EventsToTravelDiaries implements
 
         this.network = scenario.getNetwork();
         isTransitScenario = scenario.getConfig().transit().isUseTransit();
+
         if (isTransitScenario) {
             this.transitSchedule = scenario.getTransitSchedule();
             this.transitVehicles = scenario.getTransitVehicles();
@@ -115,8 +118,13 @@ public class EventsToTravelDiaries implements
         }
         this.config = scenario.getConfig();
         PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
+
         if (ppConfig.getMapActivitiesToZone()) {
             this.setMapActToZone(ppConfig.getShapeFile(), ppConfig.getZoneAttribute());
+        }
+
+        if (ppConfig.getWriteVisumPuTSurvey()) {
+            this.writeVisumPuTSurvey = true;
         }
     }
 
@@ -276,6 +284,7 @@ public class EventsToTravelDiaries implements
                 vehicle.addPassenger(event.getPersonId());
                 Trip trip = journey.getTrips().getLast();
                 trip.setLine(vehicle.transitLineId);
+                trip.setVehicleId(event.getVehicleId());
                 trip.setMode(transitSchedule.getTransitLines()
                         .get(vehicle.transitLineId).getRoutes()
                         .get(vehicle.transitRouteId).getTransportMode());
@@ -601,6 +610,12 @@ public class EventsToTravelDiaries implements
                 }
             }
 
+        }
+
+        if (this.writeVisumPuTSurvey) {
+            Double scaleFactor = 1.0 / this.config.qsim().getFlowCapFactor();
+            VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(this.getChains(), this.transitSchedule, scaleFactor);
+            VisumPuTSurvey.write(this.filename);
         }
 
         activityWriter.close();
