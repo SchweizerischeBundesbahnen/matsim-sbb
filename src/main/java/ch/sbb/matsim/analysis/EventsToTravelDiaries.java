@@ -265,6 +265,7 @@ public class EventsToTravelDiaries implements
                 vehicle.addPassenger(event.getPersonId());
                 Trip trip = journey.getTrips().getLast();
                 trip.setLine(vehicle.transitLineId);
+                trip.setVehicleId(event.getVehicleId());
                 trip.setMode(transitSchedule.getTransitLines()
                         .get(vehicle.transitLineId).getRoutes()
                         .get(vehicle.transitRouteId).getTransportMode());
