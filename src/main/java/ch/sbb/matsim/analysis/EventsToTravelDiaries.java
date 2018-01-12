@@ -615,7 +615,7 @@ public class EventsToTravelDiaries implements
         if (this.writeVisumPuTSurvey) {
             Double scaleFactor = 1.0 / this.config.qsim().getFlowCapFactor();
             VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(this.getChains(), this.transitSchedule, scaleFactor);
-            VisumPuTSurvey.write(this.filename);
+            visumPuTSurvey.write(this.filename);
         }
 
         activityWriter.close();
