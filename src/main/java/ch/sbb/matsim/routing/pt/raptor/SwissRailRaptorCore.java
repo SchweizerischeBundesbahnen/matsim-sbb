@@ -159,8 +159,22 @@ public class SwissRailRaptorCore {
                                     checkForBestArrival(routeStopIndex, arrivalCost);
                                 }
                             }
+                        } else if (currentEarliestDepartureIndex >= 0) {
+                            // we arrived here earlier, but obviously too late for any service, but now we arrive here with a service!
+                            double arrivalTime = currentEarliestDeparture.getDepartureTime() + routeStop.arrivalOffset;
+                            double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
+                            double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
+                            double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * currentBoardingRouteStopAgentWaitingTime;
+                            double arrivalCost = currentBoardingRouteStopCost + waitingCost + inVehicleCost;
+                            if (arrivalCost < pe.arrivalCost && arrivalCost <= this.bestArrivalCost) {
+                                // we can actually improve the arrival by cost
+                                this.arrivalPathPerRouteStop[routeStopIndex] = new PathElement(currentBoardingStopIndex, currentBoardingRouteStop, routeStop, arrivalTime, arrivalCost, currentTransferCount, false);
+                                this.reachedRouteStopIndices.set(routeStopIndex);
+
+                                checkForBestArrival(routeStopIndex, arrivalCost);
+                            }
                         }
-                    } else if (currentBoardingStopIndex >= 0) {
+                    } else if (currentBoardingStopIndex >= 0) { // it's the first time we reach this route stop
                         double arrivalTime = currentEarliestDeparture.getDepartureTime() + routeStop.arrivalOffset;
                         double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
                         double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();

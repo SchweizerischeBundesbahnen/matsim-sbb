@@ -500,6 +500,39 @@ public class SwissRailRaptorTest {
         return duration;
     }
 
+    @Test
+    public void testNightBus() {
+        // test a special case where a direct connection only runs at a late time, when typically
+        // no other services run anymore.
+        NightBusFixture f = new NightBusFixture();
+
+        TransitRouter router = createTransitRouter(f.schedule, f.routerConfig);
+        Coord fromCoord = new Coord(5010, 1010);
+        Coord toCoord = new Coord(5010, 5010);
+        List<Leg> legs = router.calcRoute(new FakeFacility(fromCoord), new FakeFacility(toCoord), 8.0*3600-2*60, null);
+        assertEquals(5, legs.size());
+        assertEquals(TransportMode.access_walk, legs.get(0).getMode());
+        assertEquals(TransportMode.pt, legs.get(1).getMode());
+        assertEquals(TransportMode.pt, legs.get(2).getMode());
+        assertEquals(TransportMode.pt, legs.get(3).getMode());
+        assertEquals(TransportMode.egress_walk, legs.get(4).getMode());
+        assertTrue("expected TransitRoute in leg.", legs.get(1).getRoute() instanceof ExperimentalTransitRoute);
+        ExperimentalTransitRoute ptRoute = (ExperimentalTransitRoute) legs.get(1).getRoute();
+        assertEquals(f.stop0.getId(), ptRoute.getAccessStopId());
+        assertEquals(f.stop1.getId(), ptRoute.getEgressStopId());
+        assertEquals(f.lineId0, ptRoute.getLineId());
+        assertTrue("expected TransitRoute in leg.", legs.get(2).getRoute() instanceof ExperimentalTransitRoute);
+        ptRoute = (ExperimentalTransitRoute) legs.get(2).getRoute();
+        assertEquals(f.stop1.getId(), ptRoute.getAccessStopId());
+        assertEquals(f.stop2.getId(), ptRoute.getEgressStopId());
+        assertEquals(f.lineId1, ptRoute.getLineId());
+        assertTrue("expected TransitRoute in leg.", legs.get(3).getRoute() instanceof ExperimentalTransitRoute);
+        ptRoute = (ExperimentalTransitRoute) legs.get(3).getRoute();
+        assertEquals(f.stop2.getId(), ptRoute.getAccessStopId());
+        assertEquals(f.stop3.getId(), ptRoute.getEgressStopId());
+        assertEquals(f.lineId3, ptRoute.getLineId());
+    }
+
     /**
      * Generates the following network for testing:
      * <pre>
@@ -782,6 +815,137 @@ public class SwissRailRaptorTest {
                 route.addDeparture(sb.createDeparture(Id.create("l2to3 d2", Departure.class), 10.0*3600 + 15 * 60));
                 route.addDeparture(sb.createDeparture(Id.create("l2to3 d3", Departure.class), 11.0*3600 + 15 * 60));
                 route.addDeparture(sb.createDeparture(Id.create("l2to3 d4", Departure.class), 12.0*3600 + 15 * 60));
+            }
+        }
+    }
+
+
+    /**
+     * Generates the following network for testing:
+     * <pre>
+     *  [s] stop facilities
+     *   l  lines
+     *
+     *  [2]---3---[3]---3---[4]
+     *   |         |
+     *   1         2
+     *   |         |
+     *  [1]---0---[0]
+     *
+     * </pre>
+     *
+     * 5 stop facilities and 4 lines:
+     * - line 0 from Stop 0 to Stop 1
+     * - line 1 from Stop 1 to Stop 2
+     * - line 2 from Stop 0 to Stop 3
+     * - line 3 from Stop 2 via Stop 3 to Stop 4
+     *
+     * travel times between stops are always 5 minutes.
+     *
+     * Lines 0, 1, 3 depart regularly during the day. Line 2 runs only in the night, when
+     * the others don't run anymore.
+     *
+     * When searching a route from [0] to [4], stop [3] is reached with fewer transfers but later.
+     * Raptor might have a special case when stop [3] is reached the first time after any departure at this stop,
+     * so let's test it that it's handled correctly.
+     */
+    private static class NightBusFixture {
+
+        /*package*/ final Config config;
+        /*package*/ final Scenario scenario;
+        /*package*/ final TransitSchedule schedule;
+        /*package*/ final RaptorConfig routerConfig;
+
+        final TransitStopFacility stop0;
+        final TransitStopFacility stop1;
+        final TransitStopFacility stop2;
+        final TransitStopFacility stop3;
+        final TransitStopFacility stop4;
+
+        Id<TransitLine> lineId0 = Id.create(0, TransitLine.class);
+        Id<TransitLine> lineId1 = Id.create(1, TransitLine.class);
+        Id<TransitLine> lineId2 = Id.create(2, TransitLine.class);
+        Id<TransitLine> lineId3 = Id.create(3, TransitLine.class);
+
+        private NightBusFixture() {
+            this.config = ConfigUtils.createConfig();
+            this.scenario = ScenarioUtils.createScenario(this.config);
+            this.routerConfig = RaptorUtils.createRaptorConfig(this.scenario.getConfig());
+
+            // schedule
+            this.schedule = this.scenario.getTransitSchedule();
+            TransitScheduleFactory sb = this.schedule.getFactory();
+
+            Id<Link> linkId0 = Id.create(0, Link.class);
+            Id<Link> linkId10 = Id.create(10, Link.class);
+            Id<Link> linkId20 = Id.create(20, Link.class);
+            Id<Link> linkId30 = Id.create(30, Link.class);
+            Id<Link> linkId40 = Id.create(40, Link.class);
+
+            this.stop0 = sb.createTransitStopFacility(Id.create("0", TransitStopFacility.class), new Coord(5000, 1000), false);
+            this.stop1 = sb.createTransitStopFacility(Id.create("1", TransitStopFacility.class), new Coord(1000, 1000), false);
+            this.stop2 = sb.createTransitStopFacility(Id.create("2", TransitStopFacility.class), new Coord(1000, 5000), false);
+            this.stop3 = sb.createTransitStopFacility(Id.create("3", TransitStopFacility.class), new Coord(5000, 5000), false);
+            this.stop4 = sb.createTransitStopFacility(Id.create("4", TransitStopFacility.class), new Coord(9000, 5000), false);
+            this.schedule.addStopFacility(this.stop0);
+            this.schedule.addStopFacility(this.stop1);
+            this.schedule.addStopFacility(this.stop2);
+            this.schedule.addStopFacility(this.stop3);
+            this.schedule.addStopFacility(this.stop4);
+            this.stop0.setLinkId(linkId0);
+            this.stop1.setLinkId(linkId10);
+            this.stop2.setLinkId(linkId20);
+            this.stop3.setLinkId(linkId30);
+            this.stop4.setLinkId(linkId40);
+
+            { // line 0
+                TransitLine line0 = sb.createTransitLine(this.lineId0);
+                this.schedule.addTransitLine(line0);
+                NetworkRoute netRoute = new LinkNetworkRouteImpl(linkId0, linkId10);
+                List<TransitRouteStop> stops = new ArrayList<>();
+                stops.add(sb.createTransitRouteStop(this.stop0, Time.UNDEFINED_TIME, 0.0));
+                stops.add(sb.createTransitRouteStop(this.stop1, 5*60.0, Time.UNDEFINED_TIME));
+                TransitRoute route = sb.createTransitRoute(Id.create("0to1", TransitRoute.class), netRoute, stops, "train");
+                line0.addRoute(route);
+
+                route.addDeparture(sb.createDeparture(Id.create("l0 d0", Departure.class), 8.0*3600));
+            }
+            { // line 1
+                TransitLine line1 = sb.createTransitLine(this.lineId1);
+                this.schedule.addTransitLine(line1);
+                NetworkRoute netRoute = new LinkNetworkRouteImpl(linkId10, linkId20);
+                List<TransitRouteStop> stops = new ArrayList<>();
+                stops.add(sb.createTransitRouteStop(this.stop1, Time.UNDEFINED_TIME, 0.0));
+                stops.add(sb.createTransitRouteStop(this.stop2, 5*60.0, Time.UNDEFINED_TIME));
+                TransitRoute route = sb.createTransitRoute(Id.create("1to2", TransitRoute.class), netRoute, stops, "train");
+                line1.addRoute(route);
+
+                route.addDeparture(sb.createDeparture(Id.create("l1 d0", Departure.class), 8.0*3600 + 10*60));
+            }
+            { // line 2
+                TransitLine line2 = sb.createTransitLine(this.lineId2);
+                this.schedule.addTransitLine(line2);
+                NetworkRoute netRoute = new LinkNetworkRouteImpl(linkId10, linkId20);
+                List<TransitRouteStop> stops = new ArrayList<>();
+                stops.add(sb.createTransitRouteStop(this.stop0, Time.UNDEFINED_TIME, 0.0));
+                stops.add(sb.createTransitRouteStop(this.stop3, 5*60.0, Time.UNDEFINED_TIME));
+                TransitRoute route = sb.createTransitRoute(Id.create("0to3", TransitRoute.class), netRoute, stops, "train");
+                line2.addRoute(route);
+
+                route.addDeparture(sb.createDeparture(Id.create("l2 d0", Departure.class), 23.0*3600));
+            }
+            { // line 3
+                TransitLine line3 = sb.createTransitLine(this.lineId3);
+                this.schedule.addTransitLine(line3);
+                NetworkRoute netRoute = new LinkNetworkRouteImpl(linkId10, linkId20);
+                List<TransitRouteStop> stops = new ArrayList<>();
+                stops.add(sb.createTransitRouteStop(this.stop2, Time.UNDEFINED_TIME, 0.0));
+                stops.add(sb.createTransitRouteStop(this.stop3, Time.UNDEFINED_TIME, 5*60.0));
+                stops.add(sb.createTransitRouteStop(this.stop4, 10*60.0, Time.UNDEFINED_TIME));
+                TransitRoute route = sb.createTransitRoute(Id.create("2to4", TransitRoute.class), netRoute, stops, "train");
+                line3.addRoute(route);
+
+                route.addDeparture(sb.createDeparture(Id.create("l3 d0", Departure.class), 8.0*3600 + 20*60));
             }
         }
     }
