@@ -5,9 +5,6 @@
 package ch.sbb.matsim;
 
 
-import java.util.Collection;
-
-import ch.sbb.matsim.routing.access.AccessEgress;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
@@ -17,15 +14,14 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 
-import ch.sbb.matsim.analysis.LocateAct;
 import ch.sbb.matsim.analysis.SBBPostProcessing;
-import ch.sbb.matsim.config.AccessTimeConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
-import ch.sbb.matsim.routing.network.SBBNetworkRouter;
-import ch.sbb.matsim.routing.teleportation.SBBBeelineTeleportationRouting;
+import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
+import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 
 /**
@@ -44,11 +40,17 @@ public class RunSBB {
         log.info(configFile);
 
         final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-                new SBBBehaviorGroupsConfigGroup(), new AccessTimeConfigGroup());
+                new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup());
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
         Controler controler = new Controler(scenario);
+
+        SBBPopulationSamplerConfigGroup sampleConfig = (SBBPopulationSamplerConfigGroup) scenario.getConfig().getModule(SBBPopulationSamplerConfigGroup.GROUP_NAME);
+        if (sampleConfig.getDoSample()) {
+            SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
+            sbbPopulationSampler.sample(scenario.getPopulation(), sampleConfig.getFraction());
+        }
 
         ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
         controler.setScoringFunctionFactory(scoringFunctionFactory);
