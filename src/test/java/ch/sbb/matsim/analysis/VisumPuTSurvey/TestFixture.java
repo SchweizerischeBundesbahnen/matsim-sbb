@@ -83,7 +83,7 @@ public class TestFixture {
 
         createNetwork();
 
-        eventsToTravelDiaries = new EventsToTravelDiaries(scenario);
+        eventsToTravelDiaries = new EventsToTravelDiaries(scenario, "");
         eventsManager = EventsUtils.createEventsManager();
         eventsManager.addHandler(eventsToTravelDiaries);
     }

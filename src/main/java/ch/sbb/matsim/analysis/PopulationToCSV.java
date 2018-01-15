@@ -11,9 +11,9 @@ import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.households.HouseholdsReaderV10;
@@ -26,12 +26,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PopulationToCSV {
+public class PopulationToCSV implements EventWriter{
 
     private final static Logger log = Logger.getLogger(PopulationToCSV.class);
 
     CSVWriter agents_writer = null;
     CSVWriter planelements_writer = null;
+
+    private String filename;
 
     public PopulationToCSV(Scenario scenario) {
 
@@ -112,6 +114,11 @@ public class PopulationToCSV {
         }
     }
 
+    public PopulationToCSV(Scenario scenario, String filename) {
+        this(scenario);
+        this.filename = filename;
+    }
+
     public void write(String agentsFilename, String planElementFilename) {
         agents_writer.write(agentsFilename);
         planelements_writer.write(planElementFilename);
@@ -158,4 +165,13 @@ public class PopulationToCSV {
     }
 
 
+    @Override
+    public void closeFile() {
+        this.write(this.filename + "agents.csv",this.filename + "plan_elements.csv");
+    }
+
+    @Override
+    public void reset(int iteration) {
+
+    }
 }
