@@ -74,8 +74,13 @@ public class RunEventsToEventsPerPersonTable {
                     .readFile(config.transit().getVehiclesFile());
         }
         EventsToEventsPerPersonTable handler;
-        if (personIdString == null)  handler = new EventsToEventsPerPersonTable(scenario);
-        else handler = new EventsToEventsPerPersonTable(scenario, personIdString);
+        if (personIdString == null) {
+            handler = new EventsToEventsPerPersonTable(scenario, outputDirectory);
+        }
+        else {
+            handler = new EventsToEventsPerPersonTable(scenario, outputDirectory);
+            handler.setPersonIdString(personIdString);
+        }
 
         EventsManager events = new EventsManagerImpl();
 
@@ -84,7 +89,7 @@ public class RunEventsToEventsPerPersonTable {
         new MatsimEventsReader(events).readFile(eventsFileName);
 
         try {
-            handler.writeSimulationResultsToTabSeparated(outputDirectory, appendage);
+            handler.writeSimulationResultsToTabSeparated(appendage);
         } catch (IOException e) {
             e.printStackTrace();
         }

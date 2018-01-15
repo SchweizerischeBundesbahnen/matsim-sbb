@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.analysis.VisumPuTSurvey.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.Activity;
 import ch.sbb.matsim.analysis.travelcomponents.Journey;
 import ch.sbb.matsim.analysis.travelcomponents.Transfer;
@@ -43,6 +44,7 @@ import org.matsim.core.api.experimental.events.handler.TeleportationArrivalEvent
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
 import org.matsim.core.config.Config;
+import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
@@ -77,13 +79,17 @@ public class EventsToTravelDiaries implements
         ActivityEndEventHandler, PersonStuckEventHandler,
         LinkEnterEventHandler, LinkLeaveEventHandler,
         TeleportationArrivalEventHandler, VehicleArrivesAtFacilityEventHandler,
-        VehicleDepartsAtFacilityEventHandler {
+        VehicleDepartsAtFacilityEventHandler,
+        EventWriter {
 
     private static final Logger log = Logger.getLogger(EventsToTravelDiaries.class);
 
     private final Network network;
     private double walkSpeed;
     // Attributes
+
+    private int iteration;
+    private String filename;
 
     private Map<Id, TravellerChain> chains = new HashMap<>();
     private Map<Id, Coord> locations = new HashMap<>();
@@ -94,13 +100,17 @@ public class EventsToTravelDiaries implements
     private TransitSchedule transitSchedule;
     private Vehicles transitVehicles;
     private boolean isTransitScenario = false;
+    private boolean writeVisumPuTSurvey = false;
     private LocateAct locateAct = null;
     private Config config = null;
 
 
-    public EventsToTravelDiaries(Scenario scenario) {
+    public EventsToTravelDiaries(Scenario scenario, String filename) {
+        this.filename = filename;
+
         this.network = scenario.getNetwork();
         isTransitScenario = scenario.getConfig().transit().isUseTransit();
+
         if (isTransitScenario) {
             this.transitSchedule = scenario.getTransitSchedule();
             this.transitVehicles = scenario.getTransitVehicles();
@@ -108,11 +118,15 @@ public class EventsToTravelDiaries implements
         }
         this.config = scenario.getConfig();
         PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
+
         if (ppConfig.getMapActivitiesToZone()) {
             this.setMapActToZone(ppConfig.getShapeFile(), ppConfig.getZoneAttribute());
         }
-    }
 
+        if (ppConfig.getWriteVisumPuTSurvey()) {
+            this.writeVisumPuTSurvey = true;
+        }
+    }
 
     private void readVehiclesFromSchedule() {
         for (TransitLine tL : this.transitSchedule.getTransitLines().values()) {
@@ -414,6 +428,7 @@ public class EventsToTravelDiaries implements
     // Methods
     @Override
     public void reset(int iteration) {
+        this.iteration = iteration;
         chains = new HashMap<>();
         locations = new HashMap<>();
         ptVehicles = new HashMap<>();
@@ -425,11 +440,12 @@ public class EventsToTravelDiaries implements
         this.locateAct = new LocateAct(shapefile, attribute);
     }
 
-    public void writeSimulationResultsToTabSeparated(String path, String appendage) throws IOException {
+    public void writeSimulationResultsToTabSeparated(String appendage) throws IOException {
         String actTableName;
         String journeyTableName;
         String transferTableName;
         String tripTableName;
+
         if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
             actTableName = appendage + "matsim_activities.txt";
             journeyTableName = appendage + "matsim_journeys.txt";
@@ -443,12 +459,12 @@ public class EventsToTravelDiaries implements
             transferTableName = "matsim_transfers" + appendage + ".txt";
             tripTableName = "matsim_trips" + appendage + ".txt";
         }
-        BufferedWriter activityWriter = IOUtils.getBufferedWriter(path + "/" + actTableName);
+        BufferedWriter activityWriter = IOUtils.getBufferedWriter(this.filename + actTableName);
 
         activityWriter.write("activity_id\tperson_id\tfacility_id\ttype\t" +
                 "start_time\tend_time\tx\ty\tsample_selector\tzone\n");
 
-        BufferedWriter journeyWriter = IOUtils.getBufferedWriter(path + "/" + journeyTableName);
+        BufferedWriter journeyWriter = IOUtils.getBufferedWriter(this.filename + journeyTableName);
         journeyWriter.write("journey_id\tperson_id\tstart_time\t" +
                 "end_time\tdistance\tmain_mode\tmain_mode_mikrozensus\tfrom_act\tto_act\t" +
                 "in_vehicle_distance\tin_vehicle_time\t" +
@@ -458,13 +474,13 @@ public class EventsToTravelDiaries implements
                 "transfer_walk_distance\ttransfer_walk_time\t" +
                 "transfer_wait_time\tsample_selector\tstucked\n");
 
-        BufferedWriter tripWriter = IOUtils.getBufferedWriter(path + "/" + tripTableName);
+        BufferedWriter tripWriter = IOUtils.getBufferedWriter(this.filename + tripTableName);
         tripWriter.write("trip_id\tjourney_id\tstart_time\tend_time\t" +
                 "distance\tmode\tline\troute\tboarding_stop\t" +
                 "alighting_stop\tdeparture_time\tdeparture_delay\tsample_selector\t" +
                  "from_x\tfrom_y\tto_x\tto_y\tprevious_trip_id\tnext_trip_id\n");
 
-        BufferedWriter transferWriter = IOUtils.getBufferedWriter(path + "/" + transferTableName);
+        BufferedWriter transferWriter = IOUtils.getBufferedWriter(this.filename + transferTableName);
         transferWriter.write("transfer_id\tjourney_id\tstart_time\t" +
                 "end_time\tfrom_trip\tto_trip\twalk_distance\t" +
                 "walk_time\twait_time\tsample_selector\n");
@@ -596,6 +612,12 @@ public class EventsToTravelDiaries implements
 
         }
 
+        if (this.writeVisumPuTSurvey) {
+            Double scaleFactor = 1.0 / this.config.qsim().getFlowCapFactor();
+            VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(this.getChains(), this.transitSchedule, scaleFactor);
+            visumPuTSurvey.write(this.filename);
+        }
+
         activityWriter.close();
         journeyWriter.close();
         tripWriter.close();
@@ -613,6 +635,15 @@ public class EventsToTravelDiaries implements
 
     void setStuck(int stuck) {
         this.stuck = stuck;
+    }
+
+    @Override
+    public void closeFile() {
+        try {
+            this.writeSimulationResultsToTabSeparated("");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     // Private classes
