@@ -6,7 +6,6 @@ package ch.sbb.matsim.routing.pt.raptor;
 
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RRoute;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RRouteStop;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RStop;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RTransfer;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.utils.geometry.CoordUtils;
@@ -193,37 +192,35 @@ public class SwissRailRaptorCore {
 
             // third stage (according to paper): handle footpaths / transfers
             forEach(this.reachedRouteStopIndices, fromRouteStopIndex -> {
-               PathElement fromPE = this.arrivalPathPerRouteStop[fromRouteStopIndex];
-               double cost = fromPE.arrivalCost;
-               if (cost > this.bestArrivalCost) {
-                   return;
-               }
-               double time = fromPE.arrivalTime;
-               RRouteStop fromRouteStop = this.data.routeStops[fromRouteStopIndex];
-               RStop stop = this.data.stops[fromRouteStop.stopFacilityIndex];
-               for (int transferIndex = stop.indexFirstTransfer; transferIndex < stop.indexFirstTransfer + stop.countTransfers; transferIndex++) {
-                   RTransfer transfer = this.data.transfers[transferIndex];
-                   RStop toStopFacility = this.data.stops[transfer.toStopFacility];
-                   int[] toRouteStopIndices = this.data.routeStopsPerStopFacility.get(toStopFacility.stopFacility);
-                   for (int toRouteStopIndex : toRouteStopIndices) {
-                       RRouteStop toRouteStop = this.data.routeStops[toRouteStopIndex];
-                       double transferTime = getTransferTime(fromRouteStop, toRouteStop, time);
-                       double newArrivalTime = time + transferTime;
-                       double transferCost = getTransferCost(fromRouteStop, toRouteStop, time, transferTime);
-                       double newArrivalCost = cost + transferCost;
-                       PathElement pe = this.arrivalPathPerRouteStop[toRouteStopIndex];
-                       if (pe == null) {
-                           // it's the first time we arrive at this stop
-                           this.improvedRouteStopIndices.set(toRouteStopIndex);
-                           this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromRouteStopIndex, fromRouteStop, toRouteStop, newArrivalTime, newArrivalCost, fromPE.transferCount + 1, true);
-                           updateEarliestRouteStop(toRouteStopIndex, toRouteStop.transitRouteIndex);
-                       } else if (newArrivalCost < pe.arrivalCost) {
-                           this.improvedRouteStopIndices.set(toRouteStopIndex);
-                           this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromRouteStopIndex, fromRouteStop, toRouteStop, newArrivalTime, newArrivalCost, fromPE.transferCount + 1, true);
-                           updateEarliestRouteStop(toRouteStopIndex, toRouteStop.transitRouteIndex);
-                       }
-                   }
-               }
+                PathElement fromPE = this.arrivalPathPerRouteStop[fromRouteStopIndex];
+                double cost = fromPE.arrivalCost;
+                if (cost > this.bestArrivalCost) {
+                    return;
+                }
+                double time = fromPE.arrivalTime;
+                RRouteStop fromRouteStop = this.data.routeStops[fromRouteStopIndex];
+                int firstTransferIndex = fromRouteStop.indexFirstTransfer;
+                int lastTransferIndex = firstTransferIndex + fromRouteStop.countTransfers;
+                for (int transferIndex = firstTransferIndex; transferIndex < lastTransferIndex; transferIndex++) {
+                    RTransfer transfer = this.data.transfers[transferIndex];
+                    int toRouteStopIndex = transfer.toRouteStop;
+                    RRouteStop toRouteStop = this.data.routeStops[toRouteStopIndex];
+                    double transferTime = getTransferTime(fromRouteStop, toRouteStop, time);
+                    double newArrivalTime = time + transferTime;
+                    double transferCost = getTransferCost(fromRouteStop, toRouteStop, time, transferTime);
+                    double newArrivalCost = cost + transferCost;
+                    PathElement pe = this.arrivalPathPerRouteStop[toRouteStopIndex];
+                    if (pe == null) {
+                        // it's the first time we arrive at this stop
+                        this.improvedRouteStopIndices.set(toRouteStopIndex);
+                        this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromRouteStopIndex, fromRouteStop, toRouteStop, newArrivalTime, newArrivalCost, fromPE.transferCount + 1, true);
+                        updateEarliestRouteStop(toRouteStopIndex, toRouteStop.transitRouteIndex);
+                    } else if (newArrivalCost < pe.arrivalCost) {
+                        this.improvedRouteStopIndices.set(toRouteStopIndex);
+                        this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromRouteStopIndex, fromRouteStop, toRouteStop, newArrivalTime, newArrivalCost, fromPE.transferCount + 1, true);
+                        updateEarliestRouteStop(toRouteStopIndex, toRouteStop.transitRouteIndex);
+                    }
+                }
             });
 
             // final stage: check stop criterion
