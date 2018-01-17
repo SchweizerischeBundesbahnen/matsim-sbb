@@ -25,6 +25,10 @@ import ch.sbb.matsim.analysis.LocateAct;
 
 /**
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
+ *
+ * Extend a network leg with an access_walk and an egress_walk legs. Duration of access/egress is read from a shapefile.
+ * The duration is a zone attribute. For the mode "car", this class read the column "ACCCAR". For identical zone, the access and egress times are equal.
+ *
  */
 
 public class AccessEgressRouting {
