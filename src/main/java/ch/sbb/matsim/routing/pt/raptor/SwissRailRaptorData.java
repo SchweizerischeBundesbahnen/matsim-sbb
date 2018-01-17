@@ -31,14 +31,14 @@ class SwissRailRaptorData {
     final RaptorConfig config;
     final int countRouteStops;
     final RRoute[] routes;
-    final Departure[] departures; // in the RAPTOR paper, this is usually called "trips", but I stick with the MATSim nomenclature
+    final double[] departures; // in the RAPTOR paper, this is usually called "trips", but I stick with the MATSim nomenclature
     final RRouteStop[] routeStops; // list of all route stops
     final RTransfer[] transfers;
     final Map<TransitStopFacility, int[]> routeStopsPerStopFacility;
     final QuadTree<TransitStopFacility> stopsQT;
 
     private SwissRailRaptorData(TransitSchedule schedule, RaptorConfig config,
-            RRoute[] routes, Departure[] departures, RRouteStop[] routeStops,
+            RRoute[] routes, double[] departures, RRouteStop[] routeStops,
             RTransfer[] transfers,
             Map<TransitStopFacility, int[]> routeStopsPerStopFacility, QuadTree<TransitStopFacility> stopsQT) {
         this.schedule = schedule;
@@ -97,7 +97,7 @@ class SwissRailRaptorData {
             throw new RuntimeException("TransitSchedule has too many Departures: " + countDepartures);
         }
 
-        Departure[] departures = new Departure[(int) countDepartures];
+        double[] departures = new double[(int) countDepartures];
         RRoute[] routes = new RRoute[countRoutes];
         RRouteStop[] routeStops = new RRouteStop[(int) countRouteStops];
 
@@ -131,7 +131,7 @@ class SwissRailRaptorData {
                     indexRouteStops++;
                 }
                 for (Departure dep : route.getDepartures().values()) {
-                    departures[indexDeparture] = dep;
+                    departures[indexDeparture] = dep.getDepartureTime();
                     indexDeparture++;
                 }
                 indexRoutes++;

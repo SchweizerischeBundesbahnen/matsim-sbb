@@ -9,7 +9,6 @@ import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RRouteStop;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RTransfer;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.utils.misc.Time;
-import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -109,7 +108,7 @@ public class SwissRailRaptorCore {
             for (int routeIndex = touchedRoutes.nextSetBit(0); routeIndex >= 0; routeIndex = touchedRoutes.nextSetBit(routeIndex+1)) {
                 RRoute route = this.data.routes[routeIndex];
 
-                Departure currentEarliestDeparture = null;
+                double currentEarliestDepartureTime = Double.NaN;
                 int currentEarliestDepartureIndex = -1;
                 int currentBoardingStopIndex = -1;
                 RRouteStop currentBoardingRouteStop = null;
@@ -133,17 +132,17 @@ public class SwissRailRaptorCore {
                             if (currentEarliestDepartureIndex < 0 || nextDepartureIndex < currentEarliestDepartureIndex) {
                                 // it's either the first time we can board, or we can board an earlier service
                                 currentEarliestDepartureIndex = nextDepartureIndex;
-                                currentEarliestDeparture = this.data.departures[nextDepartureIndex];
+                                currentEarliestDepartureTime = this.data.departures[nextDepartureIndex];
                                 currentBoardingStopIndex = routeStopIndex;
                                 currentBoardingRouteStop = routeStop;
                                 currentBoardingRouteStopCost = pe.arrivalCost;
                                 currentTransferCount = pe.transferCount;
-                                double vehicleArrivalTime = currentEarliestDeparture.getDepartureTime() + currentBoardingRouteStop.arrivalOffset;
+                                double vehicleArrivalTime = currentEarliestDepartureTime + currentBoardingRouteStop.arrivalOffset;
                                 currentBoardingRouteStopAgentEnterTime = (time < vehicleArrivalTime) ? vehicleArrivalTime : time;
                                 currentBoardingRouteStopAgentWaitingTime = currentBoardingRouteStopAgentEnterTime - time;
                             } else if (currentEarliestDepartureIndex < nextDepartureIndex) {
                                 // we can arrive here earlier by arriving with the current service
-                                double arrivalTime = currentEarliestDeparture.getDepartureTime() + routeStop.arrivalOffset;
+                                double arrivalTime = currentEarliestDepartureTime + routeStop.arrivalOffset;
                                 double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
                                 double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
                                 double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * currentBoardingRouteStopAgentWaitingTime;
@@ -158,7 +157,7 @@ public class SwissRailRaptorCore {
                             }
                         } else if (currentEarliestDepartureIndex >= 0) {
                             // we arrived here earlier, but obviously too late for any service, but now we arrive here with a service!
-                            double arrivalTime = currentEarliestDeparture.getDepartureTime() + routeStop.arrivalOffset;
+                            double arrivalTime = currentEarliestDepartureTime + routeStop.arrivalOffset;
                             double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
                             double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
                             double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * currentBoardingRouteStopAgentWaitingTime;
@@ -173,7 +172,7 @@ public class SwissRailRaptorCore {
                         }
                     } else if (currentBoardingStopIndex >= 0) { // it's the first time we reach this route stop
                         RRouteStop routeStop = this.data.routeStops[routeStopIndex];
-                        double arrivalTime = currentEarliestDeparture.getDepartureTime() + routeStop.arrivalOffset;
+                        double arrivalTime = currentEarliestDepartureTime + routeStop.arrivalOffset;
                         double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
                         double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
                         double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * currentBoardingRouteStopAgentWaitingTime;
@@ -300,10 +299,9 @@ public class SwissRailRaptorCore {
 
     private int findNextDepartureIndex(RRoute route, RRouteStop routeStop, double time) {
         double depTimeAtRouteStart = time - routeStop.departureOffset;
-        Departure dep = this.data.schedule.getFactory().createDeparture(null, depTimeAtRouteStart);
         int fromIndex = route.indexFirstDeparture;
         int toIndex = fromIndex + route.countDepartures;
-        int pos = Arrays.binarySearch(this.data.departures, fromIndex, toIndex, dep, (o1, o2) -> Double.compare(o1.getDepartureTime(), o2.getDepartureTime()));
+        int pos = Arrays.binarySearch(this.data.departures, fromIndex, toIndex, depTimeAtRouteStart);
         if (pos < 0) {
             // binarySearch returns (-(insertion point) - 1) if the element was not found, which will happen most of the times.
             // insertion_point points to the next larger element, which is the next departure in our case
