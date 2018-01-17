@@ -106,9 +106,7 @@ public class SwissRailRaptorCore {
 
                 double currentEarliestDepartureTime = Double.NaN;
                 int currentEarliestDepartureIndex = -1;
-                int currentBoardingStopIndex = -1;
                 PathElement currentBoardingPath = null;
-                RRouteStop currentBoardingRouteStop = null;
                 double currentBoardingRouteStopAgentEnterTime = Time.UNDEFINED_TIME;
                 double currentBoardingRouteStopAgentWaitingTime = Time.UNDEFINED_TIME;
                 double currentBoardingRouteStopCost = Double.NaN;
@@ -125,12 +123,10 @@ public class SwissRailRaptorCore {
                                 // it's either the first time we can board, or we can board an earlier service
                                 currentEarliestDepartureIndex = nextDepartureIndex;
                                 currentEarliestDepartureTime = this.data.departures[nextDepartureIndex];
-                                currentBoardingStopIndex = routeStopIndex;
                                 currentBoardingPath = pe;
-                                currentBoardingRouteStop = routeStop;
                                 currentBoardingRouteStopCost = pe.arrivalCost;
                                 currentTransferCount = pe.transferCount;
-                                double vehicleArrivalTime = currentEarliestDepartureTime + currentBoardingRouteStop.arrivalOffset;
+                                double vehicleArrivalTime = currentEarliestDepartureTime + routeStop.arrivalOffset;
                                 currentBoardingRouteStopAgentEnterTime = (time < vehicleArrivalTime) ? vehicleArrivalTime : time;
                                 currentBoardingRouteStopAgentWaitingTime = currentBoardingRouteStopAgentEnterTime - time;
                             } else if (currentEarliestDepartureIndex < nextDepartureIndex) {
@@ -163,7 +159,7 @@ public class SwissRailRaptorCore {
                                 checkForBestArrival(routeStopIndex, arrivalCost);
                             }
                         }
-                    } else if (currentBoardingStopIndex >= 0) { // it's the first time we reach this route stop
+                    } else if (currentBoardingPath != null) { // it's the first time we reach this route stop
                         RRouteStop routeStop = this.data.routeStops[routeStopIndex];
                         double arrivalTime = currentEarliestDepartureTime + routeStop.arrivalOffset;
                         double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
