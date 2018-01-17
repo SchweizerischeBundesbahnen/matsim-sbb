@@ -28,7 +28,7 @@ public class VisumPuTSurveyIntegrationTest {
 
         System.out.println(eventsToTravelDiaries.getChains().get(Id.createPersonId("1")).getJourneys().getFirst().getTrips().size());
 
-        visumPuTSurvey.write("./");
+        visumPuTSurvey.write(".");
 
         System.out.println(visumPuTSurvey.getWriter().getData());
 
