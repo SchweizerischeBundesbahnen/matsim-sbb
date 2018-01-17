@@ -197,6 +197,7 @@ class SwissRailRaptorData {
         double maxBeelineWalkConnectionDistance = config.getBeelineWalkConnectionDistance();
         double beelineWalkSpeed = config.getBeelineWalkSpeed();
         double transferUtilPerS = config.getMarginalUtilityOfTravelTimeWalk_utl_s();
+        double transferPenalty = config.getTransferPenaltyCost();
         double minimalTransferTime = config.getMinimalTransferTime();
 
         for (TransitStopFacility fromStop : routeStopsPerStopFacility.keySet()) {
@@ -211,7 +212,7 @@ class SwissRailRaptorData {
                     transferTime = minimalTransferTime;
                 }
                 double transferUtil = transferTime * transferUtilPerS;
-                double transferCost = -transferUtil;
+                double transferCost = -transferUtil + transferPenalty;
                 final double fixedTransferTime = transferTime; // variables must be effective final to be used in lambdas (below)
 
                 for (int fromRouteStopIndex : fromRouteStopIndices) {
