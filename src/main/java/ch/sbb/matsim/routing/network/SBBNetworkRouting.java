@@ -43,11 +43,11 @@ import com.google.inject.Provider;
 import ch.sbb.matsim.analysis.LocateAct;
 
 /**
- * Not thread-safe because MultiNodeDijkstra is not. Does not expect the TransitSchedule to change once constructed! michaz '13
+ * Based on org.matsim.core.router.NetworkRouting
  *
- * @author mrieser
+ *
  */
-public class SBBNetworkRouter implements Provider<RoutingModule>
+public class SBBNetworkRouting implements Provider<RoutingModule>
 
 {
 
@@ -74,7 +74,7 @@ public class SBBNetworkRouter implements Provider<RoutingModule>
 
     private LocateAct actLocator;
 
-    public SBBNetworkRouter(String mode, LocateAct actLocator) {
+    public SBBNetworkRouting(String mode, LocateAct actLocator) {
         this.mode = mode;
         this.actLocator = actLocator;
 

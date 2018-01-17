@@ -11,7 +11,7 @@ import org.matsim.core.controler.Controler;
 
 import ch.sbb.matsim.analysis.LocateAct;
 import ch.sbb.matsim.config.AccessTimeConfigGroup;
-import ch.sbb.matsim.routing.network.SBBNetworkRouter;
+import ch.sbb.matsim.routing.network.SBBNetworkRouting;
 import ch.sbb.matsim.routing.teleportation.SBBBeelineTeleportationRouting;
 
 public class AccessEgress {
@@ -42,12 +42,12 @@ public class AccessEgress {
         return ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
     }
 
-    private SBBNetworkRouter getNetworkRouter(final String mode) {
+    private SBBNetworkRouting getNetworkRouting(final String mode) {
         final LocateAct _locateAct = this.getLocateAct();
-        return new SBBNetworkRouter(mode, _locateAct);
+        return new SBBNetworkRouting(mode, _locateAct);
     }
 
-    private SBBBeelineTeleportationRouting getTeleportationRouter(final String mode) {
+    private SBBBeelineTeleportationRouting getTeleportationRouting(final String mode) {
         final LocateAct _locateAct = this.getLocateAct();
         PlansCalcRouteConfigGroup.ModeRoutingParams params = this.controler.getConfig().plansCalcRoute().getModeRoutingParams().get(mode);
         return new SBBBeelineTeleportationRouting(params, _locateAct);
@@ -61,10 +61,10 @@ public class AccessEgress {
 
                 for (final String mode : modes) {
                     if (mainModes.contains(mode)) {
-                        addRoutingModuleBinding(mode).toProvider(that.getNetworkRouter(mode));
+                        addRoutingModuleBinding(mode).toProvider(that.getNetworkRouting(mode));
                     } else {
 
-                        addRoutingModuleBinding(mode).toProvider(that.getTeleportationRouter(mode));
+                        addRoutingModuleBinding(mode).toProvider(that.getTeleportationRouting(mode));
                     }
                 }
             }
