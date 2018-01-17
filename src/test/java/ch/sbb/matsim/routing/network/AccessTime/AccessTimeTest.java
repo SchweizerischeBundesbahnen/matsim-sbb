@@ -15,7 +15,7 @@ public class AccessTimeTest {
     public Coord stleo = new Coord(598345.54, 122581.99); // 2
 
 
-    private double assetScoring(Boolean withAccessTime, double constant, double utilityOfTravaleling, double expected) {
+    private double assetScoring(Boolean withAccessTime, double constant, double utilityOfTravaleling, double expectedScore) {
         TestFixture fixture = new TestFixture(bern, stleo, "car", withAccessTime, constant, "car,bike");
 
         fixture.egressParams.setMarginalUtilityOfTraveling(utilityOfTravaleling);
@@ -25,7 +25,7 @@ public class AccessTimeTest {
 
         Person person = fixture.population.getPersons().get(Id.createPersonId("1"));
         Double score = person.getSelectedPlan().getScore();
-        Assert.assertEquals(expected, score, 0.001);
+        Assert.assertEquals(expectedScore, score, 0.001);
         return score;
 
     }
