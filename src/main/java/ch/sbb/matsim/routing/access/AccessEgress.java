@@ -2,6 +2,7 @@ package ch.sbb.matsim.routing.access;
 
 import java.util.Collection;
 
+import com.vividsolutions.jts.util.Assert;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -49,7 +50,7 @@ public class AccessEgress {
 
     private SBBTeleportation getTeleportationRouting(final String mode) {
         final LocateAct _locateAct = this.getLocateAct();
-        PlansCalcRouteConfigGroup.ModeRoutingParams params = this.controler.getConfig().plansCalcRoute().getModeRoutingParams().get(mode);
+        PlansCalcRouteConfigGroup.ModeRoutingParams params = this.controler.getConfig().plansCalcRoute().getOrCreateModeRoutingParams(mode);
         return new SBBTeleportation(params, _locateAct);
     }
 
@@ -60,6 +61,10 @@ public class AccessEgress {
             public void install() {
 
                 for (final String mode : modes) {
+                    if (mode.equals("ride")){
+                        throw new RuntimeException("Ride is not yet correctly implemented");
+                    }
+
                     if (mainModes.contains(mode)) {
                         addRoutingModuleBinding(mode).toProvider(that.getNetworkRouting(mode));
                     } else {
