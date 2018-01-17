@@ -17,10 +17,15 @@ import org.matsim.facilities.Facility;
 import ch.sbb.matsim.analysis.LocateAct;
 import ch.sbb.matsim.routing.access.AccessEgressRouting;
 
+/**
+ * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
+ */
+
 public class SBBTeleportationRoutingInclAccessEgressModule extends TeleportationRoutingModule {
     private AccessEgressRouting accessEgress;
 
-    public SBBTeleportationRoutingInclAccessEgressModule(String mode, PopulationFactory populationFactory, double networkTravelSpeed, double beelineDistanceFactor, LocateAct actLocator, Network network) {
+    public SBBTeleportationRoutingInclAccessEgressModule(String mode, PopulationFactory populationFactory, double networkTravelSpeed, double beelineDistanceFactor, LocateAct actLocator,
+            Network network) {
         super(mode, populationFactory, networkTravelSpeed, beelineDistanceFactor);
         this.accessEgress = new AccessEgressRouting(actLocator, populationFactory, mode, network);
     }

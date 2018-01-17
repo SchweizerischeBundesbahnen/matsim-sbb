@@ -23,6 +23,10 @@ import org.opengis.feature.simple.SimpleFeature;
 
 import ch.sbb.matsim.analysis.LocateAct;
 
+/**
+ * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
+ */
+
 public class AccessEgressRouting {
     private static final Logger log = Logger.getLogger(AccessEgressRouting.class);
     final private LocateAct actLocator;

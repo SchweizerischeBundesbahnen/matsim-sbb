@@ -25,6 +25,9 @@ import org.matsim.facilities.Facility;
 import ch.sbb.matsim.analysis.LocateAct;
 import ch.sbb.matsim.routing.access.AccessEgressRouting;
 
+/**
+ * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
+ */
 public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingModule {
     private static final Logger log = Logger.getLogger(NetworkRoutingInclAccessEgressModule.class);
 
