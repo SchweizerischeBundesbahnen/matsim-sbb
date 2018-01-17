@@ -40,9 +40,6 @@ public class PopulationToCSV implements EventWriter{
 
         PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
 
-        Cleaner cleaner = new Cleaner(scenario.getPopulation());
-        cleaner.clean();
-
         String[] attributes = ppConfig.getPersonAttributes().split(",");
 
         agents_writer = new CSVWriter(getColumns(attributes));
