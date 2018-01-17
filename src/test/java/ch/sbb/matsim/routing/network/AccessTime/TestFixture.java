@@ -1,11 +1,9 @@
 package ch.sbb.matsim.routing.network.AccessTime;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -22,9 +20,7 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
@@ -96,7 +92,7 @@ public class TestFixture {
         Set<String> linkModes = new HashSet<>();
         linkModes.add(mode);
 
-        for(Link link: network.getLinks().values()){
+        for (Link link : network.getLinks().values()) {
             link.setAllowedModes(linkModes);
         }
 
@@ -140,7 +136,7 @@ public class TestFixture {
         params2.setScoringThisActivityAtAll(false);
         scenario.getConfig().planCalcScore().addActivityParams(params2);
 
-        PlanCalcScoreConfigGroup.ActivityParams params3 = new PlanCalcScoreConfigGroup.ActivityParams(mode+" interaction");
+        PlanCalcScoreConfigGroup.ActivityParams params3 = new PlanCalcScoreConfigGroup.ActivityParams(mode + " interaction");
         params3.setScoringThisActivityAtAll(false);
         scenario.getConfig().planCalcScore().addActivityParams(params3);
 
@@ -167,8 +163,6 @@ public class TestFixture {
         config.controler().setWriteEventsUntilIteration(1);
         config.controler().setWritePlansInterval(1);
         config.qsim().setEndTime(10 * 60 * 60);
-
-        new ConfigWriter(config).write("test.txt");
 
     }
 
