@@ -13,7 +13,7 @@ public class AccessTimeTest {
     public Coord stleo = new Coord(598345.54, 122581.99); // 2 Minutes access time
 
 
-    private double assetScoring(Boolean withAccessTime, double constant, double utilityOfTravaleling, double expectedScore, String mode, String modesWithAcess) {
+    private double assertScoring(Boolean withAccessTime, double constant, double utilityOfTravaleling, double expectedScore, String mode, String modesWithAcess) {
         TestFixture fixture = new TestFixture(bern, stleo, mode, withAccessTime, constant, modesWithAcess);
 
         fixture.egressParams.setMarginalUtilityOfTraveling(utilityOfTravaleling);
@@ -30,50 +30,50 @@ public class AccessTimeTest {
 
     @Test
     public final void testScoringCarNoAccess() {
-        assetScoring(false, 0.0, -1.68, -432, "car", "car,bike");
+        assertScoring(false, 0.0, -1.68, -432, "car", "car,bike");
     }
 
     @Test
     public final void testScoringRideIfAccessForCar() {
-        assetScoring(true, 0.0, -1.68, -432, "ride", "car");
+        assertScoring(true, 0.0, -1.68, -432, "ride", "car");
     }
 
 
     @Test
     public final void testScoringCarAccessForCarConstantNullUtilityNull() {
-        assetScoring(true, 0.0, 0.0, -432, "car", "car");
+        assertScoring(true, 0.0, 0.0, -432, "car", "car");
     }
 
     @Test
     public final void testScoringRideAccessForCarConstantNull() {
-        assetScoring(true, 0.0, -1.68, -432.009, "car", "car");
+        assertScoring(true, 0.0, -1.68, -432.009, "car", "car");
     }
 
     @Test
     public final void testScoringCarAccessForCar() {
-        assetScoring(true, -1.0, -1.68, -433.009, "car", "car");
+        assertScoring(true, -1.0, -1.68, -433.009, "car", "car");
     }
 
     @Test
     public final void testScoringRideAccessForCarHigherConstant() {
-        assetScoring(true, -10.0, -1.68, -442.009, "car", "car");
+        assertScoring(true, -10.0, -1.68, -442.009, "car", "car");
     }
 
     @Test
     public final void testScoringRideAccessForCarHigherConstantHigherUtility() {
-        assetScoring(true, -10.0, -30, -874.1666, "car", "car");
+        assertScoring(true, -10.0, -30, -874.1666, "car", "car");
     }
 
 
     @Test(expected = RuntimeException.class)
     public final void testScoringRideExceptionIfUsingAccess() {
-        assetScoring(true, 0.0, -1.68, -432, "ride", "car,ride");
+        assertScoring(true, 0.0, -1.68, -432, "ride", "car,ride");
     }
 
     @Test
     public final void testScoringBike() {
         //without access/egress score = -432
-        assetScoring(true, 0.0, -1.68, -432.018, "bike", "bike");
+        assertScoring(true, 0.0, -1.68, -432.018, "bike", "bike");
     }
 
 }
