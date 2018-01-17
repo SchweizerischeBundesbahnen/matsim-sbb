@@ -25,14 +25,14 @@ import ch.sbb.matsim.analysis.LocateAct;
 
 public class AccessEgressRouting {
     private static final Logger log = Logger.getLogger(AccessEgressRouting.class);
-    private LocateAct actLocator;
-    private PopulationFactory populationFactory;
-    private String stageActivityType;
-    private String mode;
-    private Network network;
-    private String attribute;
+    final private LocateAct actLocator;
+    final private PopulationFactory populationFactory;
+    final private String stageActivityType;
+    final private String mode;
+    final private Network network;
+    final private String attribute;
 
-    public AccessEgressRouting(LocateAct locateAct, PopulationFactory populationFactory, String mode, Network network) {
+    public AccessEgressRouting(final LocateAct locateAct, final PopulationFactory populationFactory, final String mode, final Network network) {
         this.network = network;
         this.actLocator = locateAct;
         this.populationFactory = populationFactory;
@@ -41,9 +41,9 @@ public class AccessEgressRouting {
         this.attribute = "ACC" + mode.toUpperCase(); // ?
     }
 
-    public double addAccess(Facility fromFacility, Link accessActLink, double now, List<PlanElement> result, Person person) {
+    public double addAccess(final Facility fromFacility, final Link accessActLink, double now, final List<PlanElement> result, final Person person) {
 
-        Leg accessLeg = this.populationFactory.createLeg(TransportMode.access_walk);
+        final Leg accessLeg = this.populationFactory.createLeg(TransportMode.access_walk);
         accessLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, accessLeg, fromFacility.getCoord(), now, accessActLink.getId(), accessActLink.getId());
 
@@ -55,11 +55,11 @@ public class AccessEgressRouting {
     }
 
 
-    public double addEgress(Facility toFacility, Link egressActLink, double now, List<PlanElement> result, Person person) {
+    public double addEgress(final Facility toFacility, final Link egressActLink, double now, final List<PlanElement> result, final Person person) {
         final Activity interactionActivity = createInteractionActivity(egressActLink);
         result.add(interactionActivity);
 
-        Leg egressLeg = this.populationFactory.createLeg(TransportMode.egress_walk);
+        final Leg egressLeg = this.populationFactory.createLeg(TransportMode.egress_walk);
         egressLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, egressLeg, toFacility.getCoord(), now, egressActLink.getId(), egressActLink.getId());
         result.add(egressLeg);
@@ -67,18 +67,18 @@ public class AccessEgressRouting {
     }
 
     private Activity createInteractionActivity(final Link link) {
-        Coord coord = link.getToNode().getCoord();
+        final Coord coord = link.getToNode().getCoord();
         Gbl.assertNotNull(coord);
-        Activity act = PopulationUtils.createActivityFromCoordAndLinkId(this.stageActivityType, coord, link.getId());
+        final Activity act = PopulationUtils.createActivityFromCoordAndLinkId(this.stageActivityType, coord, link.getId());
         act.setMaximumDuration(0.0);
         return act;
     }
 
 
-    private double routeBushwhackingLeg(Person person, Leg leg, Coord coord, double depTime, Id<Link> dpLinkId, Id<Link> arLinkId) {
-        Route route = this.populationFactory.getRouteFactories().createRoute(Route.class, dpLinkId, arLinkId);
+    private double routeBushwhackingLeg(final Person person, final Leg leg, final Coord coord, final double depTime, final Id<Link> dpLinkId, final Id<Link> arLinkId) {
+        final Route route = this.populationFactory.getRouteFactories().createRoute(Route.class, dpLinkId, arLinkId);
 
-        SimpleFeature zone = this.actLocator.getZone(coord);
+        final SimpleFeature zone = this.actLocator.getZone(coord);
         int travTime = 0;
 
         if (zone != null) {
@@ -87,7 +87,6 @@ public class AccessEgressRouting {
 
         route.setTravelTime(travTime);
 
-        //
         route.setDistance(0);
         leg.setRoute(route);
         leg.setDepartureTime(depTime);
@@ -120,7 +119,7 @@ public class AccessEgressRouting {
 
     private final class AccessEgressStageActivityTypes implements StageActivityTypes {
         @Override
-        public boolean isStageActivity(String activityType) {
+        public boolean isStageActivity(final String activityType) {
             if (AccessEgressRouting.this.stageActivityType.equals(activityType)) {
                 return true;
             } else {
@@ -129,11 +128,11 @@ public class AccessEgressRouting {
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(final Object obj) {
             if (!(obj instanceof AccessEgressStageActivityTypes)) {
                 return false;
             }
-            AccessEgressStageActivityTypes other = (AccessEgressStageActivityTypes) obj;
+            final AccessEgressStageActivityTypes other = (AccessEgressStageActivityTypes) obj;
             return other.isStageActivity(AccessEgressRouting.this.stageActivityType);
         }
 
