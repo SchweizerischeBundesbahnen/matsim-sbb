@@ -15,21 +15,21 @@ import ch.sbb.matsim.routing.network.SBBNetworkRouter;
 import ch.sbb.matsim.routing.teleportation.SBBBeelineTeleportationRouting;
 
 public class AccessEgress {
-    Controler controler;
+    final private Controler controler;
     private LocateAct locateAct;
-    private String shapefile;
+    final private String shapefile;
 
-    public AccessEgress(Controler controler) {
+    public AccessEgress(final Controler controler) {
         this.controler = controler;
         this.shapefile = this.getConfigGroup().getShapefile();
     }
 
-    public AccessEgress(Controler controler, String shapefile) {
+    public AccessEgress(final Controler controler, final String shapefile) {
         this.controler = controler;
         this.shapefile = shapefile;
     }
 
-    public LocateAct getLocateAct() {
+    private LocateAct getLocateAct() {
         if (locateAct == null) {
             locateAct = new LocateAct(shapefile);
             locateAct.fillCache(this.controler.getScenario().getPopulation());
@@ -37,29 +37,29 @@ public class AccessEgress {
         return locateAct;
     }
 
-    public AccessTimeConfigGroup getConfigGroup() {
-        Config config = this.controler.getConfig();
+    private AccessTimeConfigGroup getConfigGroup() {
+        final Config config = this.controler.getConfig();
         return ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
     }
 
-    public SBBNetworkRouter getNetworkRouter(String mode) {
-        LocateAct _locateAct = this.getLocateAct();
+    private SBBNetworkRouter getNetworkRouter(final String mode) {
+        final LocateAct _locateAct = this.getLocateAct();
         return new SBBNetworkRouter(mode, _locateAct);
     }
 
-    public SBBBeelineTeleportationRouting getTeleportationRouter(String mode) {
-        LocateAct _locateAct = this.getLocateAct();
+    private SBBBeelineTeleportationRouting getTeleportationRouter(final String mode) {
+        final LocateAct _locateAct = this.getLocateAct();
         PlansCalcRouteConfigGroup.ModeRoutingParams params = this.controler.getConfig().plansCalcRoute().getModeRoutingParams().get(mode);
         return new SBBBeelineTeleportationRouting(params, _locateAct);
     }
 
-    public AbstractModule getModule(Collection<String> modes, Collection<String> mainModes) {
-        AccessEgress that = this;
+    private AbstractModule getModule(final Collection<String> modes, final Collection<String> mainModes) {
+        final AccessEgress that = this;
         return new AbstractModule() {
             @Override
             public void install() {
 
-                for (String mode : modes) {
+                for (final String mode : modes) {
                     if (mainModes.contains(mode)) {
                         addRoutingModuleBinding(mode).toProvider(that.getNetworkRouter(mode));
                     } else {
@@ -72,15 +72,16 @@ public class AccessEgress {
     }
 
     public void installAccessTime() {
-        Scenario scenario = controler.getScenario();
-        Config config = scenario.getConfig();
+        final Scenario scenario = controler.getScenario();
+        final Config config = scenario.getConfig();
 
-        AccessTimeConfigGroup accessTimeConfigGroup = this.getConfigGroup();
-        Collection<String> mainModes = config.qsim().getMainModes();
+        final AccessTimeConfigGroup accessTimeConfigGroup = this.getConfigGroup();
+        final Collection<String> mainModes = config.qsim().getMainModes();
 
         if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
             config.plansCalcRoute().setInsertingAccessEgressWalk(true);
-            controler.addOverridingModule(this.getModule(accessTimeConfigGroup.getModesWithAccessTime(), mainModes));
+            final AbstractModule module = this.getModule(accessTimeConfigGroup.getModesWithAccessTime(), mainModes);
+            controler.addOverridingModule(module);
         }
     }
 }
