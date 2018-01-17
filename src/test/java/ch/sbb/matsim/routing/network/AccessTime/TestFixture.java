@@ -1,13 +1,11 @@
 package ch.sbb.matsim.routing.network.AccessTime;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import ch.sbb.matsim.routing.SBBTransitRouterImplFactory;
-import ch.sbb.matsim.routing.network.SBBNetworkRoutingInclAccessEgressModule;
-import com.google.inject.Inject;
+import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -20,45 +18,23 @@ import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.controler.Injector;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
-import org.matsim.core.router.DefaultRoutingModules;
-import org.matsim.core.router.RoutingModule;
-import org.matsim.core.router.TransitRouterWrapper;
-import org.matsim.core.router.TripRouter;
-import org.matsim.core.router.TripRouterModule;
-import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
-import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutilityFactory;
-import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
-import org.matsim.core.router.util.DijkstraFactory;
-import org.matsim.core.router.util.LeastCostPathCalculator;
-import org.matsim.core.router.util.LeastCostPathCalculatorFactory;
-import org.matsim.core.router.util.TravelDisutility;
-import org.matsim.core.router.util.TravelTime;
-import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.scoring.ScoringFunction;
-import org.matsim.facilities.ActivityFacility;
-import org.matsim.facilities.FacilitiesUtils;
-import org.matsim.facilities.Facility;
-import org.matsim.pt.router.TransitRouterConfig;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.testcases.utils.EventsCollector;
 
 import ch.sbb.matsim.config.AccessTimeConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgress;
-import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 
 public class TestFixture {
     private String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP";
@@ -117,6 +93,13 @@ public class TestFixture {
         network.addLink(linkCB);
         network.addLink(linkDC);
 
+        Set<String> linkModes = new HashSet<>();
+        linkModes.add(mode);
+
+        for(Link link: network.getLinks().values()){
+            link.setAllowedModes(linkModes);
+        }
+
         PopulationFactory populationFactory = population.getFactory();
         Plan plan = populationFactory.createPlan();
 
@@ -157,6 +140,10 @@ public class TestFixture {
         params2.setScoringThisActivityAtAll(false);
         scenario.getConfig().planCalcScore().addActivityParams(params2);
 
+        PlanCalcScoreConfigGroup.ActivityParams params3 = new PlanCalcScoreConfigGroup.ActivityParams(mode+" interaction");
+        params3.setScoringThisActivityAtAll(false);
+        scenario.getConfig().planCalcScore().addActivityParams(params3);
+
         accessParams = config.planCalcScore().getOrCreateModeParams(TransportMode.access_walk);
         accessParams.setConstant(constant);
 
@@ -180,38 +167,23 @@ public class TestFixture {
         config.controler().setWriteEventsUntilIteration(1);
         config.controler().setWritePlansInterval(1);
         config.qsim().setEndTime(10 * 60 * 60);
-    }
 
-
-    public double scoreRoute(Coord from, Coord to, RoutingModule router) {
-        Controler _controler = new Controler(scenario);
-        AccessEgress ae = new AccessEgress(_controler, shapefile);
-        Facility fromFacility = FacilitiesUtils.createActivityFacilities().getFactory().createActivityFacility(Id.create("from", ActivityFacility.class), from);
-        Facility toFacility = FacilitiesUtils.createActivityFacilities().getFactory().createActivityFacility(Id.create("to", ActivityFacility.class), to);
-        double departureTime = 6 * 60 * 60;
-        List<? extends PlanElement> elements = router.calcRoute(fromFacility, toFacility, departureTime, person);
-        return getScoreOfRoute(elements);
-    }
-
-    private double getScoreOfRoute(List<? extends PlanElement> elements) {
-        SBBScoringFunctionFactory fact = new SBBScoringFunctionFactory(scenario);
-        ScoringFunction sf = fact.createNewScoringFunction(person);
-
-        for (PlanElement pe : elements) {
-            if (pe instanceof Leg) {
-                sf.handleLeg((Leg) pe);
-            } else if (pe instanceof Activity) {
-                sf.handleActivity((Activity) pe);
-            }
-
-        }
-
-        return sf.getScore();
+        new ConfigWriter(config).write("test.txt");
 
     }
 
     public void run() {
         controler = new Controler(scenario);
+
+        controler.addOverridingModule(new AbstractModule() {
+            @Override
+            public void install() {
+                addTravelTimeBinding("ride").to(networkTravelTime());
+                addTravelDisutilityFactoryBinding("ride").to(carTravelDisutilityFactoryKey());
+
+            }
+        });
+
         new AccessEgress(controler, shapefile).installAccessTime();
 
         EventsCollector collector = new EventsCollector();
