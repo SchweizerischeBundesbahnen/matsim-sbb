@@ -10,12 +10,18 @@ import org.matsim.core.router.RoutingModule;
 
 import ch.sbb.matsim.analysis.LocateAct;
 
-public class SBBBeelineTeleportationRouting implements Provider<RoutingModule> {
+/**
+ * Based on org.matsim.core.router.Teleportation
+ *
+ *
+ */
+
+public class SBBTeleportation implements Provider<RoutingModule> {
 
     private final PlansCalcRouteConfigGroup.ModeRoutingParams params;
     private LocateAct actLocator;
 
-    public SBBBeelineTeleportationRouting(PlansCalcRouteConfigGroup.ModeRoutingParams params, LocateAct locateAct) {
+    public SBBTeleportation(PlansCalcRouteConfigGroup.ModeRoutingParams params, LocateAct locateAct) {
         this.params = params;
         this.actLocator = locateAct;
 

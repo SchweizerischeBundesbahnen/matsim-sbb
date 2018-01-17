@@ -12,7 +12,7 @@ import org.matsim.core.controler.Controler;
 import ch.sbb.matsim.analysis.LocateAct;
 import ch.sbb.matsim.config.AccessTimeConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRouting;
-import ch.sbb.matsim.routing.teleportation.SBBBeelineTeleportationRouting;
+import ch.sbb.matsim.routing.teleportation.SBBTeleportation;
 
 public class AccessEgress {
     final private Controler controler;
@@ -47,10 +47,10 @@ public class AccessEgress {
         return new SBBNetworkRouting(mode, _locateAct);
     }
 
-    private SBBBeelineTeleportationRouting getTeleportationRouting(final String mode) {
+    private SBBTeleportation getTeleportationRouting(final String mode) {
         final LocateAct _locateAct = this.getLocateAct();
         PlansCalcRouteConfigGroup.ModeRoutingParams params = this.controler.getConfig().plansCalcRoute().getModeRoutingParams().get(mode);
-        return new SBBBeelineTeleportationRouting(params, _locateAct);
+        return new SBBTeleportation(params, _locateAct);
     }
 
     private AbstractModule getModule(final Collection<String> modes, final Collection<String> mainModes) {
