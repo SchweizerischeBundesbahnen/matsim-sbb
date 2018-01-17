@@ -130,8 +130,8 @@ public class VisumPuTSurvey {
             }
         }
 
-        final String filepath = path + "/" + FILENAME;
-        log.info(path + "/" + FILENAME);
+        final String filepath = path + FILENAME;
+        log.info(path + FILENAME);
 
         writer.setHeader(header);
         writer.write(filepath);
