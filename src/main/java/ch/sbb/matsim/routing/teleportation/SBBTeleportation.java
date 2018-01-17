@@ -35,7 +35,7 @@ public class SBBTeleportation implements Provider<RoutingModule> {
 
     @Override
     public RoutingModule get() {
-        return new SBBTeleportationRoutingModule(params.getMode(), populationFactory, params.getTeleportedModeSpeed(), params.getBeelineDistanceFactor(), this.actLocator, network);
+        return new SBBTeleportationRoutingInclAccessEgressModule(params.getMode(), populationFactory, params.getTeleportedModeSpeed(), params.getBeelineDistanceFactor(), this.actLocator, network);
     }
 
 }
