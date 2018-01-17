@@ -46,8 +46,9 @@ public class PerformanceAnalysis {
         String testPopulation = "D:\\devsbb\\mrieser\\data\\runs\\matsim-runs\\prepared\\attributeMerged\\population.xml.gz";
         String testSchedule = "D:\\devsbb\\mrieser\\data\\runs\\matsim-runs\\prepared\\cut\\transitSchedule.xml.gz";
 
-
-        int maxPlans = 1000;
+        int maxPlans = 2000;
+        int warmupRounds = 3;
+        int measurementRounds = 5;
 
         System.setProperty("matsim.preferLocalDtds", "true");
 
@@ -60,32 +61,64 @@ public class PerformanceAnalysis {
 //        TransitScheduleValidator.printResult(TransitScheduleValidator.validateAll(scenario.getTransitSchedule(), scenario.getNetwork()));
 
         TransitRouter[] routers = new TransitRouter[]{
-                getDefaultRouter(scenario.getTransitSchedule()),
+//                getDefaultRouter(scenario.getTransitSchedule()),
                 getSwissRailRaptor(scenario.getTransitSchedule())
 //                getMinibusRaptor(scenario.getTransitSchedule())
         };
 
-        long[] starts = new long[routers.length];
-        long[] ends = new long[routers.length];
-        int[] results = new int[routers.length];
+        double[][] durations = new double[routers.length][measurementRounds];
+        int[][] results = new int[routers.length][measurementRounds];
 
-        for (int i = 0; i < routers.length; i++) {
-            TransitRouter router = routers[i];
-            starts[i] = System.currentTimeMillis();
-            results[i] = testRouter(scenario.getPopulation(), maxPlans, router);
-            ends[i] = System.currentTimeMillis();
-            double duration = (ends[i] - starts[i]) / 1000.0;
-            System.out.println("### " + duration + " seconds   " + router.getClass().getName());
+        for (int round = 0; round < warmupRounds; round++) {
+            System.out.println("WARM UP -- round " + round);
+            for (int i = 0; i < routers.length; i++) {
+                TransitRouter router = routers[i];
+                long start = System.currentTimeMillis();
+                int result = testRouter(scenario.getPopulation(), maxPlans, router);
+                long end = System.currentTimeMillis();
+                double duration = (end - start) / 1000.0;
+                System.out.printf("### %10.3f %10d %10s %n", duration, result, router.getClass().getName());
+            }
+
+        }
+
+        for (int round = 0; round < measurementRounds; round++) {
+            System.out.println("ROUND " + round);
+            for (int i = 0; i < routers.length; i++) {
+                TransitRouter router = routers[i];
+                long start = System.currentTimeMillis();
+                results[i][round] = testRouter(scenario.getPopulation(), maxPlans, router);
+                long end = System.currentTimeMillis();
+                durations[i][round] = (end - start) / 1000.0;
+                System.out.printf("### %10.3f %10d %10s %n", durations[i][round], results[i][round], router.getClass().getName());
+            }
         }
 
         System.out.println();
         System.out.println("------------------------------------------------------");
-        System.out.printf("%10s %10s %s %n", "Duration", "# Legs", "Router");
+        System.out.printf("%10s %10s %s %n", "avg Duration", "avg # Legs", "Router");
         for (int i = 0; i < routers.length; i++) {
-            double duration = (ends[i] - starts[i]) / 1000.0;
-            System.out.printf("%10.3f %10d %10s %n", duration, results[i], routers[i].getClass().getName());
+            double sum = sum(durations[i]);
+            double result = sum(results[i]);
+            System.out.printf("%10.3f %10.1f %10s %n", sum/measurementRounds, result/measurementRounds, routers[i].getClass().getName());
         }
         System.out.println();
+    }
+
+    private static double sum(double[] values) {
+        double sum = 0;
+        for (double v : values) {
+            sum += v;
+        }
+        return sum;
+    }
+
+    private static int sum(int[] values) {
+        int sum = 0;
+        for (int v : values) {
+            sum += v;
+        }
+        return sum;
     }
 
     private static TransitRouter getDefaultRouter(TransitSchedule schedule) {
