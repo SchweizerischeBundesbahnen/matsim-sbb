@@ -256,6 +256,7 @@ public class SwissRailRaptorTest {
         assertEquals(TransportMode.egress_walk, legs.get(4).getMode());
 
         raptorConfig.setTransferPenaltyCost(-300.0 * raptorConfig.getMarginalUtilityOfTravelTimePt_utl_s()); // corresponds to 5 minutes transit travel time
+        router = createTransitRouter(f.schedule, raptorConfig);
         legs = router.calcRoute(new FakeFacility(new Coord(11900, 5100)), new FakeFacility(new Coord(24100, 4950)), 6.0*3600 - 5.0*60, null);
         assertEquals(3, legs.size());
         assertEquals(TransportMode.access_walk, legs.get(0).getMode());
