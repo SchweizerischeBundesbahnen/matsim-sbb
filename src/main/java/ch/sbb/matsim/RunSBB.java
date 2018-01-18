@@ -21,6 +21,7 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
+import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 
 /**
@@ -76,6 +77,9 @@ public class RunSBB {
                 install(new SBBQSimModule());
             }
         });
+
+
+        new AccessEgress(controler).installAccessTime();
 
         controler.run();
     }

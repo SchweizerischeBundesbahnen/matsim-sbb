@@ -85,20 +85,17 @@ public class EventsToTravelDiaries implements
     private static final Logger log = Logger.getLogger(EventsToTravelDiaries.class);
 
     private final Network network;
-    private double walkSpeed;
     // Attributes
 
     private int iteration;
     private String filename;
 
     private Map<Id, TravellerChain> chains = new HashMap<>();
-    private Map<Id, Coord> locations = new HashMap<>();
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> transitDriverIds = new HashSet<>();
     private HashMap<Id, Id> driverIdFromVehicleId = new HashMap<>();
     private int stuck = 0;
     private TransitSchedule transitSchedule;
-    private Vehicles transitVehicles;
     private boolean isTransitScenario = false;
     private boolean writeVisumPuTSurvey = false;
     private LocateAct locateAct = null;
@@ -113,7 +110,6 @@ public class EventsToTravelDiaries implements
 
         if (isTransitScenario) {
             this.transitSchedule = scenario.getTransitSchedule();
-            this.transitVehicles = scenario.getTransitVehicles();
             readVehiclesFromSchedule();
         }
         this.config = scenario.getConfig();
@@ -154,7 +150,6 @@ public class EventsToTravelDiaries implements
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
-            locations.put(event.getPersonId(), network.getLinks().get(event.getLinkId()).getCoord());
             if (chain == null) {
                 chain = new TravellerChain(this.config);
                 chains.put(event.getPersonId(), chain);
@@ -183,7 +178,7 @@ public class EventsToTravelDiaries implements
             }
             TravellerChain chain = chains.get(event.getPersonId());
             boolean beforeInPT = chain.isInPT();
-            if (event.getActType().equals(PtConstants.TRANSIT_ACTIVITY_TYPE) || event.getActType().equals("vehicle_interaction")) {
+            if (event.getActType().equals(PtConstants.TRANSIT_ACTIVITY_TYPE) || event.getActType().contains("interaction")) {
                 chain.setInPT(true);
 
             } else {
@@ -430,7 +425,6 @@ public class EventsToTravelDiaries implements
     public void reset(int iteration) {
         this.iteration = iteration;
         chains = new HashMap<>();
-        locations = new HashMap<>();
         ptVehicles = new HashMap<>();
         transitDriverIds = new HashSet<>();
         driverIdFromVehicleId = new HashMap<>();
