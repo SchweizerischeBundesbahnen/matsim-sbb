@@ -31,6 +31,8 @@ public class S3Downloader {
         this.downloadFolder = s3Config.getDownloadFolder();
 
         s3 = AmazonS3ClientBuilder.defaultClient();
+
+        this.parseConfig();
     }
 
     private boolean isS3url(String path) {
@@ -53,10 +55,10 @@ public class S3Downloader {
             for (Map.Entry<String, String> entry : params.entrySet()) {
                 if (isS3url(entry.getValue())) {
                     if (isS3url(entry.getValue())) {
-                        System.out.println(entry.getKey() + "/" + entry.getValue());
                         String key = entry.getValue().replace(this.s3Prefix, "");
-
                         File target = getLocalPath(key);
+
+                        log.info("Downloading "+entry.getValue()+" to "+ target +" and updating config");
                         download(key, target);
                         configGroup.addParam(entry.getKey(), target.toString());
                     }
@@ -85,7 +87,6 @@ public class S3Downloader {
         config.network().setInputFile("s3://vehicles.xml.gz");
 
         S3Downloader s3Downloader = new S3Downloader(config);
-        s3Downloader.parseConfig();
 
         log.info(config.network().getInputFile());
 
