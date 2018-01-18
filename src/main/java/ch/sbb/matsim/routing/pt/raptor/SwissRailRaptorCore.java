@@ -8,7 +8,6 @@ import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RRoute;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RRouteStop;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RTransfer;
 import org.matsim.api.core.v01.TransportMode;
-import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -60,7 +59,7 @@ public class SwissRailRaptorCore {
 
     public RaptorRoute calcLeastCostRoute(double depTime, List<InitialStop> accessStops, List<InitialStop> egressStops) {
         final int maxTransfers = 10; // TODO make configurable
-        final int maxTransfersAfterFirstArrival = 1;
+        final int maxTransfersAfterFirstArrival = 2;
 
         reset();
 
@@ -106,72 +105,52 @@ public class SwissRailRaptorCore {
                 // for each relevant route, step along route and look for new/improved connections
                 RRoute route = this.data.routes[routeIndex];
 
-                double currentEarliestDepartureTime = Double.NaN;
-                int currentEarliestDepartureIndex = -1;
-                PathElement currentBoardingPath = null;
-                double currentBoardingRouteStopAgentEnterTime = Time.UNDEFINED_TIME;
-                double currentBoardingRouteStopCost = Double.NaN;
-                int currentTransferCount = -1;
-                for (int routeStopIndex = firstRouteStopIndex; routeStopIndex < route.indexFirstRouteStop + route.countRouteStops; routeStopIndex++) {
-                    PathElement pe = this.arrivalPathPerRouteStop[routeStopIndex];
-                    if (pe != null) {
-                        // this means we reached this route stop in an earlier round
-                        RRouteStop routeStop = this.data.routeStops[routeStopIndex];
-                        double time = pe.arrivalTime;
-                        int nextDepartureIndex = findNextDepartureIndex(route, routeStop, time);
-                        if (nextDepartureIndex >= 0) {
-                            if (currentEarliestDepartureIndex < 0 || nextDepartureIndex < currentEarliestDepartureIndex) {
-                                // it's either the first time we can board, or we can board an earlier service
-                                currentEarliestDepartureIndex = nextDepartureIndex;
-                                currentEarliestDepartureTime = this.data.departures[nextDepartureIndex];
-                                currentBoardingPath = pe;
-                                currentTransferCount = pe.transferCount;
-                                double vehicleArrivalTime = currentEarliestDepartureTime + routeStop.arrivalOffset;
-                                currentBoardingRouteStopAgentEnterTime = (time < vehicleArrivalTime) ? vehicleArrivalTime : time;
-                                double waitingTime = currentBoardingRouteStopAgentEnterTime - time;
-                                double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * waitingTime;
-                                currentBoardingRouteStopCost = pe.arrivalCost + waitingCost;
-                            } else if (currentEarliestDepartureIndex < nextDepartureIndex) {
-                                // we can arrive here earlier by arriving with the current service
-                                double arrivalTime = currentEarliestDepartureTime + routeStop.arrivalOffset;
-                                double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
-                                double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
-                                double arrivalCost = currentBoardingRouteStopCost + inVehicleCost;
-                                if (arrivalCost < pe.arrivalCost && arrivalCost <= this.bestArrivalCost) {
-                                    // we can actually improve the arrival by cost
-                                    this.arrivalPathPerRouteStop[routeStopIndex] = new PathElement(currentBoardingPath, routeStop, arrivalTime, arrivalCost, currentTransferCount, false);
-                                    this.reachedRouteStopIndices.set(routeStopIndex);
+                // firstRouteStop is the first RouteStop in the route we can board in this round
+                // figure out which departure we can take
+                PathElement boardingPE = this.arrivalPathPerRouteStop[firstRouteStopIndex];
+                double agentFirstArrivalTime = boardingPE.arrivalTime;
+                int currentDepartureIndex = findNextDepartureIndex(route, firstRouteStop, agentFirstArrivalTime);
+                if (currentDepartureIndex >=0) {
+                    double currentDepartureTime = this.data.departures[currentDepartureIndex];
+                    double vehicleArrivalTime = currentDepartureTime + firstRouteStop.arrivalOffset;
+                    double currentAgentBoardingTime = (agentFirstArrivalTime < vehicleArrivalTime) ? vehicleArrivalTime : agentFirstArrivalTime;
+                    double waitingTime = currentAgentBoardingTime - agentFirstArrivalTime;
+                    double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * waitingTime;
+                    double currentCostWhenBoarding = boardingPE.arrivalCost + waitingCost;
 
-                                    checkForBestArrival(routeStopIndex, arrivalCost);
-                                }
-                            }
-                        } else if (currentEarliestDepartureIndex >= 0) {
-                            // we arrived here earlier, but obviously too late for any service, but now we arrive here with a service!
-                            double arrivalTime = currentEarliestDepartureTime + routeStop.arrivalOffset;
-                            double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
-                            double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
-                            double arrivalCost = currentBoardingRouteStopCost + inVehicleCost;
-                            if (arrivalCost < pe.arrivalCost && arrivalCost <= this.bestArrivalCost) {
-                                // we can actually improve the arrival by cost
-                                this.arrivalPathPerRouteStop[routeStopIndex] = new PathElement(currentBoardingPath, routeStop, arrivalTime, arrivalCost, currentTransferCount, false);
-                                this.reachedRouteStopIndices.set(routeStopIndex);
-
-                                checkForBestArrival(routeStopIndex, arrivalCost);
-                            }
-                        }
-                    } else if (currentBoardingPath != null) { // it's the first time we reach this route stop
-                        RRouteStop routeStop = this.data.routeStops[routeStopIndex];
-                        double arrivalTime = currentEarliestDepartureTime + routeStop.arrivalOffset;
-                        double inVehicleTime = arrivalTime - currentBoardingRouteStopAgentEnterTime;
+                    for (int toRouteStopIndex = firstRouteStopIndex + 1; toRouteStopIndex < route.indexFirstRouteStop + route.countRouteStops; toRouteStopIndex++) {
+                        RRouteStop toRouteStop = this.data.routeStops[toRouteStopIndex];
+                        PathElement toPE = this.arrivalPathPerRouteStop[toRouteStopIndex];
+                        double arrivalTime = currentDepartureTime + toRouteStop.arrivalOffset;
+                        double inVehicleTime = arrivalTime - currentAgentBoardingTime;
                         double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
-                        double arrivalCost = currentBoardingRouteStopCost + inVehicleCost;
-                        if (arrivalCost <= this.bestArrivalCost) {
-                            this.arrivalPathPerRouteStop[routeStopIndex] = new PathElement(currentBoardingPath, routeStop, arrivalTime, arrivalCost, currentTransferCount, false);
-                            this.reachedRouteStopIndices.set(routeStopIndex);
+                        double arrivalCost = currentCostWhenBoarding + inVehicleCost;
 
-                            checkForBestArrival(routeStopIndex, arrivalCost);
+                        if (arrivalCost <= this.bestArrivalCost && (toPE == null || arrivalCost < toPE.arrivalCost)) {
+                            // we can actually improve the arrival by cost
+                            this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(boardingPE, toRouteStop, arrivalTime, arrivalCost, boardingPE.transferCount, false);
+                            this.reachedRouteStopIndices.set(toRouteStopIndex);
+
+                            checkForBestArrival(toRouteStopIndex, arrivalCost);
+                        } else if (toPE != null && arrivalCost > toPE.arrivalCost) {
+                            // we reached this stop at lower cost in an earlier round
+                            // continue with this better path
+                            int lowerCostDepartureIndex = findNextDepartureIndex(route, toRouteStop, toPE.arrivalTime);
+                            if (lowerCostDepartureIndex >= 0) {
+                                // update the "first" (boarding) route stop
+                                firstRouteStop = toRouteStop;
+                                boardingPE = toPE;
+                                currentDepartureIndex = lowerCostDepartureIndex;
+                                currentDepartureTime = this.data.departures[currentDepartureIndex];
+                                agentFirstArrivalTime = boardingPE.arrivalTime;
+                                vehicleArrivalTime = currentDepartureTime + firstRouteStop.arrivalOffset;
+                                currentAgentBoardingTime = (agentFirstArrivalTime < vehicleArrivalTime) ? vehicleArrivalTime : agentFirstArrivalTime;
+                                waitingTime = currentAgentBoardingTime - agentFirstArrivalTime;
+                                waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * waitingTime;
+                                currentCostWhenBoarding = boardingPE.arrivalCost + waitingCost;
+                            }
                         }
-
+                        firstRouteStopIndex = toRouteStopIndex; // we've handled this route stop, so we can skip it in the outer loop
                     }
                 }
             }
@@ -190,22 +169,24 @@ public class SwissRailRaptorCore {
             for (int fromRouteStopIndex = this.reachedRouteStopIndices.nextSetBit(0); fromRouteStopIndex >= 0; fromRouteStopIndex = this.reachedRouteStopIndices.nextSetBit(fromRouteStopIndex+1)) {
                 PathElement fromPE = this.arrivalPathPerRouteStop[fromRouteStopIndex];
                 double cost = fromPE.arrivalCost;
-                if (cost <= this.bestArrivalCost) {
+                if (cost < this.bestArrivalCost) {
                     double time = fromPE.arrivalTime;
                     RRouteStop fromRouteStop = this.data.routeStops[fromRouteStopIndex];
                     int firstTransferIndex = fromRouteStop.indexFirstTransfer;
                     int lastTransferIndex = firstTransferIndex + fromRouteStop.countTransfers;
                     for (int transferIndex = firstTransferIndex; transferIndex < lastTransferIndex; transferIndex++) {
                         RTransfer transfer = this.data.transfers[transferIndex];
-                        int toRouteStopIndex = transfer.toRouteStop;
                         double newArrivalCost = cost + transfer.transferCost;
-                        PathElement pe = this.arrivalPathPerRouteStop[toRouteStopIndex];
-                        if (pe == null || newArrivalCost < pe.arrivalCost) {
-                            // it's  the first time we arrive at this stop,or we arrive with better costs
-                            RRouteStop toRouteStop = this.data.routeStops[toRouteStopIndex];
-                            double newArrivalTime = time + transfer.transferTime;
-                            this.improvedRouteStopIndices.set(toRouteStopIndex);
-                            this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromPE, toRouteStop, newArrivalTime, newArrivalCost, fromPE.transferCount + 1, true);
+                        if (newArrivalCost < this.bestArrivalCost) {
+                            int toRouteStopIndex = transfer.toRouteStop;
+                            PathElement pe = this.arrivalPathPerRouteStop[toRouteStopIndex];
+                            if (pe == null || newArrivalCost < pe.arrivalCost) {
+                                // it's  the first time we arrive at this stop,or we arrive with better costs
+                                RRouteStop toRouteStop = this.data.routeStops[toRouteStopIndex];
+                                double newArrivalTime = time + transfer.transferTime;
+                                this.improvedRouteStopIndices.set(toRouteStopIndex);
+                                this.arrivalPathPerRouteStop[toRouteStopIndex] = new PathElement(fromPE, toRouteStop, newArrivalTime, newArrivalCost, fromPE.transferCount + 1, true);
+                            }
                         }
                     }
                 }
@@ -305,13 +286,6 @@ public class SwissRailRaptorCore {
             return -1;
         }
         return pos;
-    }
-
-    private double calcTravelCost(double arrivalTime, double boardingTime) {
-        double inVehicleTime = arrivalTime - boardingTime;
-        double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
-
-        return inVehicleCost;
     }
 
     public RaptorRoute calcLeastCostRoute(double earliestDepTime, double latestDepTime, List<InitialStop> accessStops, List<InitialStop> egressStops) {
