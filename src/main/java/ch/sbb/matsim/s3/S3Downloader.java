@@ -3,6 +3,7 @@ package ch.sbb.matsim.s3;
 import java.io.File;
 import java.util.Map;
 
+import ch.sbb.matsim.config.SBBS3ConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
@@ -15,23 +16,28 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 public class S3Downloader {
     private static Logger log = Logger.getLogger(S3Downloader.class);
 
-    Config config;
-    String bucketName;
-    final AmazonS3 s3;
-    String downloadFolder;
+    private final String bucketName;
+    private final AmazonS3 s3;
+    private final String downloadFolder;
+    private final String s3Prefix = "s3://";
+    private Config config;
 
-    public S3Downloader(Config config, String bucketName, String downloadFolder) {
+    public S3Downloader(Config config) {
         this.config = config;
-        this.bucketName = bucketName;
-        this.downloadFolder = downloadFolder;
+
+        SBBS3ConfigGroup s3Config = ConfigUtils.addOrGetModule(config, SBBS3ConfigGroup.GROUP_NAME, SBBS3ConfigGroup.class);
+
+        this.bucketName = s3Config.getBucket();
+        this.downloadFolder = s3Config.getDownloadFolder();
+
         s3 = AmazonS3ClientBuilder.defaultClient();
     }
 
     private boolean isS3url(String path) {
-        return (path.startsWith("s3://"));
+        return (path.startsWith(this.s3Prefix));
     }
 
-    private File getLocalPath(String key){
+    private File getLocalPath(String key) {
         return new File(this.downloadFolder, key);
 
     }
@@ -40,7 +46,7 @@ public class S3Downloader {
         s3.getObject(new GetObjectRequest(bucketName, key), target);
     }
 
-    private ConfigGroup parseConfigGroup(ConfigGroup configGroup) {
+    private void parseConfigGroup(ConfigGroup configGroup) {
 
         try {
             Map<String, String> params = configGroup.getParams();
@@ -48,11 +54,11 @@ public class S3Downloader {
                 if (isS3url(entry.getValue())) {
                     if (isS3url(entry.getValue())) {
                         System.out.println(entry.getKey() + "/" + entry.getValue());
-                        String key = entry.getValue().replace("s3://", "");
+                        String key = entry.getValue().replace(this.s3Prefix, "");
 
                         File target = getLocalPath(key);
                         download(key, target);
-                        configGroup.addParam(entry.getKey(), entry.getValue());
+                        configGroup.addParam(entry.getKey(), target.toString());
                     }
                 }
             }
@@ -60,25 +66,25 @@ public class S3Downloader {
         } catch (RuntimeException a) {
             log.warn(a);
         }
-        return configGroup;
     }
 
     private void parseConfig() {
-        this.config.set
 
         for (ConfigGroup configGroup : this.config.getModules().values()) {
-            ConfigGroup configGroup1 = parseConfigGroup(configGroup);
-
+            parseConfigGroup(configGroup);
         }
+
     }
 
     public static void main(String[] args) {
-        Config config = ConfigUtils.createConfig();
+        Config config = ConfigUtils.createConfig(new SBBS3ConfigGroup());
+        SBBS3ConfigGroup s3Config = ConfigUtils.addOrGetModule(config, SBBS3ConfigGroup.GROUP_NAME, SBBS3ConfigGroup.class);
+
+        s3Config.setBucket("blabla");
 
         config.network().setInputFile("s3://vehicles.xml.gz");
 
-        S3Downloader s3Downloader = new S3Downloader(config, "sbb-memop-nonprod", "s3_data");
-
+        S3Downloader s3Downloader = new S3Downloader(config);
         s3Downloader.parseConfig();
 
         log.info(config.network().getInputFile());
