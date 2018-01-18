@@ -8,6 +8,7 @@ package ch.sbb.matsim;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
+import ch.sbb.matsim.s3.S3Downloader;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
@@ -40,6 +41,8 @@ public class RunSBB {
 
         final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup());
+
+        new S3Downloader(config);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
