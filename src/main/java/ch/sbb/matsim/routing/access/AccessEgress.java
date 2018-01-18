@@ -2,7 +2,6 @@ package ch.sbb.matsim.routing.access;
 
 import java.util.Collection;
 
-import com.vividsolutions.jts.util.Assert;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -11,7 +10,7 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 
 import ch.sbb.matsim.analysis.LocateAct;
-import ch.sbb.matsim.config.AccessTimeConfigGroup;
+import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRouting;
 import ch.sbb.matsim.routing.teleportation.SBBTeleportation;
 
@@ -38,9 +37,9 @@ public class AccessEgress {
         return locateAct;
     }
 
-    private AccessTimeConfigGroup getConfigGroup() {
+    private SBBAccessTimeConfigGroup getConfigGroup() {
         final Config config = this.controler.getConfig();
-        return ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
+        return ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
     }
 
     private SBBNetworkRouting getNetworkRouting(final String mode) {
@@ -80,7 +79,7 @@ public class AccessEgress {
         final Scenario scenario = controler.getScenario();
         final Config config = scenario.getConfig();
 
-        final AccessTimeConfigGroup accessTimeConfigGroup = this.getConfigGroup();
+        final SBBAccessTimeConfigGroup accessTimeConfigGroup = this.getConfigGroup();
         final Collection<String> mainModes = config.qsim().getMainModes();
 
         if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {

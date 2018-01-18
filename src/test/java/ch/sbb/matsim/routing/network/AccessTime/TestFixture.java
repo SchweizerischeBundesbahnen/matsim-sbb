@@ -29,7 +29,7 @@ import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.testcases.utils.EventsCollector;
 
-import ch.sbb.matsim.config.AccessTimeConfigGroup;
+import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgress;
 
 public class TestFixture {
@@ -52,7 +52,7 @@ public class TestFixture {
     TestFixture(Coord start, Coord end, String mode, boolean withAccess, double constant, String modesWithAccess) {
 
 
-        Config config = ConfigUtils.createConfig(new AccessTimeConfigGroup());
+        Config config = ConfigUtils.createConfig(new SBBAccessTimeConfigGroup());
         scenario = ScenarioUtils.createScenario(config);
 
         population = scenario.getPopulation();
@@ -152,7 +152,7 @@ public class TestFixture {
         scenario.getConfig().strategy().addStrategySettings(settings);
 
 
-        AccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, AccessTimeConfigGroup.GROUP_NAME, AccessTimeConfigGroup.class);
+        SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
 
         accessTimeConfigGroup.setShapefile(shapefile);
         accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
