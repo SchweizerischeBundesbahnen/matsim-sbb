@@ -1,5 +1,6 @@
 package ch.sbb.matsim.analysis;
 
+import java.util.HashMap;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -23,31 +24,39 @@ public class PopulationToCSVTest {
     public final void testPopulationPostProc() {
 
         PostProcessingConfigGroup pg = new PostProcessingConfigGroup();
-
-        pg.setPersonAttributes("carAvail,hasLicense,gender,subpopulation");
+        pg.setPersonAttributes("carAvail,hasLicense,sex,subpopulation,age");
 
         Config config = ConfigUtils.createConfig(pg);
         Scenario scenario = ScenarioUtils.createScenario(config);
         Population population = scenario.getPopulation();
         PopulationFactory populationFactory = population.getFactory();
-        Plan plan = populationFactory.createPlan();
+
         Person person = populationFactory.createPerson(Id.createPersonId("1"));
-        person.getCustomAttributes().put("carAvail", "never");
+
+        PersonUtils.setCarAvail(person, "never");
+        PersonUtils.setLicence(person, "driving");
+
+        PersonUtils.setAge(person, 1);
+        //PersonUtils.setEmployed(person, true);
+        PersonUtils.setSex(person, "m");
+
+        person.getAttributes().putAttribute("subpopulation", "regular");
+
+
         population.addPerson(person);
 
         PopulationToCSV tool = new PopulationToCSV(scenario);
 
-        Set<String> t = new java.util.HashSet<>();
-        t.add("carAvail");
-        t.add("gender");
-        t.add("subpopulation");
-        t.add("hasLicense");
+        HashMap<String, String> a = tool.agents_writer.getData().get(0);
 
-        // automatically added
-        t.add("person_id");
+        Assert.assertEquals("never", a.get("carAvail"));
+        Assert.assertEquals("m", a.get("sex"));
+        Assert.assertEquals("driving", a.get("hasLicense"));
+        Assert.assertEquals("1", a.get("age"));
 
-        Set d = tool.agents_writer.getData().get(0).keySet();
-        Assert.assertEquals(t, d);
+        Assert.assertEquals(a.get("subpopulation"),"regular");
+
+        System.out.println(a);
 
     }
 
