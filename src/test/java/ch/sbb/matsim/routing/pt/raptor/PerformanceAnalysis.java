@@ -10,11 +10,10 @@ import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
@@ -31,6 +30,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,12 +39,18 @@ import java.util.List;
 public class PerformanceAnalysis {
 
     public static void main(String[] args) throws IOException {
+// TestSzenario Sion
 //        String testPopulation = "\\\\v00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\04_TestSzenario\\02_simulation\\output\\TestSample.output_plans.xml.gz";
 //        String testSchedule = "\\\\v00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\04_TestSzenario\\02_simulation\\output\\TestSample.output_transitSchedule.xml.gz";
 //        String testNetwork = "\\\\v00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\04_TestSzenario\\02_simulation\\output\\TestSample.output_network.xml.gz";
 
-        String testPopulation = "D:\\devsbb\\mrieser\\data\\runs\\matsim-runs\\prepared\\attributeMerged\\population.xml.gz";
-        String testSchedule = "D:\\devsbb\\mrieser\\data\\runs\\matsim-runs\\prepared\\cut\\transitSchedule.xml.gz";
+// CNB 1.4
+//        String testPopulation = "D:\\devsbb\\mrieser\\data\\runs\\matsim-runs\\prepared\\attributeMerged\\population.xml.gz";
+//        String testSchedule = "D:\\devsbb\\mrieser\\data\\runs\\matsim-runs\\prepared\\cut\\transitSchedule.xml.gz";
+
+// CH 2016
+        String testPopulation = "D:\\devsbb\\mrieser\\data\\raptorPerfTest\\population.xml.gz";
+        String testSchedule = "D:\\devsbb\\mrieser\\data\\raptorPerfTest\\transitSchedule.xml.gz";
 
         int maxPlans = 2000;
         int warmupRounds = 3;
@@ -55,15 +61,29 @@ public class PerformanceAnalysis {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
 //        new MatsimNetworkReader(scenario.getNetwork()).readFile(testNetwork);
-        new PopulationReader(scenario).readFile(testPopulation);
+        List<Person> persons = new ArrayList<>();
+        StreamingPopulationReader popReader = new StreamingPopulationReader(scenario);
+        popReader.addAlgorithm(person -> {
+            if (persons.size() < maxPlans) {
+                // only keep the selected plan
+                List<Plan> allPlans = new ArrayList<>(person.getPlans());
+                for (Plan plan : allPlans) {
+                    if (plan != person.getSelectedPlan()) {
+                        person.removePlan(plan);
+                    }
+                }
+                persons.add(person);
+            }
+        });
+        popReader.readFile(testPopulation);
         new TransitScheduleReader(scenario).readFile(testSchedule);
 
 //        TransitScheduleValidator.printResult(TransitScheduleValidator.validateAll(scenario.getTransitSchedule(), scenario.getNetwork()));
 
         TransitRouter[] routers = new TransitRouter[]{
 //                getDefaultRouter(scenario.getTransitSchedule()),
+//                getMinibusRaptor(scenario.getTransitSchedule()),
                 getSwissRailRaptor(scenario.getTransitSchedule())
-//                getMinibusRaptor(scenario.getTransitSchedule())
         };
 
         double[][] durations = new double[routers.length][measurementRounds];
@@ -74,7 +94,7 @@ public class PerformanceAnalysis {
             for (int i = 0; i < routers.length; i++) {
                 TransitRouter router = routers[i];
                 long start = System.currentTimeMillis();
-                int result = testRouter(scenario.getPopulation(), maxPlans, router);
+                int result = testRouter(persons, router);
                 long end = System.currentTimeMillis();
                 double duration = (end - start) / 1000.0;
                 System.out.printf("### %10.3f %10d %10s %n", duration, result, router.getClass().getName());
@@ -87,7 +107,7 @@ public class PerformanceAnalysis {
             for (int i = 0; i < routers.length; i++) {
                 TransitRouter router = routers[i];
                 long start = System.currentTimeMillis();
-                results[i][round] = testRouter(scenario.getPopulation(), maxPlans, router);
+                results[i][round] = testRouter(persons, router);
                 long end = System.currentTimeMillis();
                 durations[i][round] = (end - start) / 1000.0;
                 System.out.printf("### %10.3f %10d %10s %n", durations[i][round], results[i][round], router.getClass().getName());
@@ -158,16 +178,11 @@ public class PerformanceAnalysis {
         return raptor;
     }
 
-    private static int testRouter(Population population, int maxPlans, TransitRouter router) throws IOException {
-        int planCounter = 0;
+    private static int testRouter(List<Person> persons, TransitRouter router) throws IOException {
         int legCount = 0;
         try (Writer out = new BufferedWriter(new FileWriter(router.getClass().getSimpleName() + ".txt"))) {
             out.write("Person\tDepTime\tfromAct\tfromX\tfromY\ttoAct\ttoX\ttoY\tdistance\troute\n");
-            for (Person person : population.getPersons().values()) {
-                planCounter++;
-                if (planCounter > maxPlans) {
-                    return legCount;
-                }
+            for (Person person : persons) {
                 Plan plan = person.getSelectedPlan();
                 Activity prevAct = null;
                 for (PlanElement pe : plan.getPlanElements()) {
