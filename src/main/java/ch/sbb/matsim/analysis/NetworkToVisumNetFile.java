@@ -95,13 +95,18 @@ public class NetworkToVisumNetFile implements EventWriter {
         // read count data per stop
         Map<TransitStopFacility, Double> countAlightingsPerStop = new HashMap<>();
         Map<TransitStopFacility, Double> countBoardingsPerStop = new HashMap<>();
-        File stopCountData = new File(ppConfig.getStopCountDataFile());
-        if (ppConfig.getStopCountDataFile() != null && stopCountData.isFile())
-            readAlightingBoardingDataPerStop(ppConfig.getStopCountDataFile(), schedule, countAlightingsPerStop, countBoardingsPerStop, 1.0);
-        else if (!stopCountData.isFile())
-            log.warn("The stop file defined in the config is not valid. Leaving this column empty.");
-        else
+
+        if (ppConfig.getStopCountDataFile() != null) {
+            File stopCountData = new File(ppConfig.getStopCountDataFile());
+
+            if (stopCountData.isFile()) {
+                readAlightingBoardingDataPerStop(ppConfig.getStopCountDataFile(), schedule, countAlightingsPerStop, countBoardingsPerStop, 1.0);
+            } else {
+                log.warn("The stop file defined in the config is not valid. Leaving this column empty.");
+            }
+        } else {
             log.info("No stop count data file specified. Leaving this column empty.");
+        }
 
         Map<TransitStopFacility, Double> nbAlightingsPerStop = new HashMap<>();
         Map<TransitStopFacility, Double> nbBoardingsPerStop = new HashMap<>();
@@ -111,13 +116,18 @@ public class NetworkToVisumNetFile implements EventWriter {
 
         // read count data per link
         Map<Link, Double> countVehiclesPerLink = new HashMap<>();
-        File linkCountData = new File(ppConfig.getLinkCountDataFile());
-        if (ppConfig.getLinkCountDataFile() != null && linkCountData.isFile())
-            readVolumeDataPerLink(ppConfig.getLinkCountDataFile(), network, countVehiclesPerLink, 1.0);
-        else if (!linkCountData.isFile())
-            log.warn("The link file defined in the config is not valid. Leaving this column empty.");
-        else
+
+        if (ppConfig.getLinkCountDataFile() != null) {
+            File linkCountData = new File(ppConfig.getLinkCountDataFile());
+
+            if (linkCountData.isFile()) {
+                readVolumeDataPerLink(ppConfig.getLinkCountDataFile(), network, countVehiclesPerLink, 1.0);
+            } else {
+                log.warn("The link file defined in the config is not valid. Leaving this column empty.");
+            }
+        } else {
             log.info("No link count data file specified. Leaving this column empty.");
+        }
 
         // read number of vehicles and number of pt passengers per link
         Map<Link, Double> nbVehiclesPerLink = new HashMap<>();
