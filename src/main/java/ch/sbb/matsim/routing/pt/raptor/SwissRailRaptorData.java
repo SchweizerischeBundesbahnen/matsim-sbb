@@ -18,6 +18,8 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,27 +29,29 @@ class SwissRailRaptorData {
 
     private static final Logger log = Logger.getLogger(SwissRailRaptorData.class);
 
-    final TransitSchedule schedule;
     final RaptorConfig config;
+    final int countStops;
     final int countRouteStops;
     final RRoute[] routes;
     final double[] departures; // in the RAPTOR paper, this is usually called "trips", but I stick with the MATSim nomenclature
     final RRouteStop[] routeStops; // list of all route stops
     final RTransfer[] transfers;
+    final Map<TransitStopFacility, Integer> stopFacilityIndices;
     final Map<TransitStopFacility, int[]> routeStopsPerStopFacility;
     final QuadTree<TransitStopFacility> stopsQT;
 
-    private SwissRailRaptorData(TransitSchedule schedule, RaptorConfig config,
+    private SwissRailRaptorData(RaptorConfig config, int countStops,
             RRoute[] routes, double[] departures, RRouteStop[] routeStops,
-            RTransfer[] transfers,
+            RTransfer[] transfers, Map<TransitStopFacility, Integer> stopFacilityIndices,
             Map<TransitStopFacility, int[]> routeStopsPerStopFacility, QuadTree<TransitStopFacility> stopsQT) {
-        this.schedule = schedule;
         this.config = config;
+        this.countStops = countStops;
         this.countRouteStops = routeStops.length;
         this.routes = routes;
         this.departures = departures;
         this.routeStops = routeStops;
         this.transfers = transfers;
+        this.stopFacilityIndices = stopFacilityIndices;
         this.routeStopsPerStopFacility = routeStopsPerStopFacility;
         this.stopsQT = stopsQT;
     }
@@ -143,20 +147,6 @@ class SwissRailRaptorData {
             stopFacilityIndices.computeIfAbsent(stopFacility, stop -> stopFacilityIndices.size());
         }
 
-        TransitStopFacility[] stopFacilities = new TransitStopFacility[countStopFacilities];
-        for (Map.Entry<TransitStopFacility, Integer> e : stopFacilityIndices.entrySet()) {
-            TransitStopFacility stopFacility = e.getKey();
-            int stopIndex = e.getValue();
-            stopFacilities[stopIndex] = stopFacility;
-        }
-
-        RStop[] stops = new RStop[countStopFacilities];
-        for (int stopIndex = 0; stopIndex < countStopFacilities; stopIndex++) {
-            TransitStopFacility stopFacility = stopFacilities[stopIndex];
-            RStop rStop = new RStop(stopFacility);
-            stops[stopIndex] = rStop;
-        }
-
         Map<Integer, RTransfer[]> allTransfers = calculateRouteStopTransfers(stopsQT, routeStopsPerStopFacility, routeStops, config);
         long countTransfers = 0;
         for (RTransfer[] transfers : allTransfers.values()) {
@@ -179,14 +169,14 @@ class SwissRailRaptorData {
             }
         }
 
-        SwissRailRaptorData data = new SwissRailRaptorData(schedule, config, routes, departures, routeStops, transfers, routeStopsPerStopFacility, stopsQT);
+        SwissRailRaptorData data = new SwissRailRaptorData(config, countStopFacilities, routes, departures, routeStops, transfers, stopFacilityIndices, routeStopsPerStopFacility, stopsQT);
 
         long endMillis = System.currentTimeMillis();
         log.info("SwissRailRaptor data preparation done. Took " + (endMillis - startMillis) / 1000 + " seconds.");
         log.info("SwissRailRaptor statistics:  #routes = " + routes.length);
         log.info("SwissRailRaptor statistics:  #departures = " + departures.length);
         log.info("SwissRailRaptor statistics:  #routeStops = " + routeStops.length);
-        log.info("SwissRailRaptor statistics:  #stopFacilities = " + stops.length);
+        log.info("SwissRailRaptor statistics:  #stopFacilities = " + countStopFacilities);
         log.info("SwissRailRaptor statistics:  #transfers (between routeStops) = " + transfers.length);
         return data;
     }
@@ -242,7 +232,101 @@ class SwissRailRaptorData {
         if (fromRouteStop == toRouteStop) {
             return false;
         }
+        // there is no use to transfer away from the first stop in a route
+        if (isFirstStopInRoute(fromRouteStop)) {
+            return false;
+        }
+        // there is no use to transfer to the last stop in a route, we can't go anywhere from there
+        if (isLastStopInRoute(toRouteStop)) {
+            return false;
+        }
+        // assuming vehicles serving the exact same stop sequence do not overtake each other,
+        // it does not make sense to transfer to another route that serves the exact same upcoming stops
+        if (cannotReachAdditionalStops(fromRouteStop, toRouteStop)) {
+            return false;
+        }
+        // If one could have transferred to the same route one stop before, it does not make sense
+        // to transfer here.
+        if (couldHaveTransferredOneStopEarlierInOppositeDirection(fromRouteStop, toRouteStop)) {
+            return false;
+        }
+        // if we failed all other checks, it looks like this transfer is useful
         return true;
+    }
+
+    private static boolean isFirstStopInRoute(RRouteStop routeStop) {
+        TransitRouteStop firstRouteStop = routeStop.route.getStops().get(0);
+        return routeStop.routeStop == firstRouteStop;
+    }
+
+    private static boolean isLastStopInRoute(RRouteStop routeStop) {
+        List<TransitRouteStop> routeStops = routeStop.route.getStops();
+        TransitRouteStop lastRouteStop = routeStops.get(routeStops.size() - 1);
+        return routeStop.routeStop == lastRouteStop;
+    }
+
+    private static boolean cannotReachAdditionalStops(RRouteStop fromRouteStop, RRouteStop toRouteStop) {
+        Iterator<TransitRouteStop> fromIter = fromRouteStop.route.getStops().iterator();
+        while (fromIter.hasNext()) {
+            TransitRouteStop routeStop = fromIter.next();
+            if (fromRouteStop.routeStop == routeStop) {
+                break;
+            }
+        }
+        Iterator<TransitRouteStop> toIter = toRouteStop.route.getStops().iterator();
+        while (toIter.hasNext()) {
+            TransitRouteStop routeStop = toIter.next();
+            if (toRouteStop.routeStop == routeStop) {
+                break;
+            }
+        }
+        // both iterators now point to the route stops where the potential transfer happens
+        while (true) {
+            boolean fromRouteHasNext = fromIter.hasNext();
+            boolean toRouteHasNext = toIter.hasNext();
+            if (!toRouteHasNext) {
+                // there are no more stops in the toRoute
+                return true;
+            }
+            if (!fromRouteHasNext) {
+                // there are no more stops in the fromRoute, but there are in the toRoute
+                return false;
+            }
+            TransitRouteStop fromStop = fromIter.next();
+            TransitRouteStop toStop = toIter.next();
+            if (fromStop.getStopFacility() != toStop.getStopFacility()) {
+                // the toRoute goes to a different stop
+                return false;
+            }
+        }
+    }
+
+    private static boolean couldHaveTransferredOneStopEarlierInOppositeDirection(RRouteStop fromRouteStop, RRouteStop toRouteStop) {
+        TransitRouteStop previousRouteStop = null;
+        for (TransitRouteStop routeStop : fromRouteStop.route.getStops()) {
+            if (fromRouteStop.routeStop == routeStop) {
+                break;
+            }
+            previousRouteStop = routeStop;
+        }
+        if (previousRouteStop == null) {
+            return false;
+        }
+
+        Iterator<TransitRouteStop> toIter = toRouteStop.route.getStops().iterator();
+        while (toIter.hasNext()) {
+            TransitRouteStop routeStop = toIter.next();
+            if (toRouteStop.routeStop == routeStop) {
+                break;
+            }
+        }
+        boolean toRouteHasNext = toIter.hasNext();
+        if (!toRouteHasNext) {
+            return false;
+        }
+
+        TransitRouteStop toStop = toIter.next();
+        return previousRouteStop.getStopFacility() == toStop.getStopFacility();
     }
 
     static final class RRoute {
