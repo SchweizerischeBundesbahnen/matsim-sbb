@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author mrieser / SBB
@@ -52,9 +53,10 @@ public class PerformanceAnalysis {
         String testPopulation = "D:\\devsbb\\mrieser\\data\\raptorPerfTest\\population.xml.gz";
         String testSchedule = "D:\\devsbb\\mrieser\\data\\raptorPerfTest\\transitSchedule.xml.gz";
 
-        int maxPlans = 2000;
+        double sample = 0.001;
         int warmupRounds = 3;
         int measurementRounds = 5;
+        Random r = new Random(19012018L);
 
         System.setProperty("matsim.preferLocalDtds", "true");
 
@@ -64,7 +66,7 @@ public class PerformanceAnalysis {
         List<Person> persons = new ArrayList<>();
         StreamingPopulationReader popReader = new StreamingPopulationReader(scenario);
         popReader.addAlgorithm(person -> {
-            if (persons.size() < maxPlans) {
+            if (r.nextDouble() < sample) {
                 // only keep the selected plan
                 List<Plan> allPlans = new ArrayList<>(person.getPlans());
                 for (Plan plan : allPlans) {
@@ -77,6 +79,8 @@ public class PerformanceAnalysis {
         });
         popReader.readFile(testPopulation);
         new TransitScheduleReader(scenario).readFile(testSchedule);
+
+        System.out.println("# persons to be routed: " + persons.size());
 
 //        TransitScheduleValidator.printResult(TransitScheduleValidator.validateAll(scenario.getTransitSchedule(), scenario.getNetwork()));
 
