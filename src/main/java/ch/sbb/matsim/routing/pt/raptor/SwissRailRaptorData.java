@@ -116,7 +116,7 @@ class SwissRailRaptorData {
 
         for (TransitLine line : schedule.getTransitLines().values()) {
             for (TransitRoute route : line.getRoutes().values()) {
-                RRoute rroute = new RRoute(line, route, indexRouteStops, route.getStops().size(), indexDeparture, route.getDepartures().size());
+                RRoute rroute = new RRoute(indexRouteStops, route.getStops().size(), indexDeparture, route.getDepartures().size());
                 routes[indexRoutes] = rroute;
                 for (TransitRouteStop routeStop : route.getStops()) {
                     int stopFacilityIndex = stopFacilityIndices.computeIfAbsent(routeStop.getStopFacility(), stop -> stopFacilityIndices.size());
@@ -330,28 +330,16 @@ class SwissRailRaptorData {
     }
 
     static final class RRoute {
-        final TransitLine line;
-        final TransitRoute route;
         final int indexFirstRouteStop;
         final int countRouteStops;
         final int indexFirstDeparture;
         final int countDepartures;
 
-        RRoute(TransitLine line, TransitRoute route, int indexFirstRouteStop, int countRouteStops, int indexFirstDeparture, int countDepartures) {
-            this.line = line;
-            this.route = route;
+        RRoute(int indexFirstRouteStop, int countRouteStops, int indexFirstDeparture, int countDepartures) {
             this.indexFirstRouteStop = indexFirstRouteStop;
             this.countRouteStops = countRouteStops;
             this.indexFirstDeparture = indexFirstDeparture;
             this.countDepartures = countDepartures;
-        }
-    }
-
-    static final class RStop {
-        final TransitStopFacility stopFacility;
-
-        RStop(TransitStopFacility stopFacility) {
-            this.stopFacility = stopFacility;
         }
     }
 
