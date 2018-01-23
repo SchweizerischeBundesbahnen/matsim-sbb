@@ -209,7 +209,7 @@ class SwissRailRaptorData {
                     RRouteStop fromRouteStop = routeStops[fromRouteStopIndex];
                     for (int toRouteStopIndex : toRouteStopIndices) {
                         RRouteStop toRouteStop = routeStops[toRouteStopIndex];
-                        if (isUsefulTransfer(fromRouteStop, toRouteStop)) {
+                        if (isUsefulTransfer(fromRouteStop, toRouteStop, config.getBeelineWalkConnectionDistance())) {
                             transfers.compute(fromRouteStopIndex, (routeStopIndex, currentTransfers) -> {
                                 RTransfer newTransfer = new RTransfer(fromRouteStopIndex, toRouteStopIndex, fixedTransferTime, transferCost);
                                 if (currentTransfers == null) {
@@ -228,7 +228,7 @@ class SwissRailRaptorData {
         return transfers;
     }
 
-    private static boolean isUsefulTransfer(RRouteStop fromRouteStop, RRouteStop toRouteStop) {
+    private static boolean isUsefulTransfer(RRouteStop fromRouteStop, RRouteStop toRouteStop, double maxDistance) {
         if (fromRouteStop == toRouteStop) {
             return false;
         }
@@ -240,6 +240,11 @@ class SwissRailRaptorData {
         if (isLastStopInRoute(toRouteStop)) {
             return false;
         }
+        // if the first departure at fromRouteStop arrives after the last departure at toRouteStop,
+        // we'll never get any connection here
+        if (hasNoPossibleDeparture(fromRouteStop, toRouteStop)) {
+            return false;
+        }
         // assuming vehicles serving the exact same stop sequence do not overtake each other,
         // it does not make sense to transfer to another route that serves the exact same upcoming stops
         if (cannotReachAdditionalStops(fromRouteStop, toRouteStop)) {
@@ -247,7 +252,7 @@ class SwissRailRaptorData {
         }
         // If one could have transferred to the same route one stop before, it does not make sense
         // to transfer here.
-        if (couldHaveTransferredOneStopEarlierInOppositeDirection(fromRouteStop, toRouteStop)) {
+        if (couldHaveTransferredOneStopEarlierInOppositeDirection(fromRouteStop, toRouteStop, maxDistance)) {
             return false;
         }
         // if we failed all other checks, it looks like this transfer is useful
@@ -263,6 +268,37 @@ class SwissRailRaptorData {
         List<TransitRouteStop> routeStops = routeStop.route.getStops();
         TransitRouteStop lastRouteStop = routeStops.get(routeStops.size() - 1);
         return routeStop.routeStop == lastRouteStop;
+    }
+
+    private static boolean hasNoPossibleDeparture(RRouteStop fromRouteStop, RRouteStop toRouteStop) {
+        Departure earliestDep = getEarliestDeparture(fromRouteStop.route);
+        Departure latestDep = getLatestDeparture(toRouteStop.route);
+        if (earliestDep == null || latestDep == null) {
+            return true;
+        }
+        double earliestArrival = earliestDep.getDepartureTime() + fromRouteStop.arrivalOffset;
+        double latestDeparture = latestDep.getDepartureTime() + toRouteStop.departureOffset;
+        return earliestArrival > latestDeparture;
+    }
+
+    private static Departure getEarliestDeparture(TransitRoute route) {
+        Departure earliest = null;
+        for (Departure dep : route.getDepartures().values()) {
+            if (earliest == null || dep.getDepartureTime() < earliest.getDepartureTime()) {
+                earliest = dep;
+            }
+        }
+        return earliest;
+    }
+
+    private static Departure getLatestDeparture(TransitRoute route) {
+        Departure latest = null;
+        for (Departure dep : route.getDepartures().values()) {
+            if (latest == null || dep.getDepartureTime() > latest.getDepartureTime()) {
+                latest = dep;
+            }
+        }
+        return latest;
     }
 
     private static boolean cannotReachAdditionalStops(RRouteStop fromRouteStop, RRouteStop toRouteStop) {
@@ -301,7 +337,7 @@ class SwissRailRaptorData {
         }
     }
 
-    private static boolean couldHaveTransferredOneStopEarlierInOppositeDirection(RRouteStop fromRouteStop, RRouteStop toRouteStop) {
+    private static boolean couldHaveTransferredOneStopEarlierInOppositeDirection(RRouteStop fromRouteStop, RRouteStop toRouteStop, double maxDistance) {
         TransitRouteStop previousRouteStop = null;
         for (TransitRouteStop routeStop : fromRouteStop.route.getStops()) {
             if (fromRouteStop.routeStop == routeStop) {
@@ -326,7 +362,15 @@ class SwissRailRaptorData {
         }
 
         TransitRouteStop toStop = toIter.next();
-        return previousRouteStop.getStopFacility() == toStop.getStopFacility();
+        if (previousRouteStop.getStopFacility() == toStop.getStopFacility()) {
+            return true;
+        }
+
+        double distance = CoordUtils.calcEuclideanDistance(previousRouteStop.getStopFacility().getCoord(), toStop.getStopFacility().getCoord());
+        if (distance < maxDistance) {
+            return true;
+        }
+        return false;
     }
 
     static final class RRoute {
