@@ -53,7 +53,7 @@ public class PerformanceAnalysis {
         String testPopulation = "D:\\devsbb\\mrieser\\data\\raptorPerfTest\\population.xml.gz";
         String testSchedule = "D:\\devsbb\\mrieser\\data\\raptorPerfTest\\transitSchedule.xml.gz";
 
-        double sample = 0.001;
+        double sample = 0.01;
         int warmupRounds = 3;
         int measurementRounds = 5;
         Random r = new Random(19012018L);
@@ -80,7 +80,16 @@ public class PerformanceAnalysis {
         popReader.readFile(testPopulation);
         new TransitScheduleReader(scenario).readFile(testSchedule);
 
+        int legCount = 0;
+        for (Person person : persons) {
+            for (PlanElement pe : person.getSelectedPlan().getPlanElements()) {
+                if (pe instanceof Leg) {
+                    legCount++;
+                }
+            }
+        }
         System.out.println("# persons to be routed: " + persons.size());
+        System.out.println("# legs to be routed: " + legCount);
 
 //        TransitScheduleValidator.printResult(TransitScheduleValidator.validateAll(scenario.getTransitSchedule(), scenario.getNetwork()));
 
