@@ -9,7 +9,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.groups.QSimConfigGroup;
-import org.matsim.core.controler.Controler;
+import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -28,9 +28,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class NetworkToVisumNetFile {
+public class NetworkToVisumNetFile implements EventWriter {
 
-    private final Controler controler;
+    private int iteration;
+    private String filename;
+
     private final Scenario scenario;
     private final PostProcessingConfigGroup ppConfig;
     private static final String HEADER =
@@ -78,15 +80,14 @@ public class NetworkToVisumNetFile {
 
     private final static Logger log = Logger.getLogger(NetworkToVisumNetFile.class);
 
-    public NetworkToVisumNetFile(Controler controler, PostProcessingConfigGroup ppConfig) {
-        this.controler = controler;
-        this.scenario = controler.getScenario();
+    public NetworkToVisumNetFile(Scenario scenario, String filename, PostProcessingConfigGroup ppConfig) {
+        this.filename = filename;
+        this.scenario = scenario;
         this.ppConfig = ppConfig;
     }
 
-    public void write(String path) {
+    public void write() {
         log.info("start preprocessing to visum-net-file");
-        String output = controler.getConfig().controler().getOutputDirectory();
         Network network = scenario.getNetwork();
         TransitSchedule schedule = scenario.getTransitSchedule();
         double scaleFactor = 1.0 / ((QSimConfigGroup) scenario.getConfig().getModule(QSimConfigGroup.GROUP_NAME)).getFlowCapFactor();
@@ -94,39 +95,49 @@ public class NetworkToVisumNetFile {
         // read count data per stop
         Map<TransitStopFacility, Double> countAlightingsPerStop = new HashMap<>();
         Map<TransitStopFacility, Double> countBoardingsPerStop = new HashMap<>();
-        File stopCountData = new File(ppConfig.getStopCountDataFile());
-        if (ppConfig.getStopCountDataFile() != null && stopCountData.isFile())
-            readAlightingBoardingDataPerStop(ppConfig.getStopCountDataFile(), schedule, countAlightingsPerStop, countBoardingsPerStop, 1.0);
-        else if (!stopCountData.isFile())
-            log.warn("The stop file defined in the config is not valid. Leaving this column empty.");
-        else
+
+        if (ppConfig.getStopCountDataFile() != null) {
+            File stopCountData = new File(ppConfig.getStopCountDataFile());
+
+            if (stopCountData.isFile()) {
+                readAlightingBoardingDataPerStop(ppConfig.getStopCountDataFile(), schedule, countAlightingsPerStop, countBoardingsPerStop, 1.0);
+            } else {
+                log.warn("The stop file defined in the config is not valid. Leaving this column empty.");
+            }
+        } else {
             log.info("No stop count data file specified. Leaving this column empty.");
+        }
 
         Map<TransitStopFacility, Double> nbAlightingsPerStop = new HashMap<>();
         Map<TransitStopFacility, Double> nbBoardingsPerStop = new HashMap<>();
         if (ppConfig.getPtVolumes()) {
-            readAlightingBoardingDataPerStop(output + "/" + PtVolumeToCSV.FILENAME_STOPS, schedule, nbAlightingsPerStop, nbBoardingsPerStop, scaleFactor);
+            readAlightingBoardingDataPerStop(this.filename + PtVolumeToCSV.FILENAME_STOPS, schedule, nbAlightingsPerStop, nbBoardingsPerStop, scaleFactor);
         }
 
         // read count data per link
         Map<Link, Double> countVehiclesPerLink = new HashMap<>();
-        File linkCountData = new File(ppConfig.getLinkCountDataFile());
-        if (ppConfig.getLinkCountDataFile() != null && linkCountData.isFile())
-            readVolumeDataPerLink(ppConfig.getLinkCountDataFile(), network, countVehiclesPerLink, 1.0);
-        else if (!linkCountData.isFile())
-            log.warn("The link file defined in the config is not valid. Leaving this column empty.");
-        else
+
+        if (ppConfig.getLinkCountDataFile() != null) {
+            File linkCountData = new File(ppConfig.getLinkCountDataFile());
+
+            if (linkCountData.isFile()) {
+                readVolumeDataPerLink(ppConfig.getLinkCountDataFile(), network, countVehiclesPerLink, 1.0);
+            } else {
+                log.warn("The link file defined in the config is not valid. Leaving this column empty.");
+            }
+        } else {
             log.info("No link count data file specified. Leaving this column empty.");
+        }
 
         // read number of vehicles and number of pt passengers per link
         Map<Link, Double> nbVehiclesPerLink = new HashMap<>();
         Map<Link, Double> nbPassengersPerLink = new HashMap<>();
         if (ppConfig.getLinkVolumes()) {
-            readVolumeDataPerLink(output + "/" + LinkVolumeToCSV.FILENAME_VOLUMES, network, nbVehiclesPerLink, scaleFactor);
-            readPassengerVolumeDataPerLink(output + "/" + LinkVolumeToCSV.FILENAME_VOLUMES, network, nbPassengersPerLink, scaleFactor);
+            readVolumeDataPerLink(this.filename + LinkVolumeToCSV.FILENAME_VOLUMES, network, nbVehiclesPerLink, scaleFactor);
+            readPassengerVolumeDataPerLink(this.filename + LinkVolumeToCSV.FILENAME_VOLUMES, network, nbPassengersPerLink, scaleFactor);
         }
         try {
-            BufferedWriter writer = IOUtils.getBufferedWriter(path + "/net.net");
+            BufferedWriter writer = IOUtils.getBufferedWriter(this.filename + "net.net");
             writer.write(HEADER);
             writer.write(BENDEFATTR_NET_STRING);
             writer.write(VSY_NET_STRING);
@@ -418,5 +429,15 @@ public class NetworkToVisumNetFile {
             sum += d;
         }
         return sum / l.size();
+    }
+
+    @Override
+    public void closeFile() {
+        this.write();
+    }
+
+    @Override
+    public void reset(int iteration) {
+        this.iteration = iteration;
     }
 }

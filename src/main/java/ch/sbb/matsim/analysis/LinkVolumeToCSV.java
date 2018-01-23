@@ -9,12 +9,13 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.core.events.algorithms.EventWriter;
 
 import java.util.HashMap;
 import java.util.Set;
 
 
-public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
+public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
 
     private final static Logger log = Logger.getLogger(LinkVolumeToCSV.class);
 
@@ -25,15 +26,17 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
     public static final String COL_VOLUME = "volume";
     public static final String COL_NBPASSENGERS = "nb_passengers";
     public static final String[] COLUMNS = new String[]{COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME, COL_NBPASSENGERS};
+    private String filename;
 
     Scenario scenario;
 
     private final CSVWriter linkVolumesWriter = new CSVWriter(COLUMNS);
 
 
-    public LinkVolumeToCSV(Scenario scenario){
+    public LinkVolumeToCSV(Scenario scenario, String filename){
         super(3600, 24 * 3600 - 1, scenario.getNetwork());
         this.scenario = scenario;
+        this.filename = filename;
     }
 
     // Methods
@@ -43,7 +46,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
         linkVolumesWriter.clear();
     }
 
-    public void write(String path){
+    public void write(){
         log.info("write linkvolumes");
         Set<String> modes = super.getModes();
         for (Id<Link> linkId: super.getLinkIds()) {
@@ -62,6 +65,11 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB {
                 }
             }
         }
-        linkVolumesWriter.write(path + "/" + FILENAME_VOLUMES);
+        linkVolumesWriter.write(this.filename + FILENAME_VOLUMES);
+    }
+
+    @Override
+    public void closeFile() {
+        this.write();
     }
 }

@@ -17,6 +17,7 @@ public 	 class Trip extends TravelComponent {
 	private Coord dest;
 	private Id boardingStop;
 	private Id alightingStop;
+	private Id vehicleId;
 	private double distance;
 	private double PtDepartureTime;
 	private double PtDepartureDelay;
@@ -31,6 +32,15 @@ public 	 class Trip extends TravelComponent {
 				.format("\tTRIP: mode: %s start: %6.0f end: %6.0f distance: %6.0f \n",
 						getMode(), getStartTime(), getEndTime(), getDistance());
 	}
+
+	public Id getVehicleId() {
+		return vehicleId;
+	}
+
+	public void setVehicleId(Id vehicleId) {
+		this.vehicleId = vehicleId;
+	}
+
 
 	public Id getLine() {
 		return line;

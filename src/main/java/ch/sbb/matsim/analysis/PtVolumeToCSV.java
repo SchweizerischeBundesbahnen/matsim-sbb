@@ -6,7 +6,6 @@ package ch.sbb.matsim.analysis;
 
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
@@ -17,10 +16,12 @@ import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
 import org.matsim.core.api.experimental.events.VehicleDepartsAtFacilityEvent;
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
+import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.vehicles.Vehicle;
 import ch.sbb.matsim.calibration.PTObjective;
 import ch.sbb.matsim.csv.CSVWriter;
 
+import java.io.BufferedWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,10 +30,14 @@ import java.util.Map;
 public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         VehicleArrivesAtFacilityEventHandler,
         PersonEntersVehicleEventHandler,
-        PersonLeavesVehicleEventHandler, VehicleDepartsAtFacilityEventHandler {
+        PersonLeavesVehicleEventHandler,
+        VehicleDepartsAtFacilityEventHandler,
+        EventWriter {
+    private BufferedWriter out = null;
 
     private final static Logger log = Logger.getLogger(PTObjective.class);
 
+    public String filename;
     public static final String FILENAME_STOPS =  "matsim_stops.csv";
     public static final String FILENMAE_VEHJOURNEYS = "matsim_vehjourneys.csv";
 
@@ -53,16 +58,13 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     public static final String[] COLS_STOPS = new String[]{COL_INDEX, COL_STOP_ID, COL_BOARDING, COL_ALIGHTING, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
     public static final String[] COLS_VEHJOURNEYS = new String[]{COL_INDEX, COL_FROM_STOP_ID, COL_TO_STOP_ID, COL_PASSENGERS, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
 
-    Scenario scenario;
-
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> ptAgents = new HashSet<>();
     private CSVWriter stopsWriter = new CSVWriter(COLS_STOPS);
     private CSVWriter vehJourneyWriter = new CSVWriter(COLS_VEHJOURNEYS);
 
-
-    public PtVolumeToCSV(Scenario scenario){
-        this.scenario = scenario;
+    public PtVolumeToCSV(String filename) {
+        this.filename = filename;
     }
 
     // Methods
@@ -74,15 +76,15 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         ptVehicles.clear();
     }
 
-    public void write(String path){
-        stopsWriter.write(path + "/" + FILENAME_STOPS);
-        vehJourneyWriter.write(path+ "/" + FILENMAE_VEHJOURNEYS);
+    public void write(){
+        stopsWriter.write(this.filename + FILENAME_STOPS);
+        vehJourneyWriter.write(this.filename + FILENMAE_VEHJOURNEYS);
     }
 
     @Override
     public void handleEvent(TransitDriverStartsEvent event) {
-        PTVehicle ptVehilce = new PTVehicle(event.getTransitLineId(), event.getTransitRouteId(), event.getDepartureId(), event.getVehicleId());
-        ptVehicles.put(event.getVehicleId(), ptVehilce);
+        PTVehicle ptVehicle = new PTVehicle(event.getTransitLineId(), event.getTransitRouteId(), event.getDepartureId(), event.getVehicleId());
+        ptVehicles.put(event.getVehicleId(), ptVehicle);
         ptAgents.add(event.getDriverId());
     }
 
@@ -122,6 +124,11 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         if(ptVehicle != null){
             ptVehicle.removePassenger();
         }
+    }
+
+    @Override
+    public void closeFile() {
+        this.write();
     }
 
 

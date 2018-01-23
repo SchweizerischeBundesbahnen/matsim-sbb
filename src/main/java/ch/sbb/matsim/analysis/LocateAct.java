@@ -4,19 +4,24 @@
 
 package ch.sbb.matsim.analysis;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.utils.gis.ShapeFileReader;
+import org.opengis.feature.simple.SimpleFeature;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
-import javafx.util.Pair;
-import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Coord;
-import org.matsim.core.utils.gis.ShapeFileReader;
-import org.opengis.feature.simple.SimpleFeature;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 public class LocateAct {
     private final static Logger log = Logger.getLogger(LocateAct.class);
@@ -39,13 +44,27 @@ public class LocateAct {
         this.attribute = attribute;
     }
 
-    private void readShapeFile(String shapefile){
+    public void fillCache(Population population) {
+
+        for (Person person : population.getPersons().values()) {
+            Plan plan = person.getSelectedPlan();
+            for (PlanElement pe : plan.getPlanElements()) {
+                if (pe instanceof Activity) {
+                    Coord coord = ((Activity) pe).getCoord();
+                    getZone(coord);
+
+                }
+            }
+        }
+    }
+
+    private void readShapeFile(String shapefile) {
         ShapeFileReader shapeFileReader = new ShapeFileReader();
         shapeFileReader.readFileAndInitialize(shapefile);
         this.features = shapeFileReader.getFeatureSet();
     }
 
-    public SimpleFeature getZone(Coord coord){
+    public SimpleFeature getZone(Coord coord) {
 
         if (coordCache.containsKey(coord)) {
             return coordCache.get(coord);
@@ -61,6 +80,7 @@ public class LocateAct {
                 }
             }
 
+            coordCache.put(coord, null);
             return null;
         }
     }

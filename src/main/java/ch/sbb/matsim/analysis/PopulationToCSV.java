@@ -14,6 +14,7 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.households.HouseholdsReaderV10;
@@ -26,43 +27,39 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PopulationToCSV {
+public class PopulationToCSV implements EventWriter{
 
     private final static Logger log = Logger.getLogger(PopulationToCSV.class);
 
     CSVWriter agents_writer = null;
     CSVWriter planelements_writer = null;
 
+    private String filename;
+
     public PopulationToCSV(Scenario scenario) {
-
-
         PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
-
-        Cleaner cleaner = new Cleaner(scenario.getPopulation());
-        cleaner.clean();
-
+        Population population = scenario.getPopulation();
         String[] attributes = ppConfig.getPersonAttributes().split(",");
 
         agents_writer = new CSVWriter(getColumns(attributes));
         planelements_writer = new CSVWriter(new String[]{"person_id", "plan_id", "planelement_id", "selected", "plan_score", "start_time", "end_time", "type", "mode", "activity_type", "x", "y"});
 
-        for (Person person : scenario.getPopulation().getPersons().values()) {
+        for (Person person : population.getPersons().values()) {
             HashMap<String, String> agent = agents_writer.addRow();
             agent.put("person_id", person.getId().toString());
 
-
-            for (Map.Entry<String, Object> attribute : person.getCustomAttributes().entrySet()) {
-                if (attribute.getValue() != null) {
-                    agent.put(attribute.getKey(), attribute.getValue().toString());
-                }
-            }
             for (String attribute_name : attributes) {
-                Object attribute = scenario.getPopulation().getPersonAttributes().getAttribute(person.getId().toString(), attribute_name);
+                Object attribute;
+                attribute = person.getAttributes().getAttribute(attribute_name);
+
+                if (attribute == null) {
+                    attribute = population.getPersonAttributes().getAttribute(person.getId().toString(), attribute_name);
+                }
+
                 if (attribute != null) {
                     agent.put(attribute_name, attribute.toString());
                 }
             }
-
 
             int j = 0;
             for (Plan plan : person.getPlans()) {
@@ -112,6 +109,11 @@ public class PopulationToCSV {
         }
     }
 
+    public PopulationToCSV(Scenario scenario, String filename) {
+        this(scenario);
+        this.filename = filename;
+    }
+
     public void write(String agentsFilename, String planElementFilename) {
         agents_writer.write(agentsFilename);
         planelements_writer.write(planElementFilename);
@@ -158,4 +160,13 @@ public class PopulationToCSV {
     }
 
 
+    @Override
+    public void closeFile() {
+        this.write(this.filename + "agents.csv",this.filename + "plan_elements.csv");
+    }
+
+    @Override
+    public void reset(int iteration) {
+
+    }
 }

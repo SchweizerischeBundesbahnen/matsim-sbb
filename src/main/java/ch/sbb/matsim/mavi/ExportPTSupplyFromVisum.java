@@ -56,6 +56,21 @@ import java.util.Set;
 
 public class ExportPTSupplyFromVisum {
 
+    public final static String ATT_DATENHERKUNFT = "01_Datenherkunft";
+    public final static String ATT_STOP_NO = "02_Stop_No";
+    public final static String ATT_STOP_CODE = "03_Stop_Code";
+    public final static String ATT_STOP_NAME = "04_Stop_Name";
+    public final static String ATT_STOP_DIDOK_HAFAS = "05_Stop_Didok_Hafas";
+    public final static String ATT_STOP_AREA_NO = "06_Stop_Area_No";
+
+    public final static String ATT_TRANSITLINE = "02_TransitLine";
+    public final static String ATT_LINEROUTENAME = "03_LineRouteName";
+    public final static String ATT_DIRECTIONCODE = "04_DirectionCode";
+    public final static String ATT_FZPNAME = "05_Name";
+    public final static String ATT_OPERATOR_NAME= "06_OperatorName";
+    public final static String ATT_OPERATOR_NO= "07_OperatorNo";
+    public final static String ATT_TSYSNAME= "08_TSysName";
+
     private static Logger log;
 
     private Scenario scenario;
@@ -200,21 +215,21 @@ public class ExportPTSupplyFromVisum {
 
             // custom stop attributes as identifiers
             String datenHerkunft = Dispatch.call(item, "AttValue", "Datenherkunft").toString();
-            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),"01_Datenherkunft", datenHerkunft);
+            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_DATENHERKUNFT, datenHerkunft);
             double stopNo = Double.valueOf(Dispatch.call(item, "AttValue", "StopArea\\Stop\\No").toString());
-            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),"02_Stop_No", (int) stopNo);
+            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_NO, (int) stopNo);
             String stopCode = Dispatch.call(item, "AttValue", "StopArea\\Stop\\Code").toString();
             if(!stopCode.equals(""))
-                this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),"03_Stop_Code", stopCode);
+                this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_CODE, stopCode);
             String stopName = Dispatch.call(item, "AttValue", "StopArea\\Stop\\Name").toString();
             if(!stopName.equals(""))
-                this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),"04_Stop_Name", stopName);
+                this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_NAME, stopName);
             if(!Dispatch.call(item, "AttValue", "DIDOKNR_HAFAS").toString().equals("null")) {
                 double stopDidokHafas = Double.valueOf(Dispatch.call(item, "AttValue", "DIDOKNR_HAFAS").toString());
-                this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), "05_Stop_Didok_Hafas", (int) stopDidokHafas);
+                this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), ATT_STOP_DIDOK_HAFAS, (int) stopDidokHafas);
             }
             double stopAreaNo = Double.valueOf(Dispatch.call(item, "AttValue", "StopAreaNo").toString());
-            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),"06_Stop_Area_No", (int) stopAreaNo);
+            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_AREA_NO, (int) stopAreaNo);
 
             this.schedule.addStopFacility(st);
 
@@ -328,22 +343,22 @@ public class ExportPTSupplyFromVisum {
 
                     // custom route identifiers
                     String datenHerkunft = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "01_Datenherkunft", datenHerkunft);
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "02_TransitLine", lineName);
+                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_DATENHERKUNFT, datenHerkunft);
+                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_TRANSITLINE, lineName);
                     String lineRouteName = Dispatch.call(item, "AttValue", "LineRouteName").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "03_LineRouteName", lineRouteName);
+                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_LINEROUTENAME, lineRouteName);
                     String richtungsCode = Dispatch.call(item, "AttValue", "DirectionCode").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "04_DirectionCode", richtungsCode);
+                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_DIRECTIONCODE, richtungsCode);
                     String name = Dispatch.call(item, "AttValue", "Name").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "05_Name", name);
+                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_FZPNAME, name);
                     String operatorName = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\Name").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "06_OperatorName", operatorName);
+                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_OPERATOR_NAME, operatorName);
                     if(!Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\No").toString().equals("null")) {
                         double operatorNo = Double.valueOf(Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\No").toString());
-                        this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "07_OperatorNo", (int) operatorNo);
+                        this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_OPERATOR_NO, (int) operatorNo);
                     }
                     String tSysName = Dispatch.call(item, "AttValue", "LineRoute\\Line\\TSysName").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), "08_TSysName", tSysName);
+                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_TSYSNAME, tSysName);
 
                     // Fahrzeitprofil-Verläufe
                     List<TransitRouteStop> transitRouteStops = new ArrayList<>();
