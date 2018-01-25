@@ -25,6 +25,7 @@ import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +53,23 @@ public class ConfigParser {
     static private final Set<String> GENERAL_PARAM_LABELS = new HashSet<>(Arrays.asList(GENERAL_PARAM_LABEL_VALUES));
     static private final Set<String> MODE_PARAM_LABELS = new HashSet<>(Arrays.asList(MODE_PARAM_LABEL_VALUES));
 
+    static private final String DUMMY_GROUP_SHEET_LABEL = "DummyGroupForScoringOnlyDefault";
+    static private final String DUMMY_GROUP_NAME = "DummyDistanceCorrection";
+    static private final String SEASON_CARD_SHEET_LABEL = "Abobesitz";
+    static private final String SEASON_CARD_NAME = "Abobesitz";
+    static private final String CAR_AVAIL_SHEET_LABEL = "PW_Verf";
+    static private final String CAR_AVAIL_NAME = "PW Verfuegbarkeit";
+    static private final String LAND_USE_SHEET_LABEL = "Raumtyp";
+    static private final String LAND_USE_NAME = "Raumtyp";
+
+    static private final Map<String, String> BEHAVIOR_GROUP_LABELS = new HashMap<>();
+    static {
+        BEHAVIOR_GROUP_LABELS.put(DUMMY_GROUP_SHEET_LABEL, DUMMY_GROUP_NAME);
+        BEHAVIOR_GROUP_LABELS.put(SEASON_CARD_SHEET_LABEL, SEASON_CARD_NAME);
+        BEHAVIOR_GROUP_LABELS.put(CAR_AVAIL_SHEET_LABEL, CAR_AVAIL_NAME);
+        BEHAVIOR_GROUP_LABELS.put(LAND_USE_SHEET_LABEL, LAND_USE_NAME);
+    }
+
     private static Logger log = Logger.getLogger(RunSBB.class);
 
     public static void main(final String[] args) {
@@ -62,61 +80,23 @@ public class ConfigParser {
         final Config config = ConfigUtils.loadConfig(configIn, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup());
 
-        Map<String, Double> generalParams = new TreeMap<>();
-        Integer generalParamsCol = null;
-        Map<Integer, String> modes = new TreeMap<Integer, String>();
-        Map<String, Map<String, Double>> modeParamsMap = new TreeMap<String, Map<String, Double>>();
+        PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
 
         try {
             FileInputStream inputStream = new FileInputStream(xlsx);
             Workbook workbook = WorkbookFactory.create(inputStream);
+
             Sheet scoringParamsSheet = workbook.getSheet(SCORING_SHEET_LABEL);
 
-            for (Row row : scoringParamsSheet) {
-                Cell firstCell = row.getCell(0);
+            if (workbook != null) {
+                parseScoringParamsSheet(scoringParamsSheet, planCalcScore);
+            }
 
-                if ((firstCell != null) && (firstCell.getCellTypeEnum() == CellType.STRING)) {
-                    String rowLabel = firstCell.getStringCellValue();
+            for (Map.Entry<String, String> entry : BEHAVIOR_GROUP_LABELS.entrySet()) {
+                Sheet behaviorGroupParamsSheet = workbook.getSheet(entry.getKey());
 
-                    if (rowLabel.equals(MATSIM_PARAMS_LABEL)) {
-                        int lastColumn = row.getLastCellNum();
-
-                        for (int col = 1; col < lastColumn; col++) {
-                            Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-
-                            if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
-                                if (cell.getStringCellValue().equals(GENERAL_PARAMS_LABEL)) {
-                                    generalParamsCol = col;
-                                } else {
-                                    modes.put(col, cell.getStringCellValue());
-                                }
-                            }
-                        }
-
-                        continue;
-                    } else if (MODE_PARAM_LABELS.contains(rowLabel)) {
-                        for (Map.Entry<Integer, String> entry : modes.entrySet()) {
-                            if (!modeParamsMap.containsKey(entry.getValue())) {
-                                modeParamsMap.put(entry.getValue(), new TreeMap<String, Double>());
-                            }
-
-                            Cell cell = row.getCell(entry.getKey());
-
-                            if (cell.getCellTypeEnum() == CellType.NUMERIC) {
-                                modeParamsMap.get(entry.getValue()).put(rowLabel, cell.getNumericCellValue());
-                            } else if (cell.getCellTypeEnum() == CellType.FORMULA) {
-                                modeParamsMap.get(entry.getValue()).put(rowLabel, cell.getNumericCellValue());
-                            }
-                        }
-                    } else if (GENERAL_PARAM_LABELS.contains(rowLabel)) {
-                        Cell cell = row.getCell(generalParamsCol);
-
-                        if (cell.getCellTypeEnum() == CellType.NUMERIC) {
-                            generalParams.put(rowLabel, cell.getNumericCellValue());
-                        } else if (cell.getCellTypeEnum() == CellType.FORMULA) {
-                            generalParams.put(rowLabel, cell.getNumericCellValue());
-                        }
-                    }
+                if (behaviorGroupParamsSheet != null) {
+                    parseBehaviorGroupParamsSheet(entry.getValue(), behaviorGroupParamsSheet, planCalcScore);
                 }
             }
         } catch (IOException e) {
@@ -125,34 +105,69 @@ public class ConfigParser {
             e.printStackTrace();
         }
 
-        PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+        new ConfigWriter(config).write(configOut);
+    }
 
-        for (Map.Entry<String, Double> entry : generalParams.entrySet()) {
-            planCalcScore.addParam(entry.getKey(), String.valueOf(entry.getValue()));
-        }
+    protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore) {
+        Map<Integer, PlanCalcScoreConfigGroup.ModeParams> modeParamsConfig = new TreeMap<>();
+        Integer generalParamsCol = null;
 
-        for (Map.Entry<String, Map<String, Double>> entry : modeParamsMap.entrySet()) {
-            String mode = entry.getKey();
+        for (Row row : scoringParamsSheet) {
+            Cell firstCell = row.getCell(0);
 
-            PlanCalcScoreConfigGroup.ModeParams modeParams = planCalcScore.getOrCreateModeParams(mode);
+            if ((firstCell != null) && (firstCell.getCellTypeEnum() == CellType.STRING)) {
+                String rowLabel = firstCell.getStringCellValue();
 
-            for (Map.Entry<String, Double> paramEntry : entry.getValue().entrySet()) {
-                switch (paramEntry.getKey()) {
-                    case CONSTANT:
-                        modeParams.setConstant(paramEntry.getValue());
-                        break;
-                    case MARGINAL_UTILITY_OF_DISTANCE:
-                        modeParams.setMarginalUtilityOfDistance(paramEntry.getValue());
-                        break;
-                    case MARGINAL_UTILITY_OF_TRAVELING:
-                        modeParams.setMarginalUtilityOfTraveling(paramEntry.getValue());
-                        break;
-                    case MONETARY_DISTANCE_RATE:
-                        modeParams.setMonetaryDistanceRate(paramEntry.getValue());
-                        break;
+                if (rowLabel.equals(MATSIM_PARAMS_LABEL)) {
+                    int lastColumn = row.getLastCellNum();
+
+                    for (int col = 1; col < lastColumn; col++) {
+                        Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+
+                        if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
+                            if (cell.getStringCellValue().equals(GENERAL_PARAMS_LABEL)) {
+                                generalParamsCol = col;
+                            } else {
+                                String mode = cell.getStringCellValue();
+                                PlanCalcScoreConfigGroup.ModeParams modeParams = planCalcScore.getOrCreateModeParams(mode);
+                                modeParamsConfig.put(col, modeParams);
+                            }
+                        }
+                    }
+                } else if (MODE_PARAM_LABELS.contains(rowLabel)) {
+                    for (Map.Entry<Integer, PlanCalcScoreConfigGroup.ModeParams> entry : modeParamsConfig.entrySet()) {
+                        Cell cell = row.getCell(entry.getKey());
+                        PlanCalcScoreConfigGroup.ModeParams modeParams = entry.getValue();
+
+                        if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+                            switch (rowLabel) {
+                                case CONSTANT:
+                                    modeParams.setConstant(cell.getNumericCellValue());
+                                    break;
+                                case MARGINAL_UTILITY_OF_DISTANCE:
+                                    modeParams.setMarginalUtilityOfDistance(cell.getNumericCellValue());
+                                    break;
+                                case MARGINAL_UTILITY_OF_TRAVELING:
+                                    modeParams.setMarginalUtilityOfTraveling(cell.getNumericCellValue());
+                                    break;
+                                case MONETARY_DISTANCE_RATE:
+                                    modeParams.setMonetaryDistanceRate(cell.getNumericCellValue());
+                                    break;
+                            }
+                        }
+                    }
+                } else if (GENERAL_PARAM_LABELS.contains(rowLabel)) {
+                    Cell cell = row.getCell(generalParamsCol);
+
+                    if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+                        planCalcScore.addParam(rowLabel, String.valueOf(cell.getNumericCellValue()));
+                    }
                 }
             }
         }
+    }
+
+    protected static void parseBehaviorGroupParamsSheet(String behaviorGroupName, Sheet bgParamsSheet, PlanCalcScoreConfigGroup planCalcScore) {
 
         /*
         SBBBehaviorGroupsConfigGroup bgConfigGroup = (SBBBehaviorGroupsConfigGroup) config.getModules().get(SBBBehaviorGroupsConfigGroup.GROUP_NAME);
@@ -176,6 +191,5 @@ public class ConfigParser {
 
         bgConfigGroup.addBehaviorGroupParams(bgParams);
 */
-        new ConfigWriter(config).write(configOut);
     }
 }
