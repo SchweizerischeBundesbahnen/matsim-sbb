@@ -14,7 +14,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private String shapeFile = "./output_merger";
     private String zoneAttribute = "GMDNR";
     private Boolean mapActivitiesToZone = false;
-    private Boolean travelDiaries = false;
+    private Boolean travelDiaries = true;
     private Boolean ptVolumes = false;
     private Boolean linkVolumes = false;
     private Boolean eventsPerPerson = false;
