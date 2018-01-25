@@ -8,6 +8,9 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.pt.router.TransitRouterConfig;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
 
 public class TravelComponent {
 
@@ -16,7 +19,7 @@ public class TravelComponent {
 		return getEndTime() - getStartTime();
 	}
 
-	private static int id = 0; // for enumeration
+	private static AtomicInteger id = new AtomicInteger(0); // for enumeration
 
 	private double startTime;
 	private double endTime = 30 * 3600;
@@ -24,7 +27,7 @@ public class TravelComponent {
 	private int elementId;
 
 	public TravelComponent(Config config) {
-		elementId = id++;
+		elementId = id.incrementAndGet();
 		endTime = config.qsim().getEndTime();
 	}
 
