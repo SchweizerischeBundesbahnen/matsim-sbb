@@ -69,7 +69,7 @@ public class SwissRailRaptorCore {
     }
 
     public RaptorRoute calcLeastCostRoute(double depTime, List<InitialStop> accessStops, List<InitialStop> egressStops) {
-        final int maxTransfers = 20; // TODO make configurable
+        final int maxTransfers = 20; // sensible defaults, could be made configurable if there is a need for it.
         final int maxTransfersAfterFirstArrival = 2;
 
         reset();
@@ -147,17 +147,18 @@ public class SwissRailRaptorCore {
             if (firstRouteStop.transitRouteIndex == routeIndex) {
                 continue; // we've handled this route already
             }
-            routeIndex = firstRouteStop.transitRouteIndex;
+            int tmpRouteIndex = firstRouteStop.transitRouteIndex;
 
             // for each relevant route, step along route and look for new/improved connections
-            RRoute route = this.data.routes[routeIndex];
+            RRoute route = this.data.routes[tmpRouteIndex];
 
             // firstRouteStop is the first RouteStop in the route we can board in this round
             // figure out which departure we can take
             PathElement boardingPE = this.arrivalPathPerRouteStop[firstRouteStopIndex];
             double agentFirstArrivalTime = boardingPE.arrivalTime;
             int currentDepartureIndex = findNextDepartureIndex(route, firstRouteStop, agentFirstArrivalTime);
-            if (currentDepartureIndex >=0) {
+            if (currentDepartureIndex >= 0) {
+                routeIndex = tmpRouteIndex;
                 double currentDepartureTime = this.data.departures[currentDepartureIndex];
                 double vehicleArrivalTime = currentDepartureTime + firstRouteStop.arrivalOffset;
                 double currentAgentBoardingTime = (agentFirstArrivalTime < vehicleArrivalTime) ? vehicleArrivalTime : agentFirstArrivalTime;
@@ -288,12 +289,19 @@ public class SwissRailRaptorCore {
         RaptorRoute raptorRoute = new RaptorRoute(null, null, arrivalCost);
         double time = departureTime;
         TransitStopFacility fromStop = null;
+        int peCount = pes.size();
+        int i = -1;
         for (PathElement pe : pes) {
+            i++;
             TransitStopFacility toStop = pe.toRouteStop == null ? null : pe.toRouteStop.routeStop.getStopFacility();
             double travelTime = pe.arrivalTime - time;
             if (pe.isTransfer) {
                 boolean differentFromTo = (fromStop == null || toStop == null) || (fromStop != toStop);
                 if (differentFromTo) {
+                    if (i == peCount - 2) {
+                        // the second last element is a transfer, skip it so it gets merged into the egress_walk
+                        continue;
+                    }
                     // do not create a transfer-leg if we stay at the same stop facility
                     String mode = TransportMode.transit_walk;
                     if (fromStop == null && toStop != null) {

@@ -10,21 +10,21 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
 /**
  * @author mrieser / SBB
  */
+@Singleton
 public class SwissRailRaptorFactory implements Provider<TransitRouter> {
 
     private SwissRailRaptorData data = null;
     private final TransitSchedule schedule;
-    private final Config config;
     private final RaptorConfig raptorConfig;
 
     @Inject
     public SwissRailRaptorFactory(final TransitSchedule schedule, final Config config) {
         this.schedule = schedule;
-        this.config = config;
         this.raptorConfig = RaptorUtils.createRaptorConfig(config);
     }
 
