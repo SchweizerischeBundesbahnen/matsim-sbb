@@ -209,8 +209,16 @@ public class ConfigParser {
         for (Row row : behaviorGroupParamsSheet) {
             Cell firstCell = row.getCell(0);
 
-            if ((firstCell != null) && (firstCell.getCellTypeEnum() == CellType.STRING)) {
-                String rowLabel = firstCell.getStringCellValue();
+            if (firstCell != null) {
+                String rowLabel = null;
+
+                if (firstCell.getCellTypeEnum() == CellType.STRING) {
+                    rowLabel = firstCell.getStringCellValue();
+                } else if (firstCell.getCellTypeEnum() == CellType.NUMERIC) {
+                    rowLabel = String.valueOf((int) firstCell.getNumericCellValue());
+                } else {
+                    continue;
+                }
 
                 if (rowLabel.equals(PERSON_ATTRIBUTE_LABEL)) {
                     int lastColumn = row.getLastCellNum();
@@ -271,17 +279,14 @@ public class ConfigParser {
             }
         }
 
-        for (Map.Entry<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> entry : modeCorrections.entrySet()) {
-            String personAttributeValue = entry.getKey();
-            Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection> modeCorrectionsPerMode = entry.getValue();
+        for (Map.Entry<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> modeCorrectionsEntry : modeCorrections.entrySet()) {
+            String personAttributeValue = modeCorrectionsEntry.getKey();
+            Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection> modeCorrectionsPerMode = modeCorrectionsEntry.getValue();
 
             SBBBehaviorGroupsConfigGroup.PersonGroupTypes types = new SBBBehaviorGroupsConfigGroup.PersonGroupTypes();
             types.setPersonGroupType(personAttributeValue);
 
-            for (Map.Entry<String, SBBBehaviorGroupsConfigGroup.ModeCorrection> subEntry : modeCorrectionsPerMode.entrySet()) {
-                String mode = subEntry.getKey();
-                SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = subEntry.getValue();
-
+            for (SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection : modeCorrectionsPerMode.values()) {
                 if (modeCorrection.isSet()) {
                     types.addModeCorrection(modeCorrection);
                 }
