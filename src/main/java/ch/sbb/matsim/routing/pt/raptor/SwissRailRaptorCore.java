@@ -160,11 +160,15 @@ public class SwissRailRaptorCore {
             if (currentDepartureIndex >= 0) {
                 routeIndex = tmpRouteIndex;
                 double currentDepartureTime = this.data.departures[currentDepartureIndex];
-                double vehicleArrivalTime = currentDepartureTime + firstRouteStop.arrivalOffset;
-                double currentAgentBoardingTime = (agentFirstArrivalTime < vehicleArrivalTime) ? vehicleArrivalTime : agentFirstArrivalTime;
-                double waitingTime = currentAgentBoardingTime - agentFirstArrivalTime;
-                double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * waitingTime;
-                double currentCostWhenBoarding = boardingPE.arrivalCost + waitingCost;
+                double currentAgentBoardingTime;
+                double currentCostWhenBoarding;
+                {
+                    double vehicleArrivalTime = currentDepartureTime + firstRouteStop.arrivalOffset;
+                    currentAgentBoardingTime = (agentFirstArrivalTime < vehicleArrivalTime) ? vehicleArrivalTime : agentFirstArrivalTime;
+                    double waitingTime = currentAgentBoardingTime - agentFirstArrivalTime;
+                    double waitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * waitingTime;
+                    currentCostWhenBoarding = boardingPE.arrivalCost + waitingCost;
+                }
 
                 for (int toRouteStopIndex = firstRouteStopIndex + 1; toRouteStopIndex < route.indexFirstRouteStop + route.countRouteStops; toRouteStopIndex++) {
                     RRouteStop toRouteStop = this.data.routeStops[toRouteStopIndex];
@@ -172,7 +176,8 @@ public class SwissRailRaptorCore {
                     double inVehicleTime = arrivalTime - currentAgentBoardingTime;
                     double inVehicleCost = inVehicleTime * -this.config.getMarginalUtilityOfTravelTimePt_utl_s();
                     double arrivalCost = currentCostWhenBoarding + inVehicleCost;
-                    if (arrivalCost < this.leastArrivalCostAtRouteStop[toRouteStopIndex]) {
+                    double previousArrivalCost = this.leastArrivalCostAtRouteStop[toRouteStopIndex];
+                    if (arrivalCost < previousArrivalCost) {
                         PathElement pe = new PathElement(boardingPE, toRouteStop, arrivalTime, arrivalCost, boardingPE.transferCount, false);
                         this.arrivalPathPerRouteStop[toRouteStopIndex] = pe;
                         this.leastArrivalCostAtRouteStop[toRouteStopIndex] = arrivalCost;
@@ -181,6 +186,27 @@ public class SwissRailRaptorCore {
                             this.arrivalPathPerStop[toRouteStop.stopFacilityIndex] = pe;
                             this.improvedStops.set(toRouteStop.stopFacilityIndex);
                             checkForBestArrival(toRouteStopIndex, arrivalCost);
+                        }
+                    } else if (previousArrivalCost < arrivalCost) {
+                        // looks like we could reach this stop with better cost from somewhere else
+                        // check if we can depart also with better cost, if yes, switch to this connection
+                        PathElement alternativeBoardingPE = this.arrivalPathPerRouteStop[toRouteStopIndex];
+                        double alternativeAgentFirstArrivalTime = alternativeBoardingPE.arrivalTime;
+                        int alternativeDepartureIndex = findNextDepartureIndex(route, toRouteStop, alternativeAgentFirstArrivalTime);
+                        if (alternativeDepartureIndex >= 0) {
+                            double alternativeDepartureTime = this.data.departures[alternativeDepartureIndex];
+                            double alternativeVehicleArrivalTime = alternativeDepartureTime + toRouteStop.arrivalOffset;
+                            double alternativeAgentBoardingTime = (alternativeAgentFirstArrivalTime < alternativeVehicleArrivalTime) ? alternativeVehicleArrivalTime : alternativeAgentFirstArrivalTime;
+                            double alternativeWaitingTime = alternativeAgentBoardingTime - alternativeAgentFirstArrivalTime;
+                            double alternativeWaitingCost = -this.config.getMarginalUtilityOfWaitingPt_utl_s() * alternativeWaitingTime;
+                            double alternativeCostWhenBoarding = alternativeBoardingPE.arrivalCost + alternativeWaitingCost;
+                            if (alternativeCostWhenBoarding < arrivalCost) {
+                                currentDepartureIndex = alternativeDepartureIndex;
+                                currentDepartureTime = alternativeDepartureTime;
+                                currentAgentBoardingTime = alternativeAgentBoardingTime;
+                                currentCostWhenBoarding = alternativeCostWhenBoarding;
+                                boardingPE = alternativeBoardingPE;
+                            }
                         }
                     }
                     firstRouteStopIndex = toRouteStopIndex; // we've handled this route stop, so we can skip it in the outer loop
@@ -244,7 +270,7 @@ public class SwissRailRaptorCore {
                     this.improvedRouteStopIndices.set(toRouteStopIndex);
                     int toStopFacilityIndex = toRouteStop.stopFacilityIndex;
                     if (newArrivalCost < this.leastArrivalCostAtStop[toStopFacilityIndex]) {
-                        this.leastArrivalCostAtRouteStop[toStopFacilityIndex] = newArrivalCost;
+                        this.leastArrivalCostAtStop[toStopFacilityIndex] = newArrivalCost;
                         this.arrivalPathPerStop[toStopFacilityIndex] = pe;
                     }
                 }

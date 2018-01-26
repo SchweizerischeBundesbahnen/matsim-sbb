@@ -16,6 +16,7 @@ import org.matsim.pt.transitSchedule.api.TransitRouteStop;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -116,7 +117,8 @@ class SwissRailRaptorData {
 
         for (TransitLine line : schedule.getTransitLines().values()) {
             for (TransitRoute route : line.getRoutes().values()) {
-                RRoute rroute = new RRoute(indexRouteStops, route.getStops().size(), indexDeparture, route.getDepartures().size());
+                int indexFirstDeparture = indexDeparture;
+                RRoute rroute = new RRoute(indexRouteStops, route.getStops().size(), indexFirstDeparture, route.getDepartures().size());
                 routes[indexRoutes] = rroute;
                 for (TransitRouteStop routeStop : route.getStops()) {
                     int stopFacilityIndex = stopFacilityIndices.computeIfAbsent(routeStop.getStopFacility(), stop -> stopFacilityIndices.size());
@@ -138,6 +140,7 @@ class SwissRailRaptorData {
                     departures[indexDeparture] = dep.getDepartureTime();
                     indexDeparture++;
                 }
+                Arrays.sort(departures, indexFirstDeparture, indexDeparture);
                 indexRoutes++;
             }
         }
