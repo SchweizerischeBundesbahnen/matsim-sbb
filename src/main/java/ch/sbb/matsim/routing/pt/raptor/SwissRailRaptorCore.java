@@ -170,6 +170,10 @@ public class SwissRailRaptorCore {
                     currentCostWhenBoarding = boardingPE.arrivalCost + waitingCost;
                 }
 
+                if (currentCostWhenBoarding > this.bestArrivalCost) {
+                    continue;
+                }
+
                 for (int toRouteStopIndex = firstRouteStopIndex + 1; toRouteStopIndex < route.indexFirstRouteStop + route.countRouteStops; toRouteStopIndex++) {
                     RRouteStop toRouteStop = this.data.routeStops[toRouteStopIndex];
                     double arrivalTime = currentDepartureTime + toRouteStop.arrivalOffset;
