@@ -34,7 +34,7 @@ import java.util.TreeMap;
 public class ConfigParser {
 
     static private final String[] MODES = new String[] {"car", "ride", "pt", "transit_walk", "egress_walk", "access_walk", "walk", "bike"};
-    static private final String SCORING_SHEET_LABEL = "ScoringParams";
+    static private final String SCORING_SHEET = "ScoringParams";
     static private final String MATSIM_PARAMS_LABEL = "MATSim Param Name";
     static private final String GENERAL_PARAMS_LABEL = "general";
     private static final String UTL_OF_LINE_SWITCH = "utilityOfLineSwitch" ;
@@ -49,26 +49,26 @@ public class ConfigParser {
     private static final String MARGINAL_UTILITY_OF_DISTANCE = "marginalUtilityOfDistance_util_m";
     private static final String MONETARY_DISTANCE_RATE = "monetaryDistanceRate";
 
-    static private final String[] GENERAL_PARAM_LABEL_VALUES = new String[] {UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
-    static private final String[] MODE_PARAM_LABEL_VALUES = new String[] {CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
-    static private final Set<String> GENERAL_PARAM_LABELS = new HashSet<>(Arrays.asList(GENERAL_PARAM_LABEL_VALUES));
-    static private final Set<String> MODE_PARAM_LABELS = new HashSet<>(Arrays.asList(MODE_PARAM_LABEL_VALUES));
+    static private final String[] GENERAL_PARAMS_ARRAY = new String[] {UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
+    static private final String[] MODE_PARAMS_ARRAY = new String[] {CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
+    static private final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
+    static private final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
 
-    static private final String DUMMY_GROUP_SHEET_LABEL = "DummyGroupForScoringOnlyDefault";
+    static private final String DUMMY_GROUP_SHEET = "DummyGroupForScoringOnlyDefault";
     static private final String DUMMY_GROUP_NAME = "DummyDistanceCorrection";
-    static private final String SEASON_TICKET_SHEET_LABEL = "Abobesitz";
+    static private final String SEASON_TICKET_SHEET = "Abobesitz";
     static private final String SEASON_TICKET_NAME = "Abobesitz";
-    static private final String CAR_AVAIL_SHEET_LABEL = "PW_Verf";
+    static private final String CAR_AVAIL_SHEET = "PW_Verf";
     static private final String CAR_AVAIL_NAME = "PW Verfuegbarkeit";
-    static private final String LAND_USE_SHEET_LABEL = "Raumtyp";
+    static private final String LAND_USE_SHEET = "Raumtyp";
     static private final String LAND_USE_NAME = "Raumtyp";
 
-    static private final Map<String, String> BEHAVIOR_GROUP_LABELS = new HashMap<>();
+    static private final Map<String, String> BEHAVIOR_GROUP_SHEETS = new HashMap<>();
     static {
-        BEHAVIOR_GROUP_LABELS.put(DUMMY_GROUP_SHEET_LABEL, DUMMY_GROUP_NAME);
-        BEHAVIOR_GROUP_LABELS.put(SEASON_TICKET_SHEET_LABEL, SEASON_TICKET_NAME);
-        BEHAVIOR_GROUP_LABELS.put(CAR_AVAIL_SHEET_LABEL, CAR_AVAIL_NAME);
-        BEHAVIOR_GROUP_LABELS.put(LAND_USE_SHEET_LABEL, LAND_USE_NAME);
+        BEHAVIOR_GROUP_SHEETS.put(DUMMY_GROUP_NAME, DUMMY_GROUP_SHEET);
+        BEHAVIOR_GROUP_SHEETS.put(SEASON_TICKET_NAME, SEASON_TICKET_SHEET);
+        BEHAVIOR_GROUP_SHEETS.put(CAR_AVAIL_NAME, CAR_AVAIL_SHEET);
+        BEHAVIOR_GROUP_SHEETS.put(LAND_USE_NAME, LAND_USE_SHEET);
     }
 
     static private final String DUMMY_GROUP_PERSON_ATTRIBUTE = "subpopulation";
@@ -76,12 +76,12 @@ public class ConfigParser {
     static private final String CAR_AVAIL_PERSON_ATTRIBUTE = "availability: car";
     static private final String LAND_USE_PERSON_ATTRIBUTE = "raumtyp";
 
-    static private final Map<String, String> PERSON_ATTRIBUTE_LABELS = new HashMap<>();
+    static private final Map<String, String> BEHAVIOR_GROUP_PERSON_ATTRIBUTES = new HashMap<>();
     static {
-        PERSON_ATTRIBUTE_LABELS.put(DUMMY_GROUP_NAME, DUMMY_GROUP_PERSON_ATTRIBUTE);
-        PERSON_ATTRIBUTE_LABELS.put(SEASON_TICKET_NAME, SEASON_TICKET_PERSON_ATTRIBUTE);
-        PERSON_ATTRIBUTE_LABELS.put(CAR_AVAIL_NAME, CAR_AVAIL_PERSON_ATTRIBUTE);
-        PERSON_ATTRIBUTE_LABELS.put(LAND_USE_NAME, LAND_USE_PERSON_ATTRIBUTE);
+        BEHAVIOR_GROUP_PERSON_ATTRIBUTES.put(DUMMY_GROUP_NAME, DUMMY_GROUP_PERSON_ATTRIBUTE);
+        BEHAVIOR_GROUP_PERSON_ATTRIBUTES.put(SEASON_TICKET_NAME, SEASON_TICKET_PERSON_ATTRIBUTE);
+        BEHAVIOR_GROUP_PERSON_ATTRIBUTES.put(CAR_AVAIL_NAME, CAR_AVAIL_PERSON_ATTRIBUTE);
+        BEHAVIOR_GROUP_PERSON_ATTRIBUTES.put(LAND_USE_NAME, LAND_USE_PERSON_ATTRIBUTE);
     }
 
     static private final String[] DUMMY_GROUP_ATTRIBUTE_VALUES = new String[] {"dummy"};
@@ -114,17 +114,17 @@ public class ConfigParser {
             FileInputStream inputStream = new FileInputStream(xlsx);
             Workbook workbook = WorkbookFactory.create(inputStream);
 
-            Sheet scoringParamsSheet = workbook.getSheet(SCORING_SHEET_LABEL);
+            Sheet scoringParamsSheet = workbook.getSheet(SCORING_SHEET);
 
             if (workbook != null) {
                 parseScoringParamsSheet(scoringParamsSheet, planCalcScore);
             }
 
-            for (Map.Entry<String, String> entry : BEHAVIOR_GROUP_LABELS.entrySet()) {
-                Sheet behaviorGroupParamsSheet = workbook.getSheet(entry.getKey());
+            for (Map.Entry<String, String> entry : BEHAVIOR_GROUP_SHEETS.entrySet()) {
+                Sheet behaviorGroupParamsSheet = workbook.getSheet(entry.getValue());
 
                 if (behaviorGroupParamsSheet != null) {
-                    parseBehaviorGroupParamsSheet(entry.getValue(), behaviorGroupParamsSheet, behaviorGroupConfigGroup);
+                    parseBehaviorGroupParamsSheet(entry.getKey(), behaviorGroupParamsSheet, behaviorGroupConfigGroup);
                 }
             }
         } catch (IOException e) {
@@ -163,7 +163,7 @@ public class ConfigParser {
                             }
                         }
                     }
-                } else if (MODE_PARAM_LABELS.contains(rowLabel)) {
+                } else if (MODE_PARAMS.contains(rowLabel)) {
                     for (Map.Entry<Integer, PlanCalcScoreConfigGroup.ModeParams> entry : modeParamsConfig.entrySet()) {
                         Cell cell = row.getCell(entry.getKey());
                         PlanCalcScoreConfigGroup.ModeParams modeParams = entry.getValue();
@@ -185,7 +185,7 @@ public class ConfigParser {
                             }
                         }
                     }
-                } else if (GENERAL_PARAM_LABELS.contains(rowLabel)) {
+                } else if (GENERAL_PARAMS.contains(rowLabel)) {
                     Cell cell = row.getCell(generalParamsCol);
 
                     if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
@@ -199,12 +199,12 @@ public class ConfigParser {
     protected static void parseBehaviorGroupParamsSheet(String behaviorGroupName, Sheet behaviorGroupParamsSheet, SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup) {
         Map<Integer, String> modes = new TreeMap<>();
         final Set<String> ATTRIBUTE_VALUES = BEHAVIOR_GROUP_ATTRIBUTE_VALUES.get(behaviorGroupName);
-        final String PERSON_ATTRIBUTE_LABEL = PERSON_ATTRIBUTE_LABELS.get(behaviorGroupName);
+        final String PERSON_ATTRIBUTE_KEY = BEHAVIOR_GROUP_PERSON_ATTRIBUTES.get(behaviorGroupName);
         Map<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> modeCorrections = new HashMap<>();
 
         SBBBehaviorGroupsConfigGroup.BehaviorGroupParams behaviorGroupParams = new SBBBehaviorGroupsConfigGroup.BehaviorGroupParams();
         behaviorGroupParams.setBehaviorGroupName(behaviorGroupName);
-        behaviorGroupParams.setPersonAttribute(PERSON_ATTRIBUTE_LABEL);
+        behaviorGroupParams.setPersonAttribute(PERSON_ATTRIBUTE_KEY);
 
         for (Row row : behaviorGroupParamsSheet) {
             Cell firstCell = row.getCell(0);
@@ -220,7 +220,7 @@ public class ConfigParser {
                     continue;
                 }
 
-                if (rowLabel.equals(PERSON_ATTRIBUTE_LABEL)) {
+                if (rowLabel.equals(PERSON_ATTRIBUTE_KEY)) {
                     int lastColumn = row.getLastCellNum();
 
                     for (int col = 1; col < lastColumn; col++) {
@@ -251,7 +251,7 @@ public class ConfigParser {
                     if ((secondCell != null) && (secondCell.getCellTypeEnum() == CellType.STRING)) {
                         String parameterLabel = secondCell.getStringCellValue();
 
-                        if (MODE_PARAM_LABELS.contains(parameterLabel)) {
+                        if (MODE_PARAMS.contains(parameterLabel)) {
                             for (Map.Entry<Integer, String> entry : modes.entrySet()) {
                                 SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = modeCorrections.get(rowLabel).get(entry.getValue());
                                 Cell cell = row.getCell(entry.getKey());
