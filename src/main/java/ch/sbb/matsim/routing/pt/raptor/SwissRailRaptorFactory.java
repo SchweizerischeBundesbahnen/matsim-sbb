@@ -26,6 +26,7 @@ public class SwissRailRaptorFactory implements Provider<TransitRouter> {
     public SwissRailRaptorFactory(final TransitSchedule schedule, final Config config) {
         this.schedule = schedule;
         this.raptorConfig = RaptorUtils.createRaptorConfig(config);
+        this.raptorConfig.setTransferPenaltyCost(-10 * 60 * this.raptorConfig.getMarginalUtilityOfTravelTimePt_utl_s());
     }
 
     @Override
