@@ -33,6 +33,7 @@ import java.util.TreeMap;
 
 public class ConfigParser {
 
+    static private final String[] MODES = new String[] {"car", "ride", "pt", "transit_walk", "egress_walk", "access_walk", "walk", "bike"};
     static private final String SCORING_SHEET_LABEL = "ScoringParams";
     static private final String MATSIM_PARAMS_LABEL = "MATSim Param Name";
     static private final String GENERAL_PARAMS_LABEL = "general";
@@ -55,8 +56,8 @@ public class ConfigParser {
 
     static private final String DUMMY_GROUP_SHEET_LABEL = "DummyGroupForScoringOnlyDefault";
     static private final String DUMMY_GROUP_NAME = "DummyDistanceCorrection";
-    static private final String SEASON_CARD_SHEET_LABEL = "Abobesitz";
-    static private final String SEASON_CARD_NAME = "Abobesitz";
+    static private final String SEASON_TICKET_SHEET_LABEL = "Abobesitz";
+    static private final String SEASON_TICKET_NAME = "Abobesitz";
     static private final String CAR_AVAIL_SHEET_LABEL = "PW_Verf";
     static private final String CAR_AVAIL_NAME = "PW Verfuegbarkeit";
     static private final String LAND_USE_SHEET_LABEL = "Raumtyp";
@@ -65,9 +66,35 @@ public class ConfigParser {
     static private final Map<String, String> BEHAVIOR_GROUP_LABELS = new HashMap<>();
     static {
         BEHAVIOR_GROUP_LABELS.put(DUMMY_GROUP_SHEET_LABEL, DUMMY_GROUP_NAME);
-        BEHAVIOR_GROUP_LABELS.put(SEASON_CARD_SHEET_LABEL, SEASON_CARD_NAME);
+        BEHAVIOR_GROUP_LABELS.put(SEASON_TICKET_SHEET_LABEL, SEASON_TICKET_NAME);
         BEHAVIOR_GROUP_LABELS.put(CAR_AVAIL_SHEET_LABEL, CAR_AVAIL_NAME);
         BEHAVIOR_GROUP_LABELS.put(LAND_USE_SHEET_LABEL, LAND_USE_NAME);
+    }
+
+    static private final String DUMMY_GROUP_PERSON_ATTRIBUTE = "subpopulation";
+    static private final String SEASON_TICKET_PERSON_ATTRIBUTE = "season_ticket";
+    static private final String CAR_AVAIL_PERSON_ATTRIBUTE = "availability: car";
+    static private final String LAND_USE_PERSON_ATTRIBUTE = "raumtyp";
+
+    static private final Map<String, String> PERSON_ATTRIBUTE_LABELS = new HashMap<>();
+    static {
+        PERSON_ATTRIBUTE_LABELS.put(DUMMY_GROUP_NAME, DUMMY_GROUP_PERSON_ATTRIBUTE);
+        PERSON_ATTRIBUTE_LABELS.put(SEASON_TICKET_NAME, SEASON_TICKET_PERSON_ATTRIBUTE);
+        PERSON_ATTRIBUTE_LABELS.put(CAR_AVAIL_NAME, CAR_AVAIL_PERSON_ATTRIBUTE);
+        PERSON_ATTRIBUTE_LABELS.put(LAND_USE_NAME, LAND_USE_PERSON_ATTRIBUTE);
+    }
+
+    static private final String[] DUMMY_GROUP_ATTRIBUTE_VALUES = new String[] {"dummy"};
+    static private final String[] SEASON_TICKET_ATTRIBUTE_VALUES = new String[] {"none", "Generalabo", "Halbtaxabo"};
+    static private final String[] CAR_AVAIL_ATTRIBUTE_VALUES = new String[] {"always", "never", "by arrengement"};
+    static private final String[] LAND_USE_ATTRIBUTE_VALUES = new String[] {"1", "2", "3", "4"};
+
+    static private final Map<String, Set<String>> BEHAVIOR_GROUP_ATTRIBUTE_VALUES = new HashMap<>();
+    static {
+        BEHAVIOR_GROUP_ATTRIBUTE_VALUES.put(DUMMY_GROUP_NAME, new HashSet<>(Arrays.asList(DUMMY_GROUP_ATTRIBUTE_VALUES)));
+        BEHAVIOR_GROUP_ATTRIBUTE_VALUES.put(SEASON_TICKET_NAME, new HashSet<>(Arrays.asList(SEASON_TICKET_ATTRIBUTE_VALUES)));
+        BEHAVIOR_GROUP_ATTRIBUTE_VALUES.put(CAR_AVAIL_NAME, new HashSet<>(Arrays.asList(CAR_AVAIL_ATTRIBUTE_VALUES)));
+        BEHAVIOR_GROUP_ATTRIBUTE_VALUES.put(LAND_USE_NAME, new HashSet<>(Arrays.asList(LAND_USE_ATTRIBUTE_VALUES)));
     }
 
     private static Logger log = Logger.getLogger(RunSBB.class);
@@ -81,6 +108,7 @@ public class ConfigParser {
                 new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup());
 
         PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+        SBBBehaviorGroupsConfigGroup behaviorGroupConfigGroup = (SBBBehaviorGroupsConfigGroup) config.getModules().get(SBBBehaviorGroupsConfigGroup.GROUP_NAME);
 
         try {
             FileInputStream inputStream = new FileInputStream(xlsx);
@@ -96,7 +124,7 @@ public class ConfigParser {
                 Sheet behaviorGroupParamsSheet = workbook.getSheet(entry.getKey());
 
                 if (behaviorGroupParamsSheet != null) {
-                    parseBehaviorGroupParamsSheet(entry.getValue(), behaviorGroupParamsSheet, planCalcScore);
+                    parseBehaviorGroupParamsSheet(entry.getValue(), behaviorGroupParamsSheet, behaviorGroupConfigGroup);
                 }
             }
         } catch (IOException e) {
@@ -125,10 +153,11 @@ public class ConfigParser {
                         Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
 
                         if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
-                            if (cell.getStringCellValue().equals(GENERAL_PARAMS_LABEL)) {
+                            String mode = cell.getStringCellValue();
+
+                            if (mode.equals(GENERAL_PARAMS_LABEL)) {
                                 generalParamsCol = col;
-                            } else {
-                                String mode = cell.getStringCellValue();
+                            } else if (Arrays.asList(MODES).contains(mode)) {
                                 PlanCalcScoreConfigGroup.ModeParams modeParams = planCalcScore.getOrCreateModeParams(mode);
                                 modeParamsConfig.put(col, modeParams);
                             }
@@ -167,29 +196,103 @@ public class ConfigParser {
         }
     }
 
-    protected static void parseBehaviorGroupParamsSheet(String behaviorGroupName, Sheet bgParamsSheet, PlanCalcScoreConfigGroup planCalcScore) {
+    protected static void parseBehaviorGroupParamsSheet(String behaviorGroupName, Sheet behaviorGroupParamsSheet, SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup) {
+        Map<Integer, String> modes = new TreeMap<>();
+        final Set<String> ATTRIBUTE_VALUES = BEHAVIOR_GROUP_ATTRIBUTE_VALUES.get(behaviorGroupName);
+        final String PERSON_ATTRIBUTE_LABEL = PERSON_ATTRIBUTE_LABELS.get(behaviorGroupName);
+        Map<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> modeCorrections = new HashMap<>();
 
-        /*
-        SBBBehaviorGroupsConfigGroup bgConfigGroup = (SBBBehaviorGroupsConfigGroup) config.getModules().get(SBBBehaviorGroupsConfigGroup.GROUP_NAME);
+        SBBBehaviorGroupsConfigGroup.BehaviorGroupParams behaviorGroupParams = new SBBBehaviorGroupsConfigGroup.BehaviorGroupParams();
+        behaviorGroupParams.setBehaviorGroupName(behaviorGroupName);
+        behaviorGroupParams.setPersonAttribute(PERSON_ATTRIBUTE_LABEL);
 
-        SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bgParams = new SBBBehaviorGroupsConfigGroup.BehaviorGroupParams();
-        bgParams.setBehaviorGroupName("Abobesitz");
-        bgParams.setPersonAttribute("season_ticket");
+        for (Row row : behaviorGroupParamsSheet) {
+            Cell firstCell = row.getCell(0);
 
-        SBBBehaviorGroupsConfigGroup.PersonGroupTypes types = new SBBBehaviorGroupsConfigGroup.PersonGroupTypes();
-        types.setPersonGroupType("none");
-        SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
-        modeCorrection.setMode("pt");
-        modeCorrection.setConstant(99);
-        modeCorrection.setMargUtilOfTime(99);
-        modeCorrection.setMargUtilOfDistance(99);
-        modeCorrection.setDistanceRate(99);
+            if ((firstCell != null) && (firstCell.getCellTypeEnum() == CellType.STRING)) {
+                String rowLabel = firstCell.getStringCellValue();
 
-        types.addModeCorrection(modeCorrection);
+                if (rowLabel.equals(PERSON_ATTRIBUTE_LABEL)) {
+                    int lastColumn = row.getLastCellNum();
 
-        bgParams.addPersonGroupType(types);
+                    for (int col = 1; col < lastColumn; col++) {
+                        Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
 
-        bgConfigGroup.addBehaviorGroupParams(bgParams);
-*/
+                        if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
+                            String mode = cell.getStringCellValue();
+
+                            if ((Arrays.asList(MODES).contains(mode)) && (!modes.containsValue(mode))) {
+                                modes.put(col, mode);
+                            }
+                        }
+                    }
+                } else if (ATTRIBUTE_VALUES.contains(rowLabel)) {
+                    if (!modeCorrections.containsKey(rowLabel)) {
+                        modeCorrections.put(rowLabel, new HashMap<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>());
+
+                        for (Map.Entry<Integer, String> modeEntry : modes.entrySet()) {
+                            SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
+                            modeCorrection.setMode(modeEntry.getValue());
+
+                            modeCorrections.get(rowLabel).put(modeEntry.getValue(), modeCorrection);
+                        }
+                    }
+
+                    Cell secondCell = row.getCell(1);
+
+                    if ((secondCell != null) && (secondCell.getCellTypeEnum() == CellType.STRING)) {
+                        String parameterLabel = secondCell.getStringCellValue();
+
+                        if (MODE_PARAM_LABELS.contains(parameterLabel)) {
+                            for (Map.Entry<Integer, String> entry : modes.entrySet()) {
+                                SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = modeCorrections.get(rowLabel).get(entry.getValue());
+                                Cell cell = row.getCell(entry.getKey());
+
+                                if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+                                    switch (parameterLabel) {
+                                        case CONSTANT:
+                                            modeCorrection.setConstant(cell.getNumericCellValue());
+                                            break;
+                                        case MARGINAL_UTILITY_OF_DISTANCE:
+                                            modeCorrection.setMargUtilOfDistance(cell.getNumericCellValue());
+                                            break;
+                                        case MARGINAL_UTILITY_OF_TRAVELING:
+                                            modeCorrection.setMargUtilOfTime(cell.getNumericCellValue());
+                                            break;
+                                        case MONETARY_DISTANCE_RATE:
+                                            modeCorrection.setDistanceRate(cell.getNumericCellValue());
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Map.Entry<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> entry : modeCorrections.entrySet()) {
+            String personAttributeValue = entry.getKey();
+            Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection> modeCorrectionsPerMode = entry.getValue();
+
+            SBBBehaviorGroupsConfigGroup.PersonGroupTypes types = new SBBBehaviorGroupsConfigGroup.PersonGroupTypes();
+            types.setPersonGroupType(personAttributeValue);
+
+            for (Map.Entry<String, SBBBehaviorGroupsConfigGroup.ModeCorrection> subEntry : modeCorrectionsPerMode.entrySet()) {
+                String mode = subEntry.getKey();
+                SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = subEntry.getValue();
+
+                if (modeCorrection.isSet()) {
+                    types.addModeCorrection(modeCorrection);
+                }
+            }
+
+            if (!types.getModeCorrectionParams().isEmpty()) {
+                behaviorGroupParams.addPersonGroupType(types);
+            }
+        }
+
+        behaviorGroupParams.setBehaviorTypes(modeCorrections.keySet());
+        behaviorGroupsConfigGroup.addBehaviorGroupParams(behaviorGroupParams);
     }
 }

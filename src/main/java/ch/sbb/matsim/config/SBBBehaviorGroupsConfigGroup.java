@@ -430,5 +430,9 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
             testForLocked();
             this.distanceRate = distanceRate;
         }
+
+        public boolean isSet() {
+            return ((this.getConstant() != 0) || (this.getMargUtilOfTime() != 0)  || (this.getMargUtilOfDistance() != 0) || (this.getDistanceRate() != 0)) ;
+        }
     }
 }
