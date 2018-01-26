@@ -248,6 +248,11 @@ class SwissRailRaptorData {
         if (hasNoPossibleDeparture(fromRouteStop, toRouteStop)) {
             return false;
         }
+        // if the stop facilities are different, and the destination stop is part
+        // of the current route, it does not make sense to transfer here
+        if (toStopIsPartOfRouteButNotSame(fromRouteStop, toRouteStop)) {
+            return false;
+        }
         // assuming vehicles serving the exact same stop sequence do not overtake each other,
         // it does not make sense to transfer to another route that serves the exact same upcoming stops
         if (cannotReachAdditionalStops(fromRouteStop, toRouteStop)) {
@@ -302,6 +307,21 @@ class SwissRailRaptorData {
             }
         }
         return latest;
+    }
+
+    private static boolean toStopIsPartOfRouteButNotSame(RRouteStop fromRouteStop, RRouteStop toRouteStop) {
+        TransitStopFacility fromStopFacility = fromRouteStop.routeStop.getStopFacility();
+        TransitStopFacility toStopFacility = toRouteStop.routeStop.getStopFacility();
+        if (fromStopFacility == toStopFacility) {
+            return false;
+        }
+        for (TransitRouteStop routeStop : fromRouteStop.route.getStops()) {
+            fromStopFacility = routeStop.getStopFacility();
+            if (fromStopFacility == toStopFacility) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean cannotReachAdditionalStops(RRouteStop fromRouteStop, RRouteStop toRouteStop) {
