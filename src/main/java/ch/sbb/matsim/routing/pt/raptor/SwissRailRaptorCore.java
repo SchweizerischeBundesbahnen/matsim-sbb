@@ -349,21 +349,6 @@ public class SwissRailRaptorCore {
         return raptorRoute;
     }
 
-    public RaptorRoute calcLeastCostRoute(double earliestDepTime, double latestDepTime, List<InitialStop> accessStops, List<InitialStop> egressStops) {
-        // TODO
-        return null;
-    }
-
-    public List<RaptorRoute> calcParetoSet(double depTime, List<InitialStop> accessStops, List<InitialStop> egressStops) {
-        // TODO
-        return null;
-    }
-
-    public List<RaptorRoute> calcParetoSet(double earliestDepTime, double latestDepTime, List<InitialStop> accessStops, List<InitialStop> egressStops) {
-        // TODO
-        return null;
-    }
-
     private static class PathElement {
         PathElement comingFrom;
         RRouteStop toRouteStop;
