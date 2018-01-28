@@ -34,37 +34,37 @@ import java.util.TreeSet;
 
 public class XLSXScoringParser {
 
-    static private final String[] MODES = new String[] {"car", "ride", "pt", "transit_walk", "egress_walk", "access_walk", "walk", "bike"};
-    static private final String SCORING_SHEET = "ScoringParams";
-    static private final String MATSIM_PARAMS_LABEL = "MATSim Param Name";
-    static private final String GENERAL_PARAMS_LABEL = "general";
-    private static final String UTL_OF_LINE_SWITCH = "utilityOfLineSwitch" ;
-    private static final String WAITING_PT  = "waitingPt";
-    private static final String EARLY_DEPARTURE = "earlyDeparture";
-    private static final String LATE_ARRIVAL = "lateArrival";
-    private static final String PERFORMING = "performing";
-    private static final String WAITING  = "waiting";
-    private static final String MARGINAL_UTL_OF_MONEY = "marginalUtilityOfMoney" ;
-    private static final String CONSTANT = "constant";
-    private static final String MARGINAL_UTILITY_OF_TRAVELING = "marginalUtilityOfTraveling_util_hr";
-    private static final String MARGINAL_UTILITY_OF_DISTANCE = "marginalUtilityOfDistance_util_m";
-    private static final String MONETARY_DISTANCE_RATE = "monetaryDistanceRate";
+    static final String[] MODES = new String[] {"car", "ride", "pt", "transit_walk", "egress_walk", "access_walk", "walk", "bike"};
+    static final String SCORING_SHEET = "ScoringParams";
+    static final String MATSIM_PARAMS_LABEL = "MATSim Param Name";
+    static final String GENERAL_PARAMS_LABEL = "general";
+    static final String UTL_OF_LINE_SWITCH = "utilityOfLineSwitch" ;
+    static final String WAITING_PT  = "waitingPt";
+    static final String EARLY_DEPARTURE = "earlyDeparture";
+    static final String LATE_ARRIVAL = "lateArrival";
+    static final String PERFORMING = "performing";
+    static final String WAITING  = "waiting";
+    static final String MARGINAL_UTL_OF_MONEY = "marginalUtilityOfMoney" ;
+    static final String CONSTANT = "constant";
+    static final String MARGINAL_UTILITY_OF_TRAVELING = "marginalUtilityOfTraveling_util_hr";
+    static final String MARGINAL_UTILITY_OF_DISTANCE = "marginalUtilityOfDistance_util_m";
+    static final String MONETARY_DISTANCE_RATE = "monetaryDistanceRate";
 
-    static private final String[] GENERAL_PARAMS_ARRAY = new String[] {UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
-    static private final String[] MODE_PARAMS_ARRAY = new String[] {CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
-    static private final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
-    static private final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
+    static final String[] GENERAL_PARAMS_ARRAY = new String[] {UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
+    static final String[] MODE_PARAMS_ARRAY = new String[] {CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
+    static final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
+    static final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
 
-    static private final String DUMMY_GROUP_SHEET = "DummyGroupForScoringOnlyDefault";
-    static private final String DUMMY_GROUP_NAME = "DummyDistanceCorrection";
-    static private final String SEASON_TICKET_SHEET = "Abobesitz";
-    static private final String SEASON_TICKET_NAME = "Abobesitz";
-    static private final String CAR_AVAIL_SHEET = "PW_Verf";
-    static private final String CAR_AVAIL_NAME = "PW Verfuegbarkeit";
-    static private final String LAND_USE_SHEET = "Raumtyp";
-    static private final String LAND_USE_NAME = "Raumtyp";
+    static final String DUMMY_GROUP_SHEET = "DummyGroupForScoringOnlyDefault";
+    static final String DUMMY_GROUP_NAME = "DummyDistanceCorrection";
+    static final String SEASON_TICKET_SHEET = "Abobesitz";
+    static final String SEASON_TICKET_NAME = "Abobesitz";
+    static final String CAR_AVAIL_SHEET = "PW_Verf";
+    static final String CAR_AVAIL_NAME = "PW Verfuegbarkeit";
+    static final String LAND_USE_SHEET = "Raumtyp";
+    static final String LAND_USE_NAME = "Raumtyp";
 
-    static private final Map<String, String> BEHAVIOR_GROUP_SHEETS = new HashMap<>();
+    static final Map<String, String> BEHAVIOR_GROUP_SHEETS = new HashMap<>();
     static {
         BEHAVIOR_GROUP_SHEETS.put(DUMMY_GROUP_NAME, DUMMY_GROUP_SHEET);
         BEHAVIOR_GROUP_SHEETS.put(SEASON_TICKET_NAME, SEASON_TICKET_SHEET);
@@ -72,12 +72,12 @@ public class XLSXScoringParser {
         BEHAVIOR_GROUP_SHEETS.put(LAND_USE_NAME, LAND_USE_SHEET);
     }
 
-    static private final String DUMMY_GROUP_PERSON_ATTRIBUTE = "subpopulation";
-    static private final String SEASON_TICKET_PERSON_ATTRIBUTE = "season_ticket";
-    static private final String CAR_AVAIL_PERSON_ATTRIBUTE = "availability: car";
-    static private final String LAND_USE_PERSON_ATTRIBUTE = "raumtyp";
+    static final String DUMMY_GROUP_PERSON_ATTRIBUTE = "subpopulation";
+    static final String SEASON_TICKET_PERSON_ATTRIBUTE = "season_ticket";
+    static final String CAR_AVAIL_PERSON_ATTRIBUTE = "availability: car";
+    static final String LAND_USE_PERSON_ATTRIBUTE = "raumtyp";
 
-    static private final Map<String, String> BEHAVIOR_GROUP_PERSON_ATTRIBUTES = new HashMap<>();
+    static final Map<String, String> BEHAVIOR_GROUP_PERSON_ATTRIBUTES = new HashMap<>();
     static {
         BEHAVIOR_GROUP_PERSON_ATTRIBUTES.put(DUMMY_GROUP_NAME, DUMMY_GROUP_PERSON_ATTRIBUTE);
         BEHAVIOR_GROUP_PERSON_ATTRIBUTES.put(SEASON_TICKET_NAME, SEASON_TICKET_PERSON_ATTRIBUTE);
@@ -85,15 +85,15 @@ public class XLSXScoringParser {
         BEHAVIOR_GROUP_PERSON_ATTRIBUTES.put(LAND_USE_NAME, LAND_USE_PERSON_ATTRIBUTE);
     }
 
-    static private final String[] DUMMY_GROUP_ATTRIBUTE_VALUES = new String[] {"dummy"};
-    static private final String[] SEASON_TICKET_ATTRIBUTE_VALUES = new String[] {"none", "Generalabo", "Halbtaxabo"};
-    static private final String[] CAR_AVAIL_ATTRIBUTE_VALUES = new String[] {"always", "never", "by arrengement"};
-    static private final String[] LAND_USE_ATTRIBUTE_VALUES = new String[] {"1", "2", "3", "4"};
+    static final String[] DUMMY_GROUP_ATTRIBUTE_VALUES = new String[] {"dummy"};
+    static final String[] SEASON_TICKET_ATTRIBUTE_VALUES = new String[] {"none", "Generalabo", "Halbtaxabo"};
+    static final String[] CAR_AVAIL_ATTRIBUTE_VALUES = new String[] {"always", "never", "by arrengement"};
+    static final String[] LAND_USE_ATTRIBUTE_VALUES = new String[] {"1", "2", "3", "4"};
 
-    static private final Map<String, Set<String>> BEHAVIOR_GROUP_ATTRIBUTE_VALUES = new HashMap<>();
+    static final Map<String, Set<String>> BEHAVIOR_GROUP_ATTRIBUTE_VALUES = new HashMap<>();
     static {
         BEHAVIOR_GROUP_ATTRIBUTE_VALUES.put(DUMMY_GROUP_NAME, new HashSet<>(Arrays.asList(DUMMY_GROUP_ATTRIBUTE_VALUES)));
-        BEHAVIOR_GROUP_ATTRIBUTE_VALUES.put(SEASON_TICKET_NAME, new HashSet<>(Arrays.asList(SEASON_TICKET_ATTRIBUTE_VALUES)));
+        BEHAVIOR_GROUP_ATTRIBUTE_VALUES.put(SEASON_TICKET_NAME, new TreeSet<>(Arrays.asList(SEASON_TICKET_ATTRIBUTE_VALUES)));
         BEHAVIOR_GROUP_ATTRIBUTE_VALUES.put(CAR_AVAIL_NAME, new HashSet<>(Arrays.asList(CAR_AVAIL_ATTRIBUTE_VALUES)));
         BEHAVIOR_GROUP_ATTRIBUTE_VALUES.put(LAND_USE_NAME, new HashSet<>(Arrays.asList(LAND_USE_ATTRIBUTE_VALUES)));
     }
