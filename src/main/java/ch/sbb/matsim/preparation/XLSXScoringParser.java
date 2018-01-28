@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-public class ConfigParser {
+public class XLSXScoringParser {
 
     static private final String[] MODES = new String[] {"car", "ride", "pt", "transit_walk", "egress_walk", "access_walk", "walk", "bike"};
     static private final String SCORING_SHEET = "ScoringParams";
@@ -99,41 +99,23 @@ public class ConfigParser {
 
     private static Logger log = Logger.getLogger(RunSBB.class);
 
-    public static void main(final String[] args) {
-        final String configIn = args[0];
-        final String configOut = args[1];
-        final String xlsx = args[2];
-
-        final Config config = ConfigUtils.loadConfig(configIn, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-                new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup());
-
+    public static void parseXLSXWorkbook(Workbook workbook, Config config) {
         PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
         SBBBehaviorGroupsConfigGroup behaviorGroupConfigGroup = (SBBBehaviorGroupsConfigGroup) config.getModules().get(SBBBehaviorGroupsConfigGroup.GROUP_NAME);
 
-        try {
-            FileInputStream inputStream = new FileInputStream(xlsx);
-            Workbook workbook = WorkbookFactory.create(inputStream);
+        Sheet scoringParamsSheet = workbook.getSheet(SCORING_SHEET);
 
-            Sheet scoringParamsSheet = workbook.getSheet(SCORING_SHEET);
-
-            if (workbook != null) {
-                parseScoringParamsSheet(scoringParamsSheet, planCalcScore);
-            }
-
-            for (Map.Entry<String, String> entry : BEHAVIOR_GROUP_SHEETS.entrySet()) {
-                Sheet behaviorGroupParamsSheet = workbook.getSheet(entry.getValue());
-
-                if (behaviorGroupParamsSheet != null) {
-                    parseBehaviorGroupParamsSheet(entry.getKey(), behaviorGroupParamsSheet, behaviorGroupConfigGroup);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InvalidFormatException e) {
-            e.printStackTrace();
+        if (scoringParamsSheet != null) {
+            parseScoringParamsSheet(scoringParamsSheet, planCalcScore);
         }
 
-        new ConfigWriter(config).write(configOut);
+        for (Map.Entry<String, String> entry : BEHAVIOR_GROUP_SHEETS.entrySet()) {
+            Sheet behaviorGroupParamsSheet = workbook.getSheet(entry.getValue());
+
+            if (behaviorGroupParamsSheet != null) {
+                parseBehaviorGroupParamsSheet(entry.getKey(), behaviorGroupParamsSheet, behaviorGroupConfigGroup);
+            }
+        }
     }
 
     protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore) {
