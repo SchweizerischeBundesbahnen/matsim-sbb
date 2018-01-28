@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class XLSXScoringParser {
 
@@ -107,6 +108,7 @@ public class XLSXScoringParser {
 
         if (scoringParamsSheet != null) {
             parseScoringParamsSheet(scoringParamsSheet, planCalcScore);
+            log.info("parsed general acoring parameters sheet: " + SCORING_SHEET);
         }
 
         for (Map.Entry<String, String> entry : BEHAVIOR_GROUP_SHEETS.entrySet()) {
@@ -114,12 +116,14 @@ public class XLSXScoringParser {
 
             if (behaviorGroupParamsSheet != null) {
                 parseBehaviorGroupParamsSheet(entry.getKey(), behaviorGroupParamsSheet, behaviorGroupConfigGroup);
+                log.info("parsed behaviorGroup scoring parameters sheet: " + entry.getValue());
             }
         }
     }
 
     protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore) {
         Map<Integer, PlanCalcScoreConfigGroup.ModeParams> modeParamsConfig = new TreeMap<>();
+        Set<String> modes = new TreeSet<>();
         Integer generalParamsCol = null;
 
         for (Row row : scoringParamsSheet) {
@@ -142,9 +146,12 @@ public class XLSXScoringParser {
                             } else if (Arrays.asList(MODES).contains(mode)) {
                                 PlanCalcScoreConfigGroup.ModeParams modeParams = planCalcScore.getOrCreateModeParams(mode);
                                 modeParamsConfig.put(col, modeParams);
+                                modes.add(mode);
                             }
                         }
                     }
+
+                    log.info("found parameters for modes: " + modes.toString());
                 } else if (MODE_PARAMS.contains(rowLabel)) {
                     for (Map.Entry<Integer, PlanCalcScoreConfigGroup.ModeParams> entry : modeParamsConfig.entrySet()) {
                         Cell cell = row.getCell(entry.getKey());
@@ -271,6 +278,7 @@ public class XLSXScoringParser {
             for (SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection : modeCorrectionsPerMode.values()) {
                 if (modeCorrection.isSet()) {
                     types.addModeCorrection(modeCorrection);
+                    log.info("adding modeCorrection for " + PERSON_ATTRIBUTE_KEY + "/" + personAttributeValue + " for mode " + modeCorrection.getMode());
                 }
             }
 
