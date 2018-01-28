@@ -91,7 +91,7 @@ public class PopulationMerger {
 
             Object age = this.personAttributes.getAttribute(person.getId().toString(), "age");
 
-            if (age != null){
+            if ((age != null) && (!age.toString().isEmpty())) {
                 PersonUtils.setAge(person, Integer.parseInt(age.toString()));
             }
 
