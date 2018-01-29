@@ -32,6 +32,18 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+/**
+ * XLSXScoringParser.
+ *
+ * <p>import scoring paremeters
+ * <ul><li>general</li><li>mode parameters</li><li>mode parameters specific to behavior groups</li></ul>
+ * from XLSX file (using Apache POI), merge with MATSim config.xml file.</p>
+ * <p>Write data to output XML file.</p>
+ * <p>If parameters or modes are present in both MATSim config.xml and XLSX file, the XLSX file wins.</p>
+ * <p>If parameters or modes are present in MATSim config.xml but not in XLSX file, they remain.</p>
+ *
+ * @author paschke
+ */
 public class XLSXScoringParser {
 
     static final String[] MODES = new String[] {"car", "ride", "pt", "transit_walk", "egress_walk", "access_walk", "walk", "bike"};
@@ -100,6 +112,17 @@ public class XLSXScoringParser {
 
     private static Logger log = Logger.getLogger(RunSBB.class);
 
+    /**
+     * parseXLSXWorkbook
+     *
+     * <p>a Workbook instance is expected to contain:
+      * <ul><li>one sheet containing global and mode-specific scoring parameters</li>
+      * <li>several sheets containing scoring parameters specific to behavior groups</li></ul></p>
+     *
+     * @param workbook (required)
+     * @param config (required) MATSim config instance, must contain ALL configured config modules, otherwise
+     *               their settings will be deleted from the config output.
+     */
     public static void parseXLSXWorkbook(Workbook workbook, Config config) {
         PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
         SBBBehaviorGroupsConfigGroup behaviorGroupConfigGroup = (SBBBehaviorGroupsConfigGroup) config.getModules().get(SBBBehaviorGroupsConfigGroup.GROUP_NAME);
@@ -121,6 +144,16 @@ public class XLSXScoringParser {
         }
     }
 
+    /**
+     * parseScoringParamsSheet
+     *
+     * <p>parse global and mode-specific scoring parameters</p>
+     * <p>this method will iterate over the sheet rows and try to find the string "MATSim Param Name" in the
+     * first column. Strings found in the same row and present in the MODES array will be interpreted as modes</p>
+     *
+     * @param scoringParamsSheet (required) the workbook sheet, usually labelled "ScoringParams"
+     * @param planCalcScore (required) MATSim configGroup instance
+     */
     protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore) {
         Map<Integer, PlanCalcScoreConfigGroup.ModeParams> modeParamsConfig = new TreeMap<>();
         Set<String> modes = new TreeSet<>();
@@ -185,10 +218,27 @@ public class XLSXScoringParser {
         }
     }
 
+    /**
+     * parseBehaviorGroupParamsSheet
+     *
+     * <p>parse scoring parameters specific to one behavior group</p>
+     * <p>this method will iterate over the sheet rows and try to find the behavior group name string in the
+     * first column. Strings found in the same row and present in the MODES array will be interpreted as modes</p>
+     * <p>The method will prepare a modeCorrection instance for each combination of behavior group and mode.
+     * To avoid cluttering the final config.xml file, only the modeCorrections with non-null values will be added.</p>
+     *
+     * @param behaviorGroupName (required) the name of the behavior group, must be one of (DUMMY_GROUP_NAME,
+     *                          SEASON_TICKET_NAME, CAR_AVAIL_NAME, LAND_USE_NAME) this string is used in the
+     *                          config.xml file and is used as a key in other config settings.
+     * @param behaviorGroupParamsSheet (required) the workbook sheet
+     * @param behaviorGroupsConfigGroup (required) specific MATSim configGroup instance
+     */
     protected static void parseBehaviorGroupParamsSheet(String behaviorGroupName, Sheet behaviorGroupParamsSheet, SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup) {
         Map<Integer, String> modes = new TreeMap<>();
         final Set<String> ATTRIBUTE_VALUES = BEHAVIOR_GROUP_ATTRIBUTE_VALUES.get(behaviorGroupName);
         final String PERSON_ATTRIBUTE_KEY = BEHAVIOR_GROUP_PERSON_ATTRIBUTES.get(behaviorGroupName);
+
+        /** Value - {@value}, temporary container for ModeCorrection instances */
         Map<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> modeCorrections = new HashMap<>();
 
         SBBBehaviorGroupsConfigGroup.BehaviorGroupParams behaviorGroupParams = new SBBBehaviorGroupsConfigGroup.BehaviorGroupParams();
@@ -268,6 +318,7 @@ public class XLSXScoringParser {
             }
         }
 
+        /** iterate over modeCorrections, only add those with non-null values */
         for (Map.Entry<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> modeCorrectionsEntry : modeCorrections.entrySet()) {
             String personAttributeValue = modeCorrectionsEntry.getKey();
             Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection> modeCorrectionsPerMode = modeCorrectionsEntry.getValue();
