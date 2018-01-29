@@ -39,8 +39,7 @@ public class RunSBB {
 
         log.info(configFile);
 
-        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-                new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup());
+        final Config config = buildConfig(configFile);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
@@ -82,5 +81,12 @@ public class RunSBB {
         new AccessEgress(controler).installAccessTime();
 
         controler.run();
+    }
+
+    public static Config buildConfig(String filepath) {
+        Config config = ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+                new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup());
+
+        return config;
     }
 }
