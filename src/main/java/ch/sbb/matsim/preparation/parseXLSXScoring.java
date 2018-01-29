@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
@@ -24,8 +25,7 @@ public class parseXLSXScoring {
         final String configOut = args[1];
         final String xlsx = args[2];
 
-        final Config config = ConfigUtils.loadConfig(configIn, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-                new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup());
+        final Config config = RunSBB.buildConfig(configIn);
 
         XLSXScoringParser scoringParser = new XLSXScoringParser();
 
