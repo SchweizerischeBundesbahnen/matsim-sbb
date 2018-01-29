@@ -225,6 +225,7 @@ public class XLSXScoringParser {
      * <p>this method will iterate over the sheet rows and try to find the behavior group name string in the
      * first column. Strings found in the same row and present in the MODES array will be interpreted as modes</p>
      * <p>The method will prepare a modeCorrection instance for each combination of behavior group and mode.
+     * e.g.: season_ticket: none / mode: car, season_ticket: none / mode: ride ... season_ticket: Generalabo / mode: bike
      * To avoid cluttering the final config.xml file, only the modeCorrections with non-null values will be added.</p>
      *
      * @param behaviorGroupName (required) the name of the behavior group, must be one of (DUMMY_GROUP_NAME,
