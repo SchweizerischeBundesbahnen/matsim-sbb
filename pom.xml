@@ -33,7 +33,6 @@
 			<type>test-jar</type>
 		</dependency>
 
-
 		<!-- Include the JUnit testing library -->
 		<dependency>
 			<groupId>junit</groupId>
