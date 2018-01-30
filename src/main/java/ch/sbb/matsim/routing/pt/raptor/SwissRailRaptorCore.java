@@ -158,7 +158,6 @@ public class SwissRailRaptorCore {
             double agentFirstArrivalTime = boardingPE.arrivalTime;
             int currentDepartureIndex = findNextDepartureIndex(route, firstRouteStop, agentFirstArrivalTime);
             if (currentDepartureIndex >= 0) {
-                routeIndex = tmpRouteIndex;
                 double currentDepartureTime = this.data.departures[currentDepartureIndex];
                 double currentAgentBoardingTime;
                 double currentCostWhenBoarding;
@@ -173,6 +172,7 @@ public class SwissRailRaptorCore {
                 if (currentCostWhenBoarding > this.bestArrivalCost) {
                     continue;
                 }
+                routeIndex = tmpRouteIndex;
 
                 for (int toRouteStopIndex = firstRouteStopIndex + 1; toRouteStopIndex < route.indexFirstRouteStop + route.countRouteStops; toRouteStopIndex++) {
                     RRouteStop toRouteStop = this.data.routeStops[toRouteStopIndex];
