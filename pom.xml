@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.sbb</groupId>
 	<artifactId>matsim-sbb</artifactId>
-	<version>0.0.5</version>
+	<version>0.0.6-SNAPSHOT</version>
 	<name>MATSim SBB Project</name>
 	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P</description>
 
@@ -33,7 +33,6 @@
 			<type>test-jar</type>
 		</dependency>
 
-
 		<!-- Include the JUnit testing library -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -54,6 +53,18 @@
 			<groupId>com.hynnet</groupId>
 			<artifactId>jacob</artifactId>
 			<version>1.18</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.17</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.17</version>
 		</dependency>
 
 	</dependencies>
