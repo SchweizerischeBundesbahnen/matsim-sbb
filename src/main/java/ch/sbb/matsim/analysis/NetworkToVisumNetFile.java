@@ -1,5 +1,7 @@
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.csv.CSVReader;
 import javafx.util.Pair;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -13,17 +15,15 @@ import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import ch.sbb.matsim.csv.CSVReader;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -359,36 +359,40 @@ public class NetworkToVisumNetFile implements EventWriter {
 
     private void readVolumeDataPerLink(String pathFile, Network network, Map<Link, Double> nbVehiclesPerLink, double scaleFactor) {
         CSVReader reader = new CSVReader(LinkVolumeToCSV.COLUMNS);
-        reader.read(pathFile, ";");
-        Iterator<HashMap<String, String>> iterator = reader.data.iterator();
-        iterator.next(); // header line
-        while (iterator.hasNext()) {
-            HashMap<String, String> aRow = iterator.next();
-            Link link = network.getLinks().get(Id.create(aRow.get(LinkVolumeToCSV.COL_LINK_ID), Link.class));
-            Double nbVehiclesBefore = nbVehiclesPerLink.get(link);
-            double actScaleFactor = (link.getAllowedModes().contains(TransportMode.car)) ? scaleFactor : 1.0; // this is a problem, if pt and car is allowed on the same link
-            if (nbVehiclesBefore == null) {
-                nbVehiclesPerLink.put(link, actScaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_VOLUME)));
-            } else {
-                nbVehiclesPerLink.put(link, actScaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_VOLUME)) + nbVehiclesBefore);
+        try (CSVReader.CSVIterator iterator = reader.read(pathFile, ";")) {
+            iterator.next(); // header line
+            while (iterator.hasNext()) {
+                Map<String, String> aRow = iterator.next();
+                Link link = network.getLinks().get(Id.create(aRow.get(LinkVolumeToCSV.COL_LINK_ID), Link.class));
+                Double nbVehiclesBefore = nbVehiclesPerLink.get(link);
+                double actScaleFactor = (link.getAllowedModes().contains(TransportMode.car)) ? scaleFactor : 1.0; // this is a problem, if pt and car is allowed on the same link
+                if (nbVehiclesBefore == null) {
+                    nbVehiclesPerLink.put(link, actScaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_VOLUME)));
+                } else {
+                    nbVehiclesPerLink.put(link, actScaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_VOLUME)) + nbVehiclesBefore);
+                }
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
     private void readPassengerVolumeDataPerLink(String pathFile, Network network, Map<Link, Double> nbPassengersPerLink, double scaleFactor) {
         CSVReader reader = new CSVReader(LinkVolumeToCSV.COLUMNS);
-        reader.read(pathFile, ";");
-        Iterator<HashMap<String, String>> iterator = reader.data.iterator();
-        iterator.next(); // header line
-        while (iterator.hasNext()) {
-            HashMap<String, String> aRow = iterator.next();
-            Link link = network.getLinks().get(Id.create(aRow.get(LinkVolumeToCSV.COL_LINK_ID), Link.class));
-            Double nbPassengersBefore = nbPassengersPerLink.get(link);
-            if (nbPassengersBefore == null) {
-                nbPassengersPerLink.put(link, scaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_NBPASSENGERS)));
-            } else {
-                nbPassengersPerLink.put(link, scaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_NBPASSENGERS)) + nbPassengersBefore);
+        try (CSVReader.CSVIterator iterator = reader.read(pathFile, ";")) {
+            iterator.next(); // header line
+            while (iterator.hasNext()) {
+                Map<String, String> aRow = iterator.next();
+                Link link = network.getLinks().get(Id.create(aRow.get(LinkVolumeToCSV.COL_LINK_ID), Link.class));
+                Double nbPassengersBefore = nbPassengersPerLink.get(link);
+                if (nbPassengersBefore == null) {
+                    nbPassengersPerLink.put(link, scaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_NBPASSENGERS)));
+                } else {
+                    nbPassengersPerLink.put(link, scaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_NBPASSENGERS)) + nbPassengersBefore);
+                }
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -398,24 +402,26 @@ public class NetworkToVisumNetFile implements EventWriter {
                                                   Map<TransitStopFacility, Double> nbBoardingsPerStop,
                                                   double scaleFactor) {
         CSVReader reader = new CSVReader(PtVolumeToCSV.COLS_STOPS);
-        reader.read(pathFile, ";");
-        Iterator<HashMap<String, String>> iterator = reader.data.iterator();
-        iterator.next(); // header line
-        while (iterator.hasNext()) {
-            HashMap<String, String> aRow = iterator.next();
-            TransitStopFacility stop = schedule.getFacilities().get(Id.create(aRow.get(PtVolumeToCSV.COL_STOP_ID), TransitStopFacility.class));
-            Double nbAlightingsBefore = nbAlightingsPerStop.get(stop);
-            if (nbAlightingsBefore == null) {
-                nbAlightingsPerStop.put(stop, scaleFactor * Double.valueOf(aRow.get(PtVolumeToCSV.COL_ALIGHTING)));
-            } else {
-                nbAlightingsPerStop.put(stop, scaleFactor * Double.valueOf(aRow.get(PtVolumeToCSV.COL_ALIGHTING)) + nbAlightingsBefore);
+        try (CSVReader.CSVIterator iterator = reader.read(pathFile, ";")) {
+            iterator.next(); // header line
+            while (iterator.hasNext()) {
+                Map<String, String> aRow = iterator.next();
+                TransitStopFacility stop = schedule.getFacilities().get(Id.create(aRow.get(PtVolumeToCSV.COL_STOP_ID), TransitStopFacility.class));
+                Double nbAlightingsBefore = nbAlightingsPerStop.get(stop);
+                if (nbAlightingsBefore == null) {
+                    nbAlightingsPerStop.put(stop, scaleFactor * Double.valueOf(aRow.get(PtVolumeToCSV.COL_ALIGHTING)));
+                } else {
+                    nbAlightingsPerStop.put(stop, scaleFactor * Double.valueOf(aRow.get(PtVolumeToCSV.COL_ALIGHTING)) + nbAlightingsBefore);
+                }
+                Double nbBoardingsBefore = nbBoardingsPerStop.get(stop);
+                if (nbBoardingsBefore == null) {
+                    nbBoardingsPerStop.put(stop, scaleFactor * Double.valueOf(aRow.get(PtVolumeToCSV.COL_BOARDING)));
+                } else {
+                    nbBoardingsPerStop.put(stop, scaleFactor * Double.valueOf(aRow.get(PtVolumeToCSV.COL_BOARDING)) + nbBoardingsBefore);
+                }
             }
-            Double nbBoardingsBefore = nbBoardingsPerStop.get(stop);
-            if (nbBoardingsBefore == null) {
-                nbBoardingsPerStop.put(stop, scaleFactor * Double.valueOf(aRow.get(PtVolumeToCSV.COL_BOARDING)));
-            } else {
-                nbBoardingsPerStop.put(stop, scaleFactor * Double.valueOf(aRow.get(PtVolumeToCSV.COL_BOARDING)) + nbBoardingsBefore);
-            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 

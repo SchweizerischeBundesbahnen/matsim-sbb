@@ -4,6 +4,8 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.PtMergerConfigGroup;
+import ch.sbb.matsim.csv.CSVReader;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -25,12 +27,13 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleReaderV1;
 import org.matsim.vehicles.VehicleWriterV1;
-import ch.sbb.matsim.csv.CSVReader;
-import ch.sbb.matsim.config.PtMergerConfigGroup;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class PTMerger {
     private final static Logger log =Logger.getLogger(PTMerger.class);
@@ -145,12 +148,15 @@ public class PTMerger {
     }
 
     private void removePt(String networkMode, String csvFile){
-        CSVReader lineReader = new CSVReader(new String[] {"line", "is_simba_perimeter"});
-        lineReader.read(csvFile, ";");
-
         HashMap<Id<TransitLine>, String> toKeep = new HashMap<>();
-        for(HashMap<String, String> d: lineReader.data){
-            toKeep.put(Id.create(d.get("line"), TransitLine.class), d.get("is_simba_perimeter"));
+        CSVReader lineReader = new CSVReader(new String[] {"line", "is_simba_perimeter"});
+        try (CSVReader.CSVIterator iterator = lineReader.read(csvFile, ";")) {
+            while (iterator.hasNext()) {
+                Map<String, String> row = iterator.next();
+                toKeep.put(Id.create(row.get("line"), TransitLine.class), row.get("is_simba_perimeter"));
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
 
         ArrayList<TransitLine> lineToDelete = new ArrayList<>();

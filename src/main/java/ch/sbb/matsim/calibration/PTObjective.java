@@ -21,6 +21,8 @@ import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityE
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
 import org.matsim.vehicles.Vehicle;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -40,22 +42,25 @@ public class PTObjective implements TransitDriverStartsEventHandler,
 
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> ptAgents = new HashSet<>();
-    private CSVReader visumVolume = new CSVReader(new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers"});
     private HashMap<Set<String>, Float> visumData = new HashMap<Set<String>, Float>();
 
 
     public PTObjective(Scenario scenario, final String csvVolume){
-
-        this.visumVolume.read(csvVolume, ",");
         this.scenario = scenario;
 
-        for(HashMap<String, String> d :this.visumVolume.data){
-            Set<String> key = new HashSet<>();
-            key.add(d.get("line"));
-            key.add(d.get("lineRoute"));
-            key.add(d.get("departure"));
-            key.add(d.get("facilityId"));
-            this.visumData.put(key, Float.parseFloat(d.get("passengers")));
+        CSVReader visumVolume = new CSVReader(new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers"});
+        try (CSVReader.CSVIterator iterator = visumVolume.read(csvVolume, ",")) {
+            while (iterator.hasNext()) {
+                Map<String, String> row = iterator.next();
+                Set<String> key = new HashSet<>();
+                key.add(row.get("line"));
+                key.add(row.get("lineRoute"));
+                key.add(row.get("departure"));
+                key.add(row.get("facilityId"));
+                this.visumData.put(key, Float.parseFloat(row.get("passengers")));
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
