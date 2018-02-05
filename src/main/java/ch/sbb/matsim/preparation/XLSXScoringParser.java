@@ -97,7 +97,7 @@ public class XLSXScoringParser {
         BEHAVIOR_GROUP_PERSON_ATTRIBUTES.put(LAND_USE_NAME, LAND_USE_PERSON_ATTRIBUTE);
     }
 
-    static final String[] DUMMY_GROUP_ATTRIBUTE_VALUES = new String[] {"dummy"};
+    static final String[] DUMMY_GROUP_ATTRIBUTE_VALUES = new String[] {"regular"};
     static final String[] SEASON_TICKET_ATTRIBUTE_VALUES = new String[] {"none", "Generalabo", "Halbtaxabo"};
     static final String[] CAR_AVAIL_ATTRIBUTE_VALUES = new String[] {"always", "never", "by arrengement"};
     static final String[] LAND_USE_ATTRIBUTE_VALUES = new String[] {"1", "2", "3", "4"};
