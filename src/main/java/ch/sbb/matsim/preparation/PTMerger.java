@@ -149,10 +149,9 @@ public class PTMerger {
 
     private void removePt(String networkMode, String csvFile){
         HashMap<Id<TransitLine>, String> toKeep = new HashMap<>();
-        CSVReader lineReader = new CSVReader(new String[] {"line", "is_simba_perimeter"});
-        try (CSVReader.CSVIterator iterator = lineReader.read(csvFile, ";")) {
-            while (iterator.hasNext()) {
-                Map<String, String> row = iterator.next();
+        try (CSVReader lineReader = new CSVReader(new String[] {"line", "is_simba_perimeter"}, csvFile, ";")) {
+            Map<String, String> row;
+            while ((row = lineReader.readLine()) != null) {
                 toKeep.put(Id.create(row.get("line"), TransitLine.class), row.get("is_simba_perimeter"));
             }
         } catch (IOException e) {

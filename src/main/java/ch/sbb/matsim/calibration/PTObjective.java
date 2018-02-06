@@ -48,10 +48,9 @@ public class PTObjective implements TransitDriverStartsEventHandler,
     public PTObjective(Scenario scenario, final String csvVolume){
         this.scenario = scenario;
 
-        CSVReader visumVolume = new CSVReader(new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers"});
-        try (CSVReader.CSVIterator iterator = visumVolume.read(csvVolume, ",")) {
-            while (iterator.hasNext()) {
-                Map<String, String> row = iterator.next();
+        try (CSVReader visumVolume = new CSVReader(new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers"}, csvVolume, ",")) {
+            Map<String, String> row;
+            while ((row = visumVolume.readLine()) != null) {
                 Set<String> key = new HashSet<>();
                 key.add(row.get("line"));
                 key.add(row.get("lineRoute"));

@@ -358,11 +358,10 @@ public class NetworkToVisumNetFile implements EventWriter {
     }
 
     private void readVolumeDataPerLink(String pathFile, Network network, Map<Link, Double> nbVehiclesPerLink, double scaleFactor) {
-        CSVReader reader = new CSVReader(LinkVolumeToCSV.COLUMNS);
-        try (CSVReader.CSVIterator iterator = reader.read(pathFile, ";")) {
-            iterator.next(); // header line
-            while (iterator.hasNext()) {
-                Map<String, String> aRow = iterator.next();
+        try (CSVReader reader = new CSVReader(LinkVolumeToCSV.COLUMNS, pathFile, ";")) {
+            reader.readLine(); // header line
+            Map<String, String> aRow;
+            while ((aRow = reader.readLine()) != null) {
                 Link link = network.getLinks().get(Id.create(aRow.get(LinkVolumeToCSV.COL_LINK_ID), Link.class));
                 Double nbVehiclesBefore = nbVehiclesPerLink.get(link);
                 double actScaleFactor = (link.getAllowedModes().contains(TransportMode.car)) ? scaleFactor : 1.0; // this is a problem, if pt and car is allowed on the same link
@@ -378,11 +377,10 @@ public class NetworkToVisumNetFile implements EventWriter {
     }
 
     private void readPassengerVolumeDataPerLink(String pathFile, Network network, Map<Link, Double> nbPassengersPerLink, double scaleFactor) {
-        CSVReader reader = new CSVReader(LinkVolumeToCSV.COLUMNS);
-        try (CSVReader.CSVIterator iterator = reader.read(pathFile, ";")) {
-            iterator.next(); // header line
-            while (iterator.hasNext()) {
-                Map<String, String> aRow = iterator.next();
+        try (CSVReader reader = new CSVReader(LinkVolumeToCSV.COLUMNS, pathFile, ";")) {
+            reader.readLine(); // header line
+            Map<String, String> aRow;
+            while ((aRow = reader.readLine()) != null) {
                 Link link = network.getLinks().get(Id.create(aRow.get(LinkVolumeToCSV.COL_LINK_ID), Link.class));
                 Double nbPassengersBefore = nbPassengersPerLink.get(link);
                 if (nbPassengersBefore == null) {
@@ -401,11 +399,10 @@ public class NetworkToVisumNetFile implements EventWriter {
                                                   Map<TransitStopFacility, Double> nbAlightingsPerStop,
                                                   Map<TransitStopFacility, Double> nbBoardingsPerStop,
                                                   double scaleFactor) {
-        CSVReader reader = new CSVReader(PtVolumeToCSV.COLS_STOPS);
-        try (CSVReader.CSVIterator iterator = reader.read(pathFile, ";")) {
-            iterator.next(); // header line
-            while (iterator.hasNext()) {
-                Map<String, String> aRow = iterator.next();
+        try (CSVReader reader = new CSVReader(PtVolumeToCSV.COLS_STOPS, pathFile, ";")) {
+            reader.readLine(); // header line
+            Map<String, String> aRow;
+            while ((aRow = reader.readLine()) != null) {
                 TransitStopFacility stop = schedule.getFacilities().get(Id.create(aRow.get(PtVolumeToCSV.COL_STOP_ID), TransitStopFacility.class));
                 Double nbAlightingsBefore = nbAlightingsPerStop.get(stop);
                 if (nbAlightingsBefore == null) {
