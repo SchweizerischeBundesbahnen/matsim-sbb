@@ -69,7 +69,7 @@ public class XLSXScoringParserTest {
         Sheet scoringParamsSheet = workbook.getSheet(XLSXScoringParser.SCORING_SHEET);
         scoringParamsSheet.createRow(0);
         scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.MATSIM_PARAMS_LABEL);
-        scoringParamsSheet.getRow(0).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.MODES[0]);
+        scoringParamsSheet.getRow(0).createCell(1, CellType.STRING).setCellValue("car");
         scoringParamsSheet.createRow(1);
         scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.CONSTANT);
         scoringParamsSheet.getRow(1).createCell(1, CellType.NUMERIC).setCellValue(constantCar);
@@ -102,7 +102,7 @@ public class XLSXScoringParserTest {
         Sheet scoringParamsSheet = workbook.getSheet(sheetName);
         scoringParamsSheet.createRow(0);
         scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.BEHAVIOR_GROUP_PERSON_ATTRIBUTES.get(behaviorGroupName));
-        scoringParamsSheet.getRow(0).createCell(2, CellType.STRING).setCellValue(XLSXScoringParser.MODES[0]);
+        scoringParamsSheet.getRow(0).createCell(2, CellType.STRING).setCellValue("car");
         scoringParamsSheet.createRow(1);
         scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue("none");
         scoringParamsSheet.getRow(1).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.CONSTANT);

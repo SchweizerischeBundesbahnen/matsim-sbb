@@ -46,7 +46,6 @@ import java.util.TreeSet;
  */
 public class XLSXScoringParser {
 
-    static final String[] MODES = new String[] {"car", "ride", "pt", "transit_walk", "egress_walk", "access_walk", "walk", "bike"};
     static final String SCORING_SHEET = "ScoringParams";
     static final String MATSIM_PARAMS_LABEL = "MATSim Param Name";
     static final String GENERAL_PARAMS_LABEL = "general";
@@ -176,7 +175,7 @@ public class XLSXScoringParser {
 
                             if (mode.equals(GENERAL_PARAMS_LABEL)) {
                                 generalParamsCol = col;
-                            } else if (Arrays.asList(MODES).contains(mode)) {
+                            } else if (!modes.contains(mode)) {
                                 PlanCalcScoreConfigGroup.ModeParams modeParams = planCalcScore.getOrCreateModeParams(mode);
                                 modeParamsConfig.put(col, modeParams);
                                 modes.add(mode);
@@ -223,7 +222,7 @@ public class XLSXScoringParser {
      *
      * <p>parse scoring parameters specific to one behavior group</p>
      * <p>this method will iterate over the sheet rows and try to find the behavior group name string in the
-     * first column. Strings found in the same row and present in the MODES array will be interpreted as modes</p>
+     * first column. Strings found in the same row will be interpreted as modes</p>
      * <p>The method will prepare a modeCorrection instance for each combination of behavior group and mode.
      * e.g.: season_ticket: none / mode: car, season_ticket: none / mode: ride ... season_ticket: Generalabo / mode: bike
      * To avoid cluttering the final config.xml file, only the modeCorrections with non-null values will be added.</p>
@@ -269,7 +268,7 @@ public class XLSXScoringParser {
                         if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
                             String mode = cell.getStringCellValue();
 
-                            if ((Arrays.asList(MODES).contains(mode)) && (!modes.containsValue(mode))) {
+                            if (!modes.containsValue(mode)) {
                                 modes.put(col, mode);
                             }
                         }
@@ -297,19 +296,25 @@ public class XLSXScoringParser {
                                 Cell cell = row.getCell(entry.getKey());
 
                                 if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
-                                    switch (parameterLabel) {
-                                        case CONSTANT:
-                                            modeCorrection.setConstant(cell.getNumericCellValue());
-                                            break;
-                                        case MARGINAL_UTILITY_OF_DISTANCE:
-                                            modeCorrection.setMargUtilOfDistance(cell.getNumericCellValue());
-                                            break;
-                                        case MARGINAL_UTILITY_OF_TRAVELING:
-                                            modeCorrection.setMargUtilOfTime(cell.getNumericCellValue());
-                                            break;
-                                        case MONETARY_DISTANCE_RATE:
-                                            modeCorrection.setDistanceRate(cell.getNumericCellValue());
-                                            break;
+                                    try {
+                                        double numericCellValue = cell.getNumericCellValue();
+
+                                        switch (parameterLabel) {
+                                            case CONSTANT:
+                                                modeCorrection.setConstant(numericCellValue);
+                                                break;
+                                            case MARGINAL_UTILITY_OF_DISTANCE:
+                                                modeCorrection.setMargUtilOfDistance(numericCellValue);
+                                                break;
+                                            case MARGINAL_UTILITY_OF_TRAVELING:
+                                                modeCorrection.setMargUtilOfTime(numericCellValue);
+                                                break;
+                                            case MONETARY_DISTANCE_RATE:
+                                                modeCorrection.setDistanceRate(numericCellValue);
+                                                break;
+                                        }
+                                    } catch (Exception e) {
+                                        // probably a formula returning a string, ignore
                                     }
                                 }
                             }
