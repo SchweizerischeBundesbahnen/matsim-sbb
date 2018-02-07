@@ -190,19 +190,25 @@ public class XLSXScoringParser {
                         PlanCalcScoreConfigGroup.ModeParams modeParams = entry.getValue();
 
                         if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
-                            switch (rowLabel) {
-                                case CONSTANT:
-                                    modeParams.setConstant(cell.getNumericCellValue());
-                                    break;
-                                case MARGINAL_UTILITY_OF_DISTANCE:
-                                    modeParams.setMarginalUtilityOfDistance(cell.getNumericCellValue());
-                                    break;
-                                case MARGINAL_UTILITY_OF_TRAVELING:
-                                    modeParams.setMarginalUtilityOfTraveling(cell.getNumericCellValue());
-                                    break;
-                                case MONETARY_DISTANCE_RATE:
-                                    modeParams.setMonetaryDistanceRate(cell.getNumericCellValue());
-                                    break;
+                            try {
+                                double numericCellValue = cell.getNumericCellValue();
+
+                                switch (rowLabel) {
+                                    case CONSTANT:
+                                        modeParams.setConstant(numericCellValue);
+                                        break;
+                                    case MARGINAL_UTILITY_OF_DISTANCE:
+                                        modeParams.setMarginalUtilityOfDistance(numericCellValue);
+                                        break;
+                                    case MARGINAL_UTILITY_OF_TRAVELING:
+                                        modeParams.setMarginalUtilityOfTraveling(numericCellValue);
+                                        break;
+                                    case MONETARY_DISTANCE_RATE:
+                                        modeParams.setMonetaryDistanceRate(numericCellValue);
+                                        break;
+                                }
+                            } catch (IllegalStateException e) {
+                                // probably a formula returning a string, ignore
                             }
                         }
                     }
@@ -210,7 +216,11 @@ public class XLSXScoringParser {
                     Cell cell = row.getCell(generalParamsCol);
 
                     if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
-                        planCalcScore.addParam(rowLabel, String.valueOf(cell.getNumericCellValue()));
+                        try {
+                            planCalcScore.addParam(rowLabel, String.valueOf(cell.getNumericCellValue()));
+                        } catch (IllegalStateException e) {
+                            // probably a formula returning a string, ignore
+                        }
                     }
                 }
             }
@@ -313,7 +323,7 @@ public class XLSXScoringParser {
                                                 modeCorrection.setDistanceRate(numericCellValue);
                                                 break;
                                         }
-                                    } catch (Exception e) {
+                                    } catch (IllegalStateException e) {
                                         // probably a formula returning a string, ignore
                                     }
                                 }
