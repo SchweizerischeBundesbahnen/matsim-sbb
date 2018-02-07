@@ -245,7 +245,6 @@ public class XLSXScoringParser {
      */
     protected static void parseBehaviorGroupParamsSheet(String behaviorGroupName, Sheet behaviorGroupParamsSheet, SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup) {
         Map<Integer, String> modes = new TreeMap<>();
-        final Set<String> ATTRIBUTE_VALUES = BEHAVIOR_GROUP_ATTRIBUTE_VALUES.get(behaviorGroupName);
         final String PERSON_ATTRIBUTE_KEY = BEHAVIOR_GROUP_PERSON_ATTRIBUTES.get(behaviorGroupName);
 
         /** Value - {@value}, temporary container for ModeCorrection instances */
@@ -283,24 +282,24 @@ public class XLSXScoringParser {
                             }
                         }
                     }
-                } else if (ATTRIBUTE_VALUES.contains(rowLabel)) {
-                    if (!modeCorrections.containsKey(rowLabel)) {
-                        modeCorrections.put(rowLabel, new HashMap<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>());
-
-                        for (Map.Entry<Integer, String> modeEntry : modes.entrySet()) {
-                            SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
-                            modeCorrection.setMode(modeEntry.getValue());
-
-                            modeCorrections.get(rowLabel).put(modeEntry.getValue(), modeCorrection);
-                        }
-                    }
-
+                } else {
                     Cell secondCell = row.getCell(1);
 
                     if ((secondCell != null) && (secondCell.getCellTypeEnum() == CellType.STRING)) {
                         String parameterLabel = secondCell.getStringCellValue();
 
                         if (MODE_PARAMS.contains(parameterLabel)) {
+                            if (!modeCorrections.containsKey(rowLabel)) {
+                                modeCorrections.put(rowLabel, new HashMap<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>());
+
+                                for (Map.Entry<Integer, String> modeEntry : modes.entrySet()) {
+                                    SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
+                                    modeCorrection.setMode(modeEntry.getValue());
+
+                                    modeCorrections.get(rowLabel).put(modeEntry.getValue(), modeCorrection);
+                                }
+                            }
+
                             for (Map.Entry<Integer, String> entry : modes.entrySet()) {
                                 SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = modeCorrections.get(rowLabel).get(entry.getValue());
                                 Cell cell = row.getCell(entry.getKey());
