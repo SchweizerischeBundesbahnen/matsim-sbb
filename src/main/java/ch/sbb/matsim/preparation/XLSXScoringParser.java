@@ -90,7 +90,7 @@ public class XLSXScoringParser {
 
             if (paramsSheet.getSheetName().equals(SCORING_SHEET)) {
                 parseScoringParamsSheet(paramsSheet, planCalcScore);
-                log.info("parsed general acoring parameters sheet: " + SCORING_SHEET);
+                log.info("parsed general scoring parameters sheet: " + SCORING_SHEET);
             } else {
                 parseBehaviorGroupParamsSheet(paramsSheet, behaviorGroupConfigGroup);
                 log.info("parsed behaviorGroup scoring parameters sheet: " + paramsSheet.getSheetName());
@@ -164,7 +164,7 @@ public class XLSXScoringParser {
                                         break;
                                 }
                             } catch (IllegalStateException e) {
-                                // probably a formula returning a string, ignore
+                                log.warn("could not parse parameter " + rowLabel + " for mode " + modeParams.getMode() + ". Cell value is not numeric.");
                             }
                         }
                     }
@@ -175,7 +175,7 @@ public class XLSXScoringParser {
                         try {
                             planCalcScore.addParam(rowLabel, String.valueOf(cell.getNumericCellValue()));
                         } catch (IllegalStateException e) {
-                            // probably a formula returning a string, ignore
+                            log.warn("could not parse parameter " + rowLabel + ". Cell value is not numeric.");
                         }
                     }
                 }
@@ -288,7 +288,7 @@ public class XLSXScoringParser {
                                                 break;
                                         }
                                     } catch (IllegalStateException e) {
-                                        // probably a formula returning a string, ignore
+                                        log.warn("could not parse parameter " + rowLabel + " for mode " + entry.getValue() + ". Cell value is not numeric.");
                                     }
                                 }
                             }
