@@ -412,8 +412,8 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(VehicleArrivesAtFacilityEvent event) {
         try {
-            ptVehicles.get(event.getVehicleId()).lastStop = event
-                    .getFacilityId();
+            PTVehicle ptVehicle = ptVehicles.get(event.getVehicleId());
+            ptVehicle.lastStop = event.getFacilityId();
         } catch (Exception e) {
             System.err.println(e.getStackTrace());
             System.err.println(event.toString());
