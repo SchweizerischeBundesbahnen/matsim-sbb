@@ -89,8 +89,8 @@ public class XLSXScoringParserTest {
     @Test
     public void testParseBehaviorGroupScoringParams() {
         double constant = -1.22;
-        String behaviorGroupName = XLSXScoringParser.SEASON_TICKET_NAME;
-        String sheetName = XLSXScoringParser.BEHAVIOR_GROUP_SHEETS.get(behaviorGroupName);
+        String behaviorGroupName = "season_ticket";
+        String sheetName = "Abobesitz";
 
         Config config = ConfigUtils.createConfig();
         SBBBehaviorGroupsConfigGroup behaviorGroupConfig = new SBBBehaviorGroupsConfigGroup();
@@ -101,7 +101,7 @@ public class XLSXScoringParserTest {
 
         Sheet scoringParamsSheet = workbook.getSheet(sheetName);
         scoringParamsSheet.createRow(0);
-        scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.BEHAVIOR_GROUP_PERSON_ATTRIBUTES.get(behaviorGroupName));
+        scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue("season_ticket");
         scoringParamsSheet.getRow(0).createCell(2, CellType.STRING).setCellValue("car");
         scoringParamsSheet.createRow(1);
         scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue("none");
