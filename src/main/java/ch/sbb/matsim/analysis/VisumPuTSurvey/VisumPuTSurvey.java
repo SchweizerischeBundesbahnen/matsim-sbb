@@ -115,11 +115,10 @@ public class VisumPuTSurvey {
                         aRow.put(COL_TEILWEG_KENNUNG, kennung);
                         aRow.put(COL_EINHSTNR, boarding);
 
-                        int day = (int) Math.ceil(trip.getStartTime() / (24 * 60 * 60.0));
-                        assert day > 0;
+                        int time = (int) trip.getPtDepartureTime();
 
-                        aRow.put(COL_EINHSTABFAHRTSTAG, Integer.toString(day));
-                        aRow.put(COL_EINHSTABFAHRTSZEIT, Time.writeTime(trip.getStartTime()));
+                        aRow.put(COL_EINHSTABFAHRTSTAG, getDayIndex(time));
+                        aRow.put(COL_EINHSTABFAHRTSZEIT, getTime(time));
 
                         Double pfahrt = 1.0 * scaleFactor;
                         aRow.put(COL_PFAHRT, Integer.toString(pfahrt.intValue()));
@@ -136,6 +135,19 @@ public class VisumPuTSurvey {
         writer.setHeader(header);
         writer.write(filepath);
 
+    }
+
+
+    public String getDayIndex(int time){
+        int day = (int) Math.ceil(time / (24 * 60 * 60.0));
+        assert day > 0;
+        return Integer.toString(day);
+    }
+
+
+    public String getTime(int time){
+        int sec = time % (24*60*60);
+        return Time.writeTime(sec);
     }
 
     private class PTVehicle {
