@@ -31,8 +31,8 @@ public class PopulationToCSV implements EventWriter{
 
     private final static Logger log = Logger.getLogger(PopulationToCSV.class);
 
-    CSVWriter agents_writer = null;
-    CSVWriter planelements_writer = null;
+    public CSVWriter agents_writer = null;
+    public CSVWriter planelements_writer = null;
 
     private String filename;
 
