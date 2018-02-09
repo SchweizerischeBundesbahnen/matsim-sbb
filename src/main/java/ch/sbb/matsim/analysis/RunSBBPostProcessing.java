@@ -10,18 +10,18 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.ControlerConfigGroup;
 import org.matsim.core.events.EventsManagerImpl;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import java.io.IOException;
 import java.util.List;
 
 public class RunSBBPostProcessing {
     private final static Logger log = Logger.getLogger(RunSBBPostProcessing.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         final String configFile = args[0];
         final String eventsFileName = args[1];
         final String outputPath = args[2];
@@ -33,7 +33,7 @@ public class RunSBBPostProcessing {
         Scenario scenario = ScenarioUtils.loadScenario(config);
         EventsManager eventsManager = new EventsManagerImpl();
 
-        List<EventWriter> eventWriters = SBBPostProcessingOutputHandler.buildEventWriters(scenario, ppConfig, outputPath, true);
+        List<EventWriter> eventWriters = SBBPostProcessingOutputHandler.buildEventWriters(scenario, ppConfig, outputPath);
 
         for (EventWriter eventWriter : eventWriters) {
             eventsManager.addHandler(eventWriter);
@@ -43,6 +43,14 @@ public class RunSBBPostProcessing {
 
         for (EventWriter eventWriter : eventWriters) {
             eventWriter.closeFile();
+        }
+
+        if (ppConfig.getWritePlansCSV()) {
+            new PopulationToCSV(scenario).write(outputPath);
+        }
+
+        if (ppConfig.getVisumNetFile()) {
+            new NetworkToVisumNetFile(scenario, ppConfig).write(outputPath);
         }
     }
 }
