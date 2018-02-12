@@ -304,7 +304,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
         events.addHandler(plansHandler);
         new MatsimEventsReader(events).readFile(eventsFileName);
         Cleaner cleaner = new Cleaner(plansHandler.population);
-        cleaner.clean();
+        cleaner.clean(Arrays.asList(TransportMode.pt), Arrays.asList("all"));
         new PopulationWriter(plansHandler.population).write(planFile);
     }
 }
