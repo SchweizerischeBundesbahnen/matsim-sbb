@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.events.algorithms.EventWriter;
 
 import java.util.HashMap;
@@ -29,6 +30,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     private String filename;
 
     Scenario scenario;
+    private Network network;
 
     private final CSVWriter linkVolumesWriter = new CSVWriter(COLUMNS);
 
@@ -37,6 +39,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
         super(3600, 24 * 3600 - 1, scenario.getNetwork());
         this.scenario = scenario;
         this.filename = filename;
+        this.network = scenario.getNetwork();
     }
 
     // Methods
@@ -48,11 +51,10 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
 
     public void write(){
         log.info("write linkvolumes");
-        Set<String> modes = super.getModes();
         for (Id<Link> linkId: super.getLinkIds()) {
-            for (String aMode: modes) {
-                int[] volumes = super.getVolumesForLink(linkId);
-                int[] nbPassengers = super.getPassengerVolumesForLink(linkId);
+            for (String aMode: this.network.getLinks().get(linkId).getAllowedModes()) {
+                int[] volumes = super.getVolumesForLink(linkId, aMode);
+                int[] nbPassengers = super.getPassengerVolumesForLink(linkId, aMode);
                 if (volumes != null) {
                     for (int i = 0; i < volumes.length; i++) {
                         HashMap<String, String> aRow = linkVolumesWriter.addRow();
