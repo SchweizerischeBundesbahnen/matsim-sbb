@@ -1,7 +1,5 @@
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEnginePlugin;
-import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitQSimEngine;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,12 +17,9 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.mobsim.qsim.*;
-import org.matsim.core.mobsim.qsim.qnetsimengine.QNetsimEnginePlugin;
-import org.matsim.core.population.routes.GenericRouteImpl;
 import org.matsim.core.population.routes.LinkNetworkRouteFactory;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.pt.routes.ExperimentalTransitRoute;
 import org.matsim.core.events.handler.EventHandler;
 import org.matsim.testcases.MatsimTestUtils;
 import org.matsim.testcases.utils.EventsCollector;
@@ -50,9 +45,7 @@ public class LinkVolumeToCSVTest {
 
         linkVolumeToCSV.write();
 
-
-        // Add Assert
-        BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory()+"matsim_linkvolumes.csv"));
+        BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv"));
         StringBuilder sb = new StringBuilder();
         String line = br.readLine();
 
