@@ -43,7 +43,7 @@ public class LinkVolumeToCSVTest {
         testFixture.addDemand();
         testFixture.addEvents(linkVolumeToCSV);
 
-        linkVolumeToCSV.write();
+        linkVolumeToCSV.closeFile();
 
         BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv"));
         StringBuilder sb = new StringBuilder();
