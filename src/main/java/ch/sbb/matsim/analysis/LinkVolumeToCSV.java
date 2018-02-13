@@ -52,8 +52,8 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
         try (CSVWriter linkVolumesWriter = new CSVWriter("", COLUMNS, filename + FILENAME_VOLUMES)) {
             for (Id<Link> linkId : super.getLinkIds()) {
                 for (String aMode: this.network.getLinks().get(linkId).getAllowedModes()) {
-                    int[] volumes = super.getVolumesForLink(linkId);
-                    int[] nbPassengers = super.getPassengerVolumesForLink(linkId);
+                    int[] volumes = super.getVolumesForLink(linkId, aMode);
+                    int[] nbPassengers = super.getPassengerVolumesForLink(linkId, aMode);
                     if (volumes != null) {
                         for (int i = 0; i < volumes.length; i++) {
                             linkVolumesWriter.set(COL_LINK_ID, linkId.toString());
