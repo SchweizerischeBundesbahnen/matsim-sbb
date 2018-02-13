@@ -30,7 +30,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     private final String filename;
     private Network network;
 
-    public LinkVolumeToCSV(Scenario scenario, String filename){
+    public LinkVolumeToCSV(Scenario scenario, String filename) {
         super(3600, 24 * 3600 - 1, scenario.getNetwork());
         this.filename = filename;
         this.network = scenario.getNetwork();
