@@ -7,13 +7,9 @@ package ch.sbb.matsim.preparation;
 import org.apache.log4j.Logger;
 import org.junit.Rule;
 import org.junit.Test;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
@@ -250,35 +246,6 @@ public class CleanerTest {
             Config config = ConfigUtils.createConfig();
             this.scenario = ScenarioUtils.createScenario(config);
 
-            Network network = this.scenario.getNetwork();
-            Node node1 = network.getFactory().createNode(Id.create("1", Node.class), new Coord(0.0D, 0.0D));
-            Node node2 = network.getFactory().createNode(Id.create("2", Node.class), new Coord(1000.0D, 0.0D));
-            Node node3 = network.getFactory().createNode(Id.create("3", Node.class), new Coord(2000.0D, 0.0D));
-            Node node4 = network.getFactory().createNode(Id.create("4", Node.class), new Coord(3000.0D, 0.0D));
-            Node node5 = network.getFactory().createNode(Id.create("5", Node.class), new Coord(4000.0D, 0.0D));
-            Node node6 = network.getFactory().createNode(Id.create("6", Node.class), new Coord(5000.0D, 0.0D));
-            network.addNode(node1);
-            network.addNode(node2);
-            network.addNode(node3);
-            network.addNode(node4);
-            network.addNode(node5);
-            network.addNode(node6);
-            Link link1 = network.getFactory().createLink(Id.create("1", Link.class), node1, node2);
-            Link link2 = network.getFactory().createLink(Id.create("2", Link.class), node2, node3);
-            Link link3 = network.getFactory().createLink(Id.create("3", Link.class), node3, node4);
-            Link link4 = network.getFactory().createLink(Id.create("4", Link.class), node4, node5);
-            Link link5 = network.getFactory().createLink(Id.create("5", Link.class), node5, node6);
-            this.setDefaultLinkAttributes(link1);
-            this.setDefaultLinkAttributes(link2);
-            this.setDefaultLinkAttributes(link3);
-            this.setDefaultLinkAttributes(link4);
-            this.setDefaultLinkAttributes(link5);
-            network.addLink(link1);
-            network.addLink(link2);
-            network.addLink(link3);
-            network.addLink(link4);
-            network.addLink(link5);
-
             String plansXml = "<?xml version=\"1.0\" ?>" +
                     "<!DOCTYPE population SYSTEM \"http://www.matsim.org/files/dtd/population_v6.dtd\">" +
                     "<population>" +
@@ -444,13 +411,6 @@ public class CleanerTest {
             scenario.getPopulation().getPersonAttributes().putAttribute("6", "subpopulation", "regular");
             scenario.getPopulation().getPersonAttributes().putAttribute("7", "subpopulation", "freight");
             scenario.getPopulation().getPersonAttributes().putAttribute("8", "subpopulation", "regular");
-        }
-
-        private void setDefaultLinkAttributes(Link link) {
-            link.setLength(1000.0D);
-            link.setFreespeed(10.0D);
-            link.setCapacity(3600.0D);
-            link.setNumberOfLanes(1.0D);
         }
     }
 }

@@ -17,8 +17,6 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
-import org.matsim.core.router.StageActivityTypes;
-import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
@@ -91,7 +89,6 @@ public class Cleaner {
                             leg.setRoute(null);
                         }
                         if(modesToClean.contains(leg.getMode())) {
-                            leg.setMode(leg.getMode());
                             leg.setRoute(null);
                         }
                     }
