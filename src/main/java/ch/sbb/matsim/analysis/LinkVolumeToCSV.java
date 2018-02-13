@@ -9,10 +9,10 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.events.algorithms.EventWriter;
 
 import java.io.IOException;
-import java.util.Set;
 
 
 public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
@@ -28,10 +28,12 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     public static final String[] COLUMNS = new String[]{COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME, COL_NBPASSENGERS};
 
     private final String filename;
+    private Network network;
 
-    public LinkVolumeToCSV(Scenario scenario, String filename) {
+    public LinkVolumeToCSV(Scenario scenario, String filename){
         super(3600, 24 * 3600 - 1, scenario.getNetwork());
         this.filename = filename;
+        this.network = scenario.getNetwork();
     }
 
     // Methods
@@ -48,11 +50,10 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     public void write(String filename) {
         log.info("write linkvolumes to " + filename + FILENAME_VOLUMES);
         try (CSVWriter linkVolumesWriter = new CSVWriter("", COLUMNS, filename + FILENAME_VOLUMES)) {
-            Set<String> modes = super.getModes();
             for (Id<Link> linkId : super.getLinkIds()) {
-                for (String aMode : modes) {
-                    int[] volumes = super.getVolumesForLink(linkId);
-                    int[] nbPassengers = super.getPassengerVolumesForLink(linkId);
+                for (String aMode : this.network.getLinks().get(linkId).getAllowedModes()) {
+                    int[] volumes = super.getVolumesForLink(linkId, aMode);
+                    int[] nbPassengers = super.getPassengerVolumesForLink(linkId, aMode);
                     if (volumes != null) {
                         for (int i = 0; i < volumes.length; i++) {
                             linkVolumesWriter.set(COL_LINK_ID, linkId.toString());
