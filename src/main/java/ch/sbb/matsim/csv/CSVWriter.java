@@ -82,6 +82,7 @@ public class CSVWriter implements AutoCloseable {
                 }
                 this.writer.write(this.currentRow[i]);
             }
+            this.writer.write("\n");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
