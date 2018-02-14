@@ -13,7 +13,6 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.events.algorithms.EventWriter;
 
 import java.io.IOException;
-import java.util.Set;
 
 
 public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
@@ -27,6 +26,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     public static final String COL_VOLUME = "volume";
     public static final String COL_NBPASSENGERS = "nb_passengers";
     public static final String[] COLUMNS = new String[]{COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME, COL_NBPASSENGERS};
+
     private final String filename;
     private Network network;
 
@@ -51,7 +51,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
         log.info("write linkvolumes to " + filename + FILENAME_VOLUMES);
         try (CSVWriter linkVolumesWriter = new CSVWriter("", COLUMNS, filename + FILENAME_VOLUMES)) {
             for (Id<Link> linkId : super.getLinkIds()) {
-                for (String aMode: this.network.getLinks().get(linkId).getAllowedModes()) {
+                for (String aMode : this.network.getLinks().get(linkId).getAllowedModes()) {
                     int[] volumes = super.getVolumesForLink(linkId, aMode);
                     int[] nbPassengers = super.getPassengerVolumesForLink(linkId, aMode);
                     if (volumes != null) {
