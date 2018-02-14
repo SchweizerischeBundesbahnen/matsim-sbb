@@ -238,8 +238,6 @@ public class CleanerTest {
         assertEquals(leg.getMode(), TransportMode.pt);
         log.info(f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(1));
 
-        Plan plan = f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0);
-
         assertEquals(3, f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().size(), 0);
         assertNull(oldLeg.getRoute());
     }
