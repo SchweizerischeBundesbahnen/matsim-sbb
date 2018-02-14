@@ -11,10 +11,12 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.testcases.MatsimTestUtils;
 
@@ -218,7 +220,7 @@ public class CleanerTest {
         Leg oldLeg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(1);
 
         assertEquals(oldLeg.getMode(), TransportMode.access_walk);
-        assertEquals(12, f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().size(), 0);
+        assertEquals(13, f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().size(), 0);
         assertEquals(oldLeg.getRoute().getStartLinkId().toString(), "2");
 
         Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(3);
@@ -235,7 +237,10 @@ public class CleanerTest {
         cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.bike), Arrays.asList("regular"));
         assertEquals(leg.getMode(), TransportMode.pt);
         log.info(f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(1));
-        assertEquals(4, f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().size(), 0);
+
+        Plan plan = f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0);
+
+        assertEquals(3, f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().size(), 0);
         assertNull(oldLeg.getRoute());
     }
 
@@ -246,7 +251,8 @@ public class CleanerTest {
             Config config = ConfigUtils.createConfig();
             this.scenario = ScenarioUtils.createScenario(config);
 
-            String plansXml = "<?xml version=\"1.0\" ?>" +
+            String plansXml =
+                    "<?xml version=\"1.0\" ?>" +
                     "<!DOCTYPE population SYSTEM \"http://www.matsim.org/files/dtd/population_v6.dtd\">" +
                     "<population>" +
 
@@ -393,6 +399,8 @@ public class CleanerTest {
                     "     <leg mode=\"pt\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
                     "        <route type=\"experimentalPt1\" start_link=\"pt_485797221\" end_link=\"pt_485718011\" trav_time=\"00:28:01\" distance=\"8308.056653632644\">PT1===485797221===360_000792===24086_1_15===485718011</route>" +
                     "     </leg>" +
+                    "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                    "        </activity>" +
                     "     <leg mode=\"egress_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
                     "     </leg>" +
@@ -401,6 +409,7 @@ public class CleanerTest {
                     "</person>" +
 
                     "</population>";
+
             new PopulationReader(scenario).parse(new ByteArrayInputStream(plansXml.getBytes()));
 
             scenario.getPopulation().getPersonAttributes().putAttribute("1", "subpopulation", "cb");
