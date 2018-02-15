@@ -58,11 +58,12 @@ public class TestFixture {
         population = scenario.getPopulation();
         Network network = scenario.getNetwork();
 
-        Double delta = 1.0;
+        Double delta_x = end.getX()-start.getX();
+        Double delta_y = end.getY()-start.getY();
         Node nodeA = network.getFactory().createNode(Id.createNodeId("a"), start);
-        Node nodeB = network.getFactory().createNode(Id.createNodeId("c"), new Coord(start.getX() + delta, start.getY() + delta));
-        Node nodeC = network.getFactory().createNode(Id.createNodeId("d"), new Coord(end.getX() + delta, end.getY() + delta));
-        Node nodeD = network.getFactory().createNode(Id.createNodeId("b"), end);
+        Node nodeB = network.getFactory().createNode(Id.createNodeId("b"), new Coord(start.getX() + delta_x/2.0, start.getY() + delta_y/2.0));
+        Node nodeC = network.getFactory().createNode(Id.createNodeId("c"), new Coord(start.getX() + delta_x/2.0*3.0, start.getY() + delta_y/2.0*3.0));
+        Node nodeD = network.getFactory().createNode(Id.createNodeId("d"), end);
 
         network.addNode(nodeA);
         network.addNode(nodeB);
@@ -78,8 +79,12 @@ public class TestFixture {
         Link linkDC = network.getFactory().createLink(Id.createLinkId("dc"), nodeD, nodeC);
 
 
-        linkBC.setFreespeed(2.0);
-        linkCB.setFreespeed(2.0);
+        linkAB.setFreespeed(200.0);
+        linkBA.setFreespeed(200.0);
+        linkBC.setFreespeed(200.0);
+        linkCB.setFreespeed(200.0);
+        linkCD.setFreespeed(200.0);
+        linkDC.setFreespeed(200.0);
 
         network.addLink(linkAB);
         network.addLink(linkBC);
@@ -164,6 +169,9 @@ public class TestFixture {
         config.controler().setWritePlansInterval(1);
         config.qsim().setEndTime(10 * 60 * 60);
 
+
+
+
     }
 
     public void run() {
@@ -174,7 +182,6 @@ public class TestFixture {
             public void install() {
                 addTravelTimeBinding("ride").to(networkTravelTime());
                 addTravelDisutilityFactoryBinding("ride").to(carTravelDisutilityFactoryKey());
-
             }
         });
 
