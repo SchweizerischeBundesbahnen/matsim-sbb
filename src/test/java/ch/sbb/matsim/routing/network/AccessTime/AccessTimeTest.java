@@ -64,10 +64,9 @@ public class AccessTimeTest {
         assertScoring(true, -10.0, -30, -42.956, "car", "car");
     }
 
-
-    @Test(expected = RuntimeException.class)
-    public final void testScoringRideExceptionIfUsingAccess() {
-        assertScoring(true, 0.0, -1.68, -432, "ride", "car,ride");
+    @Test
+    public final void testScoringRideIfUsingAccess() {
+        assertScoring(true, 0.0, -30, -4.868, "ride", "car,ride");
     }
 
     @Test
