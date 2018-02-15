@@ -3,6 +3,7 @@ package ch.sbb.matsim.routing.access;
 import java.util.Collection;
 
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
@@ -60,11 +61,7 @@ public class AccessEgress {
             public void install() {
 
                 for (final String mode : modes) {
-                    if (mode.equals("ride")){
-                        throw new RuntimeException("Ride is not yet correctly implemented");
-                    }
-
-                    if (mainModes.contains(mode)) {
+                    if (mainModes.contains(mode) || mode.equals(TransportMode.ride)) {
                         addRoutingModuleBinding(mode).toProvider(that.getNetworkRouting(mode));
                     } else {
 
