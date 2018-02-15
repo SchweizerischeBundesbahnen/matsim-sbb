@@ -4,75 +4,102 @@
 
 package ch.sbb.matsim.csv;
 
-import java.io.IOException;
 import org.matsim.core.utils.io.IOUtils;
+import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.core.utils.misc.Counter;
-import org.apache.log4j.Logger;
 
 import java.io.BufferedWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
-public class CSVWriter {
-    final static Logger logger = Logger.getLogger(CSVWriter.class);
+public class CSVWriter implements AutoCloseable {
+
     private final String[] columns;
-    private List<HashMap<String, String>> data = new ArrayList<>();
+    private final int columnCount;
+    private final BufferedWriter writer;
+    private final String[] currentRow;
+    private final Counter counter;
 
-    private String header = "";
+    public CSVWriter(final String header, final String[] columns, final String filename) throws IOException {
+        this(header, columns, IOUtils.getBufferedWriter(filename));
+    }
 
-    public CSVWriter(final String[] columns) {
+    public CSVWriter(final String header, final String[] columns, final OutputStream stream) throws IOException {
+        this(header, columns, new BufferedWriter(new OutputStreamWriter(stream)));
+    }
+
+    private CSVWriter(final String header, final String[] columns, final BufferedWriter writer) throws IOException {
         this.columns = columns;
-    }
+        this.columnCount = this.columns.length;
+        this.currentRow = new String[this.columnCount];
+        this.writer = writer;
+        this.counter = new Counter("Output lines written: ");
 
-    public HashMap<String, String> addRow() {
-        HashMap<String, String> row = new HashMap<>();
-        for (String c : columns) {
-            row.put(c, "");
+        // write header data
+        if (header != null) {
+            this.writer.write(header);
         }
-        data.add(row);
-        return row;
+
+        // write column names
+        for (int i = 0; i < this.columnCount; i++) {
+            if (i > 0) {
+                this.writer.write(";");
+            }
+            String col = columns[i];
+            this.writer.write(col);
+        }
+        this.writer.write("\n");
+
+        clearRow();
     }
 
-    public List<HashMap<String,String>> getData(){
-        return this.data;
+    /**
+     * Sets the column in the current row to the specified value;
+     * @param column
+     * @param value
+     */
+    public void set(String column, String value) {
+        for (int i = 0; i < this.columnCount; i++) {
+            if (this.columns[i].equals(column)) {
+                this.currentRow[i] = value;
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Column not found: " + column);
     }
 
-    public void setHeader(String header){
-        this.header = header;
-    }
-
-    public void clear(){
-        data.clear();
-    }
-
-    public void write(String filename) {
+    /**
+     * Writes the current row to the file and clears the current row afterwards.
+     *
+     * @throws UncheckedIOException
+     */
+    public void writeRow() throws UncheckedIOException {
         try {
-            BufferedWriter Writer = IOUtils.getBufferedWriter(filename);
-
-            String s = header;
-            for (String c : columns) {
-                s += c + ";";
-            }
-
-            Writer.write(s + "\n");
-
-            Counter counter = new Counter("Output lines written: ");
-            for (HashMap<String, String> d : data) {
-                s = "";
-                for (String c : columns) {
-                    s += d.get(c) + ";";
+            for (int i = 0; i < this.columnCount; i++) {
+                if (i > 0) {
+                    this.writer.write(";");
                 }
-
-                Writer.write(s + "\n");
-                counter.incCounter();
+                this.writer.write(this.currentRow[i]);
             }
-
-            Writer.close();
-            counter.printCounter();
-        } catch (IOException ex) {
-
+            this.writer.write("\n");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
-        logger.info(filename);
+        this.counter.incCounter();
+        clearRow();
     }
+
+    private void clearRow() {
+        for (int i = 0; i < this.columns.length; i++) {
+            this.currentRow[i] = "";
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.counter.printCounter();
+        this.writer.close();
+    }
+
 }

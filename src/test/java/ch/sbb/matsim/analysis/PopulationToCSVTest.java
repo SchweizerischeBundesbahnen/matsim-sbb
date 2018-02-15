@@ -1,27 +1,31 @@
 package ch.sbb.matsim.analysis;
 
-import java.util.HashMap;
-import java.util.Set;
-
+import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.io.IOUtils;
+import org.matsim.testcases.MatsimTestUtils;
 
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import java.io.BufferedReader;
+import java.io.IOException;
 
 public class PopulationToCSVTest {
 
+    @Rule
+    public MatsimTestUtils utils = new MatsimTestUtils();
+
     @Test
-    public final void testPopulationPostProc() {
+    public final void testPopulationPostProc() throws IOException {
 
         PostProcessingConfigGroup pg = new PostProcessingConfigGroup();
         pg.setPersonAttributes("carAvail,hasLicense,sex,subpopulation,age");
@@ -45,19 +49,16 @@ public class PopulationToCSVTest {
 
         population.addPerson(person);
 
+        String filename = this.utils.getOutputDirectory();
         PopulationToCSV tool = new PopulationToCSV(scenario);
+        tool.write(filename);
 
-        HashMap<String, String> a = tool.agents_writer.getData().get(0);
-
-        Assert.assertEquals("never", a.get("carAvail"));
-        Assert.assertEquals("m", a.get("sex"));
-        Assert.assertEquals("driving", a.get("hasLicense"));
-        Assert.assertEquals("1", a.get("age"));
-
-        Assert.assertEquals(a.get("subpopulation"),"regular");
-
-        System.out.println(a);
-
+        try (BufferedReader reader = IOUtils.getBufferedReader(filename + "agents.csv")) {
+            String headerLine = reader.readLine();
+            Assert.assertEquals("person_id;carAvail;hasLicense;sex;subpopulation;age", headerLine);
+            String firstRow = reader.readLine();
+            Assert.assertEquals("1;never;driving;m;regular;1", firstRow);
+        }
     }
 
 }

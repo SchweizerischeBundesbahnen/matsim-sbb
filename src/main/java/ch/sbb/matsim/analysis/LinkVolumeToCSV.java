@@ -12,8 +12,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.events.algorithms.EventWriter;
 
-import java.util.HashMap;
-import java.util.Set;
+import java.io.IOException;
 
 
 public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
@@ -27,17 +26,12 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     public static final String COL_VOLUME = "volume";
     public static final String COL_NBPASSENGERS = "nb_passengers";
     public static final String[] COLUMNS = new String[]{COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME, COL_NBPASSENGERS};
-    private String filename;
 
-    Scenario scenario;
+    private final String filename;
     private Network network;
 
-    private final CSVWriter linkVolumesWriter = new CSVWriter(COLUMNS);
-
-
-    public LinkVolumeToCSV(Scenario scenario, String filename){
+    public LinkVolumeToCSV(Scenario scenario, String filename) {
         super(3600, 24 * 3600 - 1, scenario.getNetwork());
-        this.scenario = scenario;
         this.filename = filename;
         this.network = scenario.getNetwork();
     }
@@ -46,32 +40,35 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     @Override
     public void reset(int iteration) {
         super.reset(iteration);
-        linkVolumesWriter.clear();
-    }
-
-    public void write(){
-        log.info("write linkvolumes");
-        for (Id<Link> linkId: super.getLinkIds()) {
-            for (String aMode: this.network.getLinks().get(linkId).getAllowedModes()) {
-                int[] volumes = super.getVolumesForLink(linkId, aMode);
-                int[] nbPassengers = super.getPassengerVolumesForLink(linkId, aMode);
-                if (volumes != null) {
-                    for (int i = 0; i < volumes.length; i++) {
-                        HashMap<String, String> aRow = linkVolumesWriter.addRow();
-                        aRow.put(COL_LINK_ID, linkId.toString());
-                        aRow.put(COL_MODE, aMode.toString());
-                        aRow.put(COL_BIN, Integer.toString(i + 1));
-                        aRow.put(COL_VOLUME, Integer.toString(volumes[i]));
-                        aRow.put(COL_NBPASSENGERS, Integer.toString(nbPassengers[i]));
-                    }
-                }
-            }
-        }
-        linkVolumesWriter.write(this.filename + FILENAME_VOLUMES);
     }
 
     @Override
     public void closeFile() {
-        this.write();
+        this.write(this.filename);
     }
+
+    public void write(String filename) {
+        log.info("write linkvolumes to " + filename + FILENAME_VOLUMES);
+        try (CSVWriter linkVolumesWriter = new CSVWriter("", COLUMNS, filename + FILENAME_VOLUMES)) {
+            for (Id<Link> linkId : super.getLinkIds()) {
+                for (String aMode : this.network.getLinks().get(linkId).getAllowedModes()) {
+                    int[] volumes = super.getVolumesForLink(linkId, aMode);
+                    int[] nbPassengers = super.getPassengerVolumesForLink(linkId, aMode);
+                    if (volumes != null) {
+                        for (int i = 0; i < volumes.length; i++) {
+                            linkVolumesWriter.set(COL_LINK_ID, linkId.toString());
+                            linkVolumesWriter.set(COL_MODE, aMode);
+                            linkVolumesWriter.set(COL_BIN, Integer.toString(i + 1));
+                            linkVolumesWriter.set(COL_VOLUME, Integer.toString(volumes[i]));
+                            linkVolumesWriter.set(COL_NBPASSENGERS, Integer.toString(nbPassengers[i]));
+                            linkVolumesWriter.writeRow();
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            log.error("Could not write linkvolumes. " + e.getMessage(), e);
+        }
+    }
+
 }

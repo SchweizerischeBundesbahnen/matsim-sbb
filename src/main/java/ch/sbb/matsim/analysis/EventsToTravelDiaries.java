@@ -12,7 +12,6 @@ import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
@@ -53,7 +52,6 @@ import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.vehicles.Vehicles;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -87,7 +85,6 @@ public class EventsToTravelDiaries implements
     private final Network network;
     // Attributes
 
-    private int iteration;
     private String filename;
 
     private Map<Id, TravellerChain> chains = new HashMap<>();
@@ -423,7 +420,6 @@ public class EventsToTravelDiaries implements
     // Methods
     @Override
     public void reset(int iteration) {
-        this.iteration = iteration;
         chains = new HashMap<>();
         ptVehicles = new HashMap<>();
         transitDriverIds = new HashSet<>();

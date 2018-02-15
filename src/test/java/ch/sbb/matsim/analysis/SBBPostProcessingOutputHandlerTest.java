@@ -14,10 +14,7 @@ import org.matsim.core.config.groups.ControlerConfigGroup;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.BeforeMobsimEvent;
-import org.matsim.core.controler.events.IterationEndsEvent;
-import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.handler.EventHandler;
-import org.matsim.core.mobsim.framework.Steppable;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.testcases.MatsimTestUtils;
 
@@ -109,6 +106,7 @@ public class SBBPostProcessingOutputHandlerTest {
         ControlerConfigGroup configGroup = new ControlerConfigGroup();
 
         int iteration = 10;
+        controlerIO.createIterationDirectory(iteration);
 
         SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
                 eventsManager,
@@ -156,7 +154,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(6, eventsManager.getEventHandlers().size());
+        Assert.assertEquals(4, eventsManager.getEventHandlers().size());
     }
     /*
     * some CSV writers are set, it is the last iteration AND outputs are dumped, so we expect 10 eventHendlers to be configured:
@@ -176,6 +174,7 @@ public class SBBPostProcessingOutputHandlerTest {
         configGroup.setLastIteration(10);
 
         int iteration = 10;
+        controlerIO.createIterationDirectory(10);
 
         SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
                 eventsManager,
@@ -189,7 +188,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(10, eventsManager.getEventHandlers().size());
+        Assert.assertEquals(8, eventsManager.getEventHandlers().size());
     }
 
     private PostProcessingConfigGroup getPostProcessingConfigGroup(int writeOutputsInterval, boolean eventPerPerson, boolean linkVolumes, boolean ptVolumes, boolean travelDiaries, boolean writePlansCSV, boolean visumNetFile) {
