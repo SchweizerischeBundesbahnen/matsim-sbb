@@ -89,20 +89,22 @@ public class LocateAct {
         for (SimpleFeature feature: features) {
             MultiPolygon mp = (MultiPolygon) feature.getDefaultGeometry();
             Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
-            if (nearestFeature == null) {
-                Double actDistance = mp.distance(point);
-                if (actDistance <= acceptance) {
-                    nearestFeature = feature;
-                    nearestDistance = actDistance;
+
+            if(mp != null) {
+                if (nearestFeature == null) {
+                    Double actDistance = mp.distance(point);
+                    if (actDistance <= acceptance) {
+                        nearestFeature = feature;
+                        nearestDistance = actDistance;
+                    }
+                } else {
+                    double actDistance = mp.distance(point);
+                    if (actDistance < nearestDistance && actDistance <= acceptance) {
+                        nearestFeature = feature;
+                        nearestDistance = mp.distance(point);
+                    }
+                    if (nearestDistance == 0.0) return nearestFeature;
                 }
-            }
-            else {
-                double actDistance = mp.distance(point);
-                if (actDistance < nearestDistance && actDistance <= acceptance) {
-                    nearestFeature = feature;
-                    nearestDistance = mp.distance(point);
-                }
-                if (nearestDistance == 0.0) return nearestFeature;
             }
         }
         return nearestFeature;
