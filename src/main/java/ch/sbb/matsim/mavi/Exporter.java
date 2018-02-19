@@ -7,6 +7,7 @@ package ch.sbb.matsim.mavi;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -15,7 +16,9 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
@@ -38,9 +41,9 @@ import org.matsim.vehicles.VehicleWriterV1;
 import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,25 +58,29 @@ import java.util.Set;
  *
  */
 
-public class ExportPTSupplyFromVisum {
+public class Exporter {
 
-    public final static String ATT_DATENHERKUNFT = "01_Datenherkunft";
     public final static String ATT_STOP_NO = "02_Stop_No";
-    public final static String ATT_STOP_CODE = "03_Stop_Code";
-    public final static String ATT_STOP_NAME = "04_Stop_Name";
-    public final static String ATT_STOP_DIDOK_HAFAS = "05_Stop_Didok_Hafas";
-    public final static String ATT_STOP_AREA_NO = "06_Stop_Area_No";
 
     public final static String ATT_TRANSITLINE = "02_TransitLine";
     public final static String ATT_LINEROUTENAME = "03_LineRouteName";
     public final static String ATT_DIRECTIONCODE = "04_DirectionCode";
     public final static String ATT_FZPNAME = "05_Name";
-    public final static String ATT_OPERATOR_NAME= "06_OperatorName";
-    public final static String ATT_OPERATOR_NO= "07_OperatorNo";
     public final static String ATT_TSYSNAME= "08_TSysName";
+
+    private final static String CONFIG_OUT = "output_config.xml";
+    private final static String NETWORK_OUT = "transitNetwork.xml.gz";
+    private final static String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
+    private final static String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
+    private final static String ROUTEATTRIBUTES_OUT = "routeAttributes.xml.gz";
+    private final static String STOPATTRIBUTES_OUT = "stopAttributes.xml.gz";
 
     private static Logger log;
 
+    private ExportPTSupplyFromVisumConfigGroup exporterConfig;
+    private File outputPath;
+    private Config config;
+    private ActiveXComponent visum;
     private Scenario scenario;
     private Network network;
     private TransitSchedule schedule;
@@ -83,30 +90,24 @@ public class ExportPTSupplyFromVisum {
     private NetworkFactory networkBuilder;
     private VehiclesFactory vehicleBuilder;
 
-    private static final String PATHTOVISUM = "\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\10_Modelle_vonDritten\\40_NPVM2016\\OEVAngebot_NPVM2016_Patrick.ver";
+    public static void main(String[] args) {
+        new Exporter(args[0]);
+    }
 
-    // at the moment, the NPVM has the three options "2015", "2016" and "2030"
-    private static final int SIMBASUPPLY = 2016;
-
-    // we should use detPt for now as we do not make any differentiation between modes
-    private static final boolean USEDETPTASMODE = true;
-
-    // names of the output files
-    private static final String NETWORKFILE = "NPVM_Output/transitNetwork" + SIMBASUPPLY + ".xml.gz";
-    private static final String SCHEDULEFILE = "NPVM_Output/transitSchedule" + SIMBASUPPLY + ".xml.gz";
-    private static final String VEHICLEFILE = "NPVM_Output/transitVehicles" + SIMBASUPPLY + ".xml.gz";
-    private static final String STOPATTRIBUTES = "NPVM_Output/stopAttributes" + SIMBASUPPLY + ".xml.gz";
-    private static final String ROUTEATTRIBUTES = "NPVM_Output/routeAttributes" + SIMBASUPPLY + ".xml.gz";
-
-    public static void main(String[] args) { new ExportPTSupplyFromVisum(); }
-
-    private ExportPTSupplyFromVisum() {
+    public Exporter(String configFile) {
         log = Logger.getLogger(ExportPTSupplyFromVisum.class);
 
-        ActiveXComponent visum = new ActiveXComponent("Visum.Visum.16");
+        this.config = ConfigUtils.loadConfig(configFile, new ExportPTSupplyFromVisumConfigGroup());
+        this.exporterConfig = ConfigUtils.addOrGetModule(config, ExportPTSupplyFromVisumConfigGroup.class);
+
+        this.outputPath = new File(this.exporterConfig.getOutputPath());
+        if(!outputPath.exists())
+            outputPath.mkdir();
+
+        this.visum = new ActiveXComponent("Visum.Visum.16");
         log.info("VISUM Client gestartet.");
         try {
-            run(visum);
+            run();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -114,13 +115,15 @@ public class ExportPTSupplyFromVisum {
         }
     }
 
-    private void run(ActiveXComponent visum) {
-        loadVersion(visum);
+    public void run() {
+        loadVersion(this.visum);
         createMATSimScenario();
 
-        setFilter(visum);
+        if(this.exporterConfig.getPathToAttributeFile() != null)
+            loadAttributes(this.visum);
+        setTimeProfilFilter(this.visum);
 
-        Dispatch net = Dispatch.get(visum, "Net").toDispatch();
+        Dispatch net = Dispatch.get(this.visum, "Net").toDispatch();
         loadStopPoints(net);
         writeStopAttributes();
         createVehicleTypes(net);
@@ -134,9 +137,14 @@ public class ExportPTSupplyFromVisum {
 
     private void loadVersion(ActiveXComponent visum) {
         log.info("LoadVersion started...");
-        log.info("Start VISUM Client mit Version " + PATHTOVISUM);
-        Dispatch.call(visum, "LoadVersion", new Object[] { new Variant(PATHTOVISUM) });
+        log.info("Start VISUM Client mit Version " + this.exporterConfig.getPathToVisum());
+        Dispatch.call(visum, "LoadVersion", new Object[] { new Variant( this.exporterConfig.getPathToVisum() ) });
         log.info("LoadVersion finished");
+    }
+
+    private void loadAttributes(ActiveXComponent visum) {
+        Dispatch io = Dispatch.get(visum, "IO").toDispatch();
+        Dispatch.call(io, "LoadAttributeFile", this.exporterConfig.getPathToAttributeFile());
     }
 
     private void createMATSimScenario()   {
@@ -154,27 +162,17 @@ public class ExportPTSupplyFromVisum {
         this.vehicles = this.scenario.getTransitVehicles();
     }
 
-    private void setFilter(ActiveXComponent visum)    {
+    private void setTimeProfilFilter(ActiveXComponent visum)    {
         Dispatch filters = Dispatch.get(visum, "Filters").toDispatch();
         Dispatch filter = Dispatch.call(filters, "LineGroupFilter").toDispatch();
         Dispatch tpFilter = Dispatch.call(filter, "TimeProfileFilter").toDispatch();
         Dispatch.call(tpFilter, "Init");
-        switch ( SIMBASUPPLY ) {
-            case 2015:
-                Dispatch.call(tpFilter, "AddCondition", "OP_NONE",false,"LineRoute\\Line\\Datenherkunft",9,"Hafas_2015");
-                Dispatch.call(tpFilter, "AddCondition", "OP_OR",false,"LineRoute\\Line\\Datenherkunft",9,"SBB_Simba.CH_2015");
-                break;
-            case 2016:
-                //Dispatch.call(tpFilter, "AddCondition", "OP_NONE",false,"LineRoute\\Line\\Datenherkunft",9,"Hafas_2015");
-                Dispatch.call(tpFilter, "AddCondition", "OP_NONE",false,"LineRoute\\Line\\Datenherkunft",9,"SBB_Simba.CH_2016");
-                break;
-            case 2030:
-                Dispatch.call(tpFilter, "AddCondition", "OP_NONE",false,"LineRoute\\Line\\Datenherkunft",9,"Hafas_2015");
-                Dispatch.call(tpFilter, "AddCondition", "OP_OR",false,"LineRoute\\Line\\Datenherkunft",9,"SBB_Simba.CH_Prognose");
-                break;
-            default:
-                throw new IllegalArgumentException( "The model does not contain the SIMBA version " + SIMBASUPPLY );
+
+        for(ExportPTSupplyFromVisumConfigGroup.TimeProfilFilterParams f: this.exporterConfig.getTimeProfilFilterParams().values())   {
+            Dispatch.call(tpFilter, "AddCondition", f.getOp(), f.isComplement(), f.getAttribute(), f.getComparator(),
+                    f.getVal(), f.getPosition());
         }
+
         Dispatch.put(filter, "UseFilterForTimeProfiles", true);
     }
 
@@ -232,23 +230,25 @@ public class ExportPTSupplyFromVisum {
             st.setLinkId(loopLinkID);
 
             // custom stop attributes as identifiers
-            String datenHerkunft = Dispatch.call(item, "AttValue", "Datenherkunft").toString();
-            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_DATENHERKUNFT, datenHerkunft);
-            double stopNo = Double.valueOf(Dispatch.call(item, "AttValue", "StopArea\\Stop\\No").toString());
-            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_NO, (int) stopNo);
-            String stopCode = Dispatch.call(item, "AttValue", "StopArea\\Stop\\Code").toString();
-            if(!stopCode.equals(""))
-                this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_CODE, stopCode);
-            String stopName = Dispatch.call(item, "AttValue", "StopArea\\Stop\\Name").toString();
-            if(!stopName.equals(""))
-                this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_NAME, stopName);
-            if(!Dispatch.call(item, "AttValue", "DIDOKNR_HAFAS").toString().equals("null")) {
-                double stopDidokHafas = Double.valueOf(Dispatch.call(item, "AttValue", "DIDOKNR_HAFAS").toString());
-                this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), ATT_STOP_DIDOK_HAFAS, (int) stopDidokHafas);
+            for(ExportPTSupplyFromVisumConfigGroup.StopAttributeParams params: this.exporterConfig.getStopAttributeParams().values())    {
+                String name = Dispatch.call(item, "AttValue", params.getAttributeValue()).toString();
+                if(!name.equals("") && !name.equals("null"))    {
+                    switch ( params.getDataType() ) {
+                        case Type.STRING_CLASS:
+                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), name);
+                            break;
+                        case Type.DOUBLE_CLASS:
+                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), Double.valueOf(name));
+                            break;
+                        case Type.INTEGER_CLASS:
+                            double nameDouble = Double.valueOf(name);
+                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), (int) nameDouble);
+                            break;
+                        default:
+                            throw new IllegalArgumentException( params.getDataType() );
+                    }
+                }
             }
-            double stopAreaNo = Double.valueOf(Dispatch.call(item, "AttValue", "StopAreaNo").toString());
-            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_AREA_NO, (int) stopAreaNo);
-
             this.schedule.addStopFacility(st);
 
             i++;
@@ -261,7 +261,7 @@ public class ExportPTSupplyFromVisum {
 
     private void writeStopAttributes()  {
         log.info("Writing out the stop attributes file and cleaning the scenario");
-        new ObjectAttributesXmlWriter(this.schedule.getTransitStopsAttributes()).writeFile(STOPATTRIBUTES);
+        new ObjectAttributesXmlWriter(this.schedule.getTransitStopsAttributes()).writeFile(new File(this.outputPath, STOPATTRIBUTES_OUT).getPath());
 
         // remove stop attributes file because of memory issues
         for(Id<TransitStopFacility> stopID: this.schedule.getFacilities().keySet())   {
@@ -317,7 +317,7 @@ public class ExportPTSupplyFromVisum {
         log.info("Number of active time profiles: " + nrOfTimeProfiles);
         int i = 0;
 
-        //while (i < 150) { // for test purposes
+        //while (i < 5000) { // for test purposes
         while (i < nrOfTimeProfiles) {
             if(!Dispatch.call(timeProfileIterator, "Active").getBoolean())   {
                 Dispatch.call(timeProfileIterator, "Next");
@@ -338,9 +338,16 @@ public class ExportPTSupplyFromVisum {
             Dispatch vehicleJourneys = Dispatch.get(item, "VehJourneys").toDispatch();
             Dispatch vehicleJourneyIterator = Dispatch.get(vehicleJourneys, "Iterator").toDispatch();
 
+            String datenHerkunft = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
+            String ptMode;
+            if(datenHerkunft.equals("SBB_Simba.CH_2016"))
+                ptMode = "Simba";
+            else
+                ptMode = "Hafas";
+
             String mode;
-            if(USEDETPTASMODE)
-                mode = "detPt";
+            if(exporterConfig.isUseDetPT())
+                mode = ptMode;
             else
                 mode = Dispatch.call(item, "AttValue", "TSysCode").toString();
 
@@ -363,23 +370,25 @@ public class ExportPTSupplyFromVisum {
                     Dispatch lineRouteItemsIterator = Dispatch.get(lineRouteItems, "Iterator").toDispatch();
 
                     // custom route identifiers
-                    String datenHerkunft = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_DATENHERKUNFT, datenHerkunft);
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_TRANSITLINE, lineName);
-                    String lineRouteName = Dispatch.call(item, "AttValue", "LineRouteName").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_LINEROUTENAME, lineRouteName);
-                    String richtungsCode = Dispatch.call(item, "AttValue", "DirectionCode").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_DIRECTIONCODE, richtungsCode);
-                    String name = Dispatch.call(item, "AttValue", "Name").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_FZPNAME, name);
-                    String operatorName = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\Name").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_OPERATOR_NAME, operatorName);
-                    if(!Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\No").toString().equals("null")) {
-                        double operatorNo = Double.valueOf(Dispatch.call(item, "AttValue", "LineRoute\\Line\\Operator\\No").toString());
-                        this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_OPERATOR_NO, (int) operatorNo);
+                    for(ExportPTSupplyFromVisumConfigGroup.RouteAttributeParams params: this.exporterConfig.getRouteAttributeParams().values())    {
+                        String name = Dispatch.call(item, "AttValue", params.getAttributeValue()).toString();
+                        if(!name.equals("") && !name.equals("null"))    {
+                            switch ( params.getDataType() ) {
+                                case Type.STRING_CLASS:
+                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), name);
+                                    break;
+                                case Type.DOUBLE_CLASS:
+                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), Double.valueOf(name));
+                                    break;
+                                case Type.INTEGER_CLASS:
+                                    double nameDouble = Double.valueOf(name);
+                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), (int) nameDouble);
+                                    break;
+                                default:
+                                    throw new IllegalArgumentException( params.getDataType() );
+                            }
+                        }
                     }
-                    String tSysName = Dispatch.call(item, "AttValue", "LineRoute\\Line\\TSysName").toString();
-                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), ATT_TSYSNAME, tSysName);
 
                     // Fahrzeitprofil-Verläufe
                     List<TransitRouteStop> transitRouteStops = new ArrayList<>();
@@ -431,8 +440,7 @@ public class ExportPTSupplyFromVisum {
                         transitRouteStops.add(rst);
 
                         if(fromStop != null) {
-                            // TODO input List with datenherkuenfte, welche geroutet werden sollen
-                            if(datenHerkunft.contains("Simba")) {
+                            if(this.exporterConfig.getLinesToRoute().contains(datenHerkunft))   {
                                 Dispatch lineRouteItem = Dispatch.get(lineRouteItemsIterator, "Item").toDispatch();
                                 boolean startwriting = false;
                                 boolean foundToStop = false;
@@ -457,13 +465,13 @@ public class ExportPTSupplyFromVisum {
                                             Node betweenNode = this.network.getLinks().get(this.schedule.getFacilities().get(lineRouteStopId).getLinkId()).getFromNode();
 
                                             Id<Link> lastRouteLinkId = routeLinks.get(routeLinks.size() - 1);
-                                            this.network.removeLink(lastRouteLinkId);
+                                            //this.network.removeLink(lastRouteLinkId);
                                             routeLinks.remove(routeLinks.size() - 1);
                                             String[] newLinkIdStr = lastRouteLinkId.toString().split("-");
                                             Node fromNode = this.network.getNodes().get(Id.createNodeId(newLinkIdStr[0]));
 
                                             Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + newLinkIdStr[1] + "-" + betweenNode.getId().toString());
-                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false);
+                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false, false, ptMode);
                                             routeLinks.add(newLinkID);
                                         }
                                         routeLinks.add(stop.getLinkId());
@@ -487,7 +495,7 @@ public class ExportPTSupplyFromVisum {
 
                                         if(!stopIsOnLink) {
                                             Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + toNode.getId().toString());
-                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, toNode, true);
+                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, toNode, true, false, ptMode);
                                             routeLinks.add(newLinkID);
                                         }
                                         else    {
@@ -497,12 +505,12 @@ public class ExportPTSupplyFromVisum {
 
                                             if(!isFromStop) {
                                                 newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + betweenNode.getId().toString());
-                                                createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false);
+                                                createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false, false, ptMode);
                                                 routeLinks.add(newLinkID);
                                             }
 
                                             newLinkID = Id.createLinkId(betweenNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + toNode.getId().toString());
-                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, betweenNode, toNode, false);
+                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, betweenNode, toNode, false, true, ptMode);
                                             routeLinks.add(newLinkID);
                                         }
                                     }
@@ -523,7 +531,7 @@ public class ExportPTSupplyFromVisum {
                                     newLink.setFreespeed(10000);
                                     newLink.setCapacity(10000);
                                     newLink.setNumberOfLanes(10000);
-                                    newLink.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+                                    newLink.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", ptMode})));
                                     this.network.addLink(newLink);
                                 }
                                 // differentiate between links with the same from- and to-node but different length
@@ -546,7 +554,7 @@ public class ExportPTSupplyFromVisum {
                                             link.setFreespeed(10000);
                                             link.setCapacity(10000);
                                             link.setNumberOfLanes(10000);
-                                            link.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+                                            link.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", ptMode})));
                                             this.network.addLink(link);
                                             newLinkID = linkID;
                                         }
@@ -611,30 +619,45 @@ public class ExportPTSupplyFromVisum {
         return node;
     }
 
-    private void createLinkIfDoesNtExist(Id<Link> linkID, Dispatch visumLink, Node fromNode, Node toNode, boolean isOnNode)    {
+    private void createLinkIfDoesNtExist(Id<Link> linkID, Dispatch visumLink, Node fromNode, Node toNode, boolean isOnNode, boolean fromNodeIsBetweenNode, String ptMode)    {
         if (!this.network.getLinks().containsKey(linkID)) {
             Link link = this.networkBuilder.createLink(linkID, fromNode, toNode);
-            String lengthStr = Dispatch.call(visumLink, "AttValue", "OutLink\\No").toString();
+            String lengthStr = Dispatch.call(visumLink, "AttValue", "OutLink\\Length").toString();
             double length;
             if(!lengthStr.equals("null"))
                 length = Double.valueOf(lengthStr);
             else
-                length = Double.valueOf(Dispatch.call(visumLink, "AttValue", "InLink\\No").toString());
+                length = Double.valueOf(Dispatch.call(visumLink, "AttValue", "InLink\\Length").toString());
             if(!isOnNode) {
                 double fraction = Double.valueOf(Dispatch.call(visumLink, "AttValue", "StopPoint\\RelPos").toString());
-                String fromNodeNo = fromNode.getId().toString().split("_")[1];
-                String toNodeNo = toNode.getId().toString().split("_")[1];
+
+                double fromNodeNo = Double.valueOf(fromNode.getId().toString().split("_")[1]);
+                double toNodeNo = Double.valueOf(toNode.getId().toString().split("_")[1]);
+
+                log.info(fromNodeNo);
+                log.info(fromNode.getId().toString().split("_").length);
+                log.info(toNodeNo);
+                log.info(toNode.getId().toString().split("_").length);
+
                 double fromNodeStopLink = Double.valueOf(Dispatch.call(visumLink, "AttValue", "StopPoint\\FromNodeNo").toString());
-                if(Integer.valueOf(fromNodeNo) == (int) fromNodeStopLink || Integer.valueOf(toNodeNo) == (int) fromNodeStopLink)
-                    length *= fraction;
-                else
-                    length *= (1.0 - fraction);
+                if(fromNodeNo == fromNodeStopLink && !fromNodeIsBetweenNode)   {
+                    length = length * fraction;
+                    log.info("I am here");
+                }
+                else if(toNodeNo == fromNodeNo && fromNodeIsBetweenNode)     {
+                    length = length * fraction;
+                    log.info("I am here2");
+                }
+                else {
+                    length = length * (1 - fraction);
+                    log.info("... and there");
+                }
             }
             link.setLength(length * 1000);
             link.setFreespeed(10000);
             link.setCapacity(10000);
             link.setNumberOfLanes(10000);
-            link.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+            link.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", ptMode})));
             this.network.addLink(link);
         }
     }
@@ -650,17 +673,13 @@ public class ExportPTSupplyFromVisum {
                 }
             }
         }
-
         for(Id<TransitStopFacility> stopId: this.schedule.getFacilities().keySet()) {
             if(!stopsToKeep.contains(stopId))
                 stopsToRemove.add(stopId);
         }
-
         log.info("Cleared " + stopsToRemove.size() + " unused stop facilities.");
-
         for(Id<TransitStopFacility> stopId: stopsToRemove)
             this.schedule.removeStopFacility(this.schedule.getFacilities().get(stopId));
-
         stopsToKeep.clear();
         stopsToRemove.clear();
     }
@@ -671,22 +690,20 @@ public class ExportPTSupplyFromVisum {
 
         for(TransitLine line: this.schedule.getTransitLines().values())   {
             for(TransitRoute route: line.getRoutes().values())  {
+                linksToKeep.add(route.getRoute().getStartLinkId());
+                linksToKeep.add(route.getRoute().getEndLinkId());
                 for(Id<Link> linkId: route.getRoute().getLinkIds()) {
                     linksToKeep.add(linkId);
                 }
             }
         }
-
         for(Id<Link> linkId: this.network.getLinks().keySet()) {
             if(!linksToKeep.contains(linkId))
                 linksToRemove.add(linkId);
         }
-
         log.info("Cleared " + linksToRemove.size() + " unused links.");
-
         for(Id<Link> linkId: linksToRemove)
             this.network.removeLink(linkId);
-
         linksToKeep.clear();
         linksToRemove.clear();
 
@@ -696,17 +713,17 @@ public class ExportPTSupplyFromVisum {
             if(node.getInLinks().size() == 0 && node.getOutLinks().size() == 0)
                 nodesToRemove.add(node.getId());
         }
-
         log.info("Cleared " + nodesToRemove.size() + " unused nodes.");
-
         for(Id<Node> nodeId: nodesToRemove)
             this.network.removeNode(nodeId);
     }
 
     private void writeFiles()   {
-        new NetworkWriter(this.network).write(NETWORKFILE);
-        new TransitScheduleWriter(this.schedule).writeFile(SCHEDULEFILE);
-        new VehicleWriterV1(this.vehicles).writeFile(VEHICLEFILE);
-        new ObjectAttributesXmlWriter(this.schedule.getTransitLinesAttributes()).writeFile(ROUTEATTRIBUTES);
+        new NetworkWriter(this.network).write(new File(this.outputPath, NETWORK_OUT).getPath());
+        new TransitScheduleWriter(this.schedule).writeFile(new File(this.outputPath, TRANSITSCHEDULE_OUT).getPath());
+        new VehicleWriterV1(this.vehicles).writeFile(new File(this.outputPath, TRANSITVEHICLES_OUT).getPath());
+        new ObjectAttributesXmlWriter(this.schedule.getTransitLinesAttributes()).writeFile(new File(this.outputPath, ROUTEATTRIBUTES_OUT).getPath());
+
+        new ConfigWriter(this.config).writeFileV2(new File(this.outputPath, CONFIG_OUT).getPath());
     }
 }
