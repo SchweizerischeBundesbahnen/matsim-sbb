@@ -60,14 +60,6 @@ import java.util.Set;
 
 public class Exporter {
 
-    public final static String ATT_STOP_NO = "02_Stop_No";
-
-    public final static String ATT_TRANSITLINE = "02_TransitLine";
-    public final static String ATT_LINEROUTENAME = "03_LineRouteName";
-    public final static String ATT_DIRECTIONCODE = "04_DirectionCode";
-    public final static String ATT_FZPNAME = "05_Name";
-    public final static String ATT_TSYSNAME= "08_TSysName";
-
     private final static String CONFIG_OUT = "output_config.xml";
     private final static String NETWORK_OUT = "transitNetwork.xml.gz";
     private final static String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
@@ -490,8 +482,8 @@ public class Exporter {
                                         Id<Node> fromNodeId = Id.createNodeId("pt_" + (int) fromNodeNo);
                                         Id<Node> toNodeId = Id.createNodeId("pt_" + (int) toNodeNo);
 
-                                        Node fromNode = createAndGetNode(fromNodeId, lineRouteItem);
-                                        Node toNode = createAndGetNode(toNodeId, lineRouteItem);
+                                        Node fromNode = createAndGetNode(fromNodeId, lineRouteItem, true);
+                                        Node toNode = createAndGetNode(toNodeId, lineRouteItem, false);
 
                                         if(!stopIsOnLink) {
                                             Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + toNode.getId().toString());
@@ -605,13 +597,21 @@ public class Exporter {
         log.info("Loading transit routes finished");
     }
 
-    private Node createAndGetNode(Id<Node> nodeID, Dispatch visumNode) {
+    private Node createAndGetNode(Id<Node> nodeID, Dispatch visumNode, boolean isFromNode) {
         Node node;
         if(this.network.getNodes().containsKey(nodeID)) {
             node = this.network.getNodes().get(nodeID);
         } else {
-            double xCoord = Double.valueOf(Dispatch.call(visumNode, "AttValue", "OutLink\\FromNode\\XCoord").toString());
-            double yCoord = Double.valueOf(Dispatch.call(visumNode, "AttValue", "OutLink\\FromNode\\YCoord").toString());
+            double xCoord;
+            double yCoord;
+            if(isFromNode) {
+                xCoord = Double.valueOf(Dispatch.call(visumNode, "AttValue", "OutLink\\FromNode\\XCoord").toString());
+                yCoord = Double.valueOf(Dispatch.call(visumNode, "AttValue", "OutLink\\FromNode\\YCoord").toString());
+            }
+            else {
+                xCoord = Double.valueOf(Dispatch.call(visumNode, "AttValue", "OutLink\\ToNode\\XCoord").toString());
+                yCoord = Double.valueOf(Dispatch.call(visumNode, "AttValue", "OutLink\\ToNode\\YCoord").toString());
+            }
             Node no = this.networkBuilder.createNode(nodeID, new Coord(xCoord, yCoord));
             this.network.addNode(no);
             node = no;
@@ -633,11 +633,6 @@ public class Exporter {
 
                 double fromNodeNo = Double.valueOf(fromNode.getId().toString().split("_")[1]);
                 double toNodeNo = Double.valueOf(toNode.getId().toString().split("_")[1]);
-
-                log.info(fromNodeNo);
-                log.info(fromNode.getId().toString().split("_").length);
-                log.info(toNodeNo);
-                log.info(toNode.getId().toString().split("_").length);
 
                 double fromNodeStopLink = Double.valueOf(Dispatch.call(visumLink, "AttValue", "StopPoint\\FromNodeNo").toString());
                 if(fromNodeNo == fromNodeStopLink && !fromNodeIsBetweenNode)   {
