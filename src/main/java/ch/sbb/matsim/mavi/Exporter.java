@@ -637,15 +637,12 @@ public class Exporter {
                 double fromNodeStopLink = Double.valueOf(Dispatch.call(visumLink, "AttValue", "StopPoint\\FromNodeNo").toString());
                 if(fromNodeNo == fromNodeStopLink && !fromNodeIsBetweenNode)   {
                     length = length * fraction;
-                    log.info("I am here");
                 }
                 else if(toNodeNo == fromNodeNo && fromNodeIsBetweenNode)     {
                     length = length * fraction;
-                    log.info("I am here2");
                 }
                 else {
                     length = length * (1 - fraction);
-                    log.info("... and there");
                 }
             }
             link.setLength(length * 1000);
