@@ -67,13 +67,10 @@ public class Exporter {
     private final static String ROUTEATTRIBUTES_OUT = "routeAttributes.xml.gz";
     private final static String STOPATTRIBUTES_OUT = "stopAttributes.xml.gz";
 
-    private static Logger log;
+    private final static Logger log = Logger.getLogger(ExportPTSupplyFromVisum.class);;
 
+    private final Config config;
     private ExportPTSupplyFromVisumConfigGroup exporterConfig;
-    private File outputPath;
-    private Config config;
-    private ActiveXComponent visum;
-    private Scenario scenario;
     private Network network;
     private TransitSchedule schedule;
     private Vehicles vehicles;
@@ -87,39 +84,33 @@ public class Exporter {
     }
 
     public Exporter(String configFile) {
-        log = Logger.getLogger(ExportPTSupplyFromVisum.class);
-
         this.config = ConfigUtils.loadConfig(configFile, new ExportPTSupplyFromVisumConfigGroup());
-        this.exporterConfig = ConfigUtils.addOrGetModule(config, ExportPTSupplyFromVisumConfigGroup.class);
-
-        this.outputPath = new File(this.exporterConfig.getOutputPath());
-        if(!outputPath.exists())
-            outputPath.mkdir();
-
-        this.visum = new ActiveXComponent("Visum.Visum.16");
-        log.info("VISUM Client gestartet.");
-        try {
-            run();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            visum.safeRelease();
-        }
+        this.exporterConfig = ConfigUtils.addOrGetModule(this.config, ExportPTSupplyFromVisumConfigGroup.class);
+        run();
     }
 
     public void run() {
-        loadVersion(this.visum);
+        File outputPath = new File(this.exporterConfig.getOutputPath());
+        if(!outputPath.exists())
+            outputPath.mkdir();
+
+        ActiveXComponent visum = new ActiveXComponent("Visum.Visum.16");
+        log.info("VISUM Client gestartet.");
+
+        loadVersion(visum);
+        if(this.exporterConfig.getPathToAttributeFile() != null)
+            loadAttributes(visum);
+        setTimeProfilFilter(visum);
+
         createMATSimScenario();
 
-        if(this.exporterConfig.getPathToAttributeFile() != null)
-            loadAttributes(this.visum);
-        setTimeProfilFilter(this.visum);
-
-        Dispatch net = Dispatch.get(this.visum, "Net").toDispatch();
+        Dispatch net = Dispatch.get(visum, "Net").toDispatch();
         loadStopPoints(net);
         writeStopAttributes();
         createVehicleTypes(net);
         loadTransitLines(net);
+
+        visum.safeRelease();
 
         cleanStops();
         cleanNetwork();
@@ -140,7 +131,7 @@ public class Exporter {
     }
 
     private void createMATSimScenario()   {
-        this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         log.info("MATSim scenario created");
         this.scheduleBuilder = scenario.getTransitSchedule().getFactory();
         log.info("Schedule builder initialized");
@@ -149,9 +140,9 @@ public class Exporter {
         this.networkBuilder = scenario.getNetwork().getFactory();
         log.info("Network builder initialized");
 
-        this.network = this.scenario.getNetwork();
-        this.schedule = this.scenario.getTransitSchedule();
-        this.vehicles = this.scenario.getTransitVehicles();
+        this.network = scenario.getNetwork();
+        this.schedule = scenario.getTransitSchedule();
+        this.vehicles = scenario.getTransitVehicles();
     }
 
     private void setTimeProfilFilter(ActiveXComponent visum)    {
@@ -173,33 +164,33 @@ public class Exporter {
         Dispatch stopPoints = Dispatch.get(net, "StopPoints").toDispatch();
         Dispatch stopPointIterator = Dispatch.get(stopPoints, "Iterator").toDispatch();
 
-        int nrOfStopPoints = Integer.valueOf(Dispatch.call(stopPoints, "Count").toString());
+        int nrOfStopPoints = Dispatch.call(stopPoints, "Count").getInt();
         int i = 0;
 
         while (i < nrOfStopPoints) {
             Dispatch item = Dispatch.get(stopPointIterator, "Item").toDispatch();
 
             // get the stop characteristics
-            double stopPointNo = Double.valueOf(Dispatch.call(item, "AttValue", "No").toString());
-            Id<TransitStopFacility> stopPointID = Id.create((int) stopPointNo, TransitStopFacility.class);
-            double xCoord = Double.valueOf(Dispatch.call(item, "AttValue", "XCoord").toString());
-            double yCoord = Double.valueOf(Dispatch.call(item, "AttValue", "YCoord").toString());
+            int stopPointNo = (int) Dispatch.call(item, "AttValue", "No").getDouble();
+            Id<TransitStopFacility> stopPointID = Id.create(stopPointNo, TransitStopFacility.class);
+            double xCoord = Dispatch.call(item, "AttValue", "XCoord").getDouble();
+            double yCoord = Dispatch.call(item, "AttValue", "YCoord").getDouble();
             Coord stopPointCoord = new Coord(xCoord, yCoord);
             String stopPointName = Dispatch.call(item, "AttValue", "Name").toString();
 
             // create stop node and loop link
-            double fromStopIsOnNode = Double.valueOf(Dispatch.call(item, "AttValue", "IsOnNode").toString());
-            double fromStopIsOnLink = Double.valueOf(Dispatch.call(item, "AttValue", "IsOnLink").toString());
+            double fromStopIsOnNode = Dispatch.call(item, "AttValue", "IsOnNode").getDouble();
+            double fromStopIsOnLink = Dispatch.call(item, "AttValue", "IsOnLink").getDouble();
             Node stopNode = null;
             if(fromStopIsOnNode == 1.0) {
-                double stopNodeIDNo = Double.valueOf(Dispatch.call(item, "AttValue", "NodeNo").toString());
-                Id<Node> stopNodeID = Id.createNodeId("pt_" + ((int) stopNodeIDNo));
+                int stopNodeIDNo = (int) Dispatch.call(item, "AttValue", "NodeNo").getDouble();
+                Id<Node> stopNodeID = Id.createNodeId("pt_" + stopNodeIDNo);
                 stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
                 this.network.addNode(stopNode);
             }
             else if(fromStopIsOnLink == 1.0)    {
-                double stopLinkFromNodeNo = Double.valueOf(Dispatch.call(item, "AttValue", "FromNodeNo").toString());
-                Id<Node> stopNodeID = Id.createNodeId("pt_" + ((int) stopLinkFromNodeNo) + "_"  + ((int) stopPointNo));
+                int stopLinkFromNodeNo = (int) Dispatch.call(item, "AttValue", "FromNodeNo").getDouble();
+                Id<Node> stopNodeID = Id.createNodeId("pt_" + stopLinkFromNodeNo + "_"  + stopPointNo);
                 stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
                 this.network.addNode(stopNode);
             }
@@ -207,7 +198,7 @@ public class Exporter {
                 log.error("something went wrong. stop must be either on node or on link.");
             }
 
-            Id<Link> loopLinkID = Id.createLinkId("pt_" + ((int) stopPointNo));
+            Id<Link> loopLinkID = Id.createLinkId("pt_" + stopPointNo);
             Link loopLink = this.networkBuilder.createLink(loopLinkID, stopNode, stopNode);
             loopLink.setLength(0.0);
             loopLink.setFreespeed(10000);
@@ -224,17 +215,16 @@ public class Exporter {
             // custom stop attributes as identifiers
             for(ExportPTSupplyFromVisumConfigGroup.StopAttributeParams params: this.exporterConfig.getStopAttributeParams().values())    {
                 String name = Dispatch.call(item, "AttValue", params.getAttributeValue()).toString();
-                if(!name.equals("") && !name.equals("null"))    {
+                if(!name.isEmpty() && !name.equals("null"))    {
                     switch ( params.getDataType() ) {
                         case Type.STRING_CLASS:
                             this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), name);
                             break;
                         case Type.DOUBLE_CLASS:
-                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), Double.valueOf(name));
+                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), Double.parseDouble(name));
                             break;
                         case Type.INTEGER_CLASS:
-                            double nameDouble = Double.valueOf(name);
-                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), (int) nameDouble);
+                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), (int) Double.parseDouble(name));
                             break;
                         default:
                             throw new IllegalArgumentException( params.getDataType() );
@@ -252,8 +242,9 @@ public class Exporter {
     }
 
     private void writeStopAttributes()  {
+        String outputPath = this.exporterConfig.getOutputPath();
         log.info("Writing out the stop attributes file and cleaning the scenario");
-        new ObjectAttributesXmlWriter(this.schedule.getTransitStopsAttributes()).writeFile(new File(this.outputPath, STOPATTRIBUTES_OUT).getPath());
+        new ObjectAttributesXmlWriter(this.schedule.getTransitStopsAttributes()).writeFile(new File(outputPath, STOPATTRIBUTES_OUT).getPath());
 
         // remove stop attributes file because of memory issues
         for(Id<TransitStopFacility> stopID: this.schedule.getFacilities().keySet())   {
@@ -267,18 +258,17 @@ public class Exporter {
         Dispatch tSystems = Dispatch.get(net, "TSystems").toDispatch();
         Dispatch tSystemsIterator = Dispatch.get(tSystems, "Iterator").toDispatch();
 
-        int nrOfTSystems = Integer.valueOf(Dispatch.call(tSystems, "Count").toString());
+        int nrOfTSystems = Dispatch.call(tSystems, "Count").getInt();
         int i = 0;
 
         while (i < nrOfTSystems) {
             Dispatch item = Dispatch.get(tSystemsIterator, "Item").toDispatch();
-
             String tSysCode = Dispatch.call(item, "AttValue", "Code").toString();
-            Id<VehicleType> vehicleTypeId = Id.create(tSysCode, VehicleType.class);
+            String tSysName = Dispatch.call(item, "AttValue", "Name").toString();
 
+            Id<VehicleType> vehicleTypeId = Id.create(tSysCode, VehicleType.class);
             // TODO we need much more sophisticated values based on reference data
             VehicleType vehicleType = this.vehicleBuilder.createVehicleType(vehicleTypeId);
-            String tSysName = Dispatch.call(item, "AttValue", "Name").toString();
             vehicleType.setDescription(tSysName);
             vehicleType.setDoorOperationMode(VehicleType.DoorOperationMode.serial);
             VehicleCapacity vehicleCapacity = new VehicleCapacityImpl();
@@ -300,16 +290,15 @@ public class Exporter {
     }
 
     private void loadTransitLines(Dispatch net)   {
-        // Fahrzeitprofile
         Dispatch timeProfiles = Dispatch.get(net, "TimeProfiles").toDispatch();
-        log.info("Loading transit routes started...");
         Dispatch timeProfileIterator = Dispatch.get(timeProfiles, "Iterator").toDispatch();
+        log.info("Loading transit routes started...");
 
-        int nrOfTimeProfiles = Integer.valueOf(Dispatch.call(timeProfiles, "CountActive").toString());
+        int nrOfTimeProfiles = Dispatch.call(timeProfiles, "CountActive").getInt();
         log.info("Number of active time profiles: " + nrOfTimeProfiles);
         int i = 0;
 
-        //while (i < 5000) { // for test purposes
+        //while (i < 2000) { // for test purposes
         while (i < nrOfTimeProfiles) {
             if(!Dispatch.call(timeProfileIterator, "Active").getBoolean())   {
                 Dispatch.call(timeProfileIterator, "Next");
@@ -343,17 +332,16 @@ public class Exporter {
             else
                 mode = Dispatch.call(item, "AttValue", "TSysCode").toString();
 
-            int nrOfVehicleJourneys = Integer.valueOf(Dispatch.call(vehicleJourneys, "Count").toString());
+            int nrOfVehicleJourneys = Dispatch.call(vehicleJourneys, "Count").getInt();
             int k = 0;
 
             while (k < nrOfVehicleJourneys) {
                 Dispatch item_ = Dispatch.get(vehicleJourneyIterator, "Item").toDispatch();
 
-                double routeName = Double.valueOf(Dispatch.call(item, "AttValue", "ID").toString());
-                double from_tp_index = Double.valueOf(Dispatch.call(item_, "AttValue", "FromTProfItemIndex").toString());
-                double to_tp_index = Double.valueOf(Dispatch.call(item_, "AttValue", "ToTProfItemIndex").toString());
-                Id<TransitRoute> routeID = Id.create(((int) routeName) + "_" + ((int) from_tp_index)
-                        + "_" + ((int) to_tp_index), TransitRoute.class);
+                int routeName = (int) Dispatch.call(item, "AttValue", "ID").getDouble();
+                int from_tp_index = (int) Dispatch.call(item_, "AttValue", "FromTProfItemIndex").getDouble();
+                int to_tp_index = (int) Dispatch.call(item_, "AttValue", "ToTProfItemIndex").getDouble();
+                Id<TransitRoute> routeID = Id.create(routeName + "_" + from_tp_index + "_" + to_tp_index, TransitRoute.class);
                 TransitRoute route;
 
                 if(!this.schedule.getTransitLines().get(lineID).getRoutes().containsKey(routeID)) {
@@ -370,11 +358,10 @@ public class Exporter {
                                     this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), name);
                                     break;
                                 case Type.DOUBLE_CLASS:
-                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), Double.valueOf(name));
+                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), Double.parseDouble(name));
                                     break;
                                 case Type.INTEGER_CLASS:
-                                    double nameDouble = Double.valueOf(name);
-                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), (int) nameDouble);
+                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), (int) Double.parseDouble(name));
                                     break;
                                 default:
                                     throw new IllegalArgumentException( params.getDataType() );
@@ -711,11 +698,13 @@ public class Exporter {
     }
 
     private void writeFiles()   {
-        new NetworkWriter(this.network).write(new File(this.outputPath, NETWORK_OUT).getPath());
-        new TransitScheduleWriter(this.schedule).writeFile(new File(this.outputPath, TRANSITSCHEDULE_OUT).getPath());
-        new VehicleWriterV1(this.vehicles).writeFile(new File(this.outputPath, TRANSITVEHICLES_OUT).getPath());
-        new ObjectAttributesXmlWriter(this.schedule.getTransitLinesAttributes()).writeFile(new File(this.outputPath, ROUTEATTRIBUTES_OUT).getPath());
+        String outputPath = this.exporterConfig.getOutputPath();
 
-        new ConfigWriter(this.config).writeFileV2(new File(this.outputPath, CONFIG_OUT).getPath());
+        new NetworkWriter(this.network).write(new File(outputPath, NETWORK_OUT).getPath());
+        new TransitScheduleWriter(this.schedule).writeFile(new File(outputPath, TRANSITSCHEDULE_OUT).getPath());
+        new VehicleWriterV1(this.vehicles).writeFile(new File(outputPath, TRANSITVEHICLES_OUT).getPath());
+        new ObjectAttributesXmlWriter(this.schedule.getTransitLinesAttributes()).writeFile(new File(outputPath, ROUTEATTRIBUTES_OUT).getPath());
+
+        new ConfigWriter(this.config).writeFileV2(new File(outputPath, CONFIG_OUT).getPath());
     }
 }
