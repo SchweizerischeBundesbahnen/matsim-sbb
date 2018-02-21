@@ -314,12 +314,11 @@ public class Exporter {
                 TransitLine line = this.scheduleBuilder.createTransitLine(lineID);
                 this.schedule.addTransitLine(line);
             }
+            String datenHerkunft = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
 
             // Fahrplanfahrten
             Dispatch vehicleJourneys = Dispatch.get(item, "VehJourneys").toDispatch();
             Dispatch vehicleJourneyIterator = Dispatch.get(vehicleJourneys, "Iterator").toDispatch();
-
-            String datenHerkunft = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
             String ptMode;
             if(datenHerkunft.equals("SBB_Simba.CH_2016"))
                 ptMode = "Simba";
@@ -352,7 +351,7 @@ public class Exporter {
                     // custom route identifiers
                     for(ExportPTSupplyFromVisumConfigGroup.RouteAttributeParams params: this.exporterConfig.getRouteAttributeParams().values())    {
                         String name = Dispatch.call(item, "AttValue", params.getAttributeValue()).toString();
-                        if(!name.equals("") && !name.equals("null"))    {
+                        if(!name.isEmpty() && !name.equals("null"))    {
                             switch ( params.getDataType() ) {
                                 case Type.STRING_CLASS:
                                     this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), name);
@@ -381,32 +380,32 @@ public class Exporter {
                     Dispatch fzpVerlaufe = Dispatch.get(item, "TimeProfileItems").toDispatch();
                     Dispatch fzpVerlaufIterator = Dispatch.get(fzpVerlaufe, "Iterator").toDispatch();
 
-                    int nrFZPVerlaufe = Integer.valueOf(Dispatch.call(fzpVerlaufe, "Count").toString());
+                    int nrFZPVerlaufe = Dispatch.call(fzpVerlaufe, "Count").getInt();
                     int l = 0;
                     boolean isFirstRouteStop = true;
 
                     while (l < nrFZPVerlaufe) {
                         Dispatch item__ = Dispatch.get(fzpVerlaufIterator, "Item").toDispatch();
 
-                        double stopPointNo = Double.valueOf(Dispatch.call(item__, "AttValue", "LineRouteItem\\StopPointNo").toString());
+                        int stopPointNo = (int) Dispatch.call(item__, "AttValue", "LineRouteItem\\StopPointNo").getDouble();
 
-                        double index = Double.valueOf(Dispatch.call(item__, "AttValue", "Index").toString());
+                        int index = (int) Dispatch.call(item__, "AttValue", "Index").getDouble();
                         if(from_tp_index > index || to_tp_index < index)    {
                             l++;
                             Dispatch.call(fzpVerlaufIterator, "Next");
                             continue;
                         }
                         else if(from_tp_index == index) {
-                            startLink = Id.createLinkId("pt_" + ((int) stopPointNo));
-                            delta = Double.valueOf(Dispatch.call(item__, "AttValue", "Dep").toString());
+                            startLink = Id.createLinkId("pt_" + stopPointNo);
+                            delta = Dispatch.call(item__, "AttValue", "Dep").getDouble();
                         }
-                        else if(to_tp_index == index) { endLink = Id.createLinkId("pt_" + ((int) stopPointNo)); }
+                        else if(to_tp_index == index) { endLink = Id.createLinkId("pt_" + stopPointNo); }
 
-                        Id<TransitStopFacility> stopID = Id.create((int) stopPointNo, TransitStopFacility.class);
+                        Id<TransitStopFacility> stopID = Id.create(stopPointNo, TransitStopFacility.class);
                         TransitStopFacility stop = this.schedule.getFacilities().get(stopID);
 
-                        double arrTime = Double.valueOf(Dispatch.call(item__, "AttValue", "Arr").toString());
-                        double depTime = Double.valueOf(Dispatch.call(item__, "AttValue", "Dep").toString());
+                        double arrTime = Dispatch.call(item__, "AttValue", "Arr").getDouble();
+                        double depTime = Dispatch.call(item__, "AttValue", "Dep").getDouble();
                         TransitRouteStop rst;
                         if(isFirstRouteStop) {
                             rst = this.scheduleBuilder.createTransitRouteStop(stop, Time.UNDEFINED_TIME, depTime - delta);
@@ -419,6 +418,7 @@ public class Exporter {
                         transitRouteStops.add(rst);
 
                         if(fromStop != null) {
+                            // routed network
                             if(this.exporterConfig.getLinesToRoute().contains(datenHerkunft))   {
                                 Dispatch lineRouteItem = Dispatch.get(lineRouteItemsIterator, "Item").toDispatch();
                                 boolean startwriting = false;
@@ -444,7 +444,6 @@ public class Exporter {
                                             Node betweenNode = this.network.getLinks().get(this.schedule.getFacilities().get(lineRouteStopId).getLinkId()).getFromNode();
 
                                             Id<Link> lastRouteLinkId = routeLinks.get(routeLinks.size() - 1);
-                                            //this.network.removeLink(lastRouteLinkId);
                                             routeLinks.remove(routeLinks.size() - 1);
                                             String[] newLinkIdStr = lastRouteLinkId.toString().split("-");
                                             Node fromNode = this.network.getNodes().get(Id.createNodeId(newLinkIdStr[0]));
@@ -462,18 +461,18 @@ public class Exporter {
                                         startwriting = true;
 
                                     if(startwriting)    {
-                                        double outLinkNo = Double.valueOf(Dispatch.call(lineRouteItem, "AttValue", "OutLink\\No").toString());
-                                        double fromNodeNo = Double.valueOf(Dispatch.call(lineRouteItem, "AttValue", "OutLink\\FromNodeNo").toString());
-                                        double toNodeNo = Double.valueOf(Dispatch.call(lineRouteItem, "AttValue", "OutLink\\ToNodeNo").toString());
+                                        int outLinkNo = (int) Dispatch.call(lineRouteItem, "AttValue", "OutLink\\No").getDouble();
+                                        int fromNodeNo = (int) Dispatch.call(lineRouteItem, "AttValue", "OutLink\\FromNodeNo").getDouble();
+                                        int toNodeNo = (int) Dispatch.call(lineRouteItem, "AttValue", "OutLink\\ToNodeNo").getDouble();
 
-                                        Id<Node> fromNodeId = Id.createNodeId("pt_" + (int) fromNodeNo);
-                                        Id<Node> toNodeId = Id.createNodeId("pt_" + (int) toNodeNo);
+                                        Id<Node> fromNodeId = Id.createNodeId("pt_" + fromNodeNo);
+                                        Id<Node> toNodeId = Id.createNodeId("pt_" + toNodeNo);
 
                                         Node fromNode = createAndGetNode(fromNodeId, lineRouteItem, true);
                                         Node toNode = createAndGetNode(toNodeId, lineRouteItem, false);
 
                                         if(!stopIsOnLink) {
-                                            Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + toNode.getId().toString());
+                                            Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + outLinkNo + "-" + toNode.getId().toString());
                                             createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, toNode, true, false, ptMode);
                                             routeLinks.add(newLinkID);
                                         }
@@ -483,12 +482,12 @@ public class Exporter {
                                             Id<Link> newLinkID;
 
                                             if(!isFromStop) {
-                                                newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + betweenNode.getId().toString());
+                                                newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + outLinkNo + "-" + betweenNode.getId().toString());
                                                 createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false, false, ptMode);
                                                 routeLinks.add(newLinkID);
                                             }
 
-                                            newLinkID = Id.createLinkId(betweenNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + toNode.getId().toString());
+                                            newLinkID = Id.createLinkId(betweenNode.getId().toString() + "-" + outLinkNo + "-" + toNode.getId().toString());
                                             createLinkIfDoesNtExist(newLinkID, lineRouteItem, betweenNode, toNode, false, true, ptMode);
                                             routeLinks.add(newLinkID);
                                         }
@@ -498,8 +497,7 @@ public class Exporter {
                                 }
                             }
 
-
-
+                            // non-routed links (fly from stop to stop)
                             else {
                                 Node fromNode = this.network.getLinks().get(fromStop.getLinkId()).getFromNode();
                                 Node toNode = this.network.getLinks().get(stop.getLinkId()).getFromNode();
@@ -561,9 +559,9 @@ public class Exporter {
                     route = this.schedule.getTransitLines().get(lineID).getRoutes().get(routeID);
                 }
 
-                double depName = Double.valueOf(Dispatch.call(item_, "AttValue", "No").toString());
-                Id<Departure> depID = Id.create((int) depName, Departure.class);
-                double depTime = Double.valueOf(Dispatch.call(item_, "AttValue", "Dep").toString());
+                int depName = (int) Dispatch.call(item_, "AttValue", "No").getDouble();
+                Id<Departure> depID = Id.create(depName, Departure.class);
+                double depTime = Dispatch.call(item_, "AttValue", "Dep").getDouble();
                 Departure dep = this.scheduleBuilder.createDeparture(depID, depTime);
 
                 Id<Vehicle> vehicleId = Id.createVehicleId(depID.toString());
@@ -599,9 +597,8 @@ public class Exporter {
                 xCoord = Double.valueOf(Dispatch.call(visumNode, "AttValue", "OutLink\\ToNode\\XCoord").toString());
                 yCoord = Double.valueOf(Dispatch.call(visumNode, "AttValue", "OutLink\\ToNode\\YCoord").toString());
             }
-            Node no = this.networkBuilder.createNode(nodeID, new Coord(xCoord, yCoord));
-            this.network.addNode(no);
-            node = no;
+            node = this.networkBuilder.createNode(nodeID, new Coord(xCoord, yCoord));
+            this.network.addNode(node);
         }
         return node;
     }
@@ -614,14 +611,14 @@ public class Exporter {
             if(!lengthStr.equals("null"))
                 length = Double.valueOf(lengthStr);
             else
-                length = Double.valueOf(Dispatch.call(visumLink, "AttValue", "InLink\\Length").toString());
+                length = Dispatch.call(visumLink, "AttValue", "InLink\\Length").getDouble();
             if(!isOnNode) {
-                double fraction = Double.valueOf(Dispatch.call(visumLink, "AttValue", "StopPoint\\RelPos").toString());
+                double fraction = Dispatch.call(visumLink, "AttValue", "StopPoint\\RelPos").getDouble();
 
                 double fromNodeNo = Double.valueOf(fromNode.getId().toString().split("_")[1]);
                 double toNodeNo = Double.valueOf(toNode.getId().toString().split("_")[1]);
 
-                double fromNodeStopLink = Double.valueOf(Dispatch.call(visumLink, "AttValue", "StopPoint\\FromNodeNo").toString());
+                double fromNodeStopLink = Dispatch.call(visumLink, "AttValue", "StopPoint\\FromNodeNo").getDouble();
                 if(fromNodeNo == fromNodeStopLink && !fromNodeIsBetweenNode)   {
                     length = length * fraction;
                 }
