@@ -55,10 +55,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
         if (event.getIteration() == this.config.getLastIteration()) {
             List<EventWriter> finalEventWriters = this.buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""));
-
-            for (EventWriter eventWriter : finalEventWriters) {
-                this.eventWriters.add(eventWriter);
-            }
+            this.eventWriters.addAll(finalEventWriters);
         }
 
         for (EventWriter eventWriter : this.eventWriters) {
