@@ -175,25 +175,10 @@ public class PTMerger {
                 log.info("Keeping " + tl.getId());
             }
 
-            ArrayList<TransitRoute> routeToDelete = new ArrayList<>();
-            for(TransitRoute route: tl.getRoutes().values()){
-                ArrayList<Departure> toDelete = new ArrayList<>();
-                for (Departure departure: route.getDepartures().values()){
-                    Vehicle vehicle = this.scenario.getTransitVehicles().getVehicles().get(departure.getVehicleId());
-                    if(remove){
-                        toDelete.add(departure);
-                    }
-                }
-                for(Departure departure: toDelete) route.removeDeparture(departure);
-
-                if(route.getDepartures().values().size() == 0) routeToDelete.add(route);
-            }
-            for(TransitRoute route: routeToDelete) tl.removeRoute(route);
-
-            if(tl.getRoutes().values().size() == 0) lineToDelete.add(tl);
+            if (remove) lineToDelete.add(tl);
         }
 
-        for(TransitLine tl: lineToDelete) this.scenario.getTransitSchedule().removeTransitLine(tl);
+        for (TransitLine tl: lineToDelete) this.scenario.getTransitSchedule().removeTransitLine(tl);
 
         removeUnusedStopFacilities();
         removeUnusedTransitLinks(networkMode);
