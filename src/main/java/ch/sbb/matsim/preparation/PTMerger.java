@@ -203,11 +203,11 @@ public class PTMerger {
     private void addLink(Network network, Link link){
          if(!network.getNodes().containsKey(link.getFromNode().getId())){
              Node node = link.getFromNode();
-             HashSet<Id<Link>> inLinks = new HashSet(node.getInLinks().keySet());
+             HashSet<Id<Link>> inLinks = new HashSet<>(node.getInLinks().keySet());
              for(Id<Link> linkId: inLinks) {
                  node.removeInLink(linkId);
              }
-             HashSet<Id<Link>> outLinks = new HashSet(node.getOutLinks().keySet());
+             HashSet<Id<Link>> outLinks = new HashSet<>(node.getOutLinks().keySet());
              for(Id<Link> linkId: outLinks) {
                  node.removeOutLink(linkId);
              }
@@ -216,11 +216,11 @@ public class PTMerger {
 
         if(!network.getNodes().containsKey(link.getToNode().getId())) {
              Node node = link.getToNode();
-             HashSet<Id<Link>> inLinks = new HashSet(node.getInLinks().keySet());
+             HashSet<Id<Link>> inLinks = new HashSet<>(node.getInLinks().keySet());
              for(Id<Link> linkId: inLinks) {
                  node.removeInLink(linkId);
              }
-             HashSet<Id<Link>> outLinks = new HashSet(node.getOutLinks().keySet());
+             HashSet<Id<Link>> outLinks = new HashSet<>(node.getOutLinks().keySet());
              for(Id<Link> linkId: outLinks) {
                  node.removeOutLink(linkId);
              }

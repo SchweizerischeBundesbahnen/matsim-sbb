@@ -181,7 +181,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
     }
 
     private List<Leg> getLegs(Plan plan){
-        List<Leg> list = new ArrayList();
+        List<Leg> list = new ArrayList<>();
         for(PlanElement pe: plan.getPlanElements()){
             if(pe instanceof Leg){
                 list.add((Leg) pe);
@@ -191,7 +191,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
     }
 
     private List<Activity> getActivities(Plan plan){
-        List<Activity> list = new ArrayList();
+        List<Activity> list = new ArrayList<>();
         for(PlanElement pe: plan.getPlanElements()){
             if(pe instanceof Activity){
                 list.add((Activity) pe);
