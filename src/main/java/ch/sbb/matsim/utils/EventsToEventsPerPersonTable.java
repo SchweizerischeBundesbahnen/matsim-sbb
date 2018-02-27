@@ -83,10 +83,9 @@ public class EventsToEventsPerPersonTable implements
 
     private boolean checkIfPersonMatches(Id<Person> personId) {
         if (personIdString != null) {
-            if (personId.toString().equals(personIdString)) return true;
-            else return false;
+            return personId.toString().equals(personIdString);
         }
-        else return true;
+        return true;
     }
 
     private boolean isTransitDriver(Id<Person> personId) {
