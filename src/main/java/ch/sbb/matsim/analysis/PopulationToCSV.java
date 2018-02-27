@@ -36,11 +36,11 @@ public class PopulationToCSV {
         this.scenario = scenario;
     }
 
-    public void write(String filename) throws IOException {
+    public void write(String filename) {
         this.write(filename + "agents.csv", filename + "plan_elements.csv");
     }
 
-    public void write(String agentsFilename, String planElementsFilename) throws IOException {
+    public void write(String agentsFilename, String planElementsFilename) {
         PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) this.scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
         Population population = this.scenario.getPopulation();
         String[] attributes = ppConfig.getPersonAttributes().split(",");

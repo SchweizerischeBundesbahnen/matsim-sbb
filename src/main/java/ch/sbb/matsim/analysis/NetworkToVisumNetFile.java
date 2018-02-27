@@ -80,7 +80,7 @@ public class NetworkToVisumNetFile {
         this.ppConfig = ppConfig;
     }
 
-    public void write(String filename) throws IOException {
+    public void write(String filename) {
         log.info("start preprocessing to visum-net-file");
         Network network = scenario.getNetwork();
         TransitSchedule schedule = scenario.getTransitSchedule();
