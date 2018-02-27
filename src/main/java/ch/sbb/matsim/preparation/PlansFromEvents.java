@@ -88,9 +88,9 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 
     @Override
     public void handleEvent(PersonArrivalEvent event) {
-        if(!transitDrivers.contains(event.getPersonId())){
-            Person person = population.getPersons().get(event.getPersonId());
-        }
+//        if(!transitDrivers.contains(event.getPersonId())){
+//            Person person = population.getPersons().get(event.getPersonId());
+//        }
     }
 
     @Override
@@ -148,14 +148,15 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
         if(transitDrivers.contains(personId)){
             return null;
         }
-        if(!population.getPersons().containsKey(personId)){
-                Person person = population.getFactory().createPerson(personId);
-                population.addPerson(person);
-                Plan plan = population.getFactory().createPlan();
-                person.addPlan(plan);
-                person.setSelectedPlan(plan);
-            }
-        return population.getPersons().get(personId);
+        Person person = this.population.getPersons().get(personId);
+        if (person == null) {
+            person = population.getFactory().createPerson(personId);
+            population.addPerson(person);
+            Plan plan = population.getFactory().createPlan();
+            person.addPlan(plan);
+            person.setSelectedPlan(plan);
+        }
+        return person;
     }
 
 
@@ -201,10 +202,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 
     @Override
     public void handleEvent(TransitDriverStartsEvent event) {
-        if(population.getPersons().containsKey(event.getDriverId())){
-            Person person = population.getPersons().get(event.getDriverId());
-            population.getPersons().remove(person);
-        }
+        population.getPersons().remove(event.getDriverId());
         transitDrivers.add(event.getDriverId());
     }
 
