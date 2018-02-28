@@ -303,7 +303,7 @@ public class EventsToEventsPerPersonTable implements
         try {
             this.writeSimulationResultsToTabSeparated("");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Could not write simulation results.", e);
         }
     }
 

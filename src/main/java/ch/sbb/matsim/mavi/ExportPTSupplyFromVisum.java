@@ -74,7 +74,7 @@ public class ExportPTSupplyFromVisum {
 
     private final static Set<String> MODES_PT = Collections.singleton(TransportMode.pt);
 
-    private static Logger log;
+    private final static Logger log = Logger.getLogger(ExportPTSupplyFromVisum.class);
 
     private Scenario scenario;
     private Network network;
@@ -103,14 +103,12 @@ public class ExportPTSupplyFromVisum {
     public static void main(String[] args) { new ExportPTSupplyFromVisum(); }
 
     private ExportPTSupplyFromVisum() {
-        log = Logger.getLogger(ExportPTSupplyFromVisum.class);
-
         ActiveXComponent visum = new ActiveXComponent("Visum.Visum.16");
         log.info("VISUM Client gestartet.");
         try {
             run(visum);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         } finally {
             visum.safeRelease();
         }

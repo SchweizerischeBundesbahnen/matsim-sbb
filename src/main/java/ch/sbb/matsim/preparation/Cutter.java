@@ -134,7 +134,7 @@ public class Cutter {
         try {
             Files.createDirectories(Paths.get(output));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Could not create output directory " + output, e);
         }
 
         File f = new File(config.plans().getInputFile());
