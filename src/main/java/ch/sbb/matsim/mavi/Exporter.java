@@ -314,22 +314,19 @@ public class Exporter {
                 TransitLine line = this.scheduleBuilder.createTransitLine(lineID);
                 this.schedule.addTransitLine(line);
             }
-            String datenHerkunft = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
 
             // Fahrplanfahrten
             Dispatch vehicleJourneys = Dispatch.get(item, "VehJourneys").toDispatch();
             Dispatch vehicleJourneyIterator = Dispatch.get(vehicleJourneys, "Iterator").toDispatch();
-            String ptMode;
-            if(datenHerkunft.equals("SBB_Simba.CH_2016"))
-                ptMode = "Simba";
-            else
-                ptMode = "Hafas";
 
+            String datenHerkunft = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
             String mode;
-            if(exporterConfig.isUseDetPT())
-                mode = ptMode;
-            else
-                mode = Dispatch.call(item, "AttValue", "TSysCode").toString();
+            if(exporterConfig.isUseDetPT()) {
+                mode = "detPt";
+            }
+            else {
+                mode = datenHerkunft;
+            }
 
             int nrOfVehicleJourneys = Dispatch.call(vehicleJourneys, "Count").getInt();
             int k = 0;
@@ -449,7 +446,7 @@ public class Exporter {
                                             Node fromNode = this.network.getNodes().get(Id.createNodeId(newLinkIdStr[0]));
 
                                             Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + newLinkIdStr[1] + "-" + betweenNode.getId().toString());
-                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false, false, ptMode);
+                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false, false, mode);
                                             routeLinks.add(newLinkID);
                                         }
                                         routeLinks.add(stop.getLinkId());
@@ -473,7 +470,7 @@ public class Exporter {
 
                                         if(!stopIsOnLink) {
                                             Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + outLinkNo + "-" + toNode.getId().toString());
-                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, toNode, true, false, ptMode);
+                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, toNode, true, false, mode);
                                             routeLinks.add(newLinkID);
                                         }
                                         else    {
@@ -483,12 +480,12 @@ public class Exporter {
 
                                             if(!isFromStop) {
                                                 newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + outLinkNo + "-" + betweenNode.getId().toString());
-                                                createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false, false, ptMode);
+                                                createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false, false, mode);
                                                 routeLinks.add(newLinkID);
                                             }
 
                                             newLinkID = Id.createLinkId(betweenNode.getId().toString() + "-" + outLinkNo + "-" + toNode.getId().toString());
-                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, betweenNode, toNode, false, true, ptMode);
+                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, betweenNode, toNode, false, true, mode);
                                             routeLinks.add(newLinkID);
                                         }
                                     }
@@ -508,7 +505,7 @@ public class Exporter {
                                     newLink.setFreespeed(10000);
                                     newLink.setCapacity(10000);
                                     newLink.setNumberOfLanes(10000);
-                                    newLink.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", ptMode})));
+                                    newLink.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", mode})));
                                     this.network.addLink(newLink);
                                 }
                                 // differentiate between links with the same from- and to-node but different length
@@ -531,7 +528,7 @@ public class Exporter {
                                             link.setFreespeed(10000);
                                             link.setCapacity(10000);
                                             link.setNumberOfLanes(10000);
-                                            link.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", ptMode})));
+                                            link.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", mode})));
                                             this.network.addLink(link);
                                             newLinkID = linkID;
                                         }
