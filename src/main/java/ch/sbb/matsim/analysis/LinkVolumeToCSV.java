@@ -14,7 +14,6 @@ import org.matsim.core.events.algorithms.EventWriter;
 
 import java.io.IOException;
 
-
 public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
 
     private final static Logger log = Logger.getLogger(LinkVolumeToCSV.class);
@@ -37,11 +36,6 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     }
 
     // Methods
-    @Override
-    public void reset(int iteration) {
-        super.reset(iteration);
-    }
-
     @Override
     public void closeFile() {
         this.write(this.filename);

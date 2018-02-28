@@ -22,7 +22,7 @@ public class SBBPopulationSampler {
             }
         }
 
-        for (Id pId : toDelete) {
+        for (Id<Person> pId : toDelete) {
             population.removePerson(pId);
         }
     }

@@ -80,7 +80,7 @@ public class NetworkToVisumNetFile {
         this.ppConfig = ppConfig;
     }
 
-    public void write(String filename) throws IOException {
+    public void write(String filename) {
         log.info("start preprocessing to visum-net-file");
         Network network = scenario.getNetwork();
         TransitSchedule schedule = scenario.getTransitSchedule();
@@ -307,7 +307,6 @@ public class NetworkToVisumNetFile {
             String stopPointString = getCSVLine(stopPointFields);
 
             int index = 1;
-            Set<Node> stopPointNodes = new HashSet<>();
             for (TransitStopFacility aStop: schedule.getFacilities().values()) {
                 stopString += getCSVLine(Arrays.asList(
                         String.valueOf(index),
@@ -320,7 +319,6 @@ public class NetworkToVisumNetFile {
                         String.valueOf(aStop.getCoord().getY())));
                 Link link = network.getLinks().get(Id.create(aStop.getLinkId(), Link.class));
                 boolean isLoopLink = link.getFromNode().equals(link.getToNode());
-                if (isLoopLink && stopPointNodes.contains(link.getFromNode())) continue;
                 String nbAlightingStr = (nbAlightingsPerStop.get(aStop) == null) ? "" : String.valueOf(nbAlightingsPerStop.get(aStop));
                 String nbBoardingStr = (nbBoardingsPerStop.get(aStop) == null) ? "" : String.valueOf(nbBoardingsPerStop.get(aStop));
                 String countAlightingStr = (countAlightingsPerStop.get(aStop) == null) ? "" : String.valueOf(countAlightingsPerStop.get(aStop));

@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.calibration.PTObjective;
 import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -37,7 +36,7 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         EventWriter {
     private BufferedWriter out = null;
 
-    private final static Logger log = Logger.getLogger(PTObjective.class);
+    private final static Logger log = Logger.getLogger(PtVolumeToCSV.class);
 
     static final String FILENAME_STOPS =  "matsim_stops.csv";
     private static final String FILENAME_VEHJOURNEYS = "matsim_vehjourneys.csv";

@@ -31,7 +31,7 @@ import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
  */
 public class RunSBB {
 
-    private static Logger log = Logger.getLogger(RunSBB.class);
+    private final static Logger log = Logger.getLogger(RunSBB.class);
 
     public static void main(String[] args) {
         System.setProperty("matsim.preferLocalDtds", "true");
