@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.preparation;
 
-import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import org.apache.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
@@ -59,7 +58,7 @@ public class XLSXScoringParser {
 
     static final String BEHAVIOR_GROUP_LABEL = "BehaviorGroup";
 
-    private final static Logger log = Logger.getLogger(RunSBB.class);
+    private final static Logger log = Logger.getLogger(XLSXScoringParser.class);
 
     /**
      * parseXLSXWorkbook
