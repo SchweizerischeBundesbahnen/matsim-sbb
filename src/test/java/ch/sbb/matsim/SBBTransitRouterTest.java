@@ -109,7 +109,7 @@ public class SBBTransitRouterTest extends TransitRouterImplTest {
         private static final double FREESPEED = 40 / 3.6;
         private static final double CAPACITY = 10000;
         private static final String VEHICLETYPE1 = "bus";
-        private static Set<String> ALLOWED_MODES = new HashSet<>();
+        private static final Set<String> ALLOWED_MODES = new HashSet<>();
 
         static {
             ALLOWED_MODES.add(TransportMode.pt);
