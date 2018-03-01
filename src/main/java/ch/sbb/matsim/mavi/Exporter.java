@@ -479,6 +479,7 @@ public class Exporter {
                                             Id<Link> newLinkID;
 
                                             if(!isFromStop) {
+                                                routeLinks.remove(routeLinks.size() - 1);
                                                 newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + outLinkNo + "-" + betweenNode.getId().toString());
                                                 createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false, false, mode);
                                                 routeLinks.add(newLinkID);
