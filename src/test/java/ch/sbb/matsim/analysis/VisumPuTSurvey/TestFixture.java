@@ -31,8 +31,6 @@ import org.matsim.core.mobsim.qsim.ActivityEnginePlugin;
 import org.matsim.core.mobsim.qsim.PopulationPlugin;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.QSimUtils;
-import org.matsim.core.mobsim.qsim.pt.TransitEnginePlugin;
-import org.matsim.core.mobsim.qsim.qnetsimengine.QNetsimEnginePlugin;
 import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -231,7 +229,9 @@ public class TestFixture {
         List<AbstractQSimPlugin> plugins = new ArrayList<>();
         plugins.add(new ActivityEnginePlugin(config));
         plugins.add(new PopulationPlugin(config));
+        plugins.add(new TestQSimModule(config));
         plugins.add(new SBBTransitEnginePlugin(config));
+
 
         //plugins.add(new TransitEnginePlugin(f.config));
        // plugins.add(new QNetsimEnginePlugin(f.config));
