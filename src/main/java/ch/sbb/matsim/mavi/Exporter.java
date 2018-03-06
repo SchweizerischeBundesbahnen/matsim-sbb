@@ -97,7 +97,8 @@ public class Exporter {
         loadVersion(visum);
         if(this.exporterConfig.getPathToAttributeFile() != null)
             loadAttributes(visum);
-        setTimeProfilFilter(visum);
+        if(this.exporterConfig.getTimeProfilFilterParams().size() != 0)
+            setTimeProfilFilter(visum);
 
         createMATSimScenario();
 
@@ -316,10 +317,9 @@ public class Exporter {
             Dispatch vehicleJourneys = Dispatch.get(item, "VehJourneys").toDispatch();
             Dispatch vehicleJourneyIterator = Dispatch.get(vehicleJourneys, "Iterator").toDispatch();
 
-            String datenHerkunft = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
             String mode;
             if(this.exporterConfig.getVehicleMode().equals("Datenherkunft"))
-                mode = datenHerkunft;
+                mode = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
             else
                 mode = this.exporterConfig.getVehicleMode();
 
@@ -411,7 +411,7 @@ public class Exporter {
 
                         if(fromStop != null) {
                             // routed network
-                            if(this.exporterConfig.getLinesToRoute().contains(datenHerkunft))   {
+                            if(this.exporterConfig.getLinesToRoute().contains(mode))   {
                                 Dispatch lineRouteItem = Dispatch.get(lineRouteItemsIterator, "Item").toDispatch();
                                 boolean startwriting = false;
                                 boolean foundToStop = false;
