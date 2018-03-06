@@ -1,16 +1,14 @@
 package ch.sbb.matsim.analysis.VisumPuTSurvey;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import ch.sbb.matsim.analysis.EventsToTravelDiaries;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
-import ch.sbb.matsim.analysis.EventsToTravelDiaries;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class VisumPuTSurveyIntegrationTest {
 
@@ -31,10 +29,9 @@ public class VisumPuTSurveyIntegrationTest {
 
         visumPuTSurvey.write("./");
 
-        System.out.println(visumPuTSurvey.getWriter().getData());
+//        System.out.println(visumPuTSurvey.getWriter().getData());
 
-        String expected = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n$OEVTEILWEG:DATENSATZNR;TWEGIND;VONHSTNR;NACHHSTNR;VSYSCODE;LINNAME;LINROUTENAME;RICHTUNGSCODE;FZPNAME;TEILWEG-KENNUNG;EINHSTNR;EINHSTABFAHRTSTAG;EINHSTABFAHRTSZEIT;PFAHRT;\n2;1;B;D;code;code;code;code;code;E;B;1;08:21:41;10;\n";
-
+        String expected = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n$OEVTEILWEG:DATENSATZNR;TWEGIND;VONHSTNR;NACHHSTNR;VSYSCODE;LINNAME;LINROUTENAME;RICHTUNGSCODE;FZPNAME;TEILWEG-KENNUNG;EINHSTNR;EINHSTABFAHRTSTAG;EINHSTABFAHRTSZEIT;PFAHRT\n2;1;B;D;code;code;code;code;code;E;B;1;08:22:00;10\n";
 
         // Add Assert
         BufferedReader br = new BufferedReader(new FileReader("./matsim_put_survey.att"));

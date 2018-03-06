@@ -12,7 +12,6 @@ import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
@@ -53,7 +52,6 @@ import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.vehicles.Vehicles;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -87,7 +85,6 @@ public class EventsToTravelDiaries implements
     private final Network network;
     // Attributes
 
-    private int iteration;
     private String filename;
 
     private Map<Id, TravellerChain> chains = new HashMap<>();
@@ -165,8 +162,7 @@ public class EventsToTravelDiaries implements
                 act.setEndTime(event.getTime());
             }
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -177,7 +173,6 @@ public class EventsToTravelDiaries implements
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
-            boolean beforeInPT = chain.isInPT();
             if (event.getActType().equals(PtConstants.TRANSIT_ACTIVITY_TYPE) || event.getActType().contains("interaction")) {
                 chain.setInPT(true);
 
@@ -196,8 +191,7 @@ public class EventsToTravelDiaries implements
                 journey.setToAct(act);
             }
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -216,8 +210,7 @@ public class EventsToTravelDiaries implements
             trip.setEndTime(event.getTime());
             trip.setDest(network.getLinks().get(event.getLinkId()).getCoord());
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -244,8 +237,7 @@ public class EventsToTravelDiaries implements
             trip.setStartTime(event.getTime());
 
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -260,8 +252,7 @@ public class EventsToTravelDiaries implements
                     chain.getJourneys().removeLast();
             }
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -294,8 +285,7 @@ public class EventsToTravelDiaries implements
                 driverIdFromVehicleId.put(event.getVehicleId(), event.getPersonId());
             }
         } catch (Exception e) {
-            e.printStackTrace(System.out);
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -317,8 +307,7 @@ public class EventsToTravelDiaries implements
             }
 
         } catch (Exception e) {
-            e.printStackTrace(System.out);
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -334,8 +323,7 @@ public class EventsToTravelDiaries implements
             }
 
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
 
     }
@@ -355,8 +343,7 @@ public class EventsToTravelDiaries implements
                 trip.incrementDistance(network.getLinks().get(event.getLinkId()).getLength());
             }
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -369,8 +356,7 @@ public class EventsToTravelDiaries implements
                             event.getVehicleId()));
             transitDriverIds.add(event.getDriverId());
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -386,9 +372,7 @@ public class EventsToTravelDiaries implements
             if (chain.traveledVehicle)
                 chain.traveledVehicle = false;
         } catch (Exception e) {
-            e.printStackTrace(System.out);
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
@@ -404,26 +388,23 @@ public class EventsToTravelDiaries implements
             }
 
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
     @Override
     public void handleEvent(VehicleArrivesAtFacilityEvent event) {
         try {
-            ptVehicles.get(event.getVehicleId()).lastStop = event
-                    .getFacilityId();
+            PTVehicle ptVehicle = ptVehicles.get(event.getVehicleId());
+            ptVehicle.lastStop = event.getFacilityId();
         } catch (Exception e) {
-            System.err.println(e.getStackTrace());
-            System.err.println(event.toString());
+            log.error("Exception while handling event " + event.toString(), e);
         }
     }
 
     // Methods
     @Override
     public void reset(int iteration) {
-        this.iteration = iteration;
         chains = new HashMap<>();
         ptVehicles = new HashMap<>();
         transitDriverIds = new HashSet<>();
@@ -497,7 +478,7 @@ public class EventsToTravelDiaries implements
                             MatsimRandom.getRandom().nextDouble(),
                             (this.locateAct != null) ? this.locateAct.getZoneAttribute(act.getCoord()) : ""));
                 } catch (Exception e) {
-                    System.out.println("Couldn't print activity chain!");
+                    log.error("Couldn't print activity chain!", e);
                 }
             }
             for (Journey journey : chain.getJourneys()) {
@@ -530,7 +511,7 @@ public class EventsToTravelDiaries implements
                     );
                     counter.incCounter();
 
-                    // oomment (PManser): in my opinion, isCarJourney() does not mean anything
+                    // comment (PManser): in my opinion, isCarJourney() does not mean anything
                     if (!(journey.isCarJourney() || journey.isTeleportJourney())) {
                         int ind = 0;
                         for (Trip trip : journey.getTrips()) {
@@ -636,7 +617,7 @@ public class EventsToTravelDiaries implements
         try {
             this.writeSimulationResultsToTabSeparated("");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Could not write data.", e);
         }
     }
 

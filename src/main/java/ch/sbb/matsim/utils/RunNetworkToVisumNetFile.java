@@ -17,7 +17,7 @@ public class RunNetworkToVisumNetFile {
         Controler controler = new Controler(scenario);
         System.out.println(controler.getConfig().controler().getOutputDirectory());
         PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
-        NetworkToVisumNetFile networkToVisum = new NetworkToVisumNetFile(scenario, controler.getConfig().controler().getOutputDirectory() + "/", ppConfig);
-        networkToVisum.write();
+        NetworkToVisumNetFile networkToVisum = new NetworkToVisumNetFile(scenario, ppConfig);
+        networkToVisum.write(controler.getConfig().controler().getOutputDirectory() + "/");
     }
 }

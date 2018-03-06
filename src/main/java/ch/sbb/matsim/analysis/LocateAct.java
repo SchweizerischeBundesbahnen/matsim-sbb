@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vividsolutions.jts.geom.*;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.population.Activity;
@@ -18,11 +19,6 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.utils.gis.ShapeFileReader;
 import org.opengis.feature.simple.SimpleFeature;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Point;
-
 public class LocateAct {
     private final static Logger log = Logger.getLogger(LocateAct.class);
 
@@ -31,7 +27,7 @@ public class LocateAct {
     Collection<SimpleFeature> features = null;
     GeometryFactory geometryFactory = new GeometryFactory();
     private String attribute = "";
-    private final Map<Coord, SimpleFeature> coordCache = new HashMap();
+    private final Map<Coord, SimpleFeature> coordCache = new HashMap<>();
 
 
     public LocateAct(String shapefile) {
@@ -71,12 +67,14 @@ public class LocateAct {
         } else {
 
             for (SimpleFeature feature : features) {
-                MultiPolygon p = (MultiPolygon) feature.getDefaultGeometry();
+                Geometry geometry = (Geometry) feature.getDefaultGeometry();
 
                 Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
-                if (p.contains(point)) {
-                    coordCache.put(coord, feature);
-                    return feature;
+                if(geometry != null){
+                    if (geometry.contains(point)) {
+                        coordCache.put(coord, feature);
+                        return feature;
+                    }
                 }
             }
 
@@ -91,20 +89,22 @@ public class LocateAct {
         for (SimpleFeature feature: features) {
             MultiPolygon mp = (MultiPolygon) feature.getDefaultGeometry();
             Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
-            if (nearestFeature == null) {
-                Double actDistance = mp.distance(point);
-                if (actDistance <= acceptance) {
-                    nearestFeature = feature;
-                    nearestDistance = actDistance;
+
+            if(mp != null) {
+                if (nearestFeature == null) {
+                    Double actDistance = mp.distance(point);
+                    if (actDistance <= acceptance) {
+                        nearestFeature = feature;
+                        nearestDistance = actDistance;
+                    }
+                } else {
+                    double actDistance = mp.distance(point);
+                    if (actDistance < nearestDistance && actDistance <= acceptance) {
+                        nearestFeature = feature;
+                        nearestDistance = mp.distance(point);
+                    }
+                    if (nearestDistance == 0.0) return nearestFeature;
                 }
-            }
-            else {
-                double actDistance = mp.distance(point);
-                if (actDistance < nearestDistance && actDistance <= acceptance) {
-                    nearestFeature = feature;
-                    nearestDistance = mp.distance(point);
-                }
-                if (nearestDistance == 0.0) return nearestFeature;
             }
         }
         return nearestFeature;

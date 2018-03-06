@@ -19,13 +19,11 @@ import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonLeavesVehicleEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonStuckEventHandler;
 import org.matsim.api.core.v01.events.handler.TransitDriverStartsEventHandler;
-import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.TeleportationArrivalEvent;
 import org.matsim.core.api.experimental.events.handler.TeleportationArrivalEventHandler;
 import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.utils.io.IOUtils;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -61,8 +59,6 @@ public class EventsToEventsPerPersonTable implements
 
     private final static String SEPARATOR = ";";
 
-    private final Network network;
-    private TransitSchedule transitSchedule;
     private boolean isTransitScenario = false;
 
     private Map<Id, List<PersonEvent>> eventsPerPerson = new HashMap<>();
@@ -73,11 +69,7 @@ public class EventsToEventsPerPersonTable implements
     private String filename;
 
     public EventsToEventsPerPersonTable(Scenario scenario) {
-        this.network = scenario.getNetwork();
-        isTransitScenario = scenario.getConfig().transit().isUseTransit();
-        if (isTransitScenario) {
-            this.transitSchedule = scenario.getTransitSchedule();
-        }
+        this.isTransitScenario = scenario.getConfig().transit().isUseTransit();
     }
 
     public EventsToEventsPerPersonTable(Scenario scenario, String filename) {
@@ -91,10 +83,9 @@ public class EventsToEventsPerPersonTable implements
 
     private boolean checkIfPersonMatches(Id<Person> personId) {
         if (personIdString != null) {
-            if (personId.toString().equals(personIdString)) return true;
-            else return false;
+            return personId.toString().equals(personIdString);
         }
-        else return true;
+        return true;
     }
 
     private boolean isTransitDriver(Id<Person> personId) {
@@ -312,7 +303,7 @@ public class EventsToEventsPerPersonTable implements
         try {
             this.writeSimulationResultsToTabSeparated("");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Could not write simulation results.", e);
         }
     }
 

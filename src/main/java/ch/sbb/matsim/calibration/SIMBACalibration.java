@@ -13,12 +13,13 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import java.io.File;
+import java.io.IOException;
 
 public class SIMBACalibration {
 
     private final static Logger log = Logger.getLogger(SIMBACalibration.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         String eventsFileName = null;
         Config config = null;
@@ -38,21 +39,21 @@ public class SIMBACalibration {
 
         //new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
 
-        final PTObjective VehicleJourneyVolume = new PTObjective(scenario, visumVolume);
+        final PTObjective vehicleJourneyVolume = new PTObjective(visumVolume, f + "/belastung.csv");
 
         Controler controler = new Controler(scenario);
 
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
-                addEventHandlerBinding().toInstance(VehicleJourneyVolume);
+                addEventHandlerBinding().toInstance(vehicleJourneyVolume);
             }
         });
 
         controler.run();
 
-        log.info(VehicleJourneyVolume.getScore());
-        VehicleJourneyVolume.write(f+"/belastung.csv");
+        log.info(vehicleJourneyVolume.getScore());
+        vehicleJourneyVolume.close();
 
     }
 }

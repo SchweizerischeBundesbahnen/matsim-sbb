@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.routing.pt.raptor;
 
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
  * @author mrieser / SBB
  */
 public class SwissRailRaptor implements TransitRouter {
+
+    private static final Logger log = Logger.getLogger(SwissRailRaptor.class);
 
     private final SwissRailRaptorData data;
     private final SwissRailRaptorCore raptor;
@@ -131,6 +134,7 @@ public class SwissRailRaptor implements TransitRouter {
                 legs.add(walkLeg);
             }
         }
+
         return legs;
     }
 

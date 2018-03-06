@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -39,7 +40,7 @@ import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,7 +72,9 @@ public class ExportPTSupplyFromVisum {
     public final static String ATT_OPERATOR_NO= "07_OperatorNo";
     public final static String ATT_TSYSNAME= "08_TSysName";
 
-    private static Logger log;
+    private final static Set<String> MODES_PT = Collections.singleton(TransportMode.pt);
+
+    private final static Logger log = Logger.getLogger(ExportPTSupplyFromVisum.class);
 
     private Scenario scenario;
     private Network network;
@@ -100,14 +103,12 @@ public class ExportPTSupplyFromVisum {
     public static void main(String[] args) { new ExportPTSupplyFromVisum(); }
 
     private ExportPTSupplyFromVisum() {
-        log = Logger.getLogger(ExportPTSupplyFromVisum.class);
-
         ActiveXComponent visum = new ActiveXComponent("Visum.Visum.16");
         log.info("VISUM Client gestartet.");
         try {
             run(visum);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         } finally {
             visum.safeRelease();
         }
@@ -205,7 +206,7 @@ public class ExportPTSupplyFromVisum {
             loopLink.setFreespeed(10000);
             loopLink.setCapacity(10000);
             loopLink.setNumberOfLanes(10000);
-            loopLink.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+            loopLink.setAllowedModes(MODES_PT);
             this.network.addLink(loopLink);
 
             // create transitStopFacility
@@ -419,7 +420,7 @@ public class ExportPTSupplyFromVisum {
                                 newLink.setFreespeed(10000);
                                 newLink.setCapacity(10000);
                                 newLink.setNumberOfLanes(10000);
-                                newLink.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+                                newLink.setAllowedModes(MODES_PT);
                                 this.network.addLink(newLink);
                             }
                             // differentiate between links with the same from- and to-node but different length
@@ -442,7 +443,7 @@ public class ExportPTSupplyFromVisum {
                                         link.setFreespeed(10000);
                                         link.setCapacity(10000);
                                         link.setNumberOfLanes(10000);
-                                        link.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+                                        link.setAllowedModes(MODES_PT);
                                         this.network.addLink(link);
                                         newLinkID = linkID;
                                     }
