@@ -5,6 +5,7 @@
 package ch.sbb.matsim;
 
 
+import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
@@ -20,7 +21,6 @@ import org.matsim.core.scoring.ScoringFunctionFactory;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
-import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
