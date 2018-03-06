@@ -270,7 +270,7 @@ public class Exporter {
             vehicleType.setDoorOperationMode(VehicleType.DoorOperationMode.serial);
             VehicleCapacity vehicleCapacity = new VehicleCapacityImpl();
             vehicleCapacity.setStandingRoom(500);
-            vehicleCapacity.setSeats(2000);
+            vehicleCapacity.setSeats(10000);
             vehicleType.setCapacity(vehicleCapacity);
 
             // the following parameters do not have any influence in a deterministic simulation engine
@@ -388,10 +388,10 @@ public class Exporter {
                             continue;
                         }
                         else if(from_tp_index == index) {
-                            startLink = Id.createLinkId("pt_" + stopPointNo);
+                            startLink = Id.createLinkId(this.exporterConfig.getNetworkMode() + "_" + stopPointNo);
                             delta = Dispatch.call(item__, "AttValue", "Dep").getDouble();
                         }
-                        else if(to_tp_index == index) { endLink = Id.createLinkId("pt_" + stopPointNo); }
+                        else if(to_tp_index == index) { endLink = Id.createLinkId(this.exporterConfig.getNetworkMode() + "_" + stopPointNo); }
 
                         Id<TransitStopFacility> stopID = Id.create(stopPointNo, TransitStopFacility.class);
                         TransitStopFacility stop = this.schedule.getFacilities().get(stopID);
@@ -457,8 +457,8 @@ public class Exporter {
                                         int fromNodeNo = (int) Dispatch.call(lineRouteItem, "AttValue", "OutLink\\FromNodeNo").getDouble();
                                         int toNodeNo = (int) Dispatch.call(lineRouteItem, "AttValue", "OutLink\\ToNodeNo").getDouble();
 
-                                        Id<Node> fromNodeId = Id.createNodeId("pt_" + fromNodeNo);
-                                        Id<Node> toNodeId = Id.createNodeId("pt_" + toNodeNo);
+                                        Id<Node> fromNodeId = Id.createNodeId(this.exporterConfig.getNetworkMode() + "_" + fromNodeNo);
+                                        Id<Node> toNodeId = Id.createNodeId(this.exporterConfig.getNetworkMode() + "_" + toNodeNo);
 
                                         Node fromNode = createAndGetNode(fromNodeId, lineRouteItem, true);
                                         Node toNode = createAndGetNode(toNodeId, lineRouteItem, false);
@@ -501,7 +501,7 @@ public class Exporter {
                                     newLink.setFreespeed(10000);
                                     newLink.setCapacity(10000);
                                     newLink.setNumberOfLanes(10000);
-                                    newLink.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", mode})));
+                                    newLink.setAllowedModes(Collections.singleton(mode));
                                     this.network.addLink(newLink);
                                 }
                                 // differentiate between links with the same from- and to-node but different length
@@ -524,7 +524,7 @@ public class Exporter {
                                             link.setFreespeed(10000);
                                             link.setCapacity(10000);
                                             link.setNumberOfLanes(10000);
-                                            link.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", mode})));
+                                            link.setAllowedModes(Collections.singleton(mode));
                                             this.network.addLink(link);
                                             newLinkID = linkID;
                                         }
@@ -626,7 +626,7 @@ public class Exporter {
             link.setFreespeed(10000);
             link.setCapacity(10000);
             link.setNumberOfLanes(10000);
-            link.setAllowedModes(new HashSet<>(Arrays.asList(new String[]{"pt", ptMode})));
+            link.setAllowedModes(Collections.singleton(ptMode));
             this.network.addLink(link);
         }
     }
