@@ -4,26 +4,16 @@
 
 package ch.sbb.matsim.preparation;
 
-import ch.sbb.matsim.RunSBB;
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
-import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
-import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import org.apache.log4j.Logger;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,7 +58,7 @@ public class XLSXScoringParser {
 
     static final String BEHAVIOR_GROUP_LABEL = "BehaviorGroup";
 
-    private static Logger log = Logger.getLogger(RunSBB.class);
+    private final static Logger log = Logger.getLogger(XLSXScoringParser.class);
 
     /**
      * parseXLSXWorkbook

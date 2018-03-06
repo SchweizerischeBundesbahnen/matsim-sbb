@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -39,8 +40,7 @@ import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,7 +72,9 @@ public class ExportPTSupplyFromVisum {
     public final static String ATT_OPERATOR_NO= "07_OperatorNo";
     public final static String ATT_TSYSNAME= "08_TSysName";
 
-    private static Logger log;
+    private final static Set<String> MODES_PT = Collections.singleton(TransportMode.pt);
+
+    private final static Logger log = Logger.getLogger(ExportPTSupplyFromVisum.class);
 
     private Scenario scenario;
     private Network network;
@@ -101,14 +103,12 @@ public class ExportPTSupplyFromVisum {
     public static void main(String[] args) { new ExportPTSupplyFromVisum(); }
 
     private ExportPTSupplyFromVisum() {
-        log = Logger.getLogger(ExportPTSupplyFromVisum.class);
-
         ActiveXComponent visum = new ActiveXComponent("Visum.Visum.16");
         log.info("VISUM Client gestartet.");
         try {
             run(visum);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         } finally {
             visum.safeRelease();
         }
@@ -223,7 +223,7 @@ public class ExportPTSupplyFromVisum {
             loopLink.setFreespeed(10000);
             loopLink.setCapacity(10000);
             loopLink.setNumberOfLanes(10000);
-            loopLink.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+            loopLink.setAllowedModes(MODES_PT);
             this.network.addLink(loopLink);
 
             // create transitStopFacility
@@ -431,125 +431,43 @@ public class ExportPTSupplyFromVisum {
                         transitRouteStops.add(rst);
 
                         if(fromStop != null) {
-                            // TODO input List with datenherkuenfte, welche geroutet werden sollen
-                            if(datenHerkunft.contains("Simba")) {
-                                Dispatch lineRouteItem = Dispatch.get(lineRouteItemsIterator, "Item").toDispatch();
-                                boolean startwriting = false;
-                                boolean foundToStop = false;
 
-                                while (!foundToStop) {
-                                    boolean stopIsOnLink = false;
-
-                                    double lineRouteStop = Double.MAX_VALUE;
-                                    String lineRouteStopStr = Dispatch.call(lineRouteItem, "AttValue", "StopPointNo").toString();
-                                    if(!lineRouteStopStr.equals("null")) {
-                                        lineRouteStop = Double.valueOf(lineRouteStopStr);
-                                        if(Double.valueOf(Dispatch.call(lineRouteItem, "AttValue", "StopPoint\\IsOnLink").toString()) == 1.0)
-                                            stopIsOnLink = true;
-                                    }
-
-                                    boolean isToStop = String.valueOf((int) lineRouteStop).equals(stop.getId().toString());
-
-                                    if(isToStop)   {
-                                        if(stopIsOnLink) {
-                                            // last link must be split into two pieces if the stop is on a link
-                                            Id<TransitStopFacility> lineRouteStopId = Id.create((int) lineRouteStop, TransitStopFacility.class);
-                                            Node betweenNode = this.network.getLinks().get(this.schedule.getFacilities().get(lineRouteStopId).getLinkId()).getFromNode();
-
-                                            Id<Link> lastRouteLinkId = routeLinks.get(routeLinks.size() - 1);
-                                            this.network.removeLink(lastRouteLinkId);
-                                            routeLinks.remove(routeLinks.size() - 1);
-                                            String[] newLinkIdStr = lastRouteLinkId.toString().split("-");
-                                            Node fromNode = this.network.getNodes().get(Id.createNodeId(newLinkIdStr[0]));
-
-                                            Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + newLinkIdStr[1] + "-" + betweenNode.getId().toString());
-                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false);
-                                            routeLinks.add(newLinkID);
+                            Node fromNode = this.network.getLinks().get(fromStop.getLinkId()).getFromNode();
+                            Node toNode = this.network.getLinks().get(stop.getLinkId()).getFromNode();
+                            Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString());
+                            if(!this.network.getLinks().containsKey(newLinkID)) {
+                                Link newLink = this.networkBuilder.createLink(newLinkID, fromNode, toNode);
+                                newLink.setLength(postlength * 1000);
+                                newLink.setFreespeed(10000);
+                                newLink.setCapacity(10000);
+                                newLink.setNumberOfLanes(10000);
+                                newLink.setAllowedModes(MODES_PT);
+                                this.network.addLink(newLink);
+                            }
+                            // differentiate between links with the same from- and to-node but different length
+                            else    {
+                                boolean hasLinkWithSameLength = false;
+                                if(this.network.getLinks().get(newLinkID).getLength() != postlength * 1000) {
+                                    int m = 1;
+                                    Id<Link> linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
+                                    while (this.network.getLinks().containsKey(linkID)) {
+                                        if(this.network.getLinks().get(linkID).getLength() == postlength * 1000) {
+                                            hasLinkWithSameLength = true;
+                                            break;
                                         }
                                         routeLinks.add(stop.getLinkId());
                                         break;
                                     }
 
-                                    boolean isFromStop = String.valueOf((int) lineRouteStop).equals(fromStop.getId().toString());
-                                    if(isFromStop)
-                                        startwriting = true;
-
-                                    if(startwriting)    {
-                                        double outLinkNo = Double.valueOf(Dispatch.call(lineRouteItem, "AttValue", "OutLink\\No").toString());
-                                        double fromNodeNo = Double.valueOf(Dispatch.call(lineRouteItem, "AttValue", "OutLink\\FromNodeNo").toString());
-                                        double toNodeNo = Double.valueOf(Dispatch.call(lineRouteItem, "AttValue", "OutLink\\ToNodeNo").toString());
-
-                                        Id<Node> fromNodeId = Id.createNodeId("pt_" + (int) fromNodeNo);
-                                        Id<Node> toNodeId = Id.createNodeId("pt_" + (int) toNodeNo);
-
-                                        Node fromNode = createAndGetNode(fromNodeId, lineRouteItem);
-                                        Node toNode = createAndGetNode(toNodeId, lineRouteItem);
-
-                                        if(!stopIsOnLink) {
-                                            Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + toNode.getId().toString());
-                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, toNode, true);
-                                            routeLinks.add(newLinkID);
-                                        }
-                                        else    {
-                                            Id<TransitStopFacility> lineRouteStopId = Id.create((int) lineRouteStop, TransitStopFacility.class);
-                                            Node betweenNode = this.network.getLinks().get(this.schedule.getFacilities().get(lineRouteStopId).getLinkId()).getFromNode();
-                                            Id<Link> newLinkID;
-
-                                            if(!isFromStop) {
-                                                newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + betweenNode.getId().toString());
-                                                createLinkIfDoesNtExist(newLinkID, lineRouteItem, fromNode, betweenNode, false);
-                                                routeLinks.add(newLinkID);
-                                            }
-
-                                            newLinkID = Id.createLinkId(betweenNode.getId().toString() + "-" + String.valueOf((int) outLinkNo) + "-" + toNode.getId().toString());
-                                            createLinkIfDoesNtExist(newLinkID, lineRouteItem, betweenNode, toNode, false);
-                                            routeLinks.add(newLinkID);
-                                        }
-                                    }
-                                    Dispatch.call(lineRouteItemsIterator, "Next");
-                                    lineRouteItem = Dispatch.get(lineRouteItemsIterator, "Item").toDispatch();
-                                }
-                            }
-
-
-
-                            else {
-                                Node fromNode = this.network.getLinks().get(fromStop.getLinkId()).getFromNode();
-                                Node toNode = this.network.getLinks().get(stop.getLinkId()).getFromNode();
-                                Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString());
-                                if (!this.network.getLinks().containsKey(newLinkID)) {
-                                    Link newLink = this.networkBuilder.createLink(newLinkID, fromNode, toNode);
-                                    newLink.setLength(postlength * 1000);
-                                    newLink.setFreespeed(10000);
-                                    newLink.setCapacity(10000);
-                                    newLink.setNumberOfLanes(10000);
-                                    newLink.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
-                                    this.network.addLink(newLink);
-                                }
-                                // differentiate between links with the same from- and to-node but different length
-                                else {
-                                    boolean hasLinkWithSameLength = false;
-                                    if (this.network.getLinks().get(newLinkID).getLength() != postlength * 1000) {
-                                        int m = 1;
-                                        Id<Link> linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
-                                        while (this.network.getLinks().containsKey(linkID)) {
-                                            if (this.network.getLinks().get(linkID).getLength() == postlength * 1000) {
-                                                hasLinkWithSameLength = true;
-                                                break;
-                                            }
-                                            m++;
-                                            linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
-                                        }
-                                        if (!hasLinkWithSameLength) {
-                                            Link link = this.networkBuilder.createLink(linkID, fromNode, toNode);
-                                            link.setLength(postlength * 1000);
-                                            link.setFreespeed(10000);
-                                            link.setCapacity(10000);
-                                            link.setNumberOfLanes(10000);
-                                            link.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
-                                            this.network.addLink(link);
-                                            newLinkID = linkID;
-                                        }
+                                    if(!hasLinkWithSameLength)  {
+                                        Link link = this.networkBuilder.createLink(linkID, fromNode, toNode);
+                                        link.setLength(postlength * 1000);
+                                        link.setFreespeed(10000);
+                                        link.setCapacity(10000);
+                                        link.setNumberOfLanes(10000);
+                                        link.setAllowedModes(MODES_PT);
+                                        this.network.addLink(link);
+                                        newLinkID = linkID;
                                     }
                                 }
                                 routeLinks.add(newLinkID);
@@ -634,7 +552,7 @@ public class ExportPTSupplyFromVisum {
             link.setFreespeed(10000);
             link.setCapacity(10000);
             link.setNumberOfLanes(10000);
-            link.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+            link.setAllowedModes(MODES_PT);
             this.network.addLink(link);
         }
     }

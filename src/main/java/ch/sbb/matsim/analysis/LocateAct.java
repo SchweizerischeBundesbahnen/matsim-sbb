@@ -27,7 +27,7 @@ public class LocateAct {
     Collection<SimpleFeature> features = null;
     GeometryFactory geometryFactory = new GeometryFactory();
     private String attribute = "";
-    private final Map<Coord, SimpleFeature> coordCache = new HashMap();
+    private final Map<Coord, SimpleFeature> coordCache = new HashMap<>();
 
 
     public LocateAct(String shapefile) {

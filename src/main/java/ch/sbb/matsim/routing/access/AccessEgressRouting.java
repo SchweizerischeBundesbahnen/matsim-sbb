@@ -128,11 +128,7 @@ public class AccessEgressRouting {
     private final class AccessEgressStageActivityTypes implements StageActivityTypes {
         @Override
         public boolean isStageActivity(final String activityType) {
-            if (AccessEgressRouting.this.stageActivityType.equals(activityType)) {
-                return true;
-            } else {
-                return false;
-            }
+            return AccessEgressRouting.this.stageActivityType.equals(activityType);
         }
 
         @Override

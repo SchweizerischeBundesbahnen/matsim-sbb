@@ -134,7 +134,7 @@ public class Cutter {
         try {
             Files.createDirectories(Paths.get(output));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Could not create output directory " + output, e);
         }
 
         File f = new File(config.plans().getInputFile());
@@ -179,11 +179,9 @@ public class Cutter {
 
                     linksToKeep.add(leg.getRoute().getStartLinkId());
                     linksToKeep.add(leg.getRoute().getEndLinkId());
-                   if(leg.getRoute() instanceof NetworkRoute){
-                         NetworkRoute route = (NetworkRoute) leg.getRoute();
-                         for (Id<Link> linkId: route.getLinkIds()){
-                             linksToKeep.add(linkId);
-                         }
+                    if(leg.getRoute() instanceof NetworkRoute){
+                        NetworkRoute route = (NetworkRoute) leg.getRoute();
+                        linksToKeep.addAll(route.getLinkIds());
                     }
                 }
                 else{
@@ -240,9 +238,7 @@ public class Cutter {
         for (TransitLine transitLine : filteredSchedule.getTransitLines().values()) {
             for (TransitRoute transitRoute : transitLine.getRoutes().values()) {
                 linksToKeep.add(transitRoute.getRoute().getStartLinkId());
-                for (Id<Link> linkId : transitRoute.getRoute().getLinkIds()) {
-                    linksToKeep.add(linkId);
-                }
+                linksToKeep.addAll(transitRoute.getRoute().getLinkIds());
                 linksToKeep.add(transitRoute.getRoute().getEndLinkId());
             }
         }

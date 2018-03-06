@@ -18,7 +18,6 @@ import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.events.algorithms.EventWriter;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,10 +54,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
         if (event.getIteration() == this.config.getLastIteration()) {
             List<EventWriter> finalEventWriters = this.buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""));
-
-            for (EventWriter eventWriter : finalEventWriters) {
-                this.eventWriters.add(eventWriter);
-            }
+            this.eventWriters.addAll(finalEventWriters);
         }
 
         for (EventWriter eventWriter : this.eventWriters) {
@@ -81,19 +77,11 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
             String outputDirectory = this.controlerIO.getOutputFilename("");
 
             if (this.ppConfig.getWritePlansCSV()) {
-                try {
-                    new PopulationToCSV(scenario).write(outputDirectory);
-                } catch (IOException e) {
-                    log.error("Could not write population to CSV.", e);
-                }
+                new PopulationToCSV(scenario).write(outputDirectory);
             }
 
             if (this.ppConfig.getVisumNetFile()) {
-                try {
-                    new NetworkToVisumNetFile(scenario, ppConfig).write(outputDirectory);
-                } catch (IOException e) {
-                    log.error("Could not write network to visum file.", e);
-                }
+                new NetworkToVisumNetFile(scenario, ppConfig).write(outputDirectory);
             }
         }
     }

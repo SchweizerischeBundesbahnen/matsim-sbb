@@ -109,7 +109,12 @@ public class SBBTransitRouterTest extends TransitRouterImplTest {
         private static final double FREESPEED = 40 / 3.6;
         private static final double CAPACITY = 10000;
         private static final String VEHICLETYPE1 = "bus";
-        private static Set<String> allowedModes = new HashSet<>();
+        private static final Set<String> ALLOWED_MODES = new HashSet<>();
+
+        static {
+            ALLOWED_MODES.add(TransportMode.pt);
+            ALLOWED_MODES.add(TransportMode.car);
+        }
 
         PTFixture() {
             this.scenario = (MutableScenario) ScenarioUtils.createScenario(ConfigUtils.createConfig());
@@ -122,10 +127,6 @@ public class SBBTransitRouterTest extends TransitRouterImplTest {
 
             this.schedule = this.scenario.getTransitSchedule();
             TransitScheduleFactory sb = this.schedule.getFactory();
-
-
-            this.allowedModes.add(TransportMode.pt);
-            this.allowedModes.add(TransportMode.car);
 
             // create a public transport vehicle type (bus)
             VehicleType vehicleType1 = createVehicleType(VEHICLETYPE1);
@@ -180,7 +181,7 @@ public class SBBTransitRouterTest extends TransitRouterImplTest {
                         l.setLength(NetworkUtils.getEuclideanDistance(previousNode.getCoord(), n.getCoord()));
                         l.setFreespeed(FREESPEED);
                         l.setCapacity(CAPACITY);
-                        l.setAllowedModes(allowedModes);
+                        l.setAllowedModes(ALLOWED_MODES);
 
                         scenario.getNetwork().addLink(l);
                     }
@@ -207,7 +208,7 @@ public class SBBTransitRouterTest extends TransitRouterImplTest {
             l.setLength(NetworkUtils.getEuclideanDistance(previousNode.getCoord(), n.getCoord()));
             l.setFreespeed(FREESPEED);
             l.setCapacity(CAPACITY);
-            l.setAllowedModes(allowedModes);
+            l.setAllowedModes(ALLOWED_MODES);
             scenario.getNetwork().addLink(l);
         }
 
@@ -224,7 +225,7 @@ public class SBBTransitRouterTest extends TransitRouterImplTest {
                     Node n = scenario.getNetwork().getNodes().get(nId);
                     Id<Link> lId = Id.createLinkId(n.getId().toString() + "-HS");
                     Link l = scenario.getNetwork().getFactory().createLink(lId, n, n);
-                    l.setAllowedModes(allowedModes);
+                    l.setAllowedModes(ALLOWED_MODES);
                     l.setFreespeed(FREESPEED);
                     l.setLength(0.0);
                     scenario.getNetwork().addLink(l);
@@ -245,7 +246,7 @@ public class SBBTransitRouterTest extends TransitRouterImplTest {
             Node n = scenario.getNetwork().getNodes().get(nId);
             Id<Link> lId = Id.createLinkId(n.getId().toString() + "-HS");
             Link l = scenario.getNetwork().getFactory().createLink(lId, n, n);
-            l.setAllowedModes(allowedModes);
+            l.setAllowedModes(ALLOWED_MODES);
             l.setFreespeed(FREESPEED);
             l.setLength(0.0);
             boolean hasLink = false;

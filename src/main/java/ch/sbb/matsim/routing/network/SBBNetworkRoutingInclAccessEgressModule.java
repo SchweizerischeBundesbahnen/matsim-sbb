@@ -16,7 +16,6 @@ import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
-import org.matsim.core.router.NetworkRoutingInclAccessEgressModule;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.util.LeastCostPathCalculator;
@@ -29,7 +28,7 @@ import ch.sbb.matsim.routing.access.AccessEgressRouting;
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
  */
 public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingModule {
-    private static final Logger log = Logger.getLogger(NetworkRoutingInclAccessEgressModule.class);
+    private static final Logger log = Logger.getLogger(SBBNetworkRoutingInclAccessEgressModule.class);
 
     private final String mode;
     private final PopulationFactory populationFactory;

@@ -4,15 +4,14 @@
 
 package ch.sbb.matsim.mavi;
 
-import java.util.HashMap;
+import org.matsim.core.config.ConfigGroup;
+import org.matsim.core.config.ReflectiveConfigGroup;
+import org.matsim.core.utils.collections.CollectionUtils;
+
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
-import org.matsim.core.config.ConfigGroup;
-import org.matsim.core.config.ReflectiveConfigGroup;
-import org.matsim.core.utils.collections.CollectionUtils;
 
 /**
  * @author pmanser / SBB
@@ -28,14 +27,16 @@ public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
 
     static private final String PARAM_PATHTOVISUM = "PathToVisumVersion";
     static private final String PARAM_PATHTOATTRIBUTES = "PathToVisumAttributeFile";
-    static private final String PARAM_USE_DETPT = "useDetPTAsMode";
     static private final String PARAM_OUTPUT_PATH = "OutputPath";
+    static private final String PARAM_NETWORK_MODE = "NetworkMode";
+    static private final String PARAM_VEHICLE_MODE = "VehicleMode";
     static private final String PARAM_LINESTOROUTE = "LinesToRoute";
 
-    private boolean useDetPTAsMode = false;
     private String pathToVisum = null;
     private String pathToVisumAttributeFile = null;
     private String outputPath = null;
+    private String networkMode = null;
+    private String vehicleMode = null;
     private HashSet<String> linesToRoute = new HashSet<>();
 
     public ExportPTSupplyFromVisumConfigGroup() {
@@ -52,6 +53,26 @@ public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
         this.pathToVisum = value;
     }
 
+    @StringGetter(PARAM_NETWORK_MODE)
+    public String getNetworkMode() {
+        return this.networkMode;
+    }
+
+    @StringSetter(PARAM_NETWORK_MODE)
+    public void setNetworkMode(String value) {
+        this.networkMode = value;
+    }
+
+    @StringGetter(PARAM_VEHICLE_MODE)
+    public String getVehicleMode() {
+        return this.vehicleMode;
+    }
+
+    @StringSetter(PARAM_VEHICLE_MODE)
+    public void setVehicleMode(String value) {
+        this.vehicleMode = value;
+    }
+
     @StringGetter(PARAM_PATHTOATTRIBUTES)
     public String getPathToAttributeFile() {
         return this.pathToVisumAttributeFile;
@@ -60,24 +81,6 @@ public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
     @StringSetter(PARAM_PATHTOATTRIBUTES)
     public void setPathToAttributeFile(String value) {
         this.pathToVisumAttributeFile = value;
-    }
-
-    @StringGetter(PARAM_USE_DETPT)
-    private String getUseDetPTAsString() {
-        return Boolean.toString(this.useDetPTAsMode);
-    }
-
-    public boolean isUseDetPT() {
-        return this.useDetPTAsMode;
-    }
-
-    @StringSetter(PARAM_USE_DETPT)
-    private void setUseDetPT(String value) {
-        this.useDetPTAsMode = Boolean.parseBoolean(value);
-    }
-
-    public void setUseDetPT(boolean value) {
-        this.useDetPTAsMode = value;
     }
 
     @StringGetter(PARAM_LINESTOROUTE)
@@ -99,7 +102,6 @@ public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
         this.linesToRoute.addAll(lines);
     }
 
-
     @StringGetter(PARAM_OUTPUT_PATH)
     public String getOutputPath() {
         return this.outputPath;
@@ -115,7 +117,6 @@ public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
         Map<String, String> comments = super.getComments();
         comments.put(PARAM_PATHTOVISUM, "Path to the visum version.");
         comments.put(PARAM_PATHTOATTRIBUTES, "Provide an additional visum attribute file. IMPORTANT: the script can change EXISTING attributes only, but not load new ones. It is recommended to this manually.");
-        comments.put(PARAM_USE_DETPT, "If set to false, the route mode will be the VSysCode. Else, the route mode will be detPt.");
         comments.put(PARAM_LINESTOROUTE, "All the lines from the specific Datenherkunft will be routed (Visum link = MATSim link).");
         comments.put(PARAM_OUTPUT_PATH, "Set the path of the output directory.");
         return comments;

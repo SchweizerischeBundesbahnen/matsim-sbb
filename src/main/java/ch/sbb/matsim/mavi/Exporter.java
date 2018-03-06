@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -42,11 +43,7 @@ import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /***
  *
@@ -184,13 +181,13 @@ public class Exporter {
             Node stopNode = null;
             if(fromStopIsOnNode == 1.0) {
                 int stopNodeIDNo = (int) Dispatch.call(item, "AttValue", "NodeNo").getDouble();
-                Id<Node> stopNodeID = Id.createNodeId("pt_" + stopNodeIDNo);
+                Id<Node> stopNodeID = Id.createNodeId(this.exporterConfig.getNetworkMode() + "_" + stopNodeIDNo);
                 stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
                 this.network.addNode(stopNode);
             }
             else if(fromStopIsOnLink == 1.0)    {
                 int stopLinkFromNodeNo = (int) Dispatch.call(item, "AttValue", "FromNodeNo").getDouble();
-                Id<Node> stopNodeID = Id.createNodeId("pt_" + stopLinkFromNodeNo + "_"  + stopPointNo);
+                Id<Node> stopNodeID = Id.createNodeId(this.exporterConfig.getNetworkMode() + "_" + stopLinkFromNodeNo + "_"  + stopPointNo);
                 stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
                 this.network.addNode(stopNode);
             }
@@ -198,13 +195,13 @@ public class Exporter {
                 log.error("something went wrong. stop must be either on node or on link.");
             }
 
-            Id<Link> loopLinkID = Id.createLinkId("pt_" + stopPointNo);
+            Id<Link> loopLinkID = Id.createLinkId(this.exporterConfig.getNetworkMode() + "_" + stopPointNo);
             Link loopLink = this.networkBuilder.createLink(loopLinkID, stopNode, stopNode);
             loopLink.setLength(0.0);
             loopLink.setFreespeed(10000);
             loopLink.setCapacity(10000);
             loopLink.setNumberOfLanes(10000);
-            loopLink.setAllowedModes(new HashSet<>(Arrays.asList("pt")));
+            loopLink.setAllowedModes(Collections.singleton(this.exporterConfig.getNetworkMode()));
             this.network.addLink(loopLink);
 
             // create transitStopFacility
@@ -321,12 +318,10 @@ public class Exporter {
 
             String datenHerkunft = Dispatch.call(item, "AttValue", "LineRoute\\Line\\Datenherkunft").toString();
             String mode;
-            if(exporterConfig.isUseDetPT()) {
-                mode = "detPt";
-            }
-            else {
+            if(this.exporterConfig.getVehicleMode().equals("Datenherkunft"))
                 mode = datenHerkunft;
-            }
+            else
+                mode = this.exporterConfig.getVehicleMode();
 
             int nrOfVehicleJourneys = Dispatch.call(vehicleJourneys, "Count").getInt();
             int k = 0;
