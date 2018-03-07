@@ -100,7 +100,8 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bgp : behaviorGroupsConfigGroup.getBehaviorGroupParams().values()) {
                     String behGroup = (String) personAttributes.getAttribute(person.getId().toString(), bgp.getPersonAttribute());
                     if (behGroup == null) {
-                        log.info("Population attribute " + bgp.getPersonAttribute() + " not defined for Person " + person.getId());
+                        // I think nobody ever looked at this message
+                        // log.info("Population attribute " + bgp.getPersonAttribute() + " not defined for Person " + person.getId());
                         continue;
                     }
                     for (SBBBehaviorGroupsConfigGroup.PersonGroupTypes pgt : bgp.getPersonGroupTypeParamsPerType().values()) {

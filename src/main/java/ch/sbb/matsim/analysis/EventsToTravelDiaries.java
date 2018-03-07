@@ -11,6 +11,7 @@ import ch.sbb.matsim.analysis.travelcomponents.Transfer;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import javafx.geometry.Pos;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -43,6 +44,7 @@ import org.matsim.core.api.experimental.events.handler.TeleportationArrivalEvent
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.utils.io.IOUtils;
@@ -110,7 +112,7 @@ public class EventsToTravelDiaries implements
             readVehiclesFromSchedule();
         }
         this.config = scenario.getConfig();
-        PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
+        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(this.config, PostProcessingConfigGroup.class);
 
         if (ppConfig.getMapActivitiesToZone()) {
             this.setMapActToZone(ppConfig.getShapeFile(), ppConfig.getZoneAttribute());

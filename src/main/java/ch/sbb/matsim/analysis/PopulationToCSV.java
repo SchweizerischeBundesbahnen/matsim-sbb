@@ -41,7 +41,7 @@ public class PopulationToCSV {
     }
 
     public void write(String agentsFilename, String planElementsFilename) {
-        PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) this.scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
+        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(this.scenario.getConfig(), PostProcessingConfigGroup.class);
         Population population = this.scenario.getPopulation();
         String[] attributes = ppConfig.getPersonAttributes().split(",");
 
