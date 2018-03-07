@@ -43,6 +43,7 @@ import org.matsim.core.api.experimental.events.handler.TeleportationArrivalEvent
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.utils.io.IOUtils;
@@ -110,7 +111,7 @@ public class EventsToTravelDiaries implements
             readVehiclesFromSchedule();
         }
         this.config = scenario.getConfig();
-        PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) scenario.getConfig().getModule(PostProcessingConfigGroup.GROUP_NAME);
+        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(this.config, PostProcessingConfigGroup.class);
 
         if (ppConfig.getMapActivitiesToZone()) {
             this.setMapActToZone(ppConfig.getShapeFile(), ppConfig.getZoneAttribute());

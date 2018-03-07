@@ -75,8 +75,8 @@ public class Cutter {
 
     private final static Logger log = Logger.getLogger(Cutter.class);
 
-    private Map<Coord, Boolean> coordCache = new HashMap<>();
-    private Map<Id<Person>, Person> filteredAgents = new HashMap<>();
+    private Map<Coord, Boolean> coordCache;
+    private Map<Id<Person>, Person> filteredAgents;
     private Map<Id<TransitLine>, Set<Id<TransitRoute>>> usedTransitRouteIds = new HashMap<>();
     private Coord center;
     private int radius;
@@ -84,17 +84,15 @@ public class Cutter {
     private String popTag;
     private Scenario scenario;
 
-    private boolean useShapeFile = false;
+    private boolean useShapeFile;
     private GeometryFactory geometryFactory = new GeometryFactory();
     Collection<SimpleFeature> features = null;
 
-    private Cutter(Config config) {
+    private Cutter(Config config, CutterConfigGroup cutterConfig) {
         this.coordCache = new HashMap<>();
         this.filteredAgents = new HashMap<>();
 
         this.scenario = ScenarioUtils.createScenario(config);
-
-        final CutterConfigGroup cutterConfig = (CutterConfigGroup) config.getModule(CutterConfigGroup.GROUP_NAME);
 
         useShapeFile = cutterConfig.getUseShapeFile();
         if (useShapeFile) {
@@ -122,15 +120,14 @@ public class Cutter {
 
     public static void main(final String[] args) {
         final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup(CutterConfigGroup.GROUP_NAME));
-
-        // For 30km around Zurich Center (Bellevue): X - 2683518.0, Y - 1246836.0, radius - 30000
+        final CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, CutterConfigGroup.class);
 
         // load files
-        Cutter cutter = new Cutter(config);
+        Cutter cutter = new Cutter(config, cutterConfig);
         // cut to area
         Population filteredPopulation = cutter.geographicallyFilterPopulation();
 
-        String output = ((CutterConfigGroup) config.getModule(CutterConfigGroup.GROUP_NAME)).getPathToTargetFolder();
+        String output = cutterConfig.getPathToTargetFolder();
         try {
             Files.createDirectories(Paths.get(output));
         } catch (IOException e) {
