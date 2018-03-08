@@ -199,7 +199,7 @@ public class XLSXScoringParser {
             Cell firstCell = row.getCell(0);
 
             if (firstCell != null) {
-                String rowLabel = null;
+                String rowLabel;
 
                 if (firstCell.getCellTypeEnum() == CellType.STRING) {
                     rowLabel = firstCell.getStringCellValue();
@@ -245,7 +245,7 @@ public class XLSXScoringParser {
 
                         if (MODE_PARAMS.contains(parameterLabel)) {
                             if (!modeCorrections.containsKey(rowLabel)) {
-                                modeCorrections.put(rowLabel, new HashMap<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>());
+                                modeCorrections.put(rowLabel, new HashMap<>());
 
                                 for (Map.Entry<Integer, String> modeEntry : modes.entrySet()) {
                                     SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
@@ -291,25 +291,24 @@ public class XLSXScoringParser {
         /** iterate over modeCorrections, only add those with non-null values */
         if (behaviorGroupParams != null) {
             for (Map.Entry<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> modeCorrectionsEntry : modeCorrections.entrySet()) {
-                String personAttributeValue = modeCorrectionsEntry.getKey();
+                String personAttributeValues = modeCorrectionsEntry.getKey();
                 Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection> modeCorrectionsPerMode = modeCorrectionsEntry.getValue();
 
-                SBBBehaviorGroupsConfigGroup.PersonGroupTypes types = new SBBBehaviorGroupsConfigGroup.PersonGroupTypes();
-                types.setPersonGroupType(personAttributeValue);
+                SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues attributeValues = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+                attributeValues.setPersonGroupAttributeValues(personAttributeValues);
 
                 for (SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection : modeCorrectionsPerMode.values()) {
                     if (modeCorrection.isSet()) {
-                        types.addModeCorrection(modeCorrection);
-                        log.info("adding modeCorrection for " + personAttributeKey + "/" + personAttributeValue + " for mode " + modeCorrection.getMode());
+                        attributeValues.addModeCorrection(modeCorrection);
+                        log.info("adding modeCorrection for " + personAttributeKey + "/" + personAttributeValues + " for mode " + modeCorrection.getMode());
                     }
                 }
 
-                if (!types.getModeCorrectionParams().isEmpty()) {
-                    behaviorGroupParams.addPersonGroupType(types);
+                if (!attributeValues.getModeCorrectionParams().isEmpty()) {
+                    behaviorGroupParams.addPersonGroupByAttribute(attributeValues);
                 }
             }
 
-            behaviorGroupParams.setBehaviorTypes(modeCorrections.keySet());
             behaviorGroupsConfigGroup.addBehaviorGroupParams(behaviorGroupParams);
         }
     }

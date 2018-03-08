@@ -28,7 +28,8 @@ public class ScoringFixture {
 
     private final static String GROUP2 = "Raumtypen";
     private final static String ATTRIBUTEGROUP2 = "raumtyp";
-    private final static String VALUEGROUP2 = "2";
+    private final static String VALUESGROUP2 = "2,5,6";
+    private final static int VALUEGROUP2 = 2;
 
     private final static String GROUP3 = "Alter";
     private final static String ATTRIBUTEGROUP3 = "alter";
@@ -56,16 +57,16 @@ public class ScoringFixture {
         bgp.setBehaviorGroupName(GROUP1);
         bgp.setPersonAttribute(ATTRIBUTEGROUP1);
 
-        SBBBehaviorGroupsConfigGroup.PersonGroupTypes pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupTypes();
-        pgt.setPersonGroupType(VALUEGROUP1);
-        bgp.addPersonGroupType(pgt);
+        SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+        pgt.setPersonGroupAttributeValues(VALUEGROUP1);
+        bgp.addPersonGroupByAttribute(pgt);
 
         SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
         modeCorrection.setMode(TransportMode.pt);
         modeCorrection.setConstant(1.0);
         modeCorrection.setMargUtilOfTime(0.26);
         modeCorrection.setDistanceRate(0.000300);
-        bgp.getPersonGroupTypeParams(VALUEGROUP1).addModeCorrection(modeCorrection);
+        bgp.getPersonGroupByAttribute(VALUEGROUP1).addModeCorrection(modeCorrection);
 
         this.sbbConfig.addBehaviorGroupParams(bgp);
 
@@ -74,14 +75,14 @@ public class ScoringFixture {
         bgp.setBehaviorGroupName(GROUP2);
         bgp.setPersonAttribute(ATTRIBUTEGROUP2);
 
-        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupTypes();
-        pgt.setPersonGroupType(VALUEGROUP2);
-        bgp.addPersonGroupType(pgt);
+        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+        pgt.setPersonGroupAttributeValues(VALUESGROUP2);
+        bgp.addPersonGroupByAttribute(pgt);
 
         modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
         modeCorrection.setMode(TransportMode.pt);
         modeCorrection.setConstant(-0.3);
-        bgp.getPersonGroupTypeParams(VALUEGROUP2).addModeCorrection(modeCorrection);
+        pgt.addModeCorrection(modeCorrection);
 
         this.sbbConfig.addBehaviorGroupParams(bgp);
 
@@ -90,14 +91,14 @@ public class ScoringFixture {
         bgp.setBehaviorGroupName(GROUP3);
         bgp.setPersonAttribute(ATTRIBUTEGROUP3);
 
-        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupTypes();
-        pgt.setPersonGroupType(VALUEGROUP3);
-        bgp.addPersonGroupType(pgt);
+        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+        pgt.setPersonGroupAttributeValues(VALUEGROUP3);
+        bgp.addPersonGroupByAttribute(pgt);
 
         modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
         modeCorrection.setMode(TransportMode.pt);
         modeCorrection.setConstant(0.5);
-        bgp.getPersonGroupTypeParams(VALUEGROUP3).addModeCorrection(modeCorrection);
+        bgp.getPersonGroupByAttribute(VALUEGROUP3).addModeCorrection(modeCorrection);
 
         this.sbbConfig.addBehaviorGroupParams(bgp);
     }
