@@ -98,23 +98,29 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 double monDistRate = defaultModeParams.getMonetaryDistanceRate();
 
                 for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bgp : behaviorGroupsConfigGroup.getBehaviorGroupParams().values()) {
-                    String behGroup = (String) personAttributes.getAttribute(person.getId().toString(), bgp.getPersonAttribute());
-                    if (behGroup == null) {
-                        // I think nobody ever looked at this message
-                        // log.info("Population attribute " + bgp.getPersonAttribute() + " not defined for Person " + person.getId());
-                        continue;
-                    }
-                    for (SBBBehaviorGroupsConfigGroup.PersonGroupTypes pgt : bgp.getPersonGroupTypeParamsPerType().values()) {
-                        if (!behGroup.equals(pgt.getPersonGroupType())) continue;
-                        SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = pgt.getPersonGroupTypeParamsPerMode().get(mode);
-                        if(modeCorrection == null)  continue;
+                    Object personAttributeObj = personAttributes.getAttribute(person.getId().toString(), bgp.getPersonAttribute());
+                    if (personAttributeObj == null) continue;
 
-                        constant += modeCorrection.getConstant();
-                        margUtilTime += modeCorrection.getMargUtilOfTime();
-                        margUtilDistance += modeCorrection.getMargUtilOfDistance();
-                        monDistRate += modeCorrection.getDistanceRate();
-                    }
+                    String personAttribute;
+                    if(personAttributeObj instanceof Integer)
+                        personAttribute = Integer.toString((int) personAttributeObj);
+                    else if(personAttributeObj instanceof Double)
+                        personAttribute = Double.toString((double) personAttributeObj);
+                    else
+                        personAttribute = (String) personAttributeObj;
+
+                    SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues pgt = bgp.getPersonGroupByAttribute(personAttribute);
+                    if(pgt == null) continue;
+
+                    SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = pgt.getModeCorrectionsForMode(mode);
+                    if(modeCorrection == null)  continue;
+
+                    constant += modeCorrection.getConstant();
+                    margUtilTime += modeCorrection.getMargUtilOfTime();
+                    margUtilDistance += modeCorrection.getMargUtilOfDistance();
+                    monDistRate += modeCorrection.getDistanceRate();
                 }
+
                 modeParameteresBuilder.setConstant(constant);
                 modeParameteresBuilder.setMarginalUtilityOfDistance_m(margUtilDistance);
                 modeParameteresBuilder.setMarginalUtilityOfTraveling_s(margUtilTime / 3600);
