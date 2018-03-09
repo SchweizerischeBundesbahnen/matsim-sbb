@@ -25,14 +25,7 @@ import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.misc.Time;
-import org.matsim.pt.transitSchedule.api.Departure;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
-import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleCapacity;
@@ -57,16 +50,12 @@ import java.util.*;
 
 public class Exporter {
 
-    private final static String CONFIG_OUT = "output_config.xml";
     private final static String NETWORK_OUT = "transitNetwork.xml.gz";
     private final static String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
     private final static String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
-    private final static String ROUTEATTRIBUTES_OUT = "routeAttributes.xml.gz";
-    private final static String STOPATTRIBUTES_OUT = "stopAttributes.xml.gz";
 
     private final static Logger log = Logger.getLogger(ExportPTSupplyFromVisum.class);;
 
-    private final Config config;
     private ExportPTSupplyFromVisumConfigGroup exporterConfig;
     private Network network;
     private TransitSchedule schedule;
@@ -76,13 +65,15 @@ public class Exporter {
     private NetworkFactory networkBuilder;
     private VehiclesFactory vehicleBuilder;
 
+    private HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints = new HashMap<>();
+
     public static void main(String[] args) {
         new Exporter(args[0]);
     }
 
     public Exporter(String configFile) {
-        this.config = ConfigUtils.loadConfig(configFile, new ExportPTSupplyFromVisumConfigGroup());
-        this.exporterConfig = ConfigUtils.addOrGetModule(this.config, ExportPTSupplyFromVisumConfigGroup.class);
+        Config config = ConfigUtils.loadConfig(configFile, new ExportPTSupplyFromVisumConfigGroup());
+        this.exporterConfig = ConfigUtils.addOrGetModule(config, ExportPTSupplyFromVisumConfigGroup.class);
         run();
     }
 
@@ -104,7 +95,8 @@ public class Exporter {
 
         Dispatch net = Dispatch.get(visum, "Net").toDispatch();
         loadStopPoints(net);
-        writeStopAttributes();
+        // TODO if blabla in config
+        integrateMinTransferTimes(visum);
         createVehicleTypes(net);
         loadTransitLines(net);
 
@@ -140,6 +132,7 @@ public class Exporter {
 
         this.network = scenario.getNetwork();
         this.schedule = scenario.getTransitSchedule();
+        this.schedule.getAttributes().putAttribute("Info","MOBi.OEV 2.0 -> includes minimal transfer times");
         this.vehicles = scenario.getTransitVehicles();
     }
 
@@ -149,10 +142,9 @@ public class Exporter {
         Dispatch tpFilter = Dispatch.call(filter, "TimeProfileFilter").toDispatch();
         Dispatch.call(tpFilter, "Init");
 
-        for(ExportPTSupplyFromVisumConfigGroup.TimeProfilFilterParams f: this.exporterConfig.getTimeProfilFilterParams().values())   {
+        for(ExportPTSupplyFromVisumConfigGroup.TimeProfilFilterParams f: this.exporterConfig.getTimeProfilFilterParams().values())
             Dispatch.call(tpFilter, "AddCondition", f.getOp(), f.isComplement(), f.getAttribute(), f.getComparator(),
                     f.getVal(), f.getPosition());
-        }
 
         Dispatch.put(filter, "UseFilterForTimeProfiles", true);
     }
@@ -205,6 +197,11 @@ public class Exporter {
             loopLink.setAllowedModes(Collections.singleton(this.exporterConfig.getNetworkMode()));
             this.network.addLink(loopLink);
 
+            int stopAreaNo = (int) Dispatch.call(item, "AttValue", "StopArea\\No").getDouble();
+            if(!this.stopAreasToStopPoints.containsKey(stopAreaNo))
+                this.stopAreasToStopPoints.put(stopAreaNo, new HashSet<>());
+            this.stopAreasToStopPoints.get(stopAreaNo).add(stopPointID);
+
             // create transitStopFacility
             TransitStopFacility st = this.scheduleBuilder.createTransitStopFacility(stopPointID, stopPointCoord, false);
             st.setName(stopPointName);
@@ -216,13 +213,13 @@ public class Exporter {
                 if(!name.isEmpty() && !name.equals("null"))    {
                     switch ( params.getDataType() ) {
                         case Type.STRING_CLASS:
-                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), name);
+                            st.getAttributes().putAttribute(params.getAttributeName(), name);
                             break;
                         case Type.DOUBLE_CLASS:
-                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), Double.parseDouble(name));
+                            st.getAttributes().putAttribute(params.getAttributeName(), Double.parseDouble(name));
                             break;
                         case Type.INTEGER_CLASS:
-                            this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(), params.getAttributeName(), (int) Double.parseDouble(name));
+                            st.getAttributes().putAttribute(params.getAttributeName(), (int) Double.parseDouble(name));
                             break;
                         default:
                             throw new IllegalArgumentException( params.getDataType() );
@@ -239,16 +236,84 @@ public class Exporter {
         log.info("Added " + nrOfStopPoints + " Stop Points");
     }
 
-    private void writeStopAttributes()  {
-        String outputPath = this.exporterConfig.getOutputPath();
-        log.info("Writing out the stop attributes file and cleaning the scenario");
-        new ObjectAttributesXmlWriter(this.schedule.getTransitStopsAttributes()).writeFile(new File(outputPath, STOPATTRIBUTES_OUT).getPath());
+    private void integrateMinTransferTimes(ActiveXComponent visum)  {
+        List<Transfer> withinTransfers = loadWithinTransfers(visum);
+        List<Transfer> betweenTransfers = loadBetweenTransfers(visum);
+        integrateTransfers(withinTransfers);
 
-        // remove stop attributes file because of memory issues
-        for(Id<TransitStopFacility> stopID: this.schedule.getFacilities().keySet())   {
-            this.schedule.getTransitStopsAttributes().removeAllAttributes(stopID.toString());
+        // because of memory issues
+        this.stopAreasToStopPoints.clear();
+    }
+
+    private static List<Transfer> loadWithinTransfers(ActiveXComponent visum)  {
+        log.info("loading within stop transfers.");
+        Dispatch lists = Dispatch.get(visum, "Lists").toDispatch();
+        Dispatch walkTimes = Dispatch.get(lists, "CreateStopTransferWalkTimeList").toDispatch();
+        Dispatch.call(walkTimes, "AddColumn", "FromStopAreaNo");
+        Dispatch.call(walkTimes, "AddColumn", "ToStopAreaNo");
+        Dispatch.call(walkTimes, "AddColumn", "Time(F)", 3);
+
+        String transferList = Dispatch.call(walkTimes, "SaveToArray").toString();
+        String[] lines = transferList.split("\n");
+        List<Transfer> transfers = new ArrayList<>();
+        for(String line: lines) {
+            String[] transfer = line.split(" ");
+            transfers.add(new Transfer((int) Double.parseDouble(transfer[1]), (int) Double.parseDouble(transfer[2]),
+                    Double.parseDouble(transfer[3])));
         }
-        log.info("Finished the scenario cleaning");
+        log.info("finished loading within stop transfers.");
+        return transfers;
+    }
+
+    private static List<Transfer> loadBetweenTransfers(ActiveXComponent visum)  {
+        List<Transfer> transfers = new ArrayList<>();
+
+
+
+        return transfers;
+    }
+
+    private void integrateTransfers(List<Transfer> transfers) {
+        log.info("started integrating the transfers into the schedule");
+        int countAreaTransfers = 0;
+        int countStopTransfers = 0;
+        MinimalTransferTimes mtt = this.schedule.getMinimalTransferTimes();
+        for (Transfer transfer : transfers) {
+            Set<Id<TransitStopFacility>> fromStopFacilities = this.stopAreasToStopPoints.get(transfer.fromStopArea);
+            Set<Id<TransitStopFacility>> toStopFacilities = this.stopAreasToStopPoints.get(transfer.toStopArea);
+
+            if (fromStopFacilities == null) {
+                log.warn("No Stop Facilities found for stop area " + transfer.fromStopArea);
+            }
+            if (toStopFacilities == null) {
+                log.warn("No Stop Facilities found for stop area " + transfer.toStopArea);
+            }
+            if (fromStopFacilities != null && toStopFacilities != null) {
+                countAreaTransfers++;
+                for (Id<TransitStopFacility> fromFacilityId : fromStopFacilities) {
+                    for (Id<TransitStopFacility> toFacilityId : toStopFacilities) {
+                        countStopTransfers++;
+                        double oldValue = mtt.set(fromFacilityId, toFacilityId, transfer.transferTime);
+                        if (!Double.isNaN(oldValue) && oldValue != transfer.transferTime) {
+                            log.warn("Overwrite transfer time from " + fromFacilityId + " to " + toFacilityId + ". oldValue = " + oldValue + "  newValue = " + transfer.transferTime);
+                        }
+                    }
+                }
+            }
+        }
+        log.info("Used " + countAreaTransfers + " transfer relations between stop areas to generate " + countStopTransfers + " transfers between stop facilities.");
+    }
+
+    private static class Transfer {
+        final int fromStopArea;
+        final int toStopArea;
+        final double transferTime;
+
+        public Transfer(int fromStopArea, int toStopArea, double transferTime) {
+            this.fromStopArea = fromStopArea;
+            this.toStopArea = toStopArea;
+            this.transferTime = transferTime;
+        }
     }
 
     private void createVehicleTypes(Dispatch net) {
@@ -296,8 +361,8 @@ public class Exporter {
         log.info("Number of active time profiles: " + nrOfTimeProfiles);
         int i = 0;
 
-        //while (i < 2000) { // for test purposes
-        while (i < nrOfTimeProfiles) {
+        while (i < 100) { // for test purposes
+        //while (i < nrOfTimeProfiles) {
             if(!Dispatch.call(timeProfileIterator, "Active").getBoolean())   {
                 Dispatch.call(timeProfileIterator, "Next");
                 continue;
@@ -339,26 +404,6 @@ public class Exporter {
                     Dispatch lineRoute = Dispatch.get(item_, "LineRoute").toDispatch();
                     Dispatch lineRouteItems = Dispatch.get(lineRoute, "LineRouteItems").toDispatch();
                     Dispatch lineRouteItemsIterator = Dispatch.get(lineRouteItems, "Iterator").toDispatch();
-
-                    // custom route identifiers
-                    for(ExportPTSupplyFromVisumConfigGroup.RouteAttributeParams params: this.exporterConfig.getRouteAttributeParams().values())    {
-                        String name = Dispatch.call(item, "AttValue", params.getAttributeValue()).toString();
-                        if(!name.isEmpty() && !name.equals("null"))    {
-                            switch ( params.getDataType() ) {
-                                case Type.STRING_CLASS:
-                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), name);
-                                    break;
-                                case Type.DOUBLE_CLASS:
-                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), Double.parseDouble(name));
-                                    break;
-                                case Type.INTEGER_CLASS:
-                                    this.schedule.getTransitLinesAttributes().putAttribute(routeID.toString(), params.getAttributeName(), (int) Double.parseDouble(name));
-                                    break;
-                                default:
-                                    throw new IllegalArgumentException( params.getDataType() );
-                            }
-                        }
-                    }
 
                     // Fahrzeitprofil-Verläufe
                     List<TransitRouteStop> transitRouteStops = new ArrayList<>();
@@ -561,6 +606,26 @@ public class Exporter {
                 dep.setVehicleId(vehicleId);
                 route.addDeparture(dep);
 
+                // custom route identifiers
+                for(ExportPTSupplyFromVisumConfigGroup.RouteAttributeParams params: this.exporterConfig.getRouteAttributeParams().values())    {
+                    String name = Dispatch.call(item, "AttValue", params.getAttributeValue()).toString();
+                    if(!name.isEmpty() && !name.equals("null"))    {
+                        switch ( params.getDataType() ) {
+                            case Type.STRING_CLASS:
+                                route.getAttributes().putAttribute(params.getAttributeName(), name);
+                                break;
+                            case Type.DOUBLE_CLASS:
+                                route.getAttributes().putAttribute(params.getAttributeName(), Double.parseDouble(name));
+                                break;
+                            case Type.INTEGER_CLASS:
+                                route.getAttributes().putAttribute(params.getAttributeName(), (int) Double.parseDouble(name));
+                                break;
+                            default:
+                                throw new IllegalArgumentException( params.getDataType() );
+                        }
+                    }
+                }
+
                 String vehicleType = Dispatch.call(item, "AttValue", "TSysCode").toString();
                 Id<VehicleType> vehicleTypeId = Id.create(vehicleType, VehicleType.class);
                 Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, this.vehicles.getVehicleTypes().get(vehicleTypeId));
@@ -691,10 +756,7 @@ public class Exporter {
         String outputPath = this.exporterConfig.getOutputPath();
 
         new NetworkWriter(this.network).write(new File(outputPath, NETWORK_OUT).getPath());
-        new TransitScheduleWriter(this.schedule).writeFile(new File(outputPath, TRANSITSCHEDULE_OUT).getPath());
+        new TransitScheduleWriter(this.schedule).writeFileV2(new File(outputPath, TRANSITSCHEDULE_OUT).getPath());
         new VehicleWriterV1(this.vehicles).writeFile(new File(outputPath, TRANSITVEHICLES_OUT).getPath());
-        new ObjectAttributesXmlWriter(this.schedule.getTransitLinesAttributes()).writeFile(new File(outputPath, ROUTEATTRIBUTES_OUT).getPath());
-
-        new ConfigWriter(this.config).writeFileV2(new File(outputPath, CONFIG_OUT).getPath());
     }
 }

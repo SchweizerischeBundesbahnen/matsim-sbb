@@ -30,6 +30,7 @@ public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
     static private final String PARAM_OUTPUT_PATH = "OutputPath";
     static private final String PARAM_NETWORK_MODE = "NetworkMode";
     static private final String PARAM_VEHICLE_MODE = "VehicleMode";
+    static private final String PARAM_TRANSFERTIMES = "ExportTransferTimes";
     static private final String PARAM_LINESTOROUTE = "LinesToRoute";
 
     private String pathToVisum = null;
@@ -37,6 +38,7 @@ public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
     private String outputPath = null;
     private String networkMode = null;
     private String vehicleMode = null;
+    private boolean exportTransferTimes = false;
     private HashSet<String> linesToRoute = new HashSet<>();
 
     public ExportPTSupplyFromVisumConfigGroup() {
