@@ -5,6 +5,7 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import javafx.geometry.Pos;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -28,7 +29,7 @@ public class RunSBBPostProcessing {
         log.info(configFile);
 
         final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup());
-        PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) config.getModules().get(PostProcessingConfigGroup.GROUP_NAME);
+        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
         EventsManager eventsManager = new EventsManagerImpl();
@@ -45,7 +46,7 @@ public class RunSBBPostProcessing {
             eventWriter.closeFile();
         }
 
-        if (ppConfig.getWritePlansCSV()) {
+        if (ppConfig.getWriteAgentsCSV() || ppConfig.getWritePlanElementsCSV()) {
             new PopulationToCSV(scenario).write(outputPath);
         }
 
