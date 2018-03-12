@@ -20,7 +20,8 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private Boolean eventsPerPerson = false;
     private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
     private int writeOutputsInterval = 10;
-    private Boolean writePlansCSV = false;
+    private Boolean writeAgentsCSV = false;
+    private Boolean writePlanElementsCSV = false;
     private Boolean visumNetFile = false;
     private String linkCountDataFile = null;
     private String stopCountDataFile = null;
@@ -42,14 +43,24 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     @StringSetter("writeOutputsInterval")
     public void setWriteOutputsInterval(final int writeOutputsInterval) { this.writeOutputsInterval = writeOutputsInterval; }
 
-    @StringGetter("writePlansCSV")
-    public Boolean getWritePlansCSV() {
-        return writePlansCSV;
+    @StringGetter("writeAgentsCSV")
+    public Boolean getWriteAgentsCSV() {
+        return writeAgentsCSV;
     }
 
-    @StringSetter("writePlansCSV")
-    public void setWritePlansCSV(Boolean writePlansCSV) {
-        this.writePlansCSV = writePlansCSV;
+    @StringSetter("writeAgentsCSV")
+    public void setWriteAgentsCSV(Boolean value) {
+        this.writeAgentsCSV = value;
+    }
+
+    @StringGetter("writePlanElementsCSV")
+    public Boolean getWritePlanElementsCSV() {
+        return writePlanElementsCSV;
+    }
+
+    @StringSetter("writePlanElementsCSV")
+    public void setWritePlanElementsCSV(Boolean value) {
+        this.writePlanElementsCSV = value;
     }
 
     @StringGetter("personAttributes")
