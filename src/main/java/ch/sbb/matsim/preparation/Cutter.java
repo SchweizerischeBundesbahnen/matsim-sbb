@@ -120,7 +120,7 @@ public class Cutter {
 
     public static void main(final String[] args) {
         final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup(CutterConfigGroup.GROUP_NAME));
-        final CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, CutterConfigGroup.class);
+        final CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, CutterConfigGroup.GROUP_NAME, CutterConfigGroup.class);
 
         // load files
         Cutter cutter = new Cutter(config, cutterConfig);
