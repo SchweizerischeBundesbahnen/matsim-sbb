@@ -24,6 +24,7 @@ import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
@@ -95,8 +96,8 @@ public class Exporter {
 
         Dispatch net = Dispatch.get(visum, "Net").toDispatch();
         loadStopPoints(net);
-        // TODO if blabla in config
-        integrateMinTransferTimes(visum);
+        if(this.exporterConfig.isExportMTT())
+            integrateMinTransferTimes(visum);
         createVehicleTypes(net);
         loadTransitLines(net);
 
@@ -240,8 +241,9 @@ public class Exporter {
         List<Transfer> withinTransfers = loadWithinTransfers(visum);
         List<Transfer> betweenTransfers = loadBetweenTransfers(visum);
         integrateTransfers(withinTransfers);
+        integrateTransfers(betweenTransfers);
 
-        // because of memory issues
+        // clear memory
         this.stopAreasToStopPoints.clear();
     }
 
@@ -258,8 +260,9 @@ public class Exporter {
         List<Transfer> transfers = new ArrayList<>();
         for(String line: lines) {
             String[] transfer = line.split(" ");
-            transfers.add(new Transfer((int) Double.parseDouble(transfer[1]), (int) Double.parseDouble(transfer[2]),
-                    Double.parseDouble(transfer[3])));
+            if(Double.parseDouble(transfer[3]) > 0)
+                transfers.add(new Transfer((int) Double.parseDouble(transfer[1]), (int) Double.parseDouble(transfer[2]),
+                        Double.parseDouble(transfer[3])));
         }
         log.info("finished loading within stop transfers.");
         return transfers;
@@ -268,8 +271,41 @@ public class Exporter {
     private static List<Transfer> loadBetweenTransfers(ActiveXComponent visum)  {
         List<Transfer> transfers = new ArrayList<>();
 
+        Dispatch filters = Dispatch.get(visum, "Filters").toDispatch();
+        Dispatch linkFilter = Dispatch.call(filters, "LinkFilter").toDispatch();
+        Dispatch.call(linkFilter, "Init");
+        Dispatch.call(linkFilter, "AddCondition", "OP_NONE", false, "TSysSet", 13, "F");
+        Dispatch.put(linkFilter, "UseFilter", true);
 
+        Dispatch net = Dispatch.get(visum, "Net").toDispatch();
+        Dispatch links = Dispatch.get(net, "Links").toDispatch();
+        Dispatch linkIterator = Dispatch.get(links, "Iterator").toDispatch();
 
+        int nrOfLinks = Dispatch.call(links, "CountActive").getInt();
+        log.info("Number of Fusswege: " + nrOfLinks);
+        int i = 0;
+
+        while (i < nrOfLinks) {
+            Dispatch item = Dispatch.get(linkIterator, "Item").toDispatch();
+
+            String fromStopAreasStr = Dispatch.call(item, "AttValue", "FROMNODE\\DISTINCT:STOPAREAS\\NO").toString();
+            Set<String> fromStopAreas = CollectionUtils.stringToSet(fromStopAreasStr);
+            String toStopAreasStr = Dispatch.call(item, "AttValue", "TONODE\\DISTINCT:STOPAREAS\\NO").toString();
+            Set<String> toStopAreas = CollectionUtils.stringToSet(toStopAreasStr);
+            double walkTime = Dispatch.call(item, "AttValue", "T_PUTSYS(F)").getDouble();
+            if(walkTime > 0 && fromStopAreas.size() > 0 && toStopAreas.size() > 0) {
+                for (String fromStopArea : fromStopAreas) {
+                    for (String toStopArea : toStopAreas) {
+                        transfers.add(new Transfer((int) Double.parseDouble(fromStopArea), (int) Double.parseDouble(toStopArea),
+                                walkTime));
+                    }
+                }
+            }
+            i++;
+            Dispatch.call(linkIterator, "Next");
+        }
+
+        Dispatch.put(linkFilter, "UseFilter", false);
         return transfers;
     }
 
@@ -282,12 +318,14 @@ public class Exporter {
             Set<Id<TransitStopFacility>> fromStopFacilities = this.stopAreasToStopPoints.get(transfer.fromStopArea);
             Set<Id<TransitStopFacility>> toStopFacilities = this.stopAreasToStopPoints.get(transfer.toStopArea);
 
+            /*
             if (fromStopFacilities == null) {
                 log.warn("No Stop Facilities found for stop area " + transfer.fromStopArea);
             }
             if (toStopFacilities == null) {
                 log.warn("No Stop Facilities found for stop area " + transfer.toStopArea);
             }
+            */
             if (fromStopFacilities != null && toStopFacilities != null) {
                 countAreaTransfers++;
                 for (Id<TransitStopFacility> fromFacilityId : fromStopFacilities) {
@@ -361,8 +399,8 @@ public class Exporter {
         log.info("Number of active time profiles: " + nrOfTimeProfiles);
         int i = 0;
 
-        while (i < 100) { // for test purposes
-        //while (i < nrOfTimeProfiles) {
+        //while (i < 100) { // for test purposes
+        while (i < nrOfTimeProfiles) {
             if(!Dispatch.call(timeProfileIterator, "Active").getBoolean())   {
                 Dispatch.call(timeProfileIterator, "Next");
                 continue;
@@ -714,6 +752,15 @@ public class Exporter {
         log.info("Cleared " + stopsToRemove.size() + " unused stop facilities.");
         for(Id<TransitStopFacility> stopId: stopsToRemove)
             this.schedule.removeStopFacility(this.schedule.getFacilities().get(stopId));
+
+        MinimalTransferTimes mtt =  this.schedule.getMinimalTransferTimes();
+        MinimalTransferTimes.MinimalTransferTimesIterator itr = mtt.iterator();
+        while(itr.hasNext()) {
+            itr.next();
+            if(!stopsToKeep.contains(itr.getFromStopId()) || !stopsToKeep.contains(itr.getToStopId()))
+                mtt.remove(itr.getFromStopId(), itr.getToStopId());
+        }
+
         stopsToKeep.clear();
         stopsToRemove.clear();
     }

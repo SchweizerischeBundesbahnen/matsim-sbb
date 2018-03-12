@@ -75,6 +75,16 @@ public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
         this.vehicleMode = value;
     }
 
+    @StringGetter(PARAM_TRANSFERTIMES)
+    public Boolean isExportMTT() {
+        return exportTransferTimes;
+    }
+
+    @StringSetter(PARAM_TRANSFERTIMES)
+    public void setExportMTT(Boolean value) {
+        this.exportTransferTimes = value;
+    }
+
     @StringGetter(PARAM_PATHTOATTRIBUTES)
     public String getPathToAttributeFile() {
         return this.pathToVisumAttributeFile;
