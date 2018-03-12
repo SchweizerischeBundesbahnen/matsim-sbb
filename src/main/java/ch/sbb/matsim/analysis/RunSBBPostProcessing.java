@@ -5,7 +5,6 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import javafx.geometry.Pos;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
