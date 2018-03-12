@@ -318,14 +318,6 @@ public class Exporter {
             Set<Id<TransitStopFacility>> fromStopFacilities = this.stopAreasToStopPoints.get(transfer.fromStopArea);
             Set<Id<TransitStopFacility>> toStopFacilities = this.stopAreasToStopPoints.get(transfer.toStopArea);
 
-            /*
-            if (fromStopFacilities == null) {
-                log.warn("No Stop Facilities found for stop area " + transfer.fromStopArea);
-            }
-            if (toStopFacilities == null) {
-                log.warn("No Stop Facilities found for stop area " + transfer.toStopArea);
-            }
-            */
             if (fromStopFacilities != null && toStopFacilities != null) {
                 countAreaTransfers++;
                 for (Id<TransitStopFacility> fromFacilityId : fromStopFacilities) {
