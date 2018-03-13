@@ -14,14 +14,16 @@ import org.matsim.core.config.groups.ControlerConfigGroup;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.BeforeMobsimEvent;
 import org.matsim.core.controler.events.IterationEndsEvent;
+import org.matsim.core.controler.events.StartupEvent;
 import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.IterationEndsListener;
+import org.matsim.core.controler.listener.StartupListener;
 import org.matsim.core.events.algorithms.EventWriter;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, IterationEndsListener {
+public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, IterationEndsListener, StartupListener {
 
     private static final Logger log = Logger.getLogger(SBBPostProcessingOutputHandler.class);
 
@@ -44,6 +46,14 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         this.controlerIO = controlerIO;
         this.config = config;
         this.ppConfig = ppConfig;
+    }
+
+    @Override
+    public void notifyStartup(StartupEvent event)   {
+        String outputDirectory = this.controlerIO.getOutputFilename("");
+
+        if (this.ppConfig.getWriteAgentsCSV() || this.ppConfig.getWritePlanElementsCSV())
+            new PopulationToCSV(scenario).write(outputDirectory);
     }
 
     @Override
@@ -73,12 +83,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
         if (event.getIteration() == this.config.getLastIteration()) {
             // write final outputs
-
             String outputDirectory = this.controlerIO.getOutputFilename("");
-
-            if (this.ppConfig.getWritePlansCSV()) {
-                new PopulationToCSV(scenario).write(outputDirectory);
-            }
 
             if (this.ppConfig.getVisumNetFile()) {
                 new NetworkToVisumNetFile(scenario, ppConfig).write(outputDirectory);

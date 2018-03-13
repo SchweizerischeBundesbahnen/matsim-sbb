@@ -28,7 +28,7 @@ public class RunSBBPostProcessing {
         log.info(configFile);
 
         final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup());
-        PostProcessingConfigGroup ppConfig = (PostProcessingConfigGroup) config.getModules().get(PostProcessingConfigGroup.GROUP_NAME);
+        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
         EventsManager eventsManager = new EventsManagerImpl();
@@ -45,7 +45,7 @@ public class RunSBBPostProcessing {
             eventWriter.closeFile();
         }
 
-        if (ppConfig.getWritePlansCSV()) {
+        if (ppConfig.getWriteAgentsCSV() || ppConfig.getWritePlanElementsCSV()) {
             new PopulationToCSV(scenario).write(outputPath);
         }
 

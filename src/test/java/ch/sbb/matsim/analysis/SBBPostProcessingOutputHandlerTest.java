@@ -199,7 +199,8 @@ public class SBBPostProcessingOutputHandlerTest {
         ppConfig.setPtVolumes(ptVolumes);
         ppConfig.setTravelDiaries(travelDiaries);
         ppConfig.setMapActivitiesToZone(false);
-        ppConfig.setWritePlansCSV(writePlansCSV);
+        ppConfig.setWriteAgentsCSV(writePlansCSV);
+        ppConfig.setWritePlanElementsCSV(false);
         ppConfig.setVisumNetFile(visumNetFile);
 
         return ppConfig;
