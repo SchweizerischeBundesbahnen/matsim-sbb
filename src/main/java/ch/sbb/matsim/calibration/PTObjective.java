@@ -4,9 +4,10 @@
 
 package ch.sbb.matsim.calibration;
 
+import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
@@ -17,16 +18,12 @@ import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
 import org.matsim.core.api.experimental.events.VehicleDepartsAtFacilityEvent;
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
-import org.matsim.core.utils.misc.Counter;
 import org.matsim.vehicles.Vehicle;
-import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.csv.CSVReader;
 
-import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,29 +32,31 @@ public class PTObjective implements TransitDriverStartsEventHandler,
         VehicleArrivesAtFacilityEventHandler,
         PersonEntersVehicleEventHandler,
         PersonLeavesVehicleEventHandler, VehicleDepartsAtFacilityEventHandler {
-    Scenario scenario;
 
-    CSVWriter csvWriter = new CSVWriter(new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers", "visum_passengers"});
+    private final static Logger log = Logger.getLogger(PTObjective.class);
 
-    Logger log = Logger.getLogger(PTObjective.class);
+    private CSVWriter csvWriter;
+
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> ptAgents = new HashSet<>();
-    private CSVReader visumVolume = new CSVReader(new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers"});
-    private HashMap<Set<String>, Float> visumData = new HashMap<Set<String>, Float>();
+    private HashMap<Set<String>, Float> visumData = new HashMap<>();
+    private double score = 0.0;
 
+    PTObjective(final String csvVolumesFilename, String outputFilename) throws IOException {
+        this.csvWriter = new CSVWriter("", new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers", "visum_passengers"}, outputFilename);
 
-    public PTObjective(Scenario scenario, final String csvVolume){
-
-        this.visumVolume.read(csvVolume, ",");
-        this.scenario = scenario;
-
-        for(HashMap<String, String> d :this.visumVolume.data){
-            Set<String> key = new HashSet<>();
-            key.add(d.get("line"));
-            key.add(d.get("lineRoute"));
-            key.add(d.get("departure"));
-            key.add(d.get("facilityId"));
-            this.visumData.put(key, Float.parseFloat(d.get("passengers")));
+        try (CSVReader visumVolume = new CSVReader(new String[]{"line", "lineRoute", "departureId", "facilityId", "passengers"}, csvVolumesFilename, ",")) {
+            Map<String, String> row;
+            while ((row = visumVolume.readLine()) != null) {
+                Set<String> key = new HashSet<>();
+                key.add(row.get("line"));
+                key.add(row.get("lineRoute"));
+                key.add(row.get("departureId"));
+                key.add(row.get("facilityId"));
+                this.visumData.put(key, Float.parseFloat(row.get("passengers")));
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -75,18 +74,30 @@ public class PTObjective implements TransitDriverStartsEventHandler,
             PTVehicle ptVehicle = ptVehicles.get(vId);
             ptVehicle.setLastStop(event.getFacilityId());
 
-            HashMap<String, String> row = this.csvWriter.addRow();
-            row.put("line", ptVehicle.getTransitLineId().toString());
-            row.put("lineRoute", ptVehicle.getTransitLineRouteId().toString());
-            row.put("departureId", ptVehicle.getDepartureId().toString());
-            row.put("facilityId", event.getFacilityId().toString());
-            row.put("passengers", String.valueOf(ptVehicle.getPassengers()));
+            String line = ptVehicle.getTransitLineId().toString();
+            String lineRoute = ptVehicle.getTransitLineRouteId().toString();
+            String departureId = ptVehicle.getDepartureId().toString();
+            String facilityId = event.getFacilityId().toString();
+            double pax = ptVehicle.getPassengers();
+            String passengers = String.valueOf(ptVehicle.getPassengers());
+
+            this.csvWriter.set("line", line);
+            this.csvWriter.set("lineRoute", lineRoute);
+            this.csvWriter.set("departureId", departureId);
+            this.csvWriter.set("facilityId", facilityId);
+            this.csvWriter.set("passengers", passengers);
+
             Set<String> key = new HashSet<>();
-            key.add(row.get("line"));
-            key.add(row.get("lineRoute"));
-            key.add(row.get("departure"));
-            key.add(row.get("facilityId"));
-            row.put("visum_passengers", String.valueOf(this.visumData.get(key)));
+            key.add(line);
+            key.add(lineRoute);
+            key.add(departureId);
+            key.add(facilityId);
+            double visumPax = this.visumData.get(key).doubleValue();
+            this.csvWriter.set("visum_passengers", String.valueOf(this.visumData.get(key)));
+
+            this.score += Math.pow(pax - visumPax, 2);
+
+            this.csvWriter.writeRow();
         }
     }
 
@@ -124,19 +135,19 @@ public class PTObjective implements TransitDriverStartsEventHandler,
     // Methods
     @Override
     public void reset(int iteration) {
+        this.score = 0.0;
     }
 
-    public double getScore(){
-        double score = 0.0;
-        for (HashMap<String, String> d : this.csvWriter.getData()) {
-            score += Math.pow(Double.parseDouble(d.get("passengers")) - Double.parseDouble(d.get("visum_passengers")), 2);
+    double getScore() {
+        return this.score;
+    }
+
+    public void close() {
+        try {
+            this.csvWriter.close();
+        } catch (IOException e) {
+            log.error("Could not close file. " + e.getMessage(), e);
         }
-
-        return score;
-    }
-
-    public void write(String path) {
-        this.csvWriter.write(path);
     }
 
     // Private classes
@@ -150,39 +161,39 @@ public class PTObjective implements TransitDriverStartsEventHandler,
         Id lastStop;
 
         // Constructors
-        public PTVehicle(Id transitLineId, Id transitRouteId, Id departureId) {
+        PTVehicle(Id transitLineId, Id transitRouteId, Id departureId) {
             this.transitLineId = transitLineId;
             this.transitRouteId = transitRouteId;
             this.departureId = departureId;
         }
 
-        public Id getDepartureId(){
+        Id getDepartureId(){
             return this.departureId;
         }
 
-        public Id getTransitLineId(){
+        Id getTransitLineId(){
             return this.transitLineId;
         }
 
-        public Id getTransitLineRouteId(){
+        Id getTransitLineRouteId(){
             return this.transitRouteId;
         }
 
         // Methods
 
-        public double getPassengers(){
+        double getPassengers(){
             return this.passengers;
         }
 
-        public void addPassenger() {
+        void addPassenger() {
             this.passengers += 1;
         }
 
-        public void removePassenger() {
+        void removePassenger() {
             this.passengers -= 1;
         }
 
-        public void setLastStop(Id lastStop) {
+        void setLastStop(Id lastStop) {
             this.lastStop = lastStop;
         }
 

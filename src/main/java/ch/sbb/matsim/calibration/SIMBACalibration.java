@@ -6,19 +6,20 @@ package ch.sbb.matsim.calibration;
 
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.events.EventsManagerImpl;
-import org.matsim.core.events.MatsimEventsReader;
-import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
+
 import java.io.File;
+import java.io.IOException;
 
 public class SIMBACalibration {
-    public static void main(String[] args) {
+
+    private final static Logger log = Logger.getLogger(SIMBACalibration.class);
+
+    public static void main(String[] args) throws IOException {
 
         String eventsFileName = null;
         Config config = null;
@@ -33,27 +34,26 @@ public class SIMBACalibration {
 
         File f = new File(outputDirectory);
 
-        Logger log = Logger.getLogger(SIMBACalibration.class);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
         //new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
 
-        final PTObjective VehicleJourneyVolume = new PTObjective(scenario, visumVolume);
+        final PTObjective vehicleJourneyVolume = new PTObjective(visumVolume, f + "/belastung.csv");
 
         Controler controler = new Controler(scenario);
 
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
-                addEventHandlerBinding().toInstance(VehicleJourneyVolume);
+                addEventHandlerBinding().toInstance(vehicleJourneyVolume);
             }
         });
 
         controler.run();
 
-        log.info(VehicleJourneyVolume.getScore());
-        VehicleJourneyVolume.write(f+"/belastung.csv");
+        log.info(vehicleJourneyVolume.getScore());
+        vehicleJourneyVolume.close();
 
     }
 }

@@ -14,24 +14,53 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private String shapeFile = "./output_merger";
     private String zoneAttribute = "GMDNR";
     private Boolean mapActivitiesToZone = false;
-    private Boolean travelDiaries = false;
+    private Boolean travelDiaries = true;
     private Boolean ptVolumes = false;
     private Boolean linkVolumes = false;
     private Boolean eventsPerPerson = false;
-    private String personAttributes = "";
-    private Boolean writePlansCSV = false;
+    private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
+    private int writeOutputsInterval = 10;
+    private Boolean writeAgentsCSV = false;
+    private Boolean writePlanElementsCSV = false;
     private Boolean visumNetFile = false;
     private String linkCountDataFile = null;
     private String stopCountDataFile = null;
+    private Boolean writeVisumPuTSurvey = false;
 
-    @StringGetter("writePlansCSV")
-    public Boolean getWritePlansCSV() {
-        return writePlansCSV;
+    @StringGetter("writeVisumPuTSurvey")
+    public Boolean getWriteVisumPuTSurvey() {
+        return writeVisumPuTSurvey;
     }
 
-    @StringSetter("writePlansCSV")
-    public void setWritePlansCSV(Boolean writePlansCSV) {
-        this.writePlansCSV = writePlansCSV;
+    @StringSetter("writeVisumPuTSurvey")
+    public void setWriteVisumPuTSurvey(Boolean write) {
+        this.writeVisumPuTSurvey = write;
+    }
+
+    @StringGetter("writeOutputsInterval")
+    public int getWriteOutputsInterval() { return this.writeOutputsInterval; }
+
+    @StringSetter("writeOutputsInterval")
+    public void setWriteOutputsInterval(final int writeOutputsInterval) { this.writeOutputsInterval = writeOutputsInterval; }
+
+    @StringGetter("writeAgentsCSV")
+    public Boolean getWriteAgentsCSV() {
+        return writeAgentsCSV;
+    }
+
+    @StringSetter("writeAgentsCSV")
+    public void setWriteAgentsCSV(Boolean value) {
+        this.writeAgentsCSV = value;
+    }
+
+    @StringGetter("writePlanElementsCSV")
+    public Boolean getWritePlanElementsCSV() {
+        return writePlanElementsCSV;
+    }
+
+    @StringSetter("writePlanElementsCSV")
+    public void setWritePlanElementsCSV(Boolean value) {
+        this.writePlanElementsCSV = value;
     }
 
     @StringGetter("personAttributes")
@@ -99,7 +128,9 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     }
 
     @StringGetter("linkCountDataFile")
-    public String getLinkCountDataFile() { return linkCountDataFile; }
+    public String getLinkCountDataFile() {
+        return linkCountDataFile;
+    }
 
     @StringSetter("linkCountDataFile")
     public void setLinkCountDataFile(String linkCountDataFile) {
@@ -108,7 +139,9 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
 
     @StringGetter("stopCountDataFile")
-    public String getStopCountDataFile() { return stopCountDataFile; }
+    public String getStopCountDataFile() {
+        return stopCountDataFile;
+    }
 
     @StringSetter("stopCountDataFile")
     public void setStopCountDataFile(String stopCountDataFile) {

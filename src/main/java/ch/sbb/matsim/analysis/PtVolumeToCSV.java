@@ -4,9 +4,9 @@
 
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
@@ -17,10 +17,12 @@ import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
 import org.matsim.core.api.experimental.events.VehicleDepartsAtFacilityEvent;
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
+import org.matsim.core.events.algorithms.EventWriter;
+import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.vehicles.Vehicle;
-import ch.sbb.matsim.calibration.PTObjective;
-import ch.sbb.matsim.csv.CSVWriter;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,67 +31,75 @@ import java.util.Map;
 public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         VehicleArrivesAtFacilityEventHandler,
         PersonEntersVehicleEventHandler,
-        PersonLeavesVehicleEventHandler, VehicleDepartsAtFacilityEventHandler {
+        PersonLeavesVehicleEventHandler,
+        VehicleDepartsAtFacilityEventHandler,
+        EventWriter {
+    private BufferedWriter out = null;
 
-    public static final String FILENAME_STOPS =  "matsim_stops.csv";
-    public static final String FILENMAE_VEHJOURNEYS = "matsim_vehjourneys.csv";
+    private final static Logger log = Logger.getLogger(PtVolumeToCSV.class);
 
-    public static final String COL_STOP_ID = "stop_id";
-    public static final String COL_FROM_STOP_ID = "from_stop_id";
-    public static final String COL_TO_STOP_ID = "to_stop_id";
-    public static final String COL_INDEX = "index";
-    public static final String COL_BOARDING = "boarding";
-    public static final String COL_ALIGHTING = "alighting";
-    public static final String COL_LINE = "line";
-    public static final String COL_LINEROUTE = "lineroute";
-    public static final String COL_DEPARTURE_ID = "departure_id";
-    public static final String COL_VEHICLE_ID = "vehicle_id";
-    public static final String COL_ARRIVAL = "arrival";
-    public static final String COL_DEPARTURE = "departure";
-    public static final String COL_PASSENGERS = "passengers";
+    static final String FILENAME_STOPS =  "matsim_stops.csv";
+    private static final String FILENAME_VEHJOURNEYS = "matsim_vehjourneys.csv";
 
-    public static final String[] COLS_STOPS = new String[]{COL_INDEX, COL_STOP_ID, COL_BOARDING, COL_ALIGHTING, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
-    public static final String[] COLS_VEHJOURNEYS = new String[]{COL_INDEX, COL_FROM_STOP_ID, COL_TO_STOP_ID, COL_PASSENGERS, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
+    static final String COL_STOP_ID = "stop_id";
+    private static final String COL_FROM_STOP_ID = "from_stop_id";
+    private static final String COL_TO_STOP_ID = "to_stop_id";
+    private static final String COL_INDEX = "index";
+    static final String COL_BOARDING = "boarding";
+    static final String COL_ALIGHTING = "alighting";
+    private static final String COL_LINE = "line";
+    private static final String COL_LINEROUTE = "lineroute";
+    private static final String COL_DEPARTURE_ID = "departure_id";
+    private static final String COL_VEHICLE_ID = "vehicle_id";
+    private static final String COL_ARRIVAL = "arrival";
+    private static final String COL_DEPARTURE = "departure";
+    private static final String COL_PASSENGERS = "passengers";
 
-    Scenario scenario;
-    Logger log = Logger.getLogger(PTObjective.class);
+    static final String[] COLS_STOPS = new String[]{COL_INDEX, COL_STOP_ID, COL_BOARDING, COL_ALIGHTING, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
+    private static final String[] COLS_VEHJOURNEYS = new String[]{COL_INDEX, COL_FROM_STOP_ID, COL_TO_STOP_ID, COL_PASSENGERS, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
 
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> ptAgents = new HashSet<>();
-    private CSVWriter stopsWriter = new CSVWriter(COLS_STOPS);
-    private CSVWriter vehJourneyWriter = new CSVWriter(COLS_VEHJOURNEYS);
+    private CSVWriter stopsWriter;
+    private CSVWriter vehJourneyWriter;
 
-
-    public PtVolumeToCSV(Scenario scenario){
-        this.scenario = scenario;
+    public PtVolumeToCSV(String filename) throws UncheckedIOException {
+        try {
+            this.stopsWriter = new CSVWriter("", COLS_STOPS, filename + FILENAME_STOPS);
+            this.vehJourneyWriter = new CSVWriter("", COLS_VEHJOURNEYS, filename + FILENAME_VEHJOURNEYS);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     // Methods
     @Override
     public void reset(int iteration) {
-        stopsWriter.clear();
-        vehJourneyWriter.clear();
-        ptAgents.clear();
-        ptVehicles.clear();
+        this.ptAgents.clear();
+        this.ptVehicles.clear();
     }
 
-    public void write(String path){
-        stopsWriter.write(path + "/" + FILENAME_STOPS);
-        vehJourneyWriter.write(path+ "/" + FILENMAE_VEHJOURNEYS);
+    private void closeAll() {
+        try {
+            this.stopsWriter.close();
+            this.vehJourneyWriter.close();
+        } catch (IOException e) {
+            log.error("Could not close files.", e);
+        }
     }
 
     @Override
     public void handleEvent(TransitDriverStartsEvent event) {
-        PTVehicle ptVehilce = new PTVehicle(event.getTransitLineId(), event.getTransitRouteId(), event.getDepartureId(), event.getVehicleId());
-        ptVehicles.put(event.getVehicleId(), ptVehilce);
-        ptAgents.add(event.getDriverId());
+        PTVehicle ptVehicle = new PTVehicle(event.getTransitLineId(), event.getTransitRouteId(), event.getDepartureId(), event.getVehicleId());
+        this.ptVehicles.put(event.getVehicleId(), ptVehicle);
+        this.ptAgents.add(event.getDriverId());
     }
 
     @Override
     public void handleEvent(VehicleDepartsAtFacilityEvent event) {
         Id<Vehicle> vId = event.getVehicleId();
-        if(ptVehicles.containsKey(vId)){
-            PTVehicle ptVehicle = ptVehicles.get(vId);
+        PTVehicle ptVehicle = this.ptVehicles.get(vId);
+        if(ptVehicle != null){
             ptVehicle.setDeparture(event.getTime(), event.getFacilityId());
         }
     }
@@ -97,32 +107,35 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     @Override
     public void handleEvent(VehicleArrivesAtFacilityEvent event) {
         Id<Vehicle> vId = event.getVehicleId();
-        if(ptVehicles.containsKey(vId)){
-            PTVehicle ptVehicle = ptVehicles.get(vId);
+        PTVehicle ptVehicle = this.ptVehicles.get(vId);
+        if(ptVehicle != null){
             ptVehicle.setArrival(event.getTime(), event.getFacilityId());
         }
     }
 
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
+        if(this.ptAgents.contains(event.getPersonId())){return;}
         Id<Vehicle> vId = event.getVehicleId();
-
-        if(ptAgents.contains(event.getPersonId())){return;}
-
-        if(ptVehicles.containsKey(vId)){
-            PTVehicle ptVehicle = ptVehicles.get(vId);
+        PTVehicle ptVehicle = this.ptVehicles.get(vId);
+        if(ptVehicle != null){
             ptVehicle.addPassenger();
         }
     }
 
     @Override
     public void handleEvent(PersonLeavesVehicleEvent event) {
-        if(ptAgents.contains(event.getPersonId())){return;}
+        if(this.ptAgents.contains(event.getPersonId())){return;}
         Id<Vehicle> vId = event.getVehicleId();
-        if(ptVehicles.containsKey(vId)){
-            PTVehicle ptVehicle = ptVehicles.get(vId);
+        PTVehicle ptVehicle = this.ptVehicles.get(vId);
+        if(ptVehicle != null){
             ptVehicle.removePassenger();
         }
+    }
+
+    @Override
+    public void closeFile() {
+        this.closeAll();
     }
 
 
@@ -144,58 +157,62 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         private int indexVehJourney = 0;
         private int indexStops = 0;
 
-        // Constructors
-        public PTVehicle(Id transitLineId, Id transitRouteId, Id departureId, Id<Vehicle> vehicleId) {
+        PTVehicle(Id transitLineId, Id transitRouteId, Id departureId, Id<Vehicle> vehicleId) {
             this.transitLineId = transitLineId;
             this.transitRouteId = transitRouteId;
             this.departureId = departureId;
             this.vehicleId = vehicleId;
         }
 
-        public void addPassenger() {
+        void addPassenger() {
             this.boardings += 1;
             this.passengers += 1;
         }
 
-        public void removePassenger() {
+        void removePassenger() {
             this.alightings += 1;
             this.passengers -= 1;
         }
 
-        public void setDeparture(double departure, Id stop) {
+        void setDeparture(double departure, Id stop) {
             this.departure = departure;
 
-            HashMap<String, String> row = stopsWriter.addRow();
-            row.put(COL_INDEX, Integer.toString(this.indexStops));
-            row.put(COL_STOP_ID, stop.toString());
-            row.put(COL_BOARDING, Double.toString(this.boardings));
-            row.put(COL_ALIGHTING, Double.toString(this.alightings));
-            row.put(COL_LINE, this.transitLineId.toString());
-            row.put(COL_LINEROUTE, this.transitRouteId.toString());
-            row.put(COL_DEPARTURE_ID, this.departureId.toString());
-            row.put(COL_VEHICLE_ID, this.vehicleId.toString());
-            row.put(COL_DEPARTURE, Double.toString(this.departure));
-            row.put(COL_ARRIVAL, Double.toString(this.arrival));
+            CSVWriter writer = PtVolumeToCSV.this.stopsWriter;
+            writer.set(COL_INDEX, Integer.toString(this.indexStops));
+            writer.set(COL_STOP_ID, stop.toString());
+            writer.set(COL_BOARDING, Double.toString(this.boardings));
+            writer.set(COL_ALIGHTING, Double.toString(this.alightings));
+            writer.set(COL_LINE, this.transitLineId.toString());
+            writer.set(COL_LINEROUTE, this.transitRouteId.toString());
+            writer.set(COL_DEPARTURE_ID, this.departureId.toString());
+            writer.set(COL_VEHICLE_ID, this.vehicleId.toString());
+            writer.set(COL_DEPARTURE, Double.toString(this.departure));
+            writer.set(COL_ARRIVAL, Double.toString(this.arrival));
+
+            writer.writeRow();
 
             this.alightings = 0.0;
             this.boardings = 0.0;
             this.indexStops += 1;
         }
 
-        public void setArrival(double arrival, Id stop) {
+        void setArrival(double arrival, Id stop) {
 
             if(this.last_stop != null) {
-                HashMap<String, String> row = vehJourneyWriter.addRow();
-                row.put(COL_INDEX, Integer.toString(this.indexVehJourney));
-                row.put(COL_FROM_STOP_ID, this.last_stop.toString());
-                row.put(COL_TO_STOP_ID, stop.toString());
-                row.put(COL_PASSENGERS, Double.toString(this.passengers));
-                row.put(COL_LINE, this.transitLineId.toString());
-                row.put(COL_LINEROUTE, this.transitRouteId.toString());
-                row.put(COL_DEPARTURE_ID, this.departureId.toString());
-                row.put(COL_VEHICLE_ID, this.vehicleId.toString());
-                row.put(COL_DEPARTURE, Double.toString(this.departure));
-                row.put(COL_ARRIVAL, Double.toString(arrival));
+                CSVWriter writer = PtVolumeToCSV.this.vehJourneyWriter;
+
+                writer.set(COL_INDEX, Integer.toString(this.indexVehJourney));
+                writer.set(COL_FROM_STOP_ID, this.last_stop.toString());
+                writer.set(COL_TO_STOP_ID, stop.toString());
+                writer.set(COL_PASSENGERS, Double.toString(this.passengers));
+                writer.set(COL_LINE, this.transitLineId.toString());
+                writer.set(COL_LINEROUTE, this.transitRouteId.toString());
+                writer.set(COL_DEPARTURE_ID, this.departureId.toString());
+                writer.set(COL_VEHICLE_ID, this.vehicleId.toString());
+                writer.set(COL_DEPARTURE, Double.toString(this.departure));
+                writer.set(COL_ARRIVAL, Double.toString(arrival));
+
+                writer.writeRow();
             }
             this.last_stop = stop;
             this.arrival = arrival;

@@ -72,7 +72,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 
     private List<String> toIgnore = Arrays.asList("vehicle_interaction", "vehicle_parking", "egress_walk", "access_walk");
 
-    Logger log = Logger.getLogger(PlansFromEvents.class);
+    private final static Logger log = Logger.getLogger(PlansFromEvents.class);
 
     public PlansFromEvents(Network network){
         this.population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
@@ -88,9 +88,9 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 
     @Override
     public void handleEvent(PersonArrivalEvent event) {
-        if(!transitDrivers.contains(event.getPersonId())){
-            Person person = population.getPersons().get(event.getPersonId());
-        }
+//        if(!transitDrivers.contains(event.getPersonId())){
+//            Person person = population.getPersons().get(event.getPersonId());
+//        }
     }
 
     @Override
@@ -148,14 +148,15 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
         if(transitDrivers.contains(personId)){
             return null;
         }
-        if(!population.getPersons().containsKey(personId)){
-                Person person = population.getFactory().createPerson(personId);
-                population.addPerson(person);
-                Plan plan = population.getFactory().createPlan();
-                person.addPlan(plan);
-                person.setSelectedPlan(plan);
-            }
-        return population.getPersons().get(personId);
+        Person person = this.population.getPersons().get(personId);
+        if (person == null) {
+            person = population.getFactory().createPerson(personId);
+            population.addPerson(person);
+            Plan plan = population.getFactory().createPlan();
+            person.addPlan(plan);
+            person.setSelectedPlan(plan);
+        }
+        return person;
     }
 
 
@@ -180,7 +181,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
     }
 
     private List<Leg> getLegs(Plan plan){
-        List<Leg> list = new ArrayList();
+        List<Leg> list = new ArrayList<>();
         for(PlanElement pe: plan.getPlanElements()){
             if(pe instanceof Leg){
                 list.add((Leg) pe);
@@ -190,7 +191,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
     }
 
     private List<Activity> getActivities(Plan plan){
-        List<Activity> list = new ArrayList();
+        List<Activity> list = new ArrayList<>();
         for(PlanElement pe: plan.getPlanElements()){
             if(pe instanceof Activity){
                 list.add((Activity) pe);
@@ -201,10 +202,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 
     @Override
     public void handleEvent(TransitDriverStartsEvent event) {
-        if(population.getPersons().containsKey(event.getDriverId())){
-            Person person = population.getPersons().get(event.getDriverId());
-            population.getPersons().remove(person);
-        }
+        population.getPersons().remove(event.getDriverId());
         transitDrivers.add(event.getDriverId());
     }
 
@@ -304,7 +302,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
         events.addHandler(plansHandler);
         new MatsimEventsReader(events).readFile(eventsFileName);
         Cleaner cleaner = new Cleaner(plansHandler.population);
-        cleaner.clean();
+        cleaner.clean(Arrays.asList(TransportMode.pt), Arrays.asList("all"));
         new PopulationWriter(plansHandler.population).write(planFile);
     }
 }

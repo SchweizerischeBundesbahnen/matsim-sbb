@@ -4,6 +4,8 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.PtMergerConfigGroup;
+import ch.sbb.matsim.csv.CSVReader;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -25,15 +27,17 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleReaderV1;
 import org.matsim.vehicles.VehicleWriterV1;
-import ch.sbb.matsim.csv.CSVReader;
-import ch.sbb.matsim.config.PtMergerConfigGroup;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class PTMerger {
-    private Logger log =Logger.getLogger(PTMerger.class);
+    private final static Logger log =Logger.getLogger(PTMerger.class);
+
     private Scenario scenario;
 
     public static void main(final String[] args) {
@@ -43,15 +47,14 @@ public class PTMerger {
     }
 
     private PTMerger(Config config) {
-        this.log.info("Running Public Transport Merger. Enjoy :)");
+        log.info("Running Public Transport Merger. Enjoy :)");
 
         this.scenario = ScenarioUtils.createScenario(config);
         new NetworkReaderMatsimV1(scenario.getNetwork()).readFile(config.network().getInputFile());
         new TransitScheduleReader(this.scenario).readFile(config.transit().getTransitScheduleFile());
         new VehicleReaderV1(this.scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
 
-
-        final PtMergerConfigGroup mergerConfig = (PtMergerConfigGroup) config.getModule(PtMergerConfigGroup.GROUP_NAME);
+        final PtMergerConfigGroup mergerConfig = ConfigUtils.addOrGetModule(config, PtMergerConfigGroup.class);
         Config config2 = ConfigUtils.createConfig();
         Scenario scenario2 = ScenarioUtils.createScenario(config2);
         config2.transit().setTransitScheduleFile(mergerConfig.getScheduleFile());
@@ -144,12 +147,14 @@ public class PTMerger {
     }
 
     private void removePt(String networkMode, String csvFile){
-        CSVReader lineReader = new CSVReader(new String[] {"line", "is_simba_perimeter"});
-        lineReader.read(csvFile, ";");
-
         HashMap<Id<TransitLine>, String> toKeep = new HashMap<>();
-        for(HashMap<String, String> d: lineReader.data){
-            toKeep.put(Id.create(d.get("line"), TransitLine.class), d.get("is_simba_perimeter"));
+        try (CSVReader lineReader = new CSVReader(new String[] {"line", "is_simba_perimeter"}, csvFile, ";")) {
+            Map<String, String> row;
+            while ((row = lineReader.readLine()) != null) {
+                toKeep.put(Id.create(row.get("line"), TransitLine.class), row.get("is_simba_perimeter"));
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
 
         ArrayList<TransitLine> lineToDelete = new ArrayList<>();
@@ -159,35 +164,20 @@ public class PTMerger {
 
             if(!toKeep.containsKey(tl.getId())){
                 remove = false;
-                this.log.info("Not in file but keeping " + tl.getId());
+                log.info("Not in file but keeping " + tl.getId());
             }
             else if(toKeep.get(tl.getId()).equals("1")){
                 remove = true;
-                this.log.info("Removing " + tl.getId());
+                log.info("Removing " + tl.getId());
             }
             else{
-                this.log.info("Keeping " + tl.getId());
+                log.info("Keeping " + tl.getId());
             }
 
-            ArrayList<TransitRoute> routeToDelete = new ArrayList<>();
-            for(TransitRoute route: tl.getRoutes().values()){
-                ArrayList<Departure> toDelete = new ArrayList<>();
-                for (Departure departure: route.getDepartures().values()){
-                    Vehicle vehicle = this.scenario.getTransitVehicles().getVehicles().get(departure.getVehicleId());
-                    if(remove){
-                        toDelete.add(departure);
-                    }
-                }
-                for(Departure departure: toDelete) route.removeDeparture(departure);
-
-                if(route.getDepartures().values().size() == 0) routeToDelete.add(route);
-            }
-            for(TransitRoute route: routeToDelete) tl.removeRoute(route);
-
-            if(tl.getRoutes().values().size() == 0) lineToDelete.add(tl);
+            if (remove) lineToDelete.add(tl);
         }
 
-        for(TransitLine tl: lineToDelete) this.scenario.getTransitSchedule().removeTransitLine(tl);
+        for (TransitLine tl: lineToDelete) this.scenario.getTransitSchedule().removeTransitLine(tl);
 
         removeUnusedStopFacilities();
         removeUnusedTransitLinks(networkMode);
@@ -197,11 +187,11 @@ public class PTMerger {
     private void addLink(Network network, Link link){
          if(!network.getNodes().containsKey(link.getFromNode().getId())){
              Node node = link.getFromNode();
-             HashSet<Id<Link>> inLinks = new HashSet(node.getInLinks().keySet());
+             HashSet<Id<Link>> inLinks = new HashSet<>(node.getInLinks().keySet());
              for(Id<Link> linkId: inLinks) {
                  node.removeInLink(linkId);
              }
-             HashSet<Id<Link>> outLinks = new HashSet(node.getOutLinks().keySet());
+             HashSet<Id<Link>> outLinks = new HashSet<>(node.getOutLinks().keySet());
              for(Id<Link> linkId: outLinks) {
                  node.removeOutLink(linkId);
              }
@@ -210,11 +200,11 @@ public class PTMerger {
 
         if(!network.getNodes().containsKey(link.getToNode().getId())) {
              Node node = link.getToNode();
-             HashSet<Id<Link>> inLinks = new HashSet(node.getInLinks().keySet());
+             HashSet<Id<Link>> inLinks = new HashSet<>(node.getInLinks().keySet());
              for(Id<Link> linkId: inLinks) {
                  node.removeInLink(linkId);
              }
-             HashSet<Id<Link>> outLinks = new HashSet(node.getOutLinks().keySet());
+             HashSet<Id<Link>> outLinks = new HashSet<>(node.getOutLinks().keySet());
              for(Id<Link> linkId: outLinks) {
                  node.removeOutLink(linkId);
              }

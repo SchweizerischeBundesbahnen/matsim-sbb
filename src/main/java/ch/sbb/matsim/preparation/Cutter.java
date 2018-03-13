@@ -8,6 +8,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -23,12 +24,11 @@ import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
-import org.matsim.core.network.io.NetworkReaderMatsimV1;
 import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.io.NetworkReaderMatsimV1;
 import org.matsim.core.network.io.NetworkWriter;
-import org.matsim.core.network.algorithms.NetworkCleaner;
-import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.population.routes.GenericRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
@@ -56,6 +56,7 @@ import org.matsim.vehicles.VehicleReaderV1;
 import org.matsim.vehicles.VehicleUtils;
 import org.matsim.vehicles.VehicleWriterV1;
 import org.matsim.vehicles.Vehicles;
+import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,32 +69,30 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.log4j.Logger;
-import org.opengis.feature.simple.SimpleFeature;
 
 
 public class Cutter {
-    private Map<Coord, Boolean> coordCache = new HashMap<>();
-    private Map<Id<Person>, Person> filteredAgents = new HashMap<>();
+
+    private final static Logger log = Logger.getLogger(Cutter.class);
+
+    private Map<Coord, Boolean> coordCache;
+    private Map<Id<Person>, Person> filteredAgents;
     private Map<Id<TransitLine>, Set<Id<TransitRoute>>> usedTransitRouteIds = new HashMap<>();
     private Coord center;
     private int radius;
     private String commuterTag;
     private String popTag;
     private Scenario scenario;
-    private Logger log = Logger.getLogger(Cutter.class);
 
-    private boolean useShapeFile = false;
+    private boolean useShapeFile;
     private GeometryFactory geometryFactory = new GeometryFactory();
     Collection<SimpleFeature> features = null;
 
-    private Cutter(Config config) {
+    private Cutter(Config config, CutterConfigGroup cutterConfig) {
         this.coordCache = new HashMap<>();
         this.filteredAgents = new HashMap<>();
 
         this.scenario = ScenarioUtils.createScenario(config);
-
-        final CutterConfigGroup cutterConfig = (CutterConfigGroup) config.getModule(CutterConfigGroup.GROUP_NAME);
 
         useShapeFile = cutterConfig.getUseShapeFile();
         if (useShapeFile) {
@@ -120,20 +119,19 @@ public class Cutter {
     }
 
     public static void main(final String[] args) {
-        final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup(CutterConfigGroup.GROUP_NAME));
-
-        // For 30km around Zurich Center (Bellevue): X - 2683518.0, Y - 1246836.0, radius - 30000
+        final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup());
+        CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, CutterConfigGroup.class);
 
         // load files
-        Cutter cutter = new Cutter(config);
+        Cutter cutter = new Cutter(config, cutterConfig);
         // cut to area
         Population filteredPopulation = cutter.geographicallyFilterPopulation();
 
-        String output = ((CutterConfigGroup) config.getModule(CutterConfigGroup.GROUP_NAME)).getPathToTargetFolder();
+        String output = cutterConfig.getPathToTargetFolder();
         try {
             Files.createDirectories(Paths.get(output));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Could not create output directory " + output, e);
         }
 
         File f = new File(config.plans().getInputFile());
@@ -178,11 +176,9 @@ public class Cutter {
 
                     linksToKeep.add(leg.getRoute().getStartLinkId());
                     linksToKeep.add(leg.getRoute().getEndLinkId());
-                   if(leg.getRoute() instanceof NetworkRoute){
-                         NetworkRoute route = (NetworkRoute) leg.getRoute();
-                         for (Id<Link> linkId: route.getLinkIds()){
-                             linksToKeep.add(linkId);
-                         }
+                    if(leg.getRoute() instanceof NetworkRoute){
+                        NetworkRoute route = (NetworkRoute) leg.getRoute();
+                        linksToKeep.addAll(route.getLinkIds());
                     }
                 }
                 else{
@@ -239,9 +235,7 @@ public class Cutter {
         for (TransitLine transitLine : filteredSchedule.getTransitLines().values()) {
             for (TransitRoute transitRoute : transitLine.getRoutes().values()) {
                 linksToKeep.add(transitRoute.getRoute().getStartLinkId());
-                for (Id<Link> linkId : transitRoute.getRoute().getLinkIds()) {
-                    linksToKeep.add(linkId);
-                }
+                linksToKeep.addAll(transitRoute.getRoute().getLinkIds());
                 linksToKeep.add(transitRoute.getRoute().getEndLinkId());
             }
         }
@@ -523,9 +517,8 @@ public class Cutter {
         }
     }
 
-    private static class CutterConfigGroup extends ReflectiveConfigGroup {
-
-        static final String GROUP_NAME = "cutter";
+    public static class CutterConfigGroup extends ReflectiveConfigGroup {
+        public static final String GROUP_NAME = "cutter";
 
         private String commuterTag = "outAct";
         private String popTag = "inAct";
@@ -538,8 +531,8 @@ public class Cutter {
         private boolean useShapeFile = false;
         private String pathToShapeFile = null;
 
-        CutterConfigGroup(String name) {
-            super(name);
+        public CutterConfigGroup() {
+            super(GROUP_NAME);
         }
 
         @StringGetter("commuterTag")
