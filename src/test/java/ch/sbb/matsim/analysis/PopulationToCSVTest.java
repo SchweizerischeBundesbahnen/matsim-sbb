@@ -29,6 +29,7 @@ public class PopulationToCSVTest {
 
         PostProcessingConfigGroup pg = new PostProcessingConfigGroup();
         pg.setPersonAttributes("carAvail,hasLicense,sex,subpopulation,age");
+        pg.setWriteAgentsCSV(true);
 
         Config config = ConfigUtils.createConfig(pg);
         Scenario scenario = ScenarioUtils.createScenario(config);
