@@ -119,8 +119,8 @@ public class Cutter {
     }
 
     public static void main(final String[] args) {
-        final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup(CutterConfigGroup.GROUP_NAME));
-        final CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, CutterConfigGroup.GROUP_NAME, CutterConfigGroup.class);
+        final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup());
+        CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, CutterConfigGroup.class);
 
         // load files
         Cutter cutter = new Cutter(config, cutterConfig);
@@ -517,9 +517,8 @@ public class Cutter {
         }
     }
 
-    private static class CutterConfigGroup extends ReflectiveConfigGroup {
-
-        static final String GROUP_NAME = "cutter";
+    public static class CutterConfigGroup extends ReflectiveConfigGroup {
+        public static final String GROUP_NAME = "cutter";
 
         private String commuterTag = "outAct";
         private String popTag = "inAct";
@@ -532,8 +531,8 @@ public class Cutter {
         private boolean useShapeFile = false;
         private String pathToShapeFile = null;
 
-        CutterConfigGroup(String name) {
-            super(name);
+        public CutterConfigGroup() {
+            super(GROUP_NAME);
         }
 
         @StringGetter("commuterTag")
