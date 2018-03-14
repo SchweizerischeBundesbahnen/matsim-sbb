@@ -224,8 +224,6 @@ public class TestFixture {
     }
 
     public void addEvents() {
-
-
         List<AbstractQSimPlugin> plugins = new ArrayList<>();
         plugins.add(new ActivityEnginePlugin(config));
         plugins.add(new PopulationPlugin(config));
