@@ -85,18 +85,19 @@ public class VisumPuTSurvey {
 
                             writer.set(COL_PATH_ID, Integer.toString(journey.getElementId()));
                             writer.set(COL_LEG_ID, Integer.toString(i));
-                            String boarding = this.transitSchedule.getTransitStopsAttributes().getAttribute(trip.getBoardingStop().toString(), ExportPTSupplyFromVisum.ATT_STOP_NO).toString();
+                            String boarding = this.transitSchedule.getFacilities().get(trip.getBoardingStop()).getAttributes().getAttribute(ExportPTSupplyFromVisum.ATT_STOP_NO).toString();
                             writer.set(COL_FROM_STOP, boarding);
-                            writer.set(COL_TO_STOP, this.transitSchedule.getTransitStopsAttributes().getAttribute(trip.getAlightingStop().toString(), ExportPTSupplyFromVisum.ATT_STOP_NO).toString());
+                            String alighting = this.transitSchedule.getFacilities().get(trip.getAlightingStop()).getAttributes().getAttribute(ExportPTSupplyFromVisum.ATT_STOP_NO).toString();
+                            writer.set(COL_TO_STOP, alighting);
 
                             Id vId = trip.getVehicleId();
 
                             PTVehicle vehicle = this.ptVehicles.get(vId);
-                            String direction = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_DIRECTIONCODE).toString();
-                            String vsys = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_TSYSNAME).toString();
-                            String line = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_TRANSITLINE).toString();
-                            String lineroute = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_LINEROUTENAME).toString();
-                            String fzp = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_FZPNAME).toString();
+                            String direction = this.transitSchedule.getTransitLines().get(vehicle.getLineId()).getRoutes().get(vehicle.getRouteId()).getAttributes().getAttribute(ExportPTSupplyFromVisum.ATT_DIRECTIONCODE).toString();
+                            String vsys = this.transitSchedule.getTransitLines().get(vehicle.getLineId()).getRoutes().get(vehicle.getRouteId()).getAttributes().getAttribute(ExportPTSupplyFromVisum.ATT_TSYSNAME).toString();
+                            String line = this.transitSchedule.getTransitLines().get(vehicle.getLineId()).getRoutes().get(vehicle.getRouteId()).getAttributes().getAttribute(ExportPTSupplyFromVisum.ATT_TRANSITLINE).toString();
+                            String lineroute = this.transitSchedule.getTransitLines().get(vehicle.getLineId()).getRoutes().get(vehicle.getRouteId()).getAttributes().getAttribute(ExportPTSupplyFromVisum.ATT_LINEROUTENAME).toString();
+                            String fzp = this.transitSchedule.getTransitLines().get(vehicle.getLineId()).getRoutes().get(vehicle.getRouteId()).getAttributes().getAttribute(ExportPTSupplyFromVisum.ATT_FZPNAME).toString();
 
                             writer.set(COL_VSYSCODE, vsys);
                             writer.set(COL_LINNAME, line);
@@ -154,6 +155,10 @@ public class VisumPuTSurvey {
 
         private Id getRouteId() {
             return transitRoute.getId();
+        }
+
+        private Id getLineId() {
+            return transitLine.getId();
         }
     }
 
