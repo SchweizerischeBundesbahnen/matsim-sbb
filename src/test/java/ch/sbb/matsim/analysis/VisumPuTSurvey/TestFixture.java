@@ -190,7 +190,7 @@ public class TestFixture {
         this.line1.addRoute(this.route1);
         schedule.addTransitLine(this.line1);
 
-        addRouteAttributes(this.route1.getId(), "route1");
+        addRouteAttributes(this.line1.getId(), this.route1.getId(), "route1");
         addStopsAttributes(this.stopA.getId(), "A");
         addStopsAttributes(this.stopB.getId(), "B");
         addStopsAttributes(this.stopC.getId(), "C");
@@ -199,17 +199,17 @@ public class TestFixture {
     }
 
 
-    private void addRouteAttributes(Id routeId, String name){
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "04_DirectionCode", "code");
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "08_TSysName", "code");
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "02_TransitLine", "code");
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "03_LineRouteName", "code");
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "05_Name", "code");
+    private void addRouteAttributes(Id lineId, Id routeId, String name){
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("04_DirectionCode", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute( "08_TSysName", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("02_TransitLine", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("03_LineRouteName", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("05_Name", "code");
 
     }
 
     private void addStopsAttributes(Id stopId, String name){
-        scenario.getTransitSchedule().getTransitStopsAttributes().putAttribute(stopId.toString(), "02_Stop_No", name);
+        scenario.getTransitSchedule().getFacilities().get(stopId).getAttributes().putAttribute(  "02_Stop_No", name);
     }
 
 
