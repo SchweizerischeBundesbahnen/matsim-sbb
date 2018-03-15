@@ -99,6 +99,8 @@ public class Exporter {
         loadStopPoints(net);
         if(this.exporterConfig.isExportMTT())
             integrateMinTransferTimes(visum);
+        new TransitScheduleWriter(this.schedule).writeFileV2(new File(outputPath, "transitSchedule_no_lines").getPath());
+
         createVehicleTypes(net);
         loadTransitLines(net);
 
@@ -288,6 +290,11 @@ public class Exporter {
 
         List<Transfer> transfers = new ArrayList<>();
         while (i < nrOfLinks) {
+            if(!Dispatch.call(linkIterator, "Active").getBoolean())   {
+                Dispatch.call(linkIterator, "Next");
+                continue;
+            }
+            log.info(i);
             Dispatch item = Dispatch.get(linkIterator, "Item").toDispatch();
 
             String fromStopAreasStr = Dispatch.call(item, "AttValue", "FROMNODE\\DISTINCT:STOPAREAS\\NO").toString();
@@ -363,7 +370,7 @@ public class Exporter {
             String tSysName = Dispatch.call(item, "AttValue", "Name").toString();
 
             Id<VehicleType> vehicleTypeId = Id.create(tSysCode, VehicleType.class);
-            // TODO e.g. for "Fernbusse", we need the possibility to set capacity constraint.
+            // TODO e.g. for "Fernbusse", we need the possibility to set capacity constraints.
             VehicleType vehicleType = this.vehicleBuilder.createVehicleType(vehicleTypeId);
             vehicleType.setDescription(tSysName);
             vehicleType.setDoorOperationMode(VehicleType.DoorOperationMode.serial);
@@ -743,7 +750,7 @@ public class Exporter {
             if(!stopsToKeep.contains(stopId))
                 stopsToRemove.add(stopId);
         }
-        log.info("Cleared " + stopsToRemove.size() + " unused stop facilities.");
+        log.info("Removed " + stopsToRemove.size() + " unused stop facilities.");
         for(Id<TransitStopFacility> stopId: stopsToRemove)
             this.schedule.removeStopFacility(this.schedule.getFacilities().get(stopId));
 
@@ -776,7 +783,7 @@ public class Exporter {
             if(!linksToKeep.contains(linkId))
                 linksToRemove.add(linkId);
         }
-        log.info("Cleared " + linksToRemove.size() + " unused links.");
+        log.info("Removed " + linksToRemove.size() + " unused links.");
         for(Id<Link> linkId: linksToRemove)
             this.network.removeLink(linkId);
         linksToKeep.clear();
@@ -788,7 +795,7 @@ public class Exporter {
             if(node.getInLinks().size() == 0 && node.getOutLinks().size() == 0)
                 nodesToRemove.add(node.getId());
         }
-        log.info("Cleared " + nodesToRemove.size() + " unused nodes.");
+        log.info("Removed " + nodesToRemove.size() + " unused nodes.");
         for(Id<Node> nodeId: nodesToRemove)
             this.network.removeNode(nodeId);
     }
