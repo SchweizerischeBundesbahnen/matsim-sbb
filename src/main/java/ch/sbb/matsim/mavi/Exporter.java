@@ -87,6 +87,7 @@ public class Exporter {
         log.info("VISUM Client gestartet.");
 
         loadVersion(visum);
+
         if(this.exporterConfig.getPathToAttributeFile() != null)
             loadAttributes(visum);
         if(this.exporterConfig.getTimeProfilFilterParams().size() != 0)
@@ -133,7 +134,7 @@ public class Exporter {
 
         this.network = scenario.getNetwork();
         this.schedule = scenario.getTransitSchedule();
-        this.schedule.getAttributes().putAttribute("Info","MOBi.OEV 2.0 -> includes minimal transfer times");
+        this.schedule.getAttributes().putAttribute("Info","MOBi.OEV 2.0 (SBB) -> includes minimal transfer times");
         this.vehicles = scenario.getTransitVehicles();
     }
 
@@ -257,6 +258,7 @@ public class Exporter {
 
         String transferList = Dispatch.call(walkTimes, "SaveToArray").toString();
         String[] lines = transferList.split("\n");
+        log.info("Number of transfers: " + lines.length);
         List<Transfer> transfers = new ArrayList<>();
         for(String line: lines) {
             String[] transfer = line.split(" ");
@@ -269,8 +271,7 @@ public class Exporter {
     }
 
     private static List<Transfer> loadBetweenTransfers(ActiveXComponent visum)  {
-        List<Transfer> transfers = new ArrayList<>();
-
+        log.info("loading \"Fusswege\".");
         Dispatch filters = Dispatch.get(visum, "Filters").toDispatch();
         Dispatch linkFilter = Dispatch.call(filters, "LinkFilter").toDispatch();
         Dispatch.call(linkFilter, "Init");
@@ -285,6 +286,7 @@ public class Exporter {
         log.info("Number of Fusswege: " + nrOfLinks);
         int i = 0;
 
+        List<Transfer> transfers = new ArrayList<>();
         while (i < nrOfLinks) {
             Dispatch item = Dispatch.get(linkIterator, "Item").toDispatch();
 
@@ -306,6 +308,7 @@ public class Exporter {
         }
 
         Dispatch.put(linkFilter, "UseFilter", false);
+        log.info("finished loading \"Fusswege\".");
         return transfers;
     }
 
@@ -360,7 +363,7 @@ public class Exporter {
             String tSysName = Dispatch.call(item, "AttValue", "Name").toString();
 
             Id<VehicleType> vehicleTypeId = Id.create(tSysCode, VehicleType.class);
-            // TODO we need much more sophisticated values based on reference data
+            // TODO e.g. for "Fernbusse", we need the possibility to set capacity constraint.
             VehicleType vehicleType = this.vehicleBuilder.createVehicleType(vehicleTypeId);
             vehicleType.setDescription(tSysName);
             vehicleType.setDoorOperationMode(VehicleType.DoorOperationMode.serial);
