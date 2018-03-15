@@ -287,6 +287,7 @@ public class Exporter {
         int nrOfLinks = Dispatch.call(links, "CountActive").getInt();
         log.info("Number of Fusswege: " + nrOfLinks);
         int i = 0;
+        int counter = 0;
 
         List<Transfer> transfers = new ArrayList<>();
         while (i < nrOfLinks) {
@@ -294,7 +295,7 @@ public class Exporter {
                 Dispatch.call(linkIterator, "Next");
                 continue;
             }
-            log.info(i);
+
             Dispatch item = Dispatch.get(linkIterator, "Item").toDispatch();
 
             String fromStopAreasStr = Dispatch.call(item, "AttValue", "FROMNODE\\DISTINCT:STOPAREAS\\NO").toString();
@@ -307,6 +308,7 @@ public class Exporter {
                     for (String toStopArea : toStopAreas) {
                         transfers.add(new Transfer((int) Double.parseDouble(fromStopArea), (int) Double.parseDouble(toStopArea),
                                 walkTime));
+                        counter++;
                     }
                 }
             }
@@ -315,7 +317,7 @@ public class Exporter {
         }
 
         Dispatch.put(linkFilter, "UseFilter", false);
-        log.info("finished loading \"Fusswege\".");
+        log.info("finished loading \"Fusswege\". Added " + counter + " Fusswege.");
         return transfers;
     }
 
