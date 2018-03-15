@@ -71,8 +71,6 @@ public class TestFixture {
     EventsManager eventsManager;
 
     TestFixture() {
-
-
         this.config = ConfigUtils.createConfig(new PostProcessingConfigGroup());
         this.config.transit().setUseTransit(true);
         SBBTransitConfigGroup sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBTransitConfigGroup.class);
