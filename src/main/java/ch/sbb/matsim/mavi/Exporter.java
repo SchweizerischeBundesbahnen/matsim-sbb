@@ -99,8 +99,6 @@ public class Exporter {
         loadStopPoints(net);
         if(this.exporterConfig.isExportMTT())
             integrateMinTransferTimes(visum);
-        new TransitScheduleWriter(this.schedule).writeFileV2(new File(outputPath, "transitSchedule_no_lines").getPath());
-
         createVehicleTypes(net);
         loadTransitLines(net);
 
