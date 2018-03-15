@@ -374,7 +374,6 @@ public class Exporter {
             vehicleType.setWidth(2);
             vehicleType.setPcuEquivalents(1);
             vehicleType.setMaximumVelocity(10000);
-
             this.vehicles.addVehicleType(vehicleType);
 
             i++;
