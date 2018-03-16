@@ -106,9 +106,8 @@ public class VisumPuTSurvey {
                             writer.set(COL_FZPROFILNAME, fzp);
 
                             String kennung = "E";
-                            if (i > 1) {
+                            if (i > 1)
                                 kennung = "N";
-                            }
 
                             writer.set(COL_TEILWEG_KENNUNG, kennung);
                             writer.set(COL_EINHSTNR, boarding);
