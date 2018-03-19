@@ -39,8 +39,9 @@ public class VisumPuTSurvey {
     private static final String COL_EINHSTABFAHRTSTAG = "EINHSTABFAHRTSTAG";
     private static final String COL_EINHSTABFAHRTSZEIT = "EINHSTABFAHRTSZEIT";
     private static final String COL_PFAHRT = "PFAHRT";
+    private static final String COL_SUBPOP = "SUBPOP";
     private static final String[] COLUMNS = new String[] { COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
-            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT };
+            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP };
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
@@ -133,6 +134,9 @@ public class VisumPuTSurvey {
 
                             Double pfahrt = 1.0 * scaleFactor;
                             writer.set(COL_PFAHRT, Integer.toString(pfahrt.intValue()));
+
+                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(pax_id,"subpopulation").toString();
+                            writer.set(COL_SUBPOP, subpopulation);
                             writer.writeRow();
                             i++;
                         }
