@@ -199,7 +199,7 @@ public class TestFixture {
 
     private void addRouteAttributes(Id lineId, Id routeId, String name){
         scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("04_DirectionCode", "code");
-        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute( "08_TSysName", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute( "09_TSysCode", "code");
         scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("02_TransitLine", "code");
         scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("03_LineRouteName", "code");
         scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("05_Name", "code");
