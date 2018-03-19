@@ -23,7 +23,7 @@ public class VisumPuTSurveyIntegrationTest {
         EventsToTravelDiaries eventsToTravelDiaries = fixture.eventsToTravelDiaries;
         TransitSchedule transitSchedule = fixture.scenario.getTransitSchedule();
 
-        VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(eventsToTravelDiaries.getChains(), transitSchedule, 10.0);
+        VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(eventsToTravelDiaries.getChains(), fixture.scenario, 10.0);
 
         System.out.println(eventsToTravelDiaries.getChains().get(Id.createPersonId("1")).getJourneys().getFirst().getTrips().size());
 
