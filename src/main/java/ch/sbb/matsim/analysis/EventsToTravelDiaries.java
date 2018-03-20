@@ -97,11 +97,13 @@ public class EventsToTravelDiaries implements
     private boolean isTransitScenario = false;
     private boolean writeVisumPuTSurvey = false;
     private LocateAct locateAct = null;
-    private Config config = null;
+    private Config config;
+    private Scenario scenario;
 
 
     public EventsToTravelDiaries(Scenario scenario, String filename) {
         this.filename = filename;
+        this.scenario = scenario;
 
         this.network = scenario.getNetwork();
         isTransitScenario = scenario.getConfig().transit().isUseTransit();
@@ -590,7 +592,7 @@ public class EventsToTravelDiaries implements
 
         if (this.writeVisumPuTSurvey) {
             Double scaleFactor = 1.0 / this.config.qsim().getFlowCapFactor();
-            VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(this.getChains(), this.transitSchedule, scaleFactor);
+            VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(this.getChains(), this.scenario, scaleFactor);
             visumPuTSurvey.write(this.filename);
         }
 
