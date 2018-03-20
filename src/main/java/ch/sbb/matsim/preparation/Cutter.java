@@ -67,8 +67,8 @@ import java.util.Set;
 
 public class Cutter {
 
-    private static final String ATT_DATENHERKUNFT = "01_Datenherkunft";
-    private static final String VAL_DATENHERKUNFT = "SBB_Simba";
+    private static final String ATT_SIMBA_CH_PERIMETER = "08_SIMBA_CH_Perimeter";
+    private static final int VAL_SIMBA_CH_PERIMETER = 1;
     private static final String ATT_SIMBATEILGEBIETPERIMETER = "10_SIMBA_TG_Perimeter";
 
     private final static Logger log = Logger.getLogger(Cutter.class);
@@ -303,7 +303,8 @@ public class Cutter {
             if (!schedule.getFacilities().containsKey(newStop.getStopFacility().getId())) {
                 schedule.addStopFacility(newStop.getStopFacility());
                 stopsToKeep.add(newStop.getStopFacility().getId());
-                if(inArea(newStop.getStopFacility().getCoord()) && newStop.getStopFacility().getAttributes().getAttribute(ATT_DATENHERKUNFT).toString().equals(VAL_DATENHERKUNFT))
+                if(inArea(newStop.getStopFacility().getCoord()) &&
+                        (int) newStop.getStopFacility().getAttributes().getAttribute(ATT_SIMBA_CH_PERIMETER) == VAL_SIMBA_CH_PERIMETER)
                     newStop.getStopFacility().getAttributes().putAttribute(ATT_SIMBATEILGEBIETPERIMETER, 1);
                 else
                     newStop.getStopFacility().getAttributes().putAttribute(ATT_SIMBATEILGEBIETPERIMETER, 0);
