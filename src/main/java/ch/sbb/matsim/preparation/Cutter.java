@@ -42,13 +42,7 @@ import org.matsim.households.Household;
 import org.matsim.households.Households;
 import org.matsim.households.HouseholdsImpl;
 import org.matsim.pt.routes.ExperimentalTransitRoute;
-import org.matsim.pt.transitSchedule.api.Departure;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 import org.matsim.vehicles.Vehicle;
@@ -72,6 +66,10 @@ import java.util.Set;
 
 
 public class Cutter {
+
+    private static final String ATT_DATENHERKUNFT = "01_Datenherkunft";
+    private static final String VAL_DATENHERKUNFT = "SBB_Simba";
+    private static final String ATT_SIMBATEILGEBIETPERIMETER = "10_SIMBA_TG_Perimeter";
 
     private final static Logger log = Logger.getLogger(Cutter.class);
 
@@ -146,7 +144,7 @@ public class Cutter {
        // cutter.resetPopulation(filteredPopulation);
 
         f = new File(config.transit().getTransitScheduleFile());
-        new TransitScheduleWriter(filteredSchedule).writeFile(output + File.separator + f.getName());
+        new TransitScheduleWriter(filteredSchedule).writeFileV2(output + File.separator + f.getName());
         f = new File(config.transit().getVehiclesFile());
         new VehicleWriterV1(filteredVehicles).writeFile(output+ File.separator+f.getName());
         f = new File(config.network().getInputFile());
@@ -258,19 +256,21 @@ public class Cutter {
 
     private TransitSchedule cutPT() {
         TransitSchedule filteredSchedule = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getTransitSchedule();
-        for (TransitLine transitLine : scenario.getTransitSchedule().getTransitLines().values()) {
+        Set<Id<TransitStopFacility>> stopsToKeep = new HashSet<>();
 
+        for (TransitLine transitLine : scenario.getTransitSchedule().getTransitLines().values()) {
             Set<Id<TransitRoute>> _routes = new HashSet<>();
 
             if(usedTransitRouteIds.containsKey(transitLine.getId())){
                 _routes = usedTransitRouteIds.get(transitLine.getId());
                 log.info(transitLine+": "+_routes);
             }
+
             for (TransitRoute transitRoute : transitLine.getRoutes().values()) {
                 if(_routes.contains(transitRoute.getId())){
                     Id<TransitLine> newLineId = addLine(filteredSchedule, transitLine);
                     filteredSchedule.getTransitLines().get(newLineId).addRoute(transitRoute);
-                    addStopFacilities(filteredSchedule, transitRoute);
+                    addStopFacilities(filteredSchedule, transitRoute, stopsToKeep);
                 }
 
                 else {
@@ -278,20 +278,35 @@ public class Cutter {
                         if (inArea(transitStop.getStopFacility().getCoord())) {
                             Id<TransitLine> newLineId = addLine(filteredSchedule, transitLine);
                             filteredSchedule.getTransitLines().get(newLineId).addRoute(transitRoute);
-                            addStopFacilities(filteredSchedule, transitRoute);
+                            addStopFacilities(filteredSchedule, transitRoute, stopsToKeep);
                             break;
                         }
                     }
                 }
             }
         }
+
+        MinimalTransferTimes unfilteredMTT =  this.scenario.getTransitSchedule().getMinimalTransferTimes();
+        MinimalTransferTimes filteredMTT = filteredSchedule.getMinimalTransferTimes();
+        MinimalTransferTimes.MinimalTransferTimesIterator itr = unfilteredMTT.iterator();
+        while(itr.hasNext()) {
+            itr.next();
+            if(stopsToKeep.contains(itr.getFromStopId()) && stopsToKeep.contains(itr.getToStopId()))
+                filteredMTT.set(itr.getFromStopId(), itr.getToStopId(), itr.getSeconds());
+        }
+
         return filteredSchedule;
     }
 
-    private void addStopFacilities(TransitSchedule schedule, TransitRoute transitRoute) {
+    private void addStopFacilities(TransitSchedule schedule, TransitRoute transitRoute, Set<Id<TransitStopFacility>> stopsToKeep) {
         for (TransitRouteStop newStop : transitRoute.getStops()) {
             if (!schedule.getFacilities().containsKey(newStop.getStopFacility().getId())) {
                 schedule.addStopFacility(newStop.getStopFacility());
+                stopsToKeep.add(newStop.getStopFacility().getId());
+                if(inArea(newStop.getStopFacility().getCoord()) && newStop.getStopFacility().getAttributes().getAttribute(ATT_DATENHERKUNFT).toString().equals(VAL_DATENHERKUNFT))
+                    newStop.getStopFacility().getAttributes().putAttribute(ATT_SIMBATEILGEBIETPERIMETER, 1);
+                else
+                    newStop.getStopFacility().getAttributes().putAttribute(ATT_SIMBATEILGEBIETPERIMETER, 0);
             }
         }
     }
