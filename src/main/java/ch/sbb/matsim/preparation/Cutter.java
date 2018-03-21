@@ -144,7 +144,7 @@ public class Cutter {
        // cutter.resetPopulation(filteredPopulation);
 
         f = new File(config.transit().getTransitScheduleFile());
-        new TransitScheduleWriter(filteredSchedule).writeFileV2(output + File.separator + f.getName());
+        new TransitScheduleWriter(filteredSchedule).writeFile(output + File.separator + f.getName());
         f = new File(config.transit().getVehiclesFile());
         new VehicleWriterV1(filteredVehicles).writeFile(output+ File.separator+f.getName());
         f = new File(config.network().getInputFile());
