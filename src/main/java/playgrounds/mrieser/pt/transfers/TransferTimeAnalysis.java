@@ -224,10 +224,12 @@ public class TransferTimeAnalysis {
         System.setProperty("matsim.preferLocalDtds", "true");
 
 //        String eventsFilename = "D:/devsbb/mrieser/data/mtt_test/withoutMTT/CNB.10pct.2015.output_events.xml.gz";
-        String eventsFilename = "D:/devsbb/mrieser/data/mtt_test/withMTT/CNB.10pct.2015.output_events.xml.gz";
-        String scheduleFilename = "D:/devsbb/mrieser/data/mtt_test/withMTT/CNB.10pct.2015.output_transitSchedule.xml.gz";
+//        String eventsFilename = "D:/devsbb/mrieser/data/mtt_test/0.9.14/CH.10pct.2015.output_events.xml.gz";
+        String eventsFilename = "D:/devsbb/mrieser/data/mtt_test/0.9.15/CH.10pct.2015.output_events.xml.gz";
+        String scheduleFilename = "D:/devsbb/mrieser/data/mtt_test/0.9.14/CH.10pct.2015.output_transitScheduleFIXED.xml";
 //        String analysisFilename = "D:/devsbb/mrieser/data/mtt_test/withoutMTT/transferStatsWITHOUT.txt";
-        String analysisFilename = "D:/devsbb/mrieser/data/mtt_test/withMTT/transferStatsWITH.txt";
+//        String analysisFilename = "D:/devsbb/mrieser/data/mtt_test/0.9.14/transferStats.txt";
+        String analysisFilename = "D:/devsbb/mrieser/data/mtt_test/0.9.15/transferStats.txt";
 
         new TransferTimeAnalysis().run(eventsFilename, scheduleFilename, analysisFilename);
     }
