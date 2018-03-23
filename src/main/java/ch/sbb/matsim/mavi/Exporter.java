@@ -69,13 +69,13 @@ public class Exporter {
     private HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints = new HashMap<>();
 
     public static void main(String[] args) {
-        new Exporter(args[0]);
+        Exporter exp = new Exporter(args[0]);
+        exp.run();
     }
 
     public Exporter(String configFile) {
         Config config = ConfigUtils.loadConfig(configFile, new ExportPTSupplyFromVisumConfigGroup());
         this.exporterConfig = ConfigUtils.addOrGetModule(config, ExportPTSupplyFromVisumConfigGroup.class);
-        run();
     }
 
     public void run() {
