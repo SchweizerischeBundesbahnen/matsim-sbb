@@ -1,4 +1,4 @@
-package ch.sbb.matsim.analysis.VisumPrT;
+package ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.network.Node;

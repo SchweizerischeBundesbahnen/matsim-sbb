@@ -1,9 +1,8 @@
-package ch.sbb.matsim.analysis.VisumPrT;
+package ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import javafx.util.Pair;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.utils.io.UncheckedIOException;
@@ -136,6 +135,12 @@ public class VisumNetwork {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public void write(String folder) {
+        this.writeNodes(folder + "/visum_nodes.net");
+        this.writeLinks(folder + "/visum_links.net");
+        this.writeUserDefinedAttributes(folder + "/visum_userdefined.net");
     }
 
 
