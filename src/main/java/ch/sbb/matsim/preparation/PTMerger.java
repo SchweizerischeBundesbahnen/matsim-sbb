@@ -54,8 +54,7 @@ public class PTMerger {
         new TransitScheduleReader(this.scenario).readFile(config.transit().getTransitScheduleFile());
         new VehicleReaderV1(this.scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
 
-
-        final PtMergerConfigGroup mergerConfig = (PtMergerConfigGroup) config.getModule(PtMergerConfigGroup.GROUP_NAME);
+        final PtMergerConfigGroup mergerConfig = ConfigUtils.addOrGetModule(config, PtMergerConfigGroup.class);
         Config config2 = ConfigUtils.createConfig();
         Scenario scenario2 = ScenarioUtils.createScenario(config2);
         config2.transit().setTransitScheduleFile(mergerConfig.getScheduleFile());

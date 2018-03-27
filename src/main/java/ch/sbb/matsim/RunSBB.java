@@ -46,10 +46,10 @@ public class RunSBB {
 
         Controler controler = new Controler(scenario);
 
-        SBBPopulationSamplerConfigGroup sampleConfig = (SBBPopulationSamplerConfigGroup) scenario.getConfig().getModule(SBBPopulationSamplerConfigGroup.GROUP_NAME);
-        if(sampleConfig.getDoSample()){
+        SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
+        if(samplerConfig.getDoSample()){
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
-            sbbPopulationSampler.sample(scenario.getPopulation(), sampleConfig.getFraction());
+            sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
 
         ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
@@ -79,16 +79,13 @@ public class RunSBB {
             }
         });
 
-
         new AccessEgress(controler).installAccessTime();
 
         controler.run();
     }
 
     public static Config buildConfig(String filepath) {
-        Config config = ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+        return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup());
-
-        return config;
     }
 }

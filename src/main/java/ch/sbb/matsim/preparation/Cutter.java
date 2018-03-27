@@ -42,13 +42,7 @@ import org.matsim.households.Household;
 import org.matsim.households.Households;
 import org.matsim.households.HouseholdsImpl;
 import org.matsim.pt.routes.ExperimentalTransitRoute;
-import org.matsim.pt.transitSchedule.api.Departure;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 import org.matsim.vehicles.Vehicle;
@@ -73,10 +67,14 @@ import java.util.Set;
 
 public class Cutter {
 
+    private static final String ATT_SIMBA_CH_PERIMETER = "08_SIMBA_CH_Perimeter";
+    private static final int VAL_SIMBA_CH_PERIMETER = 1;
+    private static final String ATT_SIMBATEILGEBIETPERIMETER = "10_SIMBA_TG_Perimeter";
+
     private final static Logger log = Logger.getLogger(Cutter.class);
 
-    private Map<Coord, Boolean> coordCache = new HashMap<>();
-    private Map<Id<Person>, Person> filteredAgents = new HashMap<>();
+    private Map<Coord, Boolean> coordCache;
+    private Map<Id<Person>, Person> filteredAgents;
     private Map<Id<TransitLine>, Set<Id<TransitRoute>>> usedTransitRouteIds = new HashMap<>();
     private Coord center;
     private int radius;
@@ -84,17 +82,15 @@ public class Cutter {
     private String popTag;
     private Scenario scenario;
 
-    private boolean useShapeFile = false;
+    private boolean useShapeFile;
     private GeometryFactory geometryFactory = new GeometryFactory();
     Collection<SimpleFeature> features = null;
 
-    private Cutter(Config config) {
+    private Cutter(Config config, CutterConfigGroup cutterConfig) {
         this.coordCache = new HashMap<>();
         this.filteredAgents = new HashMap<>();
 
         this.scenario = ScenarioUtils.createScenario(config);
-
-        final CutterConfigGroup cutterConfig = (CutterConfigGroup) config.getModule(CutterConfigGroup.GROUP_NAME);
 
         useShapeFile = cutterConfig.getUseShapeFile();
         if (useShapeFile) {
@@ -121,16 +117,15 @@ public class Cutter {
     }
 
     public static void main(final String[] args) {
-        final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup(CutterConfigGroup.GROUP_NAME));
-
-        // For 30km around Zurich Center (Bellevue): X - 2683518.0, Y - 1246836.0, radius - 30000
+        final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup());
+        CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, CutterConfigGroup.class);
 
         // load files
-        Cutter cutter = new Cutter(config);
+        Cutter cutter = new Cutter(config, cutterConfig);
         // cut to area
         Population filteredPopulation = cutter.geographicallyFilterPopulation();
 
-        String output = ((CutterConfigGroup) config.getModule(CutterConfigGroup.GROUP_NAME)).getPathToTargetFolder();
+        String output = cutterConfig.getPathToTargetFolder();
         try {
             Files.createDirectories(Paths.get(output));
         } catch (IOException e) {
@@ -261,19 +256,21 @@ public class Cutter {
 
     private TransitSchedule cutPT() {
         TransitSchedule filteredSchedule = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getTransitSchedule();
-        for (TransitLine transitLine : scenario.getTransitSchedule().getTransitLines().values()) {
+        Set<Id<TransitStopFacility>> stopsToKeep = new HashSet<>();
 
+        for (TransitLine transitLine : scenario.getTransitSchedule().getTransitLines().values()) {
             Set<Id<TransitRoute>> _routes = new HashSet<>();
 
             if(usedTransitRouteIds.containsKey(transitLine.getId())){
                 _routes = usedTransitRouteIds.get(transitLine.getId());
                 log.info(transitLine+": "+_routes);
             }
+
             for (TransitRoute transitRoute : transitLine.getRoutes().values()) {
                 if(_routes.contains(transitRoute.getId())){
                     Id<TransitLine> newLineId = addLine(filteredSchedule, transitLine);
                     filteredSchedule.getTransitLines().get(newLineId).addRoute(transitRoute);
-                    addStopFacilities(filteredSchedule, transitRoute);
+                    addStopFacilities(filteredSchedule, transitRoute, stopsToKeep);
                 }
 
                 else {
@@ -281,20 +278,36 @@ public class Cutter {
                         if (inArea(transitStop.getStopFacility().getCoord())) {
                             Id<TransitLine> newLineId = addLine(filteredSchedule, transitLine);
                             filteredSchedule.getTransitLines().get(newLineId).addRoute(transitRoute);
-                            addStopFacilities(filteredSchedule, transitRoute);
+                            addStopFacilities(filteredSchedule, transitRoute, stopsToKeep);
                             break;
                         }
                     }
                 }
             }
         }
+
+        MinimalTransferTimes unfilteredMTT =  this.scenario.getTransitSchedule().getMinimalTransferTimes();
+        MinimalTransferTimes filteredMTT = filteredSchedule.getMinimalTransferTimes();
+        MinimalTransferTimes.MinimalTransferTimesIterator itr = unfilteredMTT.iterator();
+        while(itr.hasNext()) {
+            itr.next();
+            if(stopsToKeep.contains(itr.getFromStopId()) && stopsToKeep.contains(itr.getToStopId()))
+                filteredMTT.set(itr.getFromStopId(), itr.getToStopId(), itr.getSeconds());
+        }
+
         return filteredSchedule;
     }
 
-    private void addStopFacilities(TransitSchedule schedule, TransitRoute transitRoute) {
+    private void addStopFacilities(TransitSchedule schedule, TransitRoute transitRoute, Set<Id<TransitStopFacility>> stopsToKeep) {
         for (TransitRouteStop newStop : transitRoute.getStops()) {
             if (!schedule.getFacilities().containsKey(newStop.getStopFacility().getId())) {
                 schedule.addStopFacility(newStop.getStopFacility());
+                stopsToKeep.add(newStop.getStopFacility().getId());
+                if(inArea(newStop.getStopFacility().getCoord()) &&
+                        (int) newStop.getStopFacility().getAttributes().getAttribute(ATT_SIMBA_CH_PERIMETER) == VAL_SIMBA_CH_PERIMETER)
+                    newStop.getStopFacility().getAttributes().putAttribute(ATT_SIMBATEILGEBIETPERIMETER, 1);
+                else
+                    newStop.getStopFacility().getAttributes().putAttribute(ATT_SIMBATEILGEBIETPERIMETER, 0);
             }
         }
     }
@@ -520,9 +533,8 @@ public class Cutter {
         }
     }
 
-    private static class CutterConfigGroup extends ReflectiveConfigGroup {
-
-        static final String GROUP_NAME = "cutter";
+    public static class CutterConfigGroup extends ReflectiveConfigGroup {
+        public static final String GROUP_NAME = "cutter";
 
         private String commuterTag = "outAct";
         private String popTag = "inAct";
@@ -535,8 +547,8 @@ public class Cutter {
         private boolean useShapeFile = false;
         private String pathToShapeFile = null;
 
-        CutterConfigGroup(String name) {
-            super(name);
+        public CutterConfigGroup() {
+            super(GROUP_NAME);
         }
 
         @StringGetter("commuterTag")
