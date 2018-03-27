@@ -34,7 +34,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     public LinkVolumeToCSV(Scenario scenario, String filename) {
         super(3600, 24 * 3600 - 1, scenario.getNetwork());
         Counts<Link> counts = (Counts<Link>) scenario.getScenarioElement(Counts.ELEMENT_NAME);
-        if (counts != null) {
+        if (counts != null && !counts.getCounts().isEmpty()) { // by default, an empty counts is registered, even if no inputCountsFile was specified
             Set<Id<Link>> linkIds = new HashSet<>(counts.getCounts().keySet());
             super.setLinkFilter(linkIds);
         }
