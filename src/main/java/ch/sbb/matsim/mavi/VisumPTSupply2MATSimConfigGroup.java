@@ -17,9 +17,9 @@ import java.util.Set;
  * @author pmanser / SBB
  */
 
-public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
+public class VisumPTSupply2MATSimConfigGroup extends ReflectiveConfigGroup {
 
-    static public final String GROUP_NAME = "ExportPTSupplyFromVisum";
+    static public final String GROUP_NAME = "VisumPTSupply2MATSimConfigGroup";
 
     static private final String PARAMSET_TIMEPROFILFILTER = "TimeProfileFilter";
     static private final String PARAMSET_STOPATTRIBUTES = "StopAttributes";
@@ -41,7 +41,7 @@ public class ExportPTSupplyFromVisumConfigGroup extends ReflectiveConfigGroup {
     private boolean exportTransferTimes = false;
     private HashSet<String> linesToRoute = new HashSet<>();
 
-    public ExportPTSupplyFromVisumConfigGroup() {
+    public VisumPTSupply2MATSimConfigGroup() {
         super(GROUP_NAME);
     }
 

@@ -12,14 +12,12 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
@@ -27,14 +25,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.*;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
-import org.matsim.vehicles.Vehicle;
-import org.matsim.vehicles.VehicleCapacity;
-import org.matsim.vehicles.VehicleCapacityImpl;
-import org.matsim.vehicles.VehicleType;
-import org.matsim.vehicles.VehicleWriterV1;
-import org.matsim.vehicles.Vehicles;
-import org.matsim.vehicles.VehiclesFactory;
+import org.matsim.vehicles.*;
 
 import java.io.File;
 import java.util.*;
@@ -49,15 +40,15 @@ import java.util.*;
  *
  */
 
-public class Exporter {
+public class VisumPTSupply2MATSim {
 
     private final static String NETWORK_OUT = "transitNetwork.xml.gz";
     private final static String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
     private final static String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
 
-    private final static Logger log = Logger.getLogger(ExportPTSupplyFromVisum.class);;
+    private final static Logger log = Logger.getLogger(VisumPTSupply2MATSim.class);
 
-    private ExportPTSupplyFromVisumConfigGroup exporterConfig;
+    private VisumPTSupply2MATSimConfigGroup exporterConfig;
     private Network network;
     private TransitSchedule schedule;
     private Vehicles vehicles;
@@ -69,13 +60,13 @@ public class Exporter {
     private HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints = new HashMap<>();
 
     public static void main(String[] args) {
-        Exporter exp = new Exporter(args[0]);
+        VisumPTSupply2MATSim exp = new VisumPTSupply2MATSim(args[0]);
         exp.run();
     }
 
-    public Exporter(String configFile) {
-        Config config = ConfigUtils.loadConfig(configFile, new ExportPTSupplyFromVisumConfigGroup());
-        this.exporterConfig = ConfigUtils.addOrGetModule(config, ExportPTSupplyFromVisumConfigGroup.class);
+    public VisumPTSupply2MATSim(String configFile) {
+        Config config = ConfigUtils.loadConfig(configFile, new VisumPTSupply2MATSimConfigGroup());
+        this.exporterConfig = ConfigUtils.addOrGetModule(config, VisumPTSupply2MATSimConfigGroup.class);
     }
 
     public void run() {
@@ -134,7 +125,7 @@ public class Exporter {
 
         this.network = scenario.getNetwork();
         this.schedule = scenario.getTransitSchedule();
-        this.schedule.getAttributes().putAttribute("Info","MOBi.OEV 2.0 (SBB) -> includes minimal transfer times");
+        //this.schedule.getAttributes().putAttribute("Info","MOBi.OEV 2.0 (SBB) -> includes minimal transfer times");
         this.vehicles = scenario.getTransitVehicles();
     }
 
@@ -144,7 +135,7 @@ public class Exporter {
         Dispatch tpFilter = Dispatch.call(filter, "TimeProfileFilter").toDispatch();
         Dispatch.call(tpFilter, "Init");
 
-        for(ExportPTSupplyFromVisumConfigGroup.TimeProfilFilterParams f: this.exporterConfig.getTimeProfilFilterParams().values())
+        for(VisumPTSupply2MATSimConfigGroup.TimeProfilFilterParams f: this.exporterConfig.getTimeProfilFilterParams().values())
             Dispatch.call(tpFilter, "AddCondition", f.getOp(), f.isComplement(), f.getAttribute(), f.getComparator(),
                     f.getVal(), f.getPosition());
 
@@ -210,7 +201,7 @@ public class Exporter {
             st.setLinkId(loopLinkID);
 
             // custom stop attributes as identifiers
-            for(ExportPTSupplyFromVisumConfigGroup.StopAttributeParams params: this.exporterConfig.getStopAttributeParams().values())    {
+            for(VisumPTSupply2MATSimConfigGroup.StopAttributeParams params: this.exporterConfig.getStopAttributeParams().values())    {
                 String name = Dispatch.call(item, "AttValue", params.getAttributeValue()).toString();
                 if(!name.isEmpty() && !name.equals("null"))    {
                     switch ( params.getDataType() ) {
@@ -646,7 +637,7 @@ public class Exporter {
                 route.addDeparture(dep);
 
                 // custom route identifiers
-                for(ExportPTSupplyFromVisumConfigGroup.RouteAttributeParams params: this.exporterConfig.getRouteAttributeParams().values())    {
+                for(VisumPTSupply2MATSimConfigGroup.RouteAttributeParams params: this.exporterConfig.getRouteAttributeParams().values())    {
                     String name = Dispatch.call(item, "AttValue", params.getAttributeValue()).toString();
                     if(!name.isEmpty() && !name.equals("null"))    {
                         switch ( params.getDataType() ) {
