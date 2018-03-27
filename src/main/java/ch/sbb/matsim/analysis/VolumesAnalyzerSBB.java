@@ -31,12 +31,12 @@ public class VolumesAnalyzerSBB implements LinkLeaveEventHandler, VehicleEntersT
 	private final int maxTime;
 	private final int maxSlotIndex;
 	private final Map<Id<Link>, int[]> linksNbVehicles;
+	private Set<Id<Link>> linkFilter = null;
 
 	// for multi-modal support
 	private final boolean observeModes;
 	private final Map<Id<Vehicle>, String> enRouteModes;
 	private final Map<Id<Link>, Map<String, int[]>> linksNbVehiclesPerMode;
-
 
 	public VolumesAnalyzerSBB(final int timeBinSize, final int maxTime, final Network network) {
 		this(timeBinSize, maxTime, network, true);
@@ -58,6 +58,14 @@ public class VolumesAnalyzerSBB implements LinkLeaveEventHandler, VehicleEntersT
 		}
 	}
 
+	public void setLinkFilter(Set<Id<Link>> linkFilter) {
+		this.linkFilter = linkFilter;
+	}
+
+	private boolean useLink(Id<Link> linkId) {
+		if (this.linkFilter == null) return true;
+		return this.linkFilter.contains(linkId);
+	}
 
 	@Override
 	public void handleEvent(VehicleEntersTrafficEvent event) {
@@ -69,6 +77,7 @@ public class VolumesAnalyzerSBB implements LinkLeaveEventHandler, VehicleEntersT
 
 	@Override
 	public void handleEvent(final LinkLeaveEvent event) {
+		if (!useLink(event.getLinkId())) return;
 		int timeslot = getTimeSlotIndex(event.getTime());
 
 		int[] nbVehicles = this.linksNbVehicles.get(event.getLinkId());

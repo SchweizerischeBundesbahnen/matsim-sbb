@@ -16,11 +16,13 @@ import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsUtils;
+import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.mobsim.qsim.*;
 import org.matsim.core.population.routes.LinkNetworkRouteFactory;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.events.handler.EventHandler;
+import org.matsim.counts.Count;
+import org.matsim.counts.Counts;
 import org.matsim.testcases.MatsimTestUtils;
 import org.matsim.testcases.utils.EventsCollector;
 
@@ -35,7 +37,7 @@ public class LinkVolumeToCSVTest {
     public MatsimTestUtils utils = new MatsimTestUtils();
 
     @Test
-    public void test() throws IOException {
+    public void test_allLinks() throws IOException {
 
         TestFixture testFixture = new TestFixture();
         LinkVolumeToCSV linkVolumeToCSV = new LinkVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory());
@@ -56,8 +58,35 @@ public class LinkVolumeToCSVTest {
         }
 
         String data = sb.toString();
-        Assert.assertEquals(expected, data);
+        Assert.assertEquals(expectedFull, data);
+    }
 
+    @Test
+    public void test_withLinkFilter() throws IOException {
+        TestFixture testFixture = new TestFixture();
+        Counts<Link> counts = new Counts<>();
+        Count<Link> count = counts.createAndAddCount(Id.create(3, Link.class), "in the ghetto");
+        count.createVolume(1, 987); // we'll probably only provide daily values in the first hour.
+        testFixture.scenario.addScenarioElement(Counts.ELEMENT_NAME, counts);
+        LinkVolumeToCSV linkVolumeToCSV = new LinkVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory());
+
+        testFixture.addDemand();
+        testFixture.addEvents(linkVolumeToCSV);
+
+        linkVolumeToCSV.closeFile();
+
+        BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv"));
+        StringBuilder sb = new StringBuilder();
+        String line = br.readLine();
+
+        while (line != null) {
+            sb.append(line);
+            sb.append("\n");
+            line = br.readLine();
+        }
+
+        String data = sb.toString();
+        Assert.assertEquals(expectedFiltered, data);
     }
 
     private class TestFixture {
@@ -153,7 +182,7 @@ public class LinkVolumeToCSVTest {
 
     }
 
-    private String expected = "link_id;mode;bin;volume\n" +
+    private String expectedFull = "link_id;mode;bin;volume\n" +
             "2;car;1;0\n" +
             "2;car;2;0\n" +
             "2;car;3;0\n" +
@@ -179,6 +208,33 @@ public class LinkVolumeToCSVTest {
             "2;car;23;0\n" +
             "2;car;24;0\n" +
             "2;car;25;0\n" +
+            "3;car;1;0\n" +
+            "3;car;2;0\n" +
+            "3;car;3;0\n" +
+            "3;car;4;0\n" +
+            "3;car;5;0\n" +
+            "3;car;6;0\n" +
+            "3;car;7;0\n" +
+            "3;car;8;0\n" +
+            "3;car;9;1\n" +
+            "3;car;10;0\n" +
+            "3;car;11;0\n" +
+            "3;car;12;0\n" +
+            "3;car;13;0\n" +
+            "3;car;14;0\n" +
+            "3;car;15;0\n" +
+            "3;car;16;0\n" +
+            "3;car;17;0\n" +
+            "3;car;18;0\n" +
+            "3;car;19;0\n" +
+            "3;car;20;0\n" +
+            "3;car;21;0\n" +
+            "3;car;22;0\n" +
+            "3;car;23;0\n" +
+            "3;car;24;0\n" +
+            "3;car;25;0\n";
+
+    private String expectedFiltered = "link_id;mode;bin;volume\n" +
             "3;car;1;0\n" +
             "3;car;2;0\n" +
             "3;car;3;0\n" +
