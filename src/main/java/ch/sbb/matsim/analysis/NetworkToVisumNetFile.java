@@ -369,21 +369,7 @@ public class NetworkToVisumNetFile {
     }
 
     private void readPassengerVolumeDataPerLink(String pathFile, Network network, Map<Link, Double> nbPassengersPerLink, double scaleFactor) {
-        try (CSVReader reader = new CSVReader(LinkVolumeToCSV.COLUMNS, pathFile, ";")) {
-            reader.readLine(); // header line
-            Map<String, String> aRow;
-            while ((aRow = reader.readLine()) != null) {
-                Link link = network.getLinks().get(Id.create(aRow.get(LinkVolumeToCSV.COL_LINK_ID), Link.class));
-                Double nbPassengersBefore = nbPassengersPerLink.get(link);
-                if (nbPassengersBefore == null) {
-                    nbPassengersPerLink.put(link, scaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_NBPASSENGERS)));
-                } else {
-                    nbPassengersPerLink.put(link, scaleFactor * Double.valueOf(aRow.get(LinkVolumeToCSV.COL_NBPASSENGERS)) + nbPassengersBefore);
-                }
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        // will be replaced by DM
     }
 
     private void readAlightingBoardingDataPerStop(String pathFile,
