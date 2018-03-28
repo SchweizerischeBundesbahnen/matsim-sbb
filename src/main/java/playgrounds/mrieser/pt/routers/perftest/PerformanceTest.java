@@ -12,9 +12,9 @@ import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.Route;
-import org.matsim.contrib.minibus.performance.raptor.Raptor;
-import org.matsim.contrib.minibus.performance.raptor.RaptorDisutility;
-import org.matsim.contrib.minibus.performance.raptor.TransitRouterQuadTree;
+//import org.matsim.contrib.minibus.performance.raptor.Raptor;
+//import org.matsim.contrib.minibus.performance.raptor.RaptorDisutility;
+//import org.matsim.contrib.minibus.performance.raptor.TransitRouterQuadTree;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
@@ -60,7 +60,7 @@ public class PerformanceTest {
 
         TransitRouter[] routers = new TransitRouter[]{
                 getDefaultRouter(scenario.getTransitSchedule()),
-                getMinibusRaptor(scenario.getTransitSchedule())
+//                getMinibusRaptor(scenario.getTransitSchedule())
         };
 
         long[] starts = new long[routers.length];
@@ -96,20 +96,20 @@ public class PerformanceTest {
         return router;
     }
 
-    private static TransitRouter getMinibusRaptor(TransitSchedule schedule) {
-        long start = System.currentTimeMillis();
-        Config config = ConfigUtils.createConfig();
-        TransitRouterConfig ptRouterConfig = new TransitRouterConfig(config);
-        double costPerBoarding = 0;
-        double costPerMeterTraveled = 0;
-        RaptorDisutility disutility = new RaptorDisutility(ptRouterConfig, costPerBoarding, costPerMeterTraveled);
-        TransitRouterQuadTree transitQT = new TransitRouterQuadTree(disutility);
-        transitQT.initializeFromSchedule(schedule, ptRouterConfig.getBeelineWalkConnectionDistance());
-        Raptor raptor = new Raptor(transitQT, disutility, ptRouterConfig);
-        long end = System.currentTimeMillis();
-        System.out.println("Preparing raptor took " + (end - start)/1000.0 + " seconds.");
-        return raptor;
-    }
+//    private static TransitRouter getMinibusRaptor(TransitSchedule schedule) {
+//        long start = System.currentTimeMillis();
+//        Config config = ConfigUtils.createConfig();
+//        TransitRouterConfig ptRouterConfig = new TransitRouterConfig(config);
+//        double costPerBoarding = 0;
+//        double costPerMeterTraveled = 0;
+//        RaptorDisutility disutility = new RaptorDisutility(ptRouterConfig, costPerBoarding, costPerMeterTraveled);
+//        TransitRouterQuadTree transitQT = new TransitRouterQuadTree(disutility);
+//        transitQT.initializeFromSchedule(schedule, ptRouterConfig.getBeelineWalkConnectionDistance());
+//        Raptor raptor = new Raptor(transitQT, disutility, ptRouterConfig);
+//        long end = System.currentTimeMillis();
+//        System.out.println("Preparing raptor took " + (end - start)/1000.0 + " seconds.");
+//        return raptor;
+//    }
 
     private static int testRouter(Population population, int maxPlans, TransitRouter router) throws IOException {
         int planCounter = 0;
