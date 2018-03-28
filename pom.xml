@@ -152,15 +152,15 @@
 		</plugins>
 	</build>
 
-		<distributionManagement>
-			<repository>
-				<id>repo</id>
-				<url>http://repo.sbb.ch/content/repositories/hosted.memop.releases/</url>
-			</repository>
-			<snapshotRepository>
-				<id>repo</id>
-				<url>http://repo.sbb.ch/content/repositories/hosted.memop.snapshots/</url>
-			</snapshotRepository>
-		</distributionManagement>
+	<distributionManagement>
+		<repository>
+			<id>repo</id>
+			<url>http://repo.sbb.ch/content/repositories/hosted.memop.releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>repo</id>
+			<url>http://repo.sbb.ch/content/repositories/hosted.memop.snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 </project>
