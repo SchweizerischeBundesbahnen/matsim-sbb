@@ -4,6 +4,9 @@
 
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.analysis.LinkAnalyser.LinkAnalyser;
+import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
+import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
 import com.google.inject.Inject;
@@ -112,6 +115,16 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         if (ppConfig.getLinkVolumes()) {
             LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(scenario, filename);
             eventWriters.add(linkVolumeWriter);
+        }
+
+        if(ppConfig.getVisumNetFile()){
+            VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, );
+            eventWriters.add(visumNetworkEventWriter);
+        }
+
+        if(ppConfig.getScreenLine()){
+            ScreenLineEventWriter screenLineEventWriter = new ScreenLineEventWriter(scenario, );
+            eventWriters.add(screenLineEventWriter);
         }
 
         return eventWriters;

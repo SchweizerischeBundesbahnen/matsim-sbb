@@ -21,9 +21,11 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsManagerImpl;
 import org.matsim.core.events.MatsimEventsReader;
+import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
 
+import java.io.IOException;
 import java.util.*;
 
 
@@ -31,9 +33,9 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
     private final static Logger log = Logger.getLogger(LinkAnalyser.class);
 
 
-    Scenario scenario;
-    HashMap<Id, Integer> linkVolumes;
-    HashMap<Id<Vehicle>, Integer> passengers;
+    protected Scenario scenario;
+    protected HashMap<Id, Integer> linkVolumes;
+    protected HashMap<Id<Vehicle>, Integer> passengers;
     HashSet<Id> transitDrivers;
 
     public LinkAnalyser(Scenario scenario) {
@@ -44,32 +46,6 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
 
     }
 
-    private void writeVisumNetwork(Integer scale, Integer limit, String mode, String folder) {
-
-        VisumNetwork visumNetwork = new VisumNetwork();
-
-        for (Map.Entry<Id, Integer> entry : this.linkVolumes.entrySet()) {
-
-            final Link link = this.scenario.getNetwork().getLinks().get(entry.getKey());
-            final Integer volume = entry.getValue() * scale;
-            try {
-                if (link.getAllowedModes().contains(mode) && volume > limit) {
-                    VisumLink visumLink = visumNetwork.getOrCreateLink(link);
-                    visumLink.setVolume(volume);
-                }
-            } catch (NullPointerException e) {
-                log.info(e);
-                log.info(link);
-            }
-        }
-
-        visumNetwork.write(folder);
-    }
-
-    public void writeScreenLines(String shapefile, String folder, Integer scale) {
-        ScreenLinesAnalyser sla = new ScreenLinesAnalyser(this.scenario, shapefile);
-        sla.write(folder, this.linkVolumes, scale);
-    }
 
     @Override
     public void handleEvent(TransitDriverStartsEvent event) {
@@ -123,7 +99,11 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
     // Methods
     @Override
     public void reset(int iteration) {
+        this.linkVolumes.clear();
+        this.passengers.clear();
+        this.transitDrivers.clear();
     }
+
 
     public static void main(String[] args) {
         Config config = ConfigUtils.createConfig();
@@ -142,7 +122,5 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
         new MatsimEventsReader(eventsManager).readFile(events);
 
         Integer scale = 10;
-        //vv.writeScreenLines("D:\\tmp\\miv\\screenlines\\screenlines.shp", "D:\\tmp\\miv", scale);
-        vv.writeVisumNetwork(scale, 500, TransportMode.car, "D:\\tmp\\miv");
     }
 }
