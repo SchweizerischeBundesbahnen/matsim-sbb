@@ -28,11 +28,11 @@ public class VisumLink {
 
     private final VisumNode toNode;
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    private final Integer id;
+    private final int id;
 
     public Link getMATSimLink() {
         return link;

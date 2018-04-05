@@ -1,7 +1,7 @@
 package ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import javafx.util.Pair;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Node;
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class VisumNetwork {
-    private HashMap<Pair<Id<Node>, Id<Node>>, VisumLink> links;
+    private HashMap<Tuple<Id<Node>, Id<Node>>, VisumLink> links;
     private HashMap<Id<Node>, VisumNode> nodes;
 
     private static final String HEADER = "$VISION\n" +
@@ -51,7 +51,7 @@ public class VisumNetwork {
     }
 
     public VisumLink getOrCreateLink(Link link) {
-        Pair<Id<Node>, Id<Node>> key = this.getLinkKey(link, false);
+        Tuple<Id<Node>, Id<Node>> key = this.getLinkKey(link, false);
         if (!this.links.containsKey(key)) {
 
             final VisumNode fromNode = this.getNode(link.getFromNode());
@@ -78,7 +78,7 @@ public class VisumNetwork {
         return this.nodes.get(node.getId());
     }
 
-    private Pair<Id<Node>, Id<Node>> getLinkKey(final Link link, final Boolean inverse) {
+    private Tuple<Id<Node>, Id<Node>> getLinkKey(final Link link, final Boolean inverse) {
         final Id fromId;
         final Id toId;
         if (inverse) {
@@ -88,7 +88,7 @@ public class VisumNetwork {
             fromId = link.getFromNode().getId();
             toId = link.getToNode().getId();
         }
-        return new Pair<Id<Node>, Id<Node>>(fromId, toId);
+        return new Tuple<Id<Node>, Id<Node>>(fromId, toId);
     }
 
 
@@ -119,9 +119,9 @@ public class VisumNetwork {
             for (VisumLink link : this.links.values()) {
                 Link matsimLink = link.getMATSimLink();
                 if (matsimLink != null) {
-                    writer.set("$STRECKE:NR", link.getId().toString());
-                    writer.set("VONKNOTNR", link.getFromNode().getId().toString());
-                    writer.set("NACHKNOTNR", link.getToNode().getId().toString());
+                    writer.set("$STRECKE:NR", Integer.toString(link.getId()));
+                    writer.set("VONKNOTNR", Integer.toString(link.getFromNode().getId()));
+                    writer.set("NACHKNOTNR", Integer.toString(link.getToNode().getId()));
                     writer.set("VSYSSET", "P");
                     writer.set("LAENGE", Double.toString(matsimLink.getLength()));
                     writer.set("NBVEHICLES", Double.toString(link.getVolume()));
@@ -147,7 +147,7 @@ public class VisumNetwork {
     public void writeNodes(String filename) {
         try (CSVWriter writer = new CSVWriter(HEADER + "Knoten\n", NODES_COLUMNS, filename)) {
             for (VisumNode node : this.nodes.values()) {
-                writer.set("$KNOTEN:NR", node.getId().toString());
+                writer.set("$KNOTEN:NR", Integer.toString(node.getId()));
                 writer.set("XKOORD", Double.toString(node.getCoord().getX()));
                 writer.set("YKOORD", Double.toString(node.getCoord().getY()));
                 writer.writeRow();

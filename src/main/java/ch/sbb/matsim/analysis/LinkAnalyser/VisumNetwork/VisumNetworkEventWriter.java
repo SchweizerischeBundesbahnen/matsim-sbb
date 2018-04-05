@@ -12,14 +12,14 @@ import java.util.Map;
 public class VisumNetworkEventWriter extends LinkAnalyser implements EventWriter {
 
     double scale;
-    Integer limit;
+    int threshold;
     String mode;
     String folder;
 
-    public VisumNetworkEventWriter(Scenario scenario, double scale, Integer limit, String mode, String folder) {
+    public VisumNetworkEventWriter(Scenario scenario, double scale, int threshold, String mode, String folder) {
         super(scenario);
         this.scale = scale;
-        this.limit = limit;
+        this.threshold = threshold;
         this.mode = mode;
         this.folder = folder;
     }
@@ -27,12 +27,12 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventWriter
     private final static Logger log = Logger.getLogger(VisumNetworkEventWriter.class);
 
     @Override
-    public void closeFile() {
-        this.writeVisumNetwork(this.scale, this.limit, this.mode, this.folder);
+    public void closeFile(){
+        this.writeVisumNetwork(this.scale, this.threshold, this.mode, this.folder);
     }
 
 
-    private void writeVisumNetwork(double scale, Integer limit, String mode, String folder) {
+    private void writeVisumNetwork(double scale, int threshold, String mode, String folder) {
 
         VisumNetwork visumNetwork = new VisumNetwork();
 
@@ -41,7 +41,7 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventWriter
             final Link link = this.scenario.getNetwork().getLinks().get(entry.getKey());
             final double volume = entry.getValue() * scale;
             try {
-                if (link.getAllowedModes().contains(mode) && volume > limit) {
+                if (link.getAllowedModes().contains(mode) && volume > threshold) {
                     VisumLink visumLink = visumNetwork.getOrCreateLink(link);
                     visumLink.setVolume(volume);
                 }

@@ -49,34 +49,26 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
 
     @Override
     public void handleEvent(TransitDriverStartsEvent event) {
-        try {
-            transitDrivers.add(event.getDriverId());
-        } catch (Exception e) {
-            log.error("Exception while handling event " + event.toString(), e);
-        }
+        transitDrivers.add(event.getDriverId());
     }
 
     @Override
     public void handleEvent(PersonLeavesVehicleEvent event) {
         if (!transitDrivers.contains(event.getPersonId())) {
             Id vehId = event.getVehicleId();
-            if (!this.passengers.containsKey(vehId)) {
-                this.passengers.put(vehId, 0);
-            }
             Integer passengers = this.passengers.get(vehId);
-            this.passengers.put(vehId, passengers - 1);
+            this.passengers.put(vehId, passengers == null ? 0 : passengers - 1);
         }
+
     }
 
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
         if (!transitDrivers.contains(event.getPersonId())) {
             Id vehId = event.getVehicleId();
-            if (!this.passengers.containsKey(vehId)) {
-                this.passengers.put(vehId, 0);
-            }
             Integer passengers = this.passengers.get(vehId);
-            this.passengers.put(vehId, passengers + 1);
+
+            this.passengers.put(vehId, passengers == null ? 1 : passengers + 1);
         }
     }
 

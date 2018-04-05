@@ -8,10 +8,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class VisumNode {
     private static final AtomicInteger count = new AtomicInteger(1);
-    private Integer id;
+    private int id;
     private final Node node;
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
