@@ -63,6 +63,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 
 public class Cutter {
@@ -78,8 +79,7 @@ public class Cutter {
     private Map<Id<TransitLine>, Set<Id<TransitRoute>>> usedTransitRouteIds = new HashMap<>();
     private Coord center;
     private int radius;
-    private String commuterTag;
-    private String popTag;
+    private Map<String, Map<String, String>> attributeMap;
     private Scenario scenario;
 
     private boolean useShapeFile;
@@ -112,8 +112,7 @@ public class Cutter {
         new TransitScheduleReader(scenario).readFile(config.transit().getTransitScheduleFile());
         new VehicleReaderV1(scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
 //
-        this.commuterTag = cutterConfig.getCommuterTag();
-        this.popTag = cutterConfig.getPopTag();
+        this.attributeMap = cutterConfig.getAttributeMap();
     }
 
     public static void main(final String[] args) {
@@ -378,9 +377,7 @@ public class Cutter {
         }
         else if (leg.getRoute() instanceof GenericRouteImpl){
         }
-
-        else{
-
+        else {
             NetworkRoute route = (NetworkRoute) leg.getRoute();
             if (route == null){
                 log.info("Population should be routed. I will ignore this leg"+ leg);
@@ -389,6 +386,7 @@ public class Cutter {
                 linkIds = route.getLinkIds();
             }
         }
+
         if(linksInArea(linkIds)){
             intersection = true;
         }
@@ -400,68 +398,71 @@ public class Cutter {
         TransitSchedule transit = scenario.getTransitSchedule();
         Population filteredPopulation = PopulationUtils.createPopulation(ConfigUtils.createConfig());
         Counter counter = new Counter(" person # ");
-        boolean actInArea;
-        boolean actNotInArea;
-        boolean intersection;
+        boolean hasActivitiesInside;
+        boolean hasActivitiesOutside;
+        boolean intersectsPerimeter;
+
         for (Person p : scenario.getPopulation().getPersons().values()) {
             counter.incCounter();
+
             if (p.getSelectedPlan() != null) {
-                actInArea = false;
-                intersection = false;
-                actNotInArea = false;
+                hasActivitiesInside = false;
+                hasActivitiesOutside = false;
+                intersectsPerimeter = false;
+
                 for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
                     if (pe instanceof Activity) {
-
                         Activity act = (Activity) pe;
+
                         if (inArea(act.getCoord())) {
-                            actInArea = true;
+                            hasActivitiesInside = true;
                         } else {
-                            actNotInArea = true;
+                            hasActivitiesOutside = true;
                         }
-                    }
+                    } else if (pe instanceof Leg) {
+                        Leg leg = (Leg) pe;
 
-                    else if (pe instanceof Leg) {
-                        if(((Leg) pe).getRoute() == null){
-                            actInArea = false;
-                            intersection = false;
-                            break;
+                        if (intersects(leg, transit)) {
+                            intersectsPerimeter = true;
                         }
-                        intersection = intersects( (Leg) pe, transit);
                     }
                 }
 
-                if (actInArea) {
-                    filteredPopulation.addPerson(p);
-                    filteredAgents.put(p.getId(), p);
-                } else if (intersection) {
+                if ((hasActivitiesInside) || (intersectsPerimeter)) {
                     filteredPopulation.addPerson(p);
                     filteredAgents.put(p.getId(), p);
                 }
 
-                if (actNotInArea) {
-                    personAttributes.putAttribute(p.getId().toString(), "subpopulation", commuterTag);
-                }
-                else{
-                    personAttributes.putAttribute(p.getId().toString(), "subpopulation", popTag);
-                }
+                if (hasActivitiesOutside) {
+                    for (Map.Entry<String, Map<String, String>> attributeEntry : this.attributeMap.entrySet()) {
+                        String attributeKey = attributeEntry.getKey();
+                        Map<String, String> attributeValues = attributeEntry.getValue();
 
+                        String oldValue = (String) personAttributes.getAttribute(p.getId().toString(), attributeKey);
+                        if ((oldValue != null) && (attributeValues.containsKey(oldValue))) {
+                            personAttributes.removeAttribute(p.getId().toString(), oldValue);
+                            personAttributes.putAttribute(p.getId().toString(), attributeKey, attributeValues.get(oldValue));
+                        }
+                    }
+                }
             }
         }
 
-
-        for(Person p: filteredPopulation.getPersons().values()){
+        for (Person p: filteredPopulation.getPersons().values()) {
             for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
-                     if (pe instanceof Leg) {
-                        Route route = ((Leg) pe).getRoute();
-                        if (route instanceof ExperimentalTransitRoute) {
-                            ExperimentalTransitRoute myRoute = (ExperimentalTransitRoute) route;
-                            if(!usedTransitRouteIds.containsKey(myRoute.getLineId())){
-                                usedTransitRouteIds.put(myRoute.getLineId(), new HashSet<Id<TransitRoute>>());
-                            }
+                if (pe instanceof Leg) {
+                    Route route = ((Leg) pe).getRoute();
 
-                            usedTransitRouteIds.get(myRoute.getLineId()).add(myRoute.getRouteId());
+                    if (route instanceof ExperimentalTransitRoute) {
+                        ExperimentalTransitRoute myRoute = (ExperimentalTransitRoute) route;
+
+                        if(!usedTransitRouteIds.containsKey(myRoute.getLineId())){
+                            usedTransitRouteIds.put(myRoute.getLineId(), new HashSet<Id<TransitRoute>>());
                         }
+
+                        usedTransitRouteIds.get(myRoute.getLineId()).add(myRoute.getRouteId());
                     }
+                }
             }
         }
 
@@ -536,10 +537,10 @@ public class Cutter {
     public static class CutterConfigGroup extends ReflectiveConfigGroup {
         public static final String GROUP_NAME = "cutter";
 
-        private String commuterTag = "outAct";
-        private String popTag = "inAct";
         private String pathToInputScnearioFolder;
         private String pathToTargetFolder = "Cutter";
+
+        private Map<String, Map<String, String>> attributeMap;
 
         private double xCoordCenter = 598720.4;
         private double yCoordCenter = 122475.3;
@@ -549,16 +550,6 @@ public class Cutter {
 
         public CutterConfigGroup() {
             super(GROUP_NAME);
-        }
-
-        @StringGetter("commuterTag")
-        String getCommuterTag() {
-            return commuterTag;
-        }
-
-        @StringSetter("commuterTag")
-        void setCommuterTag(String commuterTag) {
-            this.commuterTag = commuterTag;
         }
 
         @StringGetter("inputScenarioFolder")
@@ -631,14 +622,15 @@ public class Cutter {
             this.pathToShapeFile = pathToShapeFile;
         }
 
-        @StringGetter("popTag")
-        public String getPopTag() {
-            return popTag;
-        }
+        public Map<String, Map<String, String>> getAttributeMap() {
+            Map<String, Map<String, String>> attributeMap = new TreeMap<>();
+            Map<String, String> subpopulationMap = new TreeMap<>();
+            subpopulationMap.put("regular", "cb");
+            subpopulationMap.put("cb", "cb");
+            subpopulationMap.put("freight", "cb");
+            attributeMap.put("subpopulation", subpopulationMap);
 
-        @StringSetter("popTag")
-        void setPopTag(String tag){
-            this.popTag = tag;
+            return attributeMap;
         }
     }
 }
