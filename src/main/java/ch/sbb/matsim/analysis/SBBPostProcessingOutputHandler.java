@@ -4,6 +4,9 @@
 
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.analysis.LinkAnalyser.LinkAnalyser;
+import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
+import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
 import com.google.inject.Inject;
@@ -49,7 +52,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     }
 
     @Override
-    public void notifyStartup(StartupEvent event)   {
+    public void notifyStartup(StartupEvent event) {
         String outputDirectory = this.controlerIO.getOutputFilename("");
 
         if (this.ppConfig.getWriteAgentsCSV() || this.ppConfig.getWritePlanElementsCSV())
@@ -92,19 +95,20 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     }
 
     public static List<EventWriter> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
+        Double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
         List<EventWriter> eventWriters = new LinkedList<>();
 
-        if (ppConfig.getPtVolumes()){
+        if (ppConfig.getPtVolumes()) {
             PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(filename);
             eventWriters.add(ptVolumeWriter);
         }
 
-        if (ppConfig.getTravelDiaries()){
+        if (ppConfig.getTravelDiaries()) {
             EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename);
             eventWriters.add(diariesWriter);
         }
 
-        if (ppConfig.getEventsPerPerson()){
+        if (ppConfig.getEventsPerPerson()) {
             EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(scenario, filename);
             eventWriters.add(eventsPerPersonWriter);
         }
@@ -112,6 +116,17 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         if (ppConfig.getLinkVolumes()) {
             LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(scenario, filename);
             eventWriters.add(linkVolumeWriter);
+        }
+
+        if (ppConfig.getVisumNetFile()) {
+            VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkThreshold(), ppConfig.getVisumNetworkMode(), filename);
+            eventWriters.add(visumNetworkEventWriter);
+        }
+
+        if (ppConfig.getAnalyseScreenline()) {
+
+            ScreenLineEventWriter screenLineEventWriter = new ScreenLineEventWriter(scenario, scaleFactor, ppConfig.getShapefileScreenline(), filename);
+            eventWriters.add(screenLineEventWriter);
         }
 
         return eventWriters;
