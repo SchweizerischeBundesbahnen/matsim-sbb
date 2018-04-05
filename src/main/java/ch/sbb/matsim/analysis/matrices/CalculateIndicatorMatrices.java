@@ -1,0 +1,211 @@
+/*
+ * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
+ */
+
+package ch.sbb.matsim.analysis.matrices;
+
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorParametersForPerson;
+import ch.sbb.matsim.routing.pt.raptor.LeastCostRaptorRouteSelector;
+import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
+import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
+import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Scenario;
+import org.matsim.core.api.experimental.events.EventsManager;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.events.EventsUtils;
+import org.matsim.core.events.MatsimEventsReader;
+import org.matsim.core.network.io.MatsimNetworkReader;
+import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
+import org.matsim.core.router.util.TravelDisutility;
+import org.matsim.core.router.util.TravelTime;
+import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
+import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
+import org.matsim.core.utils.gis.ShapeFileReader;
+import org.matsim.core.utils.misc.Time;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+import org.opengis.feature.simple.SimpleFeature;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * @author mrieser / SBB
+ */
+public class CalculateIndicatorMatrices {
+
+    private static final Logger log = Logger.getLogger(CalculateIndicatorMatrices.class);
+
+    private static final String CAR_TRAVELTIMES_FILENAME = "car_traveltimes.csv";
+    private static final String PT_TRAVELTIMES_FILENAME = "pt_traveltimes.csv";
+    private static final String PT_ACCESSTIMES_FILENAME = "pt_accesstimes.csv";
+    private static final String PT_EGRESSTIMES_FILENAME = "pt_egresstimes.csv";
+    private static final String PT_TRANSFERCOUNTS_FILENAME = "pt_transfercounts.csv";
+
+    public static void main(String[] args) throws IOException {
+        System.setProperty("matsim.preferLocalDtds", "true");
+
+        String zonesShapeFilename = "D:\\devsbb\\mrieser\\data\\npvm_2016\\NPVM_OberBez.shp";
+        String zonesIdAttributeName = "ID";
+//        String zonesShapeFilename = "D:\\devsbb\\mrieser\\data\\geo\\BFS_CH14\\BFS_CH14_Gemeinden.shp";
+//        String zonesIdAttributeName = "GMDNR";
+        String networkFilename = "D:\\devsbb\\mrieser\\data\\raptorPerfTest2\\network.xml.gz";
+        String transitScheduleFilename = "D:\\devsbb\\mrieser\\data\\raptorPerfTest2\\transitSchedule.xml.gz";
+        String eventsFilename = null;
+        String outputDirectory = "D:\\devsbb\\mrieser\\data\\indicators";
+        int numberOfPointsPerZone = 5;
+        double[] times = {
+                Time.parseTime("08:00:00"),
+                Time.parseTime("08:15:00"),
+                Time.parseTime("08:30:00"),
+                Time.parseTime("08:45:00")
+        };
+
+
+        Config config = ConfigUtils.createConfig();
+        Scenario scenario = ScenarioUtils.createScenario(config);
+
+        File outputDir = new File(outputDirectory);
+        if (!outputDir.exists()) {
+            log.info("create output directory " + outputDirectory);
+            outputDir.mkdirs();
+        } else {
+            log.warn("output directory exists already, might overwrite data. " + outputDirectory);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        // load all data
+
+        log.info("loading network from " + networkFilename);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFilename);
+        log.info("loading schedule from " + transitScheduleFilename);
+        new TransitScheduleReader(scenario).readFile(transitScheduleFilename);
+
+        log.info("loading zones from " + zonesShapeFilename);
+        Collection<SimpleFeature> zones = new ShapeFileReader().readFileAndInitialize(zonesShapeFilename);
+        Map<String, SimpleFeature> zonesById = new HashMap<>();
+        for (SimpleFeature zone : zones) {
+            String zoneId = zone.getAttribute(zonesIdAttributeName).toString();
+            zonesById.put(zoneId, zone);
+        }
+
+        TravelTime tt;
+        if (eventsFilename != null) {
+            log.info("extracting actual travel times from " + eventsFilename);
+            TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), config.travelTimeCalculator());
+            EventsManager events =  EventsUtils.createEventsManager();
+            events.addHandler(ttc);
+            new MatsimEventsReader(events).readFile(eventsFilename);
+            tt = ttc.getLinkTravelTimes();
+        } else {
+            tt = new FreeSpeedTravelTime();
+            log.info("No events specified. Travel Times will be calculated with free speed travel times.");
+        }
+
+        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
+
+
+        // calc MIV matrix
+
+        // TODO think about parallization, it would be easy to calculate the different times and modes in different threads and then combine them again
+
+//        log.info("extracting car-only network");
+//        final Network carNetwork = NetworkUtils.createNetwork();
+//        new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(TransportMode.car));
+//
+//        log.info("calc CAR matrix for " + Time.writeTime(times[0]));
+//        FloatMatrix<String> matrix = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[0], numberOfPointsPerZone, tt, td);
+//
+//        for (int i = 1; i < times.length; i++) {
+//            log.info("calc CAR matrix for " + Time.writeTime(times[i]));
+//            FloatMatrix<String> matrix2 = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[i], numberOfPointsPerZone, tt, td);
+//            log.info("merge CAR matrix for " + Time.writeTime(times[i]));
+//            combineMatrices(matrix, matrix2);
+//        }
+//        log.info("re-scale CAR matrix after all data is merged.");
+//        matrix.multiply((float) (1.0 / times.length));
+//
+//        log.info("write CAR matrix to " + outputDirectory);
+//        FloatMatrixIO.writeAsCSV(matrix, outputDirectory + "/" + CAR_TRAVELTIMES_FILENAME);
+
+
+        // calc PT matrices
+        log.info("prepare PT Matrix calculation");
+        RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(config);
+        raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
+        SwissRailRaptorData raptorData = SwissRailRaptorData.create(scenario.getTransitSchedule(), raptorConfig, scenario.getNetwork());
+        RaptorParameters raptorParameters = RaptorUtils.createParameters(config);
+
+        Thread[] threads = new Thread[times.length];
+        Map<Integer, PTTravelTimeMatrix.PtIndicators<String>> results = new ConcurrentHashMap<>();
+        for (int i = 1; i < times.length; i++) {
+            final int ii = i;
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    log.info("calc PT matrices for " + Time.writeTime(times[ii]));
+                    SwissRailRaptor raptor = new SwissRailRaptor(raptorData, new DefaultRaptorParametersForPerson(config), new LeastCostRaptorRouteSelector());
+                    PTTravelTimeMatrix.PtIndicators<String> matrices = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptor, zonesById, times[ii], numberOfPointsPerZone, raptorParameters);
+                    results.put(ii, matrices);
+                }
+            };
+            threads[i] = new Thread(r, "pt indicators " + i);
+            threads[i].start();
+        }
+
+        log.info("calc PT matrices for " + Time.writeTime(times[0]));
+        SwissRailRaptor raptor = new SwissRailRaptor(raptorData, new DefaultRaptorParametersForPerson(config), new LeastCostRaptorRouteSelector());
+        PTTravelTimeMatrix.PtIndicators<String> matrices = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptor, zonesById, times[0], numberOfPointsPerZone, raptorParameters);
+
+        for (int i = 1; i < times.length; i++) {
+            log.info("wait for thread " + i);
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            log.info("merge PT matrices for " + Time.writeTime(times[i]));
+            PTTravelTimeMatrix.PtIndicators<String> matrices2 = results.get(i);
+            combineMatrices(matrices.travelTimeMatrix, matrices2.travelTimeMatrix);
+            combineMatrices(matrices.accessTimeMatrix, matrices2.accessTimeMatrix);
+            combineMatrices(matrices.egressTimeMatrix, matrices2.egressTimeMatrix);
+            combineMatrices(matrices.travelTimeMatrix, matrices2.travelTimeMatrix);
+        }
+
+        log.info("re-scale PT matrices after all data is merged.");
+        matrices.travelTimeMatrix.multiply((float) (1.0 / times.length));
+        matrices.accessTimeMatrix.multiply((float) (1.0 / times.length));
+        matrices.egressTimeMatrix.multiply((float) (1.0 / times.length));
+        matrices.transferCountMatrix.multiply((float) (1.0 / times.length));
+
+        log.info("write PT matrices to " + outputDirectory);
+        FloatMatrixIO.writeAsCSV(matrices.travelTimeMatrix, outputDirectory + "/" + PT_TRAVELTIMES_FILENAME);
+        FloatMatrixIO.writeAsCSV(matrices.accessTimeMatrix, outputDirectory + "/" + PT_ACCESSTIMES_FILENAME);
+        FloatMatrixIO.writeAsCSV(matrices.egressTimeMatrix, outputDirectory + "/" + PT_EGRESSTIMES_FILENAME);
+        FloatMatrixIO.writeAsCSV(matrices.transferCountMatrix, outputDirectory + "/" + PT_TRANSFERCOUNTS_FILENAME);
+    }
+
+    private static <T> void combineMatrices(FloatMatrix<T> matrix1, FloatMatrix<T> matrix2) {
+        Set<T> ids = matrix2.id2index.keySet();
+        for (T fromId : ids) {
+            for (T toId : ids) {
+                float value2 = matrix2.get(fromId, toId);
+                matrix1.add(fromId, toId, value2);
+            }
+        }
+    }
+}
