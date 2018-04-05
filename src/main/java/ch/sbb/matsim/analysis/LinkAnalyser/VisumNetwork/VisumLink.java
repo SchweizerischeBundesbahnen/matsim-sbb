@@ -10,11 +10,11 @@ public class VisumLink {
     private static final AtomicInteger count = new AtomicInteger(1);
 
 
-    public Integer getVolume() {
+    public double getVolume() {
         return volume;
     }
 
-    private Integer volume = 0;
+    private double volume = 0;
 
     public VisumNode getFromNode() {
         return fromNode;
@@ -56,7 +56,7 @@ public class VisumLink {
         this.link = link;
     }
 
-    public void setVolume(Integer volume) {
+    public void setVolume(double volume) {
         this.volume = volume;
     }
 

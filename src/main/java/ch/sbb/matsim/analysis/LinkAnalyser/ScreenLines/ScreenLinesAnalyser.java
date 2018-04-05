@@ -34,17 +34,12 @@ public class ScreenLinesAnalyser {
     }
 
     ArrayList<ScreenLine> screenlines;
-    private final SpatialIndex quadTree = new Quadtree();
-    private ArrayList<String> attributes;
 
     public ScreenLinesAnalyser(Scenario scenario, String shapefile) {
         this.network = scenario.getNetwork();
         this.screenlines = this.readShapeFile(shapefile);
     }
 
-    private void buildQuadTree() {
-
-    }
 
     public ArrayList<ScreenLine> readShapeFile(String shapefile) {
         ArrayList<ScreenLine> screenlines = new ArrayList<>();
@@ -63,7 +58,7 @@ public class ScreenLinesAnalyser {
     }
 
 
-    public void write(String folder, Map<Id, Integer> volumes, Integer scale) {
+    public void write(String folder, Map<Id, Integer> volumes, double scale) {
         final String[] COLUMNS = new String[]{
                 "MATSIMID",
                 "FROM_X",
@@ -79,7 +74,7 @@ public class ScreenLinesAnalyser {
                 i+=1;
                 for (Link link : screenLine.getLinks()) {
 
-                    Integer volume = 0;
+                    double volume = 0;
                     if(volumes.containsKey(link.getId())){
                         volume = volumes.get(link.getId())*scale;
                     }
@@ -89,7 +84,7 @@ public class ScreenLinesAnalyser {
                     writer.set("FROM_Y", Double.toString(link.getFromNode().getCoord().getY()));
                     writer.set("TO_X", Double.toString(link.getToNode().getCoord().getX()));
                     writer.set("TO_Y", Double.toString(link.getToNode().getCoord().getY()));
-                    writer.set("VOLUME", volume.toString());
+                    writer.set("VOLUME", Double.toString(volume));
                     writer.set("SCREENLINE", i.toString());
                     writer.set("MODES", link.getAllowedModes().toString());
                     writer.writeRow();

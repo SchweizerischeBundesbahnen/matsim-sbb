@@ -11,12 +11,12 @@ import java.util.Map;
 
 public class VisumNetworkEventWriter extends LinkAnalyser implements EventWriter {
 
-    Integer scale;
+    double scale;
     Integer limit;
     String mode;
     String folder;
 
-    public VisumNetworkEventWriter(Scenario scenario, Integer scale, Integer limit, String mode, String folder) {
+    public VisumNetworkEventWriter(Scenario scenario, double scale, Integer limit, String mode, String folder) {
         super(scenario);
         this.scale = scale;
         this.limit = limit;
@@ -32,14 +32,14 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventWriter
     }
 
 
-    private void writeVisumNetwork(Integer scale, Integer limit, String mode, String folder) {
+    private void writeVisumNetwork(double scale, Integer limit, String mode, String folder) {
 
         VisumNetwork visumNetwork = new VisumNetwork();
 
         for (Map.Entry<Id, Integer> entry : this.linkVolumes.entrySet()) {
 
             final Link link = this.scenario.getNetwork().getLinks().get(entry.getKey());
-            final Integer volume = entry.getValue() * scale;
+            final double volume = entry.getValue() * scale;
             try {
                 if (link.getAllowedModes().contains(mode) && volume > limit) {
                     VisumLink visumLink = visumNetwork.getOrCreateLink(link);

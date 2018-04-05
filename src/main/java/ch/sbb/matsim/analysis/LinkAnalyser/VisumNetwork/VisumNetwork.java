@@ -124,7 +124,7 @@ public class VisumNetwork {
                     writer.set("NACHKNOTNR", link.getToNode().getId().toString());
                     writer.set("VSYSSET", "P");
                     writer.set("LAENGE", Double.toString(matsimLink.getLength()));
-                    writer.set("NBVEHICLES", link.getVolume().toString());
+                    writer.set("NBVEHICLES", Double.toString(link.getVolume()));
                     writer.set("CAPACITY", Double.toString(matsimLink.getCapacity()));
                     writer.set("FREESPEED", Double.toString(matsimLink.getFreespeed()));
                     writer.set("MATSIMID", matsimLink.getId().toString());

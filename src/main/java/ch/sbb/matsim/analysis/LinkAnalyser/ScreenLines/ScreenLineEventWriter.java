@@ -8,11 +8,11 @@ import org.matsim.core.events.algorithms.EventWriter;
 public class ScreenLineEventWriter extends LinkAnalyser implements EventWriter {
     private final static Logger log = Logger.getLogger(ScreenLineEventWriter.class);
 
-    Integer scale;
+    double scale;
     String shapefilee;
     String folder;
 
-    public ScreenLineEventWriter(Scenario scenario, Integer scale, String shapefile, String folder) {
+    public ScreenLineEventWriter(Scenario scenario, double scale, String shapefile, String folder) {
         super(scenario);
         this.scale = scale;
         this.shapefilee = shapefile;
@@ -26,7 +26,7 @@ public class ScreenLineEventWriter extends LinkAnalyser implements EventWriter {
     }
 
 
-    public void writeScreenLines(String shapefile, String folder, Integer scale) {
+    public void writeScreenLines(String shapefile, String folder, double scale) {
         ScreenLinesAnalyser sla = new ScreenLinesAnalyser(this.scenario, shapefile);
         sla.write(folder, this.linkVolumes, scale);
     }

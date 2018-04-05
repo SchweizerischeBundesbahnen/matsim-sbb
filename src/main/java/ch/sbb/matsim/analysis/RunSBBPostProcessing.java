@@ -49,8 +49,5 @@ public class RunSBBPostProcessing {
             new PopulationToCSV(scenario).write(outputPath);
         }
 
-        if (ppConfig.getVisumNetFile()) {
-            new NetworkToVisumNetFile(scenario, ppConfig).write(outputPath);
-        }
     }
 }
