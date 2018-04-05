@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.analysis.LinkAnalyser.LinkAnalyser;
 import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
@@ -83,15 +82,6 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         }
 
         this.eventWriters.clear();
-
-        if (event.getIteration() == this.config.getLastIteration()) {
-            // write final outputs
-            String outputDirectory = this.controlerIO.getOutputFilename("");
-
-            if (this.ppConfig.getVisumNetFile()) {
-                new NetworkToVisumNetFile(scenario, ppConfig).write(outputDirectory);
-            }
-        }
     }
 
     public static List<EventWriter> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
