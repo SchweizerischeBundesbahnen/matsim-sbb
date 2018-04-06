@@ -95,6 +95,7 @@ public class Cutter {
         this.filteredAgents = new HashMap<>();
 
         if (cutterConfig.getUseShapeFile()) {
+            this.useShapeFile = true;
             ShapeFileReader shapeFileReader = new ShapeFileReader();
             shapeFileReader.readFileAndInitialize(cutterConfig.getPathToShapeFile());
             this.features = shapeFileReader.getFeatureSet();
@@ -194,7 +195,7 @@ public class Cutter {
             if (linksToKeep.contains(link.getId())) addLink(carNetworkToKeep, link);
             else if (link.getAllowedModes().contains("car") && (link.getCapacity() >= 10000)) addLink(carNetworkToKeep, link);
             else {
-                if (useShapeFile) {
+                if (this.useShapeFile) {
                     Point point = geometryFactory.createPoint( new Coordinate(link.getCoord().getX(), link.getCoord().getY()));
                     for (SimpleFeature feature : features) {
                         MultiPolygon p = (MultiPolygon) feature.getDefaultGeometry();
@@ -525,7 +526,7 @@ public class Cutter {
             return coordCache.get(coord);
         } else {
             boolean coordIsInArea = false;
-            if (useShapeFile) {
+            if (this.useShapeFile) {
                 for (SimpleFeature feature : features) {
                     MultiPolygon p = (MultiPolygon) feature.getDefaultGeometry();
                     Point point = geometryFactory.createPoint( new Coordinate(coord.getX(), coord.getY()));
