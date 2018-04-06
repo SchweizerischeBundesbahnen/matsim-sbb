@@ -86,22 +86,28 @@ public class Cutter {
     private GeometryFactory geometryFactory = new GeometryFactory();
     Collection<SimpleFeature> features = null;
 
-    private Cutter(Config config, CutterConfigGroup cutterConfig) {
+    Cutter(Config config, CutterConfigGroup cutterConfig, Scenario scenario) {
+        this.scenario = scenario;
         this.coordCache = new HashMap<>();
         this.filteredAgents = new HashMap<>();
 
-        this.scenario = ScenarioUtils.createScenario(config);
-
-        useShapeFile = cutterConfig.getUseShapeFile();
-        if (useShapeFile) {
+        if (cutterConfig.getUseShapeFile()) {
             ShapeFileReader shapeFileReader = new ShapeFileReader();
             shapeFileReader.readFileAndInitialize(cutterConfig.getPathToShapeFile());
             this.features = shapeFileReader.getFeatureSet();
-        }
-        else {
+        } else {
             this.center = new Coord(cutterConfig.getxCoordCenter(), cutterConfig.getyCoordCenter());
             this.radius = cutterConfig.getRadius();
         }
+
+        this.attributeMap = cutterConfig.getAttributeMap();
+    }
+
+    public static void main(final String[] args) {
+        final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup());
+        CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, CutterConfigGroup.class);
+
+        Scenario scenario = ScenarioUtils.createScenario(config);
 
         new PopulationReader(scenario).readFile(config.plans().getInputFile());
 //        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).parse(config.plans().getInputPersonAttributeFile());
@@ -111,18 +117,12 @@ public class Cutter {
         new NetworkReaderMatsimV1(scenario.getNetwork()).readFile(config.network().getInputFile());
         new TransitScheduleReader(scenario).readFile(config.transit().getTransitScheduleFile());
         new VehicleReaderV1(scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
-//
-        this.attributeMap = cutterConfig.getAttributeMap();
-    }
-
-    public static void main(final String[] args) {
-        final Config config = ConfigUtils.loadConfig(args[0], new CutterConfigGroup());
-        CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, CutterConfigGroup.class);
 
         // load files
-        Cutter cutter = new Cutter(config, cutterConfig);
+        Cutter cutter = new Cutter(config, cutterConfig, scenario);
+
         // cut to area
-        Population filteredPopulation = cutter.geographicallyFilterPopulation();
+        Population filteredPopulation = cutter.geographicallyFilterPopulation(cutter.scenario.getPopulation(), cutter.scenario.getTransitSchedule());
 
         String output = cutterConfig.getPathToTargetFolder();
         try {
@@ -393,16 +393,15 @@ public class Cutter {
         return intersection;
     }
 
-    private Population geographicallyFilterPopulation() {
-        ObjectAttributes personAttributes = scenario.getPopulation().getPersonAttributes();
-        TransitSchedule transit = scenario.getTransitSchedule();
+    Population geographicallyFilterPopulation(Population population, TransitSchedule transitSchedule) {
+        ObjectAttributes personAttributes = population.getPersonAttributes();
         Population filteredPopulation = PopulationUtils.createPopulation(ConfigUtils.createConfig());
         Counter counter = new Counter(" person # ");
         boolean hasActivitiesInside;
         boolean hasActivitiesOutside;
         boolean intersectsPerimeter;
 
-        for (Person p : scenario.getPopulation().getPersons().values()) {
+        for (Person p : population.getPersons().values()) {
             counter.incCounter();
 
             if (p.getSelectedPlan() != null) {
@@ -414,7 +413,7 @@ public class Cutter {
                     if (pe instanceof Activity) {
                         Activity act = (Activity) pe;
 
-                        if (inArea(act.getCoord())) {
+                        if (this.inArea(act.getCoord())) {
                             hasActivitiesInside = true;
                         } else {
                             hasActivitiesOutside = true;
@@ -430,7 +429,7 @@ public class Cutter {
 
                 if ((hasActivitiesInside) || (intersectsPerimeter)) {
                     filteredPopulation.addPerson(p);
-                    filteredAgents.put(p.getId(), p);
+                    this.filteredAgents.put(p.getId(), p);
                 }
 
                 if (hasActivitiesOutside) {

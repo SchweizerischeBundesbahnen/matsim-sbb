@@ -4,15 +4,36 @@
 
 package ch.sbb.matsim.preparation;
 
-import org.apache.log4j.Logger;
-import org.junit.Rule;
-import org.matsim.testcases.MatsimTestUtils;
+import org.junit.Assert;
+import org.junit.Test;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
 
 public class CutterTest {
-    @Rule
-    public MatsimTestUtils utils = new MatsimTestUtils();
+    @Test
+    public void testGeographicallyFilterPopulation() {
+        CutterFixture fixture = new CutterFixture();
+        fixture.init();
 
-    private static final Logger log = Logger.getLogger(CleanerTest.class);
+        final Config config = fixture.scenario.getConfig();
+        Cutter.CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(config, Cutter.CutterConfigGroup.class);
 
+        Cutter cutter = new Cutter(config, cutterConfig, fixture.scenario);
 
+        Population filteredPopulation = cutter.geographicallyFilterPopulation(fixture.scenario.getPopulation(), fixture.scenario.getTransitSchedule());
+
+        Assert.assertTrue(filteredPopulation.getPersons().keySet().contains(Id.createPersonId("agent_001")));
+        Assert.assertEquals("inAct", (String) fixture.scenario.getPopulation().getPersonAttributes().getAttribute("agent_001", "subpopulation"));
+        Assert.assertTrue(filteredPopulation.getPersons().keySet().contains(Id.createPersonId("agent_002")));
+        Assert.assertEquals("outAct", (String) fixture.scenario.getPopulation().getPersonAttributes().getAttribute("agent_002", "subpopulation"));
+        Assert.assertTrue(filteredPopulation.getPersons().keySet().contains(Id.createPersonId("agent_003")));
+        Assert.assertEquals("inAct", (String) fixture.scenario.getPopulation().getPersonAttributes().getAttribute("agent_003", "subpopulation"));
+        Assert.assertFalse(filteredPopulation.getPersons().keySet().contains(Id.createPersonId("agent_004")));
+        Assert.assertTrue(filteredPopulation.getPersons().keySet().contains(Id.createPersonId("agent_005")));
+        Assert.assertEquals("outAct", (String) fixture.scenario.getPopulation().getPersonAttributes().getAttribute("agent_005", "subpopulation"));
+        Assert.assertTrue(filteredPopulation.getPersons().keySet().contains(Id.createPersonId("agent_006")));
+        Assert.assertEquals("outAct", (String) fixture.scenario.getPopulation().getPersonAttributes().getAttribute("agent_006", "subpopulation"));
+    }
 }

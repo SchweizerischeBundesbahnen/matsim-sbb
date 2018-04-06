@@ -5,11 +5,20 @@
 package ch.sbb.matsim.config;
 
 
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.ReflectiveConfigGroup;
+
+import java.util.Map;
 
 public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
     static public final String GROUP_NAME = "PostProcessing";
+
+    static private final String PARAM_ANALYSE_SCREENLINE = "analyseScreenline";
+    static private final String PARAM_SHAPEFILE_SCREENLINE = "shapefileScreenline";
+    static private final String PARAM_THRESHOLD_VISUM_NETWORK = "visumNetworkThreshold";
+    static private final String PARAM_MODE_VISUM_NETWORK = "visumNetworkMode";
+
 
     private String shapeFile = "./output_merger";
     private String zoneAttribute = "GMDNR";
@@ -22,10 +31,59 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private int writeOutputsInterval = 10;
     private Boolean writeAgentsCSV = false;
     private Boolean writePlanElementsCSV = false;
-    private Boolean visumNetFile = false;
     private String linkCountDataFile = null;
     private String stopCountDataFile = null;
     private Boolean writeVisumPuTSurvey = false;
+
+    private Boolean analyseScreenline = false;
+    private String shapefileScreenline = null;
+
+    private Boolean visumNetFile = false;
+    private Integer visumNetworkThreshold = 5000;
+    private String visumNetworkMode = TransportMode.car;
+
+
+    @StringGetter(PARAM_SHAPEFILE_SCREENLINE)
+    public String getShapefileScreenline() {
+        return shapefileScreenline;
+    }
+
+    @StringSetter(PARAM_SHAPEFILE_SCREENLINE)
+    public void setShapefileScreenline(String shapefileScreenline) {
+        this.shapefileScreenline = shapefileScreenline;
+    }
+
+    @StringGetter(PARAM_THRESHOLD_VISUM_NETWORK)
+    public Integer getVisumNetworkThreshold() {
+        return visumNetworkThreshold;
+    }
+
+    @StringSetter(PARAM_THRESHOLD_VISUM_NETWORK)
+    public void setVisumNetworkThreshold(Integer visumNetworkThreshold) {
+        this.visumNetworkThreshold = visumNetworkThreshold;
+    }
+
+    @StringGetter(PARAM_MODE_VISUM_NETWORK)
+    public String getVisumNetworkMode() {
+        return visumNetworkMode;
+    }
+
+    @StringSetter(PARAM_MODE_VISUM_NETWORK)
+    public void setVisumNetworkMode(String visumNetworkMode) {
+        this.visumNetworkMode = visumNetworkMode;
+    }
+
+
+    @StringGetter(PARAM_ANALYSE_SCREENLINE)
+    public Boolean getAnalyseScreenline() {
+        return analyseScreenline;
+    }
+
+    @StringSetter(PARAM_ANALYSE_SCREENLINE)
+    public void setAnalyseScreenline(Boolean write) {
+        this.analyseScreenline = write;
+    }
+
 
     @StringGetter("writeVisumPuTSurvey")
     public Boolean getWriteVisumPuTSurvey() {
@@ -38,10 +96,14 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     }
 
     @StringGetter("writeOutputsInterval")
-    public int getWriteOutputsInterval() { return this.writeOutputsInterval; }
+    public int getWriteOutputsInterval() {
+        return this.writeOutputsInterval;
+    }
 
     @StringSetter("writeOutputsInterval")
-    public void setWriteOutputsInterval(final int writeOutputsInterval) { this.writeOutputsInterval = writeOutputsInterval; }
+    public void setWriteOutputsInterval(final int writeOutputsInterval) {
+        this.writeOutputsInterval = writeOutputsInterval;
+    }
 
     @StringGetter("writeAgentsCSV")
     public Boolean getWriteAgentsCSV() {
@@ -177,6 +239,16 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     @StringSetter("mapActivitiesToZone")
     public void setMapActivitiesToZone(Boolean mapActivitiesToZone) {
         this.mapActivitiesToZone = mapActivitiesToZone;
+    }
+
+    @Override
+    public Map<String, String> getComments() {
+        Map<String, String> comments = super.getComments();
+        comments.put(PARAM_ANALYSE_SCREENLINE, "Run Screenline Analysis");
+        comments.put(PARAM_SHAPEFILE_SCREENLINE, "Shapefile for screenline. Contains polylines");
+        comments.put(PARAM_MODE_VISUM_NETWORK, "Mode to consider to export Network with volume to Visum (*.net File");
+        comments.put(PARAM_THRESHOLD_VISUM_NETWORK, "Links with volume > THRESHOLD are exported to Visum (*.net File). Links with less traffic are ignored");
+        return comments;
     }
 
 }
