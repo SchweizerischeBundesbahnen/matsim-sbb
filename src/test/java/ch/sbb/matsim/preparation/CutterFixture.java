@@ -153,6 +153,7 @@ public class CutterFixture {
         this.persons[0] = agent001;
 
         this.population.addPerson(agent001);
+        this.population.getPersonAttributes().putAttribute(agent001.getId().toString(), "subpopulation", "regular");
 
         // agent 2 starts on the inside and works on the outside
         Person agent002 = this.population.getFactory().createPerson(Id.createPersonId("agent_002"));
@@ -194,6 +195,7 @@ public class CutterFixture {
         this.persons[1] = agent002;
 
         this.population.addPerson(agent002);
+        this.population.getPersonAttributes().putAttribute(agent002.getId().toString(), "subpopulation", "regular");
 
         // agent 3 has all actvities on the inside, but crosses the border twice
         Person agent003 = this.population.getFactory().createPerson(Id.createPersonId("agent_003"));
@@ -235,6 +237,7 @@ public class CutterFixture {
         this.persons[2] = agent003;
 
         this.population.addPerson(agent003);
+        this.population.getPersonAttributes().putAttribute(agent003.getId().toString(), "subpopulation", "regular");
 
         // agent 4 has all activities and legs on the outside
         Person agent004 = this.population.getFactory().createPerson(Id.createPersonId("agent_004"));
@@ -276,6 +279,7 @@ public class CutterFixture {
         this.persons[3] = agent004;
 
         this.population.addPerson(agent004);
+        this.population.getPersonAttributes().putAttribute(agent004.getId().toString(), "subpopulation", "regular");
 
         // agent 5 has all actvities on the outside, but crosses the border twice
         Person agent005 = this.population.getFactory().createPerson(Id.createPersonId("agent_005"));
@@ -317,6 +321,7 @@ public class CutterFixture {
         this.persons[4] = agent005;
 
         this.population.addPerson(agent005);
+        this.population.getPersonAttributes().putAttribute(agent005.getId().toString(), "subpopulation", "regular");
 
         // agent 6 has all actvities on the outside, crosses the border twice, but not on his last leg
         Person agent006 = this.population.getFactory().createPerson(Id.createPersonId("agent_006"));
@@ -358,5 +363,6 @@ public class CutterFixture {
         this.persons[5] = agent006;
 
         this.population.addPerson(agent006);
+        this.population.getPersonAttributes().putAttribute(agent006.getId().toString(), "subpopulation", "regular");
     }
 }

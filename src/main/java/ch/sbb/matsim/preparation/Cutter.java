@@ -44,6 +44,7 @@ import org.matsim.households.HouseholdsImpl;
 import org.matsim.pt.routes.ExperimentalTransitRoute;
 import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.ObjectAttributes;
+import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleReaderV1;
@@ -110,7 +111,7 @@ public class Cutter {
         Scenario scenario = ScenarioUtils.createScenario(config);
 
         new PopulationReader(scenario).readFile(config.plans().getInputFile());
-//        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).parse(config.plans().getInputPersonAttributeFile());
+        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(config.plans().getInputPersonAttributeFile());
 //        new HouseholdsReaderV10(scenario.getHouseholds()).readFile(config.households().getInputFile());
 //        new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes()).parse(config.households().getInputHouseholdAttributesFile());
 //        new FacilitiesReaderMatsimV1(scenario).readFile(config.facilities().getInputFile());
@@ -420,6 +421,10 @@ public class Cutter {
                         }
                     } else if (pe instanceof Leg) {
                         Leg leg = (Leg) pe;
+
+                        if (leg.getRoute() == null) {
+                            continue;
+                        }
 
                         if (intersects(leg, transitSchedule)) {
                             intersectsPerimeter = true;
