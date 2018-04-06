@@ -27,6 +27,7 @@ import org.matsim.core.config.ReflectiveConfigGroup;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.NetworkReaderMatsimV1;
 import org.matsim.core.network.io.NetworkWriter;
+import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
@@ -65,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 
 public class Cutter {
@@ -123,7 +125,7 @@ public class Cutter {
         Cutter cutter = new Cutter(config, cutterConfig, scenario);
 
         // cut to area
-        Population filteredPopulation = cutter.geographicallyFilterPopulation(cutter.scenario.getPopulation(), cutter.scenario.getTransitSchedule());
+        cutter.geographicallyFilterPopulation();
 
         String output = cutterConfig.getPathToTargetFolder();
         try {
@@ -133,14 +135,14 @@ public class Cutter {
         }
 
         File f = new File(config.plans().getInputFile());
-        new PopulationWriter(filteredPopulation).write(output + File.separator+f.getName());
+        new PopulationWriter(scenario.getPopulation()).write(output + File.separator + f.getName());
 
-       // Households filteredHouseholds = cutter.filterHouseholdsWithPopulation();
-       // ActivityFacilities filteredFacilities = cutter.filterFacilitiesWithPopulation();
+//        Households filteredHouseholds = cutter.filterHouseholdsWithPopulation();
+//        ActivityFacilities filteredFacilities = cutter.filterFacilitiesWithPopulation();
         TransitSchedule filteredSchedule = cutter.cutPT();
         Vehicles filteredVehicles = cutter.cleanVehicles(filteredSchedule);
-       Network filteredOnlyCarNetwork = cutter.getOnlyCarNetwork(filteredPopulation);
-       Network filteredNetwork = cutter.cutNetwork(filteredSchedule, filteredOnlyCarNetwork);
+        Network filteredOnlyCarNetwork = cutter.getOnlyCarNetwork();
+        Network filteredNetwork = cutter.cutNetwork(filteredSchedule, filteredOnlyCarNetwork);
        // cutter.resetPopulation(filteredPopulation);
 
         f = new File(config.transit().getTransitScheduleFile());
@@ -150,7 +152,7 @@ public class Cutter {
         f = new File(config.network().getInputFile());
         new NetworkWriter(filteredNetwork).write(output+ File.separator+f.getName());
         f = new File(config.plans().getInputPersonAttributeFile());
-        new ObjectAttributesXmlWriter(cutter.scenario.getPopulation().getPersonAttributes()).writeFile( output+ File.separator+f.getName());
+        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile( output + File.separator + f.getName());
 
        // // write new files
        // //F2LCreator.createF2L(filteredFacilities, filteredOnlyCarNetwork, cutterConfig.getPathToTargetFolder() + File.separator + FACILITIES2LINKS);
@@ -161,9 +163,9 @@ public class Cutter {
     }
 
 
-    private Network getOnlyCarNetwork(Population population) {
+    private Network getOnlyCarNetwork() {
         Set<Id<Link>> linksToKeep = new HashSet<>();
-        for(Person p: population.getPersons().values()){
+        for (Person p: this.scenario.getPopulation().getPersons().values()) {
             for(PlanElement pe: p.getSelectedPlan().getPlanElements()){
                 if (pe instanceof Leg) {
                     Leg leg = (Leg) pe;
@@ -394,9 +396,9 @@ public class Cutter {
         return intersection;
     }
 
-    Population geographicallyFilterPopulation(Population population, TransitSchedule transitSchedule) {
-        ObjectAttributes personAttributes = population.getPersonAttributes();
-        Population filteredPopulation = PopulationUtils.createPopulation(ConfigUtils.createConfig());
+    void geographicallyFilterPopulation() {
+        Population population = this.scenario.getPopulation();
+        Set<Id<Person>> remove = new TreeSet<>();
         Counter counter = new Counter(" person # ");
         boolean hasActivitiesInside;
         boolean hasActivitiesOutside;
@@ -426,33 +428,35 @@ public class Cutter {
                             continue;
                         }
 
-                        if (intersects(leg, transitSchedule)) {
+                        if (intersects(leg, this.scenario.getTransitSchedule())) {
                             intersectsPerimeter = true;
                         }
                     }
                 }
 
-                if ((hasActivitiesInside) || (intersectsPerimeter)) {
-                    filteredPopulation.addPerson(p);
-                    this.filteredAgents.put(p.getId(), p);
-                }
-
-                if (hasActivitiesOutside) {
+                if ((hasActivitiesInside == false) && (intersectsPerimeter == false)) {
+                    remove.add(p.getId());
+                } else if (hasActivitiesOutside) {
                     for (Map.Entry<String, Map<String, String>> attributeEntry : this.attributeMap.entrySet()) {
                         String attributeKey = attributeEntry.getKey();
                         Map<String, String> attributeValues = attributeEntry.getValue();
 
-                        String oldValue = (String) personAttributes.getAttribute(p.getId().toString(), attributeKey);
+                        String oldValue = (String) population.getPersonAttributes().getAttribute(p.getId().toString(), attributeKey);
                         if ((oldValue != null) && (attributeValues.containsKey(oldValue))) {
-                            personAttributes.removeAttribute(p.getId().toString(), oldValue);
-                            personAttributes.putAttribute(p.getId().toString(), attributeKey, attributeValues.get(oldValue));
+                            population.getPersonAttributes().removeAttribute(p.getId().toString(), oldValue);
+                            population.getPersonAttributes().putAttribute(p.getId().toString(), attributeKey, attributeValues.get(oldValue));
                         }
                     }
                 }
             }
         }
 
-        for (Person p: filteredPopulation.getPersons().values()) {
+        for (Id<Person> removePersonId : remove) {
+            population.removePerson(removePersonId);
+            population.getPersonAttributes().removeAllAttributes(removePersonId.toString());
+        }
+
+        for (Person p: population.getPersons().values()) {
             for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
                 if (pe instanceof Leg) {
                     Route route = ((Leg) pe).getRoute();
@@ -470,8 +474,7 @@ public class Cutter {
             }
         }
 
-        log.info("filtered population:" + filteredPopulation.getPersons().size());
-        return filteredPopulation;
+        log.info("filtered population:" + population.getPersons().size());
     }
 
 
@@ -631,7 +634,7 @@ public class Cutter {
             Map<String, String> subpopulationMap = new TreeMap<>();
             subpopulationMap.put("regular", "cb");
             subpopulationMap.put("cb", "cb");
-            subpopulationMap.put("freight", "cb");
+            subpopulationMap.put("freight", "cb_freight");
             attributeMap.put("subpopulation", subpopulationMap);
 
             return attributeMap;
