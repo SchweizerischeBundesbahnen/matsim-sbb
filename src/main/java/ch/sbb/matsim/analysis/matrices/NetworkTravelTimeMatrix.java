@@ -11,12 +11,15 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.utils.misc.Counter;
+import org.matsim.core.utils.misc.Time;
 import org.matsim.utils.leastcostpathtree.LeastCostPathTree;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Calculates a zone-to-zone travel time matrix based on network routing.
@@ -38,7 +41,7 @@ public final class NetworkTravelTimeMatrix {
     private NetworkTravelTimeMatrix() {
     }
 
-    public static <T> FloatMatrix<T> calculateTravelTimeMatrix(Network network, Map<T, SimpleFeature> zones, double departureTime, int numberOfPointsPerZone, TravelTime travelTime, TravelDisutility travelDisutility) {
+    public static <T> FloatMatrix<T> calculateTravelTimeMatrix(Network network, Map<T, SimpleFeature> zones, double departureTime, int numberOfPointsPerZone, TravelTime travelTime, TravelDisutility travelDisutility, int numberOfThreads) {
         Random r = new Random(20180404L);
 
         Map<T, Node[]> nodesPerZone = new HashMap<>();
@@ -63,38 +66,88 @@ public final class NetworkTravelTimeMatrix {
         float avgFactor = (float) (1.0 / numberOfPointsPerZone / numberOfPointsPerZone);
 
         // do calculation
-        Counter cnter = new Counter("origin ", " / " + zones.size());
-        for (T fromZoneId : zones.keySet()) {
-            cnter.incCounter();
-            Node[] fromNodes = nodesPerZone.get(fromZoneId);
-            if (fromNodes != null) {
-                for (Node fromNode : fromNodes) {
-                    lcpTree.calculate(network, fromNode, departureTime);
+        ConcurrentLinkedQueue<T> originZones = new ConcurrentLinkedQueue<>(zones.keySet());
 
-                    for (T toZoneId : zones.keySet()) {
-                        Node[] toNodes = nodesPerZone.get(toZoneId);
-                        if (toNodes != null) {
-                            for (Node toNode : toNodes) {
-                                double tt = lcpTree.getTree().get(toNode.getId()).getTime() - departureTime;
-                                travelTimeMatrix.add(fromZoneId, toZoneId, (float) tt);
-                            }
-                        } else {
-                            // this might happen if a zone has no geometry, for whatever reason...
-                            travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                        }
-                    }
-                }
-            } else {
-                // this might happen if a zone has no geometry, for whatever reason...
-                for (T toZoneId : zones.keySet()) {
-                    travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                }
+        Counter counter = new Counter("CAR-TravelTimeMatrix-" + Time.writeTime(departureTime) + " zone ", " / " + zones.size());
+        Thread[] threads = new Thread[numberOfThreads];
+        for (int i = 0; i < numberOfThreads; i++) {
+            RowWorker<T> worker = new RowWorker<>(originZones, zones.keySet(), network, nodesPerZone, travelTimeMatrix, departureTime, travelTime, travelDisutility, counter);
+            threads[i] = new Thread(worker, "CAR-TravelTimeMatrix-" + Time.writeTime(departureTime) + "-" + i);
+            threads[i].start();
+        }
+
+        // wait until all threads have finished
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 
         travelTimeMatrix.multiply(avgFactor);
 
         return travelTimeMatrix;
+    }
+
+    public static class RowWorker<T> implements Runnable {
+        private final ConcurrentLinkedQueue<T> originZones;
+        private final Set<T> destinationZones;
+        private final Network network;
+        private final Map<T, Node[]> nodesPerZone;
+        private final FloatMatrix<T> travelTimeMatrix;
+        private final TravelTime travelTime;
+        private final TravelDisutility travelDisutility;
+        private final double departureTime;
+        private final Counter counter;
+
+        RowWorker(ConcurrentLinkedQueue<T> originZones, Set<T> destinationZones, Network network, Map<T, Node[]> nodesPerZone, FloatMatrix<T> travelTimeMatrix, double departureTime, TravelTime travelTime, TravelDisutility travelDisutility, Counter counter) {
+            this.originZones = originZones;
+            this.destinationZones = destinationZones;
+            this.network = network;
+            this.nodesPerZone = nodesPerZone;
+            this.travelTimeMatrix = travelTimeMatrix;
+            this.departureTime = departureTime;
+            this.travelTime = travelTime;
+            this.travelDisutility = travelDisutility;
+            this.counter = counter;
+        }
+
+        public void run() {
+            LeastCostPathTree lcpTree = new LeastCostPathTree(this.travelTime, this.travelDisutility);
+            while (true) {
+                T fromZoneId = this.originZones.poll();
+                if (fromZoneId == null) {
+                    return;
+                }
+
+                this.counter.incCounter();
+                Node[] fromNodes = this.nodesPerZone.get(fromZoneId);
+                if (fromNodes != null) {
+                    for (Node fromNode : fromNodes) {
+                        lcpTree.calculate(this.network, fromNode, this.departureTime);
+
+                        for (T toZoneId : this.destinationZones) {
+                            Node[] toNodes = this.nodesPerZone.get(toZoneId);
+                            if (toNodes != null) {
+                                for (Node toNode : toNodes) {
+                                    double tt = lcpTree.getTree().get(toNode.getId()).getTime() - this.departureTime;
+                                    this.travelTimeMatrix.add(fromZoneId, toZoneId, (float) tt);
+                                }
+                            } else {
+                                // this might happen if a zone has no geometry, for whatever reason...
+                                this.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                            }
+                        }
+                    }
+                } else {
+                    // this might happen if a zone has no geometry, for whatever reason...
+                    for (T toZoneId : this.destinationZones) {
+                        this.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                    }
+                }
+            }
+        }
     }
 
 }

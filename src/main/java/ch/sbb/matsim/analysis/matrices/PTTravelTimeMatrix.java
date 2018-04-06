@@ -7,10 +7,12 @@ package ch.sbb.matsim.analysis.matrices;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.TravelInfo;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Counter;
+import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.opengis.feature.simple.SimpleFeature;
 
@@ -19,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Calculates a zone-to-zone travel time matrix for public transport.
@@ -34,7 +37,8 @@ import java.util.Set;
  *
  * A basic implementation for calculating the travel times between m zones, it would resulting m^2 * n^2 pt route calculations,
  * which could get very slow. The actual algorithm thus makes use of LeastCostPathTrees, reducing the computational effort down
- * to the calculation of m*n LeastCostPathTrees.
+ * to the calculation of m*n LeastCostPathTrees. In addition, it supports running the calculation in parallel to reduce the time
+ * required to compute one matrix.
  *
  * @author mrieser / SBB
  */
@@ -43,7 +47,7 @@ public final class PTTravelTimeMatrix {
     private PTTravelTimeMatrix() {
     }
 
-    public static <T> PtIndicators<T> calculateTravelTimeMatrix(SwissRailRaptor raptor, Map<T, SimpleFeature> zones, double departureTime, int numberOfPointsPerZone, RaptorParameters parameters) {
+    public static <T> PtIndicators<T> calculateTravelTimeMatrix(SwissRailRaptorData raptorData, Map<T, SimpleFeature> zones, double departureTime, int numberOfPointsPerZone, RaptorParameters parameters, int numberOfThreads) {
         Random r = new Random(20180404L);
 
         Map<T, Coord[]> coordsPerZone = new HashMap<>();
@@ -62,75 +66,26 @@ public final class PTTravelTimeMatrix {
 
         // prepare calculation
         PtIndicators<T> pti = new PtIndicators<>(zones.keySet());
-        double walkSpeed = parameters.getBeelineWalkSpeed();
         float avgFactor = (float) (1.0 / numberOfPointsPerZone / numberOfPointsPerZone);
 
         // do calculation
-        Counter cnter = new Counter("origin ", " / " + zones.size());
-        for (T fromZoneId : zones.keySet()) {
-            cnter.incCounter();
-            Coord[] fromCoords = coordsPerZone.get(fromZoneId);
-            if (fromCoords != null) {
-                for (Coord fromCoord : fromCoords) {
-                    Collection<TransitStopFacility> fromStops = findStopCandidates(fromCoord, raptor, parameters);
-                    Map<Id<TransitStopFacility>, Double> accessTimes = new HashMap<>();
-                    for (TransitStopFacility stop : fromStops) {
-                        double distance = CoordUtils.calcEuclideanDistance(fromCoord, stop.getCoord());
-                        double accessTime = distance / walkSpeed;
-                        accessTimes.put(stop.getId(), accessTime);
-                    }
-                    Map<Id<TransitStopFacility>, TravelInfo> tree = raptor.calcTree(fromStops, departureTime, parameters);
+        ConcurrentLinkedQueue<T> originZones = new ConcurrentLinkedQueue<>(zones.keySet());
 
-                    for (T toZoneId : zones.keySet()) {
-                        Coord[] toCoords = coordsPerZone.get(toZoneId);
-                        if (toCoords != null) {
-                            for (Coord toCoord : toCoords) {
-                                Collection<TransitStopFacility> toStops = findStopCandidates(toCoord, raptor, parameters);
-                                double minTotalTravelTime = Double.POSITIVE_INFINITY;
-                                double minTravelTime = Double.NaN;
-                                double minAccessTime = Double.NaN;
-                                double minEgressTime = Double.NaN;
-                                int minTransferCount = -9999;
-                                for (TransitStopFacility toStop : toStops) {
-                                    TravelInfo info = tree.get(toStop);
-                                    if (info != null) {
-                                        double accessTime = accessTimes.get(info.departureStop);
-                                        double travelTime = info.travelTime;
-                                        double egressDistance = CoordUtils.calcEuclideanDistance(toStop.getCoord(), toCoord);
-                                        double egressTime = egressDistance / walkSpeed;
-                                        double totalTravelTime = accessTime + travelTime + egressTime;
-                                        if (totalTravelTime < minTotalTravelTime) {
-                                            minTotalTravelTime = totalTravelTime;
-                                            minTravelTime = travelTime;
-                                            minAccessTime = accessTime;
-                                            minEgressTime = egressTime;
-                                            minTransferCount = info.transferCount;
-                                        }
-                                    }
-                                }
-                                pti.travelTimeMatrix.add(fromZoneId, toZoneId, (float) minTravelTime);
-                                pti.accessTimeMatrix.add(fromZoneId, toZoneId, (float) minAccessTime);
-                                pti.egressTimeMatrix.add(fromZoneId, toZoneId, (float) minEgressTime);
-                                pti.transferCountMatrix.add(fromZoneId, toZoneId, (float) minTransferCount);
-                            }
-                        } else {
-                            // this might happen if a zone has no geometry, for whatever reason...
-                            pti.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                            pti.accessTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                            pti.egressTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                            pti.transferCountMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                        }
-                    }
-                }
+        Counter counter = new Counter("PT-TravelTimeMatrix-" + Time.writeTime(departureTime) + " zone ", " / " + zones.size());
+        Thread[] threads = new Thread[numberOfThreads];
+        for (int i = 0; i < numberOfThreads; i++) {
+            SwissRailRaptor raptor = new SwissRailRaptor(raptorData, null, null);
+            RowWorker<T> worker = new RowWorker<>(originZones, zones.keySet(), coordsPerZone, pti, raptor, parameters, departureTime, counter);
+            threads[i] = new Thread(worker, "PT-TravelTimeMatrix-" + Time.writeTime(departureTime) + "-" + i);
+            threads[i].start();
+        }
 
-            } else {
-                // this might happen if a zone has no geometry, for whatever reason...
-                for (T toZoneId : zones.keySet()) {
-                    pti.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                    pti.accessTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                    pti.egressTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                    pti.transferCountMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
-                }
+        // wait until all threads have finished
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 
@@ -140,6 +95,106 @@ public final class PTTravelTimeMatrix {
         pti.transferCountMatrix.multiply(avgFactor);
 
         return pti;
+    }
+
+    public static class RowWorker<T> implements Runnable {
+        private final ConcurrentLinkedQueue<T> originZones;
+        private final Set<T> destinationZones;
+        private final Map<T, Coord[]> coordsPerZone;
+        private final PtIndicators<T> pti;
+        private final SwissRailRaptor raptor;
+        private final RaptorParameters parameters;
+        private final double departureTime;
+        private final Counter counter;
+
+        RowWorker(ConcurrentLinkedQueue<T> originZones, Set<T> destinationZones, Map<T, Coord[]> coordsPerZone, PtIndicators<T> pti, SwissRailRaptor raptor, RaptorParameters parameters, double departureTime, Counter counter) {
+            this.originZones = originZones;
+            this.destinationZones = destinationZones;
+            this.coordsPerZone = coordsPerZone;
+            this.pti = pti;
+            this.raptor = raptor;
+            this.parameters = parameters;
+            this.departureTime = departureTime;
+            this.counter = counter;
+        }
+
+        public void run() {
+            double walkSpeed = this.parameters.getBeelineWalkSpeed();
+
+            while (true) {
+                T fromZoneId = this.originZones.poll();
+                if (fromZoneId == null) {
+                    return;
+                }
+
+                this.counter.incCounter();
+                Coord[] fromCoords = this.coordsPerZone.get(fromZoneId);
+                if (fromCoords != null) {
+                    for (Coord fromCoord : fromCoords) {
+                        Collection<TransitStopFacility> fromStops = findStopCandidates(fromCoord, this.raptor, this.parameters);
+                        Map<Id<TransitStopFacility>, Double> accessTimes = new HashMap<>();
+                        for (TransitStopFacility stop : fromStops) {
+                            double distance = CoordUtils.calcEuclideanDistance(fromCoord, stop.getCoord());
+                            double accessTime = distance / walkSpeed;
+                            accessTimes.put(stop.getId(), accessTime);
+                        }
+                        Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStops, this.departureTime, this.parameters);
+
+                        for (T toZoneId : this.destinationZones) {
+                            Coord[] toCoords = this.coordsPerZone.get(toZoneId);
+                            if (toCoords != null) {
+                                for (Coord toCoord : toCoords) {
+                                    Collection<TransitStopFacility> toStops = findStopCandidates(toCoord, this.raptor, this.parameters);
+                                    double minTotalTravelTime = Double.POSITIVE_INFINITY;
+                                    double minTravelTime = Double.NaN;
+                                    double minAccessTime = Double.NaN;
+                                    double minEgressTime = Double.NaN;
+                                    int minTransferCount = -9999;
+                                    for (TransitStopFacility toStop : toStops) {
+                                        TravelInfo info = tree.get(toStop.getId());
+                                        if (info != null) { // it might be that some stops are not reachable
+                                            double accessTime = accessTimes.get(info.departureStop);
+                                            double travelTime = info.travelTime;
+                                            double egressDistance = CoordUtils.calcEuclideanDistance(toStop.getCoord(), toCoord);
+                                            double egressTime = egressDistance / walkSpeed;
+                                            double totalTravelTime = accessTime + travelTime + egressTime;
+                                            if (totalTravelTime < minTotalTravelTime) {
+                                                minTotalTravelTime = totalTravelTime;
+                                                minTravelTime = travelTime;
+                                                minAccessTime = accessTime;
+                                                minEgressTime = egressTime;
+                                                minTransferCount = info.transferCount;
+                                            }
+                                        }
+                                    }
+                                    this.pti.travelTimeMatrix.add(fromZoneId, toZoneId, (float) minTravelTime);
+                                    this.pti.accessTimeMatrix.add(fromZoneId, toZoneId, (float) minAccessTime);
+                                    this.pti.egressTimeMatrix.add(fromZoneId, toZoneId, (float) minEgressTime);
+                                    this.pti.transferCountMatrix.add(fromZoneId, toZoneId, (float) minTransferCount);
+                                }
+                            } else {
+                                // this might happen if a zone has no geometry, for whatever reason...
+                                this.pti.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                                this.pti.accessTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                                this.pti.egressTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                                this.pti.transferCountMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                            }
+                        }
+                    }
+
+                } else {
+                    // this might happen if a zone has no geometry, for whatever reason...
+                    for (T toZoneId : this.destinationZones) {
+                        this.pti.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                        this.pti.accessTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                        this.pti.egressTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                        this.pti.transferCountMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                    }
+                }
+
+
+            }
+        }
     }
 
     public static class PtIndicators<T> {
