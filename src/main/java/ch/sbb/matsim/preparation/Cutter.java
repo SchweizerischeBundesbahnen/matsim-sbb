@@ -421,7 +421,7 @@ public class Cutter {
                     } else if (pe instanceof Leg) {
                         Leg leg = (Leg) pe;
 
-                        if (intersects(leg, transit)) {
+                        if (intersects(leg, transitSchedule)) {
                             intersectsPerimeter = true;
                         }
                     }
