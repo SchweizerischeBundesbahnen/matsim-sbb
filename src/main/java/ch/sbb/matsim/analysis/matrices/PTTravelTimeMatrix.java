@@ -66,7 +66,7 @@ public final class PTTravelTimeMatrix {
 
         // prepare calculation
         PtIndicators<T> pti = new PtIndicators<>(zones.keySet());
-        float avgFactor = (float) (1.0 / numberOfPointsPerZone / numberOfPointsPerZone);
+//        float avgFactor = (float) (1.0 / numberOfPointsPerZone / numberOfPointsPerZone);
 
         // do calculation
         ConcurrentLinkedQueue<T> originZones = new ConcurrentLinkedQueue<>(zones.keySet());
@@ -89,10 +89,16 @@ public final class PTTravelTimeMatrix {
             }
         }
 
-        pti.travelTimeMatrix.multiply(avgFactor);
-        pti.accessTimeMatrix.multiply(avgFactor);
-        pti.egressTimeMatrix.multiply(avgFactor);
-        pti.transferCountMatrix.multiply(avgFactor);
+        for (T fromZoneId : zones.keySet()) {
+            for (T toZoneId : zones.keySet()) {
+                float count = pti.dataCountMatrix.get(fromZoneId, toZoneId);
+                float avgFactor = 1.0f / count;
+                pti.travelTimeMatrix.multiply(fromZoneId, toZoneId, avgFactor);
+                pti.accessTimeMatrix.multiply(fromZoneId, toZoneId, avgFactor);
+                pti.egressTimeMatrix.multiply(fromZoneId, toZoneId, avgFactor);
+                pti.transferCountMatrix.multiply(fromZoneId, toZoneId, avgFactor);
+            }
+        }
 
         return pti;
     }
@@ -167,10 +173,13 @@ public final class PTTravelTimeMatrix {
                                             }
                                         }
                                     }
-                                    this.pti.travelTimeMatrix.add(fromZoneId, toZoneId, (float) minTravelTime);
-                                    this.pti.accessTimeMatrix.add(fromZoneId, toZoneId, (float) minAccessTime);
-                                    this.pti.egressTimeMatrix.add(fromZoneId, toZoneId, (float) minEgressTime);
-                                    this.pti.transferCountMatrix.add(fromZoneId, toZoneId, (float) minTransferCount);
+                                    if (minTransferCount >= 0) {
+                                        this.pti.travelTimeMatrix.add(fromZoneId, toZoneId, (float) minTravelTime);
+                                        this.pti.accessTimeMatrix.add(fromZoneId, toZoneId, (float) minAccessTime);
+                                        this.pti.egressTimeMatrix.add(fromZoneId, toZoneId, (float) minEgressTime);
+                                        this.pti.transferCountMatrix.add(fromZoneId, toZoneId, (float) minTransferCount);
+                                        this.pti.dataCountMatrix.add(fromZoneId, toZoneId, 1);
+                                    }
                                 }
                             } else {
                                 // this might happen if a zone has no geometry, for whatever reason...
@@ -202,12 +211,14 @@ public final class PTTravelTimeMatrix {
         public final FloatMatrix<T> accessTimeMatrix;
         public final FloatMatrix<T> egressTimeMatrix;
         public final FloatMatrix<T> transferCountMatrix;
+        public final FloatMatrix<T> dataCountMatrix; // how many values/routes were taken into account to calculate the averages
 
         public PtIndicators(Set<T> zones) {
             this.travelTimeMatrix = new FloatMatrix<>(zones, 0);
             this.accessTimeMatrix = new FloatMatrix<>(zones, 0);
             this.egressTimeMatrix = new FloatMatrix<>(zones, 0);
             this.transferCountMatrix = new FloatMatrix<>(zones, 0);
+            this.dataCountMatrix = new FloatMatrix<>(zones, 0);
         }
     }
 
