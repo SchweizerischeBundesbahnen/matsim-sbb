@@ -46,11 +46,11 @@ public class CalculateIndicatorMatrices {
 
     private static final Logger log = Logger.getLogger(CalculateIndicatorMatrices.class);
 
-    private static final String CAR_TRAVELTIMES_FILENAME = "car_traveltimes.csv.gz";
-    private static final String PT_TRAVELTIMES_FILENAME = "pt_traveltimes.csv.gz";
-    private static final String PT_ACCESSTIMES_FILENAME = "pt_accesstimes.csv.gz";
-    private static final String PT_EGRESSTIMES_FILENAME = "pt_egresstimes.csv.gz";
-    private static final String PT_TRANSFERCOUNTS_FILENAME = "pt_transfercounts.csv.gz";
+    public static final String CAR_TRAVELTIMES_FILENAME = "car_traveltimes.csv.gz";
+    public static final String PT_TRAVELTIMES_FILENAME = "pt_traveltimes.csv.gz";
+    public static final String PT_ACCESSTIMES_FILENAME = "pt_accesstimes.csv.gz";
+    public static final String PT_EGRESSTIMES_FILENAME = "pt_egresstimes.csv.gz";
+    public static final String PT_TRANSFERCOUNTS_FILENAME = "pt_transfercounts.csv.gz";
 
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");

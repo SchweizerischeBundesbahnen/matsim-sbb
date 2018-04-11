@@ -4,9 +4,12 @@
 
 package ch.sbb.matsim.csv;
 
+import org.matsim.core.utils.io.IOUtils;
+
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +22,13 @@ public class CSVReader implements AutoCloseable {
     public CSVReader(String[] columns, final String csvFile, final String splitBy) throws IOException  {
         this.columns = columns;
         this.splitBy = splitBy;
-        this.br = new BufferedReader(new FileReader(csvFile));
+        this.br = IOUtils.getBufferedReader(csvFile);
+    }
+
+    public CSVReader(String[] columns, final InputStream stream, final String splitBy) throws IOException  {
+        this.columns = columns;
+        this.splitBy = splitBy;
+        this.br = new BufferedReader(new InputStreamReader(stream));
     }
 
     /**

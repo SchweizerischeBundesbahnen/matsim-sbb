@@ -8,6 +8,8 @@ import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 /**
@@ -24,27 +26,47 @@ public class FloatMatrixIO {
 
     public static <T> void writeAsCSV(FloatMatrix<T> matrix, String filename) throws IOException {
         try (CSVWriter writer = new CSVWriter("", COLUMNS, filename)) {
-            T[] zoneIds = getSortedIds(matrix);
-            for (T fromZoneId : zoneIds) {
-                for (T toZoneId : zoneIds) {
-                    writer.set(COL_FROM, fromZoneId.toString());
-                    writer.set(COL_TO, toZoneId.toString());
-                    writer.set(COL_VALUE, Float.toString(matrix.get(fromZoneId, toZoneId)));
-                    writer.writeRow();
-                }
+            writeCSV(matrix, writer);
+        }
+    }
+
+    public static <T> void writeAsCSV(FloatMatrix<T> matrix, OutputStream stream) throws IOException {
+        try (CSVWriter writer = new CSVWriter("", COLUMNS, stream)) {
+            writeCSV(matrix, writer);
+        }
+    }
+
+    private static <T> void writeCSV(FloatMatrix<T> matrix, CSVWriter writer) throws IOException {
+        T[] zoneIds = getSortedIds(matrix);
+        for (T fromZoneId : zoneIds) {
+            for (T toZoneId : zoneIds) {
+                writer.set(COL_FROM, fromZoneId.toString());
+                writer.set(COL_TO, toZoneId.toString());
+                writer.set(COL_VALUE, Float.toString(matrix.get(fromZoneId, toZoneId)));
+                writer.writeRow();
             }
         }
     }
 
     public static <T> void readAsCSV(FloatMatrix<T> matrix, String filename, IdConverter<T> idConverter) throws IOException {
         try (CSVReader reader = new CSVReader(COLUMNS, filename, ";")) {
-            Map<String, String> row = reader.readLine(); // header
-            while ((row = reader.readLine()) != null) {
-                T fromZoneId = idConverter.parse(row.get(COL_FROM));
-                T toZoneId = idConverter.parse(row.get(COL_TO));
-                float value = Float.parseFloat(row.get(COL_VALUE));
-                matrix.set(fromZoneId, toZoneId, value);
-            }
+            readCSV(matrix, reader, idConverter);
+        }
+    }
+
+    public static <T> void readAsCSV(FloatMatrix<T> matrix, InputStream stream, IdConverter<T> idConverter) throws IOException {
+        try (CSVReader reader = new CSVReader(COLUMNS, stream, ";")) {
+            readCSV(matrix, reader, idConverter);
+        }
+    }
+
+    private static <T> void readCSV(FloatMatrix<T> matrix, CSVReader reader, IdConverter<T> idConverter) throws IOException {
+        Map<String, String> row = reader.readLine(); // header
+        while ((row = reader.readLine()) != null) {
+            T fromZoneId = idConverter.parse(row.get(COL_FROM));
+            T toZoneId = idConverter.parse(row.get(COL_TO));
+            float value = Float.parseFloat(row.get(COL_VALUE));
+            matrix.set(fromZoneId, toZoneId, value);
         }
     }
 
