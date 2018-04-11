@@ -5,10 +5,9 @@
 package ch.sbb.matsim;
 
 
-import ch.sbb.matsim.config.SBBTransitConfigGroup;
+import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
-import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -19,8 +18,6 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
@@ -86,6 +83,6 @@ public class RunSBB {
 
     public static Config buildConfig(String filepath) {
         return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-                new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup());
+                new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup());
     }
 }
