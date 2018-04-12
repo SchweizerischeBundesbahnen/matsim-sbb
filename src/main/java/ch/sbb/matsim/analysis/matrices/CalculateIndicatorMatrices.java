@@ -57,8 +57,6 @@ public class CalculateIndicatorMatrices {
 
         String zonesShapeFilename = "D:\\devsbb\\mrieser\\data\\npvm_2016\\NPVM_OberBez.shp";
         String zonesIdAttributeName = "ID";
-//        String zonesShapeFilename = "D:\\devsbb\\mrieser\\data\\geo\\BFS_CH14\\BFS_CH14_Gemeinden.shp";
-//        String zonesIdAttributeName = "GMDNR";
         String networkFilename = "D:\\devsbb\\mrieser\\data\\raptorPerfTest2\\network.xml.gz";
         String transitScheduleFilename = "D:\\devsbb\\mrieser\\data\\raptorPerfTest2\\transitSchedule.xml.gz";
         String eventsFilename = null;
