@@ -34,10 +34,11 @@ public class RunSBB {
         System.setProperty("matsim.preferLocalDtds", "true");
 
         final String configFile = args[0];
-
         log.info(configFile);
-
         final Config config = buildConfig(configFile);
+
+        if(args.length > 1)
+            config.controler().setOutputDirectory(args[1]);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
