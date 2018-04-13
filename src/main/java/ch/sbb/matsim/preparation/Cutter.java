@@ -444,7 +444,6 @@ public class Cutter {
 
                         String oldValue = (String) population.getPersonAttributes().getAttribute(p.getId().toString(), attributeKey);
                         if ((oldValue != null) && (attributeValues.containsKey(oldValue))) {
-                            population.getPersonAttributes().removeAttribute(p.getId().toString(), oldValue);
                             population.getPersonAttributes().putAttribute(p.getId().toString(), attributeKey, attributeValues.get(oldValue));
                         }
                     }
