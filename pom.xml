@@ -36,7 +36,7 @@
 		<dependency>
 			<groupId>ch.sbb</groupId>
 			<artifactId>matsim-sbb-extension</artifactId>
-			<version>0.9.3-sbb.4-SNAPSHOT</version>
+			<version>0.9.3-sbb.4</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->
