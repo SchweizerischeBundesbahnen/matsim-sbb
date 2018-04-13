@@ -130,18 +130,22 @@ public class CalculateIndicatorMatrices {
         log.info("calc CAR matrix for " + Time.writeTime(times[0]));
         NetworkIndicators<String> netIndicators = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[0], numberOfPointsPerZone, tt, td, numberOfThreads);
 
-        for (int i = 1; i < times.length; i++) {
-            log.info("calc CAR matrices for " + Time.writeTime(times[i]));
-            NetworkIndicators<String> indicators2 = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[i], numberOfPointsPerZone, tt, td, numberOfThreads);
-            log.info("merge CAR matrices for " + Time.writeTime(times[i]));
-            combineMatrices(netIndicators.travelTimeMatrix, indicators2.travelTimeMatrix);
-            combineMatrices(netIndicators.distanceMatrix, indicators2.distanceMatrix);
+        if (tt instanceof FreeSpeedTravelTime) {
+            log.info("Do not calculate CAR matrices for other times as only freespeed is being used");
+        } else {
+            for (int i = 1; i < times.length; i++) {
+                log.info("calc CAR matrices for " + Time.writeTime(times[i]));
+                NetworkIndicators<String> indicators2 = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[i], numberOfPointsPerZone, tt, td, numberOfThreads);
+                log.info("merge CAR matrices for " + Time.writeTime(times[i]));
+                combineMatrices(netIndicators.travelTimeMatrix, indicators2.travelTimeMatrix);
+                combineMatrices(netIndicators.distanceMatrix, indicators2.distanceMatrix);
+            }
+            log.info("re-scale CAR matrices after all data is merged.");
+            netIndicators.travelTimeMatrix.multiply((float) (1.0 / times.length));
+            netIndicators.distanceMatrix.multiply((float) (1.0 / times.length));
         }
-        log.info("re-scale CAR matrices after all data is merged.");
-        netIndicators.travelTimeMatrix.multiply((float) (1.0 / times.length));
-        netIndicators.distanceMatrix.multiply((float) (1.0 / times.length));
 
-        log.info("write CAR matrix to " + outputDirectory);
+        log.info("write CAR matrices to " + outputDirectory);
         FloatMatrixIO.writeAsCSV(netIndicators.travelTimeMatrix, outputDirectory + "/" + CAR_TRAVELTIMES_FILENAME);
         FloatMatrixIO.writeAsCSV(netIndicators.distanceMatrix, outputDirectory + "/" + CAR_DISTANCES_FILENAME);
 
