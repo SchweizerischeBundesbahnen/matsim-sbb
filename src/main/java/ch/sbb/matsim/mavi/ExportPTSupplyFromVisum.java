@@ -18,8 +18,8 @@ import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.NetworkWriter;
-import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
+import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.Departure;
@@ -401,7 +401,7 @@ public class ExportPTSupplyFromVisum {
                         double depTime = Double.valueOf(Dispatch.call(item__, "AttValue", "Dep").toString());
                         TransitRouteStop rst;
                         if(isFirstRouteStop) {
-                            rst = this.scheduleBuilder.createTransitRouteStop(stop, Time.UNDEFINED_TIME, depTime - delta);
+                            rst = this.scheduleBuilder.createTransitRouteStop(stop, Time.getUndefinedTime(), depTime - delta);
                             isFirstRouteStop = false;
                         }
                         else {
@@ -459,8 +459,7 @@ public class ExportPTSupplyFromVisum {
                         Dispatch.call(fzpVerlaufIterator, "Next");
                     }
                     routeLinks.remove(routeLinks.size() - 1);
-                    NetworkRoute netRoute = new LinkNetworkRouteImpl(startLink, endLink);
-                    netRoute.setLinkIds(startLink, routeLinks, endLink);
+                    NetworkRoute netRoute = RouteUtils.createLinkNetworkRouteImpl(startLink, routeLinks, endLink);
 
                     route = this.scheduleBuilder.createTransitRoute(routeID, netRoute, transitRouteStops, mode);
 
