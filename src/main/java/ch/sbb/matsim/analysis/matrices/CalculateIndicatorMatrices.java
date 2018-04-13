@@ -51,6 +51,7 @@ public class CalculateIndicatorMatrices {
     public static final String PT_ACCESSTIMES_FILENAME = "pt_accesstimes.csv.gz";
     public static final String PT_EGRESSTIMES_FILENAME = "pt_egresstimes.csv.gz";
     public static final String PT_TRANSFERCOUNTS_FILENAME = "pt_transfercounts.csv.gz";
+    public static final String BEELINE_DISTANCE_FILENAME = "beeline_distances.csv.gz";
 
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
@@ -172,6 +173,14 @@ public class CalculateIndicatorMatrices {
         FloatMatrixIO.writeAsCSV(matrices.accessTimeMatrix, outputDirectory + "/" + PT_ACCESSTIMES_FILENAME);
         FloatMatrixIO.writeAsCSV(matrices.egressTimeMatrix, outputDirectory + "/" + PT_EGRESSTIMES_FILENAME);
         FloatMatrixIO.writeAsCSV(matrices.transferCountMatrix, outputDirectory + "/" + PT_TRANSFERCOUNTS_FILENAME);
+
+        // calc BEELINE matrices
+        log.info("calc beeline distance matrix");
+        FloatMatrix<String> beelineMatrix = BeelineDistanceMatrix.calculateBeelineDistanceMatrix(zonesById, numberOfPointsPerZone, numberOfThreads);
+
+        log.info("write beeline distance matrix to " + outputDirectory);
+        FloatMatrixIO.writeAsCSV(beelineMatrix, outputDirectory + "/" + BEELINE_DISTANCE_FILENAME);
+
     }
 
     private static <T> void combineMatrices(FloatMatrix<T> matrix1, FloatMatrix<T> matrix2) {
