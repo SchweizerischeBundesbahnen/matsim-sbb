@@ -423,24 +423,21 @@ public class Cutter {
             }
         }
 
-        for (Person p: population.getPersons().values()) {
+        for (Person p: filteredPopulation.getPersons().values()) {
             for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
                 if (pe instanceof Leg) {
                     Route route = ((Leg) pe).getRoute();
-
                     if (route instanceof ExperimentalTransitRoute) {
                         ExperimentalTransitRoute myRoute = (ExperimentalTransitRoute) route;
-
-                        if(!usedTransitRouteIds.containsKey(myRoute.getLineId())){
-                            usedTransitRouteIds.put(myRoute.getLineId(), new HashSet<>());
+                        if(!this.usedTransitRouteIds.containsKey(myRoute.getLineId())){
+                            this.usedTransitRouteIds.put(myRoute.getLineId(), new HashSet<>());
                         }
-
-                        usedTransitRouteIds.get(myRoute.getLineId()).add(myRoute.getRouteId());
+                        this.usedTransitRouteIds.get(myRoute.getLineId()).add(myRoute.getRouteId());
                     }
                 }
             }
         }
-        log.info("filtered population:" + population.getPersons().size());
+        log.info("filtered population:" + filteredPopulation.getPersons().size());
         return filteredPopulation;
     }
 
