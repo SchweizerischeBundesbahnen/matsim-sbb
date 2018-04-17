@@ -65,8 +65,6 @@ public class Cutter {
     private GeometryFactory geometryFactory = new GeometryFactory();
     Collection<SimpleFeature> features = null;
     private Map<Coord, Boolean> coordCache;
-    private Map<Id<Person>, Person> filteredAgents;
-    private Map<Id<TransitLine>, Set<Id<TransitRoute>>> usedTransitRouteIds = new HashMap<>();
 
     private Coord center;
     private int radius;
@@ -88,7 +86,6 @@ public class Cutter {
         this.scenario = scenario;
 
         this.coordCache = new HashMap<>();
-        this.filteredAgents = new HashMap<>();
 
         if (this.cutterConfig.getUseShapeFile()) {
             this.useShapeFile = true;
@@ -103,10 +100,10 @@ public class Cutter {
 
     public Scenario getFilteredScenario()   {
         Population filteredPopulation = this.geographicallyFilterPopulation();
-        TransitSchedule filteredSchedule = this.cutPT();
-        Vehicles filteredVehicles = this.cleanVehicles(filteredSchedule);
-        Network filteredOnlyCarNetwork = this.getOnlyCarNetwork();
-        Network filteredNetwork = this.cutNetwork(filteredSchedule, filteredOnlyCarNetwork);
+        TransitSchedule filteredSchedule = this.cutPT(this.scenario, filteredPopulation);
+        Vehicles filteredVehicles = this.cleanVehicles(this.scenario, filteredSchedule);
+        Network filteredOnlyCarNetwork = this.getOnlyCarNetwork(filteredPopulation);
+        Network filteredNetwork = this.cutNetwork(this.scenario, filteredSchedule, filteredOnlyCarNetwork);
          /*
         Households filteredHouseholds = cutter.filterHouseholdsWithPopulation();
         ActivityFacilities filteredFacilities = cutter.filterFacilitiesWithPopulation();
@@ -143,9 +140,9 @@ public class Cutter {
         */
     }
 
-    private Network getOnlyCarNetwork() {
+    private Network getOnlyCarNetwork(Population filteredPopulation) {
         Set<Id<Link>> linksToKeep = new HashSet<>();
-        for (Person p: this.scenario.getPopulation().getPersons().values()) {
+        for (Person p: filteredPopulation.getPersons().values()) {
             for(PlanElement pe: p.getSelectedPlan().getPlanElements()){
                 if (pe instanceof Leg) {
                     Leg leg = (Leg) pe;
@@ -189,10 +186,10 @@ public class Cutter {
         return carNetworkToKeep;
     }
 
-    private Network cutNetwork(TransitSchedule filteredSchedule, Network filteredOnlyCarNetwork) {
+    private static Network cutNetwork(Scenario scenario, TransitSchedule filteredSchedule, Network filteredOnlyCarNetwork) {
         Network filteredNetwork = NetworkUtils.createNetwork();
         Set<Id<Link>> linksToKeep = getPTLinksToKeep(filteredSchedule);
-        for (Link link : this.scenario.getNetwork().getLinks().values()) {
+        for (Link link : scenario.getNetwork().getLinks().values()) {
             if (linksToKeep.contains(link.getId()) || // we keep all links we need for pt
                     filteredOnlyCarNetwork.getLinks().containsKey(link.getId())) {
                 addLink(filteredNetwork, link);
@@ -201,7 +198,7 @@ public class Cutter {
         return filteredNetwork;
     }
 
-    private Set<Id<Link>> getPTLinksToKeep(TransitSchedule filteredSchedule) {
+    private static Set<Id<Link>> getPTLinksToKeep(TransitSchedule filteredSchedule) {
         Set<Id<Link>> linksToKeep = new HashSet<>();
         for (TransitLine transitLine : filteredSchedule.getTransitLines().values()) {
             for (TransitRoute transitRoute : transitLine.getRoutes().values()) {
@@ -213,7 +210,7 @@ public class Cutter {
         return linksToKeep;
     }
 
-    private void addLink(Network network, Link link) {
+    private static void addLink(Network network, Link link) {
         if (!network.getNodes().containsKey(link.getFromNode().getId())) {
             Node node = network.getFactory().createNode(link.getFromNode().getId(), link.getFromNode().getCoord());
             network.addNode(node);
@@ -227,15 +224,31 @@ public class Cutter {
         link.setToNode(network.getNodes().get(link.getToNode().getId()));
     }
 
-    private TransitSchedule cutPT() {
+    private TransitSchedule cutPT(Scenario scenario, Population filteredPopulation) {
+        Map<Id<TransitLine>, Set<Id<TransitRoute>>> usedTransitRouteIds = new HashMap<>();
+        for (Person p: filteredPopulation.getPersons().values()) {
+            for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
+                if (pe instanceof Leg) {
+                    Route route = ((Leg) pe).getRoute();
+                    if (route instanceof ExperimentalTransitRoute) {
+                        ExperimentalTransitRoute myRoute = (ExperimentalTransitRoute) route;
+                        if(!usedTransitRouteIds.containsKey(myRoute.getLineId())){
+                            usedTransitRouteIds.put(myRoute.getLineId(), new HashSet<>());
+                        }
+                        usedTransitRouteIds.get(myRoute.getLineId()).add(myRoute.getRouteId());
+                    }
+                }
+            }
+        }
+
         TransitSchedule filteredSchedule = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getTransitSchedule();
         Set<Id<TransitStopFacility>> stopsToKeep = new HashSet<>();
 
-        for (TransitLine transitLine : this.scenario.getTransitSchedule().getTransitLines().values()) {
+        for (TransitLine transitLine : scenario.getTransitSchedule().getTransitLines().values()) {
             Set<Id<TransitRoute>> _routes = new HashSet<>();
 
-            if(this.usedTransitRouteIds.containsKey(transitLine.getId())){
-                _routes = this.usedTransitRouteIds.get(transitLine.getId());
+            if(usedTransitRouteIds.containsKey(transitLine.getId())){
+                _routes = usedTransitRouteIds.get(transitLine.getId());
                 log.info(transitLine+": "+_routes);
             }
 
@@ -243,15 +256,15 @@ public class Cutter {
                 if(_routes.contains(transitRoute.getId())){
                     Id<TransitLine> newLineId = addLine(filteredSchedule, transitLine);
                     filteredSchedule.getTransitLines().get(newLineId).addRoute(transitRoute);
-                    addStopFacilities(filteredSchedule, transitRoute, stopsToKeep);
+                    this.addStopFacilities(filteredSchedule, transitRoute, stopsToKeep);
                 }
 
                 else {
                     for (TransitRouteStop transitStop : transitRoute.getStops()) {
-                        if (inArea(transitStop.getStopFacility().getCoord())) {
+                        if (this.inArea(transitStop.getStopFacility().getCoord())) {
                             Id<TransitLine> newLineId = addLine(filteredSchedule, transitLine);
                             filteredSchedule.getTransitLines().get(newLineId).addRoute(transitRoute);
-                            addStopFacilities(filteredSchedule, transitRoute, stopsToKeep);
+                            this.addStopFacilities(filteredSchedule, transitRoute, stopsToKeep);
                             break;
                         }
                     }
@@ -259,7 +272,7 @@ public class Cutter {
             }
         }
 
-        MinimalTransferTimes unfilteredMTT =  this.scenario.getTransitSchedule().getMinimalTransferTimes();
+        MinimalTransferTimes unfilteredMTT =  scenario.getTransitSchedule().getMinimalTransferTimes();
         MinimalTransferTimes filteredMTT = filteredSchedule.getMinimalTransferTimes();
         MinimalTransferTimes.MinimalTransferTimesIterator itr = unfilteredMTT.iterator();
         while(itr.hasNext()) {
@@ -276,7 +289,7 @@ public class Cutter {
             if (!schedule.getFacilities().containsKey(newStop.getStopFacility().getId())) {
                 schedule.addStopFacility(newStop.getStopFacility());
                 stopsToKeep.add(newStop.getStopFacility().getId());
-                if(inArea(newStop.getStopFacility().getCoord()) &&
+                if(this.inArea(newStop.getStopFacility().getCoord()) &&
                         (int) newStop.getStopFacility().getAttributes().getAttribute(ATT_SIMBA_CH_PERIMETER) == VAL_SIMBA_CH_PERIMETER)
                     newStop.getStopFacility().getAttributes().putAttribute(ATT_SIMBATEILGEBIETPERIMETER, 1);
                 else
@@ -285,7 +298,7 @@ public class Cutter {
         }
     }
 
-    private Id<TransitLine> addLine(TransitSchedule schedule, TransitLine transitLine) {
+    private static Id<TransitLine> addLine(TransitSchedule schedule, TransitLine transitLine) {
         Id<TransitLine> newLineId = Id.create(transitLine.getId().toString(), TransitLine.class);
         if (!schedule.getTransitLines().containsKey(newLineId)) {
             TransitLine newLine = schedule.getFactory().createTransitLine(newLineId);
@@ -295,12 +308,12 @@ public class Cutter {
         return newLineId;
     }
 
-    private Vehicles cleanVehicles(TransitSchedule transitSchedule) {
+    private static Vehicles cleanVehicles(Scenario scenario, TransitSchedule transitSchedule) {
         Vehicles filteredVehicles = VehicleUtils.createVehiclesContainer();
         for (TransitLine line : transitSchedule.getTransitLines().values()) {
             for (TransitRoute route : line.getRoutes().values()) {
                 for (Departure departure : route.getDepartures().values()) {
-                    Vehicle vehicleToKeep = this.scenario.getTransitVehicles().getVehicles().get(departure.getVehicleId());
+                    Vehicle vehicleToKeep = scenario.getTransitVehicles().getVehicles().get(departure.getVehicleId());
                     if (!filteredVehicles.getVehicleTypes().containsValue(vehicleToKeep.getType())) {
                         filteredVehicles.addVehicleType(vehicleToKeep.getType());
                     }
@@ -312,7 +325,7 @@ public class Cutter {
     }
 
 
-    private List<Id<Link>> getPuTLinksRoute(ExperimentalTransitRoute route, TransitSchedule transit){
+    private static List<Id<Link>> getPuTLinksRoute(ExperimentalTransitRoute route, TransitSchedule transit){
         TransitRoute tr = transit.getTransitLines().get(route.getLineId()).getRoutes().get(route.getRouteId());
         List<Id<Link>> linkIds = new ArrayList<>();
         Boolean record = false;
@@ -330,7 +343,7 @@ public class Cutter {
     private Boolean linksInArea(List<Id<Link>> linkIds){
         for(Id<Link> linkId: linkIds){
             Link link = this.scenario.getNetwork().getLinks().get(linkId);
-            if(inArea(link.getFromNode().getCoord()) || inArea(link.getToNode().getCoord())){
+            if(this.inArea(link.getFromNode().getCoord()) || this.inArea(link.getToNode().getCoord())){
                 return true;
             }
         }
@@ -361,7 +374,7 @@ public class Cutter {
             }
         }
 
-        if(linksInArea(linkIds)){
+        if(this.linksInArea(linkIds)){
             intersection = true;
         }
         return intersection;
@@ -417,23 +430,7 @@ public class Cutter {
                         }
                     }
                     filteredPopulation.addPerson(p);
-                    this.filteredAgents.put(p.getId(), p); // we dont't need filteredAgents at the moment as we don't have facilities nor households
                     ObjectAttributesUtils.copyAllAttributes(population.getPersonAttributes(), filteredPopulation.getPersonAttributes(), p.getId().toString());
-                }
-            }
-        }
-
-        for (Person p: filteredPopulation.getPersons().values()) {
-            for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
-                if (pe instanceof Leg) {
-                    Route route = ((Leg) pe).getRoute();
-                    if (route instanceof ExperimentalTransitRoute) {
-                        ExperimentalTransitRoute myRoute = (ExperimentalTransitRoute) route;
-                        if(!this.usedTransitRouteIds.containsKey(myRoute.getLineId())){
-                            this.usedTransitRouteIds.put(myRoute.getLineId(), new HashSet<>());
-                        }
-                        this.usedTransitRouteIds.get(myRoute.getLineId()).add(myRoute.getRouteId());
-                    }
                 }
             }
         }
