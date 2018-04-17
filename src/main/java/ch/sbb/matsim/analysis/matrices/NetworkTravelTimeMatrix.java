@@ -12,7 +12,6 @@ import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.utils.misc.Counter;
 import org.matsim.core.utils.misc.Time;
-import org.matsim.utils.leastcostpathtree.LeastCostPathTree;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.HashMap;
@@ -41,7 +40,7 @@ public final class NetworkTravelTimeMatrix {
     private NetworkTravelTimeMatrix() {
     }
 
-    public static <T> FloatMatrix<T> calculateTravelTimeMatrix(Network network, Map<T, SimpleFeature> zones, double departureTime, int numberOfPointsPerZone, TravelTime travelTime, TravelDisutility travelDisutility, int numberOfThreads) {
+    public static <T> NetworkIndicators<T> calculateTravelTimeMatrix(Network network, Map<T, SimpleFeature> zones, double departureTime, int numberOfPointsPerZone, TravelTime travelTime, TravelDisutility travelDisutility, int numberOfThreads) {
         Random r = new Random(20180404L);
 
         Map<T, Node[]> nodesPerZone = new HashMap<>();
@@ -60,8 +59,7 @@ public final class NetworkTravelTimeMatrix {
         }
 
         // prepare calculation
-        FloatMatrix<T> travelTimeMatrix = new FloatMatrix<>(zones.keySet(), 0);
-        LeastCostPathTree lcpTree = new LeastCostPathTree(travelTime, travelDisutility);
+        NetworkIndicators<T> networkIndicators = new NetworkIndicators<>(zones.keySet());
 
         float avgFactor = (float) (1.0 / numberOfPointsPerZone / numberOfPointsPerZone);
 
@@ -71,7 +69,7 @@ public final class NetworkTravelTimeMatrix {
         Counter counter = new Counter("CAR-TravelTimeMatrix-" + Time.writeTime(departureTime) + " zone ", " / " + zones.size());
         Thread[] threads = new Thread[numberOfThreads];
         for (int i = 0; i < numberOfThreads; i++) {
-            RowWorker<T> worker = new RowWorker<>(originZones, zones.keySet(), network, nodesPerZone, travelTimeMatrix, departureTime, travelTime, travelDisutility, counter);
+            RowWorker<T> worker = new RowWorker<>(originZones, zones.keySet(), network, nodesPerZone, networkIndicators, departureTime, travelTime, travelDisutility, counter);
             threads[i] = new Thread(worker, "CAR-TravelTimeMatrix-" + Time.writeTime(departureTime) + "-" + i);
             threads[i].start();
         }
@@ -85,9 +83,10 @@ public final class NetworkTravelTimeMatrix {
             }
         }
 
-        travelTimeMatrix.multiply(avgFactor);
+        networkIndicators.travelTimeMatrix.multiply(avgFactor);
+        networkIndicators.distanceMatrix.multiply(avgFactor);
 
-        return travelTimeMatrix;
+        return networkIndicators;
     }
 
     public static class RowWorker<T> implements Runnable {
@@ -95,18 +94,18 @@ public final class NetworkTravelTimeMatrix {
         private final Set<T> destinationZones;
         private final Network network;
         private final Map<T, Node[]> nodesPerZone;
-        private final FloatMatrix<T> travelTimeMatrix;
+        private final NetworkIndicators<T> networkIndicators;
         private final TravelTime travelTime;
         private final TravelDisutility travelDisutility;
         private final double departureTime;
         private final Counter counter;
 
-        RowWorker(ConcurrentLinkedQueue<T> originZones, Set<T> destinationZones, Network network, Map<T, Node[]> nodesPerZone, FloatMatrix<T> travelTimeMatrix, double departureTime, TravelTime travelTime, TravelDisutility travelDisutility, Counter counter) {
+        RowWorker(ConcurrentLinkedQueue<T> originZones, Set<T> destinationZones, Network network, Map<T, Node[]> nodesPerZone, NetworkIndicators<T> networkIndicators, double departureTime, TravelTime travelTime, TravelDisutility travelDisutility, Counter counter) {
             this.originZones = originZones;
             this.destinationZones = destinationZones;
             this.network = network;
             this.nodesPerZone = nodesPerZone;
-            this.travelTimeMatrix = travelTimeMatrix;
+            this.networkIndicators = networkIndicators;
             this.departureTime = departureTime;
             this.travelTime = travelTime;
             this.travelDisutility = travelDisutility;
@@ -131,23 +130,39 @@ public final class NetworkTravelTimeMatrix {
                             Node[] toNodes = this.nodesPerZone.get(toZoneId);
                             if (toNodes != null) {
                                 for (Node toNode : toNodes) {
-                                    double tt = lcpTree.getTree().get(toNode.getId()).getTime() - this.departureTime;
-                                    this.travelTimeMatrix.add(fromZoneId, toZoneId, (float) tt);
+                                    LeastCostPathTree.NodeData data = lcpTree.getTree().get(toNode.getId());
+                                    double tt = data.getTime() - this.departureTime;
+                                    double dist = data.getDistance();
+                                    this.networkIndicators.travelTimeMatrix.add(fromZoneId, toZoneId, (float) tt);
+                                    this.networkIndicators.distanceMatrix.add(fromZoneId, toZoneId, (float) dist);
                                 }
                             } else {
                                 // this might happen if a zone has no geometry, for whatever reason...
-                                this.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                                this.networkIndicators.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                                this.networkIndicators.distanceMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
                             }
                         }
                     }
                 } else {
                     // this might happen if a zone has no geometry, for whatever reason...
                     for (T toZoneId : this.destinationZones) {
-                        this.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                        this.networkIndicators.travelTimeMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
+                        this.networkIndicators.distanceMatrix.set(fromZoneId, toZoneId, Float.POSITIVE_INFINITY);
                     }
                 }
             }
         }
     }
+
+    public static class NetworkIndicators<T> {
+        public final FloatMatrix<T> travelTimeMatrix;
+        public final FloatMatrix<T> distanceMatrix;
+
+        public NetworkIndicators(Set<T> zones) {
+            this.travelTimeMatrix = new FloatMatrix<>(zones, 0);
+            this.distanceMatrix = new FloatMatrix<>(zones, 0);
+        }
+    }
+
 
 }

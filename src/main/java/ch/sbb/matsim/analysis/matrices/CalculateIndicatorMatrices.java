@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.analysis.matrices;
 
+import ch.sbb.matsim.analysis.matrices.NetworkTravelTimeMatrix.NetworkIndicators;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
@@ -47,10 +48,12 @@ public class CalculateIndicatorMatrices {
     private static final Logger log = Logger.getLogger(CalculateIndicatorMatrices.class);
 
     public static final String CAR_TRAVELTIMES_FILENAME = "car_traveltimes.csv.gz";
+    public static final String CAR_DISTANCES_FILENAME = "car_distances.csv.gz";
     public static final String PT_TRAVELTIMES_FILENAME = "pt_traveltimes.csv.gz";
     public static final String PT_ACCESSTIMES_FILENAME = "pt_accesstimes.csv.gz";
     public static final String PT_EGRESSTIMES_FILENAME = "pt_egresstimes.csv.gz";
     public static final String PT_TRANSFERCOUNTS_FILENAME = "pt_transfercounts.csv.gz";
+    public static final String BEELINE_DISTANCE_FILENAME = "beeline_distances.csv.gz";
 
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
@@ -125,20 +128,26 @@ public class CalculateIndicatorMatrices {
         new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(TransportMode.car));
 
         log.info("calc CAR matrix for " + Time.writeTime(times[0]));
-        FloatMatrix<String> matrix = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[0], numberOfPointsPerZone, tt, td, numberOfThreads);
+        NetworkIndicators<String> netIndicators = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[0], numberOfPointsPerZone, tt, td, numberOfThreads);
 
-        for (int i = 1; i < times.length; i++) {
-            log.info("calc CAR matrix for " + Time.writeTime(times[i]));
-            FloatMatrix<String> matrix2 = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[i], numberOfPointsPerZone, tt, td, numberOfThreads);
-            log.info("merge CAR matrix for " + Time.writeTime(times[i]));
-            combineMatrices(matrix, matrix2);
+        if (tt instanceof FreeSpeedTravelTime) {
+            log.info("Do not calculate CAR matrices for other times as only freespeed is being used");
+        } else {
+            for (int i = 1; i < times.length; i++) {
+                log.info("calc CAR matrices for " + Time.writeTime(times[i]));
+                NetworkIndicators<String> indicators2 = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[i], numberOfPointsPerZone, tt, td, numberOfThreads);
+                log.info("merge CAR matrices for " + Time.writeTime(times[i]));
+                combineMatrices(netIndicators.travelTimeMatrix, indicators2.travelTimeMatrix);
+                combineMatrices(netIndicators.distanceMatrix, indicators2.distanceMatrix);
+            }
+            log.info("re-scale CAR matrices after all data is merged.");
+            netIndicators.travelTimeMatrix.multiply((float) (1.0 / times.length));
+            netIndicators.distanceMatrix.multiply((float) (1.0 / times.length));
         }
-        log.info("re-scale CAR matrix after all data is merged.");
-        matrix.multiply((float) (1.0 / times.length));
 
-        log.info("write CAR matrix to " + outputDirectory);
-        FloatMatrixIO.writeAsCSV(matrix, outputDirectory + "/" + CAR_TRAVELTIMES_FILENAME);
-
+        log.info("write CAR matrices to " + outputDirectory);
+        FloatMatrixIO.writeAsCSV(netIndicators.travelTimeMatrix, outputDirectory + "/" + CAR_TRAVELTIMES_FILENAME);
+        FloatMatrixIO.writeAsCSV(netIndicators.distanceMatrix, outputDirectory + "/" + CAR_DISTANCES_FILENAME);
 
         // calc PT matrices
         log.info("prepare PT Matrix calculation");
@@ -172,6 +181,14 @@ public class CalculateIndicatorMatrices {
         FloatMatrixIO.writeAsCSV(matrices.accessTimeMatrix, outputDirectory + "/" + PT_ACCESSTIMES_FILENAME);
         FloatMatrixIO.writeAsCSV(matrices.egressTimeMatrix, outputDirectory + "/" + PT_EGRESSTIMES_FILENAME);
         FloatMatrixIO.writeAsCSV(matrices.transferCountMatrix, outputDirectory + "/" + PT_TRANSFERCOUNTS_FILENAME);
+
+        // calc BEELINE matrices
+        log.info("calc beeline distance matrix");
+        FloatMatrix<String> beelineMatrix = BeelineDistanceMatrix.calculateBeelineDistanceMatrix(zonesById, numberOfPointsPerZone, numberOfThreads);
+
+        log.info("write beeline distance matrix to " + outputDirectory);
+        FloatMatrixIO.writeAsCSV(beelineMatrix, outputDirectory + "/" + BEELINE_DISTANCE_FILENAME);
+
     }
 
     private static <T> void combineMatrices(FloatMatrix<T> matrix1, FloatMatrix<T> matrix2) {
