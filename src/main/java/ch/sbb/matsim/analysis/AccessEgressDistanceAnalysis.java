@@ -2,7 +2,7 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package playgrounds.mrieser.pt.transfers;
+package ch.sbb.matsim.analysis;
 
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -37,6 +37,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+/**
+ * @author mrieser / SBB
+ */
 public class AccessEgressDistanceAnalysis {
 
     private static final Logger log = Logger.getLogger(AccessEgressDistanceAnalysis.class);

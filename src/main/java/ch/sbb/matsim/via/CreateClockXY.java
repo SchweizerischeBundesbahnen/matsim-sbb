@@ -1,8 +1,8 @@
 /*
- * Copyright (C) Schweizerische Bundesbahnen SBB, 2017.
+ * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package playgrounds.mrieser.vis;
+package ch.sbb.matsim.via;
 
 import org.matsim.core.utils.misc.Time;
 

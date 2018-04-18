@@ -2,7 +2,7 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package playgrounds.mrieser.pt.transfers;
+package ch.sbb.matsim.analysis;
 
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;

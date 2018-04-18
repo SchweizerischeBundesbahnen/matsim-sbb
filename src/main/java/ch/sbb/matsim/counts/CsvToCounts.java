@@ -2,7 +2,7 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package playgrounds.mrieser.counts;
+package ch.sbb.matsim.counts;
 
 import ch.sbb.matsim.csv.CSVReader;
 import org.matsim.api.core.v01.Id;
