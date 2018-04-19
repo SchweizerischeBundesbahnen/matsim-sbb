@@ -6,6 +6,7 @@ package ch.sbb.matsim.analysis.matrices;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
+import org.matsim.core.utils.io.UncheckedIOException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +37,7 @@ public class FloatMatrixIO {
         }
     }
 
-    private static <T> void writeCSV(FloatMatrix<T> matrix, CSVWriter writer) throws IOException {
+    private static <T> void writeCSV(FloatMatrix<T> matrix, CSVWriter writer) throws UncheckedIOException {
         T[] zoneIds = getSortedIds(matrix);
         for (T fromZoneId : zoneIds) {
             for (T toZoneId : zoneIds) {
