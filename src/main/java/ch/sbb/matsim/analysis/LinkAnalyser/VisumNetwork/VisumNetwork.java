@@ -79,8 +79,8 @@ public class VisumNetwork {
     }
 
     private Tuple<Id<Node>, Id<Node>> getLinkKey(final Link link, final Boolean inverse) {
-        final Id fromId;
-        final Id toId;
+        final Id<Node> fromId;
+        final Id<Node> toId;
         if (inverse) {
             fromId = link.getToNode().getId();
             toId = link.getFromNode().getId();
@@ -88,7 +88,7 @@ public class VisumNetwork {
             fromId = link.getFromNode().getId();
             toId = link.getToNode().getId();
         }
-        return new Tuple<Id<Node>, Id<Node>>(fromId, toId);
+        return new Tuple<>(fromId, toId);
     }
 
 
@@ -103,7 +103,7 @@ public class VisumNetwork {
                         "STRECKE;CAPACITY;CAPACITY;CAPACITY;Double\n" +
                         "STRECKE;FREESPEED;FREESPEED;FREESPEED;Double\n" +
                         "STRECKE;NBVEHICLES;nbVehicles;nbVehicles;Double\n";
-        String[] COLUMNS = new String[]{};
+        String[] COLUMNS = {};
 
         try (CSVWriter writer = new CSVWriter(HEADER+"\n"+BENDEFATTR_NET_STRING + "\n", COLUMNS, filename)) {
             writer.writeRow();

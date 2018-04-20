@@ -1,12 +1,8 @@
 package ch.sbb.matsim.analysis.LinkAnalyser;
 
-import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLinesAnalyser;
-import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumLink;
-import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetwork;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
@@ -21,12 +17,11 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsManagerImpl;
 import org.matsim.core.events.MatsimEventsReader;
-import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
 
 
 public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler, TransitDriverStartsEventHandler {
@@ -55,7 +50,7 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
     @Override
     public void handleEvent(PersonLeavesVehicleEvent event) {
         if (!transitDrivers.contains(event.getPersonId())) {
-            Id vehId = event.getVehicleId();
+            Id<Vehicle> vehId = event.getVehicleId();
             Integer passengers = this.passengers.get(vehId);
             this.passengers.put(vehId, passengers == null ? 0 : passengers - 1);
         }
@@ -65,7 +60,7 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
         if (!transitDrivers.contains(event.getPersonId())) {
-            Id vehId = event.getVehicleId();
+            Id<Vehicle> vehId = event.getVehicleId();
             Integer passengers = this.passengers.get(vehId);
 
             this.passengers.put(vehId, passengers == null ? 1 : passengers + 1);
@@ -74,7 +69,7 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
 
     @Override
     public void handleEvent(LinkEnterEvent event) {
-        Id linkid = event.getLinkId();
+        Id<Link> linkid = event.getLinkId();
         Integer passengers = this.passengers.get(event.getVehicleId());
         if (passengers == null) {
             passengers = 0;
@@ -112,7 +107,5 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
         eventsManager.addHandler(vv);
 
         new MatsimEventsReader(eventsManager).readFile(events);
-
-        Integer scale = 10;
     }
 }

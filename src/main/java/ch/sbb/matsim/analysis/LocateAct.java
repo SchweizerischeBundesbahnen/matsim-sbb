@@ -61,10 +61,10 @@ public class LocateAct {
         if (coordCache.containsKey(coord)) {
             return coordCache.get(coord);
         } else {
+            Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
             for (SimpleFeature feature : features) {
                 Geometry geometry = (Geometry) feature.getDefaultGeometry();
 
-                Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
                 if(geometry != null){
                     if (geometry.contains(point)) {
                         coordCache.put(coord, feature);
@@ -80,9 +80,9 @@ public class LocateAct {
     public SimpleFeature getNearestZone(Coord coord, double acceptance) {
         SimpleFeature nearestFeature = null;
         double nearestDistance = Double.MAX_VALUE;
+        Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
         for (SimpleFeature feature: features) {
             MultiPolygon mp = (MultiPolygon) feature.getDefaultGeometry();
-            Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
 
             if(mp != null) {
                 if (nearestFeature == null) {

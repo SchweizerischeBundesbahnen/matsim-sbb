@@ -19,20 +19,10 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.LinkNetworkRouteImpl;
-import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.MutableScenario;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.pt.transitSchedule.api.Departure;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class CutterFixture {
@@ -44,7 +34,6 @@ public class CutterFixture {
 
     private final Node[] nodes = new Node[17];
     private final Link[] links = new Link[26];
-    private final Person[] persons = new Person[6];
 
     public CutterFixture() {
         Cutter.CutterConfigGroup cutterConfig = ConfigUtils.addOrGetModule(this.config, Cutter.CutterConfigGroup.class);
@@ -150,8 +139,6 @@ public class CutterFixture {
 
         agent001.addPlan(plan001);
 
-        this.persons[0] = agent001;
-
         this.population.addPerson(agent001);
         this.population.getPersonAttributes().putAttribute(agent001.getId().toString(), "subpopulation", "regular");
 
@@ -191,8 +178,6 @@ public class CutterFixture {
         plan002.addActivity(activity0023);
 
         agent002.addPlan(plan002);
-
-        this.persons[1] = agent002;
 
         this.population.addPerson(agent002);
         this.population.getPersonAttributes().putAttribute(agent002.getId().toString(), "subpopulation", "regular");
@@ -234,8 +219,6 @@ public class CutterFixture {
 
         agent003.addPlan(plan003);
 
-        this.persons[2] = agent003;
-
         this.population.addPerson(agent003);
         this.population.getPersonAttributes().putAttribute(agent003.getId().toString(), "subpopulation", "regular");
 
@@ -275,8 +258,6 @@ public class CutterFixture {
         plan004.addActivity(activity0043);
 
         agent004.addPlan(plan004);
-
-        this.persons[3] = agent004;
 
         this.population.addPerson(agent004);
         this.population.getPersonAttributes().putAttribute(agent004.getId().toString(), "subpopulation", "regular");
@@ -318,8 +299,6 @@ public class CutterFixture {
 
         agent005.addPlan(plan005);
 
-        this.persons[4] = agent005;
-
         this.population.addPerson(agent005);
         this.population.getPersonAttributes().putAttribute(agent005.getId().toString(), "subpopulation", "regular");
 
@@ -359,8 +338,6 @@ public class CutterFixture {
         plan006.addActivity(activity0063);
 
         agent006.addPlan(plan006);
-
-        this.persons[5] = agent006;
 
         this.population.addPerson(agent006);
         this.population.getPersonAttributes().putAttribute(agent006.getId().toString(), "subpopulation", "regular");
