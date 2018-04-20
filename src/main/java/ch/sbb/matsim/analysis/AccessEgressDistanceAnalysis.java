@@ -31,10 +31,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -47,11 +45,6 @@ public class AccessEgressDistanceAnalysis {
     private final Map<Id<TransitStopFacility>, List<LegData>> legData = new TreeMap<>();
     private final Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
     private final TransitSchedule schedule = this.scenario.getTransitSchedule();
-    private final Set<String> ptModes = new HashSet<>();
-
-    public AccessEgressDistanceAnalysis() {
-        this.ptModes.add(TransportMode.pt);
-    }
 
     public void run(String plansFilename, String transitScheduleFilename, String xyFilename, String analysisFilename) {
         new TransitScheduleReader(this.scenario).readFile(transitScheduleFilename);
