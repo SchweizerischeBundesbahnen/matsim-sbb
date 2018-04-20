@@ -4,7 +4,6 @@ import ch.sbb.matsim.analysis.travelcomponents.Journey;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.mavi.ExportPTSupplyFromVisum;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -15,7 +14,6 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.utils.objectattributes.attributable.Attributes;
-import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -170,11 +168,11 @@ public class VisumPuTSurvey {
             transitRoute = tr;
         }
 
-        private Id getRouteId() {
+        private Id<TransitRoute> getRouteId() {
             return transitRoute.getId();
         }
 
-        private Id getLineId() {
+        private Id<TransitLine> getLineId() {
             return transitLine.getId();
         }
     }

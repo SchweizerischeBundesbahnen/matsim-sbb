@@ -220,10 +220,10 @@ public class ExportPTSupplyFromVisum {
             double stopNo = Double.valueOf(Dispatch.call(item, "AttValue", "StopArea\\Stop\\No").toString());
             this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_NO, (int) stopNo);
             String stopCode = Dispatch.call(item, "AttValue", "StopArea\\Stop\\Code").toString();
-            if(!stopCode.equals(""))
+            if(!stopCode.isEmpty())
                 this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_CODE, stopCode);
             String stopName = Dispatch.call(item, "AttValue", "StopArea\\Stop\\Name").toString();
-            if(!stopName.equals(""))
+            if(!stopName.isEmpty())
                 this.schedule.getTransitStopsAttributes().putAttribute(stopPointID.toString(),ATT_STOP_NAME, stopName);
             if(!Dispatch.call(item, "AttValue", "DIDOKNR_HAFAS").toString().equals("null")) {
                 double stopDidokHafas = Double.valueOf(Dispatch.call(item, "AttValue", "DIDOKNR_HAFAS").toString());
