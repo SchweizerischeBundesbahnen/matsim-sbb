@@ -29,11 +29,9 @@ public class LocateAct {
     private String attribute = "";
     private final Map<Coord, SimpleFeature> coordCache = new HashMap<>();
 
-
     public LocateAct(String shapefile) {
         this.readShapeFile(shapefile);
     }
-
 
     public LocateAct(String shapefile, String attribute) {
         this.readShapeFile(shapefile);
@@ -41,7 +39,6 @@ public class LocateAct {
     }
 
     public void fillCache(Population population) {
-
         for (Person person : population.getPersons().values()) {
             Plan plan = person.getSelectedPlan();
             for (PlanElement pe : plan.getPlanElements()) {
@@ -61,15 +58,13 @@ public class LocateAct {
     }
 
     public SimpleFeature getZone(Coord coord) {
-
         if (coordCache.containsKey(coord)) {
             return coordCache.get(coord);
         } else {
-
+            Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
             for (SimpleFeature feature : features) {
                 Geometry geometry = (Geometry) feature.getDefaultGeometry();
 
-                Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
                 if(geometry != null){
                     if (geometry.contains(point)) {
                         coordCache.put(coord, feature);
@@ -77,7 +72,6 @@ public class LocateAct {
                     }
                 }
             }
-
             coordCache.put(coord, null);
             return null;
         }
@@ -86,9 +80,9 @@ public class LocateAct {
     public SimpleFeature getNearestZone(Coord coord, double acceptance) {
         SimpleFeature nearestFeature = null;
         double nearestDistance = Double.MAX_VALUE;
+        Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
         for (SimpleFeature feature: features) {
             MultiPolygon mp = (MultiPolygon) feature.getDefaultGeometry();
-            Point point = geometryFactory.createPoint(new Coordinate(coord.getX(), coord.getY()));
 
             if(mp != null) {
                 if (nearestFeature == null) {
@@ -107,12 +101,13 @@ public class LocateAct {
                 }
             }
         }
+        coordCache.put(coord, nearestFeature);
         return nearestFeature;
     }
 
     public String getZoneAttribute(Coord coord){
         SimpleFeature zone = getZone(coord);
-        if(zone == null){
+        if (zone == null || zone.getAttribute(attribute) == null) {
             return UNDEFINED;
         }
         return zone.getAttribute(attribute).toString();
@@ -120,13 +115,9 @@ public class LocateAct {
 
     public String getNearestZoneAttribute(Coord coord, double acceptance) {
         SimpleFeature zone = getNearestZone(coord, acceptance);
-        if (zone == null) {
+        if (zone == null || zone.getAttribute(attribute) == null) {
             return UNDEFINED;
         }
         return zone.getAttribute(attribute).toString();
-    }
-
-    public static void main(String[] args) {
-        new LocateAct("\\\\V00925\\Simba\\10_Daten\\70_Geodaten\\400_Geodaten\\Raumgliederung_CH\\BFS_CH14\\BFS_CH14_Gemeinden.shp", "GMDNR");
     }
 }

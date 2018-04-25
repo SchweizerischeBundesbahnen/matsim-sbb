@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.sbb</groupId>
 	<artifactId>matsim-sbb</artifactId>
-	<version>0.0.7</version>
+	<version>0.0.8-SNAPSHOT</version>
 	<name>MATSim SBB Project</name>
-	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P</description>
+	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P </description>
 
 	<repositories>
 		<repository>
@@ -21,16 +21,22 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.9.0</version>
+			<version>0.9.1-sbb.1</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.9.0</version>
+			<version>0.9.1-sbb.1</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 			<type>test-jar</type>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.sbb</groupId>
+			<artifactId>matsim-sbb-extension</artifactId>
+			<version>0.9.3-sbb.4</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->
@@ -146,15 +152,15 @@
 		</plugins>
 	</build>
 
-		<distributionManagement>
-			<repository>
-				<id>repo</id>
-				<url>http://repo.sbb.ch/content/repositories/hosted.memop.releases/</url>
-			</repository>
-			<snapshotRepository>
-				<id>repo</id>
-				<url>http://repo.sbb.ch/content/repositories/hosted.memop.snapshots/</url>
-			</snapshotRepository>
-		</distributionManagement>
+	<distributionManagement>
+		<repository>
+			<id>repo</id>
+			<url>http://repo.sbb.ch/content/repositories/hosted.memop.releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>repo</id>
+			<url>http://repo.sbb.ch/content/repositories/hosted.memop.snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 </project>

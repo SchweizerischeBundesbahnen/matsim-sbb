@@ -31,8 +31,6 @@ import org.matsim.core.mobsim.qsim.ActivityEnginePlugin;
 import org.matsim.core.mobsim.qsim.PopulationPlugin;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.QSimUtils;
-import org.matsim.core.mobsim.qsim.pt.TransitEnginePlugin;
-import org.matsim.core.mobsim.qsim.qnetsimengine.QNetsimEnginePlugin;
 import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -73,8 +71,6 @@ public class TestFixture {
     EventsManager eventsManager;
 
     TestFixture() {
-
-
         this.config = ConfigUtils.createConfig(new PostProcessingConfigGroup());
         this.config.transit().setUseTransit(true);
         SBBTransitConfigGroup sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBTransitConfigGroup.class);
@@ -92,6 +88,7 @@ public class TestFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(1, Person.class));
+        population.getPersonAttributes().putAttribute(person.getId().toString(), "subpopulation","regular");
         Plan plan = pf.createPlan();
         Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
         act1.setEndTime(29500);
@@ -192,7 +189,7 @@ public class TestFixture {
         this.line1.addRoute(this.route1);
         schedule.addTransitLine(this.line1);
 
-        addRouteAttributes(this.route1.getId(), "route1");
+        addRouteAttributes(this.line1.getId(), this.route1.getId(), "route1");
         addStopsAttributes(this.stopA.getId(), "A");
         addStopsAttributes(this.stopB.getId(), "B");
         addStopsAttributes(this.stopC.getId(), "C");
@@ -201,17 +198,16 @@ public class TestFixture {
     }
 
 
-    private void addRouteAttributes(Id routeId, String name){
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "04_DirectionCode", "code");
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "08_TSysName", "code");
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "02_TransitLine", "code");
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "03_LineRouteName", "code");
-        scenario.getTransitSchedule().getTransitLinesAttributes().putAttribute(routeId.toString(), "05_Name", "code");
-
+    private void addRouteAttributes(Id lineId, Id routeId, String name){
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("04_DirectionCode", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute( "09_TSysCode", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("02_TransitLine", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("03_LineRouteName", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("05_Name", "code");
     }
 
     private void addStopsAttributes(Id stopId, String name){
-        scenario.getTransitSchedule().getTransitStopsAttributes().putAttribute(stopId.toString(), "02_Stop_No", name);
+        scenario.getTransitSchedule().getFacilities().get(stopId).getAttributes().putAttribute(  "02_Stop_No", name);
     }
 
 
@@ -226,12 +222,12 @@ public class TestFixture {
     }
 
     public void addEvents() {
-
-
         List<AbstractQSimPlugin> plugins = new ArrayList<>();
         plugins.add(new ActivityEnginePlugin(config));
         plugins.add(new PopulationPlugin(config));
+        plugins.add(new TestQSimModule(config));
         plugins.add(new SBBTransitEnginePlugin(config));
+
 
         //plugins.add(new TransitEnginePlugin(f.config));
        // plugins.add(new QNetsimEnginePlugin(f.config));

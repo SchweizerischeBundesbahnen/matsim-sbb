@@ -131,6 +131,6 @@ public class XLSXScoringParserTest {
 
         scoringParser.parseXLSXWorkbook(workbook, config);
 
-        Assert.assertEquals (constant, behaviorGroupConfig.getBehaviorGroupParams().get(sheetName).getPersonGroupTypeParams("none").getModeCorrectionParams().get("car").getConstant(), 0);
+        Assert.assertEquals (constant, behaviorGroupConfig.getBehaviorGroupParams().get(sheetName).getPersonGroupByAttribute("none").getModeCorrectionParams().get("car").getConstant(), 0);
     }
 }

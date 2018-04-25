@@ -30,7 +30,7 @@ public class PopulationMerger {
 
     public static void main(final String[] args) {
         Config config = ConfigUtils.loadConfig(args[0], new PopulationMergerConfigGroup());
-        PopulationMergerConfigGroup mergerConfig = (PopulationMergerConfigGroup) config.getModule(PopulationMergerConfigGroup.GROUP_NAME);
+        PopulationMergerConfigGroup mergerConfig = ConfigUtils.addOrGetModule(config, PopulationMergerConfigGroup.class);
 
         PopulationMerger merger = new PopulationMerger(config);
 

@@ -16,7 +16,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ *
  * @author pmanser / SBB
+ *
  */
 
 public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
@@ -24,13 +26,12 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
     static public final String GROUP_NAME = "SBBBehaviorGroups";
 
     static private final String PARAMSET_BEHAVIORGROUP = "behaviorGroup";
-    static private final String PARAMSET_PERSONGROUP = "personGroupType";
+    static private final String PARAMSET_PERSONGROUPATTRIBUTE = "personGroupAttributeValues";
     static private final String PARAMSET_ABSOLUTEMODECORRECTIONS = "absoluteModeCorrections";
 
     static private final String PARAM_NAME = "name";
     static private final String PARAM_PERSONATTRIBUTE = "personAttribute";
-    static private final String PARAM_TYPES = "types";
-    static private final String PARAM_TYPE = "type";
+    static private final String PARAM_ATTRIBUTE = "attributeValues";
     static private final String PARAM_MODE = "mode";
     static private final String PARAM_DELTACONSTANT = "deltaConstant";
     static private final String PARAM_DELTAUTILDISTANCE = "deltaMarginalUtilityOfDistance_util_m";
@@ -55,9 +56,8 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
     protected void checkParameterSet( final ConfigGroup module ) {
         switch ( module.getName() ) {
             case BehaviorGroupParams.SET_TYPE:
-                if ( !(module instanceof BehaviorGroupParams) ) {
+                if ( !(module instanceof BehaviorGroupParams) )
                     throw new RuntimeException( "unexpected class for module " + module );
-                }
                 break;
             default:
                 throw new IllegalArgumentException( module.getName() );
@@ -75,39 +75,30 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         }
     }
 
-    public void addBehaviorGroupParams(final BehaviorGroupParams params) {
-        final BehaviorGroupParams previous = this.getBehaviorGroupParams().get(params.getBehaviorGroupName());
-
-        if ( previous != null ) {
-
-            final boolean removed = removeParameterSet( previous );
-            if ( !removed ) throw new RuntimeException( "problem replacing behavior group params " );
-        }
-
-        super.addParameterSet( params );
-    }
-
     public Map<String, BehaviorGroupParams> getBehaviorGroupParams() {
         final Map<String, BehaviorGroupParams> map = new LinkedHashMap< >();
-
         for ( ConfigGroup pars : getParameterSets( BehaviorGroupParams.SET_TYPE ) ) {
-            if ( this.isLocked() ) {
-                pars.setLocked();
-            }
-            final String mode = ((BehaviorGroupParams) pars).getBehaviorGroupName();
-            final BehaviorGroupParams old = map.put( mode , (BehaviorGroupParams)	pars );
-            if ( old != null ) throw new IllegalStateException( "several parameter sets for behavior group " + mode );
+            final String name = ((BehaviorGroupParams) pars).getBehaviorGroupName();
+            final BehaviorGroupParams old = map.put( name , (BehaviorGroupParams)	pars );
+            if ( old != null ) throw new IllegalStateException( "several parameter sets for behavior group " + name );
         }
         return map;
     }
 
+    public void addBehaviorGroupParams(final BehaviorGroupParams params) {
+        final BehaviorGroupParams previous = this.getBehaviorGroupParams().get(params.getBehaviorGroupName());
+        if ( previous != null ) {
+            final boolean removed = removeParameterSet( previous );
+            if ( !removed ) throw new RuntimeException( "problem replacing behavior group params " );
+        }
+        super.addParameterSet( params );
+    }
 
     public static class BehaviorGroupParams extends ReflectiveConfigGroup {
         public static final String SET_TYPE = PARAMSET_BEHAVIORGROUP;
 
         private String name = null;
         private String personAttribute = null;
-        private Set<String> types = new HashSet<>();
 
         public BehaviorGroupParams() {
             super(PARAMSET_BEHAVIORGROUP);
@@ -116,19 +107,8 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         @Override
         public void checkConsistency(Config config) {
             if (this.name == null) {
-                throw new RuntimeException("behaviour group name for parameter set " + this + " is null!");
-            } else if (this.personAttribute == null && this.types == null) {
-                throw new RuntimeException("no person attribute nor behaviour group types are set for group " + this.name);
+                throw new RuntimeException("behaviour group name for parameter set " + this + " cannot be  null!");
             }
-        }
-
-        @Override
-        public Map<String, String> getComments() {
-            Map<String, String> comments = super.getComments();
-            comments.put(PARAM_NAME, "Name of the behavior group as identifier.");
-            comments.put(PARAM_PERSONATTRIBUTE, "Custom person attribute name. Must be in line with the person attributes in the population files");
-            comments.put(PARAM_TYPES, "Possible behavior group types.");
-            return comments;
         }
 
         @StringGetter(PARAM_NAME)
@@ -138,7 +118,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
         @StringSetter(PARAM_NAME)
         public void setBehaviorGroupName(String name) {
-            testForLocked() ;
             this.name = name;
         }
 
@@ -149,35 +128,22 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
         @StringSetter(PARAM_PERSONATTRIBUTE)
         public void setPersonAttribute(String personAttribute) {
-            testForLocked() ;
             this.personAttribute = personAttribute;
         }
 
-        @StringGetter(PARAM_TYPES)
-        private String getBehaviorTypesAsString() {
-            return CollectionUtils.setToString(this.types);
-        }
-
-        public Set<String> getBehaviorTypes() {
-            return this.types;
-        }
-
-        @StringSetter(PARAM_TYPES)
-        private void setBehaviorTypes(String types) {
-            testForLocked() ;
-            setBehaviorTypes(CollectionUtils.stringToSet(types));
-        }
-
-        public void setBehaviorTypes(Set<String> types) {
-            this.types.clear();
-            this.types.addAll(types);
+        @Override
+        public Map<String, String> getComments() {
+            Map<String, String> comments = super.getComments();
+            comments.put(PARAM_NAME, "Name of the behavior group as identifier.");
+            comments.put(PARAM_PERSONATTRIBUTE, "Custom person attribute name. MUST be in line with the person attributes in the population files");
+            return comments;
         }
 
         @Override
         public ConfigGroup createParameterSet(final String type) {
             switch ( type ) {
-                case PersonGroupTypes.SET_TYPE:
-                    return new PersonGroupTypes();
+                case PersonGroupAttributeValues.SET_TYPE:
+                    return new PersonGroupAttributeValues();
                 default:
                     throw new IllegalArgumentException( type );
             }
@@ -186,13 +152,13 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         @Override
         protected void checkParameterSet( final ConfigGroup module ) {
             switch ( module.getName() ) {
-                case PersonGroupTypes.SET_TYPE:
-                    if ( !(module instanceof PersonGroupTypes) ) {
-                        throw new RuntimeException( "wrong class for "+module );
-                    }
-                    final String t = ((PersonGroupTypes) module).getPersonGroupType();
-                    if ( getPersonGroupTypeParams( t  ) != null ) {
-                        throw new IllegalStateException( "already a parameter set for person group type "+t );
+                case PersonGroupAttributeValues.SET_TYPE:
+                    if ( !(module instanceof PersonGroupAttributeValues) )
+                        throw new RuntimeException( "wrong class for " + module );
+                    final Set<String> t = ((PersonGroupAttributeValues) module).getPersonGroupAttributeValues();
+                    for(String value: t) {
+                        if (getPersonGroupByAttribute(value) != null)
+                            throw new IllegalStateException("already a parameter set for attribute value " + t);
                     }
                     break;
                 default:
@@ -200,81 +166,78 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
             }
         }
 
-        public Collection<String> getPersonGroupTypes() {
-            return this.getPersonGroupTypeParamsPerType().keySet();
+        public Collection<String> getPersonGroupAttributes() {
+            return this.getPersonGroupByAttribute().keySet();
         }
 
-        public Map<String, PersonGroupTypes> getPersonGroupTypeParams() {
-            final Map<String, PersonGroupTypes> map = new LinkedHashMap< >();
-
-            for ( ConfigGroup pars : getParameterSets( PersonGroupTypes.SET_TYPE ) ) {
-                if ( this.isLocked() ) {
-                    pars.setLocked();
+        public Map<String, PersonGroupAttributeValues> getPersonGroupByAttribute() {
+            final Map<String, PersonGroupAttributeValues> map = new LinkedHashMap<>();
+            for ( ConfigGroup pars : getParameterSets( PersonGroupAttributeValues.SET_TYPE ) ) {
+                final Set<String> attributeValues = ((PersonGroupAttributeValues) pars).getPersonGroupAttributeValues();
+                for(String value: attributeValues) {
+                    final PersonGroupAttributeValues old = map.put(value, (PersonGroupAttributeValues) pars);
+                    if (old != null) throw new IllegalStateException("several parameter sets for attribute value " + value);
                 }
-                final String type = ((PersonGroupTypes) pars).getPersonGroupType();
-                final PersonGroupTypes old = map.put( type , (PersonGroupTypes) 	pars );
-                if ( old != null ) throw new IllegalStateException( "several parameter sets for group type " + type );
             }
             return map;
         }
 
-        public PersonGroupTypes getPersonGroupTypeParams(final String type) {
-            return this.getPersonGroupTypeParamsPerType().get(type);
+        public PersonGroupAttributeValues getPersonGroupByAttribute(final String value) {
+            return this.getPersonGroupByAttribute().get(value);
         }
 
-        public Map<String, PersonGroupTypes> getPersonGroupTypeParamsPerType() {
-            final Map<String, PersonGroupTypes> map = new LinkedHashMap< >();
-
-            for ( PersonGroupTypes pars : getPersonGroupTypeParams().values() ) {
-                map.put( pars.getPersonGroupType() , pars );
+        public void addPersonGroupByAttribute(final PersonGroupAttributeValues values) {
+            Set<String> attributes = values.getPersonGroupAttributeValues();
+            for(String attribute: attributes) {
+                final PersonGroupAttributeValues previous = this.getPersonGroupByAttribute().get(attribute);
+                if (previous != null) {
+                    final boolean removed = removeParameterSet(previous);
+                    if (!removed) throw new RuntimeException("problem replacing person group type params");
+                }
             }
-            return map;
-        }
-
-        public void addPersonGroupType(final PersonGroupTypes type) {
-            final PersonGroupTypes previous = this.getPersonGroupTypeParams().get(type);
-
-            if ( previous != null ) {
-
-                final boolean removed = removeParameterSet( previous );
-                if ( !removed ) throw new RuntimeException( "problem replacing behavior group params " );
-            }
-
-            super.addParameterSet( type );
+            super.addParameterSet( values );
         }
     }
 
-    public static class PersonGroupTypes extends ReflectiveConfigGroup {
-        public static final String SET_TYPE = PARAMSET_PERSONGROUP;
+    public static class PersonGroupAttributeValues extends ReflectiveConfigGroup {
+        public static final String SET_TYPE = PARAMSET_PERSONGROUPATTRIBUTE;
 
-        private String type = null;
+        private Set<String> attributeValues = new HashSet<>();
 
-        public PersonGroupTypes() {
-            super(PARAMSET_PERSONGROUP);
+        public PersonGroupAttributeValues() {
+            super(PARAMSET_PERSONGROUPATTRIBUTE);
         }
 
         @Override
         public void checkConsistency(Config config) {
-            if (this.type == null)
-                throw new RuntimeException("behaviour group name for parameter set " + this + " is null!");
+            if (this.attributeValues == null)
+                throw new RuntimeException("behaviour group attribute values for parameter set " + this + " is null!");
+        }
+
+        @StringGetter(PARAM_ATTRIBUTE)
+        private String getPersonGroupAttributeValuesAsString() {
+            return CollectionUtils.setToString(this.attributeValues);
+        }
+
+        private Set<String> getPersonGroupAttributeValues() {
+            return this.attributeValues;
+        }
+
+        @StringSetter(PARAM_ATTRIBUTE)
+        public void setPersonGroupAttributeValues(String values) {
+            setPersonGroupAttributeValues(CollectionUtils.stringToSet(values));
+        }
+
+        private void setPersonGroupAttributeValues(Set<String> values) {
+            this.attributeValues.clear();
+            this.attributeValues.addAll(values);
         }
 
         @Override
         public Map<String, String> getComments() {
             Map<String, String> comments = super.getComments();
-            comments.put(PARAM_TYPE, "Type of the person group.");
+            comments.put(PARAM_ATTRIBUTE, "Attributes of the person group. It is possible to give a comma-separated list of different attributes");
             return comments;
-        }
-
-        @StringGetter(PARAM_TYPE)
-        public String getPersonGroupType() {
-            return this.type;
-        }
-
-        @StringSetter(PARAM_TYPE)
-        public void setPersonGroupType(String type) {
-            testForLocked();
-            this.type = type;
         }
 
         @Override
@@ -292,11 +255,11 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
             switch ( module.getName() ) {
                 case ModeCorrection.SET_TYPE:
                     if ( !(module instanceof ModeCorrection) ) {
-                        throw new RuntimeException( "wrong class for "+module );
+                        throw new RuntimeException( "wrong class for " + module );
                     }
                     final String t = ((ModeCorrection) module).getMode();
-                    if ( getModeCorrectionParams( t  ) != null ) {
-                        throw new IllegalStateException( "already a parameter set for mode "+t );
+                    if ( getModeCorrectionsForMode( t  ) != null ) {
+                        throw new IllegalStateException( "already a parameter set for mode " + t );
                     }
                     break;
                 default:
@@ -305,46 +268,29 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         }
 
         public Collection<String> getModes() {
-            return this.getPersonGroupTypeParamsPerMode().keySet();
+            return this.getModeCorrectionParams().keySet();
         }
-
 
         public Map<String, ModeCorrection> getModeCorrectionParams() {
             final Map<String, ModeCorrection> map = new LinkedHashMap< >();
-
             for ( ConfigGroup pars : getParameterSets( ModeCorrection.SET_TYPE ) ) {
-                if ( this.isLocked() ) {
-                    pars.setLocked();
-                }
                 final String mode = ((ModeCorrection) pars).getMode();
-                final ModeCorrection old = map.put( mode , (ModeCorrection) 	pars );
-                if ( old != null ) throw new IllegalStateException( "several parameter sets for group type " + mode );
+                final ModeCorrection old = map.put( mode , (ModeCorrection) pars );
+                if ( old != null ) throw new IllegalStateException( "several parameter sets for mode correction " + mode );
             }
             return map;
         }
 
-        public ModeCorrection getModeCorrectionParams(final String type) {
-            return this.getPersonGroupTypeParamsPerMode().get(type);
-        }
-
-        public Map<String, ModeCorrection> getPersonGroupTypeParamsPerMode() {
-            final Map<String, ModeCorrection> map = new LinkedHashMap< >();
-
-            for ( ModeCorrection pars : getModeCorrectionParams().values() ) {
-                map.put( pars.getMode() , pars );
-            }
-            return map;
+        public ModeCorrection getModeCorrectionsForMode(final String type) {
+            return this.getModeCorrectionParams().get(type);
         }
 
         public void addModeCorrection(final ModeCorrection modeCorrection) {
-            final ModeCorrection previous = this.getModeCorrectionParams().get(modeCorrection.mode);
-
+            final ModeCorrection previous = this.getModeCorrectionParams().get(modeCorrection.getMode());
             if ( previous != null ) {
-
                 final boolean removed = removeParameterSet( previous );
-                if ( !removed ) throw new RuntimeException( "problem replacing behavior group params " );
+                if ( !removed ) throw new RuntimeException( "problem replacing mode correction params " );
             }
-
             super.addParameterSet( modeCorrection );
         }
     }
@@ -353,7 +299,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         public static final String SET_TYPE = PARAMSET_ABSOLUTEMODECORRECTIONS;
 
         private String mode = null;
-
         private double constant = 0.0;
         private double margUtilOfTime = 0.0;
         private double margUtilOfDistance = 0.0;
@@ -365,15 +310,8 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
         @Override
         public void checkConsistency(Config config) {
-            if (this.mode== null)
-                throw new RuntimeException("behaviour group name for parameter set " + this + " is null!");
-        }
-
-        @Override
-        public Map<String, String> getComments() {
-            Map<String, String> comments = super.getComments();
-            comments.put(PARAM_MODE, "Type of the person group.");
-            return comments;
+            if (this.mode == null)
+                throw new RuntimeException("no mode defined for parameterset " + this);
         }
 
         @StringGetter(PARAM_MODE)
@@ -383,7 +321,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
         @StringSetter(PARAM_MODE)
         public void setMode(String mode) {
-            testForLocked();
             this.mode = mode;
         }
 
@@ -394,7 +331,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
         @StringSetter(PARAM_DELTACONSTANT)
         public void setConstant(double util) {
-            testForLocked();
             this.constant = util;
         }
 
@@ -405,7 +341,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
         @StringSetter(PARAM_DELTAUTILTIME)
         public void setMargUtilOfTime(double util) {
-            testForLocked();
             this.margUtilOfTime = util;
         }
 
@@ -416,7 +351,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
         @StringSetter(PARAM_DELTAUTILDISTANCE)
         public void setMargUtilOfDistance(double util) {
-            testForLocked();
             this.margUtilOfDistance = util;
         }
 
@@ -427,8 +361,14 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
         @StringSetter(PARAM_DELTADISTANCERATE)
         public void setDistanceRate(double distanceRate) {
-            testForLocked();
             this.distanceRate = distanceRate;
+        }
+
+        @Override
+        public Map<String, String> getComments() {
+            Map<String, String> comments = super.getComments();
+            comments.put(PARAM_MODE, "The parameter corrections will be done for this specific mode.");
+            return comments;
         }
 
         public boolean isSet() {

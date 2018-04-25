@@ -11,8 +11,11 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.events.algorithms.EventWriter;
+import org.matsim.counts.Counts;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
 
@@ -23,14 +26,18 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
     public static final String COL_MODE = "mode";
     public static final String COL_BIN = "bin";
     public static final String COL_VOLUME = "volume";
-    public static final String COL_NBPASSENGERS = "nb_passengers";
-    public static final String[] COLUMNS = new String[]{COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME, COL_NBPASSENGERS};
+    public static final String[] COLUMNS = {COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME};
 
     private final String filename;
     private Network network;
 
     public LinkVolumeToCSV(Scenario scenario, String filename) {
         super(3600, 24 * 3600 - 1, scenario.getNetwork());
+        Counts<Link> counts = (Counts<Link>) scenario.getScenarioElement(Counts.ELEMENT_NAME);
+        if (counts != null && !counts.getCounts().isEmpty()) { // by default, an empty counts is registered, even if no inputCountsFile was specified
+            Set<Id<Link>> linkIds = new HashSet<>(counts.getCounts().keySet());
+            super.setLinkFilter(linkIds);
+        }
         this.filename = filename;
         this.network = scenario.getNetwork();
     }
@@ -47,14 +54,12 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
             for (Id<Link> linkId : super.getLinkIds()) {
                 for (String aMode : this.network.getLinks().get(linkId).getAllowedModes()) {
                     int[] volumes = super.getVolumesForLink(linkId, aMode);
-                    int[] nbPassengers = super.getPassengerVolumesForLink(linkId, aMode);
                     if (volumes != null) {
                         for (int i = 0; i < volumes.length; i++) {
                             linkVolumesWriter.set(COL_LINK_ID, linkId.toString());
                             linkVolumesWriter.set(COL_MODE, aMode);
                             linkVolumesWriter.set(COL_BIN, Integer.toString(i + 1));
                             linkVolumesWriter.set(COL_VOLUME, Integer.toString(volumes[i]));
-                            linkVolumesWriter.set(COL_NBPASSENGERS, Integer.toString(nbPassengers[i]));
                             linkVolumesWriter.writeRow();
                         }
                     }

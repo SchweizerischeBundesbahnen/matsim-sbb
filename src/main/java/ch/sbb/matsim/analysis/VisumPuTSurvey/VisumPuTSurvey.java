@@ -4,15 +4,16 @@ import ch.sbb.matsim.analysis.travelcomponents.Journey;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.mavi.ExportPTSupplyFromVisum;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.utils.objectattributes.attributable.Attributes;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -36,22 +37,32 @@ public class VisumPuTSurvey {
     private static final String COL_EINHSTABFAHRTSTAG = "EINHSTABFAHRTSTAG";
     private static final String COL_EINHSTABFAHRTSZEIT = "EINHSTABFAHRTSZEIT";
     private static final String COL_PFAHRT = "PFAHRT";
+    private static final String COL_SUBPOP = "SUBPOP";
     private static final String[] COLUMNS = new String[] { COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
-            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT };
+            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP };
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
-    private final static Logger log = Logger.getLogger(VisumPuTSurvey.class);
+
+    private static final String STOP_NO = "02_Stop_No";
+    private static final String TSYS_CODE = "09_TSysCode";
+    private static final String DIRECTION_CODE = "04_DirectionCode";
+    private static final String TRANSITLINE = "02_TransitLine";
+    private static final String LINEROUTENAME = "03_LineRouteName";
+    private static final String FZPNAME = "05_Name";
 
     final private Map<Id, TravellerChain> chains;
-
     final private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     final private TransitSchedule transitSchedule;
-    private Double scaleFactor = 1.0;
+    final private Scenario scenario;
+    private Double scaleFactor;
 
-    public VisumPuTSurvey(Map<Id, TravellerChain> chains, TransitSchedule transitSchedule, Double scaleFactor) {
+    private final static Logger log = Logger.getLogger(VisumPuTSurvey.class);
+
+    public VisumPuTSurvey(Map<Id, TravellerChain> chains, Scenario scenario, Double scaleFactor) {
         this.chains = chains;
-        readVehicles(transitSchedule);
-        this.transitSchedule = transitSchedule;
+        readVehicles(scenario.getTransitSchedule());
+        this.scenario = scenario;
+        this.transitSchedule = scenario.getTransitSchedule();
         this.scaleFactor = scaleFactor;
     }
 
@@ -85,18 +96,21 @@ public class VisumPuTSurvey {
 
                             writer.set(COL_PATH_ID, Integer.toString(journey.getElementId()));
                             writer.set(COL_LEG_ID, Integer.toString(i));
-                            String boarding = this.transitSchedule.getTransitStopsAttributes().getAttribute(trip.getBoardingStop().toString(), ExportPTSupplyFromVisum.ATT_STOP_NO).toString();
+                            String boarding = this.transitSchedule.getFacilities().get(trip.getBoardingStop()).getAttributes().getAttribute(STOP_NO).toString();
                             writer.set(COL_FROM_STOP, boarding);
-                            writer.set(COL_TO_STOP, this.transitSchedule.getTransitStopsAttributes().getAttribute(trip.getAlightingStop().toString(), ExportPTSupplyFromVisum.ATT_STOP_NO).toString());
+                            String alighting = this.transitSchedule.getFacilities().get(trip.getAlightingStop()).getAttributes().getAttribute(STOP_NO).toString();
+                            writer.set(COL_TO_STOP, alighting);
 
                             Id vId = trip.getVehicleId();
-
                             PTVehicle vehicle = this.ptVehicles.get(vId);
-                            String direction = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_DIRECTIONCODE).toString();
-                            String vsys = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_TSYSNAME).toString();
-                            String line = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_TRANSITLINE).toString();
-                            String lineroute = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_LINEROUTENAME).toString();
-                            String fzp = this.transitSchedule.getTransitLinesAttributes().getAttribute(vehicle.getRouteId().toString(), ExportPTSupplyFromVisum.ATT_FZPNAME).toString();
+                            Id<TransitLine> lId = vehicle.getLineId();
+                            Id<TransitRoute> rId = vehicle.getRouteId();
+                            Attributes routeAttributes = this.transitSchedule.getTransitLines().get(lId).getRoutes().get(rId).getAttributes();
+                            String direction = routeAttributes.getAttribute(DIRECTION_CODE).toString();
+                            String vsys = routeAttributes.getAttribute(TSYS_CODE).toString();
+                            String line = routeAttributes.getAttribute(TRANSITLINE).toString();
+                            String lineroute = routeAttributes.getAttribute(LINEROUTENAME).toString();
+                            String fzp = routeAttributes.getAttribute(FZPNAME).toString();
 
                             writer.set(COL_VSYSCODE, vsys);
                             writer.set(COL_LINNAME, line);
@@ -105,9 +119,8 @@ public class VisumPuTSurvey {
                             writer.set(COL_FZPROFILNAME, fzp);
 
                             String kennung = "E";
-                            if (i > 1) {
+                            if (i > 1)
                                 kennung = "N";
-                            }
 
                             writer.set(COL_TEILWEG_KENNUNG, kennung);
                             writer.set(COL_EINHSTNR, boarding);
@@ -119,6 +132,9 @@ public class VisumPuTSurvey {
 
                             Double pfahrt = 1.0 * scaleFactor;
                             writer.set(COL_PFAHRT, Integer.toString(pfahrt.intValue()));
+
+                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(pax_id,"subpopulation").toString();
+                            writer.set(COL_SUBPOP, subpopulation);
                             writer.writeRow();
                             i++;
                         }
@@ -152,10 +168,12 @@ public class VisumPuTSurvey {
             transitRoute = tr;
         }
 
-        private Id getRouteId() {
+        private Id<TransitRoute> getRouteId() {
             return transitRoute.getId();
         }
+
+        private Id<TransitLine> getLineId() {
+            return transitLine.getId();
+        }
     }
-
-
 }

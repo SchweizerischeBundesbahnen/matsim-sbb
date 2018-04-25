@@ -90,8 +90,8 @@ public class SBBPostProcessingOutputHandlerTest {
     }
 
     /*
-    * some CSV writers are set and it is the right iteration, so we expect 4 eventHendlers to be configured:
-    * PtVolumeToCSV, EventsToTravelDiaries, EventToEventsPerPersonTable, LinkVolumeToCSV
+    * some CSV writers are set and it is the right iteration, so we expect 5 eventHendlers to be configured:
+    * PtVolumeToCSV, EventsToTravelDiaries, EventToEventsPerPersonTable, LinkVolumeToCSV, VisumNetwork
     * */
     @Test
     public void testNotifyBeforeMobsimAllListeners() {
@@ -120,11 +120,11 @@ public class SBBPostProcessingOutputHandlerTest {
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(4, eventsManager.getEventHandlers().size());
+        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
     }
 
     /*
-    * some CSV writers are set and it is the last iteration, so we expect 6 eventHendlers to be configured:
+    * some CSV writers are set and it is the last iteration, so we expect 5 eventHendlers to be configured:
     * PtVolumeToCSV, EventsToTravelDiaries, EventToEventsPerPersonTable, LinkVolumeToCSV, PopulationToCSV, NetworkToVisumNetFile
     * */
     @Test
@@ -154,7 +154,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(4, eventsManager.getEventHandlers().size());
+        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
     }
     /*
     * some CSV writers are set, it is the last iteration AND outputs are dumped, so we expect 10 eventHendlers to be configured:
@@ -188,7 +188,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(8, eventsManager.getEventHandlers().size());
+        Assert.assertEquals(10, eventsManager.getEventHandlers().size());
     }
 
     private PostProcessingConfigGroup getPostProcessingConfigGroup(int writeOutputsInterval, boolean eventPerPerson, boolean linkVolumes, boolean ptVolumes, boolean travelDiaries, boolean writePlansCSV, boolean visumNetFile) {
@@ -199,7 +199,8 @@ public class SBBPostProcessingOutputHandlerTest {
         ppConfig.setPtVolumes(ptVolumes);
         ppConfig.setTravelDiaries(travelDiaries);
         ppConfig.setMapActivitiesToZone(false);
-        ppConfig.setWritePlansCSV(writePlansCSV);
+        ppConfig.setWriteAgentsCSV(writePlansCSV);
+        ppConfig.setWritePlanElementsCSV(false);
         ppConfig.setVisumNetFile(visumNetFile);
 
         return ppConfig;

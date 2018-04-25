@@ -4,6 +4,8 @@
 
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
+import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
 import com.google.inject.Inject;
@@ -14,14 +16,16 @@ import org.matsim.core.config.groups.ControlerConfigGroup;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.BeforeMobsimEvent;
 import org.matsim.core.controler.events.IterationEndsEvent;
+import org.matsim.core.controler.events.StartupEvent;
 import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.IterationEndsListener;
+import org.matsim.core.controler.listener.StartupListener;
 import org.matsim.core.events.algorithms.EventWriter;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, IterationEndsListener {
+public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, IterationEndsListener, StartupListener {
 
     private static final Logger log = Logger.getLogger(SBBPostProcessingOutputHandler.class);
 
@@ -44,6 +48,14 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         this.controlerIO = controlerIO;
         this.config = config;
         this.ppConfig = ppConfig;
+    }
+
+    @Override
+    public void notifyStartup(StartupEvent event) {
+        String outputDirectory = this.controlerIO.getOutputFilename("");
+
+        if (this.ppConfig.getWriteAgentsCSV() || this.ppConfig.getWritePlanElementsCSV())
+            new PopulationToCSV(scenario).write(outputDirectory);
     }
 
     @Override
@@ -70,36 +82,23 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         }
 
         this.eventWriters.clear();
-
-        if (event.getIteration() == this.config.getLastIteration()) {
-            // write final outputs
-
-            String outputDirectory = this.controlerIO.getOutputFilename("");
-
-            if (this.ppConfig.getWritePlansCSV()) {
-                new PopulationToCSV(scenario).write(outputDirectory);
-            }
-
-            if (this.ppConfig.getVisumNetFile()) {
-                new NetworkToVisumNetFile(scenario, ppConfig).write(outputDirectory);
-            }
-        }
     }
 
     public static List<EventWriter> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
+        Double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
         List<EventWriter> eventWriters = new LinkedList<>();
 
-        if (ppConfig.getPtVolumes()){
+        if (ppConfig.getPtVolumes()) {
             PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(filename);
             eventWriters.add(ptVolumeWriter);
         }
 
-        if (ppConfig.getTravelDiaries()){
+        if (ppConfig.getTravelDiaries()) {
             EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename);
             eventWriters.add(diariesWriter);
         }
 
-        if (ppConfig.getEventsPerPerson()){
+        if (ppConfig.getEventsPerPerson()) {
             EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(scenario, filename);
             eventWriters.add(eventsPerPersonWriter);
         }
@@ -107,6 +106,17 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         if (ppConfig.getLinkVolumes()) {
             LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(scenario, filename);
             eventWriters.add(linkVolumeWriter);
+        }
+
+        if (ppConfig.getVisumNetFile()) {
+            VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkThreshold(), ppConfig.getVisumNetworkMode(), filename);
+            eventWriters.add(visumNetworkEventWriter);
+        }
+
+        if (ppConfig.getAnalyseScreenline()) {
+
+            ScreenLineEventWriter screenLineEventWriter = new ScreenLineEventWriter(scenario, scaleFactor, ppConfig.getShapefileScreenline(), filename);
+            eventWriters.add(screenLineEventWriter);
         }
 
         return eventWriters;
