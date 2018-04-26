@@ -18,7 +18,7 @@ import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.population.routes.LinkNetworkRouteImpl;
+import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.MutableScenario;
 import org.matsim.core.scenario.ScenarioUtils;
 
@@ -115,7 +115,7 @@ public class CutterFixture {
         leg0011.setDepartureTime(28800);
         leg0011.setTravelTime(300);
         List<Id<Link>> linkList0011 = Arrays.asList(this.links[0].getId());
-        Route route0011 = new LinkNetworkRouteImpl(this.links[0].getId(), linkList0011, this.links[0].getId());
+        Route route0011 = RouteUtils.createLinkNetworkRouteImpl(this.links[0].getId(), linkList0011, this.links[0].getId());
         leg0011.setRoute(route0011);
         plan001.addLeg(leg0011);
 
@@ -128,7 +128,7 @@ public class CutterFixture {
         leg0012.setDepartureTime(61200);
         leg0012.setTravelTime(300);
         List<Id<Link>> linkList0012 = Arrays.asList(this.links[1].getId());
-        Route route0012 = new LinkNetworkRouteImpl(this.links[1].getId(), linkList0012, this.links[1].getId());
+        Route route0012 = RouteUtils.createLinkNetworkRouteImpl(this.links[1].getId(), linkList0012, this.links[1].getId());
         leg0012.setRoute(route0012);
         plan001.addLeg(leg0012);
 
@@ -155,7 +155,7 @@ public class CutterFixture {
         leg0021.setDepartureTime(28800);
         leg0021.setTravelTime(300);
         List<Id<Link>> linkList0021 = Arrays.asList(this.links[6].getId());
-        Route route0021 = new LinkNetworkRouteImpl(this.links[6].getId(), linkList0021, this.links[6].getId());
+        Route route0021 = RouteUtils.createLinkNetworkRouteImpl(this.links[6].getId(), linkList0021, this.links[6].getId());
         leg0021.setRoute(route0021);
         plan002.addLeg(leg0021);
 
@@ -168,7 +168,7 @@ public class CutterFixture {
         leg0022.setDepartureTime(61200);
         leg0022.setTravelTime(300);
         List<Id<Link>> linkList0022 = Arrays.asList(this.links[7].getId());
-        Route route0022 = new LinkNetworkRouteImpl(this.links[7].getId(), linkList0022, this.links[7].getId());
+        Route route0022 = RouteUtils.createLinkNetworkRouteImpl(this.links[7].getId(), linkList0022, this.links[7].getId());
         leg0022.setRoute(route0022);
         plan002.addLeg(leg0022);
 
@@ -195,7 +195,7 @@ public class CutterFixture {
         leg0031.setDepartureTime(28800);
         leg0031.setTravelTime(900);
         List<Id<Link>> linkList0031 = Arrays.asList(this.links[6].getId(), this.links[2].getId(), this.links[11].getId());
-        Route route0031 = new LinkNetworkRouteImpl(this.links[6].getId(), linkList0031, this.links[11].getId());
+        Route route0031 = RouteUtils.createLinkNetworkRouteImpl(this.links[6].getId(), linkList0031, this.links[11].getId());
         leg0031.setRoute(route0031);
         plan003.addLeg(leg0031);
 
@@ -208,7 +208,7 @@ public class CutterFixture {
         leg0032.setDepartureTime(61200);
         leg0032.setTravelTime(900);
         List<Id<Link>> linkList0032 = Arrays.asList(this.links[10].getId(), this.links[3].getId(), this.links[7].getId());
-        Route route0032 = new LinkNetworkRouteImpl(this.links[10].getId(), linkList0032, this.links[7].getId());
+        Route route0032 = RouteUtils.createLinkNetworkRouteImpl(this.links[10].getId(), linkList0032, this.links[7].getId());
         leg0032.setRoute(route0032);
         plan003.addLeg(leg0032);
 
@@ -235,7 +235,7 @@ public class CutterFixture {
         leg0041.setDepartureTime(28800);
         leg0041.setTravelTime(300);
         List<Id<Link>> linkList0041 = Arrays.asList(this.links[2].getId());
-        Route route0041 = new LinkNetworkRouteImpl(this.links[2].getId(), linkList0041, this.links[2].getId());
+        Route route0041 = RouteUtils.createLinkNetworkRouteImpl(this.links[2].getId(), linkList0041, this.links[2].getId());
         leg0041.setRoute(route0041);
         plan004.addLeg(leg0041);
 
@@ -248,7 +248,7 @@ public class CutterFixture {
         leg0042.setDepartureTime(61200);
         leg0042.setTravelTime(300);
         List<Id<Link>> linkList0042 = Arrays.asList(this.links[3].getId());
-        Route route0042 = new LinkNetworkRouteImpl(this.links[3].getId(), linkList0042, this.links[3].getId());
+        Route route0042 = RouteUtils.createLinkNetworkRouteImpl(this.links[3].getId(), linkList0042, this.links[3].getId());
         leg0042.setRoute(route0042);
         plan004.addLeg(leg0042);
 
@@ -275,7 +275,7 @@ public class CutterFixture {
         leg0051.setDepartureTime(28800);
         leg0051.setTravelTime(900);
         List<Id<Link>> linkList0051 = Arrays.asList(this.links[7].getId(), this.links[0].getId(), this.links[10].getId());
-        Route route0051 = new LinkNetworkRouteImpl(this.links[7].getId(), linkList0051, this.links[10].getId());
+        Route route0051 = RouteUtils.createLinkNetworkRouteImpl(this.links[7].getId(), linkList0051, this.links[10].getId());
         leg0051.setRoute(route0051);
         plan005.addLeg(leg0051);
 
@@ -288,7 +288,7 @@ public class CutterFixture {
         leg0052.setDepartureTime(61200);
         leg0052.setTravelTime(900);
         List<Id<Link>> linkList0052 = Arrays.asList(this.links[11].getId(), this.links[1].getId(), this.links[6].getId());
-        Route route0052 = new LinkNetworkRouteImpl(this.links[11].getId(), linkList0052, this.links[6].getId());
+        Route route0052 = RouteUtils.createLinkNetworkRouteImpl(this.links[11].getId(), linkList0052, this.links[6].getId());
         leg0052.setRoute(route0052);
         plan005.addLeg(leg0052);
 
@@ -315,7 +315,7 @@ public class CutterFixture {
         leg0061.setDepartureTime(28800);
         leg0061.setTravelTime(900);
         List<Id<Link>> linkList0061 = Arrays.asList(this.links[7].getId(), this.links[0].getId(), this.links[10].getId());
-        Route route0061 = new LinkNetworkRouteImpl(this.links[7].getId(), linkList0051, this.links[10].getId());
+        Route route0061 = RouteUtils.createLinkNetworkRouteImpl(this.links[7].getId(), linkList0051, this.links[10].getId());
         leg0061.setRoute(route0061);
         plan006.addLeg(leg0061);
 
@@ -328,7 +328,7 @@ public class CutterFixture {
         leg0062.setDepartureTime(61200);
         leg0062.setTravelTime(300);
         List<Id<Link>> linkList0062 = Arrays.asList(this.links[3].getId());
-        Route route0062 = new LinkNetworkRouteImpl(this.links[3].getId(), linkList0062, this.links[3].getId());
+        Route route0062 = RouteUtils.createLinkNetworkRouteImpl(this.links[3].getId(), linkList0062, this.links[3].getId());
         leg0062.setRoute(route0062);
         plan006.addLeg(leg0062);
 

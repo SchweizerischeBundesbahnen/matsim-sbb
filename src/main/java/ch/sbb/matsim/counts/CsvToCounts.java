@@ -20,8 +20,8 @@ import java.util.Map;
 public class CsvToCounts {
 
     public static void main(String[] args) throws IOException {
-        String csvFilename = "H:\\data\\link_count_data_v3.csv";
-        String countsFilename = "counts_v3.xml";
+        String csvFilename = "D:\\devsbb\\memop\\data\\link_count_data_v3.csv";
+        String countsFilename = "D:\\devsbb\\memop\\data\\counts_astra15.xml";
 
         Counts<Link> counts= new Counts<>();
         counts.setYear(1000); // prevent a bug in MATSim...
@@ -36,6 +36,8 @@ public class CsvToCounts {
                     System.err.println("There seem to be at least two count stations on link " + linkId);
                 } else {
                     count.createVolume(1, Double.parseDouble(map.get("volume")));
+                    for(int i = 2; i<= 24; i++)
+                        count.createVolume(i, Double.parseDouble("0"));
                 }
             }
         }

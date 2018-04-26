@@ -15,6 +15,7 @@ import org.matsim.api.core.v01.population.*;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.controler.PrepareForSimUtils;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.mobsim.qsim.*;
@@ -140,6 +141,7 @@ public class LinkVolumeToCSVTest {
 
         public void addEvents(EventHandler handler) {
             EventsManager eventsManager = EventsUtils.createEventsManager(config);
+            PrepareForSimUtils.createDefaultPrepareForSim(scenario).run();
             QSim qSim = QSimUtils.createDefaultQSim(scenario, eventsManager);
 
             EventsCollector collector = new EventsCollector();

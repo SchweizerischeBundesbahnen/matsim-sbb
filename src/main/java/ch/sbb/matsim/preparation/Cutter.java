@@ -23,7 +23,6 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationWriter;
-import org.matsim.core.population.routes.GenericRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.MutableScenario;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -362,7 +361,7 @@ public class Cutter {
                 linkIds = getPuTLinksRoute(route, transit);
             }
         }
-        else if (leg.getRoute() instanceof GenericRouteImpl){
+        else if (leg.getRoute().getRouteType().equals("generic")){
         }
         else {
             NetworkRoute route = (NetworkRoute) leg.getRoute();
