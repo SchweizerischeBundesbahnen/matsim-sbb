@@ -43,7 +43,7 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 	private boolean nextEnterVehicleIsFirstOfTrip = true ;
 	private boolean nextStartPtLegIsFirstOfTrip = true ;
 	private boolean currentLegIsPtLeg = false;
-	private double lastActivityEndTime = Time.UNDEFINED_TIME ;
+	private double lastActivityEndTime = Time.getUndefinedTime();
 	private final Set<String> ptModes;
 
 	public SBBCharyparNagelLegScoring(final ScoringParameters params, Network network, Set<String> ptModes) {

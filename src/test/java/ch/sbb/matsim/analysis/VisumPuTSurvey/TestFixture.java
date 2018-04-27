@@ -1,12 +1,10 @@
 package ch.sbb.matsim.analysis.VisumPuTSurvey;
 
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import ch.sbb.matsim.analysis.EventsToTravelDiaries;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
+import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEnginePlugin;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -31,8 +29,8 @@ import org.matsim.core.mobsim.qsim.ActivityEnginePlugin;
 import org.matsim.core.mobsim.qsim.PopulationPlugin;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.QSimUtils;
-import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
+import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.routes.ExperimentalTransitRoute;
@@ -50,8 +48,9 @@ import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
-import ch.sbb.matsim.analysis.EventsToTravelDiaries;
-import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEnginePlugin;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class TestFixture {
 
@@ -171,14 +170,14 @@ public class TestFixture {
         List<Id<Link>> linkIdList = new ArrayList<>();
         linkIdList.add(link2.getId());
         linkIdList.add(link3.getId());
-        NetworkRoute networkRoute = new LinkNetworkRouteImpl(link1.getId(), linkIdList, link4.getId());
+        NetworkRoute networkRoute = RouteUtils.createLinkNetworkRouteImpl(link1.getId(), linkIdList, link4.getId());
 
         List<TransitRouteStop> stops = new ArrayList<>(5);
-        stops.add(f.createTransitRouteStop(this.stopA, Time.UNDEFINED_TIME, 0.0));
+        stops.add(f.createTransitRouteStop(this.stopA, Time.getUndefinedTime(), 0.0));
         stops.add(f.createTransitRouteStop(this.stopB, 100, 120.0));
-        stops.add(f.createTransitRouteStop(this.stopC, Time.UNDEFINED_TIME, 300.0));
+        stops.add(f.createTransitRouteStop(this.stopC, Time.getUndefinedTime(), 300.0));
         stops.add(f.createTransitRouteStop(this.stopD, 570, 600.0));
-        stops.add(f.createTransitRouteStop(this.stopE, 720, Time.UNDEFINED_TIME));
+        stops.add(f.createTransitRouteStop(this.stopE, 720, Time.getUndefinedTime()));
 
         this.route1 = f.createTransitRoute(Id.create("A2E", TransitRoute.class), networkRoute, stops, "train");
 
