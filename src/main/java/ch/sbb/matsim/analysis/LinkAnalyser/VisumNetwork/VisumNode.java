@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class VisumNode {
-    private static final AtomicInteger count = new AtomicInteger(1);
+    private static final AtomicInteger count = new AtomicInteger(100000000);
     private int id;
     private final Node node;
 

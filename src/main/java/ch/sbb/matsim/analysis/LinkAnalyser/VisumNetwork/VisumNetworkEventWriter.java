@@ -7,19 +7,18 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.core.events.algorithms.EventWriter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class VisumNetworkEventWriter extends LinkAnalyser implements EventWriter {
 
     double scale;
-    int threshold;
     String mode;
     String folder;
 
-    public VisumNetworkEventWriter(Scenario scenario, double scale, int threshold, String mode, String folder) {
+    public VisumNetworkEventWriter(Scenario scenario, double scale, String mode, String folder) {
         super(scenario);
         this.scale = scale;
-        this.threshold = threshold;
         this.mode = mode;
         this.folder = folder;
     }
@@ -27,31 +26,27 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventWriter
     private final static Logger log = Logger.getLogger(VisumNetworkEventWriter.class);
 
     @Override
-    public void closeFile(){
-        this.writeVisumNetwork(this.scale, this.threshold, this.mode, this.folder);
+    public void closeFile() {
+        this.writeVolumes(this.scale, this.mode, this.folder);
     }
 
 
-    private void writeVisumNetwork(double scale, int threshold, String mode, String folder) {
+    private void writeVolumes(double scale, String mode, String folder) {
 
         VisumNetwork visumNetwork = new VisumNetwork();
+        Map<Link, Double> volumes = new HashMap<>();
 
         for (Map.Entry<Id, Integer> entry : this.linkVolumes.entrySet()) {
 
             final Link link = this.scenario.getNetwork().getLinks().get(entry.getKey());
+
             final double volume = entry.getValue() * scale;
-            try {
-                if (link.getAllowedModes().contains(mode) && volume > threshold) {
-                    VisumLink visumLink = visumNetwork.getOrCreateLink(link);
-                    visumLink.setVolume(volume);
-                }
-            } catch (NullPointerException e) {
-                log.info(e);
-                log.info(link);
+            if (link.getAllowedModes().contains(mode) && volume > 0) {
+                volumes.put(link, volume);
             }
         }
 
-        visumNetwork.write(folder);
+        visumNetwork.writeLinksAttributes(folder+"/visum_volumes.att", volumes);
     }
 
     // Methods

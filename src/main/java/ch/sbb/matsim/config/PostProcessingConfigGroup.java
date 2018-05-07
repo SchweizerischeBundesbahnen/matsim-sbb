@@ -16,7 +16,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
     static private final String PARAM_ANALYSE_SCREENLINE = "analyseScreenline";
     static private final String PARAM_SHAPEFILE_SCREENLINE = "shapefileScreenline";
-    static private final String PARAM_THRESHOLD_VISUM_NETWORK = "visumNetworkThreshold";
     static private final String PARAM_MODE_VISUM_NETWORK = "visumNetworkMode";
 
 
@@ -51,16 +50,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     @StringSetter(PARAM_SHAPEFILE_SCREENLINE)
     public void setShapefileScreenline(String shapefileScreenline) {
         this.shapefileScreenline = shapefileScreenline;
-    }
-
-    @StringGetter(PARAM_THRESHOLD_VISUM_NETWORK)
-    public Integer getVisumNetworkThreshold() {
-        return visumNetworkThreshold;
-    }
-
-    @StringSetter(PARAM_THRESHOLD_VISUM_NETWORK)
-    public void setVisumNetworkThreshold(Integer visumNetworkThreshold) {
-        this.visumNetworkThreshold = visumNetworkThreshold;
     }
 
     @StringGetter(PARAM_MODE_VISUM_NETWORK)
@@ -247,7 +236,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
         comments.put(PARAM_ANALYSE_SCREENLINE, "Run Screenline Analysis");
         comments.put(PARAM_SHAPEFILE_SCREENLINE, "Shapefile for screenline. Contains polylines");
         comments.put(PARAM_MODE_VISUM_NETWORK, "Mode to consider to export Network with volume to Visum (*.net File");
-        comments.put(PARAM_THRESHOLD_VISUM_NETWORK, "Links with volume > THRESHOLD are exported to Visum (*.net File). Links with less traffic are ignored");
         return comments;
     }
 

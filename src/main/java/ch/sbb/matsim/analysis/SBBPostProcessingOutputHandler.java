@@ -109,7 +109,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         }
 
         if (ppConfig.getVisumNetFile()) {
-            VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkThreshold(), ppConfig.getVisumNetworkMode(), filename);
+            VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkMode(), filename);
             eventWriters.add(visumNetworkEventWriter);
         }
 
