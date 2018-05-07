@@ -9,6 +9,7 @@ import org.matsim.core.utils.io.UncheckedIOException;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class VisumNetwork {
     private HashMap<Tuple<Id<Node>, Id<Node>>, VisumLink> links;
@@ -32,6 +33,12 @@ public class VisumNetwork {
             "YKOORD"
     };
 
+    private static final String[] VOLUMES_COLUMNS = new String[]{
+            "$LINK:NO",
+            "FROMNODENO",
+            "TONODENO",
+            "NBVEHICLES"
+    };
 
     private static final String[] LINKS_COLUMNS = new String[]{
             "$STRECKE:NR",
@@ -52,6 +59,7 @@ public class VisumNetwork {
 
     public VisumLink getOrCreateLink(Link link) {
         Tuple<Id<Node>, Id<Node>> key = this.getLinkKey(link, false);
+        Tuple<Id<Node>, Id<Node>> reverseKey = this.getLinkKey(link, true);
         if (!this.links.containsKey(key)) {
 
             final VisumNode fromNode = this.getNode(link.getFromNode());
@@ -61,9 +69,7 @@ public class VisumNetwork {
             final VisumLink link2 = link1.create_opposite_direction();
 
             this.links.put(key, link1);
-
-            key = this.getLinkKey(link, true);
-            this.links.put(key, link2);
+            this.links.put(reverseKey, link2);
         }
         final VisumLink visumLink = this.links.get(key);
         visumLink.setMATSimLink(link);
@@ -79,16 +85,13 @@ public class VisumNetwork {
     }
 
     private Tuple<Id<Node>, Id<Node>> getLinkKey(final Link link, final Boolean inverse) {
-        final Id<Node> fromId;
-        final Id<Node> toId;
+        final Id toId = link.getToNode().getId();
+        final Id fromId = link.getFromNode().getId();
         if (inverse) {
-            fromId = link.getToNode().getId();
-            toId = link.getFromNode().getId();
+            return new Tuple<Id<Node>, Id<Node>>(toId, fromId);
         } else {
-            fromId = link.getFromNode().getId();
-            toId = link.getToNode().getId();
+            return new Tuple<Id<Node>, Id<Node>>(fromId, toId);
         }
-        return new Tuple<>(fromId, toId);
     }
 
 
@@ -105,8 +108,39 @@ public class VisumNetwork {
                         "STRECKE;NBVEHICLES;nbVehicles;nbVehicles;Double\n";
         String[] COLUMNS = {};
 
-        try (CSVWriter writer = new CSVWriter(HEADER+"\n"+BENDEFATTR_NET_STRING + "\n", COLUMNS, filename)) {
+        try (CSVWriter writer = new CSVWriter(HEADER + "\n" + BENDEFATTR_NET_STRING + "\n", COLUMNS, filename)) {
             writer.writeRow();
+
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public void writeLinksAttributes(String filename, Map<Link, Double> linkVolumes) {
+
+        final String HEADER_LINK = "$VISION\n" +
+                "* Schweizerische Bundesbahnen SBB Personenverkehr Bern 65\n" +
+                "* 23.03.18\n" +
+                "*\n" +
+                "* Tabelle: Versionsblock\n" +
+                "*\n" +
+                "$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n" +
+                "10.000;Att;ENG;KM\n" +
+                "\n" +
+                "*\n" +
+                "* Tabelle: Links \n";
+
+        try (CSVWriter writer = new CSVWriter(HEADER_LINK, VOLUMES_COLUMNS, filename)) {
+            for (Map.Entry<Link, Double> entry : linkVolumes.entrySet()) {
+                Link link = entry.getKey();
+                double volume = entry.getValue();
+                String[] ids = link.getAttributes().getAttribute("visumId").toString().split("_");
+                writer.set("$LINK:NO", ids[0]);
+                writer.set("FROMNODENO", ids[1]);
+                writer.set("TONODENO", ids[2]);
+                writer.set("NBVEHICLES", Double.toString(volume));
+                writer.writeRow();
+            }
 
         } catch (IOException e) {
             throw new UncheckedIOException(e);
