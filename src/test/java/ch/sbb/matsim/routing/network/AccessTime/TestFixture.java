@@ -26,6 +26,7 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
+import org.matsim.core.router.RoutingModule;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.testcases.utils.EventsCollector;
 

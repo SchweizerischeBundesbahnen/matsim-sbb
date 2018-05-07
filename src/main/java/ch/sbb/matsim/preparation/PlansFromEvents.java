@@ -45,7 +45,7 @@ import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.network.io.NetworkReaderMatsimV1;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationWriter;
-import org.matsim.core.population.routes.LinkNetworkRouteImpl;
+import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
 
@@ -242,7 +242,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
                     // there should be at least one proper link in the route
                     Id<Link> firstLinkId = actLinks.remove(0);
                     Id<Link> lastLinkId = actLinks.remove(actLinks.size() - 1);
-                    Route route = new LinkNetworkRouteImpl(firstLinkId, actLinks, lastLinkId);
+                    Route route = RouteUtils.createLinkNetworkRouteImpl(firstLinkId, actLinks, lastLinkId);
                     route.setDistance(actDistancePerPerson.get(person));
                     route.setTravelTime(leg.getTravelTime());
                     leg.setRoute(route);
