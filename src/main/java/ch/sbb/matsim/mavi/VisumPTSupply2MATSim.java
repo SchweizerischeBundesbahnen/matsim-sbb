@@ -86,6 +86,7 @@ public class VisumPTSupply2MATSim {
 
         createMATSimScenario();
 
+        // load everything into the transitschedule
         Dispatch net = Dispatch.get(visum, "Net").toDispatch();
         loadStopPoints(net);
         if(this.exporterConfig.isExportMTT())
@@ -95,6 +96,7 @@ public class VisumPTSupply2MATSim {
 
         visum.safeRelease();
 
+        // reduce the size of the network and the schedule by taking necessary things only.
         cleanStops();
         cleanNetwork();
 
@@ -125,7 +127,6 @@ public class VisumPTSupply2MATSim {
 
         this.network = scenario.getNetwork();
         this.schedule = scenario.getTransitSchedule();
-        //this.schedule.getAttributes().putAttribute("Info","MOBi.OEV 2.0 (SBB) -> includes minimal transfer times");
         this.vehicles = scenario.getTransitVehicles();
     }
 
