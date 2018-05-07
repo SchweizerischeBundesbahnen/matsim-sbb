@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class VisumLink {
 
-    private static final AtomicInteger count = new AtomicInteger(1);
+    private static final AtomicInteger count = new AtomicInteger(1000000000);
 
 
     public double getVolume() {
