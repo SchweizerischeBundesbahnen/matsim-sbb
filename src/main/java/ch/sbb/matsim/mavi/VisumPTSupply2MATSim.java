@@ -19,8 +19,8 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.NetworkWriter;
-import org.matsim.core.population.routes.LinkNetworkRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
+import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.misc.Time;
@@ -617,7 +617,7 @@ public class VisumPTSupply2MATSim {
                         Dispatch.call(fzpVerlaufIterator, "Next");
                     }
                     routeLinks.remove(routeLinks.size() - 1);
-                    NetworkRoute netRoute = new LinkNetworkRouteImpl(startLink, endLink);
+                    NetworkRoute netRoute = RouteUtils.createLinkNetworkRouteImpl(startLink, endLink);
                     netRoute.setLinkIds(startLink, routeLinks, endLink);
 
                     route = this.scheduleBuilder.createTransitRoute(routeID, netRoute, transitRouteStops, mode);
