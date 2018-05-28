@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.sbb</groupId>
 	<artifactId>matsim-sbb</artifactId>
-	<version>0.10.0</version>
+	<version>0.10.1-SNAPSHOT</version>
 	<name>MATSim SBB Project</name>
 	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P </description>
 
@@ -13,6 +13,11 @@
 			<!-- MATSim is not on Maven central -->
 			<id>matsim</id>
 			<url>https://dl.bintray.com/matsim/matsim</url>
+		</repository>
+
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 
@@ -34,7 +39,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>ch.sbb</groupId>
+			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
 			<version>0.10.0</version>
 		</dependency>
