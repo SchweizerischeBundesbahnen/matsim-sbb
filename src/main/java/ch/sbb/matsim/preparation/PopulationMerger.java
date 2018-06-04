@@ -53,14 +53,16 @@ public class PopulationMerger {
         this.attributesReader = new ObjectAttributesXmlReader(this.personAttributes);
         this.attributesWriter = new ObjectAttributesXmlWriter(this.personAttributes);
 
-        this.reader.readFile(config.plans().getInputFile());
-        this.attributesReader.readFile(config.plans().getInputPersonAttributeFile());
+        if(config.plans().getInputFile() != null)
+            this.reader.readFile(config.plans().getInputFile());
+        if(config.plans().getInputPersonAttributeFile() != null)
+            this.attributesReader.readFile(config.plans().getInputPersonAttributeFile());
     }
 
     protected void mergeInputPlanFiles(PopulationMergerConfigGroup mergerConfig) {
-        String inputPlanFile = null;
+        String inputPlanFile;
         while ((inputPlanFile = mergerConfig.shiftInputPlansFiles()) != null) {
-            this.reader.readFile(inputPlanFile);
+            new PopulationReader(this.scenario).readFile(inputPlanFile);
         }
     }
 
