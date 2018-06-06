@@ -1,13 +1,12 @@
 package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.analysis.LocateAct;
+import ch.sbb.matsim.utils.SBBPersonUtils;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -39,9 +38,6 @@ public class ShapeAttribute2PersonAttribute {
         final String personAttribute = args[4];
         final String attributeFileOut = args[5];
 
-        int nbUndefined = 0;
-        int nbNotHomeType = 0;
-
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(planFile);
         new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(attributeFileIn);
@@ -50,39 +46,22 @@ public class ShapeAttribute2PersonAttribute {
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
 
-            Plan plan = person.getSelectedPlan();
-            PlanElement firstPlanElement = plan.getPlanElements().get(0);
+            Activity homeAct = SBBPersonUtils.getHomeActivity(person);
 
-            if (firstPlanElement instanceof Activity) {
-                String attribute = null;
-                String type = ((Activity) firstPlanElement).getType();
-                if (!type.equals("home")) {
-                    log.info("first plan element of person " + person.getId().toString() +
-                            " is not of type home");
-                    nbNotHomeType += 1;
+            if (homeAct != null) {
+                Coord coord = homeAct.getCoord();
+                String shapeValue = locAct.getZoneAttribute(coord);
+                if (shapeValue.equals(LocateAct.UNDEFINED)) {
+                    log.warn("no zone defined for person " + person.getId().toString());
+                    List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
+                    log.info(l);
                 } else {
-                    Coord coord = ((Activity) firstPlanElement).getCoord();
-                    String shapeValue = locAct.getZoneAttribute(coord);
-                    if (shapeValue.equals(LocateAct.UNDEFINED)) {
-                        log.info("no zone defined for person " + person.getId().toString());
-                        List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
-                        log.info(l);
-                        nbUndefined += 1;
-                    } else {
-                        attribute = shapeValue;
-                    }
-                }
-                if(attribute != null) {
                     scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(),
-                            personAttribute, (int) Double.parseDouble(attribute));
+                            personAttribute, (int) Double.parseDouble(shapeValue));
                 }
-            } else
-                throw new IllegalStateException("first planelement of person " +
-                        person.getId().toString() + " cannot be not an activity");
-        }
+            }
 
-        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFileOut);
-        log.info("nb persons with first activity not of type home " + nbNotHomeType);
-        log.info("nb persons with undefined zone " + nbUndefined);
+            new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFileOut);
+        }
     }
 }
