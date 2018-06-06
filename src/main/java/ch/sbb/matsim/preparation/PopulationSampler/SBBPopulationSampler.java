@@ -27,13 +27,15 @@ public class SBBPopulationSampler {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
         new PopulationReader(scenario).readFile(inputPopulation);
-        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(inputAttributes);
+        if(!inputAttributes.isEmpty())
+            new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(inputAttributes);
 
         SBBPopulationSampler sampler = new SBBPopulationSampler();
         sampler.sample(scenario.getPopulation(), fraction);
 
         new PopulationWriter(scenario.getPopulation()).write(outputPopulation);
-        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(outputAttributes);
+        if(!inputAttributes.isEmpty())
+            new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(outputAttributes);
     }
 
     public void sample(Population population, double fraction) {

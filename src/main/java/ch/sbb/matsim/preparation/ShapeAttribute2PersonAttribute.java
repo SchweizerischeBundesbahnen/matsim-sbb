@@ -18,10 +18,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author jlie/pmanser / SBB
+ * @author pmanser / SBB
  *
- * assigns the Raumtyp to each person as a custom attribute. The categorization is based on the shape file
- * containing the UVEK-zones
+ * based on RaumtypPerPerson
+ *
+ * assigns a shape file attribute to each person as a custom attribute accoring to the agent's home location.
  *
  */
 
@@ -40,7 +41,6 @@ public class ShapeAttribute2PersonAttribute {
 
         int nbUndefined = 0;
         int nbNotHomeType = 0;
-        String notDefinedLog = "\n";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(planFile);
@@ -66,14 +66,15 @@ public class ShapeAttribute2PersonAttribute {
                     if (shapeValue.equals(LocateAct.UNDEFINED)) {
                         log.info("no zone defined for person " + person.getId().toString());
                         List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
-                        notDefinedLog += String.join(";", l) + "\n";
+                        log.info(l);
                         nbUndefined += 1;
                     } else {
                         attribute = shapeValue;
                     }
                 }
                 if(attribute != null) {
-                    scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), personAttribute, (int) Double.parseDouble(attribute));
+                    scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(),
+                            personAttribute, (int) Double.parseDouble(attribute));
                 }
             } else
                 throw new IllegalStateException("first planelement of person " +
@@ -81,7 +82,6 @@ public class ShapeAttribute2PersonAttribute {
         }
 
         new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(attributeFileOut);
-        log.info(notDefinedLog);
         log.info("nb persons with first activity not of type home " + nbNotHomeType);
         log.info("nb persons with undefined zone " + nbUndefined);
     }
