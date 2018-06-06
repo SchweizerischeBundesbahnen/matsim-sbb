@@ -7,6 +7,7 @@ package ch.sbb.matsim.preparation;
 import ch.sbb.matsim.config.PopulationMergerConfigGroup;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PersonUtils;
@@ -21,12 +22,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class PopulationMerger {
+
     private Scenario scenario;
-    private PopulationReader reader;
-    private PopulationWriter writer;
+    private Population population;
     private ObjectAttributes personAttributes;
-    private ObjectAttributesXmlReader attributesReader;
-    private ObjectAttributesXmlWriter attributesWriter;
 
     public static void main(final String[] args) {
         Config config = ConfigUtils.loadConfig(args[0], new PopulationMergerConfigGroup());
@@ -34,7 +33,7 @@ public class PopulationMerger {
 
         PopulationMerger merger = new PopulationMerger(config);
 
-        Map<String, String> attributes = new TreeMap<String, String>();
+        Map<String, String> attributes = new TreeMap<>();
         attributes.put(mergerConfig.getMergedPersonAttributeKey(), mergerConfig.getMergedPersonAttributeValue());
         attributes.put("season_ticket", "none");
 
@@ -45,18 +44,15 @@ public class PopulationMerger {
     }
 
     public PopulationMerger(Config config) {
-        this.scenario = ScenarioUtils.createScenario(config);
-        this.reader = new PopulationReader(this.scenario);
-        this.writer = new PopulationWriter(this.scenario.getPopulation());
+        this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
+        this.population = this.scenario.getPopulation();
         this.personAttributes = this.scenario.getPopulation().getPersonAttributes();
-        this.attributesReader = new ObjectAttributesXmlReader(this.personAttributes);
-        this.attributesWriter = new ObjectAttributesXmlWriter(this.personAttributes);
 
         if(config.plans().getInputFile() != null)
-            this.reader.readFile(config.plans().getInputFile());
+            new PopulationReader(this.scenario).readFile(config.plans().getInputFile());
         if(config.plans().getInputPersonAttributeFile() != null)
-            this.attributesReader.readFile(config.plans().getInputPersonAttributeFile());
+            new ObjectAttributesXmlReader(this.personAttributes).readFile(config.plans().getInputPersonAttributeFile());
     }
 
     protected void mergeInputPlanFiles(PopulationMergerConfigGroup mergerConfig) {
@@ -67,7 +63,7 @@ public class PopulationMerger {
     }
 
     protected void putMergedPersonAttributes(Map<String, String> attributes) {
-        for (final Person person : this.scenario.getPopulation().getPersons().values()) {
+        for (final Person person : this.population.getPersons().values()) {
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
@@ -80,7 +76,7 @@ public class PopulationMerger {
     }
 
     protected void putPersonAttributes() {
-        for (final Person person : this.scenario.getPopulation().getPersons().values()) {
+        for (final Person person : this.population.getPersons().values()) {
             Object carAvail = this.personAttributes.getAttribute(person.getId().toString(), "availability: car");
 
             if (carAvail != null && (!carAvail.toString().equals("never"))) {
@@ -106,7 +102,7 @@ public class PopulationMerger {
     }
 
     protected void writeOutputFiles(PopulationMergerConfigGroup mergerConfig) {
-        this.writer.write(mergerConfig.getOutputPlansFile());
-        this.attributesWriter.writeFile(mergerConfig.getOutputPersonAttributesFile());
+        new PopulationWriter(this.population).write(mergerConfig.getOutputPlansFile());
+        new ObjectAttributesXmlWriter(this.personAttributes).writeFile(mergerConfig.getOutputPersonAttributesFile());
     }
 }
