@@ -14,7 +14,16 @@ public class SBBPersonUtils {
 
     public static Activity getHomeActivity(Person person)   {
 
-        Plan plan = person.getSelectedPlan();
+        if(person.getPlans().size() == 0)   {
+            log.warn("person " + person.getId().toString() + " has no plans!");
+            return null;
+        }
+        Plan plan = person.getPlans().get(0);
+
+        if(plan.getPlanElements().size() == 0)   {
+            log.warn("first plan of person " + person.getId().toString() + " has no planelements!");
+            return null;
+        }
         PlanElement firstPlanElement = plan.getPlanElements().get(0);
 
         if (firstPlanElement instanceof Activity) {
