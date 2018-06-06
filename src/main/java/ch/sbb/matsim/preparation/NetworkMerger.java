@@ -2,7 +2,9 @@ package ch.sbb.matsim.preparation;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.NetworkReaderMatsimV2;
 import org.matsim.core.network.io.NetworkWriter;
@@ -16,14 +18,18 @@ public class NetworkMerger {
         String outputNetwork = args[2];
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-
         new NetworkReaderMatsimV2(scenario.getNetwork()).readFile(inputNetwork);
 
-        new TransportModeNetworkFilter(scenario.getNetwork()).filter(scenario.getNetwork(),
+        Network reducedNetwork = removePtOnlyLinks(scenario.getNetwork());
+
+        new NetworkReaderMatsimV2(reducedNetwork).readFile(transitNetwork);
+        new NetworkWriter(reducedNetwork).write(outputNetwork);
+    }
+
+    public static Network removePtOnlyLinks(Network network) {
+        Network reducedNetwork = NetworkUtils.createNetwork();
+        new TransportModeNetworkFilter(network).filter(reducedNetwork,
                 CollectionUtils.stringToSet(TransportMode.car + ","  +TransportMode.ride));
-
-        new NetworkReaderMatsimV2(scenario.getNetwork()).readFile(transitNetwork);
-
-        new NetworkWriter(scenario.getNetwork()).write(outputNetwork);
+        return reducedNetwork;
     }
 }
