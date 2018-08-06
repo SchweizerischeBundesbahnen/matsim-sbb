@@ -14,6 +14,7 @@ import java.util.Random;
 public class HomeFacilityBlurring {
     private final static Logger log = Logger.getLogger(HomeFacilityBlurring.class);
 
+    private static Random random = new Random(20180806);
     private ZoneAggregator<ActivityFacility> zoneAggregator;
 
     public HomeFacilityBlurring(ActivityFacilities facilities, String shapefile) {
@@ -25,10 +26,22 @@ public class HomeFacilityBlurring {
             zoneAggregator.add(activityFacility, activityFacility.getCoord());
         }
 
+        int maxTries = 100;
         for (Zone<ActivityFacility> zone : zoneAggregator.getZones()) {
-            this.blurZone(zone);
-        }
+            for(int i=0; i<=maxTries; i++) {
+                try {
+                    this.blurZone(zone);
+                    break;
+                } catch (BlurringSwapException e) {
+                    if(i==maxTries){
+                        log.info("Zone can not be blurred. Aborting");
+                        System.exit(-1);
+                    }
+                }
 
+
+            }
+        }
     }
 
     public ZoneAggregator<ActivityFacility> getZoneAggregator() {
@@ -36,8 +49,11 @@ public class HomeFacilityBlurring {
     }
 
     private void blurZone(Zone<ActivityFacility> zone) {
+
         ArrayList<ActivityFacility> facilites = zone.getData();
         ArrayList<Coord> coordinates = new ArrayList<>();
+
+        log.info("Blurring zone " + zone.getId() + " with " + facilites.size() + " facilities");
 
         for (ActivityFacility activityFacility : facilites) {
             coordinates.add(activityFacility.getCoord());
@@ -51,11 +67,11 @@ public class HomeFacilityBlurring {
             int i = 0;
             do {
                 i++;
-                newCoord = coordinates.get(new Random().nextInt(coordinates.size()));
+                newCoord = coordinates.get(random.nextInt(coordinates.size()));
             } while (oldCoord.equals(newCoord) && i < max);
 
-            if(i==max){
-                log.error("Could not swap coordinates");
+            if (i == max) {
+                throw new BlurringSwapException();
             }
 
             coordinates.remove(newCoord);

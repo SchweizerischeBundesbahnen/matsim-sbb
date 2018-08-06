@@ -3,6 +3,7 @@ package ch.sbb.matsim.synpop.zoneAggregator;
 import ch.sbb.matsim.analysis.LocateAct;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
+import org.matsim.core.utils.misc.Counter;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.Collection;
@@ -13,10 +14,12 @@ public class ZoneAggregator<T> {
     private HashMap<String, Zone<T>> zones;
     private LocateAct locateAct;
     private final static Logger log = Logger.getLogger(ZoneAggregator.class);
+    private final Counter counter;
 
     public ZoneAggregator(String shapefile) {
         locateAct = new LocateAct(shapefile);
         this.zones = new HashMap<>();
+        this.counter = new Counter("Zone aggregator");
     }
 
     public Collection<Zone<T>> getZones() {
@@ -24,6 +27,7 @@ public class ZoneAggregator<T> {
     }
 
     public void add(T element, Coord coord) {
+        this.counter.incCounter();
         SimpleFeature feature = this.locateAct.getZone(coord);
         Zone<T> zone;
 
