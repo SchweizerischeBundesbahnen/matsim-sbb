@@ -28,13 +28,16 @@ public class HomeFacilityBlurring {
 
         int maxTries = 100;
         for (Zone<ActivityFacility> zone : zoneAggregator.getZones()) {
-            for(int i=0; i<=maxTries; i++) {
+            for (int i = 0; i <= maxTries; i++) {
                 try {
                     this.blurZone(zone);
                     break;
                 } catch (BlurringSwapException e) {
-                    if(i==maxTries){
+                    if (i == maxTries) {
                         log.info("Zone can not be blurred. Aborting");
+                        for (ActivityFacility facility : zone.getData()) {
+                            log.info(facility.getCoord());
+                        }
                         System.exit(-1);
                     }
                 }
