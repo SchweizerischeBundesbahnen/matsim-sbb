@@ -1,4 +1,4 @@
-package ch.sbb.matsim.synpop.reader;
+package ch.sbb.matsim.synpop.loader;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -11,40 +11,39 @@ import org.matsim.core.utils.geometry.transformations.CH1903LV03PlustoCH1903LV03
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.ActivityOption;
-import org.matsim.households.Households;
 
 import java.util.Map;
 
 public class Synpop2MATSim {
-    private Population population;
-    private Scenario scenario;
-    private Households households;
-    private ActivityFacilities facilites;
+    private final static String PERSON_ID = "person_id";
+    private final static String HOUSEHOLD_ID = "household_id";
+
+    private final Population population;
+    private final Scenario scenario;
+    private final ActivityFacilities facilites;
 
     public Synpop2MATSim() {
         this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         this.population = this.scenario.getPopulation();
-        this.households = this.scenario.getHouseholds();
         this.facilites = this.scenario.getActivityFacilities();
-
     }
 
     public Population getPopulation() {
         return this.population;
     }
-    public ActivityFacilities getFacilites(){
+
+    public ActivityFacilities getFacilites() {
         return this.facilites;
     }
 
     public void loadPerson(Map<String, String> map) {
-        Person person = population.getFactory().createPerson(Id.createPersonId(map.get("person_id")));
+        final Person person = population.getFactory().createPerson(Id.createPersonId(map.get(PERSON_ID)));
         for (String column : map.keySet()) {
-            if (column.equals("household_id")) {
+            if (column.equals(HOUSEHOLD_ID)) {
                 person.getAttributes().putAttribute(column, this.transformHouseholdId(map.get(column)));
-            } else if (!column.equals("person_id")) {
+            } else if (!column.equals(PERSON_ID)) {
                 person.getAttributes().putAttribute(column, map.get(column));
             }
-
         }
         population.addPerson(person);
     }
