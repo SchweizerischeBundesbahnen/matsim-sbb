@@ -34,11 +34,10 @@ public class HomeFacilityBlurring {
                     break;
                 } catch (BlurringSwapException e) {
                     if (i == maxTries) {
-                        log.info("Zone can not be blurred. Aborting");
+                        log.info("Zone can not be blurred.");
                         for (ActivityFacility facility : zone.getData()) {
                             log.info(facility.getCoord());
                         }
-                        System.exit(-1);
                     }
                 }
 
