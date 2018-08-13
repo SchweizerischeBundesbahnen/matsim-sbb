@@ -17,6 +17,7 @@ import java.util.Map;
 public class Synpop2MATSim {
     private final static String PERSON_ID = "person_id";
     private final static String HOUSEHOLD_ID = "household_id";
+    private final static String BUSINESS_ID = "business_id";
 
     private final Population population;
     private final Scenario scenario;
@@ -39,10 +40,16 @@ public class Synpop2MATSim {
     public void loadPerson(Map<String, String> map) {
         final Person person = population.getFactory().createPerson(Id.createPersonId(map.get(PERSON_ID)));
         for (String column : map.keySet()) {
+
+            String value = map.get(column);
+            if(value.isEmpty()) value = "-1";
+
             if (column.equals(HOUSEHOLD_ID)) {
-                person.getAttributes().putAttribute(column, this.transformHouseholdId(map.get(column)));
+                person.getAttributes().putAttribute(column, this.transformHouseholdId(value));
+            } else if (column.equals(BUSINESS_ID)) {
+                person.getAttributes().putAttribute(column, this.transformBusinessId(value));
             } else if (!column.equals(PERSON_ID)) {
-                person.getAttributes().putAttribute(column, map.get(column));
+                person.getAttributes().putAttribute(column, value);
             }
         }
         population.addPerson(person);
@@ -54,15 +61,21 @@ public class Synpop2MATSim {
     }
 
     private String transformHouseholdId(String id) {
-        return "h_" + id;
+        if(id.equals("-1")) return id;
+        return "H_" + id;
+    }
+
+    private String transformBusinessId(String id) {
+        if(id.equals("-1")) return id;
+        return "B_" + id;
     }
 
     public void loadHousehold(Map<String, String> map) {
         Coord coord = new Coord(Double.valueOf(map.get("X")), Double.valueOf(map.get("Y")));
-        Id id = Id.create(this.transformHouseholdId(map.get("household_id")), ActivityFacility.class);
+        Id id = Id.create(this.transformHouseholdId(map.get(HOUSEHOLD_ID)), ActivityFacility.class);
         ActivityFacility facility = facilites.getFactory().createActivityFacility(id, this.transformCoord(coord));
         for (String column : map.keySet()) {
-            if (!column.equals("household_id")) {
+            if (!column.equals(HOUSEHOLD_ID)) {
                 facility.getAttributes().putAttribute(column, map.get(column));
             }
         }
@@ -75,10 +88,10 @@ public class Synpop2MATSim {
 
     public void loadBusiness(Map<String, String> map) {
         Coord coord = new Coord(Double.valueOf(map.get("X")), Double.valueOf(map.get("Y")));
-        Id id = Id.create(map.get("business_id"), ActivityFacility.class);
+        Id id = Id.create(this.transformBusinessId(map.get(BUSINESS_ID)), ActivityFacility.class);
         ActivityFacility facility = facilites.getFactory().createActivityFacility(id, this.transformCoord(coord));
         for (String column : map.keySet()) {
-            if (!column.equals("business_id")) {
+            if (!column.equals(BUSINESS_ID)) {
                 facility.getAttributes().putAttribute(column, map.get(column));
             }
         }

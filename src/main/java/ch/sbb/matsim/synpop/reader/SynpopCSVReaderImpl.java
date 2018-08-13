@@ -40,10 +40,8 @@ public class SynpopCSVReaderImpl implements SynpopReader {
     private void readPersons(String personsFile) {
         try (CSVReader reader = new CSVReader(personsFile, ";")) {
             Map<String, String> map;
-            int i = 0;
-            while ((map = reader.readLine()) != null && i < 100) {
+            while ((map = reader.readLine()) != null) {
                 synpop2MATSim.loadPerson(map);
-                i++;
             }
         } catch (IOException e) {
             log.warn(e);
@@ -53,7 +51,7 @@ public class SynpopCSVReaderImpl implements SynpopReader {
     private void readBusinesses(String personsFile) {
         try (CSVReader reader = new CSVReader(personsFile, ";")) {
             Map<String, String> map;
-            while ((map = reader.readLine()) != null) {
+            while ((map = reader.readLine()) != null ) {
                 synpop2MATSim.loadBusiness(map);
             }
         } catch (IOException e) {

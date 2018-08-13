@@ -20,7 +20,7 @@ public class Engine {
     private String user = "docker";
     private String password = System.getenv("PG_PASSWORD");
 
-    public Engine(String schema) throws SQLException {
+    public Engine(String schema) {
         this.url = "jdbc:postgresql://k13536:25432/mobi_synpop?currentSchema=" + schema;
     }
 
@@ -84,7 +84,9 @@ public class Engine {
     public static void main(String[] args) {
         Population population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
 
-        population.addPerson(population.getFactory().createPerson(Id.createPersonId("111")));
+        for (int i = 0; i < 2000000; i++) {
+            population.addPerson(population.getFactory().createPerson(Id.createPersonId(i)));
+        }
 
 
         try {
