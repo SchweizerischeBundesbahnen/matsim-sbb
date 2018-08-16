@@ -11,7 +11,6 @@ import ch.sbb.matsim.synpop.writer.PopulationCSVWriter;
 import ch.sbb.matsim.synpop.writer.SQLWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.api.core.v01.population.PopulationWriter;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.facilities.ActivityFacilities;
 

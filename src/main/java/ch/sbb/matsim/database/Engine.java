@@ -18,6 +18,10 @@ public class Engine {
         this.url = "jdbc:postgresql://" + host + ":" + port + "/" + database + "?currentSchema=" + schema;
     }
 
+    public Engine(String host, String port, String database) {
+        this.url = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+    }
+
     public void dropTable(DatabaseTable table) throws SQLException {
         String sql = "DROP TABLE IF EXISTS " + table.getName() + ";";
         this.executeSQL(sql);

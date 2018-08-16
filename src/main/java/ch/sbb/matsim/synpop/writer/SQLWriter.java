@@ -75,12 +75,38 @@ public class SQLWriter {
 
     }
 
+    private void makePoints(String table) {
+        int ID_CH1903 = 21781;
+        int ID_WGS = 4326;
+
+        try {
+            Engine engine = new Engine(host, port, database);
+            //engine.executeSQL("CREATE EXTENSION postgis;");
+            log.info(this.schema);
+            String _table = "\"" + this.schema + "\"." + table;
+
+            //engine.executeSQL("ALTER database " + this.database + " set search_path = \"$user\", public ;");
+            engine.executeSQL("ALTER TABLE " + _table + " ADD COLUMN geo geometry(Point, " + ID_CH1903 + ");");
+            engine.executeSQL("ALTER TABLE " + _table + " ADD COLUMN N_geo_wgs text;");
+
+            engine.executeSQL("UPDATE " + _table + " SET geo = ST_SetSRID(ST_MakePoint(X,Y)," + ID_CH1903 + ");");
+            engine.executeSQL("UPDATE " + _table + " SET N_geo_wgs = ST_AsText(ST_Transform(geo, " + ID_WGS + "));");
+        } catch (SQLException a) {
+            a.printStackTrace();
+            log.info(a);
+        }
+
+
+    }
+
     public void run(Population population, ActivityFacilities facilities, String version) {
 
         this.exportToDB(population);
         this.exportToDB(facilities.getFacilitiesForActivityType("work").values(), "businesses");
         this.exportToDB(facilities.getFacilitiesForActivityType("home").values(), "households");
         this.writeVersion(version);
+        this.makePoints("businesses");
+        this.makePoints("households");
 
     }
 }
