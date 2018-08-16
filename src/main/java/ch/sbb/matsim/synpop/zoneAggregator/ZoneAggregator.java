@@ -32,15 +32,14 @@ public class ZoneAggregator<T> {
         Zone<T> zone;
 
         if (feature == null) {
-            log.info(element+" is not in shapefile");
+            log.info(element + " is not in shapefile");
             zone = new Zone<T>(null);
             this.zones.put(zone.getId(), zone);
         } else {
             if (!zones.containsKey(feature.getID())) {
                 zone = new Zone<T>(feature);
                 this.zones.put(zone.getId(), zone);
-            }
-            else{
+            } else {
                 zone = this.zones.get(feature.getID());
             }
         }

@@ -1,4 +1,4 @@
-package ch.sbb.matsim.synpop.loader;
+package ch.sbb.matsim.synpop.reader;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -37,12 +37,19 @@ public class Synpop2MATSim {
         return this.facilites;
     }
 
+    private String parseValue(String value) {
+        value = value.replace("\"", "");
+
+        if (value.isEmpty()) value = "-1";
+
+        return value;
+    }
+
     public void loadPerson(Map<String, String> map) {
         final Person person = population.getFactory().createPerson(Id.createPersonId(map.get(PERSON_ID)));
         for (String column : map.keySet()) {
 
-            String value = map.get(column);
-            if(value.isEmpty()) value = "-1";
+            String value = parseValue(map.get(column));
 
             if (column.equals(HOUSEHOLD_ID)) {
                 person.getAttributes().putAttribute(column, this.transformHouseholdId(value));
@@ -51,6 +58,8 @@ public class Synpop2MATSim {
             } else if (!column.equals(PERSON_ID)) {
                 person.getAttributes().putAttribute(column, value);
             }
+
+            person.getAttributes().putAttribute(PERSON_ID, person.getId().toString());
         }
         population.addPerson(person);
     }
@@ -61,12 +70,12 @@ public class Synpop2MATSim {
     }
 
     private String transformHouseholdId(String id) {
-        if(id.equals("-1")) return id;
+        if (id.equals("-1")) return id;
         return "H_" + id;
     }
 
     private String transformBusinessId(String id) {
-        if(id.equals("-1")) return id;
+        if (id.equals("-1")) return id;
         return "B_" + id;
     }
 
@@ -75,10 +84,14 @@ public class Synpop2MATSim {
         Id id = Id.create(this.transformHouseholdId(map.get(HOUSEHOLD_ID)), ActivityFacility.class);
         ActivityFacility facility = facilites.getFactory().createActivityFacility(id, this.transformCoord(coord));
         for (String column : map.keySet()) {
-            if (!column.equals(HOUSEHOLD_ID)) {
-                facility.getAttributes().putAttribute(column, map.get(column));
+            if (!(column.equals(HOUSEHOLD_ID) || column.equals("X") || column.equals("Y"))) {
+                facility.getAttributes().putAttribute(column, parseValue(map.get(column)));
             }
         }
+
+        facility.getAttributes().putAttribute(HOUSEHOLD_ID, facility.getId().toString());
+        facility.getAttributes().putAttribute("X", facility.getCoord().getX());
+        facility.getAttributes().putAttribute("Y", facility.getCoord().getY());
 
         ActivityOption option = facilites.getFactory().createActivityOption("home");
         facility.addActivityOption(option);
@@ -91,9 +104,12 @@ public class Synpop2MATSim {
         Id id = Id.create(this.transformBusinessId(map.get(BUSINESS_ID)), ActivityFacility.class);
         ActivityFacility facility = facilites.getFactory().createActivityFacility(id, this.transformCoord(coord));
         for (String column : map.keySet()) {
-            if (!column.equals(BUSINESS_ID)) {
-                facility.getAttributes().putAttribute(column, map.get(column));
+            if (!(column.equals(BUSINESS_ID) || column.equals("X") || column.equals("Y"))) {
+                facility.getAttributes().putAttribute(column, parseValue(map.get(column)));
             }
+            facility.getAttributes().putAttribute(BUSINESS_ID, facility.getId().toString());
+            facility.getAttributes().putAttribute("X", facility.getCoord().getX());
+            facility.getAttributes().putAttribute("Y", facility.getCoord().getY());
         }
 
         ActivityOption option = facilites.getFactory().createActivityOption("work");

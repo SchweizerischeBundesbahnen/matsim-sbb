@@ -1,13 +1,7 @@
 package ch.sbb.matsim.database;
 
-
-import ch.sbb.matsim.database.tables.synpop.PersonsTable;
 import org.apache.log4j.Logger;
 import org.jvnet.jaxb2_commons.lang.StringUtils;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.population.Population;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.PopulationUtils;
 
 import java.sql.*;
 import java.util.Iterator;
@@ -20,12 +14,17 @@ public class Engine {
     private String user = "docker";
     private String password = System.getenv("PG_PASSWORD");
 
-    public Engine(String schema) {
-        this.url = "jdbc:postgresql://k13536:25432/mobi_synpop?currentSchema=" + schema;
+    public Engine(String schema, String host, String port, String database) {
+        this.url = "jdbc:postgresql://" + host + ":" + port + "/" + database + "?currentSchema=" + schema;
     }
 
     public void dropTable(DatabaseTable table) throws SQLException {
         String sql = "DROP TABLE IF EXISTS " + table.getName() + ";";
+        this.executeSQL(sql);
+    }
+
+    public void executeSQL(String sql) throws SQLException {
+
         try (Connection connection = this.getConnection(); Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
         }
@@ -40,12 +39,10 @@ public class Engine {
 
     private void createSchema(String schema) throws SQLException {
         String sql = "CREATE SCHEMA IF NOT EXISTS \"" + schema + "\";";
-        try (Connection connection = this.getConnection(); Statement stmt = connection.createStatement()) {
-            stmt.execute(sql);
-        }
+        this.executeSQL(sql);
     }
 
-    private Connection getConnection() throws SQLException {
+    public Connection getConnection() throws SQLException {
 
         return DriverManager.getConnection(this.url, this.user, this.password);
     }
@@ -81,24 +78,4 @@ public class Engine {
 
     }
 
-    public static void main(String[] args) {
-        Population population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
-
-        for (int i = 0; i < 2000000; i++) {
-            population.addPerson(population.getFactory().createPerson(Id.createPersonId(i)));
-        }
-
-
-        try {
-            Engine engine = new Engine("2016test");
-            PersonsTable table = new PersonsTable(population);
-            engine.dropTable(table);
-            engine.createTable(table);
-            engine.writeToTable(table);
-        } catch (SQLException a) {
-            a.printStackTrace();
-            log.info(a);
-        }
-
-    }
 }

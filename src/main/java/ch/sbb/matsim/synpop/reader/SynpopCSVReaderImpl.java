@@ -1,7 +1,6 @@
 package ch.sbb.matsim.synpop.reader;
 
 import ch.sbb.matsim.csv.CSVReader;
-import ch.sbb.matsim.synpop.loader.Synpop2MATSim;
 import org.matsim.api.core.v01.population.Population;
 
 import java.io.IOException;
@@ -51,7 +50,7 @@ public class SynpopCSVReaderImpl implements SynpopReader {
     private void readBusinesses(String personsFile) {
         try (CSVReader reader = new CSVReader(personsFile, ";")) {
             Map<String, String> map;
-            while ((map = reader.readLine()) != null ) {
+            while ((map = reader.readLine()) != null) {
                 synpop2MATSim.loadBusiness(map);
             }
         } catch (IOException e) {
