@@ -34,6 +34,7 @@ public class CSVReader implements AutoCloseable {
 
         String line = this.br.readLine();
         this.columns = line.split(this.splitBy);
+        //if column is not in contructor defined, we take it from the csv
         this.columns = Arrays.asList(this.columns).stream().map(item -> item.replace("\"", "")).toArray(size -> new String[size]);
     }
 
