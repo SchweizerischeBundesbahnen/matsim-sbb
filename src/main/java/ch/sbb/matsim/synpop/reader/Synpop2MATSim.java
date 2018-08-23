@@ -17,7 +17,7 @@ import java.util.Map;
 public class Synpop2MATSim {
     private final static String PERSON_ID = "person_id";
     private final static String HOUSEHOLD_ID = "household_id";
-    private final static String BUSINESS_ID = "business_id";
+    public final static String BUSINESS_ID = "business_id";
 
     private final Population population;
     private final Scenario scenario;

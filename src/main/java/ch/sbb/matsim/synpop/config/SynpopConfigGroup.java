@@ -24,6 +24,7 @@ public class SynpopConfigGroup extends ReflectiveConfigGroup {
     private String year = "2016test";
     private String attributesCSV = "";
     private String version = "v1";
+    private String bus2act = "";
 
 
     private final Map<String, ColumnMappingParameterSet> columnMappingPerTable = new HashMap<>();
@@ -81,6 +82,18 @@ public class SynpopConfigGroup extends ReflectiveConfigGroup {
     public Map<String, Map<String, AttributeMappingParameterSet>> getAttributeMappingSettings() {
         return this.attributMappingPerColumn;
     }
+
+
+    @StringGetter("bus2act")
+    public String getBus2act() {
+        return this.bus2act;
+    }
+
+    @StringSetter("bus2act")
+    public void setBus2act(String path) {
+        this.bus2act = path;
+    }
+
 
     @StringGetter("host")
     public String getHost() {

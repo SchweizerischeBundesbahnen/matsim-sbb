@@ -1,5 +1,6 @@
-package ch.sbb.matsim.synpop.blurring;
+package ch.sbb.matsim.synpop.facilities.blurring;
 
+import ch.sbb.matsim.synpop.blurring.HomeFacilityBlurring;
 import ch.sbb.matsim.synpop.zoneAggregator.Zone;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
