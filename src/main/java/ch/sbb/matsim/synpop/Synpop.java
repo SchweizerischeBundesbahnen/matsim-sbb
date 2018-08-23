@@ -4,6 +4,7 @@ import ch.sbb.matsim.synpop.converter.AttributesConverter;
 import ch.sbb.matsim.synpop.attributes.SynpopAttributes;
 import ch.sbb.matsim.synpop.blurring.HomeFacilityBlurring;
 import ch.sbb.matsim.synpop.config.SynpopConfigGroup;
+import ch.sbb.matsim.synpop.facilities.ActivityForFacility;
 import ch.sbb.matsim.synpop.reader.SynpopCSVReaderImpl;
 import ch.sbb.matsim.synpop.reader.SynpopReader;
 import ch.sbb.matsim.synpop.writer.MATSimWriter;
@@ -40,8 +41,10 @@ public class Synpop {
         attributesConverter.map(facilities.getFacilitiesForActivityType("home").values(), "households");
         attributesConverter.map(facilities.getFacilitiesForActivityType("work").values(), "businesses");
 
+        //change generic ActivityType to a more specific one
+        new ActivityForFacility(config.getBus2act(), facilities.getFactory()).run(facilities.getFacilitiesForActivityType("work").values());
 
-        File output  = new File(config.getOutputFolder(), config.getVersion());
+        File output = new File(config.getOutputFolder(), config.getVersion());
         output.mkdirs();
 
         new SQLWriter(config.getHost(), config.getPort(), config.getDatabase(), config.getYear(), synpopAttributes).run(population, facilities, config.getVersion());
