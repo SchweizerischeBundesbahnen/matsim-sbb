@@ -91,8 +91,6 @@ public class ABM2MATSim {
             homeAct.setStartTime(time);
             plan.addActivity(homeAct);
         }
-
-        new PopulationWriter(this.population).write("\\\\k13536\\mobi\\plans\\endogenous\\abm\\output\\plans.xml.gz");
     }
 
     public static Network getCarNetwork(Network network) {

@@ -5,6 +5,7 @@ import ch.sbb.matsim.plans.converter.ABM2MATSim;
 import ch.sbb.matsim.plans.discretizer.FacilityDiscretizer;
 import ch.sbb.matsim.plans.reader.AbmDataReader;
 import ch.sbb.matsim.plans.reader.ScenarioLoader;
+import ch.sbb.matsim.plans.writer.OutputWriter;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.network.io.NetworkReaderMatsimV2;
 import org.matsim.core.utils.gis.ShapeFileReader;
@@ -42,5 +43,7 @@ public class PlanGenerator {
         FacilityDiscretizer discretizer = new FacilityDiscretizer(scenario.getActivityFacilities(), zonesById);
 
         new ABM2MATSim(scenario).processAbmData(discretizer, abmData, abmActs2matsimActs);
+
+        new OutputWriter("\\\\k13536\\mobi\\model\\input\\plans\\2016\\endogenous\\v1").writeOutputs(scenario);
     }
 }
