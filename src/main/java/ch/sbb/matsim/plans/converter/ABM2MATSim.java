@@ -61,7 +61,11 @@ public class ABM2MATSim {
                     }
 
                     // add leg
-                    Leg leg = this.population.getFactory().createLeg(abmTrip.getMode());
+                    String mode = abmTrip.getMode();
+                    // TODO: resolve bug in ABM
+                    if(mode.equals("none"))
+                        mode = TransportMode.ride;
+                    Leg leg = this.population.getFactory().createLeg(mode);
                     leg.setDepartureTime(time);
                     leg.setTravelTime(abmTrip.getTravelTime());
                     plan.addLeg(leg);
