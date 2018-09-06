@@ -43,7 +43,7 @@ public class ABM2MATSim {
             double time = 0.0;
 
             Activity homeAct = this.population.getFactory().createActivityFromCoord(DefaultActivityTypes.home, homeFacility.getCoord());
-            homeAct.setFacilityId(homeFacilityId);
+            //homeAct.setFacilityId(homeFacilityId);
             homeAct.setLinkId(homeLink.getId());
 
             for(int tid: abmPlan.getTourSequence()) {
@@ -86,7 +86,7 @@ public class ABM2MATSim {
                     else    {
                         // it's the last trip of the tour
                         homeAct = this.population.getFactory().createActivityFromCoord(destAct, homeFacility.getCoord());
-                        homeAct.setFacilityId(homeFacilityId);
+                        //homeAct.setFacilityId(homeFacilityId);
                         homeAct.setLinkId(homeLink.getId());
                     }
                 }
