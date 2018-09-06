@@ -57,13 +57,14 @@ public class ABM2MATSim {
                         homeAct.setStartTime(time);
                         homeAct.setEndTime(abmTrip.getDepTime());
                         plan.addActivity(homeAct);
-                        time += abmTrip.getDepTime();
+                        time = abmTrip.getDepTime();
                     }
 
                     // add leg
                     Leg leg = this.population.getFactory().createLeg(abmTrip.getMode());
                     leg.setDepartureTime(time);
                     leg.setTravelTime(abmTrip.getTravelTime());
+                    plan.addLeg(leg);
                     time += abmTrip.getTravelTime();
 
                     if(!destAct.equals(DefaultActivityTypes.home))    {

@@ -43,12 +43,20 @@ public class FacilityDiscretizer {
 
     // TODO: would be better to return a facility instead of coord
     public Coord getRandomCoord(int zoneId, String type)  {
-        List<Id<ActivityFacility>> facilityList = new ArrayList<>();
-        facilityList.addAll(this.zoneData.getActivityTypes(zoneId).getFacilitiesForType(type));
+        AbmFacilities typesInZone = this.zoneData.getActivityTypes(zoneId);
+        if (typesInZone == null)    {
+            Coord coord = Utils.getRandomCoordinateInFeature(this.zonesById.get(zoneId), this.random);
+            log.info("Did not find any facility in zone " + zoneId + " for type " + type + "..");
+            return coord;
+        }
+
+        List<Id<ActivityFacility>> facilityList = this.zoneData.getActivityTypes(zoneId).getFacilitiesForType(type);
 
         // TODO: This should not happen!!! Not consistent with destination choice...
-        if(facilityList.size() == 0)    {
-            return Utils.getRandomCoordinateInFeature(this.zonesById.get(zoneId), this.random);
+        if(facilityList == null)    {
+            Coord coord = Utils.getRandomCoordinateInFeature(this.zonesById.get(zoneId), this.random);
+            log.info("Did not find any facility in zone " + zoneId + " for type " + type + "...");
+            return coord;
         }
 
         Id<ActivityFacility> fid = facilityList.get(this.random.nextInt(facilityList.size()));
