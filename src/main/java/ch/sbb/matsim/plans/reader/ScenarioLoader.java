@@ -7,7 +7,6 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.network.io.NetworkReaderMatsimV2;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.FacilitiesReaderMatsimV1;
@@ -27,12 +26,13 @@ public class ScenarioLoader {
         loadScenario();
     }
 
-    public void loadScenario()  {
+    private void loadScenario()  {
+        // TODO: link filenames to synpop final declaration
         new PopulationReader(this.scenario).readFile(this.path + "/persons.xml.gz");
         new ObjectAttributesXmlReader(this.scenario.getPopulation().getPersonAttributes()).readFile(this.path + "/person_attributes.xml.gz");
+        // TODO: take original synpop output... then, PrepareFacilities will be obsolete
         new FacilitiesReaderMatsimV1(this.scenario).readFile(this.path + "/facilities_adj.xml.gz");
         new ObjectAttributesXmlReader(this.scenario.getActivityFacilities().getFacilityAttributes()).readFile(this.path + "/facility_attributes.xml.gz");
-        new NetworkReaderMatsimV2(this.scenario.getNetwork()).readFile("\\\\k13536\\mobi\\model\\input\\network\\2016\\reference\\v1\\network.xml.gz");
     }
 
     public Scenario prepareSynpopData(AbmData abmData) {

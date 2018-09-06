@@ -69,6 +69,10 @@ public class PrepareFacilities {
                 if(fte <= 0)    {
                     facility.getActivityOptions().remove("work");
                 }
+                else    {
+                    ActivityOption opt = this.factory.createActivityOption("business");
+                    facility.addActivityOption(opt);
+                }
             }
 
             ActivityOption opt = this.factory.createActivityOption("accompany");

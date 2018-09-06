@@ -8,6 +8,7 @@ public class AbmPlan {
     private List<Integer> tourSequence = new ArrayList<>();
 
     public AbmPlan() {
+
     }
 
     public void addTourIfNotExists(int tid)  {

@@ -12,6 +12,7 @@ public class AbmTour {
     private List<Integer> tripSequence = new ArrayList<>();
 
     public AbmTour() {
+
     }
 
     public void addTrip(int seq, int oTZone, int dTZone, String oAct, String dAct, String mode,
