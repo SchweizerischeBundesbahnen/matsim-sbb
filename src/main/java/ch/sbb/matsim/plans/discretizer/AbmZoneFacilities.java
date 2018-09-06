@@ -12,6 +12,7 @@ public class AbmZoneFacilities {
     private Map<Integer, AbmFacilities> zonetable = new HashMap<>();
 
     public AbmZoneFacilities() {
+
     }
 
     public void addZoneIfNotExists(int zone)  {

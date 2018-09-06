@@ -7,8 +7,12 @@ import ch.sbb.matsim.plans.reader.AbmDataReader;
 import ch.sbb.matsim.plans.reader.ScenarioLoader;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.network.io.NetworkReaderMatsimV2;
+import org.matsim.core.utils.gis.ShapeFileReader;
+import org.opengis.feature.simple.SimpleFeature;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 public class PlanGenerator {
 
@@ -28,7 +32,14 @@ public class PlanGenerator {
         Scenario scenario = new ScenarioLoader("\\\\k13536\\mobi\\synpop\\data\\output\\2016\\for_mobi_plans\\v_02").prepareSynpopData(abmData);
         new NetworkReaderMatsimV2(scenario.getNetwork()).readFile("\\\\k13536\\mobi\\model\\input\\network\\2016\\reference\\v1\\network.xml.gz");
 
-        FacilityDiscretizer discretizer = new FacilityDiscretizer(scenario.getActivityFacilities());
+        Collection<SimpleFeature> zones = new ShapeFileReader().readFileAndInitialize("\\\\V00925\\Simba\\20_Modelle\\85_SynPop_CH\\12_SynPop_CH_2016\\20_SynPop_Ergebnisse\\04_Shapefiles\\ARE_SBB_Synpop_180521\\NPVM_with_density.shp");
+        Map<Integer, SimpleFeature> zonesById = new HashMap<>();
+        for (SimpleFeature zone : zones) {
+            int zoneId = (int) Double.parseDouble(zone.getAttribute("ID").toString());
+            zonesById.put(zoneId, zone);
+        }
+
+        FacilityDiscretizer discretizer = new FacilityDiscretizer(scenario.getActivityFacilities(), zonesById);
 
         new ABM2MATSim(scenario).processAbmData(discretizer, abmData, abmActs2matsimActs);
     }

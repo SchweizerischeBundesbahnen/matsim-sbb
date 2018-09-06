@@ -1,14 +1,14 @@
 package ch.sbb.matsim.plans.discretizer;
 
+import ch.sbb.matsim.analysis.matrices.Utils;
 import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
-import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
+import org.opengis.feature.simple.SimpleFeature;
 
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public class FacilityDiscretizer {
 
@@ -16,11 +16,13 @@ public class FacilityDiscretizer {
 
     private final ActivityFacilities facilities;
     private final Random random;
+    private final Map<Integer, SimpleFeature> zonesById;
     private AbmZoneFacilities zoneData;
 
-    public FacilityDiscretizer(ActivityFacilities facilities)    {
+    public FacilityDiscretizer(ActivityFacilities facilities, Map<Integer, SimpleFeature> zonesById)    {
         this.facilities = facilities;
-        this.random = MatsimRandom.getRandom();
+        this.random = new Random(20180906L);
+        this.zonesById = zonesById;
         assignFacilitiesToZones();
     }
 
@@ -39,18 +41,18 @@ public class FacilityDiscretizer {
         this.zoneData = zoneData;
     }
 
-    public ActivityFacility getRandomFacility(int zoneId, String type)  {
-        List<Id<ActivityFacility>> facilityList = this.zoneData.getActivityTypes(zoneId).getFacilitiesForType(type);
+    // TODO: would be better to return a facility instead of coord
+    public Coord getRandomCoord(int zoneId, String type)  {
+        List<Id<ActivityFacility>> facilityList = new ArrayList<>();
+        facilityList.addAll(this.zoneData.getActivityTypes(zoneId).getFacilitiesForType(type));
 
-        /*
+        // TODO: This should not happen!!! Not consistent with destination choice...
         if(facilityList.size() == 0)    {
-            facilityList = this.zoneData.getActivityTypes(zoneId).getFacilitiesForType(DefaultActivityTypes.home);
+            return Utils.getRandomCoordinateInFeature(this.zonesById.get(zoneId), this.random);
         }
-        */
 
-        log.info("ZoneId: " + zoneId + "; Type: " + type);
         Id<ActivityFacility> fid = facilityList.get(this.random.nextInt(facilityList.size()));
-        return this.facilities.getFacilities().get(fid);
+        return this.facilities.getFacilities().get(fid).getCoord();
     }
 
     // TODO: get facility from weighted list

@@ -5,10 +5,7 @@ import ch.sbb.matsim.plans.abm.AbmPlan;
 import ch.sbb.matsim.plans.abm.AbmTour;
 import ch.sbb.matsim.plans.abm.AbmTrip;
 import ch.sbb.matsim.plans.discretizer.FacilityDiscretizer;
-import org.matsim.api.core.v01.DefaultActivityTypes;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.*;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.*;
@@ -72,9 +69,9 @@ public class ABM2MATSim {
                     if(!destAct.equals(DefaultActivityTypes.home))    {
                         // it's an intermediate activity
                         int destZone = abmTrip.getDestTZone();
-                        ActivityFacility facility = discretizer.getRandomFacility(destZone, destAct);
-                        Activity act = this.population.getFactory().createActivityFromCoord(destAct, facility.getCoord());
-                        Link link = NetworkUtils.getNearestLink(network, facility.getCoord());
+                        Coord coord = discretizer.getRandomCoord(destZone, destAct);
+                        Activity act = this.population.getFactory().createActivityFromCoord(destAct, coord);
+                        Link link = NetworkUtils.getNearestLink(network, coord);
                         act.setLinkId(link.getId());
                         act.setStartTime(time);
                         time += abmTrip.getDestActDuration();
