@@ -24,7 +24,8 @@ public class AbmDataReader {
             Map<String, String> map;
             while ((map = reader.readLine()) != null) {
                 // pid,tid,seq,otaz,dtaz,o_act,d_act,mode,deptime,arrtime,d_act_endtime,d_act_duration
-                Id<Person> pid = Id.createPersonId((int) Double.parseDouble(map.get("pid")));
+                int id = (int) Double.parseDouble(map.get("pid"));
+                Id<Person> pid = Id.createPersonId("P_" + id);
                 int tid = (int) Double.parseDouble(map.get("tid"));
                 int seq = (int) Double.parseDouble(map.get("seq"));
                 int oTaz = (int) Double.parseDouble(map.get("otaz"));
