@@ -1,22 +1,18 @@
 package ch.sbb.matsim.synpop.zoneAggregator;
 
-import org.opengis.feature.simple.SimpleFeature;
-
 import java.util.ArrayList;
-import java.util.List;
 
 public class Zone<T> {
-    private SimpleFeature feature;
+    private final int zoneId;
     private ArrayList<T> data;
 
-    public Zone(SimpleFeature feature) {
-        this.feature = feature;
+    public Zone(int id) {
+        this.zoneId = id;
         this.data = new ArrayList<T>();
     }
 
-    public String getId() {
-        if (this.feature == null) return null;
-        return this.feature.getID();
+    public int getId() {
+        return this.zoneId;
     }
 
     void addItem(T item) {

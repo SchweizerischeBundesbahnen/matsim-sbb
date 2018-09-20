@@ -18,6 +18,7 @@ public class SynpopConfigGroup extends ReflectiveConfigGroup {
     private String falcFolder = "";
     private String outputFolder = "./output_synpop";
     private String zoneShapefile = "";
+    private String shapeAttribute = "";
     private String host = "k13536";
     private String port = "25432";
     private String database = "mobi_synpop";
@@ -174,6 +175,16 @@ public class SynpopConfigGroup extends ReflectiveConfigGroup {
     @StringSetter("zoneShapefile")
     public void setZoneShapefile(String zoneShapefile) {
         this.zoneShapefile = zoneShapefile;
+    }
+
+    @StringGetter("shapeAttribute")
+    public String getShapeAttribute() {
+        return shapeAttribute;
+    }
+
+    @StringSetter("shapeAttribute")
+    public void setShapeAttribute(String shapeAttribute) {
+        this.shapeAttribute = shapeAttribute;
     }
 
     @StringGetter("outputFolder")
