@@ -18,8 +18,8 @@ public class ZoneIdAssigner {
         this.zoneAggregator = zoneAggregator;
     }
 
-    public void addWorkFacilities(ActivityFacilities facilities)    {
-        Collection<ActivityFacility> workFacilities = facilities.getFacilitiesForActivityType("work").values();
+    public void addFacilitiesOfType(ActivityFacilities facilities, String type)    {
+        Collection<ActivityFacility> workFacilities = facilities.getFacilitiesForActivityType(type).values();
         for (ActivityFacility activityFacility : workFacilities) {
             zoneAggregator.add(activityFacility, activityFacility.getCoord());
         }

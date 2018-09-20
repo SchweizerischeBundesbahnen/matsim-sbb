@@ -37,7 +37,7 @@ public class Synpop {
         HomeFacilityBlurring blurring = new HomeFacilityBlurring(facilities, config.getZoneShapefile(), config.getShapeAttribute());
 
         ZoneIdAssigner assigner = new ZoneIdAssigner(blurring.getZoneAggregator());
-        assigner.addWorkFacilities(facilities);
+        assigner.addFacilitiesOfType(facilities, "work");
         assigner.assignIds();
         assigner.checkForMissingIds(facilities);
 
