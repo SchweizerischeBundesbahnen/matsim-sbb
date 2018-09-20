@@ -51,7 +51,7 @@ public class BlurringTest {
 
         activityFacilities.addActivityFacility(factory.createActivityFacility(Id.create(99, ActivityFacility.class), new Coord(99, 99)));
 
-        HomeFacilityBlurring homeFacilityBlurring = new HomeFacilityBlurring(activityFacilities, shapefile);
+        HomeFacilityBlurring homeFacilityBlurring = new HomeFacilityBlurring(activityFacilities, shapefile, "ID");
 
         for(int j=0; j<i; j++){
             activityFacilities.getFacilities().get(ids.get(j));
