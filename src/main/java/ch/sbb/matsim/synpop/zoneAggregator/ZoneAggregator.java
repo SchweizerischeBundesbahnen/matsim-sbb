@@ -11,15 +11,15 @@ import java.util.HashMap;
 
 public class ZoneAggregator<T> {
 
-    private final String attribute;
+    private final String shapeAttr;
     private HashMap<Integer, Zone<T>> zones;
     private LocateAct locateAct;
     private final static Logger log = Logger.getLogger(ZoneAggregator.class);
     private final Counter counter;
 
-    public ZoneAggregator(String shapefile, String attribute) {
+    public ZoneAggregator(String shapefile, String shapeAttr) {
         locateAct = new LocateAct(shapefile);
-        this.attribute = attribute;
+        this.shapeAttr = shapeAttr;
         this.zones = new HashMap<>();
         this.counter = new Counter("Zone aggregator #");
     }
@@ -38,7 +38,7 @@ public class ZoneAggregator<T> {
             zone = new Zone<T>(-1);
             this.zones.put(-1, zone);
         } else {
-            int zoneId = (int) Double.parseDouble(feature.getAttribute(this.attribute).toString());
+            int zoneId = (int) Double.parseDouble(feature.getAttribute(this.shapeAttr).toString());
             if (!zones.containsKey(zoneId)) {
                 zone = new Zone<T>(zoneId);
                 this.zones.put(zoneId, zone);
