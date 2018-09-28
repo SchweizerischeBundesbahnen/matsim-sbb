@@ -11,15 +11,17 @@ import java.util.HashMap;
 
 public class ZoneAggregator<T> {
 
-    private HashMap<String, Zone<T>> zones;
+    private final String shapeAttr;
+    private HashMap<Integer, Zone<T>> zones;
     private LocateAct locateAct;
     private final static Logger log = Logger.getLogger(ZoneAggregator.class);
     private final Counter counter;
 
-    public ZoneAggregator(String shapefile) {
+    public ZoneAggregator(String shapefile, String shapeAttr) {
         locateAct = new LocateAct(shapefile);
+        this.shapeAttr = shapeAttr;
         this.zones = new HashMap<>();
-        this.counter = new Counter("Zone aggregator");
+        this.counter = new Counter("Zone aggregator #");
     }
 
     public Collection<Zone<T>> getZones() {
@@ -33,14 +35,15 @@ public class ZoneAggregator<T> {
 
         if (feature == null) {
             log.info(element + " is not in shapefile");
-            zone = new Zone<T>(null);
-            this.zones.put(zone.getId(), zone);
+            zone = new Zone<T>(-1);
+            this.zones.put(-1, zone);
         } else {
-            if (!zones.containsKey(feature.getID())) {
-                zone = new Zone<T>(feature);
-                this.zones.put(zone.getId(), zone);
+            int zoneId = (int) Double.parseDouble(feature.getAttribute(this.shapeAttr).toString());
+            if (!zones.containsKey(zoneId)) {
+                zone = new Zone<T>(zoneId);
+                this.zones.put(zoneId, zone);
             } else {
-                zone = this.zones.get(feature.getID());
+                zone = this.zones.get(zoneId);
             }
         }
         zone.addItem(element);

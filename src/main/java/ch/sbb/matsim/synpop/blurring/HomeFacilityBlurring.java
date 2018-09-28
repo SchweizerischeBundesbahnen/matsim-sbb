@@ -17,10 +17,10 @@ public class HomeFacilityBlurring {
     private static Random random = new Random(20180806);
     private ZoneAggregator<ActivityFacility> zoneAggregator;
 
-    public HomeFacilityBlurring(ActivityFacilities facilities, String shapefile) {
+    public HomeFacilityBlurring(ActivityFacilities facilities, String shapefile, String attribute) {
 
         Collection<ActivityFacility> activityFacilities = facilities.getFacilitiesForActivityType("home").values();
-        zoneAggregator = new ZoneAggregator<>(shapefile);
+        zoneAggregator = new ZoneAggregator<>(shapefile, attribute);
 
         for (ActivityFacility activityFacility : activityFacilities) {
             zoneAggregator.add(activityFacility, activityFacility.getCoord());
@@ -55,7 +55,7 @@ public class HomeFacilityBlurring {
         ArrayList<ActivityFacility> facilites = zone.getData();
         ArrayList<Coord> coordinates = new ArrayList<>();
 
-        log.info("Blurring zone " + zone.getId() + " with " + facilites.size() + " facilities");
+        log.info("Blurring zone " + String.valueOf(zone.getId()) + " with " + facilites.size() + " facilities");
 
         for (ActivityFacility activityFacility : facilites) {
             coordinates.add(activityFacility.getCoord());

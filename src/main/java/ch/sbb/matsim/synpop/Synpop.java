@@ -5,6 +5,7 @@ import ch.sbb.matsim.synpop.attributes.SynpopAttributes;
 import ch.sbb.matsim.synpop.blurring.HomeFacilityBlurring;
 import ch.sbb.matsim.synpop.config.SynpopConfigGroup;
 import ch.sbb.matsim.synpop.facilities.ActivityForFacility;
+import ch.sbb.matsim.synpop.facilities.ZoneIdAssigner;
 import ch.sbb.matsim.synpop.reader.SynpopCSVReaderImpl;
 import ch.sbb.matsim.synpop.reader.SynpopReader;
 import ch.sbb.matsim.synpop.writer.MATSimWriter;
@@ -27,14 +28,18 @@ public class Synpop {
         SynpopConfigGroup config = ConfigUtils.addOrGetModule(ConfigUtils.loadConfig(configPath, new SynpopConfigGroup()), SynpopConfigGroup.class);
         SynpopAttributes synpopAttributes = new SynpopAttributes(config.getAttributesCSV());
 
-
         SynpopReader reader = new SynpopCSVReaderImpl(config.getFalcFolder());
         reader.load();
 
         Population population = reader.getPopulation();
         ActivityFacilities facilities = reader.getFacilities();
 
-        new HomeFacilityBlurring(facilities, config.getZoneShapefile());
+        HomeFacilityBlurring blurring = new HomeFacilityBlurring(facilities, config.getZoneShapefile(), config.getShapeAttribute());
+
+        ZoneIdAssigner assigner = new ZoneIdAssigner(blurring.getZoneAggregator());
+        assigner.addFacilitiesOfType(facilities, "work");
+        assigner.assignIds();
+        assigner.checkForMissingIds(facilities);
 
         AttributesConverter attributesConverter = new AttributesConverter(config.getAttributeMappingSettings(), config.getColumnMappingSettings());
         attributesConverter.map(population);
@@ -50,7 +55,6 @@ public class Synpop {
         new SQLWriter(config.getHost(), config.getPort(), config.getDatabase(), config.getYear(), synpopAttributes).run(population, facilities, config.getVersion());
         new MATSimWriter(output.toString()).run(population, facilities);
         new PopulationCSVWriter(output.toString(), synpopAttributes).run(population, facilities);
-
 
     }
 }
