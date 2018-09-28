@@ -9,6 +9,14 @@ import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 import java.util.Arrays;
 
+
+/**
+ *
+ * This script is temporary!
+ * As soon as we have better facilities, this will be removed
+ *
+ */
+
 public class PrepareFacilities {
 
     private final String path;

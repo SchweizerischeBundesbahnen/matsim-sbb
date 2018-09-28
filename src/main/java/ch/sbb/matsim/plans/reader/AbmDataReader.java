@@ -12,15 +12,13 @@ import java.util.Map;
 public class AbmDataReader {
 
     private static final Logger log = Logger.getLogger(AbmDataReader.class);
-    private final String pathAbmOutput;
 
-    public AbmDataReader(String pathAbmOutput)  {
-        this.pathAbmOutput = pathAbmOutput;
+    public AbmDataReader()  {
     }
 
-    public AbmData loadABMData()   {
+    public AbmData loadABMData(String pathAbmOutput)   {
         AbmData data = new AbmData();
-        try (CSVReader reader = new CSVReader(this.pathAbmOutput, ",")) {
+        try (CSVReader reader = new CSVReader(pathAbmOutput, ",")) {
             Map<String, String> map;
             while ((map = reader.readLine()) != null) {
                 // pid,tid,seq,otaz,dtaz,o_act,d_act,mode,deptime,arrtime,d_act_endtime,d_act_duration
@@ -28,16 +26,16 @@ public class AbmDataReader {
                 Id<Person> pid = Id.createPersonId("P_" + id);
                 int tid = (int) Double.parseDouble(map.get("tid"));
                 int seq = (int) Double.parseDouble(map.get("seq"));
-                int oTaz = (int) Double.parseDouble(map.get("otaz"));
-                int dTaz = (int) Double.parseDouble(map.get("dtaz"));
-                String oAct = map.get("o_act");
-                String dAct = map.get("d_act");
+                int oTaz = (int) Double.parseDouble(map.get("orig_tzone"));
+                int dTaz = (int) Double.parseDouble(map.get("dest_tzone"));
+                String oAct = map.get("orig_act");
+                String dAct = map.get("dest_act");
                 String mode = map.get("mode");
-                double deptime = Double.parseDouble(map.get("deptime")) * 3600;
-                double arrtime = Double.parseDouble(map.get("arrtime")) * 3600;
+                double deptime = Double.parseDouble(map.get("dep_time")) * 3600;
+                double arrtime = Double.parseDouble(map.get("arr_time")) * 3600;
                 double duration = 0.0;
                 if (!dAct.equals("H"))   {
-                    duration = Double.parseDouble(map.get("d_act_duration")) * 3600;
+                    duration = Double.parseDouble(map.get("dest_act_dur")) * 3600;
                 }
                 data.addTrip(pid, tid, seq, oTaz,dTaz, oAct, dAct, mode, deptime, arrtime, duration);
             }

@@ -18,6 +18,13 @@ import java.util.Map;
 public class PlanGenerator {
 
     public static void main(String[] args)  {
+
+        String pathToABM = args[0];
+        String pathToSynPop = args[1];
+        String pathToMATSimNetwork = args[2];
+        String pathToShapeFile = args[3];
+        String pathToOutputDir = args[4];
+
         // TODO: define activity options globally in the repo, not sure where
         HashMap<String, String> abmActs2matsimActs = new HashMap<>();
         abmActs2matsimActs.put("L", "leisure");
@@ -29,11 +36,11 @@ public class PlanGenerator {
         abmActs2matsimActs.put("S", "shop");
         abmActs2matsimActs.put("A", "accompany");
 
-        AbmData abmData = new AbmDataReader("\\\\k13536\\mobi\\plans\\endogenous\\abm\\plan_table.csv").loadABMData();
-        Scenario scenario = new ScenarioLoader("\\\\k13536\\mobi\\synpop\\data\\output\\2016\\for_mobi_plans\\v_02").prepareSynpopData(abmData);
-        new NetworkReaderMatsimV2(scenario.getNetwork()).readFile("\\\\k13536\\mobi\\model\\input\\network\\2016\\reference\\v1\\network.xml.gz");
+        AbmData abmData = new AbmDataReader().loadABMData(pathToABM);
+        Scenario scenario = new ScenarioLoader().prepareSynpopData(abmData, pathToSynPop);
+        new NetworkReaderMatsimV2(scenario.getNetwork()).readFile(pathToMATSimNetwork);
 
-        Collection<SimpleFeature> zones = new ShapeFileReader().readFileAndInitialize("\\\\V00925\\Simba\\20_Modelle\\85_SynPop_CH\\12_SynPop_CH_2016\\20_SynPop_Ergebnisse\\04_Shapefiles\\ARE_SBB_Synpop_180521\\NPVM_with_density.shp");
+        Collection<SimpleFeature> zones = new ShapeFileReader().readFileAndInitialize(pathToShapeFile);
         Map<Integer, SimpleFeature> zonesById = new HashMap<>();
         for (SimpleFeature zone : zones) {
             int zoneId = (int) Double.parseDouble(zone.getAttribute("ID").toString());
@@ -44,6 +51,6 @@ public class PlanGenerator {
 
         new ABM2MATSim(scenario).processAbmData(discretizer, abmData, abmActs2matsimActs);
 
-        new OutputWriter("\\\\k13536\\mobi\\model\\input\\plans\\2016\\endogenous\\v1").writeOutputs(scenario);
+        new OutputWriter(scenario).writeOutputs(pathToOutputDir);
     }
 }
