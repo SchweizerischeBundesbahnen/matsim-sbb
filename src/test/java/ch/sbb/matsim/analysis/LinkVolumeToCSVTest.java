@@ -142,7 +142,7 @@ public class LinkVolumeToCSVTest {
         public void addEvents(EventHandler handler) {
             EventsManager eventsManager = EventsUtils.createEventsManager(config);
             PrepareForSimUtils.createDefaultPrepareForSim(scenario).run();
-            QSim qSim = QSimUtils.createDefaultQSim(scenario, eventsManager);
+            QSim qSim = new QSimBuilder(config).useDefaults().build(scenario, eventsManager);
 
             EventsCollector collector = new EventsCollector();
             eventsManager.addHandler(collector);

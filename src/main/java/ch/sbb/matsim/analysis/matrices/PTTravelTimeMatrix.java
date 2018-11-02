@@ -74,7 +74,7 @@ public final class PTTravelTimeMatrix {
         Counter counter = new Counter("PT-TravelTimeMatrix-" + Time.writeTime(departureTime) + " zone ", " / " + zones.size());
         Thread[] threads = new Thread[numberOfThreads];
         for (int i = 0; i < numberOfThreads; i++) {
-            SwissRailRaptor raptor = new SwissRailRaptor(raptorData, null, null);
+            SwissRailRaptor raptor = new SwissRailRaptor(raptorData, null, null, null);
             RowWorker<T> worker = new RowWorker<>(originZones, zones.keySet(), coordsPerZone, pti, raptor, parameters, departureTime, counter);
             threads[i] = new Thread(worker, "PT-TravelTimeMatrix-" + Time.writeTime(departureTime) + "-" + i);
             threads[i].start();

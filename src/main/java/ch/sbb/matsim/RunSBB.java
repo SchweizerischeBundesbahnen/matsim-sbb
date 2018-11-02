@@ -5,22 +5,25 @@
 package ch.sbb.matsim;
 
 
-import ch.sbb.matsim.config.*;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
+import ch.sbb.matsim.config.*;
+import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
+import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
+import ch.sbb.matsim.routing.access.AccessEgress;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
+import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
+import com.google.inject.Provides;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
+import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
-
-import ch.sbb.matsim.mobsim.qsim.SBBQSimModule;
-import ch.sbb.matsim.routing.access.AccessEgress;
-import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 
 /**
  * @author denism
@@ -72,8 +75,16 @@ public class RunSBB {
                 addTravelTimeBinding("taxiSFF").to(networkTravelTime());
                 addTravelDisutilityFactoryBinding("taxiSFF").to(carTravelDisutilityFactoryKey());
 
-                install(new SBBQSimModule());
+                install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
+            }
+
+            @Provides
+            QSimComponentsConfig provideQSimComponentsConfig() {
+                QSimComponentsConfig components = new QSimComponentsConfig();
+                new StandardQSimComponentConfigurator(config).configure(components);
+                SBBTransitEngineQSimModule.configure(components);
+                return components;
             }
         });
 
