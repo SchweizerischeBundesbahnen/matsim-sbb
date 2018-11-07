@@ -17,9 +17,7 @@ public class TestFixture {
     Scenario scenario;
     Config config;
 
-
-    TestFixture(int size) {
-
+    TestFixture(int size, boolean addAttributes) {
 
         this.config = ConfigUtils.createConfig(new PostProcessingConfigGroup());
 
@@ -33,9 +31,8 @@ public class TestFixture {
             i += 1;
             Person person = pf.createPerson(Id.create(i, Person.class));
             population.addPerson(person);
-
+            if(addAttributes)
+                population.getPersonAttributes().putAttribute(person.getId().toString(), "attribute", "value");
         }
-
-
     }
 }
