@@ -19,6 +19,10 @@ public class Synpop2MATSim {
     private final static String HOUSEHOLD_ID = "household_id";
     public final static String BUSINESS_ID = "business_id";
 
+    public final static String X = "X";
+    public final static String Y = "Y";
+
+
     private final Population population;
     private final Scenario scenario;
     private final ActivityFacilities facilites;
@@ -80,18 +84,18 @@ public class Synpop2MATSim {
     }
 
     public void loadHousehold(Map<String, String> map) {
-        Coord coord = new Coord(Double.valueOf(map.get("X")), Double.valueOf(map.get("Y")));
+        Coord coord = new Coord(Double.valueOf(map.get(X)), Double.valueOf(map.get(Y)));
         Id id = Id.create(this.transformHouseholdId(map.get(HOUSEHOLD_ID)), ActivityFacility.class);
         ActivityFacility facility = facilites.getFactory().createActivityFacility(id, this.transformCoord(coord));
         for (String column : map.keySet()) {
-            if (!(column.equals(HOUSEHOLD_ID) || column.equals("X") || column.equals("Y"))) {
+            if (!(column.equals(HOUSEHOLD_ID) || column.equals(X) || column.equals(Y))) {
                 facility.getAttributes().putAttribute(column, parseValue(map.get(column)));
             }
         }
 
         facility.getAttributes().putAttribute(HOUSEHOLD_ID, facility.getId().toString());
-        facility.getAttributes().putAttribute("X", facility.getCoord().getX());
-        facility.getAttributes().putAttribute("Y", facility.getCoord().getY());
+        facility.getAttributes().putAttribute(X, facility.getCoord().getX());
+        facility.getAttributes().putAttribute(Y, facility.getCoord().getY());
 
         ActivityOption option = facilites.getFactory().createActivityOption("home");
         facility.addActivityOption(option);
@@ -100,16 +104,16 @@ public class Synpop2MATSim {
 
 
     public void loadBusiness(Map<String, String> map) {
-        Coord coord = new Coord(Double.valueOf(map.get("X")), Double.valueOf(map.get("Y")));
+        Coord coord = new Coord(Double.valueOf(map.get(X)), Double.valueOf(map.get(Y)));
         Id id = Id.create(this.transformBusinessId(map.get(BUSINESS_ID)), ActivityFacility.class);
         ActivityFacility facility = facilites.getFactory().createActivityFacility(id, this.transformCoord(coord));
         for (String column : map.keySet()) {
-            if (!(column.equals(BUSINESS_ID) || column.equals("X") || column.equals("Y"))) {
+            if (!(column.equals(BUSINESS_ID) || column.equals(X) || column.equals(Y))) {
                 facility.getAttributes().putAttribute(column, parseValue(map.get(column)));
             }
             facility.getAttributes().putAttribute(BUSINESS_ID, facility.getId().toString());
-            facility.getAttributes().putAttribute("X", facility.getCoord().getX());
-            facility.getAttributes().putAttribute("Y", facility.getCoord().getY());
+            facility.getAttributes().putAttribute(X, facility.getCoord().getX());
+            facility.getAttributes().putAttribute(Y, facility.getCoord().getY());
         }
 
         ActivityOption option = facilites.getFactory().createActivityOption("work");

@@ -12,8 +12,8 @@ import org.matsim.facilities.ActivityFacilities;
 
 public class SynpopCSVReaderImpl implements SynpopReader {
     private static final Logger log = Logger.getLogger(SynpopCSVReaderImpl.class);
-    private Synpop2MATSim synpop2MATSim = new Synpop2MATSim();
-    private String folder;
+    final private Synpop2MATSim synpop2MATSim = new Synpop2MATSim();
+    final private String folder;
     private int n=Integer.MAX_VALUE;
 
     public SynpopCSVReaderImpl(String folder, int n) {
@@ -42,20 +42,20 @@ public class SynpopCSVReaderImpl implements SynpopReader {
         this.readBusinesses(folder + "/businesses.csv");
     }
 
-    private void readPersons(String personsFile) {
-        try (CSVReader reader = new CSVReader(personsFile, ";")) {
+    private void readPersons(final String personsFile) {
+        try (final CSVReader reader = new CSVReader(personsFile, ";")) {
             Map<String, String> map;
             int i = 0;
             while ((map = reader.readLine()) != null && i<n) {
                 synpop2MATSim.loadPerson(map);
                 i++;
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             log.warn(e);
         }
     }
 
-    private void readBusinesses(String personsFile) {
+    private void readBusinesses(final String personsFile) {
         try (CSVReader reader = new CSVReader(personsFile, ";")) {
             Map<String, String> map;
             int i = 0;
@@ -69,7 +69,7 @@ public class SynpopCSVReaderImpl implements SynpopReader {
 
     }
 
-    private void readHouseholds(String personsFile) {
+    private void readHouseholds(final String personsFile) {
         try (CSVReader reader = new CSVReader(personsFile, ";")) {
             Map<String, String> map;
             int i = 0;

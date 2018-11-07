@@ -23,25 +23,25 @@ public class Synpop {
     private final static Logger log = Logger.getLogger(Synpop.class);
 
     public static void main(String[] args) {
-        String configPath = args[0];
+        final String configPath = args[0];
 
-        SynpopConfigGroup config = ConfigUtils.addOrGetModule(ConfigUtils.loadConfig(configPath, new SynpopConfigGroup()), SynpopConfigGroup.class);
-        SynpopAttributes synpopAttributes = new SynpopAttributes(config.getAttributesCSV());
+        final SynpopConfigGroup config = ConfigUtils.addOrGetModule(ConfigUtils.loadConfig(configPath, new SynpopConfigGroup()), SynpopConfigGroup.class);
+        final SynpopAttributes synpopAttributes = new SynpopAttributes(config.getAttributesCSV());
 
-        SynpopReader reader = new SynpopCSVReaderImpl(config.getFalcFolder());
+        final SynpopReader reader = new SynpopCSVReaderImpl(config.getFalcFolder());
         reader.load();
 
-        Population population = reader.getPopulation();
-        ActivityFacilities facilities = reader.getFacilities();
+        final Population population = reader.getPopulation();
+        final ActivityFacilities facilities = reader.getFacilities();
 
-        HomeFacilityBlurring blurring = new HomeFacilityBlurring(facilities, config.getZoneShapefile(), config.getShapeAttribute());
+        final HomeFacilityBlurring blurring = new HomeFacilityBlurring(facilities, config.getZoneShapefile(), config.getShapeAttribute());
 
-        ZoneIdAssigner assigner = new ZoneIdAssigner(blurring.getZoneAggregator());
+        final ZoneIdAssigner assigner = new ZoneIdAssigner(blurring.getZoneAggregator());
         assigner.addFacilitiesOfType(facilities, "work");
         assigner.assignIds();
         assigner.checkForMissingIds(facilities);
 
-        AttributesConverter attributesConverter = new AttributesConverter(config.getAttributeMappingSettings(), config.getColumnMappingSettings());
+        final AttributesConverter attributesConverter = new AttributesConverter(config.getAttributeMappingSettings(), config.getColumnMappingSettings());
         attributesConverter.map(population);
         attributesConverter.map(facilities.getFacilitiesForActivityType("home").values(), "households");
         attributesConverter.map(facilities.getFacilitiesForActivityType("work").values(), "businesses");
@@ -49,7 +49,7 @@ public class Synpop {
         //change generic ActivityType to a more specific one
         new ActivityForFacility(config.getBus2act(), facilities.getFactory()).run(facilities.getFacilitiesForActivityType("work").values());
 
-        File output = new File(config.getOutputFolder(), config.getVersion());
+        final File output = new File(config.getOutputFolder(), config.getVersion());
         output.mkdirs();
 
         new SQLWriter(config.getHost(), config.getPort(), config.getDatabase(), config.getYear(), synpopAttributes).run(population, facilities, config.getVersion());
