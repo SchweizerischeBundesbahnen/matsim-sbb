@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.reader;
 
+import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.plans.abm.AbmData;
 import ch.sbb.matsim.synpop.writer.MATSimWriter;
 import org.matsim.api.core.v01.Id;
@@ -13,6 +14,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.FacilitiesReaderMatsimV1;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,10 +50,10 @@ public class ScenarioLoader {
 
     private static void loadScenario(Scenario scenario, String path)  {
         // TODO: link filenames to synpop final declaration
-        new PopulationReader(scenario).readFile(path + MATSimWriter.POPULATION);
+        new PopulationReader(scenario).readFile(path + Filenames.POPULATION);
         new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(path + "/person_attributes.xml.gz");
         // TODO: take original synpop output... then, PrepareFacilities will be obsolete
-        new FacilitiesReaderMatsimV1(scenario).readFile(path + MATSimWriter.FACILITIES);
+        new FacilitiesReaderMatsimV1(scenario).readFile(path + Filenames.FACILITIES);
         // TODO: with MATSim 11, this should be removed
         new ObjectAttributesXmlReader(scenario.getActivityFacilities().getFacilityAttributes()).readFile(path + "/facility_attributes.xml.gz");
     }
