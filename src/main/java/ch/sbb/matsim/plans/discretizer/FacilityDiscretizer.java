@@ -67,6 +67,7 @@ public class FacilityDiscretizer {
             return coord;
         }
 
+
         Id<ActivityFacility> fid = facilityList.get(this.random.nextInt(facilityList.size()));
         return this.facilities.getFacilities().get(fid).getCoord();
     }
