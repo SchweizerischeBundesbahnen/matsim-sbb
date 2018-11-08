@@ -4,7 +4,7 @@ package ch.sbb.matsim.analysis.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.EventsToTravelDiaries;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
-import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEnginePlugin;
+import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -24,23 +24,16 @@ import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsUtils;
-import org.matsim.core.mobsim.qsim.AbstractQSimPlugin;
-import org.matsim.core.mobsim.qsim.ActivityEnginePlugin;
-import org.matsim.core.mobsim.qsim.PopulationPlugin;
+import org.matsim.core.mobsim.qsim.ActivityEngineModule;
+import org.matsim.core.mobsim.qsim.PopulationModule;
 import org.matsim.core.mobsim.qsim.QSim;
-import org.matsim.core.mobsim.qsim.QSimUtils;
+import org.matsim.core.mobsim.qsim.QSimBuilder;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.routes.ExperimentalTransitRoute;
-import org.matsim.pt.transitSchedule.api.Departure;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.testcases.utils.EventsCollector;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleCapacity;
@@ -221,17 +214,17 @@ public class TestFixture {
     }
 
     public void addEvents() {
-        List<AbstractQSimPlugin> plugins = new ArrayList<>();
-        plugins.add(new ActivityEnginePlugin(config));
-        plugins.add(new PopulationPlugin(config));
-        plugins.add(new TestQSimModule(config));
-        plugins.add(new SBBTransitEnginePlugin(config));
-
-
-        //plugins.add(new TransitEnginePlugin(f.config));
-       // plugins.add(new QNetsimEnginePlugin(f.config));
-
-        QSim qSim = QSimUtils.createQSim(scenario, eventsManager, plugins);
+        QSim qSim = new QSimBuilder(config) //
+                .addQSimModule(new ActivityEngineModule())
+                .addQSimModule(new PopulationModule())
+                .addQSimModule(new SBBTransitEngineQSimModule())
+                .addQSimModule(new TestQSimModule(config))
+                .configureComponents(SBBTransitEngineQSimModule::configure)
+                .configureComponents(configurator -> {
+                    configurator.addNamedComponent(ActivityEngineModule.COMPONENT_NAME);
+                    configurator.addNamedComponent(PopulationModule.COMPONENT_NAME);
+                })
+                .build(scenario, eventsManager);
 
         EventsCollector collector = new EventsCollector();
         eventsManager.addHandler(collector);

@@ -1,6 +1,7 @@
 package ch.sbb.matsim.analysis.VisumPuTSurvey;
 
 import ch.sbb.matsim.analysis.EventsToTravelDiaries;
+import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
@@ -25,7 +26,10 @@ public class VisumPuTSurveyIntegrationTest {
 
         VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(eventsToTravelDiaries.getChains(), fixture.scenario, 10.0);
 
-        System.out.println(eventsToTravelDiaries.getChains().get(Id.createPersonId("1")).getJourneys().getFirst().getTrips().size());
+        TravellerChain chain = eventsToTravelDiaries.getChains().get(Id.createPersonId("1"));
+        Assert.assertNotNull("TravellerChain for person 1 not found.", chain);
+
+        System.out.println(chain.getJourneys().getFirst().getTrips().size());
 
         visumPuTSurvey.write("./");
 

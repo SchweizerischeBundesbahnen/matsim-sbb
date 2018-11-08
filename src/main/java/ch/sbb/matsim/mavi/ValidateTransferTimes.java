@@ -1,15 +1,15 @@
 package ch.sbb.matsim.mavi;
 
 import ch.sbb.matsim.csv.CSVWriter;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.pt.transitSchedule.TransitScheduleReaderV2;
 import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import java.io.IOException;
-import org.apache.log4j.Logger;
 
 public class ValidateTransferTimes {
 
@@ -17,7 +17,7 @@ public class ValidateTransferTimes {
 
     public static void main(String[] args) {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new TransitScheduleReaderV2(scenario).readFile(args[0]);
+        new TransitScheduleReader(scenario).readFile(args[0]);
         TransitSchedule schedule = scenario.getTransitSchedule();
 
         try (CSVWriter mttWriter = new CSVWriter("", new String[]{"FROM_X", "FROM_Y", "TO_X", "TO_Y", "TRANSFERTIME"}, args[1])) {

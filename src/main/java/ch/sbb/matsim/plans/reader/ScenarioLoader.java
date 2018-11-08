@@ -11,7 +11,7 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.facilities.FacilitiesReaderMatsimV1;
+import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 import java.io.File;
@@ -53,7 +53,7 @@ public class ScenarioLoader {
         new PopulationReader(scenario).readFile(path + Filenames.POPULATION);
         new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(path + "/person_attributes.xml.gz");
         // TODO: take original synpop output... then, PrepareFacilities will be obsolete
-        new FacilitiesReaderMatsimV1(scenario).readFile(path + Filenames.FACILITIES);
+        new MatsimFacilitiesReader(scenario).readFile(path + Filenames.FACILITIES);
         // TODO: with MATSim 11, this should be removed
         new ObjectAttributesXmlReader(scenario.getActivityFacilities().getFacilityAttributes()).readFile(path + "/facility_attributes.xml.gz");
     }

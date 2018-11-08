@@ -7,7 +7,7 @@ import ch.sbb.matsim.plans.reader.AbmDataReader;
 import ch.sbb.matsim.plans.reader.ScenarioLoader;
 import ch.sbb.matsim.plans.writer.OutputWriter;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.core.network.io.NetworkReaderMatsimV2;
+import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.utils.gis.ShapeFileReader;
 import org.opengis.feature.simple.SimpleFeature;
 
@@ -37,8 +37,8 @@ public class PlanGenerator {
         abmActs2matsimActs.put("A", "accompany");
 
         AbmData abmData = new AbmDataReader().loadABMData(pathToABM);
-        Scenario scenario = new ScenarioLoader().prepareSynpopData(abmData, pathToSynPop);
-        new NetworkReaderMatsimV2(scenario.getNetwork()).readFile(pathToMATSimNetwork);
+        Scenario scenario = ScenarioLoader.prepareSynpopData(abmData, pathToSynPop);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(pathToMATSimNetwork);
 
         Collection<SimpleFeature> zones = new ShapeFileReader().readFileAndInitialize(pathToShapeFile);
         Map<Integer, SimpleFeature> zonesById = new HashMap<>();

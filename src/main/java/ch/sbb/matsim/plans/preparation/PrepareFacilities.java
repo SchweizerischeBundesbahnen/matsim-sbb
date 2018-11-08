@@ -39,7 +39,7 @@ public class PrepareFacilities {
     }
 
     private void loadFacilities()    {
-        new FacilitiesReaderMatsimV1(this.scenario).readFile(this.path + "/facilities.xml.gz");
+        new MatsimFacilitiesReader(this.scenario).readFile(this.path + "/facilities.xml.gz");
         new ObjectAttributesXmlReader(this.scenario.getActivityFacilities().getFacilityAttributes()).readFile(this.path + "/facility_attributes.xml.gz");
     }
 
