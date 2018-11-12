@@ -166,12 +166,12 @@
 
 	<distributionManagement>
 		<repository>
-			<id>repo</id>
-			<url>http://repo.sbb.ch/content/repositories/hosted.memop.releases/</url>
+			<id>mvn</id>
+			<url>https://bin.sbb.ch/artifactory/simba.mvn/</url>
 		</repository>
 		<snapshotRepository>
-			<id>repo</id>
-			<url>http://repo.sbb.ch/content/repositories/hosted.memop.snapshots/</url>
+			<id>mvn</id>
+			<url>https://bin.sbb.ch/artifactory/simba.mvn/</url>
 		</snapshotRepository>
 	</distributionManagement>
 
