@@ -16,7 +16,6 @@ import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -26,7 +25,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Inspired by https://github.com/moeckel/silo/blob/siloMatsim/silo/src/main/java/edu/umd/ncsg/transportModel/Zone2ZoneTravelTimeListener.java.
  *
  * Idea of the algorithm:
- * - select n random points per zone
+ * - given n (random?) points per zone
  * - find the nearest link and thereof the to-node for each point
  * - this results in n nodes per zone (where some nodes can appear multiple times, this is wanted as it acts as a weight/probability)
  * - for each zone-to-zone combination, calculate the travel times for each node to node combination.
@@ -35,26 +34,22 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author mrieser / SBB
  */
-public final class NetworkTravelTimeMatrix {
+final class NetworkTravelTimeMatrix {
 
     private NetworkTravelTimeMatrix() {
     }
 
-    public static <T> NetworkIndicators<T> calculateTravelTimeMatrix(Network network, Map<T, SimpleFeature> zones, double departureTime, int numberOfPointsPerZone, TravelTime travelTime, TravelDisutility travelDisutility, int numberOfThreads) {
-        Random r = new Random(20180404L);
-
+    static <T> NetworkIndicators<T> calculateTravelTimeMatrix(Network network, Map<T, SimpleFeature> zones, Map<T, Coord[]> coordsPerZone, double departureTime, TravelTime travelTime, TravelDisutility travelDisutility, int numberOfPointsPerZone, int numberOfThreads) {
         Map<T, Node[]> nodesPerZone = new HashMap<>();
-        for (Map.Entry<T, SimpleFeature> e : zones.entrySet()) {
+        for (Map.Entry<T, Coord[]> e : coordsPerZone.entrySet()) {
             T zoneId = e.getKey();
-            SimpleFeature f = e.getValue();
-            if (f.getDefaultGeometry() != null) {
-                Node[] nodes = new Node[numberOfPointsPerZone];
-                nodesPerZone.put(zoneId, nodes);
-                for (int i = 0; i < numberOfPointsPerZone; i++) {
-                    Coord coord = Utils.getRandomCoordinateInFeature(f, r);
-                    Node node = NetworkUtils.getNearestLink(network, coord).getToNode();
-                    nodes[i] = node;
-                }
+            Coord[] coords = e.getValue();
+            Node[] nodes = new Node[coords.length];
+            nodesPerZone.put(zoneId, nodes);
+            for (int i = 0; i < coords.length; i++) {
+                Coord coord = coords[i];
+                Node node = NetworkUtils.getNearestLink(network, coord).getToNode();
+                nodes[i] = node;
             }
         }
 
@@ -154,11 +149,11 @@ public final class NetworkTravelTimeMatrix {
         }
     }
 
-    public static class NetworkIndicators<T> {
-        public final FloatMatrix<T> travelTimeMatrix;
-        public final FloatMatrix<T> distanceMatrix;
+    static class NetworkIndicators<T> {
+        final FloatMatrix<T> travelTimeMatrix;
+        final FloatMatrix<T> distanceMatrix;
 
-        public NetworkIndicators(Set<T> zones) {
+        NetworkIndicators(Set<T> zones) {
             this.travelTimeMatrix = new FloatMatrix<>(zones, 0);
             this.distanceMatrix = new FloatMatrix<>(zones, 0);
         }

@@ -19,7 +19,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -27,7 +26,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Calculates a zone-to-zone travel time matrix for public transport.
  *
  *  Idea of the algorithm:
- * - select n random points per zone
+ * - given n (random?) points per zone
  * - for each point, find the possible stops to be used as departure or arrival stops.
  * - for each zone-to-zone combination, calculate the travel times from each point to each other point in the destination zone.
  *   - for each point-to-point combination, multiple connections will be available from one of the departure stops to each of the arrival stops
@@ -47,26 +46,9 @@ public final class PTTravelTimeMatrix {
     private PTTravelTimeMatrix() {
     }
 
-    public static <T> PtIndicators<T> calculateTravelTimeMatrix(SwissRailRaptorData raptorData, Map<T, SimpleFeature> zones, double departureTime, int numberOfPointsPerZone, RaptorParameters parameters, int numberOfThreads) {
-        Random r = new Random(20180404L);
-
-        Map<T, Coord[]> coordsPerZone = new HashMap<>();
-        for (Map.Entry<T, SimpleFeature> e : zones.entrySet()) {
-            T zoneId = e.getKey();
-            SimpleFeature f = e.getValue();
-            if (f.getDefaultGeometry() != null) {
-                Coord[] coords = new Coord[numberOfPointsPerZone];
-                coordsPerZone.put(zoneId, coords);
-                for (int i = 0; i < numberOfPointsPerZone; i++) {
-                    Coord coord = Utils.getRandomCoordinateInFeature(f, r);
-                    coords[i] = coord;
-                }
-            }
-        }
-
+    public static <T> PtIndicators<T> calculateTravelTimeMatrix(SwissRailRaptorData raptorData, Map<T, SimpleFeature> zones, Map<T, Coord[]> coordsPerZone, double departureTime, RaptorParameters parameters, int numberOfThreads) {
         // prepare calculation
         PtIndicators<T> pti = new PtIndicators<>(zones.keySet());
-//        float avgFactor = (float) (1.0 / numberOfPointsPerZone / numberOfPointsPerZone);
 
         // do calculation
         ConcurrentLinkedQueue<T> originZones = new ConcurrentLinkedQueue<>(zones.keySet());

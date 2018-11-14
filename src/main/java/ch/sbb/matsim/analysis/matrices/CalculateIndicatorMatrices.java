@@ -5,11 +5,13 @@
 package ch.sbb.matsim.analysis.matrices;
 
 import ch.sbb.matsim.analysis.matrices.NetworkTravelTimeMatrix.NetworkIndicators;
+import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Network;
@@ -34,11 +36,7 @@ import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author mrieser / SBB
@@ -47,13 +45,14 @@ public class CalculateIndicatorMatrices {
 
     private static final Logger log = Logger.getLogger(CalculateIndicatorMatrices.class);
 
-    public static final String CAR_TRAVELTIMES_FILENAME = "car_traveltimes.csv.gz";
-    public static final String CAR_DISTANCES_FILENAME = "car_distances.csv.gz";
-    public static final String PT_TRAVELTIMES_FILENAME = "pt_traveltimes.csv.gz";
-    public static final String PT_ACCESSTIMES_FILENAME = "pt_accesstimes.csv.gz";
-    public static final String PT_EGRESSTIMES_FILENAME = "pt_egresstimes.csv.gz";
-    public static final String PT_TRANSFERCOUNTS_FILENAME = "pt_transfercounts.csv.gz";
-    public static final String BEELINE_DISTANCE_FILENAME = "beeline_distances.csv.gz";
+    static final String CAR_TRAVELTIMES_FILENAME = "car_traveltimes.csv.gz";
+    static final String CAR_DISTANCES_FILENAME = "car_distances.csv.gz";
+    static final String PT_TRAVELTIMES_FILENAME = "pt_traveltimes.csv.gz";
+    static final String PT_ACCESSTIMES_FILENAME = "pt_accesstimes.csv.gz";
+    static final String PT_EGRESSTIMES_FILENAME = "pt_egresstimes.csv.gz";
+    static final String PT_TRANSFERCOUNTS_FILENAME = "pt_transfercounts.csv.gz";
+    static final String BEELINE_DISTANCE_FILENAME = "beeline_distances.csv.gz";
+    static final String ZONE_LOCATIONS_FILENAME = "zone_coordinates.csv";
 
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
@@ -120,6 +119,36 @@ public class CalculateIndicatorMatrices {
 
         TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
+        // define points per zone
+        log.info("choose coordinates per zone...");
+
+        Map<String, Coord[]> coordsPerZone = new HashMap<>();
+        Random r = new Random(20180404L);
+        for (Map.Entry<String, SimpleFeature> e : zonesById.entrySet()) {
+            String zoneId = e.getKey();
+            SimpleFeature f = e.getValue();
+            if (f.getDefaultGeometry() != null) {
+                Coord[] coords = new Coord[numberOfPointsPerZone];
+                coordsPerZone.put(zoneId, coords);
+                for (int i = 0; i < numberOfPointsPerZone; i++) {
+                    coords[i] = Utils.getRandomCoordinateInFeature(f, r);
+                }
+            }
+        }
+
+        try (CSVWriter writer = new CSVWriter(null, new String[] {"ZONE", "PT_INDEX", "X", "Y"}, new File(outputDir, ZONE_LOCATIONS_FILENAME).getAbsolutePath())) {
+            for (Map.Entry<String, Coord[]> e : coordsPerZone.entrySet()) {
+                String zoneId = e.getKey();
+                Coord[] coords = e.getValue();
+                for (int i = 0; i < coords.length; i++) {
+                    Coord coord = coords[i];
+                    writer.set("ZONE", zoneId);
+                    writer.set("PT_INDEX", Integer.toString(i));
+                    writer.set("X", Double.toString(coord.getX()));
+                    writer.set("Y", Double.toString(coord.getY()));
+                }
+            }
+        }
 
         // calc MIV matrix
 
@@ -128,14 +157,14 @@ public class CalculateIndicatorMatrices {
         new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(TransportMode.car));
 
         log.info("calc CAR matrix for " + Time.writeTime(times[0]));
-        NetworkIndicators<String> netIndicators = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[0], numberOfPointsPerZone, tt, td, numberOfThreads);
+        NetworkIndicators<String> netIndicators = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, coordsPerZone, times[0], tt, td, numberOfPointsPerZone, numberOfThreads);
 
         if (tt instanceof FreeSpeedTravelTime) {
             log.info("Do not calculate CAR matrices for other times as only freespeed is being used");
         } else {
             for (int i = 1; i < times.length; i++) {
                 log.info("calc CAR matrices for " + Time.writeTime(times[i]));
-                NetworkIndicators<String> indicators2 = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, times[i], numberOfPointsPerZone, tt, td, numberOfThreads);
+                NetworkIndicators<String> indicators2 = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, coordsPerZone, times[i], tt, td, numberOfPointsPerZone, numberOfThreads);
                 log.info("merge CAR matrices for " + Time.writeTime(times[i]));
                 combineMatrices(netIndicators.travelTimeMatrix, indicators2.travelTimeMatrix);
                 combineMatrices(netIndicators.distanceMatrix, indicators2.distanceMatrix);
@@ -157,11 +186,11 @@ public class CalculateIndicatorMatrices {
         RaptorParameters raptorParameters = RaptorUtils.createParameters(config);
 
         log.info("calc PT matrices for " + Time.writeTime(times[0]));
-        PTTravelTimeMatrix.PtIndicators<String> matrices = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, times[0], numberOfPointsPerZone, raptorParameters, numberOfThreads);
+        PTTravelTimeMatrix.PtIndicators<String> matrices = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, times[0], raptorParameters, numberOfThreads);
 
         for (int i = 1; i < times.length; i++) {
             log.info("calc PT matrices for " + Time.writeTime(times[i]));
-            PTTravelTimeMatrix.PtIndicators<String> matrices2 = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, times[i], numberOfPointsPerZone, raptorParameters, numberOfThreads);
+            PTTravelTimeMatrix.PtIndicators<String> matrices2 = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, times[i], raptorParameters, numberOfThreads);
 
             log.info("merge PT matrices for " + Time.writeTime(times[i]));
             combineMatrices(matrices.travelTimeMatrix, matrices2.travelTimeMatrix);
