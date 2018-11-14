@@ -167,7 +167,7 @@ public class CalculateIndicatorMatrices {
             combineMatrices(matrices.travelTimeMatrix, matrices2.travelTimeMatrix);
             combineMatrices(matrices.accessTimeMatrix, matrices2.accessTimeMatrix);
             combineMatrices(matrices.egressTimeMatrix, matrices2.egressTimeMatrix);
-            combineMatrices(matrices.travelTimeMatrix, matrices2.travelTimeMatrix);
+            combineMatrices(matrices.transferCountMatrix, matrices2.transferCountMatrix);
         }
 
         log.info("re-scale PT matrices after all data is merged.");
