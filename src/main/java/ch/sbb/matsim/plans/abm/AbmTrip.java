@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.abm;
 
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.facilities.ActivityFacility;
 
@@ -14,9 +15,19 @@ public class AbmTrip {
     private Id<ActivityFacility> origFacilityId;
     private Id<ActivityFacility> destFacilityId;
 
+    private final Coord coordOrig;
+    private final Coord coordDest;
 
 
-    public AbmTrip(Id<ActivityFacility> origFacilityId, Id<ActivityFacility> destFacilityId, String oAct, String dAct, String mode, int deptime, int arrtime) {
+    public Coord getCoordOrig() {
+        return coordOrig;
+    }
+
+    public Coord getCoordDest() {
+        return coordDest;
+    }
+
+    public AbmTrip(Id<ActivityFacility> origFacilityId, Id<ActivityFacility> destFacilityId, String oAct, String dAct, String mode, int deptime, int arrtime, Coord coordOrig, Coord coordDest) {
         this.oAct = oAct;
         this.dAct = dAct;
         this.mode = mode;
@@ -26,6 +37,8 @@ public class AbmTrip {
         this.origFacilityId = origFacilityId;
         this.destFacilityId = destFacilityId;
 
+        this.coordDest = coordDest;
+        this.coordOrig = coordOrig;
 
     }
 

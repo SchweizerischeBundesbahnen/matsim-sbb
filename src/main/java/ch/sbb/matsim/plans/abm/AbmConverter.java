@@ -5,6 +5,7 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.csv.CSVReader;
 import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.*;
@@ -58,7 +59,7 @@ public class AbmConverter {
                 activity.setFacilityId(trip.getOrigFacilityId());
                 //activity.setLinkId();
                 //activity.setMaximumDuration();
-                //activity.setCoord(trip.getCoordOrig());
+                activity.setCoord(trip.getCoordOrig());
 
                 final Leg leg = PopulationUtils.createLeg(trip.getMode());
                 plan.addLeg(leg);
@@ -72,7 +73,7 @@ public class AbmConverter {
                 activity.setFacilityId(previousTrip.getDestFacilityId());
                 //activity.setLinkId();
                 //activity.setMaximumDuration();
-                //activity.setCoord(previousTrip.getCoordDest());
+                activity.setCoord(previousTrip.getCoordDest());
 
             }
             person.addPlan(plan);
@@ -137,11 +138,17 @@ public class AbmConverter {
                 final String dAct = map.get("dest_act");
                 final String mode = map.get("mode");
 
+                final int xorig = (int) Double.parseDouble(map.get("Xorig_"));
+                final int yorig = (int) Double.parseDouble(map.get("Yorig_"));
+
+                final int xdest = (int) Double.parseDouble(map.get("Xdest_"));
+                final int ydest = (int) Double.parseDouble(map.get("Ydest_"));
+
                 final int deptime = (int) (Double.parseDouble(map.get("dep_time")) * 3600);
                 final int arrtime = (int) (Double.parseDouble(map.get("arr_time")) * 3600);
 
                 final List<AbmTrip> trips = addPlanIfNotExists(pid);
-                final AbmTrip trip = new AbmTrip(origFacilityId, destFacilityId, oAct, dAct, mode, deptime, arrtime);
+                final AbmTrip trip = new AbmTrip(origFacilityId, destFacilityId, oAct, dAct, mode, deptime, arrtime, new Coord(xorig, yorig), new Coord(xdest, ydest));
                 trips.add(trip);
             }
         } catch (IOException e) {
