@@ -1,50 +1,61 @@
 package ch.sbb.matsim.plans.abm;
 
+import org.matsim.api.core.v01.Id;
+import org.matsim.facilities.ActivityFacility;
+
 public class AbmTrip {
 
-    private int oTZone;
-    private int dTZone;
     private String oAct;
     private String dAct;
     private String mode;
-    private double deptime;
-    private double arrtime;
-    private double dActDuration;
+    private int deptime;
+    private int arrtime;
 
-    public AbmTrip(int oTZone, int dTZone, String oAct, String dAct, String mode,
-                    double deptime, double arrtime, double dActDuration) {
-        this.oTZone = oTZone;
-        this.dTZone = dTZone;
+    private Id<ActivityFacility> origFacilityId;
+    private Id<ActivityFacility> destFacilityId;
+
+
+
+    public AbmTrip(Id<ActivityFacility> origFacilityId, Id<ActivityFacility> destFacilityId, String oAct, String dAct, String mode, int deptime, int arrtime) {
         this.oAct = oAct;
         this.dAct = dAct;
         this.mode = mode;
         this.deptime = deptime;
         this.arrtime = arrtime;
-        this.dActDuration = dActDuration;
+
+        this.origFacilityId = origFacilityId;
+        this.destFacilityId = destFacilityId;
+
+
+    }
+
+    public Id<ActivityFacility> getOrigFacilityId() {
+        return origFacilityId;
+    }
+
+    public Id<ActivityFacility> getDestFacilityId() {
+        return destFacilityId;
     }
 
     public String getMode() {
         return this.mode;
     }
 
-    public double getDepTime()    {
+    public int getArrtime() {
+        return arrtime;
+    }
+
+
+    public int getDepTime() {
         return this.deptime;
     }
 
-    public String getDestAct()  {
+    public String getDestAct() {
         return this.dAct;
     }
 
-    public double getTravelTime()   {
-        double traveltime = this.arrtime - this.deptime;
-        return traveltime;
+    public String getoAct() {
+        return oAct;
     }
 
-    public int getDestTZone()   {
-        return dTZone;
-    }
-
-    public double getDestActDuration()  {
-        return dActDuration;
-    }
 }
