@@ -110,12 +110,13 @@ public class AbmConverter {
                 PersonUtils.setAge(person, Integer.parseInt(person.getAttributes().getAttribute("age").toString()));
                 PersonUtils.setEmployed(person, Integer.parseInt(person.getAttributes().getAttribute("level_of_employment").toString()) > 0);
 
-
-                person.getAttributes().putAttribute(Variables.SEASON_TICKET, "none");
+                person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, "none");
                 if ((boolean) person.getAttributes().getAttribute(Variables.GA)) {
-                    person.getAttributes().putAttribute(Variables.SEASON_TICKET, Variables.GA);
+                    person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, Variables.GA);
+                } else if ((boolean) person.getAttributes().getAttribute(Variables.VA)) {
+                    person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, Variables.VA);
                 } else if ((boolean) person.getAttributes().getAttribute(Variables.HTA)) {
-                    person.getAttributes().putAttribute(Variables.SEASON_TICKET, Variables.HTA);
+                    person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, Variables.HTA);
                 }
 
 
