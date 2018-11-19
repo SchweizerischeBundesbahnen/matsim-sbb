@@ -98,7 +98,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 double monDistRate = defaultModeParams.getMonetaryDistanceRate();
 
                 for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bgp : behaviorGroupsConfigGroup.getBehaviorGroupParams().values()) {
-                    Object personAttributeObj = personAttributes.getAttribute(person.getId().toString(), bgp.getPersonAttribute());
+                    Object personAttributeObj = person.getAttributes().getAttribute(bgp.getPersonAttribute());
                     if (personAttributeObj == null) continue;
 
                     String personAttribute;
