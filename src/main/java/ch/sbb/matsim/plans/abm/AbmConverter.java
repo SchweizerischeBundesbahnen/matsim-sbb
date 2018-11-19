@@ -143,11 +143,11 @@ public class AbmConverter {
                 final String dAct = map.get("dest_act");
                 final String mode = map.get("mode");
 
-                final int xorig = (int) Double.parseDouble(map.get("Xorig_"));
-                final int yorig = (int) Double.parseDouble(map.get("Yorig_"));
+                final int xorig = (int) Double.parseDouble(map.get("orig_X"));
+                final int yorig = (int) Double.parseDouble(map.get("orig_Y"));
 
-                final int xdest = (int) Double.parseDouble(map.get("Xdest_"));
-                final int ydest = (int) Double.parseDouble(map.get("Ydest_"));
+                final int xdest = (int) Double.parseDouble(map.get("dest_X"));
+                final int ydest = (int) Double.parseDouble(map.get("dest_Y"));
 
                 final int deptime = (int) (Double.parseDouble(map.get("dep_time")) * 3600);
                 final int arrtime = (int) (Double.parseDouble(map.get("arr_time")) * 3600);

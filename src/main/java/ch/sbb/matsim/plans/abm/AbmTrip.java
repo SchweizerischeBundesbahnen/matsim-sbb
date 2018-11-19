@@ -19,14 +19,6 @@ public class AbmTrip {
     private final Coord coordDest;
 
 
-    public Coord getCoordOrig() {
-        return coordOrig;
-    }
-
-    public Coord getCoordDest() {
-        return coordDest;
-    }
-
     public AbmTrip(Id<ActivityFacility> origFacilityId, Id<ActivityFacility> destFacilityId, String oAct, String dAct, String mode, int deptime, int arrtime, Coord coordOrig, Coord coordDest) {
         this.oAct = oAct;
         this.dAct = dAct;
@@ -40,6 +32,15 @@ public class AbmTrip {
         this.coordDest = coordDest;
         this.coordOrig = coordOrig;
 
+    }
+
+
+    public Coord getCoordOrig() {
+        return coordOrig;
+    }
+
+    public Coord getCoordDest() {
+        return coordDest;
     }
 
     public Id<ActivityFacility> getOrigFacilityId() {
