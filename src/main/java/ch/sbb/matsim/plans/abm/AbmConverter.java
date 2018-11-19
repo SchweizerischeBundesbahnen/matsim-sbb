@@ -100,8 +100,13 @@ public class AbmConverter {
                 }
 
                 PersonUtils.setSex(person, person.getAttributes().getAttribute("sex").toString());
-                PersonUtils.setCarAvail(person, person.getAttributes().getAttribute("car_avail").toString());
+                String carAvailValue = "never";
+                if(person.getAttributes().getAttribute("car_avail").equals(true)){
+                    carAvailValue = "always";
+                }
+                PersonUtils.setCarAvail(person,carAvailValue);
                 PersonUtils.setLicence(person, person.getAttributes().getAttribute("car_avail").toString());
+
                 PersonUtils.setAge(person, Integer.parseInt(person.getAttributes().getAttribute("age").toString()));
                 PersonUtils.setEmployed(person, Integer.parseInt(person.getAttributes().getAttribute("level_of_employment").toString()) > 0);
 
