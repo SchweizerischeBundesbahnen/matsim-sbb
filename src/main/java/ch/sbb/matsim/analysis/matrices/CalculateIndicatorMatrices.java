@@ -10,6 +10,10 @@ import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
@@ -31,9 +35,8 @@ import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.gis.ShapeFileReader;
+import org.matsim.core.utils.misc.Counter;
 import org.matsim.core.utils.misc.Time;
-import org.matsim.facilities.ActivityFacilities;
-import org.matsim.facilities.FacilitiesUtils;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.opengis.feature.simple.SimpleFeature;
@@ -58,6 +61,8 @@ public class CalculateIndicatorMatrices {
     static final String BEELINE_DISTANCE_FILENAME = "beeline_distances.csv.gz";
     static final String ZONE_LOCATIONS_FILENAME = "zone_coordinates.csv";
 
+    private final static GeometryFactory GEOMETRY_FACTORY = new GeometryFactory();
+
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
 
@@ -81,22 +86,6 @@ public class CalculateIndicatorMatrices {
         double[] timesPt = new double[timesPtStr.length];
         for (int i = 0; i < timesPtStr.length; i++)
             timesPt[i] = Time.parseTime(timesPtStr[i]);
-
-
-//        String zonesShapeFilename = "D:\\devsbb\\mrieser\\data\\npvm_2016\\NPVM_OberBez.shp";
-//        String zonesIdAttributeName = "ID";
-//        String networkFilename = "D:\\devsbb\\mrieser\\data\\raptorPerfTest2\\network.xml.gz";
-//        String transitScheduleFilename = "D:\\devsbb\\mrieser\\data\\raptorPerfTest2\\transitSchedule.xml.gz";
-//        String eventsFilename = null;
-//        String outputDirectory = "D:\\devsbb\\mrieser\\data\\indicators";
-//        int numberOfPointsPerZone = 5;
-//        int numberOfThreads = 8;
-//        double[] times = {
-//                Time.parseTime("08:00:00"),
-//                Time.parseTime("08:15:00"),
-//                Time.parseTime("08:30:00"),
-//                Time.parseTime("08:45:00")
-//        };
 
         Config config = ConfigUtils.createConfig();
         Scenario scenario = ScenarioUtils.createScenario(config);
@@ -130,39 +119,88 @@ public class CalculateIndicatorMatrices {
             zonesById.put(zoneId, zone);
         }
 
-        TravelTime tt;
-        if (eventsFilename != null) {
-            log.info("extracting actual travel times from " + eventsFilename);
-            TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), config.travelTimeCalculator());
-            EventsManager events =  EventsUtils.createEventsManager();
-            events.addHandler(ttc);
-            new MatsimEventsReader(events).readFile(eventsFilename);
-            tt = ttc.getLinkTravelTimes();
-        } else {
-            tt = new FreeSpeedTravelTime();
-            log.info("No events specified. Travel Times will be calculated with free speed travel times.");
+        TravelTime tt = null;
+        if (modes.contains(TransportMode.car)) {
+            if (eventsFilename != null) {
+                log.info("extracting actual travel times from " + eventsFilename);
+                TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), config.travelTimeCalculator());
+                EventsManager events = EventsUtils.createEventsManager();
+                events.addHandler(ttc);
+                new MatsimEventsReader(events).readFile(eventsFilename);
+                tt = ttc.getLinkTravelTimes();
+            } else {
+                tt = new FreeSpeedTravelTime();
+                log.info("No events specified. Travel Times will be calculated with free speed travel times.");
+            }
         }
 
         TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
+        // load facilities
+        log.info("loading facilities from " + facilitiesFilename);
+
+        Counter facCounter = new Counter("#");
+        List<WeightedFacility> facilities = new ArrayList<>();
+        new MatsimFacilitiesReader(null, null, new StreamingFacilities(
+                f -> {
+                    facCounter.incCounter();
+                    double weight = 2; // default for households
+                    String fte = (String) f.getAttributes().getAttribute("fte");
+                    if (fte != null) {
+                        weight = Double.parseDouble(fte);
+                    }
+                    WeightedFacility wf = new WeightedFacility(f.getCoord(), weight);
+                    facilities.add(wf);
+                }
+        )).readFile(facilitiesFilename);
+        facCounter.printCounter();
+
+        log.info("assign facilities to zones...");
+        Map<String, List<WeightedFacility>> facilitiesPerZone = new HashMap<>();
+        Counter facCounter2 = new Counter("# ");
+        for (WeightedFacility fac : facilities) {
+            facCounter2.incCounter();
+            String zoneId = findZone(fac.coord, zonesById);
+            if (zoneId != null) {
+                facilitiesPerZone.computeIfAbsent(zoneId, k -> new ArrayList<>()).add(fac);
+            }
+        }
+        facCounter2.printCounter();
+
         // define points per zone
-        log.info("choose coordinates per zone...");
+        log.info("choose coordinates (facilities) per zone...");
 
         Map<String, Coord[]> coordsPerZone = new HashMap<>();
         Random r = new Random(20180404L);
-        for (Map.Entry<String, SimpleFeature> e : zonesById.entrySet()) {
-            String zoneId = e.getKey();
-            SimpleFeature f = e.getValue();
-            if (f.getDefaultGeometry() != null) {
-                Coord[] coords = new Coord[numberOfPointsPerZone];
-                coordsPerZone.put(zoneId, coords);
-                for (int i = 0; i < numberOfPointsPerZone; i++) {
-                    coords[i] = Utils.getRandomCoordinateInFeature(f, r);
-                }
-            }
-        }
 
-        try (CSVWriter writer = new CSVWriter(null, new String[] {"ZONE", "PT_INDEX", "X", "Y"}, new File(outputDir, ZONE_LOCATIONS_FILENAME).getAbsolutePath())) {
+        for (Map.Entry<String, List<WeightedFacility>> e : facilitiesPerZone.entrySet()) {
+            String zoneId = e.getKey();
+            List<WeightedFacility> zoneFacilities = e.getValue();
+            double sumWeight = 0.0;
+            for (WeightedFacility f : zoneFacilities) {
+                sumWeight += f.weight;
+            }
+            Coord[] coords = new Coord[numberOfPointsPerZone];
+            for (int i = 0; i < numberOfPointsPerZone; i++) {
+                double weight = r.nextDouble() * sumWeight;
+                double sum = 0.0;
+                WeightedFacility chosenFac = null;
+                for (WeightedFacility f : zoneFacilities) {
+                    sum += f.weight;
+                    if (weight <= sum) {
+                        chosenFac = f;
+                        break;
+                    }
+                }
+                coords[i] = chosenFac.coord;
+            }
+            coordsPerZone.put(zoneId, coords);
+        }
+        facilities.clear();// free memory
+
+        File coordFile = new File(outputDir, ZONE_LOCATIONS_FILENAME);
+        log.info("write chosen coordinates to file " + coordFile.getAbsolutePath());
+        try (CSVWriter writer = new CSVWriter(null, new String[] {"ZONE", "PT_INDEX", "X", "Y"}, coordFile.getAbsolutePath())) {
             for (Map.Entry<String, Coord[]> e : coordsPerZone.entrySet()) {
                 String zoneId = e.getKey();
                 Coord[] coords = e.getValue();
@@ -172,70 +210,75 @@ public class CalculateIndicatorMatrices {
                     writer.set("PT_INDEX", Integer.toString(i));
                     writer.set("X", Double.toString(coord.getX()));
                     writer.set("Y", Double.toString(coord.getY()));
+                    writer.writeRow();
                 }
             }
         }
 
         // calc MIV matrix
 
-        log.info("extracting car-only network");
-        final Network carNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(TransportMode.car));
+        if (modes.contains(TransportMode.car)) {
+            log.info("extracting car-only network");
+            final Network carNetwork = NetworkUtils.createNetwork();
+            new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(TransportMode.car));
 
-        log.info("calc CAR matrix for " + Time.writeTime(timesCar[0]));
-        NetworkIndicators<String> netIndicators = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, coordsPerZone, timesCar[0], tt, td, numberOfPointsPerZone, numberOfThreads);
+            log.info("calc CAR matrix for " + Time.writeTime(timesCar[0]));
+            NetworkIndicators<String> netIndicators = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, coordsPerZone, timesCar[0], tt, td, numberOfPointsPerZone, numberOfThreads);
 
-        if (tt instanceof FreeSpeedTravelTime) {
-            log.info("Do not calculate CAR matrices for other times as only freespeed is being used");
-        } else {
-            for (int i = 1; i < timesCar.length; i++) {
-                log.info("calc CAR matrices for " + Time.writeTime(timesCar[i]));
-                NetworkIndicators<String> indicators2 = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, coordsPerZone, timesCar[i], tt, td, numberOfPointsPerZone, numberOfThreads);
-                log.info("merge CAR matrices for " + Time.writeTime(timesCar[i]));
-                combineMatrices(netIndicators.travelTimeMatrix, indicators2.travelTimeMatrix);
-                combineMatrices(netIndicators.distanceMatrix, indicators2.distanceMatrix);
+            if (tt instanceof FreeSpeedTravelTime) {
+                log.info("Do not calculate CAR matrices for other times as only freespeed is being used");
+            } else {
+                for (int i = 1; i < timesCar.length; i++) {
+                    log.info("calc CAR matrices for " + Time.writeTime(timesCar[i]));
+                    NetworkIndicators<String> indicators2 = NetworkTravelTimeMatrix.calculateTravelTimeMatrix(carNetwork, zonesById, coordsPerZone, timesCar[i], tt, td, numberOfPointsPerZone, numberOfThreads);
+                    log.info("merge CAR matrices for " + Time.writeTime(timesCar[i]));
+                    combineMatrices(netIndicators.travelTimeMatrix, indicators2.travelTimeMatrix);
+                    combineMatrices(netIndicators.distanceMatrix, indicators2.distanceMatrix);
+                }
+                log.info("re-scale CAR matrices after all data is merged.");
+                netIndicators.travelTimeMatrix.multiply((float) (1.0 / timesCar.length));
+                netIndicators.distanceMatrix.multiply((float) (1.0 / timesCar.length));
             }
-            log.info("re-scale CAR matrices after all data is merged.");
-            netIndicators.travelTimeMatrix.multiply((float) (1.0 / timesCar.length));
-            netIndicators.distanceMatrix.multiply((float) (1.0 / timesCar.length));
+
+            log.info("write CAR matrices to " + outputDirectory);
+            FloatMatrixIO.writeAsCSV(netIndicators.travelTimeMatrix, outputDirectory + "/" + CAR_TRAVELTIMES_FILENAME);
+            FloatMatrixIO.writeAsCSV(netIndicators.distanceMatrix, outputDirectory + "/" + CAR_DISTANCES_FILENAME);
         }
 
-        log.info("write CAR matrices to " + outputDirectory);
-        FloatMatrixIO.writeAsCSV(netIndicators.travelTimeMatrix, outputDirectory + "/" + CAR_TRAVELTIMES_FILENAME);
-        FloatMatrixIO.writeAsCSV(netIndicators.distanceMatrix, outputDirectory + "/" + CAR_DISTANCES_FILENAME);
+        if (modes.contains(TransportMode.pt)) {
+            // calc PT matrices
+            log.info("prepare PT Matrix calculation");
+            RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(config);
+            raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
+            SwissRailRaptorData raptorData = SwissRailRaptorData.create(scenario.getTransitSchedule(), raptorConfig, scenario.getNetwork());
+            RaptorParameters raptorParameters = RaptorUtils.createParameters(config);
 
-        // calc PT matrices
-        log.info("prepare PT Matrix calculation");
-        RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(config);
-        raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
-        SwissRailRaptorData raptorData = SwissRailRaptorData.create(scenario.getTransitSchedule(), raptorConfig, scenario.getNetwork());
-        RaptorParameters raptorParameters = RaptorUtils.createParameters(config);
+            log.info("calc PT matrices for " + Time.writeTime(timesPt[0]));
+            PTTravelTimeMatrix.PtIndicators<String> matrices = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, timesPt[0], raptorParameters, numberOfThreads);
 
-        log.info("calc PT matrices for " + Time.writeTime(timesPt[0]));
-        PTTravelTimeMatrix.PtIndicators<String> matrices = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, timesPt[0], raptorParameters, numberOfThreads);
+            for (int i = 1; i < timesPt.length; i++) {
+                log.info("calc PT matrices for " + Time.writeTime(timesPt[i]));
+                PTTravelTimeMatrix.PtIndicators<String> matrices2 = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, timesPt[i], raptorParameters, numberOfThreads);
 
-        for (int i = 1; i < timesPt.length; i++) {
-            log.info("calc PT matrices for " + Time.writeTime(timesPt[i]));
-            PTTravelTimeMatrix.PtIndicators<String> matrices2 = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, timesPt[i], raptorParameters, numberOfThreads);
+                log.info("merge PT matrices for " + Time.writeTime(timesPt[i]));
+                combineMatrices(matrices.travelTimeMatrix, matrices2.travelTimeMatrix);
+                combineMatrices(matrices.accessTimeMatrix, matrices2.accessTimeMatrix);
+                combineMatrices(matrices.egressTimeMatrix, matrices2.egressTimeMatrix);
+                combineMatrices(matrices.transferCountMatrix, matrices2.transferCountMatrix);
+            }
 
-            log.info("merge PT matrices for " + Time.writeTime(timesPt[i]));
-            combineMatrices(matrices.travelTimeMatrix, matrices2.travelTimeMatrix);
-            combineMatrices(matrices.accessTimeMatrix, matrices2.accessTimeMatrix);
-            combineMatrices(matrices.egressTimeMatrix, matrices2.egressTimeMatrix);
-            combineMatrices(matrices.transferCountMatrix, matrices2.transferCountMatrix);
+            log.info("re-scale PT matrices after all data is merged.");
+            matrices.travelTimeMatrix.multiply((float) (1.0 / timesPt.length));
+            matrices.accessTimeMatrix.multiply((float) (1.0 / timesPt.length));
+            matrices.egressTimeMatrix.multiply((float) (1.0 / timesPt.length));
+            matrices.transferCountMatrix.multiply((float) (1.0 / timesPt.length));
+
+            log.info("write PT matrices to " + outputDirectory);
+            FloatMatrixIO.writeAsCSV(matrices.travelTimeMatrix, outputDirectory + "/" + PT_TRAVELTIMES_FILENAME);
+            FloatMatrixIO.writeAsCSV(matrices.accessTimeMatrix, outputDirectory + "/" + PT_ACCESSTIMES_FILENAME);
+            FloatMatrixIO.writeAsCSV(matrices.egressTimeMatrix, outputDirectory + "/" + PT_EGRESSTIMES_FILENAME);
+            FloatMatrixIO.writeAsCSV(matrices.transferCountMatrix, outputDirectory + "/" + PT_TRANSFERCOUNTS_FILENAME);
         }
-
-        log.info("re-scale PT matrices after all data is merged.");
-        matrices.travelTimeMatrix.multiply((float) (1.0 / timesPt.length));
-        matrices.accessTimeMatrix.multiply((float) (1.0 / timesPt.length));
-        matrices.egressTimeMatrix.multiply((float) (1.0 / timesPt.length));
-        matrices.transferCountMatrix.multiply((float) (1.0 / timesPt.length));
-
-        log.info("write PT matrices to " + outputDirectory);
-        FloatMatrixIO.writeAsCSV(matrices.travelTimeMatrix, outputDirectory + "/" + PT_TRAVELTIMES_FILENAME);
-        FloatMatrixIO.writeAsCSV(matrices.accessTimeMatrix, outputDirectory + "/" + PT_ACCESSTIMES_FILENAME);
-        FloatMatrixIO.writeAsCSV(matrices.egressTimeMatrix, outputDirectory + "/" + PT_EGRESSTIMES_FILENAME);
-        FloatMatrixIO.writeAsCSV(matrices.transferCountMatrix, outputDirectory + "/" + PT_TRANSFERCOUNTS_FILENAME);
 
         // calc BEELINE matrices
         log.info("calc beeline distance matrix");
@@ -243,7 +286,6 @@ public class CalculateIndicatorMatrices {
 
         log.info("write beeline distance matrix to " + outputDirectory);
         FloatMatrixIO.writeAsCSV(beelineMatrix, outputDirectory + "/" + BEELINE_DISTANCE_FILENAME);
-
     }
 
     private static <T> void combineMatrices(FloatMatrix<T> matrix1, FloatMatrix<T> matrix2) {
@@ -255,4 +297,27 @@ public class CalculateIndicatorMatrices {
             }
         }
     }
+
+    private static String findZone(Coord coord, Map<String, SimpleFeature> zones) {
+        Point pt = GEOMETRY_FACTORY.createPoint(new Coordinate(coord.getX(), coord.getY()));
+        for (Map.Entry<String, SimpleFeature> e : zones.entrySet()) {
+            SimpleFeature f = e.getValue();
+            Geometry geom = (Geometry) f.getDefaultGeometry();
+            if (pt.intersects(geom)) {
+                return e.getKey();
+            }
+        }
+        return null;
+    }
+
+    private static class WeightedFacility {
+        Coord coord;
+        double weight;
+
+        public WeightedFacility(Coord coord, double weight) {
+            this.coord = coord;
+            this.weight = weight;
+        }
+    }
+
 }
