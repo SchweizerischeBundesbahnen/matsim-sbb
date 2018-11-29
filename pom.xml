@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.sbb</groupId>
 	<artifactId>matsim-sbb</artifactId>
-	<version>0.10.2</version>
+	<version>0.11.0-SNAPSHOT</version>
 	<name>MATSim SBB Project</name>
 	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P </description>
 
@@ -26,13 +26,13 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.10.0</version>
+			<version>0.11.0-2018w44</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.10.0</version>
+			<version>0.11.0-2018w44</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 			<type>test-jar</type>
@@ -46,9 +46,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
+			<groupId>com.github.simunto</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
-			<version>0.10.0</version>
+			<version>0.11.0-2018w44</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->
@@ -166,12 +166,12 @@
 
 	<distributionManagement>
 		<repository>
-			<id>repo</id>
-			<url>http://repo.sbb.ch/content/repositories/hosted.memop.releases/</url>
+			<id>mvn</id>
+			<url>https://bin.sbb.ch/artifactory/simba.mvn/</url>
 		</repository>
 		<snapshotRepository>
-			<id>repo</id>
-			<url>http://repo.sbb.ch/content/repositories/hosted.memop.snapshots/</url>
+			<id>mvn</id>
+			<url>https://bin.sbb.ch/artifactory/simba.mvn/</url>
 		</snapshotRepository>
 	</distributionManagement>
 

@@ -6,7 +6,7 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
-import org.matsim.core.network.io.NetworkReaderMatsimV2;
+import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.CollectionUtils;
@@ -18,11 +18,11 @@ public class NetworkMerger {
         String outputNetwork = args[2];
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new NetworkReaderMatsimV2(scenario.getNetwork()).readFile(inputNetwork);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(inputNetwork);
 
         Network reducedNetwork = removePtOnlyLinks(scenario.getNetwork());
 
-        new NetworkReaderMatsimV2(reducedNetwork).readFile(transitNetwork);
+        new MatsimNetworkReader(reducedNetwork).readFile(transitNetwork);
         new NetworkWriter(reducedNetwork).write(outputNetwork);
     }
 
