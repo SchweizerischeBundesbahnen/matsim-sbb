@@ -1,8 +1,8 @@
 package ch.sbb.matsim.plans.abm;
 
-import ch.sbb.matsim.config.variables.Activities;
-import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.config.variables.Filenames;
+import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -50,7 +50,7 @@ public class AbmConverter {
             AbmTrip previousTrip = null;
 
             for (final AbmTrip trip : trips) {
-                final Activity activity = PopulationUtils.createAndAddActivity(plan, Activities.abmActs2matsimActs.get(trip.getoAct()));
+                final Activity activity = PopulationUtils.createAndAddActivity(plan, SBBActivities.abmActs2matsimActs.get(trip.getoAct()));
 
                 if (previousTrip != null) {
                     activity.setStartTime(previousTrip.getArrtime());
@@ -68,7 +68,7 @@ public class AbmConverter {
             }
 
             if (previousTrip != null) {
-                final Activity activity = PopulationUtils.createAndAddActivity(plan, Activities.abmActs2matsimActs.get(previousTrip.getDestAct()));
+                final Activity activity = PopulationUtils.createAndAddActivity(plan, SBBActivities.abmActs2matsimActs.get(previousTrip.getDestAct()));
                 activity.setStartTime(previousTrip.getArrtime());
                 activity.setFacilityId(previousTrip.getDestFacilityId());
                 //activity.setLinkId();
@@ -100,11 +100,15 @@ public class AbmConverter {
                 }
 
                 PersonUtils.setSex(person, person.getAttributes().getAttribute("sex").toString());
+
+                // TODO: not sure where this thing is used
                 String carAvailValue = "never";
                 if(person.getAttributes().getAttribute("car_avail").equals(true)){
                     carAvailValue = "always";
                 }
                 PersonUtils.setCarAvail(person,carAvailValue);
+
+                // TODO: verify if car_avail is true/false or yes/no
                 PersonUtils.setLicence(person, person.getAttributes().getAttribute("car_avail").toString());
 
                 PersonUtils.setAge(person, Integer.parseInt(person.getAttributes().getAttribute("age").toString()));

@@ -74,19 +74,6 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                     this.config, this.config.getScoringParameters(subpopulation),
                     scConfig);
 
-            if (transitConfigGroup.isUseTransit()) {
-                // jlie (17.08.2017): this is from org.matsim.core.scoring.functions.SubpopulationCharyparNagelScoringParameters
-                // without this MATSim does not know "pt interaction" and throws an IllegalArgumentException in CharyparNagelActivityScoring
-                // yyyy this should go away somehow. :-)
-                PlanCalcScoreConfigGroup.ActivityParams transitActivityParams = new PlanCalcScoreConfigGroup.ActivityParams(PtConstants.TRANSIT_ACTIVITY_TYPE);
-                transitActivityParams.setTypicalDuration(120.0);
-                transitActivityParams.setOpeningTime(0.);
-                transitActivityParams.setClosingTime(0.);
-                ActivityUtilityParameters.Builder modeParamsBuilder = new ActivityUtilityParameters.Builder(transitActivityParams);
-                modeParamsBuilder.setScoreAtAll(false);
-                builder.setActivityParameters(PtConstants.TRANSIT_ACTIVITY_TYPE, modeParamsBuilder);
-            }
-
             // building the customized scoring parameters for each person depending on his behavior group
             for(String mode: this.config.getModes().keySet()) {
                 final PlanCalcScoreConfigGroup.ModeParams defaultModeParams = this.config.getModes().get(mode);
