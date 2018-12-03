@@ -1,9 +1,8 @@
 package ch.sbb.matsim.plans;
 
 import ch.sbb.matsim.plans.abm.AbmConverter;
-import org.matsim.api.core.v01.Scenario;
+import ch.sbb.matsim.plans.facilities.FacilitiesReader;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.core.config.ConfigUtils;
 
 
 public class PlanGenerator {
@@ -12,14 +11,16 @@ public class PlanGenerator {
 
         final String pathToABM = args[0];
         final String pathToSynPop = args[1];
-        final String pathToMATSimNetwork = args[2];
+        final String pathToFacilties = args[2];
         final String pathToOutputDir = args[3];
 
         final AbmConverter abmConverter = new AbmConverter();
         abmConverter.read(pathToABM, ",");
         Population population = abmConverter.create_population();
         population = abmConverter.addSynpopAttributes(population, pathToSynPop);
-        //new MatsimNetworkReader(scenario.getNetwork()).readFile(pathToMATSimNetwork);
         abmConverter.writeOutputs(pathToOutputDir, population);
+
+        final FacilitiesReader facilitiesReader = new FacilitiesReader(",");
+        facilitiesReader.convert(pathToFacilties, pathToOutputDir);
     }
 }
