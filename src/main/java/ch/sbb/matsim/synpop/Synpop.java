@@ -1,10 +1,9 @@
 package ch.sbb.matsim.synpop;
 
-import ch.sbb.matsim.synpop.converter.AttributesConverter;
 import ch.sbb.matsim.synpop.attributes.SynpopAttributes;
 import ch.sbb.matsim.synpop.blurring.HomeFacilityBlurring;
 import ch.sbb.matsim.synpop.config.SynpopConfigGroup;
-import ch.sbb.matsim.synpop.facilities.ActivityForFacility;
+import ch.sbb.matsim.synpop.converter.AttributesConverter;
 import ch.sbb.matsim.synpop.facilities.ZoneIdAssigner;
 import ch.sbb.matsim.synpop.reader.SynpopCSVReaderImpl;
 import ch.sbb.matsim.synpop.reader.SynpopReader;
@@ -38,8 +37,6 @@ public class Synpop {
 
         final ZoneIdAssigner assigner = new ZoneIdAssigner(blurring.getZoneAggregator());
         assigner.addFacilitiesOfType(facilities, "work");
-        assigner.assignIds();
-        assigner.checkForMissingIds(facilities);
 
         final AttributesConverter attributesConverter = new AttributesConverter(config.getAttributeMappingSettings(), config.getColumnMappingSettings());
         attributesConverter.map(population);

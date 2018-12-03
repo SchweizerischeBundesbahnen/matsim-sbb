@@ -2,7 +2,7 @@ package ch.sbb.matsim.plans;
 
 import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.plans.facilities.FacilitiesReader;
-import org.matsim.api.core.v01.population.Population;
+import org.matsim.facilities.ActivityFacilities;
 
 
 public class PlanGenerator {
@@ -12,15 +12,18 @@ public class PlanGenerator {
         final String pathToABM = args[0];
         final String pathToSynPop = args[1];
         final String pathToFacilties = args[2];
-        final String pathToOutputDir = args[3];
+        final String pathToShapeFile = args[3];
+        final String pathToOutputDir = args[4];
+
+        final FacilitiesReader facilitiesReader = new FacilitiesReader(",");
+        ActivityFacilities facilities = facilitiesReader.convert(pathToFacilties, pathToShapeFile, pathToOutputDir);
 
         final AbmConverter abmConverter = new AbmConverter();
         abmConverter.read(pathToABM, ",");
-        Population population = abmConverter.create_population();
-        population = abmConverter.addSynpopAttributes(population, pathToSynPop);
-        abmConverter.writeOutputs(pathToOutputDir, population);
-
-        final FacilitiesReader facilitiesReader = new FacilitiesReader(",");
-        facilitiesReader.convert(pathToFacilties, pathToOutputDir);
+        abmConverter.create_population();
+        abmConverter.addSynpopAttributes(pathToSynPop);
+        abmConverter.addFacilityAttributes(facilities, "tZone");
+        abmConverter.addFacilityAttributes(facilities, "msRegion");
+        abmConverter.writeOutputs(pathToOutputDir);
     }
 }

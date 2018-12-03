@@ -3,6 +3,8 @@ package ch.sbb.matsim.plans.facilities;
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.synpop.facilities.ZoneIdAssigner;
+import ch.sbb.matsim.synpop.zoneAggregator.ZoneAggregator;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -41,7 +43,6 @@ public class FacilitiesReader {
 
                 final ActivityFacility facility = this.facilities.getFactory().createActivityFacility(id, coord);
 
-
                 OpeningTime openingTime = null;
                 if (!map.get("opening").equals("")) {
                     openingTime = new OpeningTimeImpl(Double.parseDouble(map.get("opening")), Double.parseDouble(map.get("closing")));
@@ -57,11 +58,13 @@ public class FacilitiesReader {
                     }
                 }
 
+                /*
                 for (final String column : map.keySet()) {
                     if (!(column.equals(FACILITY_ID) || !column.equals(X) || !column.equals(Y)) || !SBBActivities.abmActs2matsimActs.values().contains(column)) {
                         facility.getAttributes().putAttribute(column, map.get(column));
                     }
                 }
+                */
 
                 this.facilities.addActivityFacility(facility);
             }
@@ -69,16 +72,27 @@ public class FacilitiesReader {
             log.warn(e);
         }
 
+    }
 
+    private void addSpatialInformation(String shapefile, String shapeAttribute, String facilityAttribute)    {
+        ZoneAggregator zoneAggregator = new ZoneAggregator<>(shapefile, shapeAttribute);
+        for (ActivityFacility activityFacility : this.facilities.getFacilities().values()) {
+            zoneAggregator.add(activityFacility, activityFacility.getCoord());
+        }
+        ZoneIdAssigner assigner = new ZoneIdAssigner(zoneAggregator);
+        assigner.assignIds(facilityAttribute);
     }
 
     private void write(String folder) {
         new FacilitiesWriter(this.facilities).write(new File(folder, Filenames.FACILITIES).toString());
     }
 
-    public void convert(String filename, String folder) {
+    public ActivityFacilities convert(String filename, String shapeFile, String folder) {
         this.read(filename);
+        this.addSpatialInformation(shapeFile, "ID", "tZone");
+        this.addSpatialInformation(shapeFile, "msrid", "msRegion");
         this.write(folder);
+        return this.facilities;
     }
 
 }

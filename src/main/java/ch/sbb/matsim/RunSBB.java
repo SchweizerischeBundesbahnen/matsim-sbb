@@ -9,9 +9,7 @@ import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
-import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
-import ch.sbb.matsim.preparation.PrepareActivitiesInPlans;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
@@ -41,13 +39,13 @@ public class RunSBB {
         final String configFile = args[0];
         log.info(configFile);
         final Config config = buildConfig(configFile);
-        ActivityParamsBuilder.buildActivityParams(config);
+        // ActivityParamsBuilder.buildActivityParams(config);
 
         if(args.length > 1)
             config.controler().setOutputDirectory(args[1]);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
-        PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
+        // PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
 
         Controler controler = new Controler(scenario);
 
