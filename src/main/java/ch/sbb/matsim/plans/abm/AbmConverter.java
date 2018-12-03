@@ -108,7 +108,7 @@ public class AbmConverter {
                 */
 
                 PersonUtils.setSex(person, synpopPerson.getAttributes().getAttribute("sex").toString());
-                
+
                 String carAvailValue = "never";
                 if(synpopPerson.getAttributes().getAttribute("car_avail").equals(true)){
                     carAvailValue = "always";

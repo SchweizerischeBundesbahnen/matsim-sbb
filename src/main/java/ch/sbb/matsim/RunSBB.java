@@ -39,13 +39,11 @@ public class RunSBB {
         final String configFile = args[0];
         log.info(configFile);
         final Config config = buildConfig(configFile);
-        // ActivityParamsBuilder.buildActivityParams(config);
 
         if(args.length > 1)
             config.controler().setOutputDirectory(args[1]);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
-        // PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
 
         Controler controler = new Controler(scenario);
 
