@@ -1,7 +1,7 @@
 package ch.sbb.matsim.plans.facilities;
 
-import ch.sbb.matsim.config.variables.Activities;
 import ch.sbb.matsim.config.variables.Filenames;
+import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.csv.CSVReader;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -47,9 +47,9 @@ public class FacilitiesReader {
                     openingTime = new OpeningTimeImpl(Double.parseDouble(map.get("opening")), Double.parseDouble(map.get("closing")));
                 }
 
-                for (final String activity : Activities.abmActs2matsimActs.keySet()) {
+                for (final String activity : SBBActivities.abmActs2matsimActs.keySet()) {
                     if (map.containsKey(activity) && map.get(activity).equals("True")) {
-                        final ActivityOption option = this.facilities.getFactory().createActivityOption(Activities.abmActs2matsimActs.get(activity));
+                        final ActivityOption option = this.facilities.getFactory().createActivityOption(SBBActivities.abmActs2matsimActs.get(activity));
                         if (openingTime != null) {
                             option.addOpeningTime(openingTime);
                         }
@@ -58,7 +58,7 @@ public class FacilitiesReader {
                 }
 
                 for (final String column : map.keySet()) {
-                    if (!(column.equals(FACILITY_ID) || !column.equals(X) || !column.equals(Y)) || !Activities.abmActs2matsimActs.values().contains(column)) {
+                    if (!(column.equals(FACILITY_ID) || !column.equals(X) || !column.equals(Y)) || !SBBActivities.abmActs2matsimActs.values().contains(column)) {
                         facility.getAttributes().putAttribute(column, map.get(column));
                     }
                 }
