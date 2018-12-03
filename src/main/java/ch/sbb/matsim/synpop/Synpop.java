@@ -37,6 +37,8 @@ public class Synpop {
 
         final ZoneIdAssigner assigner = new ZoneIdAssigner(blurring.getZoneAggregator());
         assigner.addFacilitiesOfType(facilities, "work");
+        assigner.assignIds("tZone");
+        assigner.checkForMissingIds(facilities, "tZone");
 
         final AttributesConverter attributesConverter = new AttributesConverter(config.getAttributeMappingSettings(), config.getColumnMappingSettings());
         attributesConverter.map(population);

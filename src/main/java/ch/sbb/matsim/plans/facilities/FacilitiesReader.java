@@ -89,7 +89,7 @@ public class FacilitiesReader {
 
     public ActivityFacilities convert(String filename, String shapeFile, String folder) {
         this.read(filename);
-        this.addSpatialInformation(shapeFile, "ID", "tZone");
+        //this.addSpatialInformation(shapeFile, "ID", "tZone");
         this.addSpatialInformation(shapeFile, "msrid", "msRegion");
         this.write(folder);
         return this.facilities;

@@ -80,7 +80,7 @@ public class AbmConverter {
         }
     }
 
-    public void addFacilityAttributes(ActivityFacilities facilities, String facilityAttribute) {
+    public void addHomeFacilityAttributes(ActivityFacilities facilities, String facilityAttribute) {
         for (final Person person : population.getPersons().values()) {
             Plan plan = person.getSelectedPlan();
             Activity homeAct = (Activity) plan.getPlanElements().get(0);

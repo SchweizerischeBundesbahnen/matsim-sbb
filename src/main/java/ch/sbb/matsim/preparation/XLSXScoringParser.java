@@ -69,7 +69,6 @@ public class XLSXScoringParser {
         final Config config = RunSBB.buildConfig(configIn);
 
         XLSXScoringParser scoringParser = new XLSXScoringParser();
-
         try {
             FileInputStream inputStream = new FileInputStream(xlsx);
             Workbook workbook = WorkbookFactory.create(inputStream);
@@ -80,6 +79,8 @@ public class XLSXScoringParser {
         } catch (InvalidFormatException e) {
             e.printStackTrace();
         }
+
+        ActivityParamsBuilder.buildActivityParams(config);
 
         new ConfigWriter(config).write(configOut);
     }
