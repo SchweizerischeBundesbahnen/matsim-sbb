@@ -48,5 +48,4 @@ public final class SBBActivities {
 
         stageActivitiesTypes = new StageActivityTypesImpl(stageActivityTypeList);
     }
-
 }

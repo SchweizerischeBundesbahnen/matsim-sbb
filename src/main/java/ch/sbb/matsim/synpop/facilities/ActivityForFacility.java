@@ -1,7 +1,6 @@
 package ch.sbb.matsim.synpop.facilities;
 
 import ch.sbb.matsim.csv.CSVReader;
-import ch.sbb.matsim.synpop.Synpop;
 import ch.sbb.matsim.synpop.reader.Synpop2MATSim;
 import org.apache.log4j.Logger;
 import org.matsim.facilities.ActivityFacilitiesFactory;
