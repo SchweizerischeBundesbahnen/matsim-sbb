@@ -46,15 +46,12 @@ public class Synpop {
         attributesConverter.map(facilities.getFacilitiesForActivityType("home").values(), "households");
         attributesConverter.map(facilities.getFacilitiesForActivityType("work").values(), "businesses");
 
-        //change generic ActivityType to a more specific one
-        new ActivityForFacility(config.getBus2act(), facilities.getFactory()).run(facilities.getFacilitiesForActivityType("work").values());
-
         final File output = new File(config.getOutputFolder(), config.getVersion());
         output.mkdirs();
 
-        new SQLWriter(config.getHost(), config.getPort(), config.getDatabase(), config.getYear(), synpopAttributes).run(population, facilities, config.getVersion());
         new MATSimWriter(output.toString()).run(population, facilities);
         new PopulationCSVWriter(output.toString(), synpopAttributes).run(population, facilities);
+        new SQLWriter(config.getHost(), config.getPort(), config.getDatabase(), config.getYear(), synpopAttributes).run(population, facilities, config.getVersion());
 
     }
 }
