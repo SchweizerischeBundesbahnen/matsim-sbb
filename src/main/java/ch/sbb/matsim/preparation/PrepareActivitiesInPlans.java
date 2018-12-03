@@ -1,16 +1,33 @@
 package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.misc.Time;
 
 import java.util.List;
 
 public class PrepareActivitiesInPlans {
+
+    public static void main(String[] args)  {
+        String pathIn = args[0];
+        String pathOut = args[1];
+
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new PopulationReader(scenario).readFile(pathIn);
+
+        overwriteActivitiesInPlans(scenario.getPopulation());
+
+        new PopulationWriter(scenario.getPopulation()).write(pathOut);
+    }
 
     public static void overwriteActivitiesInPlans(Population population)   {
         for( Person p: population.getPersons().values() )   {
@@ -19,14 +36,15 @@ public class PrepareActivitiesInPlans {
                 double homeTime = 0.0;
                 for(Activity act: activities)   {
                     double endTime = act.getEndTime();
-                    if( endTime == Time.getUndefinedTime() )    {
-                        endTime = 36.0;
+                    if( Time.isUndefinedTime(endTime) )    {
+                        endTime = 36.0 * 3600;
                     }
                     double startTime = act.getStartTime();
-                    if( startTime == Time.getUndefinedTime() )    {
+                    if( Time.isUndefinedTime(startTime) )    {
                         startTime = 0.0;
                     }
                     double duration = endTime - startTime;
+
                     if( act.getType().equals(SBBActivities.home) )  {
                         homeTime += duration;
                     }
@@ -86,9 +104,9 @@ public class PrepareActivitiesInPlans {
                     }
                 }
 
-                homeTime = homeTime - 12.0;
+                homeTime = homeTime - (12.0 * 3600);
                 if( homeTime < 0 )  {
-                    homeTime = 0;
+                    homeTime = 1;
                 }
                 long ii = roundSecondsToMinInterval(homeTime, 15);
                 for(Activity act: activities)   {
@@ -103,6 +121,7 @@ public class PrepareActivitiesInPlans {
     private static long roundSecondsToMinInterval(double seconds, int interval) {
         double minutes = seconds / 60;
         double toRound = minutes / interval;
-        return ( Math.round(toRound) * interval );
+        long rounded = (int) Math.ceil(toRound);
+        return ( rounded * interval );
     }
 }
