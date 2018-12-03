@@ -28,8 +28,6 @@ import java.util.TreeMap;
 public class PopulationMerger {
 
     private Scenario scenario;
-    private Population population;
-    private ObjectAttributes personAttributes;
     private PopulationMergerConfigGroup config;
 
     private final static Logger log = Logger.getLogger(PopulationMerger.class);
@@ -66,19 +64,23 @@ public class PopulationMerger {
 
     public void run() {
         for (final String subpopulation : this.config.getPopulationTypes()) {
+
+
             final PopulationMergerConfigGroup.PopulationTypeParameterSet populationTypeParameterSet = this.config.getSubpopulations(subpopulation);
 
-            final Scenario scenario2 = loadScenario(populationTypeParameterSet.getPlansFile());
+            final String planFile = populationTypeParameterSet.getPlansFile();
+
             log.info(subpopulation);
+            log.info(planFile);
+            final Scenario scenario2 = loadScenario(planFile);
             this.merge(scenario2, subpopulation);
         }
 
         this.write();
-
     }
 
-    private void merge(final Scenario scenario, final String subpopulation) {
-        for (Person person : scenario.getPopulation().getPersons().values()) {
+    private void merge(final Scenario scenario2, final String subpopulation) {
+        for (Person person : scenario2.getPopulation().getPersons().values()) {
             this.scenario.getPopulation().addPerson(person);
             this.scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), Variables.SUBPOPULATION, subpopulation);
         }

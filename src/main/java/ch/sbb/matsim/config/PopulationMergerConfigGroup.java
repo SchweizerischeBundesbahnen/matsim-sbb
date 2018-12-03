@@ -41,21 +41,25 @@ public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
         return this.subpopulations.keySet();
     }
 
+    private void addSubpopulation(PopulationTypeParameterSet set) {
+        this.subpopulations.put(set.getSubpopulation(), set);
+    }
+
     @Override
     public void addParameterSet(ConfigGroup set) {
         if (set instanceof PopulationTypeParameterSet) {
-            PopulationTypeParameterSet set2 = (PopulationTypeParameterSet) set;
-            this.subpopulations.put(set2.getSubpopulation(), set2);
-
+            this.addSubpopulation((PopulationTypeParameterSet) set);
 
         } else {
             throw new IllegalArgumentException("Unsupported parameterset: " + set.getClass().getName());
         }
+        super.addParameterSet(set);
     }
 
     public PopulationTypeParameterSet getSubpopulations(String subpopulation) {
-        return subpopulations.get(subpopulation);
+        return this.subpopulations.get(subpopulation);
     }
+
 
     @StringGetter(PARAM_BASE_PLANS)
     public String getInputPlansFiles() {
@@ -95,10 +99,8 @@ public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
         private static final String PARAM_PLANSFILE = "plansFile";
         private static final String PARAM_SUBPOPULATION = "subpopulation";
 
-        private static String plansFile;
-
-
-        private static String subpopulation;
+        private String plansFile;
+        private String subpopulation;
 
         public PopulationTypeParameterSet() {
             super(TYPE);
@@ -106,23 +108,23 @@ public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
 
 
         @StringGetter(PARAM_PLANSFILE)
-        public static String getPlansFile() {
+        public String getPlansFile() {
             return plansFile;
         }
 
         @StringSetter(PARAM_PLANSFILE)
-        public static void setPlansFile(String plansFile) {
-            PopulationTypeParameterSet.plansFile = plansFile;
+        public void setPlansFile(String plansFile) {
+            this.plansFile = plansFile;
         }
 
         @StringGetter(PARAM_SUBPOPULATION)
-        public static String getSubpopulation() {
-            return subpopulation;
+        public String getSubpopulation() {
+            return this.subpopulation;
         }
 
         @StringSetter(PARAM_SUBPOPULATION)
-        public static void setSubpopulation(String subpopulation) {
-            PopulationTypeParameterSet.subpopulation = subpopulation;
+        public void setSubpopulation(String subpopulation) {
+            this.subpopulation = subpopulation;
         }
 
     }
