@@ -16,6 +16,7 @@ import org.matsim.facilities.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 public class FacilitiesReader {
     public static final String FACILITY_ID = "facility_id";
@@ -33,7 +34,7 @@ public class FacilitiesReader {
 
     }
 
-    private void read(final String filename) {
+    private void read(final String filename, Set<String> facilityAttributesToKeep) {
         try (final CSVReader reader = new CSVReader(filename, this.splitBy)) {
             Map<String, String> map;
             while ((map = reader.readLine()) != null) {
@@ -58,13 +59,11 @@ public class FacilitiesReader {
                     }
                 }
 
-                /*
                 for (final String column : map.keySet()) {
-                    if (!(column.equals(FACILITY_ID) || !column.equals(X) || !column.equals(Y)) || !SBBActivities.abmActs2matsimActs.values().contains(column)) {
+                    if (facilityAttributesToKeep.contains(column)) {
                         facility.getAttributes().putAttribute(column, map.get(column));
                     }
                 }
-                */
 
                 this.facilities.addActivityFacility(facility);
             }
@@ -87,8 +86,8 @@ public class FacilitiesReader {
         new FacilitiesWriter(this.facilities).write(new File(folder, Filenames.FACILITIES).toString());
     }
 
-    public ActivityFacilities convert(String filename, String shapeFile, String folder) {
-        this.read(filename);
+    public ActivityFacilities convert(String filename, String shapeFile, String folder, Set<String> facilityAttributes) {
+        this.read(filename, facilityAttributes);
         this.addSpatialInformation(shapeFile, "msrid", "ms_region");
         this.write(folder);
         return this.facilities;

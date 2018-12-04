@@ -2,7 +2,10 @@ package ch.sbb.matsim.plans;
 
 import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.plans.facilities.FacilitiesReader;
+import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.facilities.ActivityFacilities;
+
+import java.util.Set;
 
 
 public class PlanGenerator {
@@ -16,7 +19,9 @@ public class PlanGenerator {
         final String pathToOutputDir = args[4];
 
         final FacilitiesReader facilitiesReader = new FacilitiesReader(",");
-        ActivityFacilities facilities = facilitiesReader.convert(pathToFacilties, pathToShapeFile, pathToOutputDir);
+        Set<String> facilityAttributesToKeep = CollectionUtils.stringToSet("tZone");
+        ActivityFacilities facilities = facilitiesReader.convert(pathToFacilties, pathToShapeFile, pathToOutputDir,
+                facilityAttributesToKeep);
 
         final AbmConverter abmConverter = new AbmConverter();
         abmConverter.read(pathToABM, ",");
