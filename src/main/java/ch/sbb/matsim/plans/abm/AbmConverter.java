@@ -100,7 +100,6 @@ public class AbmConverter {
             final Id<Person> pId = Id.createPersonId(person.getId().toString().replace("P_", ""));
             final Person synpopPerson = synpopPopulation.getPersons().get(pId);
             if (synpopPerson != null) {
-                // PM: in my opinion, all those attributes are not necessary
                 /*
                 for (final Map.Entry<String, Object> entry : synpopPerson.getAttributes().getAsMap().entrySet()) {
                     person.getAttributes().putAttribute(entry.getKey(), entry.getValue());
