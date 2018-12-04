@@ -5,6 +5,9 @@
 package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.config.PopulationMergerConfigGroup;
+import ch.sbb.matsim.config.variables.Filenames;
+import ch.sbb.matsim.config.variables.Variables;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
@@ -18,91 +21,75 @@ import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
+import java.io.File;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class PopulationMerger {
 
     private Scenario scenario;
-    private Population population;
-    private ObjectAttributes personAttributes;
+    private PopulationMergerConfigGroup config;
+
+    private final static Logger log = Logger.getLogger(PopulationMerger.class);
 
     public static void main(final String[] args) {
         Config config = ConfigUtils.loadConfig(args[0], new PopulationMergerConfigGroup());
         PopulationMergerConfigGroup mergerConfig = ConfigUtils.addOrGetModule(config, PopulationMergerConfigGroup.class);
 
-        PopulationMerger merger = new PopulationMerger(config);
+        PopulationMerger merger = new PopulationMerger(mergerConfig);
+        merger.run();
 
-        Map<String, String> attributes = new TreeMap<>();
-        attributes.put(mergerConfig.getMergedPersonAttributeKey(), mergerConfig.getMergedPersonAttributeValue());
-        attributes.put("season_ticket", "none");
-
-        merger.mergeInputPlanFiles(mergerConfig);
-        merger.putMergedPersonAttributes(attributes);
-        merger.putPersonAttributes();
-        merger.writeOutputFiles(mergerConfig);
     }
 
-    public PopulationMerger(Config config) {
-        this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+    public PopulationMerger(PopulationMergerConfigGroup config) {
+        this.config = config;
 
-        this.population = this.scenario.getPopulation();
-        this.personAttributes = this.scenario.getPopulation().getPersonAttributes();
-
-        if(config.plans().getInputFile() != null)
-            new PopulationReader(this.scenario).readFile(config.plans().getInputFile());
-        if(config.plans().getInputPersonAttributeFile() != null)
-            new ObjectAttributesXmlReader(this.personAttributes).readFile(config.plans().getInputPersonAttributeFile());
+        this.scenario = this.loadScenario(this.config.getInputPlansFiles(), this.config.getInputAttributesFiles());
     }
 
-    protected void mergeInputPlanFiles(PopulationMergerConfigGroup mergerConfig) {
-        String inputPlanFile;
-        while ((inputPlanFile = mergerConfig.shiftInputPlansFiles()) != null) {
-            new PopulationReader(this.scenario).readFile(inputPlanFile);
+
+    private Scenario loadScenario(String plansFile, String attributesFile) {
+        final Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new PopulationReader(scenario2).readFile(plansFile);
+        new ObjectAttributesXmlReader(scenario2.getPopulation().getPersonAttributes()).readFile(attributesFile);
+        return scenario2;
+    }
+
+    private Scenario loadScenario(final String plansFile) {
+        final Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new PopulationReader(scenario2).readFile(plansFile);
+        return scenario2;
+    }
+
+
+    public void run() {
+        for (final String subpopulation : this.config.getPopulationTypes()) {
+
+
+            final PopulationMergerConfigGroup.PopulationTypeParameterSet populationTypeParameterSet = this.config.getSubpopulations(subpopulation);
+
+            final String planFile = populationTypeParameterSet.getPlansFile();
+
+            log.info(subpopulation);
+            log.info(planFile);
+            final Scenario scenario2 = loadScenario(planFile);
+            this.merge(scenario2, subpopulation);
+        }
+
+        this.write();
+    }
+
+    private void merge(final Scenario scenario2, final String subpopulation) {
+        for (Person person : scenario2.getPopulation().getPersons().values()) {
+            this.scenario.getPopulation().addPerson(person);
+            this.scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), Variables.SUBPOPULATION, subpopulation);
         }
     }
 
-    protected void putMergedPersonAttributes(Map<String, String> attributes) {
-        for (final Person person : this.population.getPersons().values()) {
-            for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
 
-                if (this.personAttributes.getAttribute(person.getId().toString(), key) == null) {
-                    this.personAttributes.putAttribute(person.getId().toString(), key, value);
-                }
-            }
-        }
-    }
-
-    protected void putPersonAttributes() {
-        for (final Person person : this.population.getPersons().values()) {
-            Object carAvail = this.personAttributes.getAttribute(person.getId().toString(), "availability: car");
-
-            if (carAvail != null && (!carAvail.toString().equals("never"))) {
-                PersonUtils.setCarAvail(person, "always");
-                PersonUtils.setLicence(person, "yes");
-            } else{
-                PersonUtils.setCarAvail(person, "never");
-                PersonUtils.setLicence(person, "no");
-            }
-
-            Object age = this.personAttributes.getAttribute(person.getId().toString(), "age");
-
-            if ((age != null) && (!age.toString().isEmpty())) {
-                PersonUtils.setAge(person, Integer.parseInt(age.toString()));
-            }
-
-            Object gender = this.personAttributes.getAttribute(person.getId().toString(), "gender");
-
-            if (gender != null && (!gender.toString().isEmpty())){
-                PersonUtils.setSex(person, gender.toString());
-            }
-        }
-    }
-
-    protected void writeOutputFiles(PopulationMergerConfigGroup mergerConfig) {
-        new PopulationWriter(this.population).write(mergerConfig.getOutputPlansFile());
-        new ObjectAttributesXmlWriter(this.personAttributes).writeFile(mergerConfig.getOutputPersonAttributesFile());
+    protected void write() {
+        final String outputFolder = this.config.getOutputFolder();
+        new PopulationWriter(this.scenario.getPopulation()).write(new File(outputFolder, Filenames.PLANS).toString());
+        new ObjectAttributesXmlWriter(this.scenario.getPopulation().getPersonAttributes()).writeFile(new File(outputFolder, Filenames.PERSON_ATTRIBUTES).toString());
     }
 }
