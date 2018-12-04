@@ -1,5 +1,6 @@
 package ch.sbb.matsim.synpop;
 
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.synpop.attributes.SynpopAttributes;
 import ch.sbb.matsim.synpop.blurring.HomeFacilityBlurring;
 import ch.sbb.matsim.synpop.config.SynpopConfigGroup;
@@ -37,8 +38,8 @@ public class Synpop {
 
         final ZoneIdAssigner assigner = new ZoneIdAssigner(blurring.getZoneAggregator());
         assigner.addFacilitiesOfType(facilities, "work");
-        assigner.assignIds("tZone");
-        assigner.checkForMissingIds(facilities, "tZone");
+        assigner.assignIds(Variables.T_ZONE);
+        assigner.checkForMissingIds(facilities, Variables.T_ZONE);
 
         final AttributesConverter attributesConverter = new AttributesConverter(config.getAttributeMappingSettings(), config.getColumnMappingSettings());
         attributesConverter.map(population);

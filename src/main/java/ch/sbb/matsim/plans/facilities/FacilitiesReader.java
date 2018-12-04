@@ -2,6 +2,7 @@ package ch.sbb.matsim.plans.facilities;
 
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.synpop.facilities.ZoneIdAssigner;
 import ch.sbb.matsim.synpop.zoneAggregator.ZoneAggregator;
@@ -88,7 +89,7 @@ public class FacilitiesReader {
 
     public ActivityFacilities convert(String filename, String shapeFile, String folder, Set<String> facilityAttributes) {
         this.read(filename, facilityAttributes);
-        this.addSpatialInformation(shapeFile, "msrid", "ms_region");
+        this.addSpatialInformation(shapeFile, "msrid", Variables.MS_REGION);
         this.write(folder);
         return this.facilities;
     }
