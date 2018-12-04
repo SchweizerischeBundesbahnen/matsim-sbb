@@ -17,11 +17,12 @@ public class PlanGenerator {
         final String pathToSynPop = args[1];
         final String pathToFacilties = args[2];
         final String pathToShapeFile = args[3];
-        final String pathToOutputDir = args[4];
+        final String pathTopPlanOutputDir = args[4];
+        final String pathToFacilityOutputDir = args[5];
 
         final FacilitiesReader facilitiesReader = new FacilitiesReader(",");
         Set<String> facilityAttributesToKeep = CollectionUtils.stringToSet(Variables.T_ZONE);
-        ActivityFacilities facilities = facilitiesReader.convert(pathToFacilties, pathToShapeFile, pathToOutputDir,
+        ActivityFacilities facilities = facilitiesReader.convert(pathToFacilties, pathToShapeFile, pathToFacilityOutputDir,
                 facilityAttributesToKeep);
 
         final AbmConverter abmConverter = new AbmConverter();
@@ -30,6 +31,6 @@ public class PlanGenerator {
         abmConverter.addSynpopAttributes(pathToSynPop);
         abmConverter.addHomeFacilityAttributes(facilities, Variables.T_ZONE);
         abmConverter.addHomeFacilityAttributes(facilities, Variables.MS_REGION);
-        abmConverter.writeOutputs(pathToOutputDir);
+        abmConverter.writeOutputs(pathTopPlanOutputDir);
     }
 }
