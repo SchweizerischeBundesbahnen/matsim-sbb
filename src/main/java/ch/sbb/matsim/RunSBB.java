@@ -69,12 +69,6 @@ public class RunSBB {
                 addTravelTimeBinding("ride").to(networkTravelTime());
                 addTravelDisutilityFactoryBinding("ride").to(carTravelDisutilityFactoryKey());
 
-                addTravelTimeBinding("privateSFF").to(networkTravelTime());
-                addTravelDisutilityFactoryBinding("privateSFF").to(carTravelDisutilityFactoryKey());
-
-                addTravelTimeBinding("taxiSFF").to(networkTravelTime());
-                addTravelDisutilityFactoryBinding("taxiSFF").to(carTravelDisutilityFactoryKey());
-
                 install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
             }

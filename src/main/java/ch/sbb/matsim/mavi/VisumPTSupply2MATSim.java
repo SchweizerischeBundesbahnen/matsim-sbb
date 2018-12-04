@@ -476,7 +476,7 @@ public class VisumPTSupply2MATSim {
                         double depTime = Dispatch.call(item__, "AttValue", "Dep").getDouble();
                         TransitRouteStop rst;
                         if(isFirstRouteStop) {
-                            rst = this.scheduleBuilder.createTransitRouteStop(stop, Time.UNDEFINED_TIME, depTime - delta);
+                            rst = this.scheduleBuilder.createTransitRouteStop(stop, Time.getUndefinedTime(), depTime - delta);
                             isFirstRouteStop = false;
                         }
                         else {

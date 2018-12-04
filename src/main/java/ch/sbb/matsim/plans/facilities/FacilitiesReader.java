@@ -1,8 +1,11 @@
 package ch.sbb.matsim.plans.facilities;
 
-import ch.sbb.matsim.config.variables.Activities;
 import ch.sbb.matsim.config.variables.Filenames;
+import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.synpop.facilities.ZoneIdAssigner;
+import ch.sbb.matsim.synpop.zoneAggregator.ZoneAggregator;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -14,6 +17,7 @@ import org.matsim.facilities.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 public class FacilitiesReader {
     public static final String FACILITY_ID = "facility_id";
@@ -31,7 +35,7 @@ public class FacilitiesReader {
 
     }
 
-    private void read(final String filename) {
+    private void read(final String filename, Set<String> facilityAttributesToKeep) {
         try (final CSVReader reader = new CSVReader(filename, this.splitBy)) {
             Map<String, String> map;
             while ((map = reader.readLine()) != null) {
@@ -41,15 +45,14 @@ public class FacilitiesReader {
 
                 final ActivityFacility facility = this.facilities.getFactory().createActivityFacility(id, coord);
 
-
                 OpeningTime openingTime = null;
                 if (!map.get("opening").equals("")) {
                     openingTime = new OpeningTimeImpl(Double.parseDouble(map.get("opening")), Double.parseDouble(map.get("closing")));
                 }
 
-                for (final String activity : Activities.abmActs2matsimActs.keySet()) {
+                for (final String activity : SBBActivities.abmActs2matsimActs.keySet()) {
                     if (map.containsKey(activity) && map.get(activity).equals("True")) {
-                        final ActivityOption option = this.facilities.getFactory().createActivityOption(Activities.abmActs2matsimActs.get(activity));
+                        final ActivityOption option = this.facilities.getFactory().createActivityOption(SBBActivities.abmActs2matsimActs.get(activity));
                         if (openingTime != null) {
                             option.addOpeningTime(openingTime);
                         }
@@ -58,7 +61,7 @@ public class FacilitiesReader {
                 }
 
                 for (final String column : map.keySet()) {
-                    if (!(column.equals(FACILITY_ID) || !column.equals(X) || !column.equals(Y)) || !Activities.abmActs2matsimActs.values().contains(column)) {
+                    if (facilityAttributesToKeep.contains(column)) {
                         facility.getAttributes().putAttribute(column, map.get(column));
                     }
                 }
@@ -69,16 +72,26 @@ public class FacilitiesReader {
             log.warn(e);
         }
 
+    }
 
+    private void addSpatialInformation(String shapefile, String shapeAttribute, String facilityAttribute)    {
+        ZoneAggregator zoneAggregator = new ZoneAggregator<>(shapefile, shapeAttribute);
+        for (ActivityFacility activityFacility : this.facilities.getFacilities().values()) {
+            zoneAggregator.add(activityFacility, activityFacility.getCoord());
+        }
+        ZoneIdAssigner assigner = new ZoneIdAssigner(zoneAggregator);
+        assigner.assignIds(facilityAttribute);
     }
 
     private void write(String folder) {
         new FacilitiesWriter(this.facilities).write(new File(folder, Filenames.FACILITIES).toString());
     }
 
-    public void convert(String filename, String folder) {
-        this.read(filename);
+    public ActivityFacilities convert(String filename, String shapeFile, String folder, Set<String> facilityAttributes) {
+        this.read(filename, facilityAttributes);
+        this.addSpatialInformation(shapeFile, "msrid", Variables.MS_REGION);
         this.write(folder);
+        return this.facilities;
     }
 
 }

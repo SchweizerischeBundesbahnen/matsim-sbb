@@ -44,7 +44,7 @@ public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingMod
             final LeastCostPathCalculator routeAlgo,
             PlansCalcRouteConfigGroup calcRouteConfig, LocateAct actLocator) {
 
-        log.info("Using SBB Routing for mode: " + mode);
+        //log.info("Using SBB Routing for mode: " + mode);
 
         this.accessEgress = new AccessEgressRouting(actLocator, populationFactory, mode, network);
         this.network = network;
