@@ -4,6 +4,7 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.utils.SBBPersonUtils;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -82,9 +83,7 @@ public class AbmConverter {
 
     public void addHomeFacilityAttributes(ActivityFacilities facilities, String facilityAttribute) {
         for (final Person person : population.getPersons().values()) {
-            Plan plan = person.getSelectedPlan();
-            Activity homeAct = (Activity) plan.getPlanElements().get(0);
-            ActivityFacility facility = facilities.getFacilities().get(homeAct.getFacilityId());
+            ActivityFacility facility = SBBPersonUtils.getHomeFacility(person, facilities);
             person.getAttributes().putAttribute(facilityAttribute, facility.getAttributes().getAttribute(facilityAttribute));
         }
     }
