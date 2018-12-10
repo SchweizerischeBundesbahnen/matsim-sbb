@@ -20,13 +20,13 @@ public class PlanGenerator {
         final String pathTopPlanOutputDir = args[4];
         final String pathToFacilityOutputDir = args[5];
 
-        final FacilitiesReader facilitiesReader = new FacilitiesReader(",");
+        final FacilitiesReader facilitiesReader = new FacilitiesReader(";");
         Set<String> facilityAttributesToKeep = CollectionUtils.stringToSet(Variables.T_ZONE);
         ActivityFacilities facilities = facilitiesReader.convert(pathToFacilties, pathToShapeFile, pathToFacilityOutputDir,
                 facilityAttributesToKeep);
 
         final AbmConverter abmConverter = new AbmConverter();
-        abmConverter.read(pathToABM, ",");
+        abmConverter.read(pathToABM, ";");
         abmConverter.create_population();
         abmConverter.addSynpopAttributes(pathToSynPop);
         abmConverter.addHomeFacilityAttributes(facilities, Variables.T_ZONE);
