@@ -1,9 +1,10 @@
 package ch.sbb.matsim.plans.abm;
 
-import ch.sbb.matsim.config.variables.Activities;
-import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.config.variables.Filenames;
+import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.utils.SBBPersonUtils;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -14,6 +15,7 @@ import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
@@ -26,9 +28,11 @@ public class AbmConverter {
 
     private static final Logger log = Logger.getLogger(AbmConverter.class);
     private final Map<Id<Person>, List<AbmTrip>> planTable;
+    private final Population population;
 
     public AbmConverter() {
         this.planTable = new HashMap<>();
+        this.population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
     }
 
     private List<AbmTrip> addPlanIfNotExists(final Id<Person> pid) {
@@ -37,8 +41,7 @@ public class AbmConverter {
     }
 
 
-    public Population create_population() {
-        final Population population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
+    public void create_population() {
         for (final Map.Entry<Id<Person>, List<AbmTrip>> entry : this.planTable.entrySet()) {
             final Id<Person> id = entry.getKey();
             final Person person = PopulationUtils.getFactory().createPerson(id);
@@ -50,15 +53,13 @@ public class AbmConverter {
             AbmTrip previousTrip = null;
 
             for (final AbmTrip trip : trips) {
-                final Activity activity = PopulationUtils.createAndAddActivity(plan, Activities.abmActs2matsimActs.get(trip.getoAct()));
+                final Activity activity = PopulationUtils.createAndAddActivity(plan, SBBActivities.abmActs2matsimActs.get(trip.getoAct()));
 
                 if (previousTrip != null) {
                     activity.setStartTime(previousTrip.getArrtime());
                 }
                 activity.setEndTime(trip.getDepTime());
                 activity.setFacilityId(trip.getOrigFacilityId());
-                //activity.setLinkId();
-                //activity.setMaximumDuration();
                 activity.setCoord(trip.getCoordOrig());
 
                 final Leg leg = PopulationUtils.createLeg(trip.getMode());
@@ -68,11 +69,9 @@ public class AbmConverter {
             }
 
             if (previousTrip != null) {
-                final Activity activity = PopulationUtils.createAndAddActivity(plan, Activities.abmActs2matsimActs.get(previousTrip.getDestAct()));
+                final Activity activity = PopulationUtils.createAndAddActivity(plan, SBBActivities.abmActs2matsimActs.get(previousTrip.getDestAct()));
                 activity.setStartTime(previousTrip.getArrtime());
                 activity.setFacilityId(previousTrip.getDestFacilityId());
-                //activity.setLinkId();
-                //activity.setMaximumDuration();
                 activity.setCoord(previousTrip.getCoordDest());
 
             }
@@ -80,11 +79,16 @@ public class AbmConverter {
             person.setSelectedPlan(plan);
             population.addPerson(person);
         }
-        return population;
-
     }
 
-    public Population addSynpopAttributes(final Population population, final String synpopFilename) {
+    public void addHomeFacilityAttributes(ActivityFacilities facilities, String facilityAttribute) {
+        for (final Person person : population.getPersons().values()) {
+            ActivityFacility facility = SBBPersonUtils.getHomeFacility(person, facilities);
+            person.getAttributes().putAttribute(facilityAttribute, facility.getAttributes().getAttribute(facilityAttribute));
+        }
+    }
+
+    public void addSynpopAttributes(final String synpopFilename) {
         final Scenario synpopScenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(synpopScenario).readFile(synpopFilename);
         final Population synpopPopulation = synpopScenario.getPopulation();
@@ -95,30 +99,33 @@ public class AbmConverter {
             final Id<Person> pId = Id.createPersonId(person.getId().toString().replace("P_", ""));
             final Person synpopPerson = synpopPopulation.getPersons().get(pId);
             if (synpopPerson != null) {
+                /*
                 for (final Map.Entry<String, Object> entry : synpopPerson.getAttributes().getAsMap().entrySet()) {
                     person.getAttributes().putAttribute(entry.getKey(), entry.getValue());
                 }
+                */
 
-                PersonUtils.setSex(person, person.getAttributes().getAttribute("sex").toString());
+                PersonUtils.setSex(person, synpopPerson.getAttributes().getAttribute("sex").toString());
+
                 String carAvailValue = "never";
-                if(person.getAttributes().getAttribute("car_avail").equals(true)){
+                if(synpopPerson.getAttributes().getAttribute("car_avail").equals(true)){
                     carAvailValue = "always";
                 }
                 PersonUtils.setCarAvail(person,carAvailValue);
-                PersonUtils.setLicence(person, person.getAttributes().getAttribute("car_avail").toString());
 
-                PersonUtils.setAge(person, Integer.parseInt(person.getAttributes().getAttribute("age").toString()));
-                PersonUtils.setEmployed(person, Integer.parseInt(person.getAttributes().getAttribute("level_of_employment").toString()) > 0);
+                PersonUtils.setLicence(person, synpopPerson.getAttributes().getAttribute("car_avail").toString());
+
+                PersonUtils.setAge(person, Integer.parseInt(synpopPerson.getAttributes().getAttribute("age").toString()));
+                PersonUtils.setEmployed(person, Integer.parseInt(synpopPerson.getAttributes().getAttribute("level_of_employment").toString()) > 0);
 
                 person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, "none");
-                if ((boolean) person.getAttributes().getAttribute(Variables.GA)) {
+                if ((boolean) synpopPerson.getAttributes().getAttribute(Variables.GA)) {
                     person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, Variables.GA);
-                } else if ((boolean) person.getAttributes().getAttribute(Variables.VA)) {
+                } else if ((boolean) synpopPerson.getAttributes().getAttribute(Variables.VA)) {
                     person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, Variables.VA);
-                } else if ((boolean) person.getAttributes().getAttribute(Variables.HTA)) {
+                } else if ((boolean) synpopPerson.getAttributes().getAttribute(Variables.HTA)) {
                     person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, Variables.HTA);
                 }
-
 
                 person.getAttributes().putAttribute(Variables.SUBPOPULATION, Variables.REGULAR);
                 attributes.putAttribute(person.getId().toString(), Variables.SUBPOPULATION, Variables.REGULAR);
@@ -126,8 +133,6 @@ public class AbmConverter {
                 log.info("Could not find attributes for person " + person);
             }
         }
-
-        return population;
     }
 
     public void read(final String pathAbmOutput, final String splitBy) {
@@ -162,8 +167,7 @@ public class AbmConverter {
         }
     }
 
-
-    public void writeOutputs(final String folder, final Population population) {
+    public void writeOutputs(final String folder) {
         final File outputPath = new File(folder);
         if (!outputPath.exists()) {
             outputPath.mkdirs();

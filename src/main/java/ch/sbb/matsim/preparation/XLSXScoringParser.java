@@ -4,16 +4,17 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import org.apache.log4j.Logger;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.*;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,6 +60,30 @@ public class XLSXScoringParser {
     static final String BEHAVIOR_GROUP_LABEL = "BehaviorGroup";
 
     private final static Logger log = Logger.getLogger(XLSXScoringParser.class);
+
+    public static void main(final String[] args) {
+        final String configIn = args[0];
+        final String configOut = args[1];
+        final String xlsx = args[2];
+
+        final Config config = RunSBB.buildConfig(configIn);
+
+        XLSXScoringParser scoringParser = new XLSXScoringParser();
+        try {
+            FileInputStream inputStream = new FileInputStream(xlsx);
+            Workbook workbook = WorkbookFactory.create(inputStream);
+
+            scoringParser.parseXLSXWorkbook(workbook, config);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InvalidFormatException e) {
+            e.printStackTrace();
+        }
+
+        ActivityParamsBuilder.buildActivityParams(config);
+
+        new ConfigWriter(config).write(configOut);
+    }
 
     /**
      * parseXLSXWorkbook

@@ -25,21 +25,21 @@ public class ZoneIdAssigner {
         }
     }
 
-    public void assignIds() {
-        log.info("adding tZone attribute to facilities");
+    public void assignIds(String attributeName) {
+        log.info("adding " + attributeName + " attribute to facilities");
         for (Zone<ActivityFacility> zone : zoneAggregator.getZones()) {
             ArrayList<ActivityFacility> facilites = zone.getData();
             for (ActivityFacility activityFacility : facilites) {
-                activityFacility.getAttributes().putAttribute("tZone", zone.getId());
+                activityFacility.getAttributes().putAttribute(attributeName, zone.getId());
             }
         }
     }
 
-    public void checkForMissingIds(ActivityFacilities facilities)    {
+    public void checkForMissingIds(ActivityFacilities facilities, String attributeName)    {
         int counter = 0;
         for (ActivityFacility activityFacility : facilities.getFacilities().values()) {
-            if(activityFacility.getAttributes().getAttribute("tZone") == null)  {
-                activityFacility.getAttributes().putAttribute("tZone", -1);
+            if(activityFacility.getAttributes().getAttribute(attributeName) == null)  {
+                activityFacility.getAttributes().putAttribute(attributeName, -1);
                 counter++;
             }
         }
