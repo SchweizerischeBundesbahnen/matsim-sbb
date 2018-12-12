@@ -57,6 +57,10 @@ public class CalculateIndicatorMatrices {
     static final String PT_TRAVELTIMES_FILENAME = "pt_traveltimes.csv.gz";
     static final String PT_ACCESSTIMES_FILENAME = "pt_accesstimes.csv.gz";
     static final String PT_EGRESSTIMES_FILENAME = "pt_egresstimes.csv.gz";
+    static final String PT_FREQUENCIES_FILENAME = "pt_frequencies.csv.gz";
+    static final String PT_ADAPTIONTIMES_FILENAME = "pt_adaptiontimes.csv.gz";
+    static final String PT_TRAINSHARE_BYDISTANCE_FILENAME = "pt_trainshare_bydistance.csv.gz";
+    static final String PT_TRAINSHARE_BYTIME_FILENAME = "pt_trainshare_bytime.csv.gz";
     static final String PT_TRANSFERCOUNTS_FILENAME = "pt_transfercounts.csv.gz";
     static final String BEELINE_DISTANCE_FILENAME = "beeline_distances.csv.gz";
     static final String ZONE_LOCATIONS_FILENAME = "zone_coordinates.csv";
@@ -245,39 +249,27 @@ public class CalculateIndicatorMatrices {
             FloatMatrixIO.writeAsCSV(netIndicators.distanceMatrix, outputDirectory + "/" + CAR_DISTANCES_FILENAME);
         }
 
+        // calc PT matrices
+
         if (modes.contains(TransportMode.pt)) {
-            // calc PT matrices
             log.info("prepare PT Matrix calculation");
             RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(config);
             raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
             SwissRailRaptorData raptorData = SwissRailRaptorData.create(scenario.getTransitSchedule(), raptorConfig, scenario.getNetwork());
             RaptorParameters raptorParameters = RaptorUtils.createParameters(config);
 
-            log.info("calc PT matrices for " + Time.writeTime(timesPt[0]));
-            PTTravelTimeMatrix.PtIndicators<String> matrices = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, timesPt[0], raptorParameters, numberOfThreads);
-
-            for (int i = 1; i < timesPt.length; i++) {
-                log.info("calc PT matrices for " + Time.writeTime(timesPt[i]));
-                PTTravelTimeMatrix.PtIndicators<String> matrices2 = PTTravelTimeMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, timesPt[i], raptorParameters, numberOfThreads);
-
-                log.info("merge PT matrices for " + Time.writeTime(timesPt[i]));
-                combineMatrices(matrices.travelTimeMatrix, matrices2.travelTimeMatrix);
-                combineMatrices(matrices.accessTimeMatrix, matrices2.accessTimeMatrix);
-                combineMatrices(matrices.egressTimeMatrix, matrices2.egressTimeMatrix);
-                combineMatrices(matrices.transferCountMatrix, matrices2.transferCountMatrix);
-            }
-
-            log.info("re-scale PT matrices after all data is merged.");
-            matrices.travelTimeMatrix.multiply((float) (1.0 / timesPt.length));
-            matrices.accessTimeMatrix.multiply((float) (1.0 / timesPt.length));
-            matrices.egressTimeMatrix.multiply((float) (1.0 / timesPt.length));
-            matrices.transferCountMatrix.multiply((float) (1.0 / timesPt.length));
+            log.info("calc PT matrices for " + Time.writeTime(timesPt[0]) + " - " + Time.writeTime(timesPt[1]));
+            PTFrequencyMatrix.PtIndicators<String> matrices = PTFrequencyMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, timesPt[0], timesPt[1], 60, raptorParameters, numberOfThreads);
 
             log.info("write PT matrices to " + outputDirectory);
+            FloatMatrixIO.writeAsCSV(matrices.adaptionTimeMatrix, outputDirectory + "/" + PT_ADAPTIONTIMES_FILENAME);
+            FloatMatrixIO.writeAsCSV(matrices.frequencyMatrix, outputDirectory + "/" + PT_FREQUENCIES_FILENAME);
             FloatMatrixIO.writeAsCSV(matrices.travelTimeMatrix, outputDirectory + "/" + PT_TRAVELTIMES_FILENAME);
             FloatMatrixIO.writeAsCSV(matrices.accessTimeMatrix, outputDirectory + "/" + PT_ACCESSTIMES_FILENAME);
             FloatMatrixIO.writeAsCSV(matrices.egressTimeMatrix, outputDirectory + "/" + PT_EGRESSTIMES_FILENAME);
             FloatMatrixIO.writeAsCSV(matrices.transferCountMatrix, outputDirectory + "/" + PT_TRANSFERCOUNTS_FILENAME);
+            FloatMatrixIO.writeAsCSV(matrices.trainTravelTimeShareMatrix, outputDirectory + "/" + PT_TRAINSHARE_BYTIME_FILENAME);
+            FloatMatrixIO.writeAsCSV(matrices.trainDistanceShareMatrix, outputDirectory + "/" + PT_TRAINSHARE_BYDISTANCE_FILENAME);
         }
 
         // calc BEELINE matrices

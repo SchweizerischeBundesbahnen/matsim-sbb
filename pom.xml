@@ -46,9 +46,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.simunto</groupId>
+			<groupId>ch.sbb</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
-			<version>0.11.0-2018w44</version>
+			<version>0.11.0-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->

@@ -74,6 +74,12 @@ public class FloatMatrix<T> {
         return newValue;
     }
 
+    /**
+     * @param from
+     * @param to
+     * @param factor
+     * @return the new value
+     */
     public float multiply(T from, T to, float factor) {
         int index = getIndex(from, to);
         float oldValue = this.data[index];

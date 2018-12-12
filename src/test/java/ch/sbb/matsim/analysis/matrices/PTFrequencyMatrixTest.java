@@ -19,15 +19,15 @@ public class PTFrequencyMatrixTest {
 
         // we'll misuse the transferCount as a connection identifier
         // 15-min headway
-        connections.add(new ODConnection(Time.parseTime("08:05:00"), 600, 60, 150, 0));
-        connections.add(new ODConnection(Time.parseTime("08:20:00"), 600, 60, 150, 5));
-        connections.add(new ODConnection(Time.parseTime("08:35:00"), 600, 60, 150, 3));
-        connections.add(new ODConnection(Time.parseTime("08:50:00"), 600, 60, 150, 1));
-        connections.add(new ODConnection(Time.parseTime("09:05:00"), 600, 60, 150, 4));
+        connections.add(new ODConnection(Time.parseTime("08:05:00"), 600, 60, 150, 0, null));
+        connections.add(new ODConnection(Time.parseTime("08:20:00"), 600, 60, 150, 5, null));
+        connections.add(new ODConnection(Time.parseTime("08:35:00"), 600, 60, 150, 3, null));
+        connections.add(new ODConnection(Time.parseTime("08:50:00"), 600, 60, 150, 1, null));
+        connections.add(new ODConnection(Time.parseTime("09:05:00"), 600, 60, 150, 4, null));
 
         // two special, fast courses
-        connections.add(new ODConnection(Time.parseTime("08:22:00"), 300, 60, 150, 2));
-        connections.add(new ODConnection(Time.parseTime("08:48:00"), 300, 60, 150, 6));
+        connections.add(new ODConnection(Time.parseTime("08:22:00"), 300, 60, 150, 2, null));
+        connections.add(new ODConnection(Time.parseTime("08:48:00"), 300, 60, 150, 6, null));
 
         // randomize the list. instead of randomizing, we sort the connections by transferCount which we misused to specify an order
 
@@ -52,11 +52,11 @@ public class PTFrequencyMatrixTest {
 
         // we'll misuse the transferCount as a connection identifier
         // 15-min headway
-        connections.add(new ODConnection(Time.parseTime("08:05:00"), 600, 60, 150, 0));
-        connections.add(new ODConnection(Time.parseTime("08:20:00"), 600, 60, 150, 0));
-        connections.add(new ODConnection(Time.parseTime("08:35:00"), 600, 60, 150, 0));
-        connections.add(new ODConnection(Time.parseTime("08:50:00"), 600, 60, 150, 0));
-        connections.add(new ODConnection(Time.parseTime("09:05:00"), 600, 60, 150, 0));
+        connections.add(new ODConnection(Time.parseTime("08:05:00"), 600, 60, 150, 0, null));
+        connections.add(new ODConnection(Time.parseTime("08:20:00"), 600, 60, 150, 0, null));
+        connections.add(new ODConnection(Time.parseTime("08:35:00"), 600, 60, 150, 0, null));
+        connections.add(new ODConnection(Time.parseTime("08:50:00"), 600, 60, 150, 0, null));
+        connections.add(new ODConnection(Time.parseTime("09:05:00"), 600, 60, 150, 0, null));
 
         double adaptionTime = PTFrequencyMatrix.RowWorker.calcAverageAdaptionTime(connections, Time.parseTime("08:00:00"), Time.parseTime("09:00:00"));
         // there is a departure every 900 seconds, max adaption time would be 450, average of that would be 225.0.
@@ -65,8 +65,8 @@ public class PTFrequencyMatrixTest {
         // the frequency would be 3600 / 224 / 4 = 4.01785
 
         // two special, fast courses
-        connections.add(new ODConnection(Time.parseTime("08:22:00"), 300, 60, 150, 0));
-        connections.add(new ODConnection(Time.parseTime("08:48:00"), 300, 60, 150, 0));
+        connections.add(new ODConnection(Time.parseTime("08:22:00"), 300, 60, 150, 0, null));
+        connections.add(new ODConnection(Time.parseTime("08:48:00"), 300, 60, 150, 0, null));
 
         connections = PTFrequencyMatrix.RowWorker.sortAndFilterConnections(connections);
         Assert.assertEquals(5, connections.size());
@@ -78,7 +78,7 @@ public class PTFrequencyMatrixTest {
         Assert.assertEquals(228, adaptionTime, 1e-7);
         // the frequency would be 3600 / 228 / 4 = 3.94736
 
-        connections.add(new ODConnection(Time.parseTime("08:15:00"), 300, 60, 150, 0));
+        connections.add(new ODConnection(Time.parseTime("08:15:00"), 300, 60, 150, 0, null));
 
         connections = PTFrequencyMatrix.RowWorker.sortAndFilterConnections(connections);
         Assert.assertEquals(6, connections.size());
