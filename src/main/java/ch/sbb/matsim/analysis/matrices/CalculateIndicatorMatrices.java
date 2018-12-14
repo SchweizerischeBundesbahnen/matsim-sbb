@@ -259,7 +259,7 @@ public class CalculateIndicatorMatrices {
             RaptorParameters raptorParameters = RaptorUtils.createParameters(config);
 
             log.info("calc PT matrices for " + Time.writeTime(timesPt[0]) + " - " + Time.writeTime(timesPt[1]));
-            PTFrequencyMatrix.PtIndicators<String> matrices = PTFrequencyMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, timesPt[0], timesPt[1], 60, raptorParameters, numberOfThreads);
+            PTFrequencyMatrix.PtIndicators<String> matrices = PTFrequencyMatrix.calculateTravelTimeMatrix(raptorData, zonesById, coordsPerZone, timesPt[0], timesPt[1], 120, raptorParameters, numberOfThreads);
 
             log.info("write PT matrices to " + outputDirectory);
             FloatMatrixIO.writeAsCSV(matrices.adaptionTimeMatrix, outputDirectory + "/" + PT_ADAPTIONTIMES_FILENAME);

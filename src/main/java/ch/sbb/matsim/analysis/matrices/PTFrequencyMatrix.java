@@ -182,6 +182,11 @@ public class PTFrequencyMatrix {
             }
 
             List<ODConnection> connections = buildODConnections(trees, egressTimes);
+            if (connections.isEmpty()) {
+                invalidateEntries(fromZoneId, toZoneId);
+                return;
+            }
+
             connections = sortAndFilterConnections(connections);
 
             double avgAdaptionTime = calcAverageAdaptionTime(connections, minDepartureTime, maxDepartureTime);
@@ -240,8 +245,10 @@ public class PTFrequencyMatrix {
                     Id<TransitStopFacility> egressStopId = egressEntry.getKey();
                     Double egressTime = egressEntry.getValue();
                     TravelInfo info = tree.get(egressStopId);
-                    ODConnection connection = new ODConnection(info.ptDepartureTime, info.ptTravelTime, info.accessTime, egressTime, info.transferCount, info);
-                    connections.add(connection);
+                    if (info != null) {
+                        ODConnection connection = new ODConnection(info.ptDepartureTime, info.ptTravelTime, info.accessTime, egressTime, info.transferCount, info);
+                        connections.add(connection);
+                    }
                 }
             }
 
