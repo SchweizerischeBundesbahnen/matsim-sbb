@@ -195,7 +195,7 @@ public class PTFrequencyMatrix {
 
             ODConnection fastestConnection = findFastestConnection(connections);
 
-            float accessTime = (float) fastestConnection.accessTime;
+            float accessTime = accessTimes.get(fastestConnection.travelInfo.departureStop).floatValue();
             float egressTime = (float) fastestConnection.egressTime;
             float transferCount = (float) fastestConnection.transferCount;
             float travelTime = (float) fastestConnection.totalTravelTime();

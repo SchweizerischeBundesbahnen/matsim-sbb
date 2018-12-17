@@ -25,10 +25,10 @@ public class MatrixToXY {
     private final static Logger log = Logger.getLogger(MatrixToXY.class);
 
     public static void main(String[] args) throws IOException {
-        String zonesShapeFilename = "D:\\devsbb\\mrieser\\data\\npvm_2016\\NPVM_OberBez.shp";
+        String zonesShapeFilename = "C:\\devsbb\\codes\\_data\\skims\\NPVM_VERKEHRSBEZ.shp";
         String zonesIdAttributeName = "ID";
-        String matricesDirectory = "D:\\devsbb\\mrieser\\data\\indicators";
-        String xyCsvOutputFilename = "D:\\devsbb\\mrieser\\data\\indicators\\xy.csv.gz";
+        String matricesDirectory = "C:\\devsbb\\codes\\_data\\skims\\output_v2";
+        String xyCsvOutputFilename = "C:\\devsbb\\codes\\_data\\skims\\xy.csv.gz";
 
         log.info("loading zones from " + zonesShapeFilename);
         Collection<SimpleFeature> zones = new ShapeFileReader().readFileAndInitialize(zonesShapeFilename);
@@ -65,6 +65,14 @@ public class MatrixToXY {
         FloatMatrix<String> carDistances = new FloatMatrix<>(zonesById.keySet(), Float.NaN);
         FloatMatrixIO.readAsCSV(carDistances, new File(matricesDirectory, CalculateIndicatorMatrices.CAR_DISTANCES_FILENAME).getAbsolutePath(), id -> id);
 
+        log.info("loading pt adaption times");
+        FloatMatrix<String> ptAdaptionTimes = new FloatMatrix<>(zonesById.keySet(), Float.NaN);
+        FloatMatrixIO.readAsCSV(ptAdaptionTimes, new File(matricesDirectory, CalculateIndicatorMatrices.PT_ADAPTIONTIMES_FILENAME).getAbsolutePath(), id -> id);
+
+        log.info("loading pt frequencies");
+        FloatMatrix<String> ptFrequencies = new FloatMatrix<>(zonesById.keySet(), Float.NaN);
+        FloatMatrixIO.readAsCSV(ptFrequencies, new File(matricesDirectory, CalculateIndicatorMatrices.PT_FREQUENCIES_FILENAME).getAbsolutePath(), id -> id);
+
         log.info("loading pt travel times");
         FloatMatrix<String> ptTravelTimes = new FloatMatrix<>(zonesById.keySet(), Float.NaN);
         FloatMatrixIO.readAsCSV(ptTravelTimes, new File(matricesDirectory, CalculateIndicatorMatrices.PT_TRAVELTIMES_FILENAME).getAbsolutePath(), id -> id);
@@ -86,7 +94,7 @@ public class MatrixToXY {
         FloatMatrixIO.readAsCSV(beelineDistances, new File(matricesDirectory, CalculateIndicatorMatrices.BEELINE_DISTANCE_FILENAME).getAbsolutePath(), id -> id);
 
         log.info("Start writing xy csv to " + xyCsvOutputFilename);
-        String[] columns = {"FROM", "FROM_X", "FROM_Y", "TO", "TO_X", "TO_Y", "CAR_TRAVELTIME", "CAR_DISTANCE", "PT_TRAVELTIME", "PT_ACCESSTIME", "PT_EGRESSTIME", "PT_TRANSFERCOUNT", "BEELINE_DISTANCE"};
+        String[] columns = {"FROM", "FROM_X", "FROM_Y", "TO", "TO_X", "TO_Y", "CAR_TRAVELTIME", "CAR_DISTANCE", "PT_ADAPTIONTIME", "PT_FREQUENCY", "PT_TRAVELTIME", "PT_ACCESSTIME", "PT_EGRESSTIME", "PT_TRANSFERCOUNT", "BEELINE_DISTANCE"};
         try (CSVWriter writer = new CSVWriter("", columns, xyCsvOutputFilename)) {
             for (Map.Entry<String, Point> fromE : coords.entrySet()) {
                 String fromId = fromE.getKey();
@@ -97,11 +105,13 @@ public class MatrixToXY {
 
                     float carTravelTime = carTravelTimes.get(fromId, toId);
                     float carDistance = carDistances.get(fromId, toId);
+                    float ptAdaptionTime = ptAdaptionTimes.get(fromId, toId);
+                    float ptFrequency = ptFrequencies.get(fromId, toId);
                     float ptTravelTime = ptTravelTimes.get(fromId, toId);
                     float ptAccessTime = ptAccessTimes.get(fromId, toId);
                     float ptEgressTime = ptEgressTimes.get(fromId, toId);
                     float ptTransferCount = ptTransferCounts.get(fromId, toId);
-                    float beelineDistance = ptTransferCounts.get(fromId, toId);
+                    float beelineDistance = beelineDistances.get(fromId, toId);
 
                     writer.set("FROM", fromId);
                     writer.set("FROM_X", Double.toString(fromPoint.getX()));
@@ -111,6 +121,8 @@ public class MatrixToXY {
                     writer.set("TO_Y", Double.toString(toPoint.getY()));
                     writer.set("CAR_TRAVELTIME", Float.toString(carTravelTime));
                     writer.set("CAR_DISTANCE", Float.toString(carDistance));
+                    writer.set("PT_ADAPTIONTIME", Float.toString(ptAdaptionTime));
+                    writer.set("PT_FREQUENCY", Float.toString(ptFrequency));
                     writer.set("PT_TRAVELTIME", Float.toString(ptTravelTime));
                     writer.set("PT_ACCESSTIME", Float.toString(ptAccessTime));
                     writer.set("PT_EGRESSTIME", Float.toString(ptEgressTime));
@@ -121,7 +133,6 @@ public class MatrixToXY {
             }
         }
         log.info("done.");
-
     }
 
 }
