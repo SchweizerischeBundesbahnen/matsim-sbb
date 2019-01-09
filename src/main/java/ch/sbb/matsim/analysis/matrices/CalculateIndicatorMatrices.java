@@ -274,7 +274,7 @@ public class CalculateIndicatorMatrices {
 
         // calc BEELINE matrices
         log.info("calc beeline distance matrix");
-        FloatMatrix<String> beelineMatrix = BeelineDistanceMatrix.calculateBeelineDistanceMatrix(zonesById, numberOfPointsPerZone, numberOfThreads);
+        FloatMatrix<String> beelineMatrix = BeelineDistanceMatrix.calculateBeelineDistanceMatrix(zonesById, coordsPerZone, numberOfThreads);
 
         log.info("write beeline distance matrix to " + outputDirectory);
         FloatMatrixIO.writeAsCSV(beelineMatrix, outputDirectory + "/" + BEELINE_DISTANCE_FILENAME);
