@@ -89,12 +89,20 @@ public class MatrixToXY {
         FloatMatrix<String> ptTransferCounts = new FloatMatrix<>(zonesById.keySet(), Float.NaN);
         FloatMatrixIO.readAsCSV(ptTransferCounts, new File(matricesDirectory, CalculateIndicatorMatrices.PT_TRANSFERCOUNTS_FILENAME).getAbsolutePath(), id -> id);
 
+        log.info("loading rail shares by distance");
+        FloatMatrix<String> ptRailShareDistances = new FloatMatrix<>(zonesById.keySet(), Float.NaN);
+        FloatMatrixIO.readAsCSV(ptRailShareDistances, new File(matricesDirectory, CalculateIndicatorMatrices.PT_TRAINSHARE_BYDISTANCE_FILENAME).getAbsolutePath(), id -> id);
+
+        log.info("loading rail shares by time");
+        FloatMatrix<String> ptRailShareTimes = new FloatMatrix<>(zonesById.keySet(), Float.NaN);
+        FloatMatrixIO.readAsCSV(ptRailShareTimes, new File(matricesDirectory, CalculateIndicatorMatrices.PT_TRAINSHARE_BYTIME_FILENAME).getAbsolutePath(), id -> id);
+
         log.info("loading beeline distances");
         FloatMatrix<String> beelineDistances = new FloatMatrix<>(zonesById.keySet(), Float.NaN);
         FloatMatrixIO.readAsCSV(beelineDistances, new File(matricesDirectory, CalculateIndicatorMatrices.BEELINE_DISTANCE_FILENAME).getAbsolutePath(), id -> id);
 
         log.info("Start writing xy csv to " + xyCsvOutputFilename);
-        String[] columns = {"FROM", "FROM_X", "FROM_Y", "TO", "TO_X", "TO_Y", "CAR_TRAVELTIME", "CAR_DISTANCE", "PT_ADAPTIONTIME", "PT_FREQUENCY", "PT_TRAVELTIME", "PT_ACCESSTIME", "PT_EGRESSTIME", "PT_TRANSFERCOUNT", "BEELINE_DISTANCE"};
+        String[] columns = {"FROM", "FROM_X", "FROM_Y", "TO", "TO_X", "TO_Y", "CAR_TRAVELTIME", "CAR_DISTANCE", "PT_ADAPTIONTIME", "PT_FREQUENCY", "PT_TRAVELTIME", "PT_ACCESSTIME", "PT_EGRESSTIME", "PT_TRANSFERCOUNT", "PT_TRAINSHARE_DIST", "PT_TRAINSHARE_TIME", "BEELINE_DISTANCE"};
         try (CSVWriter writer = new CSVWriter("", columns, xyCsvOutputFilename)) {
             for (Map.Entry<String, Point> fromE : coords.entrySet()) {
                 String fromId = fromE.getKey();
@@ -111,14 +119,16 @@ public class MatrixToXY {
                     float ptAccessTime = ptAccessTimes.get(fromId, toId);
                     float ptEgressTime = ptEgressTimes.get(fromId, toId);
                     float ptTransferCount = ptTransferCounts.get(fromId, toId);
+                    float ptRailShareDist = ptRailShareDistances.get(fromId, toId);
+                    float ptRailShareTime = ptRailShareTimes.get(fromId, toId);
                     float beelineDistance = beelineDistances.get(fromId, toId);
 
                     writer.set("FROM", fromId);
-                    writer.set("FROM_X", Double.toString(fromPoint.getX()));
-                    writer.set("FROM_Y", Double.toString(fromPoint.getY()));
+                    writer.set("FROM_X", Integer.toString((int) fromPoint.getX()));
+                    writer.set("FROM_Y", Integer.toString((int) fromPoint.getY()));
                     writer.set("TO", toId);
-                    writer.set("TO_X", Double.toString(toPoint.getX()));
-                    writer.set("TO_Y", Double.toString(toPoint.getY()));
+                    writer.set("TO_X", Integer.toString((int) toPoint.getX()));
+                    writer.set("TO_Y", Integer.toString((int) toPoint.getY()));
                     writer.set("CAR_TRAVELTIME", Float.toString(carTravelTime));
                     writer.set("CAR_DISTANCE", Float.toString(carDistance));
                     writer.set("PT_ADAPTIONTIME", Float.toString(ptAdaptionTime));
@@ -127,6 +137,8 @@ public class MatrixToXY {
                     writer.set("PT_ACCESSTIME", Float.toString(ptAccessTime));
                     writer.set("PT_EGRESSTIME", Float.toString(ptEgressTime));
                     writer.set("PT_TRANSFERCOUNT", Float.toString(ptTransferCount));
+                    writer.set("PT_TRAINSHARE_DIST", Float.toString(ptRailShareDist));
+                    writer.set("PT_TRAINSHARE_TIME", Float.toString(ptRailShareTime));
                     writer.set("BEELINE_DISTANCE", Float.toString(beelineDistance));
                     writer.writeRow();
                 }
