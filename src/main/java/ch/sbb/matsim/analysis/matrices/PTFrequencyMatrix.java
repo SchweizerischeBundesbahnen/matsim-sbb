@@ -81,8 +81,9 @@ public class PTFrequencyMatrix {
                 pti.travelTimeMatrix.multiply(fromZoneId, toZoneId, avgFactor);
                 pti.accessTimeMatrix.multiply(fromZoneId, toZoneId, avgFactor);
                 pti.egressTimeMatrix.multiply(fromZoneId, toZoneId, avgFactor);
+                pti.trainDistanceShareMatrix.multiply(fromZoneId, toZoneId, avgFactor);
+                pti.trainTravelTimeShareMatrix.multiply(fromZoneId, toZoneId, avgFactor);
                 pti.transferCountMatrix.multiply(fromZoneId, toZoneId, avgFactor);
-
                 float frequency = (float) ((maxDepartureTime - minDepartureTime) / adaptionTime / 4.0);
                 pti.frequencyMatrix.set(fromZoneId, toZoneId, frequency);
             }
