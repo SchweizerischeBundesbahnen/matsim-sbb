@@ -1,7 +1,11 @@
 package ch.sbb.matsim.mavi.streets;
 
+import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.counts.VisumToCounts;
+import ch.sbb.matsim.csv.CSVReader;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
+import com.jacob.com.DispatchProxy;
 import com.jacob.com.SafeArray;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -13,9 +17,10 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.CH1903LV03PlustoCH1903LV03;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
 
 
 public class VisumStreetNetworkExporter {
@@ -25,33 +30,42 @@ public class VisumStreetNetworkExporter {
     private Scenario scenario;
     private NetworkFactory nf;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         String inputvisum = args[0];
-        String output = args[1];
+        String outputFolder = args[1];
         int visumVersion = Integer.parseInt(args[2]);
         VisumStreetNetworkExporter exp = new VisumStreetNetworkExporter();
-        exp.run(inputvisum, output, visumVersion);
+        exp.run(inputvisum, outputFolder, visumVersion);
 
     }
 
-    public void run(String inputvisum, String output, int visumVersion) {
+    public void run(String inputvisum, String outputFolder, int visumVersion) throws IOException {
         ActiveXComponent visum = new ActiveXComponent("Visum.Visum." + visumVersion);
         log.info("VISUM Client gestartet.");
         Dispatch.call(visum, "LoadVersion", inputvisum);
 
-        scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        nf = scenario.getNetwork().getFactory();
+        this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        this.nf = scenario.getNetwork().getFactory();
 
         Dispatch net = Dispatch.get(visum, "Net").toDispatch();
 
         Dispatch filters = Dispatch.get(visum, "Filters").toDispatch();
         Dispatch.call(filters, "InitAll");
 
+        this.exportCountStations(visum, outputFolder);
+
         String[][] nodes = importNodes(net, "No", "XCoord", "YCoord");
         String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo", "NumLanes", "TSysSet", "No");
         createNetwork(nodes, links);
-        writeNetwork(output);
+        writeNetwork(outputFolder);
 
+    }
+
+    private void exportCountStations(Dispatch net, String outputFolder) throws IOException {
+        VisumToCounts visumToCounts = new VisumToCounts();
+
+        File file = new File(outputFolder, "counts.xml.gz");
+        visumToCounts.exportCountStations(net, file.getAbsolutePath());
     }
 
     private String[][] toArray(Dispatch objects, String... attributes) {
@@ -111,8 +125,9 @@ public class VisumStreetNetworkExporter {
                 Link link = createLink(id, attarraylink[i][0], attarraylink[i][1], Double.parseDouble(attarraylink[i][2]),
                         Double.parseDouble(attarraylink[i][3]), (Double.parseDouble(attarraylink[i][4])), Integer.parseInt(attarraylink[i][5]),
                         Integer.parseInt(attarraylink[i][6]), attarraylink[i][7]);
-
-                network.addLink(link);
+                if (link != null) {
+                    network.addLink(link);
+                }
             }
         }
 
@@ -127,6 +142,9 @@ public class VisumStreetNetworkExporter {
         modes = "car,ride";
         //}
 
+        if (fnode == null || tnode == null) {
+            return null;
+        }
         String[] mode = modes.split(",");
         Set<String> modeset = new HashSet<>(Arrays.asList(mode));
         Link link = nf.createLink(id, fnode, tnode);
@@ -143,8 +161,14 @@ public class VisumStreetNetworkExporter {
         return link;
     }
 
-    private void writeNetwork(String output) {
-        new NetworkWriter(this.scenario.getNetwork()).write(output);
+    private void writeNetwork(String outputFolder) {
+
+        org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
+        cleaner.run(scenario.getNetwork());
+
+
+        File file = new File(outputFolder, "network.xml.gz");
+        new NetworkWriter(this.scenario.getNetwork()).write(file.getAbsolutePath());
     }
 
 }
