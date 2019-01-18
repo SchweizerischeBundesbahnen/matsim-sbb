@@ -134,7 +134,7 @@ public class VisumNetwork {
             for (Map.Entry<Link, Double> entry : linkVolumes.entrySet()) {
                 Link link = entry.getKey();
                 double volume = entry.getValue();
-                String[] ids = link.getAttributes().getAttribute("visumId").toString().split("_");
+                String[] ids = link.getId().toString().split("_");
                 writer.set("$LINK:NO", ids[0]);
                 writer.set("FROMNODENO", ids[1]);
                 writer.set("TONODENO", ids[2]);
