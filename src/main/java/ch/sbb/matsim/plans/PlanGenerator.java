@@ -29,6 +29,7 @@ public class PlanGenerator {
         abmConverter.read(pathToABM, ";");
         abmConverter.create_population();
         abmConverter.addSynpopAttributes(pathToSynPop);
+        abmConverter.adjustModeIfNoLicense();
         abmConverter.addHomeFacilityAttributes(facilities, Variables.T_ZONE);
         abmConverter.addHomeFacilityAttributes(facilities, Variables.MS_REGION);
         abmConverter.writeOutputs(pathTopPlanOutputDir);

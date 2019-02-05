@@ -9,11 +9,13 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
@@ -85,6 +87,15 @@ public class AbmConverter {
         for (final Person person : population.getPersons().values()) {
             ActivityFacility facility = SBBPersonUtils.getHomeFacility(person, facilities);
             person.getAttributes().putAttribute(facilityAttribute, facility.getAttributes().getAttribute(facilityAttribute));
+        }
+    }
+
+    public void adjustModeIfNoLicense() {
+        for (final Person person : population.getPersons().values()) {
+            for (Leg leg: TripStructureUtils.getLegs(person.getSelectedPlan()))  {
+                if(!PersonUtils.hasLicense(person) && leg.getMode().equals(TransportMode.car))
+                    leg.setMode(TransportMode.ride);
+            }
         }
     }
 
