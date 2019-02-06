@@ -82,7 +82,7 @@ public class RunSBB {
             }
         });
 
-        new AccessEgress(controler).installAccessTime();
+        controler.addOverridingModule(new AccessEgress(scenario));
 
         controler.run();
     }
