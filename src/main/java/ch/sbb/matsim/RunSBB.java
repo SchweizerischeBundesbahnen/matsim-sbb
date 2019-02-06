@@ -13,6 +13,7 @@ import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
+import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import com.google.inject.Provides;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -71,6 +72,8 @@ public class RunSBB {
 
                 install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
+
+                addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
             }
 
             @Provides
