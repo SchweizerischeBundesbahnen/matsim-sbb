@@ -61,7 +61,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
                 }
 
                 // handle middle activities
-                else if (i < actList.size()) {
+                else if (i < (actList.size() - 1)) {
                     // assume that there will be no delay between arrival time and activity start time
                     act.setStartTime(now);
                     if (!this.stageActivities.isStageActivity(act.getType())) {
