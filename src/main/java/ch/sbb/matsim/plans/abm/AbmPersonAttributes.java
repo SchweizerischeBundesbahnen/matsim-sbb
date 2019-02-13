@@ -5,13 +5,13 @@ public class AbmPersonAttributes {
     private int ageCat;
     private int emplPctCat;
     private int eduType;
+    private int mobility;
 
-
-    public AbmPersonAttributes(int ageCat, int emplPctCat, int eduType) {
-
+    public AbmPersonAttributes(int ageCat, int emplPctCat, int eduType, int mobility) {
         this.ageCat = ageCat;
         this.emplPctCat = emplPctCat;
         this.eduType = eduType;
+        this.mobility = mobility;
     }
 
     public int getAgeCat() {
@@ -24,6 +24,10 @@ public class AbmPersonAttributes {
 
     public int getEduType() {
         return eduType;
+    }
+
+    public int getMobility()    {
+        return mobility;
     }
 
 }

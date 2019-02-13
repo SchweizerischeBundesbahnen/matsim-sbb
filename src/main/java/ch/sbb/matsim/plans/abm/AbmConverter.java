@@ -52,6 +52,7 @@ public class AbmConverter {
             person.getAttributes().putAttribute("age_cat", this.personTable.get(id).getAgeCat());
             person.getAttributes().putAttribute("empl_pct_cat", this.personTable.get(id).getEmplPctCat());
             person.getAttributes().putAttribute("edu_type", this.personTable.get(id).getEduType());
+            person.getAttributes().putAttribute("mobility", this.personTable.get(id).getMobility());
 
             final Plan plan = PopulationUtils.createPlan(person);
 
@@ -163,8 +164,9 @@ public class AbmConverter {
                 final int ageCat = (int) Double.parseDouble(map.get("age_cat"));
                 final int emplPctCat = (int) Double.parseDouble(map.get("empl_pct_cat"));
                 final int eduType = (int) Double.parseDouble(map.get("edu_type"));
+                final int mobility = (int) Double.parseDouble(map.get("mobility"));
 
-                final AbmPersonAttributes attributes = new AbmPersonAttributes(ageCat, emplPctCat, eduType);
+                final AbmPersonAttributes attributes = new AbmPersonAttributes(ageCat, emplPctCat, eduType, mobility);
                 this.personTable.put(pid, attributes);
             }
         } catch (IOException e) {

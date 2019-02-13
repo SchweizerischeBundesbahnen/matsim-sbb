@@ -4,13 +4,14 @@
 
 package ch.sbb.matsim.analysis.travelcomponents;
 
-import java.util.LinkedList;
-import java.util.NoSuchElementException;
-
+import ch.sbb.matsim.config.variables.SBBActivities;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
+
+import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
 public class Journey extends TravelComponent {
 	private String trip_idx;
@@ -191,6 +192,12 @@ public class Journey extends TravelComponent {
 		} catch (NoSuchElementException e) {
 			return "walk";
 		}
+	}
+
+	public String getToActType()	{
+		String typeLong = this.toAct.getType();
+		String type = typeLong.split("_")[0];
+		return SBBActivities.matsimActs2abmActs.get(type);
 	}
 
 	public double getDistance() {
