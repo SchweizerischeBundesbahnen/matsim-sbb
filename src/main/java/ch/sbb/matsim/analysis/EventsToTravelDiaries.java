@@ -487,7 +487,7 @@ public class EventsToTravelDiaries implements
             for (Journey journey : chain.getJourneys()) {
                 try {
                     journeyWriter.write(String.format(
-                            "%d\t%s\t%d\t%d\t%.3f\t%s\t%s\t%d\t%d\t%.3f\t%d\t%.3f\t%d\t%d\t%s\t%.3f\t%d\t%s\t%.3f\t%d\t%d\t%f\t%b\n",
+                            "%d\t%s\t%d\t%d\t%.3f\t%s\t%s\t%d\t%d\t%s\t%.3f\t%d\t%.3f\t%d\t%d\t%s\t%.3f\t%d\t%s\t%.3f\t%d\t%d\t%f\t%b\n",
                             journey.getElementId(),
                             pax_id,
                             (int) journey.getStartTime(),
