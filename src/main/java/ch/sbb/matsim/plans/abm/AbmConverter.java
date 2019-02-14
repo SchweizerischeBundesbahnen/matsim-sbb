@@ -153,7 +153,7 @@ public class AbmConverter {
         }
     }
 
-    public void read(final String pathAbmOutput, final String personsFileABM) {
+    public void read(final String tripsFileABM, final String personsFileABM) {
 
         try (final CSVReader reader = new CSVReader(personsFileABM, ";")) {
             Map<String, String> map;
@@ -174,7 +174,7 @@ public class AbmConverter {
         }
 
 
-        try (final CSVReader reader = new CSVReader(pathAbmOutput, ";")) {
+        try (final CSVReader reader = new CSVReader(tripsFileABM, ";")) {
             Map<String, String> map;
             while ((map = reader.readLine()) != null) {
                 final int id = (int) Double.parseDouble(map.get("pid"));
