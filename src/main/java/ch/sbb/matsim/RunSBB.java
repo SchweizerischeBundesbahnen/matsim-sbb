@@ -8,6 +8,7 @@ package ch.sbb.matsim;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
@@ -53,24 +54,7 @@ public class RunSBB {
             config.controler().setOutputDirectory(args[1]);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
-
-        for(Person p: scenario.getPopulation().getPersons().values())   {
-            if(p.getAttributes().getAttribute("initialActivityEndTimes") != null)
-                continue;
-
-            Plan plan = p.getSelectedPlan();
-            List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.stageActivitiesTypes);
-            List<String> endTimeList = new ArrayList<>();
-            int i = 0;
-
-            for(Activity act: activities)   {
-                if(i == activities.size() - 1) break;
-                endTimeList.add(Double.toString(act.getEndTime()));
-                i += 1;
-            }
-
-            p.getAttributes().putAttribute("initialActivityEndTimes", String.join("_", endTimeList) );
-        }
+        createInitialEndTimeAttribute(scenario);
 
         Controler controler = new Controler(scenario);
 
@@ -119,5 +103,28 @@ public class RunSBB {
     public static Config buildConfig(String filepath) {
         return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup());
+    }
+
+    public static void createInitialEndTimeAttribute(Scenario scenario) {
+        for(Person p: scenario.getPopulation().getPersons().values())   {
+            if(p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null)
+                continue;
+
+            if(p.getPlans().size() > 1) {
+                log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
+            }
+            Plan plan = p.getSelectedPlan();
+            List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.stageActivitiesTypes);
+            List<String> endTimeList = new ArrayList<>();
+            int i = 0;
+
+            for(Activity act: activities)   {
+                if(i == activities.size() - 1) break;
+                endTimeList.add(Double.toString(act.getEndTime()));
+                i += 1;
+            }
+
+            p.getAttributes().putAttribute(Variables.INIT_END_TIMES, String.join("_", endTimeList) );
+        }
     }
 }

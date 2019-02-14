@@ -12,6 +12,12 @@ import org.matsim.facilities.ActivityFacilities;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+/**
+ * THIS IS A COPY of the default TimeAllocationMutatorReRoute module.
+ * The only modification is a custom TimeAllocationStrategy which is called SBBTimeAllocationMutator
+ * @author PM / SBB
+ *
+ */
 public class SBBTimeAllocationMutatorReRoute implements Provider<PlanStrategy> {
     @Inject private Provider<TripRouter> tripRouterProvider;
     @Inject private GlobalConfigGroup globalConfigGroup;

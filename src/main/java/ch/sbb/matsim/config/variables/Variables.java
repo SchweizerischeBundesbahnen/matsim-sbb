@@ -11,4 +11,7 @@ public class Variables {
 
     public static final String MS_REGION = "ms_region";
     public static final String T_ZONE = "tZone";
+
+
+    public static final String INIT_END_TIMES = "initialActivityEndTimes";
 }

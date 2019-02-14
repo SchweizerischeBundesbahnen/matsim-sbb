@@ -1,6 +1,7 @@
 package ch.sbb.matsim.replanning;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.Variables;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Plan;
@@ -13,7 +14,14 @@ import org.matsim.core.utils.misc.Time;
 import java.util.List;
 import java.util.Random;
 
-
+/**
+ * SBB version of the default TripPlanMutateTimeAllocation.
+ * It strongly relies on the person attribute initialActivityEndTimes and works with this attribute only.
+ * In contrast the original mutation strategy, the SBBTripPlanMutateTimeAllocation allows time allocation from initial
+ * activity end times only.
+ * @author PM / SBB
+ *
+ */
 public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 
     private final  StageActivityTypes stageActivities;
@@ -33,7 +41,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
     }
 
     private void mutatePlan(final Plan plan) {
-        String[] initialEndTimes = plan.getPerson().getAttributes().getAttribute("initialActivityEndTimes").toString().split("_");
+        String[] initialEndTimes = plan.getPerson().getAttributes().getAttribute(Variables.INIT_END_TIMES).toString().split("_");
 
         double now = 0;
         int i = 0;
@@ -110,7 +118,6 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
             if (t < 0) t = 0;
             if (t > 24*3600) t = 24.0 * 3600;
         }
-        // PM: This should never happen...
         else {
             t = this.random.nextInt(24*3600);
         }
