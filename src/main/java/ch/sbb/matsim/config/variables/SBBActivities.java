@@ -21,6 +21,7 @@ public final class SBBActivities {
     public static final String other = "other";
 
     public final static Map<String, String> abmActs2matsimActs;
+    public final static Map<String, String> matsimActs2abmActs;
 
     public final static Set<String> stageActivityTypeList;
     public final static StageActivityTypes stageActivitiesTypes;
@@ -36,6 +37,14 @@ public final class SBBActivities {
         abmActs2matsimActs.put("O", other);
         abmActs2matsimActs.put("S", shopping);
         abmActs2matsimActs.put("A", accompany);
+    }
+
+    static {
+        matsimActs2abmActs = new HashMap<>();
+
+        for(String key: abmActs2matsimActs.keySet())  {
+            matsimActs2abmActs.put(abmActs2matsimActs.get(key), key);
+        }
     }
 
     static  {
