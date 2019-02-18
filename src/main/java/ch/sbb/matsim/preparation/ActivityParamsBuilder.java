@@ -48,8 +48,8 @@ public class ActivityParamsBuilder {
             // morning peak is assumed to be between 7am and 8am
             final ActivityParams params = new ActivityParams( SBBActivities.work + "_" + ii + "_mp" ) ;
             params.setTypicalDuration( ii * 60.0 );
-            params.setOpeningTime( 6.5 * 3600.0 );
-            params.setLatestStartTime( 8.5 * 3600.0 );
+            params.setOpeningTime( 7 * 3600.0 );
+            params.setLatestStartTime( 8 * 3600.0 );
             params.setClosingTime( 23 * 3600.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );
@@ -59,7 +59,7 @@ public class ActivityParamsBuilder {
             // noon peak is assumed to be between 12pm and 2pm
             final ActivityParams params = new ActivityParams( SBBActivities.work + "_" + ii + "_np" ) ;
             params.setTypicalDuration( ii * 60.0 );
-            params.setOpeningTime( 12.5 * 3600.0 );
+            params.setOpeningTime( 12.75 * 3600.0 );
             params.setLatestStartTime( 13.5 * 3600.0 );
             params.setClosingTime( 23 * 3600.0 );
             params.setScoringThisActivityAtAll( true );
@@ -80,8 +80,8 @@ public class ActivityParamsBuilder {
             // morning peak is assumed to be between 7am and 9am
             final ActivityParams params = new ActivityParams( SBBActivities.education + "_" + ii + "_mp" ) ;
             params.setTypicalDuration( ii * 60.0 );
-            params.setOpeningTime( 7 * 3600.0 );
-            params.setLatestStartTime( 8.25 * 3600.0 );
+            params.setOpeningTime( 7.5 * 3600.0 );
+            params.setLatestStartTime( 8.0 * 3600.0 );
             params.setClosingTime( 21 * 3600.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );
@@ -91,8 +91,8 @@ public class ActivityParamsBuilder {
             // noon peak is assumed to be between 12.5pm and 2pm
             final ActivityParams params = new ActivityParams( SBBActivities.education + "_" + ii + "_np" ) ;
             params.setTypicalDuration( ii * 60.0 );
-            params.setOpeningTime( 13 * 3600.0 );
-            params.setLatestStartTime( 13.5 * 3600.0 );
+            params.setOpeningTime( 12.75 * 3600.0 );
+            params.setLatestStartTime( 13.25 * 3600.0 );
             params.setClosingTime( 21 * 3600.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );

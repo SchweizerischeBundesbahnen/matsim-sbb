@@ -49,13 +49,13 @@ public class PrepareActivitiesInPlans {
                         homeTime += duration;
                     }
                     else if( act.getType().equals(SBBActivities.work) ) {
-                        // process morning peak (between 6am and 9am)
-                        if( startTime >= (7 * 3600) && startTime <= (8 * 3600) )    {
+                        // process morning peak (between 6.5am and 8.5am)
+                        if( startTime >= (6.5 * 3600) && startTime <= (8.5 * 3600) )    {
                             long ii = roundSecondsToMinInterval(duration, 30);
                             act.setType(SBBActivities.work + "_" + ii + "_mp");
                         }
                         // process noon peak (between 12pm and 2pm)
-                        else if( startTime >= (12.75 * 3600) && startTime <= (13.25 * 3600) )    {
+                        else if( startTime >= (12.25 * 3600) && startTime <= (13.75 * 3600) )    {
                             long ii = roundSecondsToMinInterval(duration, 30);
                             act.setType(SBBActivities.work + "_" + ii + "_np");
                         }
@@ -67,12 +67,12 @@ public class PrepareActivitiesInPlans {
                     }
                     else if( act.getType().equals(SBBActivities.education) ) {
                         // process morning peak (between 7am and 9am)
-                        if( startTime >= (7.5 * 3600) && startTime <= (8 * 3600) )    {
+                        if( startTime >= (7.0 * 3600) && startTime <= (8.5 * 3600) )    {
                             long ii = roundSecondsToMinInterval(duration, 30);
                             act.setType(SBBActivities.education + "_" + ii + "_mp");
                         }
                         // process noon peak (between 12.5pm and 2pm)
-                        else if( startTime >= (12.5 * 3600) && startTime <= (14 * 3600) )    {
+                        else if( startTime >= (12.25 * 3600) && startTime <= (14 * 3600) )    {
                             long ii = roundSecondsToMinInterval(duration, 30);
                             act.setType(SBBActivities.education + "_" + ii + "_np");
                         }

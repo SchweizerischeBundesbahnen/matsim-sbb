@@ -105,10 +105,9 @@ public class RunSBB {
                 new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup());
     }
 
-    public static void createInitialEndTimeAttribute(Scenario scenario) {
+    private static void createInitialEndTimeAttribute(Scenario scenario) {
         for(Person p: scenario.getPopulation().getPersons().values())   {
-            if(p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null)
-                continue;
+            if(p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null)    continue;
 
             if(p.getPlans().size() > 1) {
                 log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
@@ -119,7 +118,7 @@ public class RunSBB {
             int i = 0;
 
             for(Activity act: activities)   {
-                if(i == activities.size() - 1) break;
+                if(i == activities.size() - 1)  break;
                 endTimeList.add(Double.toString(act.getEndTime()));
                 i += 1;
             }
