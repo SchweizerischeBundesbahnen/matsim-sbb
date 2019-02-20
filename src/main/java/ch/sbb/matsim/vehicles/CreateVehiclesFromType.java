@@ -24,11 +24,13 @@ public class CreateVehiclesFromType {
     private final Population population;
     private final Vehicles vehicles;
     private final String vehicleTypeAttributeName;
+    private final String defaultVehicleType;
 
-    public CreateVehiclesFromType(Population population, Vehicles vehicles, String vehicleTypeAttributeName) {
+    public CreateVehiclesFromType(Population population, Vehicles vehicles, String vehicleTypeAttributeName, String defaultVehicleType) {
         this.population = population;
         this.vehicles = vehicles;
         this.vehicleTypeAttributeName = vehicleTypeAttributeName;
+        this.defaultVehicleType = defaultVehicleType;
     }
 
     /**
@@ -40,7 +42,7 @@ public class CreateVehiclesFromType {
             Id<Vehicle> vehicleId = Id.create(personId.toString(), Vehicle.class);
             String vehicleTypeName = (String) person.getAttributes().getAttribute(this.vehicleTypeAttributeName);
             if (vehicleTypeName == null) {
-                throw new RuntimeException("Agent " + person.getId().toString() + " has no vehicle type defined. Missing attribute: " + this.vehicleTypeAttributeName);
+                vehicleTypeName = this.defaultVehicleType;
             }
             Id<VehicleType> vehicleTypeId = Id.create(vehicleTypeName, VehicleType.class);
             VehicleType vehicleType = this.vehicles.getVehicleTypes().get(vehicleTypeId);

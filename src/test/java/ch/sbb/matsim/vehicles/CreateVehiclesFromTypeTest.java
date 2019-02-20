@@ -26,6 +26,8 @@ public class CreateVehiclesFromTypeTest {
     private final static String VEHTYPE_ELECTRIC = "carElectric";
     private final static String VEHTYPE_ATTRIBUTE = "vehTypeId";
 
+    private final static String DEFAULT_VEHICLE_TYPE = "defaultCar";
+
     private Scenario buildTestScenario() {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         Vehicles vehicles = scenario.getVehicles();
@@ -47,9 +49,14 @@ public class CreateVehiclesFromTypeTest {
         carElectric.setMaximumVelocity(140/3.6);
         carElectric.setPcuEquivalents(0.8);
 
+        VehicleType carDefault = vehFac.createVehicleType(Id.create(DEFAULT_VEHICLE_TYPE, VehicleType.class));
+        carElectric.setMaximumVelocity(145/3.6);
+        carElectric.setPcuEquivalents(1.0);
+
         vehicles.addVehicleType(carGasoline);
         vehicles.addVehicleType(carDiesel);
         vehicles.addVehicleType(carElectric);
+        vehicles.addVehicleType(carDefault);
 
         Population population = scenario.getPopulation();
         PopulationFactory populationFactory = population.getFactory();
@@ -80,7 +87,7 @@ public class CreateVehiclesFromTypeTest {
         Scenario scenario = buildTestScenario();
         Assert.assertTrue(scenario.getVehicles().getVehicles().isEmpty());
 
-        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE);
+        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE, DEFAULT_VEHICLE_TYPE);
         vehicleCreator.createVehicles();
 
         Assert.assertEquals(5, scenario.getVehicles().getVehicles().size());
@@ -98,17 +105,15 @@ public class CreateVehiclesFromTypeTest {
         Person person5 = scenario.getPopulation().getPersons().get(Id.create(5, Person.class));
         person5.getAttributes().removeAttribute(VEHTYPE_ATTRIBUTE);
 
-        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE);
-        try {
-            vehicleCreator.createVehicles();
-            Assert.fail("expected exception, got none.");
-        } catch (RuntimeException expected) {
-            String message = expected.getMessage();
-            // make sure it's the exception we expected
-            Assert.assertTrue(message.toLowerCase(Locale.ROOT).contains("agent"));
-            Assert.assertTrue(message.toLowerCase(Locale.ROOT).contains("missing attribute"));
-            Assert.assertTrue(message.contains(VEHTYPE_ATTRIBUTE));
-        }
+        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE, DEFAULT_VEHICLE_TYPE);
+        vehicleCreator.createVehicles();
+
+        Assert.assertEquals(5, scenario.getVehicles().getVehicles().size());
+        Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create(1, Vehicle.class)).getType().getId().toString());
+        Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create(2, Vehicle.class)).getType().getId().toString());
+        Assert.assertEquals(VEHTYPE_ELECTRIC, scenario.getVehicles().getVehicles().get(Id.create(3, Vehicle.class)).getType().getId().toString());
+        Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create(4, Vehicle.class)).getType().getId().toString());
+        Assert.assertEquals(DEFAULT_VEHICLE_TYPE, scenario.getVehicles().getVehicles().get(Id.create(5, Vehicle.class)).getType().getId().toString());
     }
 
     @Test
@@ -118,7 +123,7 @@ public class CreateVehiclesFromTypeTest {
         Person person5 = scenario.getPopulation().getPersons().get(Id.create(5, Person.class));
         person5.getAttributes().putAttribute(VEHTYPE_ATTRIBUTE, "carHybrid");
 
-        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE);
+        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE, DEFAULT_VEHICLE_TYPE);
         try {
             vehicleCreator.createVehicles();
             Assert.fail("expected exception, got none.");

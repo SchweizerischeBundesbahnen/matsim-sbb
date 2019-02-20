@@ -47,7 +47,7 @@ public class RunSBB {
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
-        new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType").createVehicles();
+        new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car").createVehicles();
         scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
         Controler controler = new Controler(scenario);
