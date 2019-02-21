@@ -34,6 +34,16 @@ public class ActivityParamsBuilder {
             config.planCalcScore().addActivityParams( params );
         }
 
+        for ( long ii = 30 ; ii <= 1020 ; ii += 30 ) {
+            for( double yy = 16 ; yy <= 20 ; yy += 0.5 )   {
+                final ActivityParams params = new ActivityParams( SBBActivities.home + "_" + ii + "_" +  yy) ;
+                params.setTypicalDuration( ii * 60.0 );
+                params.setLatestStartTime( yy * 3600.0 );
+                params.setScoringThisActivityAtAll( true );
+                config.planCalcScore().addActivityParams( params );
+            }
+        }
+
         // work
         for ( long ii = 30 ; ii <= 720 ; ii += 30 ) {
             final ActivityParams params = new ActivityParams( SBBActivities.work + "_" + ii ) ;
@@ -80,8 +90,8 @@ public class ActivityParamsBuilder {
             // morning peak is assumed to be between 7am and 9am
             final ActivityParams params = new ActivityParams( SBBActivities.education + "_" + ii + "_mp" ) ;
             params.setTypicalDuration( ii * 60.0 );
-            params.setOpeningTime( 7.5 * 3600.0 );
-            params.setLatestStartTime( 8.0 * 3600.0 );
+            params.setOpeningTime( 7.75 * 3600.0 );
+            params.setLatestStartTime( 8.5 * 3600.0 );
             params.setClosingTime( 21 * 3600.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );

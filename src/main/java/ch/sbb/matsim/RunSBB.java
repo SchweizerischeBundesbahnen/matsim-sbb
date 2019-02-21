@@ -107,11 +107,10 @@ public class RunSBB {
 
     private static void createInitialEndTimeAttribute(Scenario scenario) {
         for(Person p: scenario.getPopulation().getPersons().values())   {
-            if(p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null)    continue;
+            if(p.getAttributes().getAttribute( Variables.INIT_END_TIMES) != null )    continue;
 
-            if(p.getPlans().size() > 1) {
-                log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
-            }
+            if(p.getPlans().size() > 1) log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
+
             Plan plan = p.getSelectedPlan();
             List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.stageActivitiesTypes);
             List<String> endTimeList = new ArrayList<>();
@@ -123,7 +122,7 @@ public class RunSBB {
                 i += 1;
             }
 
-            p.getAttributes().putAttribute(Variables.INIT_END_TIMES, String.join("_", endTimeList) );
+            p.getAttributes().putAttribute( Variables.INIT_END_TIMES, String.join("_", endTimeList) );
         }
     }
 }
