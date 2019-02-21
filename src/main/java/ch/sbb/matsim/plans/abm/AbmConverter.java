@@ -9,11 +9,13 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
@@ -28,10 +30,12 @@ public class AbmConverter {
 
     private static final Logger log = Logger.getLogger(AbmConverter.class);
     private final Map<Id<Person>, List<AbmTrip>> planTable;
+    private final Map<Id<Person>, AbmPersonAttributes> personTable;
     private final Population population;
 
     public AbmConverter() {
         this.planTable = new HashMap<>();
+        this.personTable = new HashMap<>();
         this.population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
     }
 
@@ -40,11 +44,16 @@ public class AbmConverter {
         return this.planTable.get(pid);
     }
 
-
     public void create_population() {
         for (final Map.Entry<Id<Person>, List<AbmTrip>> entry : this.planTable.entrySet()) {
             final Id<Person> id = entry.getKey();
             final Person person = PopulationUtils.getFactory().createPerson(id);
+
+            person.getAttributes().putAttribute("age_cat", this.personTable.get(id).getAgeCat());
+            person.getAttributes().putAttribute("empl_pct_cat", this.personTable.get(id).getEmplPctCat());
+            person.getAttributes().putAttribute("edu_type", this.personTable.get(id).getEduType());
+            person.getAttributes().putAttribute("mobility", this.personTable.get(id).getMobility());
+
             final Plan plan = PopulationUtils.createPlan(person);
 
             final List<AbmTrip> trips = entry.getValue();
@@ -85,6 +94,15 @@ public class AbmConverter {
         for (final Person person : population.getPersons().values()) {
             ActivityFacility facility = SBBPersonUtils.getHomeFacility(person, facilities);
             person.getAttributes().putAttribute(facilityAttribute, facility.getAttributes().getAttribute(facilityAttribute));
+        }
+    }
+
+    public void adjustModeIfNoLicense() {
+        for (final Person person : population.getPersons().values()) {
+            for (Leg leg: TripStructureUtils.getLegs(person.getSelectedPlan()))  {
+                if(!PersonUtils.hasLicense(person) && leg.getMode().equals(TransportMode.car))
+                    leg.setMode(TransportMode.ride);
+            }
         }
     }
 
@@ -135,8 +153,28 @@ public class AbmConverter {
         }
     }
 
-    public void read(final String pathAbmOutput, final String splitBy) {
-        try (final CSVReader reader = new CSVReader(pathAbmOutput, splitBy)) {
+    public void read(final String tripsFileABM, final String personsFileABM) {
+
+        try (final CSVReader reader = new CSVReader(personsFileABM, ";")) {
+            Map<String, String> map;
+            while ((map = reader.readLine()) != null) {
+                final int id = (int) Double.parseDouble(map.get("pid"));
+                final Id<Person> pid = Id.createPersonId("P_" + id);
+
+                final int ageCat = (int) Double.parseDouble(map.get("age_cat"));
+                final int emplPctCat = (int) Double.parseDouble(map.get("empl_pct_cat"));
+                final int eduType = (int) Double.parseDouble(map.get("edu_type"));
+                final int mobility = (int) Double.parseDouble(map.get("mobility"));
+
+                final AbmPersonAttributes attributes = new AbmPersonAttributes(ageCat, emplPctCat, eduType, mobility);
+                this.personTable.put(pid, attributes);
+            }
+        } catch (IOException e) {
+            log.warn(e);
+        }
+
+
+        try (final CSVReader reader = new CSVReader(tripsFileABM, ";")) {
             Map<String, String> map;
             while ((map = reader.readLine()) != null) {
                 final int id = (int) Double.parseDouble(map.get("pid"));

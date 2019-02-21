@@ -13,12 +13,13 @@ public class PlanGenerator {
 
     public static void main(final String[] args)  {
 
-        final String pathToABM = args[0];
-        final String pathToSynPop = args[1];
-        final String pathToFacilties = args[2];
-        final String pathToShapeFile = args[3];
-        final String pathTopPlanOutputDir = args[4];
-        final String pathToFacilityOutputDir = args[5];
+        final String tripsFileABM = args[0];
+        final String personsFileABM = args[1];
+        final String pathToSynPop = args[2];
+        final String pathToFacilties = args[3];
+        final String pathToShapeFile = args[4];
+        final String pathTopPlanOutputDir = args[5];
+        final String pathToFacilityOutputDir = args[6];
 
         final FacilitiesReader facilitiesReader = new FacilitiesReader(";");
         Set<String> facilityAttributesToKeep = CollectionUtils.stringToSet(Variables.T_ZONE);
@@ -26,9 +27,10 @@ public class PlanGenerator {
                 facilityAttributesToKeep);
 
         final AbmConverter abmConverter = new AbmConverter();
-        abmConverter.read(pathToABM, ";");
+        abmConverter.read(tripsFileABM, personsFileABM);
         abmConverter.create_population();
         abmConverter.addSynpopAttributes(pathToSynPop);
+        abmConverter.adjustModeIfNoLicense();
         abmConverter.addHomeFacilityAttributes(facilities, Variables.T_ZONE);
         abmConverter.addHomeFacilityAttributes(facilities, Variables.MS_REGION);
         abmConverter.writeOutputs(pathTopPlanOutputDir);
