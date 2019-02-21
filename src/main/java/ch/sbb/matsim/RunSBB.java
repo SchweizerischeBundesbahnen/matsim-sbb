@@ -7,10 +7,9 @@ package ch.sbb.matsim;
 
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.*;
-import ch.sbb.matsim.config.variables.SBBActivities;
-import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
+import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.routing.access.AccessEgress;
@@ -19,21 +18,14 @@ import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import com.google.inject.Provides;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
-import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author denism
@@ -54,7 +46,7 @@ public class RunSBB {
             config.controler().setOutputDirectory(args[1]);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
-        createInitialEndTimeAttribute(scenario);
+        new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
         Controler controler = new Controler(scenario);
 
@@ -103,26 +95,5 @@ public class RunSBB {
     public static Config buildConfig(String filepath) {
         return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup());
-    }
-
-    private static void createInitialEndTimeAttribute(Scenario scenario) {
-        for(Person p: scenario.getPopulation().getPersons().values())   {
-            if(p.getAttributes().getAttribute( Variables.INIT_END_TIMES) != null )    continue;
-
-            if(p.getPlans().size() > 1) log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
-
-            Plan plan = p.getSelectedPlan();
-            List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.stageActivitiesTypes);
-            List<String> endTimeList = new ArrayList<>();
-            int i = 0;
-
-            for(Activity act: activities)   {
-                if(i == activities.size() - 1)  break;
-                endTimeList.add(Double.toString(act.getEndTime()));
-                i += 1;
-            }
-
-            p.getAttributes().putAttribute( Variables.INIT_END_TIMES, String.join("_", endTimeList) );
-        }
     }
 }
