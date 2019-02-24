@@ -1,25 +1,14 @@
 package ch.sbb.matsim.preparation;
 
-import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
+
+import java.util.Set;
 
 public class ActivityParamsBuilder {
 
-    public static void main(final String[] args) {
-        final String configIn = args[0];
-        final String configOut = args[1];
-
-        final Config config = RunSBB.buildConfig(configIn);
-
-        buildActivityParams(config);
-
-        new ConfigWriter(config).write(configOut);
-    }
-
-    public static void buildActivityParams(Config config)   {
+    public static void buildActivityParams(Config config, Set<String> activityList)   {
         for( String stageActivityType: SBBActivities.stageActivityTypeList )    {
             final ActivityParams params = new ActivityParams( stageActivityType ) ;
             params.setTypicalDuration( 120.0 );
@@ -27,8 +16,11 @@ public class ActivityParamsBuilder {
             config.planCalcScore().addActivityParams( params );
         }
 
+        // home
         for ( long ii = 30 ; ii <= 1440 ; ii += 30 ) {
-            final ActivityParams params = new ActivityParams( SBBActivities.home + "_" + ii ) ;
+            String type = SBBActivities.home + "_" + ii;
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );
@@ -36,7 +28,9 @@ public class ActivityParamsBuilder {
 
         for ( long ii = 30 ; ii <= 1440 ; ii += 30 ) {
             for( double yy = 16 ; yy <= 20 ; yy += 0.5 )   {
-                final ActivityParams params = new ActivityParams( SBBActivities.home + "_" + ii + "_" +  yy) ;
+                String type = SBBActivities.home + "_" + ii + "_" +  yy;
+                if(!activityList.contains(type)) continue;
+                final ActivityParams params = new ActivityParams( type );
                 params.setTypicalDuration( ii * 60.0 );
                 params.setLatestStartTime( yy * 3600.0 );
                 params.setScoringThisActivityAtAll( true );
@@ -46,7 +40,9 @@ public class ActivityParamsBuilder {
 
         // work
         for ( long ii = 30 ; ii <= 720 ; ii += 30 ) {
-            final ActivityParams params = new ActivityParams( SBBActivities.work + "_" + ii ) ;
+            String type = SBBActivities.work + "_" + ii;
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setOpeningTime( 4 * 3600.0 );
             params.setClosingTime( 23 * 3600.0 );
@@ -56,7 +52,9 @@ public class ActivityParamsBuilder {
 
         for ( long ii = 30 ; ii <= 720 ; ii += 30 ) {
             // morning peak is assumed to be between 7am and 8am
-            final ActivityParams params = new ActivityParams( SBBActivities.work + "_" + ii + "_mp" ) ;
+            String type = SBBActivities.work + "_" + ii + "_mp";
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setOpeningTime( 7 * 3600.0 );
             params.setLatestStartTime( 8 * 3600.0 );
@@ -67,7 +65,9 @@ public class ActivityParamsBuilder {
 
         for ( long ii = 30 ; ii <= 720 ; ii += 30 ) {
             // noon peak is assumed to be between 12pm and 2pm
-            final ActivityParams params = new ActivityParams( SBBActivities.work + "_" + ii + "_np" ) ;
+            String type = SBBActivities.work + "_" + ii + "_np";
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setOpeningTime( 12.75 * 3600.0 );
             params.setLatestStartTime( 13.5 * 3600.0 );
@@ -78,7 +78,9 @@ public class ActivityParamsBuilder {
 
         // education
         for ( long ii = 30 ; ii <= 720 ; ii += 30 ) {
-            final ActivityParams params = new ActivityParams( SBBActivities.education + "_" + ii ) ;
+            String type = SBBActivities.education + "_" + ii;
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setOpeningTime( 6 * 3600.0 );
             params.setClosingTime( 21 * 3600.0 );
@@ -88,7 +90,9 @@ public class ActivityParamsBuilder {
 
         for ( long ii = 30 ; ii <= 720 ; ii += 30 ) {
             // morning peak is assumed to be between 7am and 9am
-            final ActivityParams params = new ActivityParams( SBBActivities.education + "_" + ii + "_mp" ) ;
+            String type = SBBActivities.education + "_" + ii + "_mp";
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setOpeningTime( 7.75 * 3600.0 );
             params.setLatestStartTime( 8.5 * 3600.0 );
@@ -99,7 +103,9 @@ public class ActivityParamsBuilder {
 
         for ( long ii = 30 ; ii <= 720 ; ii += 30 ) {
             // noon peak is assumed to be between 12.5pm and 2pm
-            final ActivityParams params = new ActivityParams( SBBActivities.education + "_" + ii + "_np" ) ;
+            String type = SBBActivities.education + "_" + ii + "_np";
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setOpeningTime( 12.75 * 3600.0 );
             params.setLatestStartTime( 13.25 * 3600.0 );
@@ -110,7 +116,9 @@ public class ActivityParamsBuilder {
 
         // business
         for ( long ii = 30 ; ii <= 540 ; ii += 30 ) {
-            final ActivityParams params = new ActivityParams( SBBActivities.business + "_" + ii ) ;
+            String type = SBBActivities.business + "_" + ii;
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setOpeningTime( 4 * 3600.0 );
             params.setClosingTime( 23 * 3600.0 );
@@ -120,7 +128,9 @@ public class ActivityParamsBuilder {
 
         // leisure
         for ( long ii = 15 ; ii <= 480 ; ii += 15 ) {
-            final ActivityParams params = new ActivityParams( SBBActivities.leisure + "_" + ii ) ;
+            String type = SBBActivities.leisure + "_" + ii;
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setOpeningTime( 4 * 3600.0 );
             params.setClosingTime( 24 * 3600.0 );
@@ -130,7 +140,9 @@ public class ActivityParamsBuilder {
 
         // shopping
         for ( long ii = 15 ; ii <= 330 ; ii += 15 ) {
-            final ActivityParams params = new ActivityParams( SBBActivities.shopping + "_" + ii ) ;
+            String type = SBBActivities.shopping + "_" + ii;
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setOpeningTime( 5 * 3600.0 );
             params.setClosingTime( 22 * 3600.0 );
@@ -140,7 +152,9 @@ public class ActivityParamsBuilder {
 
         // accompany
         for ( long ii = 10 ; ii <= 120 ; ii += 10 ) {
-            final ActivityParams params = new ActivityParams( SBBActivities.accompany + "_" + ii ) ;
+            String type = SBBActivities.accompany + "_" + ii;
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );
@@ -148,7 +162,9 @@ public class ActivityParamsBuilder {
 
         // other
         for ( long ii = 30 ; ii <= 600 ; ii += 30 ) {
-            final ActivityParams params = new ActivityParams( SBBActivities.other + "_" + ii ) ;
+            String type = SBBActivities.other + "_" + ii;
+            if(!activityList.contains(type)) continue;
+            final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );

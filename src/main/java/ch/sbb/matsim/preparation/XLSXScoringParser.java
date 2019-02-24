@@ -80,8 +80,6 @@ public class XLSXScoringParser {
             e.printStackTrace();
         }
 
-        ActivityParamsBuilder.buildActivityParams(config);
-
         new ConfigWriter(config).write(configOut);
     }
 
