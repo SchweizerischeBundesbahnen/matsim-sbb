@@ -126,6 +126,7 @@ public class PrepareActivitiesInPlans {
     private static void processOvernightAct(Activity firstAct, Activity lastAct) {
         double lastActStartTime = lastAct.getStartTime();
         double totDuration = ( firstAct.getEndTime() + 24 * 3600.0 ) - lastAct.getStartTime();
+        if( totDuration <= 0 ) totDuration = 1;
 
         if( lastActStartTime >= (16.0 * 3600) && lastActStartTime < (20 * 3600) ) {
             long ii = roundSecondsToMinInterval(totDuration, 30);

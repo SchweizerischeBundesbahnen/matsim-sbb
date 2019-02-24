@@ -34,7 +34,7 @@ public class ActivityParamsBuilder {
             config.planCalcScore().addActivityParams( params );
         }
 
-        for ( long ii = 30 ; ii <= 1020 ; ii += 30 ) {
+        for ( long ii = 30 ; ii <= 1440 ; ii += 30 ) {
             for( double yy = 16 ; yy <= 20 ; yy += 0.5 )   {
                 final ActivityParams params = new ActivityParams( SBBActivities.home + "_" + ii + "_" +  yy) ;
                 params.setTypicalDuration( ii * 60.0 );
