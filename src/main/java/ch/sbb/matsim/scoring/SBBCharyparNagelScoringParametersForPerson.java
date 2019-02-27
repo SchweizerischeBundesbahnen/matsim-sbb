@@ -94,7 +94,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                     else
                         personAttribute = (String) personAttributeObj;
 
-                    SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues pgt = bgp.getPersonGroupByAttribute(personAttribute);
+                    SBBBehaviorGroupsConfigGroup.PersonGroupValues pgt = bgp.getPersonGroupByAttribute(personAttribute);
                     if(pgt == null) continue;
 
                     SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = pgt.getModeCorrectionsForMode(mode);
