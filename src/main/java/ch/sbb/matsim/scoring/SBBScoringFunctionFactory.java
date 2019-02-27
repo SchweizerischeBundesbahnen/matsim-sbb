@@ -10,7 +10,6 @@ import org.matsim.core.scoring.functions.CharyparNagelActivityScoring;
 import org.matsim.core.scoring.functions.CharyparNagelAgentStuckScoring;
 import org.matsim.core.scoring.functions.CharyparNagelMoneyScoring;
 import org.matsim.core.scoring.functions.ScoringParameters;
-import org.matsim.core.scoring.functions.ScoringParametersForPerson;
 
 import java.util.Set;
 
@@ -23,7 +22,7 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 
     private final static Logger log = Logger.getLogger(SBBScoringFunctionFactory.class);
 
-    private final ScoringParametersForPerson paramsForPerson;
+    private final SBBCharyparNagelScoringParametersForPerson paramsForPerson;
     private final Scenario scenario;
 
     public SBBScoringFunctionFactory(Scenario scenario) {
@@ -35,12 +34,14 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
     @Override
     public ScoringFunction createNewScoringFunction(Person person) {
         Set<String> ptModes = this.scenario.getConfig().transit().getTransitModes();
-        final ScoringParameters params = this.paramsForPerson.getScoringParameters(person);
+        final SBBScoringParameters sbbParams = this.paramsForPerson.getSBBScoringParameters(person);
+        final ScoringParameters params = sbbParams.getMatsimScoringParameters();
         SumScoringFunction sumScoringFunction = new SumScoringFunction();
         sumScoringFunction.addScoringFunction(new CharyparNagelActivityScoring(params));
         sumScoringFunction.addScoringFunction(new SBBCharyparNagelLegScoring(params, this.scenario.getNetwork(), ptModes));
         sumScoringFunction.addScoringFunction(new CharyparNagelMoneyScoring(params));
         sumScoringFunction.addScoringFunction(new CharyparNagelAgentStuckScoring(params));
+        sumScoringFunction.addScoringFunction(new SBBParkingCostScoring(sbbParams.getMarginalUtilityOfParkingPrice()));
         return sumScoringFunction;
     }
 }

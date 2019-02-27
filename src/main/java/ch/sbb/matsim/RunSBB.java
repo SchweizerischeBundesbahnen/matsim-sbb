@@ -13,9 +13,8 @@ import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
-import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
-import ch.sbb.matsim.zones.ZonesCollections;
+import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.zones.ZonesListConfigGroup;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
@@ -84,7 +83,11 @@ public class RunSBB {
                 install(new SwissRailRaptorModule());
                 install(new ZonesModule());
 
-                addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+                Config config = getConfig();
+                ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
+                if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+                    addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+                }
             }
 
             @Provides
@@ -104,6 +107,6 @@ public class RunSBB {
     public static Config buildConfig(String filepath) {
         return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-                new ZonesListConfigGroup());
+                new ZonesListConfigGroup(), new ParkingCostConfigGroup());
     }
 }
