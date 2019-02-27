@@ -14,11 +14,13 @@ import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
+import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
 import com.google.inject.Provides;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
@@ -45,6 +47,9 @@ public class RunSBB {
             config.controler().setOutputDirectory(args[1]);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
+
+        new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car").createVehicles();
+        scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
         Controler controler = new Controler(scenario);
 
