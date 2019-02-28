@@ -54,6 +54,7 @@ public class ParkingCostConfigGroup extends ReflectiveConfigGroup {
         return this.zonesParkingCostAttributeName;
     }
 
+    @StringSetter(PARAM_ZONES_ATTRIBUTE)
     public void setZonesParkingCostAttributeName(String attributeName) {
         this.zonesParkingCostAttributeName = attributeName;
     }

@@ -24,6 +24,9 @@ import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author mrieser
+ */
 public class ParkingCostVehicleTracker implements ActivityStartEventHandler, VehicleEntersTrafficEventHandler, VehicleLeavesTrafficEventHandler {
 
     private final static Logger log = Logger.getLogger(ParkingCostVehicleTracker.class);
@@ -57,11 +60,13 @@ public class ParkingCostVehicleTracker implements ActivityStartEventHandler, Veh
             return;
         }
         Object value = zone.getAttribute(this.parkingCostAttributeName);
-        if (value instanceof Double) {
-            double parkingCost = (Double) value;
+        if (value instanceof Number) {
+            double parkDuration = event.getTime() - pi.startParkingTime;
+            double hourlyParkingCost = ((Number) value).doubleValue();
+            double parkingCost = hourlyParkingCost * (parkDuration / 3600.0);
             this.events.processEvent(new ParkingCostEvent(event.getTime(), pi.driverId, event.getVehicleId(), link.getId(), parkingCost));
         } else if (!this.badAttributeTypeWarningShown) {
-            log.error("ParkingCost attribute must be of type Double, but is of type " + (value == null ? null : value.getClass()) + ". This message is only given once.");
+            log.error("ParkingCost attribute must be of type Double or Integer, but is of type " + (value == null ? null : value.getClass()) + ". This message is only given once.");
             this.badAttributeTypeWarningShown = true;
         }
     }
