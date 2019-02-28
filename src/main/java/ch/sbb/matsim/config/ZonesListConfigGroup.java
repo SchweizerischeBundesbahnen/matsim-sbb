@@ -1,4 +1,4 @@
-package ch.sbb.matsim.zones;
+package ch.sbb.matsim.config;
 
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
@@ -43,7 +43,7 @@ public class ZonesListConfigGroup extends ReflectiveConfigGroup {
         this.zonesGroups.add(zonesGroup);
     }
 
-    Collection<ZonesParameterSet> getZones() {
+    public Collection<ZonesParameterSet> getZones() {
         return this.zonesGroups;
     }
 

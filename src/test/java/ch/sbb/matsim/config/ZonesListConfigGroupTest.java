@@ -1,4 +1,4 @@
-package ch.sbb.matsim.zones;
+package ch.sbb.matsim.config;
 
 import org.junit.Assert;
 import org.junit.Test;

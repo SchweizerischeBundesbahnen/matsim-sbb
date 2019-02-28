@@ -1,5 +1,6 @@
 package ch.sbb.matsim.zones;
 
+import ch.sbb.matsim.config.ZonesListConfigGroup;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.utils.gis.ShapeFileReader;
 import org.opengis.feature.simple.SimpleFeature;

@@ -15,7 +15,7 @@ import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
 import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
-import ch.sbb.matsim.zones.ZonesListConfigGroup;
+import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import org.apache.log4j.Logger;
