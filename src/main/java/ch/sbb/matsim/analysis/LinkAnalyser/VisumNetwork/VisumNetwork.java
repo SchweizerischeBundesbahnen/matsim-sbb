@@ -35,8 +35,8 @@ public class VisumNetwork {
 
     private static final String[] VOLUMES_COLUMNS = new String[]{
             "$LINK:NO",
-            "FROMNODENO",
-            "TONODENO",
+            //"FROMNODENO",
+            //"TONODENO",
             "NBVEHICLES"
     };
 
@@ -134,10 +134,10 @@ public class VisumNetwork {
             for (Map.Entry<Link, Double> entry : linkVolumes.entrySet()) {
                 Link link = entry.getKey();
                 double volume = entry.getValue();
-                String[] ids = link.getId().toString().split("_");
-                writer.set("$LINK:NO", ids[0]);
-                writer.set("FROMNODENO", ids[1]);
-                writer.set("TONODENO", ids[2]);
+                String id = link.getId().toString();
+                writer.set("$LINK:NO", id);
+                //writer.set("FROMNODENO", ids[1]);
+                //writer.set("TONODENO", ids[2]);
                 writer.set("NBVEHICLES", Double.toString(volume));
                 writer.writeRow();
             }
