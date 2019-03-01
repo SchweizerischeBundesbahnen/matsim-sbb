@@ -122,7 +122,6 @@ public class ParkingCostVehicleTrackerTest {
             prepareConfig();
             this.scenario = ScenarioUtils.createScenario(this.config);
             createNetwork();
-            createPopulation();
             loadZones();
             prepareEvents();
         }
@@ -181,53 +180,6 @@ public class ParkingCostVehicleTrackerTest {
             l.setAllowedModes(CollectionUtils.stringToSet("car"));
             l.setNumberOfLanes(1);
             return l;
-        }
-
-        private void createPopulation() {
-            Population pop = this.scenario.getPopulation();
-            PopulationFactory pf = pop.getFactory();
-
-            Id<Person> personId = Id.create("1", Person.class);
-            Person person = pf.createPerson(personId);
-            Plan plan = pf.createPlan();
-            person.addPlan(plan);
-
-            Coord homeCoord = new Coord(545000, 160000);
-            Coord workCoord = new Coord(600000, 195000);
-            Coord shopCoord = new Coord(615000, 175000);
-
-            Activity home1 = pf.createActivityFromCoord("home", homeCoord);
-            home1.setEndTime(7*3600);
-            home1.setLinkId(Id.create("L", Link.class));
-
-            Activity work1 = pf.createActivityFromCoord("work", workCoord);
-            work1.setEndTime(12*3600);
-            work1.setLinkId(Id.create("B", Link.class));
-
-            Activity shop1 = pf.createActivityFromCoord("shop", shopCoord);
-            shop1.setEndTime(13*3600);
-            shop1.setLinkId(Id.create("T", Link.class));
-
-            Activity home2 = pf.createActivityFromCoord("home", homeCoord);
-            home2.setEndTime(15*3600);
-            home2.setLinkId(Id.create("L", Link.class));
-
-            Activity work2 = pf.createActivityFromCoord("work", workCoord);
-            work2.setEndTime(18*3600);
-            work2.setLinkId(Id.create("B", Link.class));
-
-            Activity home3 = pf.createActivityFromCoord("home", homeCoord);
-            home3.setLinkId(Id.create("L", Link.class));
-
-            plan.addActivity(home1);
-            plan.addLeg(pf.createLeg("car"));
-            plan.addActivity(work1);
-            plan.addLeg(pf.createLeg("car"));
-            plan.addActivity(shop1);
-            plan.addLeg(pf.createLeg("car"));
-            plan.addActivity(work2);
-            plan.addLeg(pf.createLeg("car"));
-            plan.addActivity(home3);
         }
 
         private void loadZones() {
