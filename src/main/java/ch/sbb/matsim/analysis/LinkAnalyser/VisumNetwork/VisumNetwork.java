@@ -34,10 +34,8 @@ public class VisumNetwork {
     };
 
     private static final String[] VOLUMES_COLUMNS = new String[]{
-            "$LINK:NO",
-            //"FROMNODENO",
-            //"TONODENO",
-            "NBVEHICLES"
+            "LINK_ID_SIM",
+            "VOLUME_SIM"
     };
 
     private static final String[] LINKS_COLUMNS = new String[]{
@@ -110,6 +108,22 @@ public class VisumNetwork {
 
         try (CSVWriter writer = new CSVWriter(HEADER + "\n" + BENDEFATTR_NET_STRING + "\n", COLUMNS, filename)) {
             writer.writeRow();
+
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public void writeLinkVolumesCSV(String filename, Map<Link, Double> linkVolumes) {
+        try (CSVWriter writer = new CSVWriter("", VOLUMES_COLUMNS, filename)) {
+            for (Map.Entry<Link, Double> entry : linkVolumes.entrySet()) {
+                Link link = entry.getKey();
+                double volume = entry.getValue();
+                String id = link.getId().toString();
+                writer.set("LINK_ID_SIM", id);
+                writer.set("VOLUME_SIM", Double.toString(volume));
+                writer.writeRow();
+            }
 
         } catch (IOException e) {
             throw new UncheckedIOException(e);
