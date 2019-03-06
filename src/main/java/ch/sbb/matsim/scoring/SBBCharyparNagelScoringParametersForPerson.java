@@ -33,7 +33,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
     private final PlanCalcScoreConfigGroup config;
     private final ScenarioConfigGroup scConfig;
-    private final Map<Person, ScoringParameters> paramsPerPerson = new LinkedHashMap<>();
+    private final Map<Person, SBBScoringParameters> paramsPerPerson = new LinkedHashMap<>();
     private final ObjectAttributes personAttributes;
     private final String subpopulationAttributeName;
     private final TransitConfigGroup transitConfigGroup;
@@ -65,56 +65,80 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
     @Override
     public ScoringParameters getScoringParameters(Person person) {
-        if (!this.paramsPerPerson.containsKey(person)) {
-            final String subpopulation = (String) personAttributes.getAttribute(person.getId().toString(), subpopulationAttributeName);
-
-            ScoringParameters.Builder builder = new ScoringParameters.Builder(
-                    this.config, this.config.getScoringParameters(subpopulation),
-                    scConfig);
-
-            // building the customized scoring parameters for each person depending on his behavior group
-            for(String mode: this.config.getModes().keySet()) {
-                final PlanCalcScoreConfigGroup.ModeParams defaultModeParams = this.config.getModes().get(mode);
-                final ModeUtilityParameters.Builder modeParameteresBuilder = new ModeUtilityParameters.Builder(defaultModeParams);
-
-                double constant = defaultModeParams.getConstant();
-                double margUtilTime = defaultModeParams.getMarginalUtilityOfTraveling();
-                double margUtilDistance = defaultModeParams.getMarginalUtilityOfDistance();
-                double monDistRate = defaultModeParams.getMonetaryDistanceRate();
-
-                for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bgp : behaviorGroupsConfigGroup.getBehaviorGroupParams().values()) {
-                    Object personAttributeObj = person.getAttributes().getAttribute(bgp.getPersonAttribute());
-                    if (personAttributeObj == null) continue;
-
-                    String personAttribute;
-                    if(personAttributeObj instanceof Integer)
-                        personAttribute = Integer.toString((int) personAttributeObj);
-                    else if(personAttributeObj instanceof Double)
-                        personAttribute = Double.toString((double) personAttributeObj);
-                    else
-                        personAttribute = (String) personAttributeObj;
-
-                    SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues pgt = bgp.getPersonGroupByAttribute(personAttribute);
-                    if(pgt == null) continue;
-
-                    SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = pgt.getModeCorrectionsForMode(mode);
-                    if(modeCorrection == null)  continue;
-
-                    constant += modeCorrection.getConstant();
-                    margUtilTime += modeCorrection.getMargUtilOfTime();
-                    margUtilDistance += modeCorrection.getMargUtilOfDistance();
-                    monDistRate += modeCorrection.getDistanceRate();
-                }
-
-                modeParameteresBuilder.setConstant(constant);
-                modeParameteresBuilder.setMarginalUtilityOfDistance_m(margUtilDistance);
-                modeParameteresBuilder.setMarginalUtilityOfTraveling_s(margUtilTime / 3600);
-                modeParameteresBuilder.setMonetaryDistanceRate(monDistRate);
-                builder.setModeParameters(mode, modeParameteresBuilder);
-            }
-            ScoringParameters params = builder.build();
-            this.paramsPerPerson.put(person, params);
-        }
-        return this.paramsPerPerson.get(person);
+        SBBScoringParameters sbbParams = getSBBScoringParameters(person);
+        return sbbParams.getMatsimScoringParameters();
     }
+
+    public SBBScoringParameters getSBBScoringParameters(Person person) {
+        SBBScoringParameters sbbParams = this.paramsPerPerson.get(person);
+        if (sbbParams != null) {
+            return sbbParams;
+        }
+
+        final String subpopulation = (String) personAttributes.getAttribute(person.getId().toString(), subpopulationAttributeName);
+
+        SBBScoringParameters.Builder builder = new SBBScoringParameters.Builder(
+                this.config, this.config.getScoringParameters(subpopulation),
+                this.scConfig, this.behaviorGroupsConfigGroup);
+
+        // building the customized scoring parameters for each person depending on his behavior group
+        // first the non-mode specific parameters
+        double marginalUtilityOfParkingPrice = this.behaviorGroupsConfigGroup.getMarginalUtilityOfParkingPrice();
+        double transferUtilityPerTravelTime = this.behaviorGroupsConfigGroup.getTransferUtilityPerTravelTime_utils_hr();
+
+        for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bgp : behaviorGroupsConfigGroup.getBehaviorGroupParams().values()) {
+            Object personAttributeObj = person.getAttributes().getAttribute(bgp.getPersonAttribute());
+            if (personAttributeObj == null) continue;
+
+            String personAttribute = personAttributeObj.toString();
+
+            SBBBehaviorGroupsConfigGroup.PersonGroupValues pgt = bgp.getPersonGroupByAttribute(personAttribute);
+            if(pgt == null) continue;
+
+            marginalUtilityOfParkingPrice += pgt.getDeltaMarginalUtilityOfParkingPrice();
+            transferUtilityPerTravelTime += pgt.getDeltaTransferUtilityPerTravelTime();
+        }
+        builder.setMarginalUtilityOfParkingPrice(marginalUtilityOfParkingPrice);
+        builder.setTransferUtilityPerTravelTime(transferUtilityPerTravelTime);
+
+        // collect the values for each mode
+        for (String mode: this.config.getModes().keySet()) {
+            final PlanCalcScoreConfigGroup.ModeParams defaultModeParams = this.config.getModes().get(mode);
+            final ModeUtilityParameters.Builder modeParameteresBuilder = new ModeUtilityParameters.Builder(defaultModeParams);
+
+            double constant = defaultModeParams.getConstant();
+            double margUtilTime = defaultModeParams.getMarginalUtilityOfTraveling();
+            double margUtilDistance = defaultModeParams.getMarginalUtilityOfDistance();
+            double monDistRate = defaultModeParams.getMonetaryDistanceRate();
+
+            for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bgp : behaviorGroupsConfigGroup.getBehaviorGroupParams().values()) {
+                Object personAttributeObj = person.getAttributes().getAttribute(bgp.getPersonAttribute());
+                if (personAttributeObj == null) continue;
+
+                String personAttribute = personAttributeObj.toString();
+
+                SBBBehaviorGroupsConfigGroup.PersonGroupValues pgt = bgp.getPersonGroupByAttribute(personAttribute);
+                if (pgt == null) continue;
+
+                SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = pgt.getModeCorrectionsForMode(mode);
+                if (modeCorrection == null) continue;
+
+                constant += modeCorrection.getConstant();
+                margUtilTime += modeCorrection.getMargUtilOfTime();
+                margUtilDistance += modeCorrection.getMargUtilOfDistance();
+                monDistRate += modeCorrection.getDistanceRate();
+            }
+
+            modeParameteresBuilder.setConstant(constant);
+            modeParameteresBuilder.setMarginalUtilityOfDistance_m(margUtilDistance);
+            modeParameteresBuilder.setMarginalUtilityOfTraveling_s(margUtilTime / 3600);
+            modeParameteresBuilder.setMonetaryDistanceRate(monDistRate);
+            builder.getMatsimScoringParametersBuilder().setModeParameters(mode, modeParameteresBuilder);
+        }
+        sbbParams = builder.build();
+        this.paramsPerPerson.put(person, sbbParams);
+
+        return sbbParams;
+    }
+
 }
