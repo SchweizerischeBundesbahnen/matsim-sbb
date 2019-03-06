@@ -17,13 +17,13 @@ public final class ZonesLoader {
     private ZonesLoader() {
     }
 
-    public static void loadAllZones(ZonesListConfigGroup config, ZonesCollections zonesCollections) {
+    public static void loadAllZones(ZonesListConfigGroup config, ZonesCollection zonesCollection) {
         for (ZonesListConfigGroup.ZonesParameterSet group : config.getZones()) {
             String id = group.getId();
             String filename = group.getFilename();
             String idAttribute = group.getIdAttributeName();
             Zones zones = loadZones(id, filename, idAttribute);
-            zonesCollections.addZones(zones);
+            zonesCollection.addZones(zones);
         }
     }
 

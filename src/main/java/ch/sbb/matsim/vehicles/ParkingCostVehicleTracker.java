@@ -3,7 +3,7 @@ package ch.sbb.matsim.vehicles;
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.events.ParkingCostEvent;
 import ch.sbb.matsim.zones.Zone;
-import ch.sbb.matsim.zones.ZonesCollections;
+import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesQueryCache;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -40,7 +40,7 @@ public class ParkingCostVehicleTracker implements ActivityStartEventHandler, Veh
     private boolean badAttributeTypeWarningShown = false;
 
     @Inject
-    public ParkingCostVehicleTracker(Scenario scenario, ZonesCollections zones, EventsManager events) {
+    public ParkingCostVehicleTracker(Scenario scenario, ZonesCollection zones, EventsManager events) {
         this.scenario = scenario;
         ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), ParkingCostConfigGroup.class);
         this.zonesQuery = new ZonesQueryCache(zones.getZones(parkCostConfig.getZonesId()));

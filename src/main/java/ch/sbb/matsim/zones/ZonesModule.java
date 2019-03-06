@@ -13,10 +13,10 @@ public class ZonesModule extends AbstractModule {
     @Override
     public void install() {
         Config config = getConfig();
-        ZonesCollections allZonesCollections = new ZonesCollections();
-        ZonesLoader.loadAllZones(ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class), allZonesCollections);
+        ZonesCollection zonesCollection = new ZonesCollection();
+        ZonesLoader.loadAllZones(ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class), zonesCollection);
 
-        bind(ZonesCollections.class).toInstance(allZonesCollections);
+        bind(ZonesCollection.class).toInstance(zonesCollection);
     }
 
 }

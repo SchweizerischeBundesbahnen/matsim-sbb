@@ -11,11 +11,11 @@ import java.util.Map;
  *
  * @author mrieser
  */
-public class ZonesCollections {
+public class ZonesCollection {
 
     private final Map<Id<Zones>, Zones> zonesMap;
 
-    public ZonesCollections() {
+    public ZonesCollection() {
         this.zonesMap = new HashMap<>();
     }
 

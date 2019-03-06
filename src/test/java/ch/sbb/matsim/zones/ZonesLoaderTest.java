@@ -21,10 +21,10 @@ public class ZonesLoaderTest {
     public void testLoadAllZones() {
         ZonesListConfigGroup cfg = new ZonesListConfigGroup();
         cfg.addZones(new ZonesListConfigGroup.ZonesParameterSet("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP", "ID"));
-        ZonesCollections zonesCollections = new ZonesCollections();
-        ZonesLoader.loadAllZones(cfg, zonesCollections);
+        ZonesCollection zonesCollection = new ZonesCollection();
+        ZonesLoader.loadAllZones(cfg, zonesCollection);
 
-        Zones testZones = zonesCollections.getZones(Id.create("testZones", Zones.class));
+        Zones testZones = zonesCollection.getZones(Id.create("testZones", Zones.class));
         Assert.assertNotNull(testZones);
         Assert.assertEquals(5, testZones.size());
     }

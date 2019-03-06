@@ -5,7 +5,7 @@ import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.events.ParkingCostEvent;
 import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
-import ch.sbb.matsim.zones.ZonesCollections;
+import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
 import ch.sbb.matsim.zones.ZonesModule;
 import org.apache.log4j.Logger;
@@ -125,7 +125,7 @@ public class ParkingCostScoringIT {
     private static class Fixture {
         Config config;
         Scenario scenario;
-        ZonesCollections zones = new ZonesCollections();
+        ZonesCollection zones = new ZonesCollection();
         EventsManager events;
 
         Fixture() {
