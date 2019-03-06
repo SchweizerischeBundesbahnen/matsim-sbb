@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 
@@ -52,10 +53,16 @@ public class XLSXScoringParser {
     static final String MARGINAL_UTILITY_OF_DISTANCE = "marginalUtilityOfDistance_util_m";
     static final String MONETARY_DISTANCE_RATE = "monetaryDistanceRate";
 
-    static final String[] GENERAL_PARAMS_ARRAY = new String[] {UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
-    static final String[] MODE_PARAMS_ARRAY = new String[] {CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
-    static final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
-    static final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
+    private static final String GLOBAL = "global";
+    static final String MARGINAL_UTILITY_OF_PARKINGPRICE = "marginalUtilityOfParkingPrice";
+    static final String TRANSFER_UTILITY_PER_TRAVEL_TIME = "transferUtilityPerTravelTime";
+
+    private static final String[] GENERAL_PARAMS_ARRAY = new String[] {UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
+    private static final String[] MODE_PARAMS_ARRAY = new String[] {CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
+    private static final String[] SBB_GENERAL_PARAMS_ARRAY = new String[] {MARGINAL_UTILITY_OF_PARKINGPRICE, TRANSFER_UTILITY_PER_TRAVEL_TIME};
+    private static final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
+    private static final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
+    private static final Set<String> SBB_GENERAL_PARAMS = new HashSet<>(Arrays.asList(SBB_GENERAL_PARAMS_ARRAY));
 
     static final String BEHAVIOR_GROUP_LABEL = "BehaviorGroup";
 
@@ -68,15 +75,11 @@ public class XLSXScoringParser {
 
         final Config config = RunSBB.buildConfig(configIn);
 
-        XLSXScoringParser scoringParser = new XLSXScoringParser();
-        try {
-            FileInputStream inputStream = new FileInputStream(xlsx);
+        try (FileInputStream inputStream = new FileInputStream(xlsx)) {
             Workbook workbook = WorkbookFactory.create(inputStream);
 
-            scoringParser.parseXLSXWorkbook(workbook, config);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InvalidFormatException e) {
+            XLSXScoringParser.parseXLSXWorkbook(workbook, config);
+        } catch (IOException | InvalidFormatException e) {
             e.printStackTrace();
         }
 
@@ -96,13 +99,13 @@ public class XLSXScoringParser {
      */
     public static void parseXLSXWorkbook(Workbook workbook, Config config) {
         PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
-        SBBBehaviorGroupsConfigGroup behaviorGroupConfigGroup = (SBBBehaviorGroupsConfigGroup) config.getModules().get(SBBBehaviorGroupsConfigGroup.GROUP_NAME);
+        SBBBehaviorGroupsConfigGroup behaviorGroupConfigGroup = ConfigUtils.addOrGetModule(config, SBBBehaviorGroupsConfigGroup.class);
 
         for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
             Sheet paramsSheet = workbook.getSheetAt(sheetIndex);
 
             if (paramsSheet.getSheetName().equals(SCORING_SHEET)) {
-                parseScoringParamsSheet(paramsSheet, planCalcScore);
+                parseScoringParamsSheet(paramsSheet, planCalcScore, behaviorGroupConfigGroup);
                 log.info("parsed general scoring parameters sheet: " + SCORING_SHEET);
             } else {
                 parseBehaviorGroupParamsSheet(paramsSheet, behaviorGroupConfigGroup);
@@ -122,7 +125,7 @@ public class XLSXScoringParser {
      * @param scoringParamsSheet (required) the workbook sheet, usually labelled "ScoringParams"
      * @param planCalcScore (required) MATSim configGroup instance
      */
-    protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore) {
+    protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore, SBBBehaviorGroupsConfigGroup sbbParams) {
         Map<Integer, PlanCalcScoreConfigGroup.ModeParams> modeParamsConfig = new TreeMap<>();
         Set<String> modes = new TreeSet<>();
         Integer generalParamsCol = null;
@@ -191,6 +194,22 @@ public class XLSXScoringParser {
                             log.warn("could not parse parameter " + rowLabel + ". Cell value is not numeric.");
                         }
                     }
+                } else if (SBB_GENERAL_PARAMS.contains(rowLabel)) {
+                    Cell cell = row.getCell(generalParamsCol);
+
+                    if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+                        double paramValue = cell.getNumericCellValue();
+                        switch (rowLabel) {
+                            case MARGINAL_UTILITY_OF_PARKINGPRICE:
+                                sbbParams.setMarginalUtilityOfParkingPrice(paramValue);
+                                break;
+                            case TRANSFER_UTILITY_PER_TRAVEL_TIME:
+                                sbbParams.setTransferUtilityPerTravelTime_utils_hr(paramValue);
+                                break;
+                            default:
+                                log.error("Unsupported parameter: " + rowLabel);
+                        }
+                    }
                 }
             }
         }
@@ -211,99 +230,132 @@ public class XLSXScoringParser {
      */
     protected static void parseBehaviorGroupParamsSheet(Sheet behaviorGroupParamsSheet, SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup) {
         Map<Integer, String> modes = new TreeMap<>();
+        int globalColumnIndex = -1;
         String personAttributeKey = null;
 
         /** Value - {@value}, temporary container for ModeCorrection instances */
         Map<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> modeCorrections = new HashMap<>();
+        Map<String, SBBBehaviorGroupsConfigGroup.PersonGroupValues> groupCorrections = new HashMap<>();
 
         SBBBehaviorGroupsConfigGroup.BehaviorGroupParams behaviorGroupParams = null;
 
         for (Row row : behaviorGroupParamsSheet) {
             Cell firstCell = row.getCell(0);
 
-            if (firstCell != null) {
-                String rowLabel;
+            if (firstCell == null) {
+                continue; // ignore empty rows
+            }
 
-                if (firstCell.getCellTypeEnum() == CellType.STRING) {
-                    rowLabel = firstCell.getStringCellValue();
-                } else if (firstCell.getCellTypeEnum() == CellType.NUMERIC) {
-                    rowLabel = String.valueOf((int) firstCell.getNumericCellValue());
-                } else {
-                    continue;
+            String rowLabel;
+
+            if (firstCell.getCellTypeEnum() == CellType.STRING) {
+                rowLabel = firstCell.getStringCellValue();
+            } else if (firstCell.getCellTypeEnum() == CellType.NUMERIC) {
+                rowLabel = String.valueOf((int) firstCell.getNumericCellValue());
+            } else {
+                continue; // ignore rows not starting with a String or Numeric value (e.g. formula in A1)
+            }
+
+            if (rowLabel.equals(BEHAVIOR_GROUP_LABEL)) {
+                Row belowRow = behaviorGroupParamsSheet.getRow(row.getRowNum() + 1);
+                Cell belowCell = belowRow.getCell(0);
+
+                if (belowCell.getCellTypeEnum() == CellType.STRING) {
+                    personAttributeKey = belowCell.getStringCellValue();
+                    behaviorGroupParams = new SBBBehaviorGroupsConfigGroup.BehaviorGroupParams();
+                    behaviorGroupParams.setBehaviorGroupName(behaviorGroupParamsSheet.getSheetName());
+                    behaviorGroupParams.setPersonAttribute(personAttributeKey);
                 }
 
-                if (rowLabel.equals(BEHAVIOR_GROUP_LABEL)) {
-                    Row belowRow = behaviorGroupParamsSheet.getRow(row.getRowNum() + 1);
-                    Cell belowCell = belowRow.getCell(0);
+                continue; // parse next row, which should be the one with the personAttributeKey at the beginning
+            }
 
-                    if (belowCell.getCellTypeEnum() == CellType.STRING) {
-                        personAttributeKey = belowCell.getStringCellValue();
-                        behaviorGroupParams = new SBBBehaviorGroupsConfigGroup.BehaviorGroupParams();
-                        behaviorGroupParams.setBehaviorGroupName(behaviorGroupParamsSheet.getSheetName());
-                        behaviorGroupParams.setPersonAttribute(personAttributeKey);
+            if (rowLabel.equals(personAttributeKey)) {
+                // this is the row that lists the different modes
+                int lastColumn = row.getLastCellNum();
+
+                for (int col = 1; col < lastColumn; col++) {
+                    Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+
+                    if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
+                        String mode = cell.getStringCellValue();
+
+                        if (GLOBAL.equals(mode)) {
+                            if (globalColumnIndex < 0) {
+                                globalColumnIndex = col;
+                            }
+                        } else if (!modes.containsValue(mode)) {
+                            modes.put(col, mode);
+                        }
                     }
-
-                    continue;
                 }
+            } else {
+                // this seems to be a row with actual values
+                Cell secondCell = row.getCell(1);
 
-                if ((personAttributeKey != null) && (rowLabel.equals(personAttributeKey))) {
-                    int lastColumn = row.getLastCellNum();
+                if ((secondCell != null) && (secondCell.getCellTypeEnum() == CellType.STRING)) {
+                    String parameterLabel = secondCell.getStringCellValue();
 
-                    for (int col = 1; col < lastColumn; col++) {
-                        Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                    if (MODE_PARAMS.contains(parameterLabel)) {
+                        if (!modeCorrections.containsKey(rowLabel)) {
+                            modeCorrections.put(rowLabel, new HashMap<>());
 
-                        if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
-                            String mode = cell.getStringCellValue();
+                            for (Map.Entry<Integer, String> modeEntry : modes.entrySet()) {
+                                SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
+                                modeCorrection.setMode(modeEntry.getValue());
 
-                            if (!modes.containsValue(mode)) {
-                                modes.put(col, mode);
+                                modeCorrections.get(rowLabel).put(modeEntry.getValue(), modeCorrection);
+                            }
+                        }
+
+                        for (Map.Entry<Integer, String> entry : modes.entrySet()) {
+                            SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = modeCorrections.get(rowLabel).get(entry.getValue());
+                            Cell cell = row.getCell(entry.getKey());
+
+                            if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+                                try {
+                                    double numericCellValue = cell.getNumericCellValue();
+
+                                    switch (parameterLabel) {
+                                        case CONSTANT:
+                                            modeCorrection.setConstant(numericCellValue);
+                                            break;
+                                        case MARGINAL_UTILITY_OF_DISTANCE:
+                                            modeCorrection.setMargUtilOfDistance(numericCellValue);
+                                            break;
+                                        case MARGINAL_UTILITY_OF_TRAVELING:
+                                            modeCorrection.setMargUtilOfTime(numericCellValue);
+                                            break;
+                                        case MONETARY_DISTANCE_RATE:
+                                            modeCorrection.setDistanceRate(numericCellValue);
+                                            break;
+                                    }
+                                } catch (IllegalStateException e) {
+                                    log.warn("could not parse parameter " + rowLabel + " for mode " + entry.getValue() + ". Cell value is not numeric.");
+                                }
                             }
                         }
                     }
-                } else {
-                    Cell secondCell = row.getCell(1);
+                    if (SBB_GENERAL_PARAMS.contains(parameterLabel)) {
+                        Cell cell = row.getCell(globalColumnIndex);
+                        SBBBehaviorGroupsConfigGroup.PersonGroupValues groupCorrection  = groupCorrections.computeIfAbsent(rowLabel, k -> new SBBBehaviorGroupsConfigGroup.PersonGroupValues());
 
-                    if ((secondCell != null) && (secondCell.getCellTypeEnum() == CellType.STRING)) {
-                        String parameterLabel = secondCell.getStringCellValue();
+                        if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+                            try {
+                                double numericCellValue = cell.getNumericCellValue();
 
-                        if (MODE_PARAMS.contains(parameterLabel)) {
-                            if (!modeCorrections.containsKey(rowLabel)) {
-                                modeCorrections.put(rowLabel, new HashMap<>());
-
-                                for (Map.Entry<Integer, String> modeEntry : modes.entrySet()) {
-                                    SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
-                                    modeCorrection.setMode(modeEntry.getValue());
-
-                                    modeCorrections.get(rowLabel).put(modeEntry.getValue(), modeCorrection);
+                                switch (parameterLabel) {
+                                    case MARGINAL_UTILITY_OF_PARKINGPRICE:
+                                        groupCorrection.setDeltaMarginalUtilityOfParkingPrice(numericCellValue);
+                                        break;
+                                    case TRANSFER_UTILITY_PER_TRAVEL_TIME:
+                                        groupCorrection.setDeltaTransferUtilityPerTravelTime(numericCellValue);
+                                        break;
+                                    default:
+                                        log.error("Unsupported parameter: " + parameterLabel);
                                 }
-                            }
-
-                            for (Map.Entry<Integer, String> entry : modes.entrySet()) {
-                                SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = modeCorrections.get(rowLabel).get(entry.getValue());
-                                Cell cell = row.getCell(entry.getKey());
-
-                                if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
-                                    try {
-                                        double numericCellValue = cell.getNumericCellValue();
-
-                                        switch (parameterLabel) {
-                                            case CONSTANT:
-                                                modeCorrection.setConstant(numericCellValue);
-                                                break;
-                                            case MARGINAL_UTILITY_OF_DISTANCE:
-                                                modeCorrection.setMargUtilOfDistance(numericCellValue);
-                                                break;
-                                            case MARGINAL_UTILITY_OF_TRAVELING:
-                                                modeCorrection.setMargUtilOfTime(numericCellValue);
-                                                break;
-                                            case MONETARY_DISTANCE_RATE:
-                                                modeCorrection.setDistanceRate(numericCellValue);
-                                                break;
-                                        }
-                                    } catch (IllegalStateException e) {
-                                        log.warn("could not parse parameter " + rowLabel + " for mode " + entry.getValue() + ". Cell value is not numeric.");
-                                    }
-                                }
+                            } catch (IllegalStateException e) {
+                                log.warn("could not parse parameter " + rowLabel + ". Cell value is not numeric.");
                             }
                         }
                     }
@@ -311,24 +363,24 @@ public class XLSXScoringParser {
             }
         }
 
-        /** iterate over modeCorrections, only add those with non-null values */
+        /* iterate over modeCorrections, only add those with non-null values */
         if (behaviorGroupParams != null) {
             for (Map.Entry<String, Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection>> modeCorrectionsEntry : modeCorrections.entrySet()) {
                 String personAttributeValues = modeCorrectionsEntry.getKey();
                 Map<String, SBBBehaviorGroupsConfigGroup.ModeCorrection> modeCorrectionsPerMode = modeCorrectionsEntry.getValue();
 
-                SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues attributeValues = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
-                attributeValues.setPersonGroupAttributeValues(personAttributeValues);
+                SBBBehaviorGroupsConfigGroup.PersonGroupValues groupValues = groupCorrections.computeIfAbsent(personAttributeValues, k -> new SBBBehaviorGroupsConfigGroup.PersonGroupValues());
+                groupValues.setPersonGroupAttributeValues(personAttributeValues);
 
                 for (SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection : modeCorrectionsPerMode.values()) {
                     if (modeCorrection.isSet()) {
-                        attributeValues.addModeCorrection(modeCorrection);
+                        groupValues.addModeCorrection(modeCorrection);
                         log.info("adding modeCorrection for " + personAttributeKey + "/" + personAttributeValues + " for mode " + modeCorrection.getMode());
                     }
                 }
 
-                if (!attributeValues.getModeCorrectionParams().isEmpty()) {
-                    behaviorGroupParams.addPersonGroupByAttribute(attributeValues);
+                if (groupValues.isSet()) {
+                    behaviorGroupParams.addPersonGroupByAttribute(groupValues);
                 }
             }
 

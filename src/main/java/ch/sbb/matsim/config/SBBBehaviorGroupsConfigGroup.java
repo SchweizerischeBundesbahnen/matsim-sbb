@@ -29,6 +29,9 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
     static private final String PARAMSET_PERSONGROUPATTRIBUTE = "personGroupAttributeValues";
     static private final String PARAMSET_ABSOLUTEMODECORRECTIONS = "absoluteModeCorrections";
 
+    public static final String PARAM_MARGINAL_UTILITY_OF_PARKING_PRICE = "marginalUtilityOfParkingPrice";
+    public static final String PARAM_TRANSFER_UTILITY_PER_TRAVEL_TIME = "transferUtilityPerTravelTime";
+
     static private final String PARAM_NAME = "name";
     static private final String PARAM_PERSONATTRIBUTE = "personAttribute";
     static private final String PARAM_ATTRIBUTE = "attributeValues";
@@ -37,6 +40,11 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
     static private final String PARAM_DELTAUTILDISTANCE = "deltaMarginalUtilityOfDistance_util_m";
     static private final String PARAM_DELTAUTILTIME = "deltaMarginalUtilityOfTraveling_util_hr";
     static private final String PARAM_DELTADISTANCERATE = "deltaMonetaryDistanceRate";
+    static private final String PARAM_DELTAPARKINGPRICE = "deltaMarginalUtilityOfParkingPrice_util_money";
+    static private final String PARAM_DELTATRANSFERUTILITYPERHOUR = "deltaTransferUtilityPerTravelTime_util_hr";
+
+    private double marginalUtilityOfParkingPrice = 0.0;
+    private double transferUtilityPerTravelTime_utilsPerHour = 0;
 
     public SBBBehaviorGroupsConfigGroup() {
         super(GROUP_NAME);
@@ -94,6 +102,50 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         super.addParameterSet( params );
     }
 
+    @Override
+    public Map<String, String> getComments() {
+        Map<String, String> map = super.getComments();
+        map.put(PARAM_MARGINAL_UTILITY_OF_PARKING_PRICE, "[utils/money]");
+        map.put(PARAM_TRANSFER_UTILITY_PER_TRAVEL_TIME, "[utils/hour] transfer penalty in utils, depending on the total transit travel time.");
+        return map;
+    }
+
+    @StringSetter(PARAM_MARGINAL_UTILITY_OF_PARKING_PRICE)
+    public void setMarginalUtilityOfParkingPrice(String marginalUtilityOfParkingPrice) {
+        this.marginalUtilityOfParkingPrice = Double.parseDouble(marginalUtilityOfParkingPrice);
+    }
+
+    @StringGetter(PARAM_MARGINAL_UTILITY_OF_PARKING_PRICE)
+    public String getMarginalUtilityOfParkingPrice_asString() {
+        return Double.toString(this.marginalUtilityOfParkingPrice);
+    }
+
+    public void setMarginalUtilityOfParkingPrice(double marginalUtilityOfParkingPrice) {
+        this.marginalUtilityOfParkingPrice = marginalUtilityOfParkingPrice;
+    }
+
+    public double getMarginalUtilityOfParkingPrice() {
+        return this.marginalUtilityOfParkingPrice;
+    }
+
+    @StringSetter(PARAM_TRANSFER_UTILITY_PER_TRAVEL_TIME)
+    public void setTransferUtilityPerTravelTime(String factor) {
+        this.transferUtilityPerTravelTime_utilsPerHour = Double.parseDouble(factor);
+    }
+
+    @StringGetter(PARAM_TRANSFER_UTILITY_PER_TRAVEL_TIME)
+    public String getTransferUtilityPerTravelTime_asString() {
+        return Double.toString(this.transferUtilityPerTravelTime_utilsPerHour);
+    }
+
+    public void setTransferUtilityPerTravelTime_utils_hr(double factor) {
+        this.transferUtilityPerTravelTime_utilsPerHour = factor;
+    }
+
+    public double getTransferUtilityPerTravelTime_utils_hr() {
+        return this.transferUtilityPerTravelTime_utilsPerHour;
+    }
+
     public static class BehaviorGroupParams extends ReflectiveConfigGroup {
         public static final String SET_TYPE = PARAMSET_BEHAVIORGROUP;
 
@@ -142,8 +194,8 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         @Override
         public ConfigGroup createParameterSet(final String type) {
             switch ( type ) {
-                case PersonGroupAttributeValues.SET_TYPE:
-                    return new PersonGroupAttributeValues();
+                case PersonGroupValues.SET_TYPE:
+                    return new PersonGroupValues();
                 default:
                     throw new IllegalArgumentException( type );
             }
@@ -152,10 +204,10 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         @Override
         protected void checkParameterSet( final ConfigGroup module ) {
             switch ( module.getName() ) {
-                case PersonGroupAttributeValues.SET_TYPE:
-                    if ( !(module instanceof PersonGroupAttributeValues) )
+                case PersonGroupValues.SET_TYPE:
+                    if ( !(module instanceof PersonGroupValues) )
                         throw new RuntimeException( "wrong class for " + module );
-                    final Set<String> t = ((PersonGroupAttributeValues) module).getPersonGroupAttributeValues();
+                    final Set<String> t = ((PersonGroupValues) module).getPersonGroupAttributeValues();
                     for(String value: t) {
                         if (getPersonGroupByAttribute(value) != null)
                             throw new IllegalStateException("already a parameter set for attribute value " + t);
@@ -170,26 +222,26 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
             return this.getPersonGroupByAttribute().keySet();
         }
 
-        public Map<String, PersonGroupAttributeValues> getPersonGroupByAttribute() {
-            final Map<String, PersonGroupAttributeValues> map = new LinkedHashMap<>();
-            for ( ConfigGroup pars : getParameterSets( PersonGroupAttributeValues.SET_TYPE ) ) {
-                final Set<String> attributeValues = ((PersonGroupAttributeValues) pars).getPersonGroupAttributeValues();
+        public Map<String, PersonGroupValues> getPersonGroupByAttribute() {
+            final Map<String, PersonGroupValues> map = new LinkedHashMap<>();
+            for ( ConfigGroup pars : getParameterSets( PersonGroupValues.SET_TYPE ) ) {
+                final Set<String> attributeValues = ((PersonGroupValues) pars).getPersonGroupAttributeValues();
                 for(String value: attributeValues) {
-                    final PersonGroupAttributeValues old = map.put(value, (PersonGroupAttributeValues) pars);
+                    final PersonGroupValues old = map.put(value, (PersonGroupValues) pars);
                     if (old != null) throw new IllegalStateException("several parameter sets for attribute value " + value);
                 }
             }
             return map;
         }
 
-        public PersonGroupAttributeValues getPersonGroupByAttribute(final String value) {
+        public PersonGroupValues getPersonGroupByAttribute(final String value) {
             return this.getPersonGroupByAttribute().get(value);
         }
 
-        public void addPersonGroupByAttribute(final PersonGroupAttributeValues values) {
+        public void addPersonGroupByAttribute(final PersonGroupValues values) {
             Set<String> attributes = values.getPersonGroupAttributeValues();
             for(String attribute: attributes) {
-                final PersonGroupAttributeValues previous = this.getPersonGroupByAttribute().get(attribute);
+                final PersonGroupValues previous = this.getPersonGroupByAttribute().get(attribute);
                 if (previous != null) {
                     final boolean removed = removeParameterSet(previous);
                     if (!removed) throw new RuntimeException("problem replacing person group type params");
@@ -199,12 +251,15 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         }
     }
 
-    public static class PersonGroupAttributeValues extends ReflectiveConfigGroup {
+    public static class PersonGroupValues extends ReflectiveConfigGroup {
         public static final String SET_TYPE = PARAMSET_PERSONGROUPATTRIBUTE;
 
         private Set<String> attributeValues = new HashSet<>();
 
-        public PersonGroupAttributeValues() {
+        private double deltaMarginalUtilityOfParkingPrice = 0.0;
+        private double deltaTransferUtilityPerTravelTime = 0.0;
+
+        public PersonGroupValues() {
             super(PARAMSET_PERSONGROUPATTRIBUTE);
         }
 
@@ -231,6 +286,42 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         private void setPersonGroupAttributeValues(Set<String> values) {
             this.attributeValues.clear();
             this.attributeValues.addAll(values);
+        }
+
+        @StringGetter(PARAM_DELTAPARKINGPRICE)
+        public String getDeltaMarginalUtilityOfParkingPrice_asString() {
+            return Double.toString(this.deltaMarginalUtilityOfParkingPrice);
+        }
+
+        @StringSetter(PARAM_DELTAPARKINGPRICE)
+        public void setDeltaMarginalUtilityOfParkingPrice(String value) {
+            this.deltaMarginalUtilityOfParkingPrice = Double.valueOf(value);
+        }
+
+        public double getDeltaMarginalUtilityOfParkingPrice() {
+            return this.deltaMarginalUtilityOfParkingPrice;
+        }
+
+        public void setDeltaMarginalUtilityOfParkingPrice(double value) {
+            this.deltaMarginalUtilityOfParkingPrice = value;
+        }
+
+        @StringGetter(PARAM_DELTATRANSFERUTILITYPERHOUR)
+        public String getDeltaTransferUtilityPerTravelTime_asString() {
+            return Double.toString(this.deltaTransferUtilityPerTravelTime);
+        }
+
+        @StringSetter(PARAM_DELTATRANSFERUTILITYPERHOUR)
+        public void setDeltaTransferUtilityPerTravelTime(String value) {
+            this.deltaTransferUtilityPerTravelTime = Double.valueOf(value);
+        }
+
+        public double getDeltaTransferUtilityPerTravelTime() {
+            return this.deltaTransferUtilityPerTravelTime;
+        }
+
+        public void setDeltaTransferUtilityPerTravelTime(double value) {
+            this.deltaTransferUtilityPerTravelTime = value;
         }
 
         @Override
@@ -292,6 +383,10 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
                 if ( !removed ) throw new RuntimeException( "problem replacing mode correction params " );
             }
             super.addParameterSet( modeCorrection );
+        }
+
+        public boolean isSet() {
+            return !this.getModeCorrectionParams().isEmpty() || this.deltaMarginalUtilityOfParkingPrice != 0.0 || this.deltaTransferUtilityPerTravelTime != 0.0;
         }
     }
 

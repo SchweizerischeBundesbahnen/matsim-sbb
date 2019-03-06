@@ -16,6 +16,9 @@ import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
+import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
+import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -50,9 +53,11 @@ public class RunSBB {
         Scenario scenario = ScenarioUtils.loadScenario(config);
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
+        // vehicle types
         new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car").createVehicles();
         scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
+        // controler
         Controler controler = new Controler(scenario);
 
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
@@ -81,6 +86,13 @@ public class RunSBB {
 
                 install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
+                install(new ZonesModule());
+
+                Config config = getConfig();
+                ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
+                if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+                    addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+                }
             }
 
             @Provides
@@ -92,13 +104,14 @@ public class RunSBB {
             }
         });
 
-        new AccessEgress(controler).installAccessTime();
+        controler.addOverridingModule(new AccessEgress(scenario));
 
         controler.run();
     }
 
     public static Config buildConfig(String filepath) {
         return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-                new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup());
+                new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
+                new ZonesListConfigGroup(), new ParkingCostConfigGroup());
     }
 }
