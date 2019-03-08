@@ -15,24 +15,25 @@ public class SBBS3ConfigGroup extends ReflectiveConfigGroup {
 
     static public final String GROUP_NAME = "SBBS3";
 
-    static private final String PARAM_BUCKET = "bucketName";
     static private final String PARAM_FOLDER = "downloadFolder";
+    static private final String PARAM_USE = "useS3Downloader";
 
-    private String bucketName = "";
-    private String downloadFolder = "s3_data";
+    private String downloadFolder = ".s3_data/";
+    private boolean useS3Downloader = false;
 
     public SBBS3ConfigGroup() {
         super(GROUP_NAME);
     }
 
-    @StringGetter(PARAM_BUCKET)
-    public String getBucket() {
-        return this.bucketName;
+
+    @StringGetter(PARAM_USE)
+    public boolean getUseS3Downloader() {
+        return this.useS3Downloader;
     }
 
-    @StringSetter(PARAM_BUCKET)
-    public void setBucket(String bucket) {
-        this.bucketName = bucket;
+    @StringSetter(PARAM_USE)
+    public void setUseS3Downloader(boolean use) {
+        this.useS3Downloader = use;
     }
 
 
@@ -49,7 +50,6 @@ public class SBBS3ConfigGroup extends ReflectiveConfigGroup {
     @Override
     public Map<String, String> getComments() {
         Map<String, String> comments = super.getComments();
-        comments.put(PARAM_BUCKET, "S3 Bucket name");
         comments.put(PARAM_FOLDER, "Download folder for s3 data");
         return comments;
     }
