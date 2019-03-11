@@ -9,7 +9,6 @@ import java.util.Map;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
 /**
- * @author mrieser / SBB
  */
 public class SBBS3ConfigGroup extends ReflectiveConfigGroup {
 
