@@ -20,6 +20,8 @@ import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
+import ch.sbb.matsim.s3.S3Downloader;
+
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
@@ -49,6 +51,8 @@ public class RunSBB {
 
         if(args.length > 1)
             config.controler().setOutputDirectory(args[1]);
+
+        new S3Downloader(config);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
