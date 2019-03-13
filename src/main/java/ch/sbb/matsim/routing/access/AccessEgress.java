@@ -15,10 +15,15 @@ import java.util.Collection;
 public class AccessEgress extends AbstractModule {
 
     private final Scenario scenario;
+    private final LocateAct locateAct;
 
     public AccessEgress(Scenario scenario) {
         super(scenario.getConfig());
         this.scenario = scenario;
+
+        SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
+        this.locateAct = new LocateAct(accessTimeConfigGroup.getShapefile());
+        this.locateAct.fillCache(this.scenario.getPopulation());
     }
 
     @Override
@@ -26,8 +31,6 @@ public class AccessEgress extends AbstractModule {
         Config config = getConfig();
         SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
 
-        LocateAct locateAct = new LocateAct(accessTimeConfigGroup.getShapefile());
-        locateAct.fillCache(this.scenario.getPopulation());
         this.bind(LocateAct.class).toInstance(locateAct);
 
         if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
