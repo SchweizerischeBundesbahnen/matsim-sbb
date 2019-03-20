@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class VisumToCounts {
 
-    private static String[] visumColumns = {"NAME", "VOLUME", "ID_SIM", "ADDVAL1"};
+    private static String[] visumColumns = {"NAME", "ZW_DWV_FZG", "ID_SIM", "ADDVAL1"};
 
     private static String[] csvColumns = {"link_id", "mode", "bin", "volume", "zaehlstellen_bezeichnung", "road_type"};
 
@@ -52,9 +52,9 @@ public class VisumToCounts {
                     String link_id = map.get("ID_SIM");
                     Id<Link> linkId = Id.create(link_id, Link.class);
                     String stationName = map.get("NAME") + "_" + map.get("ADDVAL1");
-                    if (!counts.getCounts().containsKey(linkId) && !map.get("VOLUME").isEmpty()) {
+                    if (!counts.getCounts().containsKey(linkId) && !map.get("ZW_DWV_FZG").isEmpty()) {
                         Count<Link> count = counts.createAndAddCount(linkId, stationName);
-                        count.createVolume(1, Double.parseDouble(map.get("VOLUME")));
+                        count.createVolume(1, Double.parseDouble(map.get("ZW_DWV_FZG")));
                         for (int i = 2; i <= 24; i++)
                             count.createVolume(i, Double.parseDouble("0"));
                     }
@@ -62,7 +62,7 @@ public class VisumToCounts {
                     writer.set("link_id", link_id);
                     writer.set("mode", "car");
                     writer.set("bin", "");
-                    writer.set("volume", map.get("VOLUME"));
+                    writer.set("volume", map.get("ZW_DWV_FZG"));
                     writer.set("zaehlstellen_bezeichnung", stationName);
                     writer.set("road_type", "");
                     writer.writeRow();
