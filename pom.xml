@@ -16,6 +16,12 @@
 		</repository>
 
 		<repository>
+			<!-- For MATSim snapshots: -->
+			<id>ojo-snapshots</id>
+			<url>http://oss.jfrog.org/libs-snapshot</url>
+		</repository>
+
+		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
@@ -26,13 +32,13 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.11.0-2018w44</version>
+			<version>0.11.0-2019w06-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.11.0-2018w44</version>
+			<version>0.11.0-2019w06-SNAPSHOT</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 			<type>test-jar</type>
@@ -48,7 +54,7 @@
 		<dependency>
 			<groupId>com.github.simunto</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
-			<version>0.11.0-2018w44</version>
+			<version>0.11.0-2019w03</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->
