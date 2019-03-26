@@ -31,6 +31,9 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
     public static final String PARAM_MARGINAL_UTILITY_OF_PARKING_PRICE = "marginalUtilityOfParkingPrice";
     public static final String PARAM_TRANSFER_UTILITY_PER_TRAVEL_TIME = "transferUtilityPerTravelTime";
+    public static final String PARAM_TRANSFER_UTILITY_BASE = "transferUtilityBase";
+    public static final String PARAM_TRANSFER_UTILITY_MINIMUM = "transferUtilityMinimum";
+    public static final String PARAM_TRANSFER_UTILITY_MAXIMUM = "transferUtilityMaximum";
 
     static private final String PARAM_NAME = "name";
     static private final String PARAM_PERSONATTRIBUTE = "personAttribute";
@@ -44,7 +47,10 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
     static private final String PARAM_DELTATRANSFERUTILITYPERHOUR = "deltaTransferUtilityPerTravelTime_util_hr";
 
     private double marginalUtilityOfParkingPrice = 0.0;
+    private double transferUtilityBase = 0;
     private double transferUtilityPerTravelTime_utilsPerHour = 0;
+    private double transferUtilityMinimum = 0;
+    private double transferUtilityMaximum = 0;
 
     public SBBBehaviorGroupsConfigGroup() {
         super(GROUP_NAME);
@@ -106,7 +112,10 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
     public Map<String, String> getComments() {
         Map<String, String> map = super.getComments();
         map.put(PARAM_MARGINAL_UTILITY_OF_PARKING_PRICE, "[utils/money]");
-        map.put(PARAM_TRANSFER_UTILITY_PER_TRAVEL_TIME, "[utils/hour] transfer penalty in utils, depending on the total transit travel time.");
+        map.put(PARAM_TRANSFER_UTILITY_BASE, "[utils] base utility for a scored transfer.");
+        map.put(PARAM_TRANSFER_UTILITY_PER_TRAVEL_TIME, "[utils/hour] transfer penalty in utils, depending on the total transit travel time. Will be added to the base transfer utility.");
+        map.put(PARAM_TRANSFER_UTILITY_MINIMUM, "[utils] minimum utility for transfers");
+        map.put(PARAM_TRANSFER_UTILITY_MAXIMUM, "[utils] maximum utility for transfers");
         return map;
     }
 
@@ -128,6 +137,16 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         return this.marginalUtilityOfParkingPrice;
     }
 
+    @StringSetter(PARAM_TRANSFER_UTILITY_BASE)
+    public void setBaseTransferUtility(double transferUtilityBase) {
+        this.transferUtilityBase = transferUtilityBase;
+    }
+
+    @StringGetter(PARAM_TRANSFER_UTILITY_BASE)
+    public double getBaseTransferUtility() {
+        return this.transferUtilityBase;
+    }
+
     @StringSetter(PARAM_TRANSFER_UTILITY_PER_TRAVEL_TIME)
     public void setTransferUtilityPerTravelTime(String factor) {
         this.transferUtilityPerTravelTime_utilsPerHour = Double.parseDouble(factor);
@@ -144,6 +163,26 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
     public double getTransferUtilityPerTravelTime_utils_hr() {
         return this.transferUtilityPerTravelTime_utilsPerHour;
+    }
+
+    @StringSetter(PARAM_TRANSFER_UTILITY_MINIMUM)
+    public void setMinimumTransferUtility(double transferUtilityMinimum) {
+        this.transferUtilityMinimum = transferUtilityMinimum;
+    }
+
+    @StringGetter(PARAM_TRANSFER_UTILITY_MINIMUM)
+    public double getMinimumTransferUtility() {
+        return this.transferUtilityMinimum;
+    }
+
+    @StringSetter(PARAM_TRANSFER_UTILITY_MAXIMUM)
+    public void setMaximumTransferUtility(double transferUtilityMaximum) {
+        this.transferUtilityMaximum = transferUtilityMaximum;
+    }
+
+    @StringGetter(PARAM_TRANSFER_UTILITY_MAXIMUM)
+    public double getMaximumTransferUtility() {
+        return this.transferUtilityMaximum;
     }
 
     public static class BehaviorGroupParams extends ReflectiveConfigGroup {
