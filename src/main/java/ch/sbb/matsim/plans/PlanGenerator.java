@@ -3,6 +3,7 @@ package ch.sbb.matsim.plans;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.plans.facilities.FacilitiesReader;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.facilities.ActivityFacilities;
 
@@ -28,11 +29,12 @@ public class PlanGenerator {
 
         final AbmConverter abmConverter = new AbmConverter();
         abmConverter.read(tripsFileABM, personsFileABM);
-        abmConverter.create_population();
-        abmConverter.addSynpopAttributes(pathToSynPop);
-        abmConverter.adjustModeIfNoLicense();
-        abmConverter.addHomeFacilityAttributes(facilities, Variables.T_ZONE);
-        abmConverter.addHomeFacilityAttributes(facilities, Variables.MS_REGION);
-        abmConverter.writeOutputs(pathTopPlanOutputDir);
+        Population population = abmConverter.create_population();
+        abmConverter.addSynpopAttributes(population, pathToSynPop);
+        abmConverter.adjustModeIfNoLicense(population);
+        abmConverter.addHomeFacilityAttributes(population, facilities, Variables.T_ZONE);
+        abmConverter.addHomeFacilityAttributes(population, facilities, Variables.MS_REGION);
+        abmConverter.createInitialEndTimeAttribute(population);
+        abmConverter.writeOutputs(population, pathTopPlanOutputDir);
     }
 }
