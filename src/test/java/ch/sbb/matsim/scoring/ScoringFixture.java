@@ -57,7 +57,7 @@ public class ScoringFixture {
         bgp.setBehaviorGroupName(GROUP1);
         bgp.setPersonAttribute(ATTRIBUTEGROUP1);
 
-        SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+        SBBBehaviorGroupsConfigGroup.PersonGroupValues pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupValues();
         pgt.setPersonGroupAttributeValues(VALUEGROUP1);
         bgp.addPersonGroupByAttribute(pgt);
 
@@ -75,7 +75,7 @@ public class ScoringFixture {
         bgp.setBehaviorGroupName(GROUP2);
         bgp.setPersonAttribute(ATTRIBUTEGROUP2);
 
-        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupValues();
         pgt.setPersonGroupAttributeValues(VALUESGROUP2);
         bgp.addPersonGroupByAttribute(pgt);
 
@@ -91,7 +91,7 @@ public class ScoringFixture {
         bgp.setBehaviorGroupName(GROUP3);
         bgp.setPersonAttribute(ATTRIBUTEGROUP3);
 
-        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupValues();
         pgt.setPersonGroupAttributeValues(VALUEGROUP3);
         bgp.addPersonGroupByAttribute(pgt);
 

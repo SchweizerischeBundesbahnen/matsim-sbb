@@ -9,15 +9,24 @@ import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
+import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
+import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
+import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
+import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
+import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
+import ch.sbb.matsim.s3.S3Downloader;
+
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
@@ -43,8 +52,16 @@ public class RunSBB {
         if(args.length > 1)
             config.controler().setOutputDirectory(args[1]);
 
-        Scenario scenario = ScenarioUtils.loadScenario(config);
+        new S3Downloader(config);
 
+        Scenario scenario = ScenarioUtils.loadScenario(config);
+        new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
+
+        // vehicle types
+        new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car").createVehicles();
+        scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
+
+        // controler
         Controler controler = new Controler(scenario);
 
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
@@ -66,11 +83,20 @@ public class RunSBB {
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
+                addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
+
                 addTravelTimeBinding("ride").to(networkTravelTime());
                 addTravelDisutilityFactoryBinding("ride").to(carTravelDisutilityFactoryKey());
 
                 install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
+                install(new ZonesModule());
+
+                Config config = getConfig();
+                ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
+                if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+                    addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+                }
             }
 
             @Provides
@@ -82,13 +108,14 @@ public class RunSBB {
             }
         });
 
-        new AccessEgress(controler).installAccessTime();
+        controler.addOverridingModule(new AccessEgress(scenario));
 
         controler.run();
     }
 
     public static Config buildConfig(String filepath) {
         return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-                new SBBBehaviorGroupsConfigGroup(),new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup());
+                new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
+                new ZonesListConfigGroup(), new ParkingCostConfigGroup());
     }
 }
