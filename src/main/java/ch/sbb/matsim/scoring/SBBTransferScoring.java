@@ -1,13 +1,9 @@
 package ch.sbb.matsim.scoring;
 
-import ch.sbb.matsim.analysis.travelcomponents.Activity;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scoring.SumScoringFunction;
 import org.matsim.core.utils.misc.Time;
-import org.matsim.pt.PtConstants;
 
 import java.util.Set;
 
@@ -27,39 +23,23 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 
     @Override
     public void handleTrip(TripStructureUtils.Trip trip) {
-        boolean isTransitTrip = false;
-        int transferCount = 0;
         double departureTime = Time.getUndefinedTime();
-        double arrivalTime = Time.getUndefinedTime();
-        boolean isInTransit = false;
-        boolean lastWasTransfer = false;
+        double arrivalTime = 0;
+        int transitLegsCount = 0;
 
-        for (PlanElement pe : trip.getTripElements()) {
-            if (pe instanceof Activity) {
-                Activity act = (Activity) pe;
-                if (isInTransit && act.getType().equals(PtConstants.TRANSIT_ACTIVITY_TYPE)) {
-                    transferCount++;
-                    lastWasTransfer = true;
+        for (Leg leg : trip.getLegsOnly()) {
+            String legMode = leg.getMode();
+            boolean isTransit = this.ptModes.contains(legMode);
+            if (isTransit) {
+                transitLegsCount++;
+                if (Time.isUndefinedTime(departureTime)) {
+                    departureTime = leg.getDepartureTime();
                 }
-            }
-            if (pe instanceof Leg) {
-                Leg leg = (Leg) pe;
-                String legMode = leg.getMode();
-                boolean isTransit = TransportMode.transit_walk.equals(legMode) || this.ptModes.contains(legMode);
-                if (isTransit) {
-                    if (!isInTransit) {
-                        departureTime = leg.getDepartureTime();
-                    }
-                    arrivalTime = leg.getDepartureTime() + leg.getTravelTime();
-                    lastWasTransfer = false;
-                }
+                arrivalTime = leg.getDepartureTime() + leg.getTravelTime();
             }
         }
-
-        if (isTransitTrip) {
-            if (lastWasTransfer) {
-                transferCount--;
-            }
+        if (transitLegsCount > 1) {
+            int transferCount = transitLegsCount - 1;
             double travelTime = arrivalTime - departureTime;
             this.scoreTransitTrip(travelTime, transferCount);
         }
