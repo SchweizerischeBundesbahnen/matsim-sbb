@@ -219,8 +219,8 @@ public class TestFixture {
                 .addQSimModule(new PopulationModule())
                 .addQSimModule(new SBBTransitEngineQSimModule())
                 .addQSimModule(new TestQSimModule(config))
-                .configureComponents(SBBTransitEngineQSimModule::configure)
-                .configureComponents(configurator -> {
+                .configureQSimComponents(configurator -> {
+                    SBBTransitEngineQSimModule.configure(configurator);
                     configurator.addNamedComponent(ActivityEngineModule.COMPONENT_NAME);
                     configurator.addNamedComponent(PopulationModule.COMPONENT_NAME);
                 })

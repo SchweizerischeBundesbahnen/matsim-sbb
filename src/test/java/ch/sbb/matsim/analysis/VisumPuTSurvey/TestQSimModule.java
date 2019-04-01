@@ -6,6 +6,8 @@ package ch.sbb.matsim.analysis.VisumPuTSurvey;
 
 import org.matsim.core.config.Config;
 import org.matsim.core.mobsim.qsim.AbstractQSimModule;
+import org.matsim.core.mobsim.qsim.pt.SimpleTransitStopHandlerFactory;
+import org.matsim.core.mobsim.qsim.pt.TransitStopHandlerFactory;
 import org.matsim.core.replanning.ReplanningContext;
 
 /**
@@ -28,6 +30,7 @@ public class TestQSimModule extends AbstractQSimModule {
     @Override
     protected void configureQSim() {
         bind(ReplanningContext.class).toInstance(context);
+        bind(TransitStopHandlerFactory.class).to(SimpleTransitStopHandlerFactory.class).asEagerSingleton();
     }
 
     public static final class DummyReplanningContext implements ReplanningContext {

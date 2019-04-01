@@ -6,7 +6,6 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.scoring.SumScoringFunction;
-import org.matsim.core.scoring.functions.CharyparNagelActivityScoring;
 import org.matsim.core.scoring.functions.CharyparNagelAgentStuckScoring;
 import org.matsim.core.scoring.functions.CharyparNagelMoneyScoring;
 import org.matsim.core.scoring.functions.ScoringParameters;
@@ -37,11 +36,12 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
         final SBBScoringParameters sbbParams = this.paramsForPerson.getSBBScoringParameters(person);
         final ScoringParameters params = sbbParams.getMatsimScoringParameters();
         SumScoringFunction sumScoringFunction = new SumScoringFunction();
-        sumScoringFunction.addScoringFunction(new CharyparNagelActivityScoring(params));
+        sumScoringFunction.addScoringFunction(new SBBActivityScoring(params));
         sumScoringFunction.addScoringFunction(new SBBCharyparNagelLegScoring(params, this.scenario.getNetwork(), ptModes));
         sumScoringFunction.addScoringFunction(new CharyparNagelMoneyScoring(params));
         sumScoringFunction.addScoringFunction(new CharyparNagelAgentStuckScoring(params));
         sumScoringFunction.addScoringFunction(new SBBParkingCostScoring(sbbParams.getMarginalUtilityOfParkingPrice()));
+        sumScoringFunction.addScoringFunction(new SBBTransferScoring(sbbParams, ptModes));
         return sumScoringFunction;
     }
 }

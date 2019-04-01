@@ -160,7 +160,7 @@ public final class PTTravelTimeMatrix {
                                         TravelInfo info = tree.get(toStop.getId());
                                         if (info != null) { // it might be that some stops are not reachable
                                             double accessTime = accessTimes.get(info.departureStop);
-                                            double travelTime = info.travelTime;
+                                            double travelTime = info.ptTravelTime;
                                             double egressDistance = CoordUtils.calcEuclideanDistance(toStop.getCoord(), toCoord);
                                             double egressTime = egressDistance / walkSpeed;
                                             double totalTravelTime = accessTime + travelTime + egressTime;
