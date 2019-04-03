@@ -4,85 +4,129 @@
 
 package ch.sbb.matsim.config;
 
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
 
     static public final String GROUP_NAME = "populationMerger";
 
-    private final List<String> inputPlansFiles;
-    private String outputPlansFile = "";
-    private String outputPersonAttributesFile = "";
-    private String mergedPersonAttributeKey = "";
-    private String mergedPersonAttributeValue = "";
+    private static final String PARAM_BASE_PLANS = "baseInputPlansFile";
+    private static final String PARAM_BASE_ATTRIBUTES = "baseInputPersonAttributesFile";
+    private static final String PARAM_OUTPUT = "outputFolder";
+
+    private String inputPlansFiles;
+    private String inputAttributesFiles;
+    private String outputFolder;
+
+    private final Map<String, PopulationTypeParameterSet> subpopulations = new HashMap<>();
 
     public PopulationMergerConfigGroup() {
         super(GROUP_NAME);
-        this.inputPlansFiles = new ArrayList<>();
     }
 
-    @StringGetter("inputPlansFiles")
+
+    @Override
+    public ConfigGroup createParameterSet(String type) {
+        if (PopulationTypeParameterSet.TYPE.equals(type)) {
+            return new PopulationTypeParameterSet();
+        } else {
+            throw new IllegalArgumentException("Unsupported parameterset-type: " + type);
+        }
+    }
+
+    public Set<String> getPopulationTypes() {
+        return this.subpopulations.keySet();
+    }
+
+    private void addSubpopulation(PopulationTypeParameterSet set) {
+        this.subpopulations.put(set.getSubpopulation(), set);
+    }
+
+    @Override
+    public void addParameterSet(ConfigGroup set) {
+        if (set instanceof PopulationTypeParameterSet) {
+            this.addSubpopulation((PopulationTypeParameterSet) set);
+
+        } else {
+            throw new IllegalArgumentException("Unsupported parameterset: " + set.getClass().getName());
+        }
+        super.addParameterSet(set);
+    }
+
+    public PopulationTypeParameterSet getSubpopulations(String subpopulation) {
+        return this.subpopulations.get(subpopulation);
+    }
+
+
+    @StringGetter(PARAM_BASE_PLANS)
     public String getInputPlansFiles() {
-        try {
-            return this.inputPlansFiles.get(0);
-        } catch (IndexOutOfBoundsException e) {
-            return null;
+        return inputPlansFiles;
+    }
+
+    @StringSetter(PARAM_BASE_PLANS)
+    public void setInputPlansFiles(String inputPlansFiles) {
+        this.inputPlansFiles = inputPlansFiles;
+    }
+
+    @StringGetter(PARAM_BASE_ATTRIBUTES)
+    public String getInputAttributesFiles() {
+        return inputAttributesFiles;
+    }
+
+    @StringSetter(PARAM_BASE_ATTRIBUTES)
+    public void setInputAttributesFiles(String inputAttributesFiles) {
+        this.inputAttributesFiles = inputAttributesFiles;
+    }
+
+    @StringGetter(PARAM_OUTPUT)
+    public String getOutputFolder() {
+        return outputFolder;
+    }
+
+    @StringSetter(PARAM_OUTPUT)
+    public void setOutputFolder(String outputFolder) {
+        this.outputFolder = outputFolder;
+    }
+
+
+    public static class PopulationTypeParameterSet extends ReflectiveConfigGroup {
+
+        private static final String TYPE = "populationType";
+
+        private static final String PARAM_PLANSFILE = "plansFile";
+        private static final String PARAM_SUBPOPULATION = "subpopulation";
+
+        private String plansFile;
+        private String subpopulation;
+
+        public PopulationTypeParameterSet() {
+            super(TYPE);
         }
-    }
 
-    @StringSetter("inputPlansFiles")
-    public void addInputPlansFiles(String inputPlansFile) {
-        this.inputPlansFiles.add(inputPlansFile);
-    }
 
-    public String shiftInputPlansFiles() {
-        try {
-            return this.inputPlansFiles.remove(0);
-        } catch (IndexOutOfBoundsException e) {
-            return null;
+        @StringGetter(PARAM_PLANSFILE)
+        public String getPlansFile() {
+            return plansFile;
         }
+
+        @StringSetter(PARAM_PLANSFILE)
+        public void setPlansFile(String plansFile) {
+            this.plansFile = plansFile;
+        }
+
+        @StringGetter(PARAM_SUBPOPULATION)
+        public String getSubpopulation() {
+            return this.subpopulation;
+        }
+
+        @StringSetter(PARAM_SUBPOPULATION)
+        public void setSubpopulation(String subpopulation) {
+            this.subpopulation = subpopulation;
+        }
+
     }
 
-    @StringGetter("outputPlansFile")
-    public String getOutputPlansFile() {
-        return outputPlansFile;
-    }
-
-    @StringSetter("outputPlansFile")
-    public void setOutputPlansFile(String outputPlansFile) {
-        this.outputPlansFile = outputPlansFile;
-    }
-
-    @StringGetter("outputPersonAttributesFile")
-    public String getOutputPersonAttributesFile() {
-        return outputPersonAttributesFile;
-    }
-
-    @StringSetter("outputPersonAttributesFile")
-    public void setOutputPersonAttributesFile(String outputPersonAttributesFile) {
-        this.outputPersonAttributesFile = outputPersonAttributesFile;
-    }
-
-    @StringGetter("mergedPersonAttributeKey")
-    public String getMergedPersonAttributeKey() {
-        return mergedPersonAttributeKey;
-    }
-
-    @StringSetter("mergedPersonAttributeKey")
-    public void setMergedPersonAttributeKey(String mergedPersonAttributeKey) {
-        this.mergedPersonAttributeKey = mergedPersonAttributeKey;
-    }
-
-    @StringGetter("mergedPersonAttributeValue")
-    public String getMergedPersonAttributeValue() {
-        return mergedPersonAttributeValue;
-    }
-
-    @StringSetter("mergedPersonAttributeValue")
-    public void setMergedPersonAttributeValue(String mergedPersonAttributeValue) {
-        this.mergedPersonAttributeValue = mergedPersonAttributeValue;
-    }
 }

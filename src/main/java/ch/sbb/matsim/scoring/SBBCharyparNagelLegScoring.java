@@ -22,10 +22,11 @@ import org.matsim.pt.PtConstants;
 import java.util.Set;
 
 /**
- * THIS IS A COPY of the default CharyparNagelLegScoring.
- * The only modification performed is the replacement of the hard-coded
- * <code>TransportMode.pt</code> with the set of pt modes configured in the
- * transit config group.
+ * THIS IS A COPY of the default CharyparNagelLegScoring with the following modifications:
+ * - replace hard-coded <code>TransportMode.pt</code> with the set of pt modes configured in the
+ *   transit config group.
+ * - don't apply lineSwitch-utility, as this will be handled in {@link SBBTransferScoring}.
+ *
  * @author mrieser / SBB
  *
  *
@@ -40,7 +41,6 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 	/** The parameters used for scoring */
 	protected final ScoringParameters params;
 	protected Network network;
-	private boolean nextEnterVehicleIsFirstOfTrip = true ;
 	private boolean nextStartPtLegIsFirstOfTrip = true ;
 	private boolean currentLegIsPtLeg = false;
 	private double lastActivityEndTime = Time.getUndefinedTime();
@@ -49,7 +49,6 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 	public SBBCharyparNagelLegScoring(final ScoringParameters params, Network network, Set<String> ptModes) {
 		this.params = params;
 		this.network = network;
-		this.nextEnterVehicleIsFirstOfTrip = true ;
 		this.nextStartPtLegIsFirstOfTrip = true ;
 		this.currentLegIsPtLeg = false;
 		this.ptModes = ptModes;
@@ -110,18 +109,12 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		if ( event instanceof ActivityEndEvent ) {
 			// When there is a "real" activity, flags are reset:
 			if ( !PtConstants.TRANSIT_ACTIVITY_TYPE.equals( ((ActivityEndEvent)event).getActType()) ) {
-				this.nextEnterVehicleIsFirstOfTrip  = true ;
 				this.nextStartPtLegIsFirstOfTrip = true ;
 			}
 			this.lastActivityEndTime = event.getTime() ;
 		}
 
 		if ( event instanceof PersonEntersVehicleEvent && currentLegIsPtLeg ) {
-			if ( !this.nextEnterVehicleIsFirstOfTrip ) {
-				// all vehicle entering after the first triggers the disutility of line switch:
-				this.score  += params.utilityOfLineSwitch ;
-			}
-			this.nextEnterVehicleIsFirstOfTrip = false ;
 			// add score of waiting, _minus_ score of travelling (since it is added in the legscoring above):
 			this.score += (event.getTime() - this.lastActivityEndTime) * (this.params.marginalUtilityOfWaitingPt_s - this.params.modeParams.get(TransportMode.pt).marginalUtilityOfTraveling_s) ;
 		}

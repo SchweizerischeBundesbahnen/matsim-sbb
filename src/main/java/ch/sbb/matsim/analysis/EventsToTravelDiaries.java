@@ -444,7 +444,7 @@ public class EventsToTravelDiaries implements
 
         BufferedWriter journeyWriter = IOUtils.getBufferedWriter(this.filename + journeyTableName);
         journeyWriter.write("journey_id\tperson_id\tstart_time\t" +
-                "end_time\tdistance\tmain_mode\tmain_mode_mikrozensus\tfrom_act\tto_act\t" +
+                "end_time\tdistance\tmain_mode\tmain_mode_mikrozensus\tfrom_act\tto_act\tto_act_type\t" +
                 "in_vehicle_distance\tin_vehicle_time\t" +
                 "access_walk_distance\taccess_walk_time\taccess_wait_time\t" +
                 "first_boarding_stop\tegress_walk_distance\t" +
@@ -487,7 +487,7 @@ public class EventsToTravelDiaries implements
             for (Journey journey : chain.getJourneys()) {
                 try {
                     journeyWriter.write(String.format(
-                            "%d\t%s\t%d\t%d\t%.3f\t%s\t%s\t%d\t%d\t%.3f\t%d\t%.3f\t%d\t%d\t%s\t%.3f\t%d\t%s\t%.3f\t%d\t%d\t%f\t%b\n",
+                            "%d\t%s\t%d\t%d\t%.3f\t%s\t%s\t%d\t%d\t%s\t%.3f\t%d\t%.3f\t%d\t%d\t%s\t%.3f\t%d\t%s\t%.3f\t%d\t%d\t%f\t%b\n",
                             journey.getElementId(),
                             pax_id,
                             (int) journey.getStartTime(),
@@ -497,6 +497,7 @@ public class EventsToTravelDiaries implements
                             journey.getMainModeMikroZensus(),
                             journey.getFromAct().getElementId(),
                             journey.getToAct().getElementId(),
+                            journey.getToActType(),
                             journey.getInVehDistance(),
                             (int) journey.getInVehTime(),
                             journey.getAccessWalkDistance(),

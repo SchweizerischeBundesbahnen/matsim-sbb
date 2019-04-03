@@ -57,7 +57,7 @@ public class ScoringFixture {
         bgp.setBehaviorGroupName(GROUP1);
         bgp.setPersonAttribute(ATTRIBUTEGROUP1);
 
-        SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+        SBBBehaviorGroupsConfigGroup.PersonGroupValues pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupValues();
         pgt.setPersonGroupAttributeValues(VALUEGROUP1);
         bgp.addPersonGroupByAttribute(pgt);
 
@@ -75,7 +75,7 @@ public class ScoringFixture {
         bgp.setBehaviorGroupName(GROUP2);
         bgp.setPersonAttribute(ATTRIBUTEGROUP2);
 
-        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupValues();
         pgt.setPersonGroupAttributeValues(VALUESGROUP2);
         bgp.addPersonGroupByAttribute(pgt);
 
@@ -91,7 +91,7 @@ public class ScoringFixture {
         bgp.setBehaviorGroupName(GROUP3);
         bgp.setPersonAttribute(ATTRIBUTEGROUP3);
 
-        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupAttributeValues();
+        pgt = new SBBBehaviorGroupsConfigGroup.PersonGroupValues();
         pgt.setPersonGroupAttributeValues(VALUEGROUP3);
         bgp.addPersonGroupByAttribute(pgt);
 
@@ -115,7 +115,7 @@ public class ScoringFixture {
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(2, Person.class));
 
-        population.getPersonAttributes().putAttribute(person.getId().toString(), ATTRIBUTEGROUP1,VALUEGROUP1);
+        person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
         this.scenario.getPopulation().addPerson(person);
     }
 
@@ -124,8 +124,8 @@ public class ScoringFixture {
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(3, Person.class));
 
-        population.getPersonAttributes().putAttribute(person.getId().toString(), ATTRIBUTEGROUP1,VALUEGROUP1);
-        population.getPersonAttributes().putAttribute(person.getId().toString(), ATTRIBUTEGROUP2,VALUEGROUP2);
+        person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
+        person.getAttributes().putAttribute(ATTRIBUTEGROUP2,VALUEGROUP2);
         this.scenario.getPopulation().addPerson(person);
     }
 
@@ -134,9 +134,9 @@ public class ScoringFixture {
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(4, Person.class));
 
-        population.getPersonAttributes().putAttribute(person.getId().toString(), ATTRIBUTEGROUP1,VALUEGROUP1);
-        population.getPersonAttributes().putAttribute(person.getId().toString(), ATTRIBUTEGROUP2,VALUEGROUP2);
-        population.getPersonAttributes().putAttribute(person.getId().toString(), ATTRIBUTEGROUP3,VALUEGROUP3);
+        person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
+        person.getAttributes().putAttribute(ATTRIBUTEGROUP2,VALUEGROUP2);
+        person.getAttributes().putAttribute(ATTRIBUTEGROUP3,VALUEGROUP3);
         this.scenario.getPopulation().addPerson(person);
     }
 }

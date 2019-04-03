@@ -1,10 +1,10 @@
 package ch.sbb.matsim.synpop;
 
-import ch.sbb.matsim.synpop.converter.AttributesConverter;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.synpop.attributes.SynpopAttributes;
 import ch.sbb.matsim.synpop.blurring.HomeFacilityBlurring;
 import ch.sbb.matsim.synpop.config.SynpopConfigGroup;
-import ch.sbb.matsim.synpop.facilities.ActivityForFacility;
+import ch.sbb.matsim.synpop.converter.AttributesConverter;
 import ch.sbb.matsim.synpop.facilities.ZoneIdAssigner;
 import ch.sbb.matsim.synpop.reader.SynpopCSVReaderImpl;
 import ch.sbb.matsim.synpop.reader.SynpopReader;
@@ -38,23 +38,20 @@ public class Synpop {
 
         final ZoneIdAssigner assigner = new ZoneIdAssigner(blurring.getZoneAggregator());
         assigner.addFacilitiesOfType(facilities, "work");
-        assigner.assignIds();
-        assigner.checkForMissingIds(facilities);
+        assigner.assignIds(Variables.T_ZONE);
+        assigner.checkForMissingIds(facilities, Variables.T_ZONE);
 
         final AttributesConverter attributesConverter = new AttributesConverter(config.getAttributeMappingSettings(), config.getColumnMappingSettings());
         attributesConverter.map(population);
         attributesConverter.map(facilities.getFacilitiesForActivityType("home").values(), "households");
         attributesConverter.map(facilities.getFacilitiesForActivityType("work").values(), "businesses");
 
-        //change generic ActivityType to a more specific one
-        new ActivityForFacility(config.getBus2act(), facilities.getFactory()).run(facilities.getFacilitiesForActivityType("work").values());
-
         final File output = new File(config.getOutputFolder(), config.getVersion());
         output.mkdirs();
 
-        new SQLWriter(config.getHost(), config.getPort(), config.getDatabase(), config.getYear(), synpopAttributes).run(population, facilities, config.getVersion());
         new MATSimWriter(output.toString()).run(population, facilities);
         new PopulationCSVWriter(output.toString(), synpopAttributes).run(population, facilities);
+        new SQLWriter(config.getHost(), config.getPort(), config.getDatabase(), config.getYear(), synpopAttributes).run(population, facilities, config.getVersion());
 
     }
 }

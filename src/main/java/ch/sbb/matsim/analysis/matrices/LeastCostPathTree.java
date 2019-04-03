@@ -46,7 +46,7 @@ public class LeastCostPathTree {
 	// ////////////////////////////////////////////////////////////////////
 
 	private Node origin1 = null;
-	private double dTime = Time.UNDEFINED_TIME;
+	private double dTime = Time.getUndefinedTime();
 	
 	private final TravelTime ttFunction;
 	private final TravelDisutility tcFunction;
