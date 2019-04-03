@@ -18,8 +18,8 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.router.AStarLandmarksFactory;
 import org.matsim.core.router.ActivityWrapperFacility;
-import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.NetworkRoutingModule;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
@@ -75,7 +75,7 @@ public class RunTravelTimeValidation {
     public RunTravelTimeValidation(Network network) {
         this.network = network;
 
-        DijkstraFactory factory = new DijkstraFactory();
+        AStarLandmarksFactory factory = new AStarLandmarksFactory();
         TravelTime tt = new FreeSpeedTravelTime();
         TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
@@ -92,7 +92,7 @@ public class RunTravelTimeValidation {
         this.network = network;
         Config config = ConfigUtils.loadConfig(configPath);
 
-        DijkstraFactory factory = new DijkstraFactory();
+        AStarLandmarksFactory factory = new AStarLandmarksFactory();
 
         TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(network);
         builder.configure(config.travelTimeCalculator());
@@ -112,7 +112,6 @@ public class RunTravelTimeValidation {
                 network,
                 routeAlgo);
     }
-
 
     public void run(String csvPath, String outputPath) {
         String[] columns = {"Dist_MATSim", "Time_MATSim"};
