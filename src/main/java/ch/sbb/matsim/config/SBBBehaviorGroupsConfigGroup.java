@@ -44,13 +44,14 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
     static private final String PARAM_DELTAUTILTIME = "deltaMarginalUtilityOfTraveling_util_hr";
     static private final String PARAM_DELTADISTANCERATE = "deltaMonetaryDistanceRate";
     static private final String PARAM_DELTAPARKINGPRICE = "deltaMarginalUtilityOfParkingPrice_util_money";
+    static private final String PARAM_DELTATRANSFERUTILITYBASE = "deltaTransferUtilityBase";
     static private final String PARAM_DELTATRANSFERUTILITYPERHOUR = "deltaTransferUtilityPerTravelTime_util_hr";
 
     private double marginalUtilityOfParkingPrice = 0.0;
     private double transferUtilityBase = 0;
     private double transferUtilityPerTravelTime_utilsPerHour = 0;
-    private double transferUtilityMinimum = 0;
-    private double transferUtilityMaximum = 0;
+    private double transferUtilityMinimum = Double.NEGATIVE_INFINITY;
+    private double transferUtilityMaximum = Double.POSITIVE_INFINITY;
 
     public SBBBehaviorGroupsConfigGroup() {
         super(GROUP_NAME);
@@ -296,6 +297,7 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         private Set<String> attributeValues = new HashSet<>();
 
         private double deltaMarginalUtilityOfParkingPrice = 0.0;
+        private double deltaTransferUtilityBase = 0.0;
         private double deltaTransferUtilityPerTravelTime = 0.0;
 
         public PersonGroupValues() {
@@ -346,21 +348,23 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
         }
 
         @StringGetter(PARAM_DELTATRANSFERUTILITYPERHOUR)
-        public String getDeltaTransferUtilityPerTravelTime_asString() {
-            return Double.toString(this.deltaTransferUtilityPerTravelTime);
-        }
-
-        @StringSetter(PARAM_DELTATRANSFERUTILITYPERHOUR)
-        public void setDeltaTransferUtilityPerTravelTime(String value) {
-            this.deltaTransferUtilityPerTravelTime = Double.valueOf(value);
-        }
-
         public double getDeltaTransferUtilityPerTravelTime() {
             return this.deltaTransferUtilityPerTravelTime;
         }
 
+        @StringSetter(PARAM_DELTATRANSFERUTILITYPERHOUR)
         public void setDeltaTransferUtilityPerTravelTime(double value) {
             this.deltaTransferUtilityPerTravelTime = value;
+        }
+
+        @StringGetter(PARAM_DELTATRANSFERUTILITYBASE)
+        public double getDeltaBaseTransferUtility() {
+            return this.deltaTransferUtilityBase;
+        }
+
+        @StringSetter(PARAM_DELTATRANSFERUTILITYBASE)
+        public void setDeltaBaseTransferUtility(double value) {
+            this.deltaTransferUtilityBase = value;
         }
 
         @Override
