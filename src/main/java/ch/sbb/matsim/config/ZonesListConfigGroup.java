@@ -16,8 +16,6 @@ public class ZonesListConfigGroup extends ReflectiveConfigGroup {
 
     public final static String GROUPNAME = "zones";
 
-    private final List<ZonesParameterSet> zonesGroups = new ArrayList<>();
-
     public ZonesListConfigGroup() {
         super(GROUPNAME);
     }
@@ -40,11 +38,15 @@ public class ZonesListConfigGroup extends ReflectiveConfigGroup {
     }
 
     public void addZones(ZonesParameterSet zonesGroup) {
-        this.zonesGroups.add(zonesGroup);
+        super.addParameterSet(zonesGroup);
     }
 
     public Collection<ZonesParameterSet> getZones() {
-        return this.zonesGroups;
+        List<ZonesParameterSet> zonesGroups = new ArrayList<>();
+        for ( ConfigGroup pars : getParameterSets( ZonesParameterSet.TYPE ) ) {
+            zonesGroups.add((ZonesParameterSet) pars);
+        }
+        return zonesGroups;
     }
 
     public static class ZonesParameterSet extends ReflectiveConfigGroup {
