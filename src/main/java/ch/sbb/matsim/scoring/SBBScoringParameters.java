@@ -57,6 +57,10 @@ public class SBBScoringParameters {
             this.transferUtilityPerTravelTime = transferUtilityPerTravelTime;
         }
 
+        public void setTransferUtilityBase(double transferUtilityBase) {
+            this.transferUtilityBase = transferUtilityBase;
+        }
+
         public ScoringParameters.Builder getMatsimScoringParametersBuilder() {
             return this.matsimBuilder;
         }

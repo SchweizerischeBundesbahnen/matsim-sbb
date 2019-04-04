@@ -56,10 +56,13 @@ public class XLSXScoringParser {
     private static final String GLOBAL = "global";
     static final String MARGINAL_UTILITY_OF_PARKINGPRICE = "marginalUtilityOfParkingPrice";
     static final String TRANSFER_UTILITY_PER_TRAVEL_TIME = "transferUtilityPerTravelTime";
+    static final String TRANSFER_UTILITY_BASE = "transferUtilityBase";
+    static final String TRANSFER_UTILITY_MINIMUM = "transferUtilityMinimum";
+    static final String TRANSFER_UTILITY_MAXIMUM = "transferUtilityMaximum";
 
     private static final String[] GENERAL_PARAMS_ARRAY = new String[] {UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
     private static final String[] MODE_PARAMS_ARRAY = new String[] {CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
-    private static final String[] SBB_GENERAL_PARAMS_ARRAY = new String[] {MARGINAL_UTILITY_OF_PARKINGPRICE, TRANSFER_UTILITY_PER_TRAVEL_TIME};
+    private static final String[] SBB_GENERAL_PARAMS_ARRAY = new String[] {MARGINAL_UTILITY_OF_PARKINGPRICE, TRANSFER_UTILITY_PER_TRAVEL_TIME, TRANSFER_UTILITY_BASE, TRANSFER_UTILITY_MINIMUM, TRANSFER_UTILITY_MAXIMUM};
     private static final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
     private static final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
     private static final Set<String> SBB_GENERAL_PARAMS = new HashSet<>(Arrays.asList(SBB_GENERAL_PARAMS_ARRAY));
@@ -203,8 +206,17 @@ public class XLSXScoringParser {
                             case MARGINAL_UTILITY_OF_PARKINGPRICE:
                                 sbbParams.setMarginalUtilityOfParkingPrice(paramValue);
                                 break;
+                            case TRANSFER_UTILITY_BASE:
+                                sbbParams.setBaseTransferUtility(paramValue);
+                                break;
                             case TRANSFER_UTILITY_PER_TRAVEL_TIME:
                                 sbbParams.setTransferUtilityPerTravelTime_utils_hr(paramValue);
+                                break;
+                            case TRANSFER_UTILITY_MINIMUM:
+                                sbbParams.setMinimumTransferUtility(paramValue);
+                                break;
+                            case TRANSFER_UTILITY_MAXIMUM:
+                                sbbParams.setMaximumTransferUtility(paramValue);
                                 break;
                             default:
                                 log.error("Unsupported parameter: " + rowLabel);
@@ -347,6 +359,9 @@ public class XLSXScoringParser {
                                 switch (parameterLabel) {
                                     case MARGINAL_UTILITY_OF_PARKINGPRICE:
                                         groupCorrection.setDeltaMarginalUtilityOfParkingPrice(numericCellValue);
+                                        break;
+                                    case TRANSFER_UTILITY_BASE:
+                                        groupCorrection.setDeltaBaseTransferUtility(numericCellValue);
                                         break;
                                     case TRANSFER_UTILITY_PER_TRAVEL_TIME:
                                         groupCorrection.setDeltaTransferUtilityPerTravelTime(numericCellValue);

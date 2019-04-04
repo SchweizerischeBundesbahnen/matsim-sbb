@@ -84,6 +84,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
         // building the customized scoring parameters for each person depending on his behavior group
         // first the non-mode specific parameters
         double marginalUtilityOfParkingPrice = this.behaviorGroupsConfigGroup.getMarginalUtilityOfParkingPrice();
+        double transferUtilityBase = this.behaviorGroupsConfigGroup.getBaseTransferUtility();
         double transferUtilityPerTravelTime = this.behaviorGroupsConfigGroup.getTransferUtilityPerTravelTime_utils_hr();
 
         for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bgp : behaviorGroupsConfigGroup.getBehaviorGroupParams().values()) {
@@ -96,9 +97,11 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
             if(pgt == null) continue;
 
             marginalUtilityOfParkingPrice += pgt.getDeltaMarginalUtilityOfParkingPrice();
+            transferUtilityBase += pgt.getDeltaBaseTransferUtility();
             transferUtilityPerTravelTime += pgt.getDeltaTransferUtilityPerTravelTime();
         }
         builder.setMarginalUtilityOfParkingPrice(marginalUtilityOfParkingPrice);
+        builder.setTransferUtilityBase(transferUtilityBase);
         builder.setTransferUtilityPerTravelTime(transferUtilityPerTravelTime);
 
         // collect the values for each mode
