@@ -9,9 +9,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Counter;
 import org.opengis.feature.simple.SimpleFeature;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -32,25 +30,11 @@ public final class BeelineDistanceMatrix {
     private BeelineDistanceMatrix() {
     }
 
-    public static <T> FloatMatrix<T> calculateBeelineDistanceMatrix(Map<T, SimpleFeature> zones, int numberOfPointsPerZone, int numberOfThreads) {
-        Random r = new Random(20180404L);
-
-        Map<T, Coord[]> coordsPerZone = new HashMap<>();
-        for (Map.Entry<T, SimpleFeature> e : zones.entrySet()) {
-            T zoneId = e.getKey();
-            SimpleFeature f = e.getValue();
-            if (f.getDefaultGeometry() != null) {
-                Coord[] coords = new Coord[numberOfPointsPerZone];
-                coordsPerZone.put(zoneId, coords);
-                for (int i = 0; i < numberOfPointsPerZone; i++) {
-                    Coord coord = Utils.getRandomCoordinateInFeature(f, r);
-                    coords[i] = coord;
-                }
-            }
-        }
-
+    public static <T> FloatMatrix<T> calculateBeelineDistanceMatrix(Map<T, SimpleFeature> zones, Map<T, Coord[]> coordsPerZone, int numberOfThreads) {
         // prepare calculation
         FloatMatrix<T> matrix = new FloatMatrix<>(zones.keySet(), 0.0f);
+
+        int numberOfPointsPerZone = coordsPerZone.values().iterator().next().length;
 
         // do calculation
         ConcurrentLinkedQueue<T> originZones = new ConcurrentLinkedQueue<>(zones.keySet());
