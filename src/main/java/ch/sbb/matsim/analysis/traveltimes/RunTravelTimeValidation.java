@@ -40,16 +40,19 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class RunTravelTimeValidation {
+
     private static final Logger log = Logger.getLogger(RunTravelTimeValidation.class);
 
     private Network network;
+    private final double startTime;
     private NetworkRoutingModule router;
 
     public static void main(String[] args) {
         String runOutputFolder = args[0];
         boolean calcCongestedTravelTimes = Boolean.parseBoolean(args[1]);
-        String relationFile = args[2];
-        String outputFile = args[3];
+        double startTime = Double.parseDouble(args[2]); // start time in hours (e.g. 7am)
+        String relationFile = args[3];
+        String outputFile = args[4];
 
         // read network file
         Network network = NetworkUtils.createNetwork();
@@ -62,18 +65,18 @@ public class RunTravelTimeValidation {
         if(calcCongestedTravelTimes) {
             String config = runOutputFolder + "\\CH.10pct.2016.output_config.xml";
             String events = runOutputFolder + "\\CH.10pct.2016.output_events.xml.gz";
-            validation = new RunTravelTimeValidation(reducedNetwork, config, events);
+            validation = new RunTravelTimeValidation(reducedNetwork, config, events, startTime);
         }
         else {
-            validation = new RunTravelTimeValidation(reducedNetwork);
+            validation = new RunTravelTimeValidation(reducedNetwork, startTime);
         }
-
         validation.run(relationFile, outputFile);
     }
 
     //use this method for free flow travel time evaluation
-    public RunTravelTimeValidation(Network network) {
+    public RunTravelTimeValidation(Network network, double startTime) {
         this.network = network;
+        this.startTime = startTime;
 
         AStarLandmarksFactory factory = new AStarLandmarksFactory();
         TravelTime tt = new FreeSpeedTravelTime();
@@ -88,8 +91,10 @@ public class RunTravelTimeValidation {
     }
 
     //use this method for travel time evaluation in congested network
-    public RunTravelTimeValidation(Network network, String configPath, String eventsFilename) {
+    public RunTravelTimeValidation(Network network, String configPath, String eventsFilename, double startTime) {
         this.network = network;
+        this.startTime = startTime;
+
         Config config = ConfigUtils.loadConfig(configPath);
 
         AStarLandmarksFactory factory = new AStarLandmarksFactory();
@@ -124,9 +129,7 @@ public class RunTravelTimeValidation {
                 while ((map = reader.readLine()) != null) {
                     if (!map.get("Origin_X").isEmpty()) {
                         log.info(map);
-                        String description = map.get("Description");
                         Leg leg = this.fetch(
-                                description,
                                 Float.parseFloat(map.get("Origin_Y")),
                                 Float.parseFloat(map.get("Origin_X")),
                                 Float.parseFloat(map.get("Destination_Y")),
@@ -155,20 +158,21 @@ public class RunTravelTimeValidation {
     }
 
 
-    public Leg fetch(String description, float fromX, float fromY, float toX, float toY) {
+    public Leg fetch(float fromX, float fromY, float toX, float toY) {
         Scenario onePlan = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         Person person = PopulationUtils.getFactory().createPerson(Id.create(1, Person.class));
 
         Activity fromAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(fromX, fromY)));
-        fromAct.setLinkId(NetworkUtils.getNearestLink(network, fromAct.getCoord()).getId());
-
+        fromAct.setLinkId(NetworkUtils.getNearestLink(this.network, fromAct.getCoord()).getId());
+        
         Activity toAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(toX, toY)));
-        toAct.setLinkId(NetworkUtils.getNearestLink(network, toAct.getCoord()).getId());
+        toAct.setLinkId(NetworkUtils.getNearestLink(this.network, toAct.getCoord()).getId());
 
         Facility fromFacility = new ActivityWrapperFacility(fromAct);
         Facility toFacility = new ActivityWrapperFacility(toAct);
 
-        List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility, 17.5 * 60 * 60, person);
+        List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility,
+                this.startTime * 60 * 60, person);
         Leg leg = (Leg) pes.get(0);
 
         Plan plan = PopulationUtils.createPlan(person);
