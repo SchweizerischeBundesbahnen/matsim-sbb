@@ -63,25 +63,26 @@ public class LinkToFacilityAssigner {
     }
 
     private void addLinkToNetwork(Link link)  {
-        Node fromNode = link.getFromNode();
-        Node xy2lFromNode = this.filteredNetwork.getNodes().get(fromNode.getId());
-        if (xy2lFromNode == null) {
-            xy2lFromNode = this.networkFactory.createNode(fromNode.getId(), fromNode.getCoord());
-            this.filteredNetwork.addNode(xy2lFromNode);
-        }
-        Node toNode = link.getToNode();
-        Node xy2lToNode = this.filteredNetwork.getNodes().get(toNode.getId());
-        if (xy2lToNode == null) {
-            xy2lToNode = this.networkFactory.createNode(toNode.getId(), toNode.getCoord());
-            this.filteredNetwork.addNode(xy2lToNode);
-        }
-        Link xy2lLink = this.networkFactory.createLink(link.getId(), xy2lFromNode, xy2lToNode);
+        Node origFromNode = link.getFromNode();
+        Node fromNode = addNodeIfNotExists(origFromNode);
+        Node origToNode = link.getToNode();
+        Node toNode = addNodeIfNotExists(origToNode);
+        Link xy2lLink = this.networkFactory.createLink(link.getId(), fromNode, toNode);
         xy2lLink.setAllowedModes(link.getAllowedModes());
         xy2lLink.setCapacity(link.getCapacity());
         xy2lLink.setFreespeed(link.getFreespeed());
         xy2lLink.setLength(link.getLength());
         xy2lLink.setNumberOfLanes(link.getNumberOfLanes());
         this.filteredNetwork.addLink(xy2lLink);
+    }
+
+    private Node addNodeIfNotExists(Node node)  {
+        Node newNode = this.filteredNetwork.getNodes().get(node.getId());
+        if (newNode == null) {
+            newNode = this.networkFactory.createNode(node.getId(), node.getCoord());
+            this.filteredNetwork.addNode(newNode);
+        }
+        return newNode;
     }
 
     public void assignLinkToFacility()  {
