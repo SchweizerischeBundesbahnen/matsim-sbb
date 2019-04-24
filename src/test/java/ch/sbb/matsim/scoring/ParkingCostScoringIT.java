@@ -20,13 +20,11 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.*;
-import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
@@ -126,7 +124,6 @@ public class ParkingCostScoringIT {
         Config config;
         Scenario scenario;
         ZonesCollection zones = new ZonesCollection();
-        EventsManager events;
 
         Fixture() {
             this.config = ConfigUtils.createConfig();
@@ -135,7 +132,6 @@ public class ParkingCostScoringIT {
             createNetwork();
             createPopulation();
             loadZones();
-            prepareEvents();
         }
 
         private void prepareConfig() {
@@ -263,10 +259,6 @@ public class ParkingCostScoringIT {
         private void loadZones() {
             ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);
             ZonesLoader.loadAllZones(zonesConfig, this.zones);
-        }
-
-        private void prepareEvents() {
-            this.events = EventsUtils.createEventsManager(this.config);
         }
 
     }
