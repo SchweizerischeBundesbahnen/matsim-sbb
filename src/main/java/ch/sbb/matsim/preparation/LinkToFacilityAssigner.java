@@ -29,24 +29,27 @@ public class LinkToFacilityAssigner {
         String networkFile = args[1];
         String outputFile = args[2];
 
-        LinkToFacilityAssigner assigner = new LinkToFacilityAssigner();
-        assigner.readFacilities(facilityFile);
-        assigner.readAndFilterNetwork(networkFile);
-        assigner.assignLinkToFacility();
-        assigner.writeFacilityFile(outputFile);
+        new LinkToFacilityAssigner().run(facilityFile, networkFile, outputFile);
     }
 
     public LinkToFacilityAssigner() {
 
     }
 
-    public void readFacilities(String facilityFile)   {
+    public void run(String facilityFile, String networkFile, String output) {
+        readFacilities(facilityFile);
+        readAndFilterNetwork(networkFile);
+        assignLinkToFacility();
+        writeFacilityFile(output);
+    }
+
+    private void readFacilities(String facilityFile)   {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimFacilitiesReader(scenario).readFile(facilityFile);
         this.facilities = scenario.getActivityFacilities();
     }
 
-    public void readAndFilterNetwork(String networkFile) {
+    private void readAndFilterNetwork(String networkFile) {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
@@ -56,8 +59,7 @@ public class LinkToFacilityAssigner {
         this.filteredNetwork = NetworkUtils.createNetwork();
         this.networkFactory = this.filteredNetwork.getFactory();
 
-        carNetwork.getLinks().values().
-                stream().
+        carNetwork.getLinks().values().stream().
                 filter(l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0")).
                 forEach(this::addLinkToNetwork);
     }
@@ -85,13 +87,13 @@ public class LinkToFacilityAssigner {
         return newNode;
     }
 
-    public void assignLinkToFacility()  {
+    private void assignLinkToFacility()  {
         this.facilities.getFacilities().values().
                 forEach(f -> FacilitiesUtils.setLinkID(f, NetworkUtils.getNearestLink(this.filteredNetwork,
                         f.getCoord()).getId()));
     }
 
-    public void writeFacilityFile(String output)    {
+    private void writeFacilityFile(String output)    {
         new FacilitiesWriter(this.facilities).write(output);
     }
 }
