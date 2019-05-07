@@ -32,13 +32,13 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.11.0-2019w06-SNAPSHOT</version>
+			<version>11.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.11.0-2019w06-SNAPSHOT</version>
+			<version>11.0</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 			<type>test-jar</type>
@@ -52,9 +52,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.simunto</groupId>
+			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
-			<version>0.11.0-2019w03</version>
+			<version>11.0</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->

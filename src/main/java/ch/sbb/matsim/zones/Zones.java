@@ -1,9 +1,9 @@
 package ch.sbb.matsim.zones;
 
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.index.SpatialIndex;
-import com.vividsolutions.jts.index.quadtree.Quadtree;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.index.SpatialIndex;
+import org.locationtech.jts.index.quadtree.Quadtree;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.utils.geometry.geotools.MGC;
 
