@@ -55,7 +55,7 @@ public class VisumStreetNetworkExporter {
 
         String[][] nodes = importNodes(net, "No", "XCoord", "YCoord");
         String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
-                "NumLanes", "TSysSet", "ID_SIM");
+                "NumLanes", "TSysSet", "ID_SIM", "accessControlled");
         createNetwork(nodes, links);
         writeNetwork(outputNetwork);
     }
@@ -118,6 +118,7 @@ public class VisumStreetNetworkExporter {
                         Double.parseDouble(attarraylink[i][3]), (Double.parseDouble(attarraylink[i][4])),
                         Integer.parseInt(attarraylink[i][6]));
                 if (link != null) {
+                    link.getAttributes().putAttribute("accessControlled", Integer.parseInt(attarraylink[i][9]));
                     network.addLink(link);
                 }
             }

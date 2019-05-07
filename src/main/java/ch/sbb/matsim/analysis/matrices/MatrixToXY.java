@@ -5,8 +5,8 @@
 package ch.sbb.matsim.analysis.matrices;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
 import org.apache.log4j.Logger;
 import org.matsim.core.utils.gis.ShapeFileReader;
 import org.opengis.feature.simple.SimpleFeature;
