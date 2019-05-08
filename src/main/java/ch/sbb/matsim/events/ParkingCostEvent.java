@@ -61,7 +61,10 @@ public class ParkingCostEvent extends Event implements HasPersonId, HasLinkId {
     public Map<String, String> getAttributes() {
         Map<String, String> attr = super.getAttributes();
         attr.put(ATTRIBUTE_PERSON, this.personId.toString());
-        attr.put(ATTRIBUTE_VEHICLE, this.vehicleId.toString());
+        if (this.vehicleId != null) {
+            // vehicleId is null in case of "ride" mode
+            attr.put(ATTRIBUTE_VEHICLE, this.vehicleId.toString());
+        }
         attr.put(ATTRIBUTE_LINK, this.linkId.toString());
         attr.put(ATTRIBUTE_AMOUNT, Double.toString(this.monetaryAmount));
         return attr;
