@@ -17,7 +17,7 @@ import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
 import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
-import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.vehicles.RideParkingCostTracker;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import ch.sbb.matsim.s3.S3Downloader;
@@ -96,6 +96,9 @@ public class RunSBB {
                 ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
                 if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
                     addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+                }
+                if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+                    addEventHandlerBinding().to(RideParkingCostTracker.class);
                 }
             }
 
