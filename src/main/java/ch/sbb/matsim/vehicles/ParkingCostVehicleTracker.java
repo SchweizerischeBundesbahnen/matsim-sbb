@@ -80,7 +80,7 @@ public class ParkingCostVehicleTracker implements ActivityStartEventHandler, Veh
 
     @Override
     public void handleEvent(ActivityStartEvent event) {
-        if ("home".equals(event.getActType())) {
+        if (event.getActType().contains("home")) {
             // don't track the vehicle parking if the agent is at home, assuming the agent does not have to pay at his home location
             Id<Vehicle> vehicleId = this.lastVehiclePerDriver.get(event.getPersonId());
             if (vehicleId != null) {
