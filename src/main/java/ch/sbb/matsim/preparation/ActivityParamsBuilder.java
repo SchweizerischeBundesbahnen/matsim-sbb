@@ -56,8 +56,8 @@ public class ActivityParamsBuilder {
             if(!activityList.contains(type)) continue;
             final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
-            params.setOpeningTime( 7 * 3600.0 );
-            params.setLatestStartTime( 8 * 3600.0 );
+            params.setOpeningTime( 6.45 * 3600.0 );
+            params.setLatestStartTime( 7.45 * 3600.0 );
             params.setClosingTime( 23 * 3600.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );
@@ -69,8 +69,8 @@ public class ActivityParamsBuilder {
             if(!activityList.contains(type)) continue;
             final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
-            params.setOpeningTime( 12.75 * 3600.0 );
-            params.setLatestStartTime( 13.5 * 3600.0 );
+            params.setOpeningTime( 12.5 * 3600.0 );
+            params.setLatestStartTime( 13.75 * 3600.0 );
             params.setClosingTime( 23 * 3600.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );
@@ -94,8 +94,8 @@ public class ActivityParamsBuilder {
             if(!activityList.contains(type)) continue;
             final ActivityParams params = new ActivityParams( type );
             params.setTypicalDuration( ii * 60.0 );
-            params.setOpeningTime( 7.75 * 3600.0 );
-            params.setLatestStartTime( 8.5 * 3600.0 );
+            params.setOpeningTime( 7.5 * 3600.0 );
+            params.setLatestStartTime( 8.25 * 3600.0 );
             params.setClosingTime( 21 * 3600.0 );
             params.setScoringThisActivityAtAll( true );
             config.planCalcScore().addActivityParams( params );

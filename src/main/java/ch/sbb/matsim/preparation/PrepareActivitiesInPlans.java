@@ -67,7 +67,7 @@ public class PrepareActivitiesInPlans {
                             long ii = roundSecondsToMinInterval(duration, 60);
 
                             double hours = startTime / 3600 * 1;
-                            double yy = ((int) hours) / 1.0 + 1.0;
+                            double yy = ((int) (hours + 0.25)) / 1.0;
                             String type = SBBActivities.home + "_" + ii + "_" + yy;
                             activityList.add(type);
                             act.setType(type);
@@ -81,14 +81,14 @@ public class PrepareActivitiesInPlans {
                     }
                     else if( act.getType().equals(SBBActivities.work) ) {
                         // process morning peak (between 6.5am and 8.5am)
-                        if( startTime >= (6.5 * 3600) && startTime <= (8.5 * 3600) )    {
+                        if( startTime >= (6.25 * 3600) && startTime <= (8.25 * 3600) )    {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.work + "_" + ii + "_mp";
                             activityList.add(type);
                             act.setType(type);
                         }
                         // process noon peak (between 12pm and 2pm)
-                        else if( startTime >= (12.25 * 3600) && startTime <= (13.75 * 3600) )    {
+                        else if( startTime >= (12.5 * 3600) && startTime <= (13.75 * 3600) )    {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.work + "_" + ii + "_np";
                             activityList.add(type);
@@ -104,14 +104,14 @@ public class PrepareActivitiesInPlans {
                     }
                     else if( act.getType().equals(SBBActivities.education) ) {
                         // process morning peak (between 7am and 9am)
-                        if( startTime >= (7.25 * 3600) && startTime <= (8.75 * 3600) )    {
+                        if( startTime >= (6.75 * 3600) && startTime <= (8.5 * 3600) )    {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.education + "_" + ii + "_mp";
                             activityList.add(type);
                             act.setType(type);
                         }
                         // process noon peak (between 12.5pm and 2pm)
-                        else if( startTime >= (12.25 * 3600) && startTime <= (13.75 * 3600) )    {
+                        else if( startTime >= (12.5 * 3600) && startTime <= (13.5 * 3600) )    {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.education + "_" + ii + "_np";
                             activityList.add(type);

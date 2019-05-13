@@ -1,6 +1,7 @@
 package ch.sbb.matsim.vehicles;
 
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
+import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.events.ParkingCostEvent;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.ZonesCollection;
@@ -54,12 +55,13 @@ public class RideParkingCostTracker implements PersonArrivalEventHandler, Activi
 
     @Override
     public void handleEvent(ActivityEndEvent event) {
-        Double arrivalTime = this.arrivalsPerPerson.remove(event.getPersonId());
-        if (arrivalTime == null) {
+        if (SBBActivities.stageActivityTypeList.contains(event.getActType())) {
+            // do nothing in the case of a stageActivity
             return;
         }
-        if ("home".equals(event.getActType())) {
-            // agent was at home, does not need to pay parking costs
+
+        Double arrivalTime = this.arrivalsPerPerson.remove(event.getPersonId());
+        if (arrivalTime == null || event.getActType().contains("home")) {
             return;
         }
 
