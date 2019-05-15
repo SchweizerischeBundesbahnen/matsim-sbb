@@ -58,7 +58,7 @@ public class CalculateIndicatorMatrices {
         });
 
         if (modes.contains(TransportMode.car)) {
-            skims.calculateNetworkMatrices(networkFilename, eventsFilename, timesCar, config, l -> true);
+            skims.calculateNetworkMatrices(networkFilename, eventsFilename, timesCar, config, l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0"));
         }
 
         if (modes.contains(TransportMode.pt)) {
