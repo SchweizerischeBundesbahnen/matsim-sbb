@@ -1,0 +1,286 @@
+package ch.sbb.matsim.mavi.pt;
+
+import ch.sbb.matsim.mavi.visum.Visum;
+import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.NetworkFactory;
+import org.matsim.api.core.v01.network.Node;
+import org.matsim.core.population.routes.NetworkRoute;
+import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.utils.misc.Time;
+import org.matsim.pt.transitSchedule.api.*;
+import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.Vehicles;
+import org.matsim.vehicles.VehiclesFactory;
+
+import java.util.*;
+
+public class TimeProfileExporter {
+
+    private static final Logger log = Logger.getLogger(TimeProfileExporter.class);
+
+    private final NetworkFactory networkBuilder;
+    private final TransitScheduleFactory scheduleBuilder;
+    private final Vehicles vehicles;
+    private final VehiclesFactory vehicleBuilder;
+    private Network network;
+    private TransitSchedule schedule;
+
+    public TimeProfileExporter(Scenario scenario)   {
+        this.network = scenario.getNetwork();
+        this.schedule = scenario.getTransitSchedule();
+        this.vehicles = scenario.getVehicles();
+        this.networkBuilder = this.network.getFactory();
+        this.scheduleBuilder = this.schedule.getFactory();
+        this.vehicleBuilder = scenario.getVehicles().getFactory();
+    }
+
+    public void createTransitLines(Visum visum, String vehicleMode, String networkMode)   {
+        log.info("Loading all informations about transit lines...");
+        HashMap<Integer, TimeProfile> timeProfileMap = loadTimeProfileInfos(visum);
+        log.info("finished loading all informations for transit lines...");
+
+        for (Map.Entry<Integer, TimeProfile> entrySet: timeProfileMap.entrySet())   {
+            int tpId = entrySet.getKey();
+            TimeProfile tp = entrySet.getValue();
+
+            String lineName = tp.lineName;
+            Id<TransitLine> lineID = Id.create(lineName, TransitLine.class);
+            if(!this.schedule.getTransitLines().containsKey(lineID)) {
+                TransitLine line = this.scheduleBuilder.createTransitLine(lineID);
+                this.schedule.addTransitLine(line);
+            }
+
+            String mode;
+            if(vehicleMode.equals("Datenherkunft"))
+                mode = tp.datenHerkunft;
+            else
+                mode = vehicleMode;
+
+            tp.vehicleJourneys.forEach(vj -> {
+                int routeName = tpId;
+                int from_tp_index = vj.fromTProfItemIndex;
+                int to_tp_index = vj.toTProfItemIndex;
+                Id<TransitRoute> routeID = Id.create(routeName + "_" + from_tp_index + "_" + to_tp_index, TransitRoute.class);
+                TransitRoute route;
+
+                if(!this.schedule.getTransitLines().get(lineID).getRoutes().containsKey(routeID)) {
+                    // Fahrzeitprofil-Verläufe
+                    List<TransitRouteStop> transitRouteStops = new ArrayList<>();
+                    List<Id<Link>> routeLinks = new ArrayList<>();
+                    Id<Link> startLink = null;
+                    Id<Link> endLink = null;
+                    TransitStopFacility fromStop = null;
+                    double postlength = 0.0;
+                    double delta = 0.0;
+                    boolean isFirstRouteStop = true;
+
+                    for(TimeProfileItem tpi: tp.timeProfileItems)   {
+                        int stopPointNo = tpi.stopPoint;
+
+                        int index = tpi.index;
+                        if(from_tp_index > index || to_tp_index < index)    {
+                            continue;
+                        }
+                        else if(from_tp_index == index) {
+                            startLink = Id.createLinkId(networkMode + "_" + stopPointNo);
+                            delta = tpi.dep;
+                        }
+                        else if(to_tp_index == index) { endLink = Id.createLinkId(networkMode + "_" + stopPointNo); }
+
+                        Id<TransitStopFacility> stopID = Id.create(stopPointNo, TransitStopFacility.class);
+                        TransitStopFacility stop = this.schedule.getFacilities().get(stopID);
+
+                        double arrTime = tpi.arr;
+                        double depTime = tpi.dep;
+                        TransitRouteStop rst;
+                        if(isFirstRouteStop) {
+                            rst = this.scheduleBuilder.createTransitRouteStop(stop, Time.getUndefinedTime(), depTime - delta);
+                            isFirstRouteStop = false;
+                        }
+                        else {
+                            rst = this.scheduleBuilder.createTransitRouteStop(stop, arrTime - delta, depTime - delta);
+                        }
+                        rst.setAwaitDepartureTime(true);
+                        transitRouteStops.add(rst);
+
+                        if(fromStop != null) {
+                            // non-routed links (fly from stop to stop)
+                            Node fromNode = this.network.getLinks().get(fromStop.getLinkId()).getFromNode();
+                            Node toNode = this.network.getLinks().get(stop.getLinkId()).getFromNode();
+                            Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString());
+                            if (!this.network.getLinks().containsKey(newLinkID)) {
+                                createLink(newLinkID, fromNode, toNode, mode, postlength);
+                            }
+                            // differentiate between links with the same from- and to-node but different length
+                            else {
+                                boolean hasLinkWithSameLength = false;
+                                if (this.network.getLinks().get(newLinkID).getLength() != postlength * 1000) {
+                                    int m = 1;
+                                    Id<Link> linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
+                                    while (this.network.getLinks().containsKey(linkID)) {
+                                        if (this.network.getLinks().get(linkID).getLength() == postlength * 1000) {
+                                            hasLinkWithSameLength = true;
+                                            break;
+                                        }
+                                        m++;
+                                        linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
+                                    }
+                                    if (!hasLinkWithSameLength) {
+                                        createLink(linkID, fromNode, toNode, mode, postlength);
+                                        newLinkID = linkID;
+                                    }
+                                }
+                            }
+                            routeLinks.add(newLinkID);
+                            routeLinks.add(stop.getLinkId());
+                        }
+                        postlength = tpi.length;
+                        fromStop = stop;
+                    }
+                    routeLinks.remove(routeLinks.size() - 1);
+                    NetworkRoute netRoute = RouteUtils.createLinkNetworkRouteImpl(startLink, endLink);
+                    netRoute.setLinkIds(startLink, routeLinks, endLink);
+
+                    route = this.scheduleBuilder.createTransitRoute(routeID, netRoute, transitRouteStops, mode);
+
+                    this.schedule.getTransitLines().get(lineID).addRoute(route);
+                }
+                else    {
+                    route = this.schedule.getTransitLines().get(lineID).getRoutes().get(routeID);
+                }
+
+                int depName = vj.no;
+                Id<Departure> depID = Id.create(depName, Departure.class);
+                double depTime = vj.dep;
+                Departure dep = this.scheduleBuilder.createDeparture(depID, depTime);
+
+                Id<Vehicle> vehicleId = Id.createVehicleId(depID.toString());
+                dep.setVehicleId(vehicleId);
+                route.addDeparture(dep);
+
+                String vehicleType = tp.tSysCode;
+                Id<VehicleType> vehicleTypeId = Id.create(vehicleType, VehicleType.class);
+                Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, this.vehicles.getVehicleTypes().get(vehicleTypeId));
+                this.vehicles.addVehicle(vehicle);
+            });
+        }
+        log.info("Loading transit routes finished");
+    }
+
+    private Link createLink(Id<Link> linkId, Node fromNode, Node toNode, String mode, double length)    {
+        Link link = this.networkBuilder.createLink(linkId, fromNode, toNode);
+        link.setLength(length * 1000);
+        link.setFreespeed(10000);
+        link.setCapacity(10000);
+        link.setNumberOfLanes(10000);
+        link.setAllowedModes(Collections.singleton(mode));
+        this.network.addLink(link);
+        return link;
+    }
+
+    private static HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum)    {
+        HashMap<Integer, TimeProfile> timeProfileMap = new HashMap<>();
+
+        // time profiles
+        Visum.ComObject timeProfiles = visum.getNetObject("TimeProfiles");
+        int nrOfTimeProfiles = timeProfiles.countActive();
+        String[][] timeProfileAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfiles, timeProfiles,
+                "ID", "LineName", "LineRoute\\Line\\Datenherkunft", "TSysCode");
+        for (int tp = 0; tp < nrOfTimeProfiles; tp++) {
+            timeProfileMap.put((int) Double.parseDouble(timeProfileAttributes[tp][0]),
+                    new TimeProfile(timeProfileAttributes[tp][1],
+                            timeProfileAttributes[tp][2],
+                            timeProfileAttributes[tp][3]));
+        }
+
+        // vehicles journeys
+        Visum.ComObject vehJourneys = visum.getNetObject("VehicleJourneys");
+        int nrOfVehJourneys = vehJourneys.countActive();
+        String[][] vehJourneyAttributes = Visum.getArrayFromAttributeList(nrOfVehJourneys, vehJourneys,
+                "TimeProfile\\ID", "No", "FromTProfItemIndex", "ToTProfItemIndex", "Dep");
+        for (int vj = 0; vj < nrOfVehJourneys; vj++) {
+            TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(vehJourneyAttributes[vj][0]));
+            if (tp == null)
+                log.info((int) Double.parseDouble(vehJourneyAttributes[vj][0]));
+            tp.addVehicleJourney(new VehicleJourney((int) Double.parseDouble(vehJourneyAttributes[vj][1]),
+                    (int) Double.parseDouble(vehJourneyAttributes[vj][2]),
+                    (int) Double.parseDouble(vehJourneyAttributes[vj][3]),
+                    Double.parseDouble(vehJourneyAttributes[vj][4])));
+        }
+
+        // time profile items
+        Visum.ComObject timeProfileItems = visum.getNetObject("TimeProfileItems");
+        int nrOfTimeProfileItems = timeProfileItems.countActive();
+        String[][] timeProfileItemAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfileItems, timeProfileItems,
+                "TimeProfile\\ID", "Index", "LineRouteItem\\StopPointNo", "Dep", "Arr", "PostLength");
+        for (int tpi = 0; tpi < nrOfTimeProfileItems; tpi++) {
+            TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(timeProfileItemAttributes[tpi][0]));
+            tp.addTimeProfileItem(new TimeProfileItem((int) Double.parseDouble(timeProfileItemAttributes[tpi][1]),
+                    (int) Double.parseDouble(timeProfileItemAttributes[tpi][2]),
+                    Double.parseDouble(timeProfileItemAttributes[tpi][3]),
+                    Double.parseDouble(timeProfileItemAttributes[tpi][4]),
+                    Double.parseDouble(timeProfileItemAttributes[tpi][5])));
+        }
+
+        return timeProfileMap;
+    }
+
+    private static class TimeProfile {
+        final String lineName;
+        final String datenHerkunft;
+        final String tSysCode;
+        final ArrayList<VehicleJourney> vehicleJourneys;
+        final ArrayList<TimeProfileItem> timeProfileItems;
+
+        public TimeProfile(String lineName, String datenHerkunft, String tSysCode) {
+            this.lineName = lineName;
+            this.datenHerkunft = datenHerkunft;
+            this.tSysCode = tSysCode;
+            this.vehicleJourneys = new ArrayList<>();
+            this.timeProfileItems = new ArrayList<>();
+        }
+
+        public void addVehicleJourney(VehicleJourney vj)    {
+            this.vehicleJourneys.add(vj);
+        }
+
+        public void addTimeProfileItem(TimeProfileItem tpi) {
+            this.timeProfileItems.add(tpi);
+        }
+    }
+
+    private static class VehicleJourney {
+        final int no;
+        final int fromTProfItemIndex;
+        final int toTProfItemIndex;
+        final double dep;
+
+        public VehicleJourney(int no, int fromTProfItemIndex, int toTProfItemIndex, double dep) {
+            this.no = no;
+            this.fromTProfItemIndex = fromTProfItemIndex;
+            this.toTProfItemIndex = toTProfItemIndex;
+            this.dep = dep;
+        }
+    }
+
+    private static class TimeProfileItem {
+        final int index;
+        final int stopPoint;
+        final double dep;
+        final double arr;
+        final double length;
+
+        public TimeProfileItem(int index, int stopPoint, double dep, double arr, double length) {
+            this.index = index;
+            this.stopPoint = stopPoint;
+            this.dep = dep;
+            this.arr = arr;
+            this.length = length;
+        }
+    }
+}
