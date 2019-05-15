@@ -18,8 +18,8 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.router.AStarLandmarksFactory;
-import org.matsim.core.router.ActivityWrapperFacility;
+import org.matsim.core.router.DijkstraFactory;
+import org.matsim.core.router.LinkWrapperFacility;
 import org.matsim.core.router.NetworkRoutingModule;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
@@ -78,7 +78,7 @@ public class RunTravelTimeValidation {
         this.network = network;
         this.startTime = startTime;
 
-        AStarLandmarksFactory factory = new AStarLandmarksFactory();
+        DijkstraFactory factory = new DijkstraFactory();
         TravelTime tt = new FreeSpeedTravelTime();
         TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
@@ -97,7 +97,7 @@ public class RunTravelTimeValidation {
 
         Config config = ConfigUtils.loadConfig(configPath);
 
-        AStarLandmarksFactory factory = new AStarLandmarksFactory();
+        DijkstraFactory factory = new DijkstraFactory();
 
         TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(network);
         builder.configure(config.travelTimeCalculator());
@@ -163,13 +163,10 @@ public class RunTravelTimeValidation {
         Person person = PopulationUtils.getFactory().createPerson(Id.create(1, Person.class));
 
         Activity fromAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(fromX, fromY)));
-        fromAct.setLinkId(NetworkUtils.getNearestLink(this.network, fromAct.getCoord()).getId());
-        
-        Activity toAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(toX, toY)));
-        toAct.setLinkId(NetworkUtils.getNearestLink(this.network, toAct.getCoord()).getId());
+        Facility fromFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, fromAct.getCoord()));
 
-        Facility fromFacility = new ActivityWrapperFacility(fromAct);
-        Facility toFacility = new ActivityWrapperFacility(toAct);
+        Activity toAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(toX, toY)));
+        Facility toFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, toAct.getCoord()));
 
         List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility,
                 this.startTime * 60 * 60, person);

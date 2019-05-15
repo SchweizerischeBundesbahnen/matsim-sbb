@@ -90,7 +90,7 @@ public class AccessEgressRouting {
         int travTime = 0;
 
         if (zone != null) {
-            travTime = (int) zone.getAttribute(attribute);
+            travTime = ((Number) zone.getAttribute(attribute)).intValue();
         }
 
         route.setTravelTime(travTime);

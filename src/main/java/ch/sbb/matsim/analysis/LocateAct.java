@@ -4,20 +4,16 @@
 
 package ch.sbb.matsim.analysis;
 
+import org.apache.log4j.Logger;
+import org.locationtech.jts.geom.*;
+import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.population.*;
+import org.matsim.core.utils.gis.ShapeFileReader;
+import org.opengis.feature.simple.SimpleFeature;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.vividsolutions.jts.geom.*;
-import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.Population;
-import org.matsim.core.utils.gis.ShapeFileReader;
-import org.opengis.feature.simple.SimpleFeature;
 
 public class LocateAct {
     private final static Logger log = Logger.getLogger(LocateAct.class);

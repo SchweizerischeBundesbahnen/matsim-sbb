@@ -6,6 +6,7 @@ package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import org.apache.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -16,13 +17,7 @@ import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * XLSXScoringParser.
@@ -103,12 +98,13 @@ public class XLSXScoringParser {
     public static void parseXLSXWorkbook(Workbook workbook, Config config) {
         PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
         SBBBehaviorGroupsConfigGroup behaviorGroupConfigGroup = ConfigUtils.addOrGetModule(config, SBBBehaviorGroupsConfigGroup.class);
+        SwissRailRaptorConfigGroup raptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
 
         for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
             Sheet paramsSheet = workbook.getSheetAt(sheetIndex);
 
             if (paramsSheet.getSheetName().equals(SCORING_SHEET)) {
-                parseScoringParamsSheet(paramsSheet, planCalcScore, behaviorGroupConfigGroup);
+                parseScoringParamsSheet(paramsSheet, planCalcScore, behaviorGroupConfigGroup, raptorConfigGroup);
                 log.info("parsed general scoring parameters sheet: " + SCORING_SHEET);
             } else {
                 parseBehaviorGroupParamsSheet(paramsSheet, behaviorGroupConfigGroup);
@@ -128,7 +124,8 @@ public class XLSXScoringParser {
      * @param scoringParamsSheet (required) the workbook sheet, usually labelled "ScoringParams"
      * @param planCalcScore (required) MATSim configGroup instance
      */
-    protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore, SBBBehaviorGroupsConfigGroup sbbParams) {
+    protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore,
+                                                  SBBBehaviorGroupsConfigGroup sbbParams, SwissRailRaptorConfigGroup raptorConfigGroup) {
         Map<Integer, PlanCalcScoreConfigGroup.ModeParams> modeParamsConfig = new TreeMap<>();
         Set<String> modes = new TreeSet<>();
         Integer generalParamsCol = null;
@@ -208,15 +205,19 @@ public class XLSXScoringParser {
                                 break;
                             case TRANSFER_UTILITY_BASE:
                                 sbbParams.setBaseTransferUtility(paramValue);
+                                raptorConfigGroup.setTransferPenaltyBaseCost(-1.0 * paramValue);
                                 break;
                             case TRANSFER_UTILITY_PER_TRAVEL_TIME:
                                 sbbParams.setTransferUtilityPerTravelTime_utils_hr(paramValue);
+                                raptorConfigGroup.setTransferPenaltyCostPerTravelTimeHour(-1.0 * paramValue);
                                 break;
                             case TRANSFER_UTILITY_MINIMUM:
                                 sbbParams.setMinimumTransferUtility(paramValue);
+                                raptorConfigGroup.setTransferPenaltyMinCost(-1.0 * paramValue);
                                 break;
                             case TRANSFER_UTILITY_MAXIMUM:
                                 sbbParams.setMaximumTransferUtility(paramValue);
+                                raptorConfigGroup.setTransferPenaltyMaxCost(-1.0 * paramValue);
                                 break;
                             default:
                                 log.error("Unsupported parameter: " + rowLabel);

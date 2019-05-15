@@ -74,7 +74,7 @@ public class VisumPTSupply2MATSim {
         if(!outputPath.exists())
             outputPath.mkdir();
 
-        ActiveXComponent visum = new ActiveXComponent("Visum.Visum.16");
+        ActiveXComponent visum = new ActiveXComponent("Visum.Visum.18");
         log.info("VISUM Client gestartet.");
 
         loadVersion(visum);

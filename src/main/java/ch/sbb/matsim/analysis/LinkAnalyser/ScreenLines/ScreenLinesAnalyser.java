@@ -1,9 +1,9 @@
 package ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.index.SpatialIndex;
-import com.vividsolutions.jts.index.quadtree.Quadtree;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.index.SpatialIndex;
+import org.locationtech.jts.index.quadtree.Quadtree;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
