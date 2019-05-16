@@ -107,6 +107,7 @@ public class ScoringFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(1, Person.class));
+        person.addPlan(pf.createPlan());
         this.scenario.getPopulation().addPerson(person);
     }
 
@@ -114,6 +115,7 @@ public class ScoringFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(2, Person.class));
+        person.addPlan(pf.createPlan());
 
         person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
         this.scenario.getPopulation().addPerson(person);
@@ -123,6 +125,7 @@ public class ScoringFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(3, Person.class));
+        person.addPlan(pf.createPlan());
 
         person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
         person.getAttributes().putAttribute(ATTRIBUTEGROUP2,VALUEGROUP2);
@@ -133,6 +136,7 @@ public class ScoringFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(4, Person.class));
+        person.addPlan(pf.createPlan());
 
         person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
         person.getAttributes().putAttribute(ATTRIBUTEGROUP2,VALUEGROUP2);
