@@ -3,27 +3,34 @@ package ch.sbb.matsim.scoring;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansConfigGroup;
 import org.matsim.core.config.groups.ScenarioConfigGroup;
+import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.scoring.functions.ModeUtilityParameters;
 import org.matsim.core.scoring.functions.ScoringParameters;
 import org.matsim.core.scoring.functions.ScoringParametersForPerson;
 import org.matsim.pt.config.TransitConfigGroup;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author jlie/pmanser / SBB
+ * @author jlie/pmanser/mrieser / SBB
  * based on org.matsim.core.scoring.functions.RandomizedCharyparNagelScoringParameters
  *
  * extended the code to allow customized personal scoring parameters depending on different behaviorally
  * homogeneous groups.
+ * extended the code to reduce memory consumption when a large number of actiivty types is used.
  *
  */
 
@@ -38,6 +45,8 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
     private final String subpopulationAttributeName;
     private final TransitConfigGroup transitConfigGroup;
     private final SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup;
+
+    private final Map<ComparableActivityParams, ComparableActivityParams> actParamCache = new ConcurrentHashMap<>();
 
     public SBBCharyparNagelScoringParametersForPerson(Scenario scenario) {
         this(scenario.getConfig().plans(),
@@ -77,8 +86,35 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
         final String subpopulation = (String) personAttributes.getAttribute(person.getId().toString(), subpopulationAttributeName);
 
+        PlanCalcScoreConfigGroup.ScoringParameterSet scoringParameters = this.config.getScoringParameters(subpopulation);
+        PlanCalcScoreConfigGroup.ScoringParameterSet filteredParameters = (PlanCalcScoreConfigGroup.ScoringParameterSet) this.config.createParameterSet(PlanCalcScoreConfigGroup.ScoringParameterSet.SET_TYPE);
+
+        // make a (filtered) duplicate. Not very nice as it is not very future-proof, but I didn't find a better way to achieve the goal
+        Set<String> usedActTypes = new HashSet<>();
+        for (PlanElement pe : person.getSelectedPlan().getPlanElements()) {
+            if (pe instanceof Activity) {
+                usedActTypes.add(((Activity) pe).getType());
+            }
+        }
+        filteredParameters.setSubpopulation(scoringParameters.getSubpopulation());
+        filteredParameters.setMarginalUtlOfWaiting_utils_hr(scoringParameters.getMarginalUtlOfWaiting_utils_hr());
+        filteredParameters.setMarginalUtlOfWaitingPt_utils_hr(scoringParameters.getMarginalUtlOfWaitingPt_utils_hr());
+        filteredParameters.setMarginalUtilityOfMoney(scoringParameters.getMarginalUtilityOfMoney());
+        filteredParameters.setPerforming_utils_hr(scoringParameters.getPerforming_utils_hr());
+        filteredParameters.setUtilityOfLineSwitch(scoringParameters.getUtilityOfLineSwitch());
+        filteredParameters.setEarlyDeparture_utils_hr(scoringParameters.getEarlyDeparture_utils_hr());
+        filteredParameters.setLateArrival_utils_hr(scoringParameters.getLateArrival_utils_hr());
+        for (PlanCalcScoreConfigGroup.ModeParams modeParams : scoringParameters.getModes().values()) {
+            filteredParameters.addModeParams(modeParams);
+        }
+        for (PlanCalcScoreConfigGroup.ActivityParams actParams : scoringParameters.getActivityParams()) {
+            if (usedActTypes.contains(actParams.getActivityType())) {
+                filteredParameters.addActivityParams(actParams);
+            }
+        }
+
         SBBScoringParameters.Builder builder = new SBBScoringParameters.Builder(
-                this.config, this.config.getScoringParameters(subpopulation),
+                this.config, filteredParameters,
                 this.scConfig, this.behaviorGroupsConfigGroup);
 
         // building the customized scoring parameters for each person depending on his behavior group
@@ -139,9 +175,62 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
             builder.getMatsimScoringParametersBuilder().setModeParameters(mode, modeParameteresBuilder);
         }
         sbbParams = builder.build();
+
+        // make sure we re-use activity params when possible
+        Map<String, ActivityUtilityParameters> actParams = sbbParams.getMatsimScoringParameters().utilParams;
+        for (String actType : usedActTypes) {
+            ActivityUtilityParameters params = this.actParamCache.computeIfAbsent(new ComparableActivityParams(actParams.get(actType)), k -> k).params;
+            actParams.replace(actType, params);
+        }
+
         this.paramsPerPerson.put(person, sbbParams);
 
         return sbbParams;
     }
 
+    private static class ComparableActivityParams {
+        final ActivityUtilityParameters params;
+
+        public ComparableActivityParams(ActivityUtilityParameters params) {
+            this.params = params;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof ComparableActivityParams)) {
+                return false;
+            }
+            ActivityUtilityParameters t = this.params;
+            ActivityUtilityParameters o = ((ComparableActivityParams) obj).params;
+
+            return t.getType().equals(o.getType())
+                    && t.isScoreAtAll() == o.isScoreAtAll()
+                    && Double.compare(t.getMinimalDuration(), o.getMinimalDuration()) == 0
+                    && Double.compare(t.getTypicalDuration(), o.getTypicalDuration()) == 0
+                    && Double.compare(t.getEarliestEndTime(), o.getEarliestEndTime()) == 0
+                    && Double.compare(t.getLatestStartTime(), o.getLatestStartTime()) == 0
+                    && Double.compare(t.getOpeningTime(), o.getOpeningTime()) == 0
+                    && Double.compare(t.getClosingTime(), o.getClosingTime()) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            ActivityUtilityParameters p = this.params;
+            int hashCode = p.getType().hashCode();
+            hashCode *= 31;
+            hashCode += Double.hashCode(p.getMinimalDuration());
+            hashCode *= 31;
+            hashCode += Double.hashCode(p.getTypicalDuration());
+            hashCode *= 31;
+            hashCode += Double.hashCode(p.getEarliestEndTime());
+            hashCode *= 31;
+            hashCode += Double.hashCode(p.getLatestStartTime());
+            hashCode *= 31;
+            hashCode += Double.hashCode(p.getOpeningTime());
+            hashCode *= 31;
+            hashCode += Double.hashCode(p.getClosingTime());
+
+            return hashCode;
+        }
+    }
 }
