@@ -1,6 +1,7 @@
 package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.variables.SBBActivities;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
@@ -96,6 +97,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
                 usedActTypes.add(((Activity) pe).getType());
             }
         }
+        usedActTypes.addAll(SBBActivities.stageActivityTypeList);
         filteredParameters.setSubpopulation(scoringParameters.getSubpopulation());
         filteredParameters.setMarginalUtlOfWaiting_utils_hr(scoringParameters.getMarginalUtlOfWaiting_utils_hr());
         filteredParameters.setMarginalUtlOfWaitingPt_utils_hr(scoringParameters.getMarginalUtlOfWaitingPt_utils_hr());
