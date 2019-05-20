@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.mavi.pt;
 
-import ch.sbb.matsim.mavi.pt.*;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -62,7 +61,6 @@ public class RunVisumPtExporter {
 
         // load stops into scenario
         VisumStopExporter stops = new VisumStopExporter(scenario);
-        // TODO: export attributes
         stops.loadStopPoints(visum, exporterConfig);
 
         // load minimal transfer times into scenario
@@ -72,7 +70,7 @@ public class RunVisumPtExporter {
         new VehicleTypeExporter(scenario).createVehicleTypes(visum);
 
         // load transit lines
-        new TimeProfileExporter(scenario).createTransitLines(visum, exporterConfig.getVehicleMode(), exporterConfig.getNetworkMode());
+        new TimeProfileExporter(scenario).createTransitLines(visum, exporterConfig);
 
         // reduce the size of the network and the schedule by taking necessary things only.
         cleanStops(scenario.getTransitSchedule());

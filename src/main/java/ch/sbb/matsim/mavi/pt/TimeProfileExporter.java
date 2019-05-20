@@ -1,6 +1,7 @@
 package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.mavi.visum.Visum;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -12,12 +13,14 @@ import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.*;
+import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class TimeProfileExporter {
 
@@ -39,9 +42,9 @@ public class TimeProfileExporter {
         this.vehicleBuilder = scenario.getVehicles().getFactory();
     }
 
-    public void createTransitLines(Visum visum, String vehicleMode, String networkMode)   {
+    public void createTransitLines(Visum visum, VisumPtExporterConfigGroup config)   {
         log.info("Loading all informations about transit lines...");
-        HashMap<Integer, TimeProfile> timeProfileMap = loadTimeProfileInfos(visum);
+        HashMap<Integer, TimeProfile> timeProfileMap = loadTimeProfileInfos(visum, config);
         log.info("finished loading all informations for transit lines...");
 
         for (Map.Entry<Integer, TimeProfile> entrySet: timeProfileMap.entrySet())   {
@@ -56,10 +59,10 @@ public class TimeProfileExporter {
             }
 
             String mode;
-            if(vehicleMode.equals("Datenherkunft"))
+            if(config.getVehicleMode().equals("Datenherkunft"))
                 mode = tp.datenHerkunft;
             else
-                mode = vehicleMode;
+                mode = config.getVehicleMode();
 
             tp.vehicleJourneys.forEach(vj -> {
                 int routeName = tpId;
@@ -87,10 +90,10 @@ public class TimeProfileExporter {
                             continue;
                         }
                         else if(from_tp_index == index) {
-                            startLink = Id.createLinkId(networkMode + "_" + stopPointNo);
+                            startLink = Id.createLinkId(config.getNetworkMode() + "_" + stopPointNo);
                             delta = tpi.dep;
                         }
-                        else if(to_tp_index == index) { endLink = Id.createLinkId(networkMode + "_" + stopPointNo); }
+                        else if(to_tp_index == index) { endLink = Id.createLinkId(config.getNetworkMode() + "_" + stopPointNo); }
 
                         Id<TransitStopFacility> stopID = Id.create(stopPointNo, TransitStopFacility.class);
                         TransitStopFacility stop = this.schedule.getFacilities().get(stopID);
@@ -163,6 +166,11 @@ public class TimeProfileExporter {
                 dep.setVehicleId(vehicleId);
                 route.addDeparture(dep);
 
+                String[] values = tp.customAttributes;
+                List<VisumPtExporterConfigGroup.RouteAttributeParams> custAttNames = new ArrayList<>(config.getRouteAttributeParams().values());
+                IntStream.range(0, values.length).forEach(j -> addAttribute(route.getAttributes(), custAttNames.get(j).getAttributeName(),
+                        values[j], custAttNames.get(j).getDataType()));
+
                 String vehicleType = tp.tSysCode;
                 Id<VehicleType> vehicleTypeId = Id.create(vehicleType, VehicleType.class);
                 Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, this.vehicles.getVehicleTypes().get(vehicleTypeId));
@@ -183,7 +191,7 @@ public class TimeProfileExporter {
         return link;
     }
 
-    private static HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum)    {
+    private static HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum, VisumPtExporterConfigGroup config)    {
         HashMap<Integer, TimeProfile> timeProfileMap = new HashMap<>();
 
         // time profiles
@@ -191,11 +199,17 @@ public class TimeProfileExporter {
         int nrOfTimeProfiles = timeProfiles.countActive();
         String[][] timeProfileAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfiles, timeProfiles,
                 "ID", "LineName", "LineRoute\\Line\\Datenherkunft", "TSysCode");
+        String[][] customAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfiles, timeProfiles,
+                config.getRouteAttributeParams().values().stream().
+                map(VisumPtExporterConfigGroup.RouteAttributeParams::getAttributeValue).
+                        toArray(String[]::new));
+
         for (int tp = 0; tp < nrOfTimeProfiles; tp++) {
             timeProfileMap.put((int) Double.parseDouble(timeProfileAttributes[tp][0]),
                     new TimeProfile(timeProfileAttributes[tp][1],
                             timeProfileAttributes[tp][2],
-                            timeProfileAttributes[tp][3]));
+                            timeProfileAttributes[tp][3],
+                            customAttributes[tp]));
         }
 
         // vehicles journeys
@@ -230,17 +244,37 @@ public class TimeProfileExporter {
         return timeProfileMap;
     }
 
+    private static void addAttribute(Attributes attributes, String name, String value, String dataType)  {
+        if(!value.isEmpty() && !value.equals("null"))    {
+            switch ( dataType ) {
+                case Type.STRING_CLASS:
+                    attributes.putAttribute(name, value);
+                    break;
+                case Type.DOUBLE_CLASS:
+                    attributes.putAttribute(name, Double.parseDouble(value));
+                    break;
+                case Type.INTEGER_CLASS:
+                    attributes.putAttribute(name, (int) Double.parseDouble(value));
+                    break;
+                default:
+                    throw new IllegalArgumentException( dataType );
+            }
+        }
+    }
+
     private static class TimeProfile {
         final String lineName;
         final String datenHerkunft;
         final String tSysCode;
         final ArrayList<VehicleJourney> vehicleJourneys;
         final ArrayList<TimeProfileItem> timeProfileItems;
+        final String[] customAttributes;
 
-        public TimeProfile(String lineName, String datenHerkunft, String tSysCode) {
+        public TimeProfile(String lineName, String datenHerkunft, String tSysCode, String[] customAttributes) {
             this.lineName = lineName;
             this.datenHerkunft = datenHerkunft;
             this.tSysCode = tSysCode;
+            this.customAttributes = customAttributes;
             this.vehicleJourneys = new ArrayList<>();
             this.timeProfileItems = new ArrayList<>();
         }

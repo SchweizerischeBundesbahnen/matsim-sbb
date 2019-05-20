@@ -1,6 +1,7 @@
 package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.mavi.visum.Visum;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -12,11 +13,10 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.utils.objectattributes.attributable.Attributes;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class VisumStopExporter {
@@ -48,12 +48,18 @@ public class VisumStopExporter {
 
         String[][] stopPointAttributes = Visum.getArrayFromAttributeList(nrOfStopPoints, stopPoints,
                 "No", "XCoord", "YCoord", "Name", "IsOnNode", "IsOnLink", "NodeNo", "FromNodeNo", "StopArea\\No");
-        IntStream.range(0, nrOfStopPoints).forEach(m -> createStopPoint(m, stopPointAttributes, config));
+
+        String[][] customAttributes = Visum.getArrayFromAttributeList(nrOfStopPoints, stopPoints,
+                config.getStopAttributeParams().values().stream().
+                map(VisumPtExporterConfigGroup.StopAttributeParams::getAttributeValue).
+                        toArray(String[]::new));
+
+        IntStream.range(0, nrOfStopPoints).forEach(m -> createStopPoint(m, stopPointAttributes, customAttributes, config));
 
         log.info("finished loading " + nrOfStopPoints + " stop points");
     }
 
-    private void createStopPoint(int i, String[][] stopPointAttributes, VisumPtExporterConfigGroup config) {
+    private void createStopPoint(int i, String[][] stopPointAttributes, String[][] customAttributes, VisumPtExporterConfigGroup config) {
         int stopPointNo = (int) Double.parseDouble(stopPointAttributes[i][0]);
         Id<TransitStopFacility> stopPointID = Id.create(stopPointNo, TransitStopFacility.class);
         double xCoord = Double.parseDouble(stopPointAttributes[i][1]);
@@ -96,6 +102,29 @@ public class VisumStopExporter {
         st.setName(stopPointName);
         st.setLinkId(loopLinkID);
 
+        String[] values = customAttributes[i];
+        List<VisumPtExporterConfigGroup.StopAttributeParams> custAttNames = new ArrayList<>(config.getStopAttributeParams().values());
+        IntStream.range(0, values.length).forEach(j -> addAttribute(st.getAttributes(), custAttNames.get(j).getAttributeName(),
+                values[j], custAttNames.get(j).getDataType()));
+
         this.schedule.addStopFacility(st);
+    }
+
+    private static void addAttribute(Attributes attributes, String name, String value, String dataType)  {
+        if(!value.isEmpty() && !value.equals("null"))    {
+            switch ( dataType ) {
+                case Type.STRING_CLASS:
+                    attributes.putAttribute(name, value);
+                    break;
+                case Type.DOUBLE_CLASS:
+                    attributes.putAttribute(name, Double.parseDouble(value));
+                    break;
+                case Type.INTEGER_CLASS:
+                    attributes.putAttribute(name, (int) Double.parseDouble(value));
+                    break;
+                default:
+                    throw new IllegalArgumentException( dataType );
+            }
+        }
     }
 }
