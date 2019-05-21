@@ -42,7 +42,7 @@ public class MTTExporter {
         Visum.ComObject walkTimes = visum.getComObject(lists, "CreateStopTransferWalkTimeList");
         walkTimes.callMethod("AddColumn", "FromStopAreaNo");
         walkTimes.callMethod("AddColumn", "ToStopAreaNo");
-        walkTimes.callMethod("AddColumn", "Time(F)");
+        walkTimes.callMethod("AddColumn", "Time(F)", 3);
         SafeArray a = walkTimes.getSafeArray("SaveToArray");
 
         int nrTransfers = walkTimes.getNumActiveElements();
@@ -51,7 +51,7 @@ public class MTTExporter {
         List<Transfer> transfers = IntStream.range(0, nrTransfers).
                 filter(i -> Double.parseDouble(a.getString(i, 2)) > 0).
                 mapToObj(i -> new Transfer((int) Double.parseDouble(a.getString(i, 0)),
-                        (int) Double.parseDouble(a.getString(i, 1)), 60.0 * Double.parseDouble(a.getString(i, 2)))).
+                        (int) Double.parseDouble(a.getString(i, 1)), Double.parseDouble(a.getString(i, 2)))).
                 collect(Collectors.toList());
 
         log.info("finished loading " + transfers.size() + " valid within stop transfers");
