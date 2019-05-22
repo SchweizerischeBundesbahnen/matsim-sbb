@@ -13,6 +13,7 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.functions.ScoringParameters;
 
@@ -43,6 +44,7 @@ public class ScoringFixture {
         this.config.planCalcScore().getModes().get(TransportMode.pt).setMonetaryDistanceRate(-0.000300);
         this.scenario = ScenarioUtils.createScenario(this.config);
         this.sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
+        addRideInteractionScoring(this.config);
     }
 
     ScoringParameters buildDefaultScoringParams(Id<Person> personId)   {
@@ -107,6 +109,7 @@ public class ScoringFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(1, Person.class));
+        person.addPlan(pf.createPlan());
         this.scenario.getPopulation().addPerson(person);
     }
 
@@ -114,6 +117,7 @@ public class ScoringFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(2, Person.class));
+        person.addPlan(pf.createPlan());
 
         person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
         this.scenario.getPopulation().addPerson(person);
@@ -123,6 +127,7 @@ public class ScoringFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(3, Person.class));
+        person.addPlan(pf.createPlan());
 
         person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
         person.getAttributes().putAttribute(ATTRIBUTEGROUP2,VALUEGROUP2);
@@ -133,10 +138,17 @@ public class ScoringFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(4, Person.class));
+        person.addPlan(pf.createPlan());
 
         person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
         person.getAttributes().putAttribute(ATTRIBUTEGROUP2,VALUEGROUP2);
         person.getAttributes().putAttribute(ATTRIBUTEGROUP3,VALUEGROUP3);
         this.scenario.getPopulation().addPerson(person);
+    }
+
+    static void addRideInteractionScoring(Config config) {
+        PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
+        params.setScoringThisActivityAtAll(false);
+        config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(params);
     }
 }

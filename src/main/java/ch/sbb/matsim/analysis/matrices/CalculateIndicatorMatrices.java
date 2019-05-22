@@ -5,15 +5,14 @@
 package ch.sbb.matsim.analysis.matrices;
 
 import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.misc.Time;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
 /**
  * @author mrieser / SBB
@@ -28,21 +27,40 @@ public class CalculateIndicatorMatrices {
         String facilitiesFilename = args[2];
         String networkFilename = args[3];
         String transitScheduleFilename = args[4];
-        String eventsFilename = args[5];
+        String eventsFilename = args[5].equals("-") ? null : args[5];
         String outputDirectory = args[6];
         int numberOfPointsPerZone = Integer.valueOf(args[7]);
         int numberOfThreads = Integer.valueOf(args[8]);
-        String[] timesCarStr = args[9].split(";");
-        String[] timesPtStr = args[10].split(";");
-        Set<String> modes = CollectionUtils.stringToSet(args[11]);
+        Map<String, double[]> timesCar = new LinkedHashMap<>();
+        Map<String, double[]> timesPt = new LinkedHashMap<>();
 
-        double[] timesCar = new double[timesCarStr.length];
-        for (int i = 0; i < timesCarStr.length; i++)
-            timesCar[i] = Time.parseTime(timesCarStr[i]);
-
-        double[] timesPt = new double[timesPtStr.length];
-        for (int i = 0; i < timesPtStr.length; i++)
-            timesPt[i] = Time.parseTime(timesPtStr[i]);
+        for (int argIdx = 9; argIdx < args.length; argIdx++) {
+            String arg = args[argIdx];
+            String mode = null;
+            String data = null;
+            if (arg.startsWith("car=")) {
+                mode = "car";
+                data = arg.substring(4);
+            }
+            if (arg.startsWith("pt=")) {
+                mode = "pt";
+                data = arg.substring(3);
+            }
+            if (data != null) {
+                String[] parts = data.split(";");
+                String prefix = parts[0];
+                double[] times = new double[parts.length - 1];
+                for (int timeIndex = 0; timeIndex < times.length; timeIndex++) {
+                    times[timeIndex] = Time.parseTime(parts[timeIndex + 1]);
+                }
+                if (mode.equals("car")) {
+                    timesCar.put(prefix, times);
+                }
+                if (mode.equals("pt")) {
+                    timesPt.put(prefix, times);
+                }
+            }
+        }
 
         Config config = ConfigUtils.createConfig();
         Random r = new Random(20180404L);
@@ -57,12 +75,16 @@ public class CalculateIndicatorMatrices {
             return weight;
         });
 
-        if (modes.contains(TransportMode.car)) {
-            skims.calculateNetworkMatrices(networkFilename, eventsFilename, timesCar, config, l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0"));
+        for (Map.Entry<String, double[]> e : timesCar.entrySet()) {
+            String prefix = e.getKey();
+            double[] times = e.getValue();
+            skims.calculateNetworkMatrices(networkFilename, eventsFilename, times, config, prefix, l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0"));
         }
 
-        if (modes.contains(TransportMode.pt)) {
-            skims.calculatePTMatrices(transitScheduleFilename, timesPt[0], timesPt[1], config, (line, route) -> "SBB_Simba.CH_2016".equals(route.getAttributes().getAttribute("01_Datenherkunft")));
+        for (Map.Entry<String, double[]> e : timesPt.entrySet()) {
+            String prefix = e.getKey();
+            double[] times = e.getValue();
+            skims.calculatePTMatrices(networkFilename, transitScheduleFilename, times[0], times[1], config, prefix, (line, route) -> "SBB_Simba.CH_2016".equals(route.getAttributes().getAttribute("01_Datenherkunft")));
         }
 
         skims.calculateBeelineMatrix();
