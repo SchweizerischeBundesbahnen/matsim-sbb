@@ -15,9 +15,11 @@ public class ParkingCostConfigGroup extends ReflectiveConfigGroup {
 
     public static final String PARAM_ZONES_ID = "zonesId";
     public static final String PARAM_ZONES_ATTRIBUTE = "zonesParkingCostAttributeName";
+    public static final String PARAM_ZONES_RIDE_ATTRIBUTE = "zonesRideParkingCostAttributeName";
 
     private Id<Zones> zonesId = null;
     private String zonesParkingCostAttributeName = null;
+    private String zonesRideParkingCostAttributeName = null;
 
     public ParkingCostConfigGroup() {
         super(GROUP_NAME);
@@ -27,7 +29,8 @@ public class ParkingCostConfigGroup extends ReflectiveConfigGroup {
     public Map<String, String> getComments() {
         Map<String, String> map = super.getComments();
         map.put(PARAM_ZONES_ID, "The id of the zones collection as listed in the zones-configuration.");
-        map.put(PARAM_ZONES_ATTRIBUTE, "The zones' attribute name containing the hourly parking cost for each zone.");
+        map.put(PARAM_ZONES_ATTRIBUTE, "The zones' attribute name containing the hourly parking cost for each zone for car mode.");
+        map.put(PARAM_ZONES_RIDE_ATTRIBUTE, "The zones' attribute name containing the hourly parking cost for each zone for ride mode.");
         return map;
     }
 
@@ -57,5 +60,15 @@ public class ParkingCostConfigGroup extends ReflectiveConfigGroup {
     @StringSetter(PARAM_ZONES_ATTRIBUTE)
     public void setZonesParkingCostAttributeName(String attributeName) {
         this.zonesParkingCostAttributeName = attributeName;
+    }
+
+    @StringGetter(PARAM_ZONES_RIDE_ATTRIBUTE)
+    public String getZonesRideParkingCostAttributeName() {
+        return this.zonesRideParkingCostAttributeName;
+    }
+
+    @StringSetter(PARAM_ZONES_RIDE_ATTRIBUTE)
+    public void setZonesRideParkingCostAttributeName(String attributeName) {
+        this.zonesRideParkingCostAttributeName = attributeName;
     }
 }
