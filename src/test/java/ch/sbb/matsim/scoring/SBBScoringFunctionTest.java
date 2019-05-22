@@ -1,6 +1,7 @@
 package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.variables.SBBActivities;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
@@ -38,6 +39,7 @@ public class SBBScoringFunctionTest {
 
     private void testTransferScoring(String accessMode, String egressMode) {
         Config config = ConfigUtils.createConfig();
+        ScoringFixture.addRideInteractionScoring(config);
         Scenario scenario = ScenarioUtils.createScenario(config);
 
         PopulationFactory pf = scenario.getPopulation().getFactory();
@@ -143,6 +145,7 @@ public class SBBScoringFunctionTest {
          * used, and that, if possible, objects are re-used. */
         SBBBehaviorGroupsConfigGroup sbbBehaviour = new SBBBehaviorGroupsConfigGroup();
         Config config = ConfigUtils.createConfig(sbbBehaviour);
+        ScoringFixture.addRideInteractionScoring(config);
         PlanCalcScoreConfigGroup.ScoringParameterSet params = config.planCalcScore().getOrCreateScoringParameters(null);
         params.addActivityParams(createActivityParams("home", 8*3600, 12*3600));
         params.addActivityParams(createActivityParams("work", 3*3600, 8*3600));
@@ -160,13 +163,15 @@ public class SBBScoringFunctionTest {
         population.addPerson(w2 = createWorkPerson(pf, "w2"));
         population.addPerson(e3 = createEduPerson(pf, "e3"));
 
+        int interactionActtypeCount = SBBActivities.stageActivityTypeList.size();
+
         SBBCharyparNagelScoringParametersForPerson spfp = new SBBCharyparNagelScoringParametersForPerson(config.plans(), config.planCalcScore(), config.scenario(), population, config.transit(), sbbBehaviour);
 
         SBBScoringParameters sp1 = spfp.getSBBScoringParameters(w1);
         ActivityUtilityParameters home1 = sp1.getMatsimScoringParameters().utilParams.get("home");
         ActivityUtilityParameters work1 = sp1.getMatsimScoringParameters().utilParams.get("work");
         ActivityUtilityParameters edu1 = sp1.getMatsimScoringParameters().utilParams.get("edu");
-        Assert.assertEquals("ScoringFunction should only contain parameters for activity types used by this agent.", 2, sp1.getMatsimScoringParameters().utilParams.size());
+        Assert.assertEquals("ScoringFunction should only contain parameters for activity types used by this agent.", 2 + interactionActtypeCount, sp1.getMatsimScoringParameters().utilParams.size());
         Assert.assertNotNull("ScoringFunction should contain parameters for activity 'home'.", home1);
         Assert.assertNotNull("ScoringFunction should contain parameters for activity 'work'.", work1);
         Assert.assertNull("ScoringFunction should not contain parameters for activity 'edu'.", edu1);
@@ -175,7 +180,7 @@ public class SBBScoringFunctionTest {
         ActivityUtilityParameters home2 = sp2.getMatsimScoringParameters().utilParams.get("home");
         ActivityUtilityParameters work2 = sp2.getMatsimScoringParameters().utilParams.get("work");
         ActivityUtilityParameters edu2 = sp2.getMatsimScoringParameters().utilParams.get("edu");
-        Assert.assertEquals("ScoringFunction should only contain parameters for activity types used by this agent.", 2, sp2.getMatsimScoringParameters().utilParams.size());
+        Assert.assertEquals("ScoringFunction should only contain parameters for activity types used by this agent.", 2 + interactionActtypeCount, sp2.getMatsimScoringParameters().utilParams.size());
         Assert.assertNotNull("ScoringFunction should contain parameters for activity 'home'.", home2);
         Assert.assertNotNull("ScoringFunction should contain parameters for activity 'work'.", work2);
         Assert.assertNull("ScoringFunction should not contain parameters for activity 'edu'.", edu2);
@@ -184,7 +189,7 @@ public class SBBScoringFunctionTest {
         ActivityUtilityParameters home3 = sp3.getMatsimScoringParameters().utilParams.get("home");
         ActivityUtilityParameters work3 = sp3.getMatsimScoringParameters().utilParams.get("work");
         ActivityUtilityParameters edu3 = sp3.getMatsimScoringParameters().utilParams.get("edu");
-        Assert.assertEquals("ScoringFunction should only contain parameters for activity types used by this agent.", 2, sp3.getMatsimScoringParameters().utilParams.size());
+        Assert.assertEquals("ScoringFunction should only contain parameters for activity types used by this agent.", 2 + interactionActtypeCount, sp3.getMatsimScoringParameters().utilParams.size());
         Assert.assertNotNull("ScoringFunction should contain parameters for activity 'home'.", home3);
         Assert.assertNull("ScoringFunction should not contain parameters for activity 'work'.", work3);
         Assert.assertNotNull("ScoringFunction should contain parameters for activity 'edu'.", edu3);

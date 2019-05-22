@@ -13,6 +13,7 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.functions.ScoringParameters;
 
@@ -43,6 +44,7 @@ public class ScoringFixture {
         this.config.planCalcScore().getModes().get(TransportMode.pt).setMonetaryDistanceRate(-0.000300);
         this.scenario = ScenarioUtils.createScenario(this.config);
         this.sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
+        addRideInteractionScoring(this.config);
     }
 
     ScoringParameters buildDefaultScoringParams(Id<Person> personId)   {
@@ -142,5 +144,11 @@ public class ScoringFixture {
         person.getAttributes().putAttribute(ATTRIBUTEGROUP2,VALUEGROUP2);
         person.getAttributes().putAttribute(ATTRIBUTEGROUP3,VALUEGROUP3);
         this.scenario.getPopulation().addPerson(person);
+    }
+
+    static void addRideInteractionScoring(Config config) {
+        PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
+        params.setScoringThisActivityAtAll(false);
+        config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(params);
     }
 }
