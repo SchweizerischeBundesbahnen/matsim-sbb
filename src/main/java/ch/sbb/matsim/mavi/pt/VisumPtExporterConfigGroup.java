@@ -2,22 +2,20 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package ch.sbb.matsim.mavi;
+package ch.sbb.matsim.mavi.pt;
 
+import ch.sbb.matsim.mavi.visum.Visum;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 import org.matsim.core.utils.collections.CollectionUtils;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author pmanser / SBB
  */
 
-public class VisumPTSupply2MATSimConfigGroup extends ReflectiveConfigGroup {
+public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 
     static public final String GROUP_NAME = "VisumPTSupply2MATSimConfigGroup";
 
@@ -41,7 +39,7 @@ public class VisumPTSupply2MATSimConfigGroup extends ReflectiveConfigGroup {
     private boolean exportTransferTimes = false;
     private HashSet<String> linesToRoute = new HashSet<>();
 
-    public VisumPTSupply2MATSimConfigGroup() {
+    public VisumPtExporterConfigGroup() {
         super(GROUP_NAME);
     }
 
@@ -208,6 +206,17 @@ public class VisumPTSupply2MATSimConfigGroup extends ReflectiveConfigGroup {
             if ( old != null ) throw new IllegalStateException( "several parameters set for filter position " + position );
         }
         return map;
+    }
+
+    public List<Visum.FilterCondition> getTimeProfilFilterConditions() {
+        final List<Visum.FilterCondition> list = new ArrayList<>();
+
+        for ( ConfigGroup pars : getParameterSets( TimeProfilFilterParams.SET_TYPE ) ) {
+            TimeProfilFilterParams tpf = (TimeProfilFilterParams) pars;
+            list.add(new Visum.FilterCondition(tpf.position, tpf.op, tpf.complement, tpf.attribute, tpf.comparator,
+                    tpf.val));
+        }
+        return list;
     }
 
     public static class TimeProfilFilterParams extends ReflectiveConfigGroup {
