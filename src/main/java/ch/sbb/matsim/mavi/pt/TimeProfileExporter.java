@@ -149,7 +149,6 @@ public class TimeProfileExporter {
                             }
                             routeLinks.add(newLinkID);
                             routeLinks.add(stop.getLinkId());
-                            String linkSeq = this.linkToVisumSequence.get(newLinkID);
                         }
                         postlength = tpi.length;
                         fromStop = stop;
