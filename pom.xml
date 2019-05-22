@@ -54,7 +54,7 @@
 		<dependency>
 			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
-			<version>11.0</version>
+			<version>11.2</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->
