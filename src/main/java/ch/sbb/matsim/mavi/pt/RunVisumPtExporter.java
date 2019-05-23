@@ -70,7 +70,9 @@ public class RunVisumPtExporter {
         new VehicleTypeExporter(scenario).createVehicleTypes(visum);
 
         // load transit lines
-        new TimeProfileExporter(scenario).createTransitLines(visum, exporterConfig);
+        TimeProfileExporter tpe = new TimeProfileExporter(scenario);
+        tpe.createTransitLines(visum, exporterConfig);
+        tpe.writeLinkSequence(exporterConfig.getOutputPath());
 
         // reduce the size of the network and the schedule by taking necessary things only.
         cleanStops(scenario.getTransitSchedule());
