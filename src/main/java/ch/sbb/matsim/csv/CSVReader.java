@@ -69,7 +69,7 @@ public class CSVReader implements AutoCloseable {
         String[] parts = line.split(this.splitBy, -1);
         for (int i = 0; i < this.columns.length; i++) {
             String column = this.columns[i];
-            String value = parts[i];
+            String value = (i < parts.length) ? parts[i] : null;
             currentRow.put(column, value);
         }
         return currentRow;
