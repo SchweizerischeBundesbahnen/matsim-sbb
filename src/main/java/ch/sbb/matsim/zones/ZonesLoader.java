@@ -36,7 +36,7 @@ public final class ZonesLoader {
 
     private static Zones loadZonesFromShapefile(String id, String filename, String idAttribute) {
         boolean noZoneId = idAttribute == null || idAttribute.isEmpty();
-        Zones zones = new Zones(Id.create(id, Zones.class));
+        ZonesImpl zones = new ZonesImpl(Id.create(id, Zones.class));
         for (SimpleFeature sf : ShapeFileReader.getAllFeatures(filename)) {
             String zoneId = noZoneId ? null : sf.getAttribute(idAttribute).toString();
             Zone zone = new SimpleFeatureZone(noZoneId ? null : Id.create(zoneId, Zone.class), sf);
