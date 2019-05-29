@@ -23,7 +23,6 @@ public class Journey extends TravelComponent {
 	private boolean teleportJourney = false;
 	private List<Trip> trips = new ArrayList<>();
 	private List<Transfer> transfers = new ArrayList<>();
-	private List<Walk> walks = new ArrayList<>();
 	private List<TravelComponent> planElements = new ArrayList<>();
 	private final Config config;
 
@@ -67,9 +66,6 @@ public class Journey extends TravelComponent {
 			return walkSpeed * getDuration();
 		if (!isCarJourney()) {
 			double distance = 0;
-			for (Walk w : getWalks()) {
-				distance += w.getDistance();
-			}
 			return distance;
 		}
 		return 0;
@@ -155,22 +151,11 @@ public class Journey extends TravelComponent {
 	}
 
 	public double getAccessWalkDistance() {
-
-		try {
-			return getFirstWalk().getDistance();
-		} catch (NoSuchElementException e) {
-			return 0;
-		}
+		return 0;
 	}
 
 	public double getAccessWalkTime() {
-
-		try {
-			return getFirstWalk().getDuration();
-		} catch (NoSuchElementException e) {
-			return 0;
-		}
-
+		return 0;
 	}
 
 	public double getAccessWaitTime() {
@@ -178,27 +163,11 @@ public class Journey extends TravelComponent {
 	}
 
 	public double getEgressWalkDistance() {
-		try{
-			for (Walk w : getWalks()) {
-				if (w.isEgressWalk())
-					return w.getDistance();
-			}
-		}catch(Exception e){
-			return 0;
-		}
 		return 0;
 
 	}
 
 	public double getEgressWalkTime() {
-		try{
-			for (Walk w : getWalks()) {
-				if (w.isEgressWalk())
-					return w.getDuration();
-			}
-		}catch(Exception e){
-			return 0;
-		}
 		return 0;
 	}
 
@@ -250,28 +219,6 @@ public class Journey extends TravelComponent {
 
 	public void setTransfers(LinkedList<Transfer> transfers) {
 		this.transfers = transfers;
-	}
-
-	public Walk getFirstWalk() {
-		if (this.walks.isEmpty()) {
-			return null;
-		}
-		return this.walks.get(0);
-	}
-
-	public Walk getLastWalk() {
-		if (this.walks.isEmpty()) {
-			return null;
-		}
-		return this.walks.get(this.walks.size() - 1);
-	}
-
-	public List<Walk> getWalks() {
-		return walks;
-	}
-
-	public void setWalks(LinkedList<Walk> walks) {
-		this.walks = walks;
 	}
 
 	public void setMainmode(String mainmode) {
