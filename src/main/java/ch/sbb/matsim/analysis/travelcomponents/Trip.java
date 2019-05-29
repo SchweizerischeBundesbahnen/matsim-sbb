@@ -9,7 +9,6 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 
 public 	 class Trip extends TravelComponent {
-	Journey journey;
 	private String mode;
 	private Id line;
 	private Id route;

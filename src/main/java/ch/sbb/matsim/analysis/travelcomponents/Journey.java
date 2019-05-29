@@ -31,7 +31,6 @@ public class Journey extends TravelComponent {
 
 	public Trip addTrip() {
 		Trip trip = new Trip(this.config);
-		trip.journey = this;
 		getTrips().add(trip);
 		planElements.add(trip);
 		return trip;
