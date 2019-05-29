@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public class Journey extends TravelComponent {
-	private String trip_idx;
 	private String mainmode = null;
 	private String mainmode_mz = null;
 	private Activity fromAct;
@@ -43,36 +42,10 @@ public class Journey extends TravelComponent {
 		return trip;
 	}
 
-	public Wait addWait() {
-		Wait wait = new Wait(this.config);
-		wait.journey = this;
-		getWaits().add(wait);
-		planElements.add(wait);
-		return wait;
-	}
-
-	public Walk addWalk() {
-		Walk walk = new Walk(this.config);
-		walk.journey = this;
-		getWalks().add(walk);
-		planElements.add(walk);
-		return walk;
-	}
-
-	public void addTransfer(Transfer xfer) {
-		xfer.journey = this;
-		getTransfers().add(xfer);
-		planElements.add(xfer);
-	}
-
 	private Coord orig;
 	private Coord dest;
 	private Transfer possibleTransfer;
 	private double carDistance;
-
-	public void incrementCarDistance(double increment) {
-		carDistance += increment;
-	}
 
 	public String toString() {
 		return String.format("JOURNEY: start: %6.0f end: %6.0f dur: %6.0f invehDist: %6.0f walkDist: %6.0f \n %s",
@@ -117,28 +90,6 @@ public class Journey extends TravelComponent {
 			return time;
 		}
 		return getDuration();
-	}
-
-	double getWalkTime() {
-		if (!isCarJourney()) {
-			double time = 0;
-			for (Walk w : getWalks()) {
-				time += w.getDuration();
-			}
-			return time;
-		}
-		return 0;
-	}
-
-	double getWaitTime() {
-		if (!isCarJourney()) {
-			double time = 0;
-			for (Wait w : getWaits()) {
-				time += w.getDuration();
-			}
-			return time;
-		}
-		return 0;
 	}
 
 	public String getMainMode() {
@@ -282,10 +233,6 @@ public class Journey extends TravelComponent {
 		return carJourney;
 	}
 
-	public void setCarJourney(boolean carJourney) {
-		this.carJourney = carJourney;
-	}
-
 	public Trip getFirstTrip() {
 		if (this.trips.isEmpty()) {
 			return null;
@@ -338,28 +285,12 @@ public class Journey extends TravelComponent {
 		this.walks = walks;
 	}
 
-	public Coord getDest() {
-		return dest;
-	}
-
 	public void setDest(Coord dest) {
 		this.dest = dest;
 	}
 
-	public Coord getOrig() {
-		return orig;
-	}
-
 	public void setOrig(Coord orig) {
 		this.orig = orig;
-	}
-
-	public Transfer getPossibleTransfer() {
-		return possibleTransfer;
-	}
-
-	public void setPossibleTransfer(Transfer possibleTransfer) {
-		this.possibleTransfer = possibleTransfer;
 	}
 
 	public Wait getFirstWait() {
@@ -386,22 +317,6 @@ public class Journey extends TravelComponent {
 
 	public void setMainmode(String mainmode) {
 		this.mainmode = mainmode;
-	}
-
-	public String getTrip_idx() {
-		return trip_idx;
-	}
-
-	public void setTrip_idx(String trip_idx) {
-		this.trip_idx = trip_idx;
-	}
-
-	public double getCarDistance() {
-		return carDistance;
-	}
-
-	public void setCarDistance(double carDistance) {
-		this.carDistance = carDistance;
 	}
 
 	public double getTransferWalkDistance() {
@@ -453,10 +368,6 @@ public class Journey extends TravelComponent {
 
 	public boolean isTeleportJourney() {
 		return teleportJourney;
-	}
-
-	public void setTeleportJourney(boolean teleportJourney) {
-		this.teleportJourney = teleportJourney;
 	}
 
 	public static void setWalkSpeed(double walkSpeed) {
