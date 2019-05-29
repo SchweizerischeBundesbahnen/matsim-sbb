@@ -7,7 +7,6 @@ package ch.sbb.matsim.analysis.travelcomponents;
 import org.matsim.core.config.Config;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -16,7 +15,7 @@ public class TravellerChain {
 	private Boolean stucked = false;
 	private List<Activity> acts = new ArrayList<>(5);
 	private List<Journey> journeys = new ArrayList<>(5);
-	List<TravelComponent> planElements = new ArrayList<>(5);
+	private List<TravelComponent> planElements = new ArrayList<>(5);
 	private Config config = null;
 
 	public TravellerChain(Config config){
@@ -59,10 +58,6 @@ public class TravellerChain {
 		this.journeys.remove(this.journeys.size() - 1);
 	}
 
-	public void setJourneys(LinkedList<Journey> journeys) {
-		this.journeys = journeys;
-	}
-
 	public Activity getLastActivity() {
 		if (this.acts.isEmpty()) {
 			throw new NoSuchElementException();
@@ -74,10 +69,6 @@ public class TravellerChain {
 		return acts;
 	}
 
-	public void setActs(List<Activity> acts) {
-		this.acts = acts;
-	}
-
 	public boolean isInPT() {
 		return inPT;
 	}
@@ -87,18 +78,8 @@ public class TravellerChain {
 	}
 
 	private boolean inPT = false;
-	public boolean inCar;
 	public boolean traveledVehicle;
 	public boolean traveling=false;
 	public boolean walking=false;
-	private double linkEnterTime;
-
-	public double getLinkEnterTime() {
-		return linkEnterTime;
-	}
-
-	public void setLinkEnterTime(double linkEnterTime) {
-		this.linkEnterTime = linkEnterTime;
-	}
 
 }

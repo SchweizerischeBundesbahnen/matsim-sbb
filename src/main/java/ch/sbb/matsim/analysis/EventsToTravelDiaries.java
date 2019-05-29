@@ -302,8 +302,8 @@ public class EventsToTravelDiaries implements
                 PTVehicle ptVehicle = ptVehicles.get(event.getVehicleId());
                 ptVehicle.in = true;
                 ptVehicle.setLinkEnterTime(event.getTime());
-            } else {
-                chains.get(driverIdFromVehicleId.get(event.getVehicleId())).setLinkEnterTime(event.getTime());
+/*            } else {
+                chains.get(driverIdFromVehicleId.get(event.getVehicleId())).setLinkEnterTime(event.getTime());*/
             }
 
         } catch (Exception e) {

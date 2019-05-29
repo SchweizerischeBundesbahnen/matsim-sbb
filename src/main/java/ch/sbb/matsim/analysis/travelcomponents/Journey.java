@@ -55,7 +55,7 @@ public class Journey extends TravelComponent {
 		return 0;
 	}
 
-	double getWalkDistance() {
+	private double getWalkDistance() {
 		if(getMainMode().equals("walk"))
 			return walkSpeed * getDuration();
 		return 0;
