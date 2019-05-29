@@ -19,7 +19,6 @@ public class Journey extends TravelComponent {
 	private String mainmode_mz = null;
 	private Activity fromAct;
 	private Activity toAct;
-	private boolean carJourney = false;
 	private boolean teleportJourney = false;
 	private List<Trip> trips = new ArrayList<>();
 	private List<TravelComponent> planElements = new ArrayList<>();
@@ -38,9 +37,6 @@ public class Journey extends TravelComponent {
 		return trip;
 	}
 
-	private Transfer possibleTransfer;
-	private double carDistance;
-
 	public String toString() {
 		return String.format("JOURNEY: start: %6.0f end: %6.0f dur: %6.0f invehDist: %6.0f walkDist: %6.0f \n %s",
 				getStartTime(), getEndTime(), getDuration(), getInVehDistance(), getWalkDistance(),
@@ -57,16 +53,12 @@ public class Journey extends TravelComponent {
 			}
 			return distance;
 		}
-		return carDistance;
+		return 0;
 	}
 
 	double getWalkDistance() {
 		if(getMainMode().equals("walk"))
 			return walkSpeed * getDuration();
-		if (!isCarJourney()) {
-			double distance = 0;
-			return distance;
-		}
 		return 0;
 	}
 
@@ -145,7 +137,6 @@ public class Journey extends TravelComponent {
 	}
 
 	public double getDistance() {
-
 		return getInVehDistance() + getWalkDistance();
 	}
 
@@ -163,7 +154,6 @@ public class Journey extends TravelComponent {
 
 	public double getEgressWalkDistance() {
 		return 0;
-
 	}
 
 	public double getEgressWalkTime() {
@@ -187,7 +177,7 @@ public class Journey extends TravelComponent {
 	}
 
 	public boolean isCarJourney() {
-		return carJourney;
+		return false;
 	}
 
 	public Trip getFirstTrip() {
@@ -217,26 +207,14 @@ public class Journey extends TravelComponent {
 	}
 
 	public double getTransferWalkDistance() {
-		if (!isCarJourney()) {
-			double walkDistance = 0;
-			return walkDistance;
-		}
 		return 0;
 	}
 
 	public double getTransferWalkTime() {
-		if (!isCarJourney()) {
-			double walkTime = 0;
-			return walkTime;
-		}
 		return 0;
 	}
 
 	public double getTransferWaitTime() {
-		if (!isCarJourney()) {
-			double waitTime = 0;
-			return waitTime;
-		}
 		return 0;
 	}
 
