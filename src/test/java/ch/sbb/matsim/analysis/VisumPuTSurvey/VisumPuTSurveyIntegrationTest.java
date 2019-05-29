@@ -29,7 +29,7 @@ public class VisumPuTSurveyIntegrationTest {
         TravellerChain chain = eventsToTravelDiaries.getChains().get(Id.createPersonId("1"));
         Assert.assertNotNull("TravellerChain for person 1 not found.", chain);
 
-        System.out.println(chain.getJourneys().getFirst().getTrips().size());
+        System.out.println(chain.getJourneys().get(0).getTrips().size());
 
         visumPuTSurvey.write("./");
 

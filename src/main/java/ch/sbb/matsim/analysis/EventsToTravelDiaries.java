@@ -142,7 +142,7 @@ public class EventsToTravelDiaries implements
                 act.setType(event.getActType());
 
             } else if (!chain.isInPT()) {
-                Activity act = chain.getActs().getLast();
+                Activity act = chain.getLastActivity();
                 act.setEndTime(event.getTime());
             }
         } catch (Exception e) {
@@ -169,7 +169,7 @@ public class EventsToTravelDiaries implements
                 act.setStartTime(event.getTime());
                 act.setType(event.getActType());
                 // end the preceding journey
-                Journey journey = chain.getJourneys().getLast();
+                Journey journey = chain.getLastJourney();
 //                journey.setDest(act.getCoord());
                 journey.setEndTime(event.getTime());
                 journey.setToAct(act);
@@ -186,7 +186,7 @@ public class EventsToTravelDiaries implements
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
-            Journey journey = chain.getJourneys().getLast();
+            Journey journey = chain.getLastJourney();
             journey.setEndTime(event.getTime());
 //            journey.setDest(network.getLinks().get(event.getLinkId()).getCoord());
             journey.setEndTime(event.getTime());
@@ -210,11 +210,11 @@ public class EventsToTravelDiaries implements
             if (!chain.isInPT()) {
                 journey = chain.addJourney();
 //                journey.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
-                journey.setFromAct(chain.getActs().getLast());
+                journey.setFromAct(chain.getLastActivity());
                 journey.setStartTime(event.getTime());
                 // journey.setMainmode(event.getLegMode());
             }
-            journey = chain.getJourneys().getLast();
+            journey = chain.getLastJourney();
             trip = journey.addTrip();
             trip.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
             trip.setMode(event.getLegMode());
@@ -233,7 +233,7 @@ public class EventsToTravelDiaries implements
                 setStuck(getStuck() + 1);
                 chain.setStucked();
                 if (chain.getJourneys().size() > 0)
-                    chain.getJourneys().removeLast();
+                    chain.removeLastJourney();
             }
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
@@ -247,7 +247,7 @@ public class EventsToTravelDiaries implements
                 return;
             if (ptVehicles.containsKey(event.getVehicleId())) {
                 TravellerChain chain = chains.get(event.getPersonId());
-                Journey journey = chain.getJourneys().getLast();
+                Journey journey = chain.getLastJourney();
                 // first, handle the end of the wait
                 // now, create a new trip
                 PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
@@ -283,7 +283,7 @@ public class EventsToTravelDiaries implements
                 chain.traveledVehicle = true;
                 PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
                 double stageDistance = vehicle.removePassenger(event.getPersonId());
-                Trip trip = chain.getJourneys().getLast().getLastTrip();
+                Trip trip = chain.getLastJourney().getLastTrip();
                 trip.setDistance(stageDistance);
                 trip.setAlightingStop(vehicle.lastStop);
             } else {
@@ -323,7 +323,7 @@ public class EventsToTravelDiaries implements
 
             } else {
                 TravellerChain chain = chains.get(driverIdFromVehicleId.get(event.getVehicleId()));
-                Trip trip = chain.getJourneys().getLast().getLastTrip();
+                Trip trip = chain.getLastJourney().getLastTrip();
                 trip.incrementDistance(network.getLinks().get(event.getLinkId()).getLength());
             }
         } catch (Exception e) {
@@ -350,7 +350,7 @@ public class EventsToTravelDiaries implements
             if (isTransitDriver(event.getPersonId()))
                 return;
             TravellerChain chain = chains.get(event.getPersonId());
-            Journey journey = chain.getJourneys().getLast();
+            Journey journey = chain.getLastJourney();
             Trip trip = journey.getLastTrip();
             trip.setDistance((int) event.getDistance());
             if (chain.traveledVehicle)
@@ -366,7 +366,7 @@ public class EventsToTravelDiaries implements
             PTVehicle pt_vehicle = ptVehicles.get(event.getVehicleId());
             for (Id passenger_id : pt_vehicle.getPassengersId()) {
                 TravellerChain chain = chains.get(passenger_id);
-                Trip trip = chain.getJourneys().getLast().getLastTrip();
+                Trip trip = chain.getLastJourney().getLastTrip();
                 trip.setPtDepartureTime(event.getTime());
                 trip.setDepartureDelay(event.getDelay());
             }

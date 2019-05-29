@@ -6,15 +6,17 @@ package ch.sbb.matsim.analysis.travelcomponents;
 
 import org.matsim.core.config.Config;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 
-public 	 class TravellerChain {
-	// use linked lists so I can use the getlast method
+public class TravellerChain {
 	private Boolean stucked = false;
-	private LinkedList<Activity> acts = new LinkedList<Activity>();
-	private LinkedList<Journey> journeys = new LinkedList<Journey>();
-	LinkedList<TravelComponent> planElements = new LinkedList<TravelComponent>();
+	private List<Activity> acts = new ArrayList<>(5);
+	private List<Journey> journeys = new ArrayList<>(5);
+	List<TravelComponent> planElements = new ArrayList<>(5);
 	private Config config = null;
 
 	public TravellerChain(Config config){
@@ -42,19 +44,37 @@ public 	 class TravellerChain {
 		this.stucked = true;
 	}
 
-	public LinkedList<Journey> getJourneys() {
+	public Journey getLastJourney() {
+		if (this.journeys.isEmpty()) {
+			throw new NoSuchElementException();
+		}
+		return this.journeys.get(this.journeys.size() - 1);
+	}
+
+	public List<Journey> getJourneys() {
 		return journeys;
+	}
+
+	public void removeLastJourney() {
+		this.journeys.remove(this.journeys.size() - 1);
 	}
 
 	public void setJourneys(LinkedList<Journey> journeys) {
 		this.journeys = journeys;
 	}
 
-	public LinkedList<Activity> getActs() {
+	public Activity getLastActivity() {
+		if (this.acts.isEmpty()) {
+			throw new NoSuchElementException();
+		}
+		return this.acts.get(this.acts.size() - 1);
+	}
+
+	public List<Activity> getActs() {
 		return acts;
 	}
 
-	public void setActs(LinkedList<Activity> acts) {
+	public void setActs(List<Activity> acts) {
 		this.acts = acts;
 	}
 
