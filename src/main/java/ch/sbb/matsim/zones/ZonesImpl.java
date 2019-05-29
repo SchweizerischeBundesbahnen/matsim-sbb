@@ -63,6 +63,32 @@ public class ZonesImpl implements Zones {
         return null;
     }
 
+    @Override
+    public Zone findNearestZone(double x, double y, double maxDistance) {
+        SpatialIndex qt = getSpatialIndex();
+        Point pt = MGC.xy2Point(x, y);
+        Envelope env = pt.getEnvelopeInternal();
+        env.expandBy(maxDistance);
+        List elements = qt.query(env);
+        Zone nearestZone = null;
+        double nearestDistance = Double.POSITIVE_INFINITY;
+        for (Object o : elements) {
+            Zone z = (Zone) o;
+            double distance = z.distance(pt);
+            if (distance < nearestDistance) {
+                nearestZone = z;
+                nearestDistance = distance;
+                if (distance == 0.0) {
+                    break;
+                }
+            }
+        }
+        if (nearestDistance <= maxDistance) {
+            return nearestZone;
+        }
+        return null;
+    }
+
     private SpatialIndex getSpatialIndex() {
         SpatialIndex qt = this.qt;
         if (qt == null) {

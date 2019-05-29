@@ -12,4 +12,6 @@ public interface Zones {
     int size();
 
     Zone findZone(double x, double y);
+
+    Zone findNearestZone(double x, double y, double maxDistance);
 }
