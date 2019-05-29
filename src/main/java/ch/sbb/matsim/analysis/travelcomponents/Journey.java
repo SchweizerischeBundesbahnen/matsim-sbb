@@ -23,7 +23,6 @@ public class Journey extends TravelComponent {
 	private boolean teleportJourney = false;
 	private List<Trip> trips = new ArrayList<>();
 	private List<Transfer> transfers = new ArrayList<>();
-	private List<Wait> waits = new ArrayList<>();
 	private List<Walk> walks = new ArrayList<>();
 	private List<TravelComponent> planElements = new ArrayList<>();
 	private final Config config;
@@ -175,14 +174,7 @@ public class Journey extends TravelComponent {
 	}
 
 	public double getAccessWaitTime() {
-
-			try {
-				return getFirstWait().getDuration();
-
-			} catch (NoSuchElementException e) {
-				return 0;
-			}
-
+		return 0;
 	}
 
 	public double getEgressWalkDistance() {
@@ -280,29 +272,6 @@ public class Journey extends TravelComponent {
 
 	public void setWalks(LinkedList<Walk> walks) {
 		this.walks = walks;
-	}
-
-
-	public Wait getFirstWait() {
-		if (this.waits.isEmpty()) {
-			return null;
-		}
-		return this.waits.get(0);
-	}
-
-	public Wait getLastWait() {
-		if (this.waits.isEmpty()) {
-			return null;
-		}
-		return this.waits.get(this.waits.size() - 1);
-	}
-
-	public List<Wait> getWaits() {
-		return waits;
-	}
-
-	public void setWaits(LinkedList<Wait> waits) {
-		this.waits = waits;
 	}
 
 	public void setMainmode(String mainmode) {
