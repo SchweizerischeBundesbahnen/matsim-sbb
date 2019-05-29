@@ -65,7 +65,6 @@ public class EventsToTravelDiaries implements
     private static final Logger log = Logger.getLogger(EventsToTravelDiaries.class);
 
     private final Network network;
-    // Attributes
 
     private String filename;
 
@@ -75,7 +74,7 @@ public class EventsToTravelDiaries implements
     private HashMap<Id, Id> driverIdFromVehicleId = new HashMap<>();
     private int stuck = 0;
     private TransitSchedule transitSchedule;
-    private boolean isTransitScenario = false;
+    private final boolean isTransitScenario;
     private boolean writeVisumPuTSurvey = false;
     private LocateAct locateAct = null;
     private Config config;
@@ -87,9 +86,9 @@ public class EventsToTravelDiaries implements
         this.scenario = scenario;
 
         this.network = scenario.getNetwork();
-        isTransitScenario = scenario.getConfig().transit().isUseTransit();
+        this.isTransitScenario = scenario.getConfig().transit().isUseTransit();
 
-        if (isTransitScenario) {
+        if (this.isTransitScenario) {
             this.transitSchedule = scenario.getTransitSchedule();
             readVehiclesFromSchedule();
         }
@@ -113,7 +112,7 @@ public class EventsToTravelDiaries implements
                     if (ptVehicles.containsKey(vehicleId)) {
                         log.error("vehicleId already in Map!");
                     } else {
-                        this.ptVehicles.put(vehicleId, new PTVehicle(tL.getId(), tR.getId(), vehicleId));
+                        this.ptVehicles.put(vehicleId, new PTVehicle(tL.getId(), tR.getId()));
                     }
                 }
             }
@@ -301,7 +300,7 @@ public class EventsToTravelDiaries implements
             if (ptVehicles.containsKey(event.getVehicleId())) {
                 PTVehicle ptVehicle = ptVehicles.get(event.getVehicleId());
                 ptVehicle.in = true;
-                ptVehicle.setLinkEnterTime(event.getTime());
+//                ptVehicle.setLinkEnterTime(event.getTime());
 /*            } else {
                 chains.get(driverIdFromVehicleId.get(event.getVehicleId())).setLinkEnterTime(event.getTime());*/
             }
@@ -336,8 +335,7 @@ public class EventsToTravelDiaries implements
         try {
             ptVehicles.put(
                     event.getVehicleId(),
-                    new PTVehicle(event.getTransitLineId(), event.getTransitRouteId(),
-                            event.getVehicleId()));
+                    new PTVehicle(event.getTransitLineId(), event.getTransitRouteId()));
             transitDriverIds.add(event.getDriverId());
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
@@ -402,20 +400,20 @@ public class EventsToTravelDiaries implements
     public void writeSimulationResultsToTabSeparated(String appendage) throws IOException {
         String actTableName;
         String journeyTableName;
-        String transferTableName;
+//        String transferTableName;
         String tripTableName;
 
         if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
             actTableName = appendage + "matsim_activities.txt";
             journeyTableName = appendage + "matsim_journeys.txt";
-            transferTableName = appendage + "matsim_transfers.txt";
+//            transferTableName = appendage + "matsim_transfers.txt";
             tripTableName = appendage + "matsim_trips.txt";
         } else {
             if (appendage.matches("[a-zA-Z0-9]*"))
                 appendage = "_" + appendage;
             actTableName = "matsim_activities" + appendage + ".txt";
             journeyTableName = "matsim_journeys" + appendage + ".txt";
-            transferTableName = "matsim_transfers" + appendage + ".txt";
+//            transferTableName = "matsim_transfers" + appendage + ".txt";
             tripTableName = "matsim_trips" + appendage + ".txt";
         }
         BufferedWriter activityWriter = IOUtils.getBufferedWriter(this.filename + actTableName);
@@ -612,45 +610,33 @@ public class EventsToTravelDiaries implements
         // Attributes
         private final Id transitLineId;
         private final Id transitRouteId;
-        private final Id vehicleId;
         private final Map<Id, Double> passengers = new HashMap<>();
         boolean in = false;
         Id lastStop;
         private double distance;
-        private double linkEnterTime = 0.0;
 
         // Constructors
-        public PTVehicle(Id transitLineId, Id transitRouteId, Id vehicleId) {
+        PTVehicle(Id transitLineId, Id transitRouteId) {
             this.transitLineId = transitLineId;
             this.transitRouteId = transitRouteId;
-            this.vehicleId = vehicleId;
         }
 
         // Methods
-        public void incDistance(double linkDistance) {
+        void incDistance(double linkDistance) {
             distance += linkDistance;
         }
 
-        public Set<Id> getPassengersId() {
+        Set<Id> getPassengersId() {
             return passengers.keySet();
         }
 
-        public void addPassenger(Id passengerId) {
+        void addPassenger(Id passengerId) {
             passengers.put(passengerId, distance);
         }
 
-        public double removePassenger(Id passengerId) {
+        double removePassenger(Id passengerId) {
             return distance - passengers.remove(passengerId);
         }
-
-        public double getLinkEnterTime() {
-            return linkEnterTime;
-        }
-
-        public void setLinkEnterTime(double linkEnterTime) {
-            this.linkEnterTime = linkEnterTime;
-        }
-
     }
 
 }
