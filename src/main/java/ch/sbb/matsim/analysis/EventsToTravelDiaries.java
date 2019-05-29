@@ -7,33 +7,14 @@ package ch.sbb.matsim.analysis;
 import ch.sbb.matsim.analysis.VisumPuTSurvey.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.Activity;
 import ch.sbb.matsim.analysis.travelcomponents.Journey;
-import ch.sbb.matsim.analysis.travelcomponents.Transfer;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.events.ActivityEndEvent;
-import org.matsim.api.core.v01.events.ActivityStartEvent;
-import org.matsim.api.core.v01.events.LinkEnterEvent;
-import org.matsim.api.core.v01.events.LinkLeaveEvent;
-import org.matsim.api.core.v01.events.PersonArrivalEvent;
-import org.matsim.api.core.v01.events.PersonDepartureEvent;
-import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
-import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
-import org.matsim.api.core.v01.events.PersonStuckEvent;
-import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
-import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
-import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
-import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
-import org.matsim.api.core.v01.events.handler.LinkLeaveEventHandler;
-import org.matsim.api.core.v01.events.handler.PersonArrivalEventHandler;
-import org.matsim.api.core.v01.events.handler.PersonDepartureEventHandler;
-import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
-import org.matsim.api.core.v01.events.handler.PersonLeavesVehicleEventHandler;
-import org.matsim.api.core.v01.events.handler.PersonStuckEventHandler;
-import org.matsim.api.core.v01.events.handler.TransitDriverStartsEventHandler;
+import org.matsim.api.core.v01.events.*;
+import org.matsim.api.core.v01.events.handler.*;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.TeleportationArrivalEvent;
@@ -458,10 +439,10 @@ public class EventsToTravelDiaries implements
                 "alighting_stop\tdeparture_time\tdeparture_delay\tsample_selector\t" +
                  "from_x\tfrom_y\tto_x\tto_y\tprevious_trip_id\tnext_trip_id\n");
 
-        BufferedWriter transferWriter = IOUtils.getBufferedWriter(this.filename + transferTableName);
-        transferWriter.write("transfer_id\tjourney_id\tstart_time\t" +
-                "end_time\tfrom_trip\tto_trip\twalk_distance\t" +
-                "walk_time\twait_time\tsample_selector\n");
+//        BufferedWriter transferWriter = IOUtils.getBufferedWriter(this.filename + transferTableName);
+//        transferWriter.write("transfer_id\tjourney_id\tstart_time\t" +
+//                "end_time\tfrom_trip\tto_trip\twalk_distance\t" +
+//                "walk_time\twait_time\tsample_selector\n");
 
         // read a static field that increments with every inheriting object constructed
         Counter counter = new Counter("Output lines written: ");
@@ -547,26 +528,26 @@ public class EventsToTravelDiaries implements
                                     next_trip_id));
                             counter.incCounter();
                         }
-                        for (Transfer transfer : journey.getTransfers()) {
-                            transferWriter.write(String.format(
-                                    "%d\t%d\t%d\t%d\t%d\t%d\t%.3f\t%d\t%d\t%f\n",
-                                    transfer.getElementId(),
-                                    journey.getElementId(),
-                                    (int) transfer.getStartTime(),
-                                    (int) transfer.getEndTime(),
-                                    transfer.getFromTrip()
-                                            .getElementId(),
-                                    transfer.getToTrip()
-                                            .getElementId(),
-
-                                    transfer.getWalkDistance(),
-                                    (int) transfer.getWalkTime(),
-                                    (int) transfer.getWaitTime(),
-                                    MatsimRandom.getRandom().nextDouble()
-
-                            ));
-                            counter.incCounter();
-                        }
+//                        for (Transfer transfer : journey.getTransfers()) {
+//                            transferWriter.write(String.format(
+//                                    "%d\t%d\t%d\t%d\t%d\t%d\t%.3f\t%d\t%d\t%f\n",
+//                                    transfer.getElementId(),
+//                                    journey.getElementId(),
+//                                    (int) transfer.getStartTime(),
+//                                    (int) transfer.getEndTime(),
+//                                    transfer.getFromTrip()
+//                                            .getElementId(),
+//                                    transfer.getToTrip()
+//                                            .getElementId(),
+//
+//                                    transfer.getWalkDistance(),
+//                                    (int) transfer.getWalkTime(),
+//                                    (int) transfer.getWaitTime(),
+//                                    MatsimRandom.getRandom().nextDouble()
+//
+//                            ));
+//                            counter.incCounter();
+//                        }
                     } else {
                         for (Trip trip : journey.getTrips()) {
 
@@ -600,7 +581,7 @@ public class EventsToTravelDiaries implements
         activityWriter.close();
         journeyWriter.close();
         tripWriter.close();
-        transferWriter.close();
+//        transferWriter.close();
         counter.printCounter();
     }
 

@@ -22,7 +22,6 @@ public class Journey extends TravelComponent {
 	private boolean carJourney = false;
 	private boolean teleportJourney = false;
 	private List<Trip> trips = new ArrayList<>();
-	private List<Transfer> transfers = new ArrayList<>();
 	private List<TravelComponent> planElements = new ArrayList<>();
 	private final Config config;
 
@@ -213,14 +212,6 @@ public class Journey extends TravelComponent {
 		this.trips = trips;
 	}
 
-	public List<Transfer> getTransfers() {
-		return transfers;
-	}
-
-	public void setTransfers(LinkedList<Transfer> transfers) {
-		this.transfers = transfers;
-	}
-
 	public void setMainmode(String mainmode) {
 		this.mainmode = mainmode;
 	}
@@ -228,9 +219,6 @@ public class Journey extends TravelComponent {
 	public double getTransferWalkDistance() {
 		if (!isCarJourney()) {
 			double walkDistance = 0;
-			for (Transfer t : this.getTransfers()) {
-				walkDistance += t.getWalkDistance();
-			}
 			return walkDistance;
 		}
 		return 0;
@@ -239,9 +227,6 @@ public class Journey extends TravelComponent {
 	public double getTransferWalkTime() {
 		if (!isCarJourney()) {
 			double walkTime = 0;
-			for (Transfer t : this.getTransfers()) {
-				walkTime += t.getWalkTime();
-			}
 			return walkTime;
 		}
 		return 0;
@@ -250,9 +235,6 @@ public class Journey extends TravelComponent {
 	public double getTransferWaitTime() {
 		if (!isCarJourney()) {
 			double waitTime = 0;
-			for (Transfer t : this.getTransfers()) {
-				waitTime += t.getWaitTime();
-			}
 			return waitTime;
 		}
 		return 0;
