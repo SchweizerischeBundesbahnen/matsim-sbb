@@ -189,7 +189,7 @@ public class EventsToTravelDiaries implements
                 act.setType(event.getActType());
                 // end the preceding journey
                 Journey journey = chain.getJourneys().getLast();
-                journey.setDest(act.getCoord());
+//                journey.setDest(act.getCoord());
                 journey.setEndTime(event.getTime());
                 journey.setToAct(act);
             }
@@ -207,7 +207,7 @@ public class EventsToTravelDiaries implements
             TravellerChain chain = chains.get(event.getPersonId());
             Journey journey = chain.getJourneys().getLast();
             journey.setEndTime(event.getTime());
-            journey.setDest(network.getLinks().get(event.getLinkId()).getCoord());
+//            journey.setDest(network.getLinks().get(event.getLinkId()).getCoord());
             journey.setEndTime(event.getTime());
             Trip trip = journey.getLastTrip();
             trip.setEndTime(event.getTime());
@@ -228,7 +228,7 @@ public class EventsToTravelDiaries implements
             Trip trip;
             if (!chain.isInPT()) {
                 journey = chain.addJourney();
-                journey.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
+//                journey.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
                 journey.setFromAct(chain.getActs().getLast());
                 journey.setStartTime(event.getTime());
                 // journey.setMainmode(event.getLegMode());

@@ -5,7 +5,6 @@
 package ch.sbb.matsim.analysis.travelcomponents;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
@@ -42,8 +41,6 @@ public class Journey extends TravelComponent {
 		return trip;
 	}
 
-	private Coord orig;
-	private Coord dest;
 	private Transfer possibleTransfer;
 	private double carDistance;
 
@@ -285,13 +282,6 @@ public class Journey extends TravelComponent {
 		this.walks = walks;
 	}
 
-	public void setDest(Coord dest) {
-		this.dest = dest;
-	}
-
-	public void setOrig(Coord orig) {
-		this.orig = orig;
-	}
 
 	public Wait getFirstWait() {
 		if (this.waits.isEmpty()) {
