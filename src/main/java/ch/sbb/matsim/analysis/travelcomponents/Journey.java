@@ -10,7 +10,9 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class Journey extends TravelComponent {
@@ -21,12 +23,12 @@ public class Journey extends TravelComponent {
 	private Activity toAct;
 	private boolean carJourney = false;
 	private boolean teleportJourney = false;
-	private LinkedList<Trip> trips = new LinkedList<Trip>();
-	private LinkedList<Transfer> transfers = new LinkedList<Transfer>();
-	private LinkedList<Wait> waits = new LinkedList<Wait>();
-	private LinkedList<Walk> walks = new LinkedList<Walk>();
-	LinkedList<TravelComponent> planElements = new LinkedList<TravelComponent>();
-	private Config config=null;
+	private List<Trip> trips = new ArrayList<>();
+	private List<Transfer> transfers = new ArrayList<>();
+	private List<Wait> waits = new ArrayList<>();
+	private List<Walk> walks = new ArrayList<>();
+	private List<TravelComponent> planElements = new ArrayList<>();
+	private final Config config;
 
 	Journey(Config config){
 		super(config);
@@ -163,7 +165,7 @@ public class Journey extends TravelComponent {
 				return longestTrip.getMode();
 			}
 			else{
-				return getTrips().getFirst().getMode();
+				return getFirstTrip().getMode();
 			}
 
 		} catch (NoSuchElementException e) {
@@ -180,7 +182,7 @@ public class Journey extends TravelComponent {
 			return "car";
 		}
 		try {
-			Trip firstTrip = getTrips().getFirst();
+			Trip firstTrip = getFirstTrip();
 			if (getTrips().size() > 1) {
 				return "pt";
 			}
@@ -208,7 +210,7 @@ public class Journey extends TravelComponent {
 	public double getAccessWalkDistance() {
 
 		try {
-			return getWalks().getFirst().getDistance();
+			return getFirstWalk().getDistance();
 		} catch (NoSuchElementException e) {
 			return 0;
 		}
@@ -217,7 +219,7 @@ public class Journey extends TravelComponent {
 	public double getAccessWalkTime() {
 
 		try {
-			return getWalks().getFirst().getDuration();
+			return getFirstWalk().getDuration();
 		} catch (NoSuchElementException e) {
 			return 0;
 		}
@@ -227,7 +229,7 @@ public class Journey extends TravelComponent {
 	public double getAccessWaitTime() {
 
 			try {
-				return getWaits().getFirst().getDuration();
+				return getFirstWait().getDuration();
 
 			} catch (NoSuchElementException e) {
 				return 0;
@@ -284,7 +286,21 @@ public class Journey extends TravelComponent {
 		this.carJourney = carJourney;
 	}
 
-	public LinkedList<Trip> getTrips() {
+	public Trip getFirstTrip() {
+		if (this.trips.isEmpty()) {
+			return null;
+		}
+		return this.trips.get(0);
+	}
+
+	public Trip getLastTrip() {
+		if (this.trips.isEmpty()) {
+			return null;
+		}
+		return this.trips.get(this.trips.size() - 1);
+	}
+
+	public List<Trip> getTrips() {
 		return trips;
 	}
 
@@ -292,7 +308,7 @@ public class Journey extends TravelComponent {
 		this.trips = trips;
 	}
 
-	public LinkedList<Transfer> getTransfers() {
+	public List<Transfer> getTransfers() {
 		return transfers;
 	}
 
@@ -300,7 +316,21 @@ public class Journey extends TravelComponent {
 		this.transfers = transfers;
 	}
 
-	public LinkedList<Walk> getWalks() {
+	public Walk getFirstWalk() {
+		if (this.walks.isEmpty()) {
+			return null;
+		}
+		return this.walks.get(0);
+	}
+
+	public Walk getLastWalk() {
+		if (this.walks.isEmpty()) {
+			return null;
+		}
+		return this.walks.get(this.walks.size() - 1);
+	}
+
+	public List<Walk> getWalks() {
 		return walks;
 	}
 
@@ -332,7 +362,21 @@ public class Journey extends TravelComponent {
 		this.possibleTransfer = possibleTransfer;
 	}
 
-	public LinkedList<Wait> getWaits() {
+	public Wait getFirstWait() {
+		if (this.waits.isEmpty()) {
+			return null;
+		}
+		return this.waits.get(0);
+	}
+
+	public Wait getLastWait() {
+		if (this.waits.isEmpty()) {
+			return null;
+		}
+		return this.waits.get(this.waits.size() - 1);
+	}
+
+	public List<Wait> getWaits() {
 		return waits;
 	}
 
@@ -395,14 +439,14 @@ public class Journey extends TravelComponent {
 
 	public Id getFirstBoardingStop() {
 		if (!isCarJourney() && this.getTrips().size() > 0) {
-			return this.getTrips().getFirst().getBoardingStop();
+			return this.getFirstTrip().getBoardingStop();
 		}
 		return null;
 	}
 
 	public Id getLastAlightingStop() {
 		if (!isCarJourney() && this.getTrips().size() > 0) {
-			return this.getTrips().getLast().getAlightingStop();
+			return this.getFirstTrip().getAlightingStop();
 		}
 		return null;
 	}
