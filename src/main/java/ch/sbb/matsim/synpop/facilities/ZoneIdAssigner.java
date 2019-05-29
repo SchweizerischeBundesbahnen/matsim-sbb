@@ -1,6 +1,6 @@
 package ch.sbb.matsim.synpop.facilities;
 
-import ch.sbb.matsim.synpop.zoneAggregator.Zone;
+import ch.sbb.matsim.synpop.zoneAggregator.AggregationZone;
 import ch.sbb.matsim.synpop.zoneAggregator.ZoneAggregator;
 import org.apache.log4j.Logger;
 import org.matsim.facilities.ActivityFacilities;
@@ -27,7 +27,7 @@ public class ZoneIdAssigner {
 
     public void assignIds(String attributeName) {
         log.info("adding " + attributeName + " attribute to facilities");
-        for (Zone<ActivityFacility> zone : zoneAggregator.getZones()) {
+        for (AggregationZone<ActivityFacility> zone : zoneAggregator.getZones()) {
             ArrayList<ActivityFacility> facilites = zone.getData();
             for (ActivityFacility activityFacility : facilites) {
                 activityFacility.getAttributes().putAttribute(attributeName, zone.getId());
