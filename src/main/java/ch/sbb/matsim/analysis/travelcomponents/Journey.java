@@ -140,26 +140,6 @@ public class Journey extends TravelComponent {
 		return getInVehDistance() + getWalkDistance();
 	}
 
-	public double getAccessWalkDistance() {
-		return 0;
-	}
-
-	public double getAccessWalkTime() {
-		return 0;
-	}
-
-	public double getAccessWaitTime() {
-		return 0;
-	}
-
-	public double getEgressWalkDistance() {
-		return 0;
-	}
-
-	public double getEgressWalkTime() {
-		return 0;
-	}
-
 	public Activity getFromAct() {
 		return fromAct;
 	}
@@ -204,18 +184,6 @@ public class Journey extends TravelComponent {
 
 	public void setMainmode(String mainmode) {
 		this.mainmode = mainmode;
-	}
-
-	public double getTransferWalkDistance() {
-		return 0;
-	}
-
-	public double getTransferWalkTime() {
-		return 0;
-	}
-
-	public double getTransferWaitTime() {
-		return 0;
 	}
 
 	public Id getFirstBoardingStop() {
