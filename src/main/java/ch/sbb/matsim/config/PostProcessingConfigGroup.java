@@ -5,6 +5,8 @@
 package ch.sbb.matsim.config;
 
 
+import ch.sbb.matsim.zones.Zones;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
@@ -18,8 +20,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     static private final String PARAM_SHAPEFILE_SCREENLINE = "shapefileScreenline";
     static private final String PARAM_MODE_VISUM_NETWORK = "visumNetworkMode";
 
-
-    private String shapeFile = "./output_merger";
+    private Id<Zones> zonesId = null;
     private String zoneAttribute = "GMDNR";
     private Boolean mapActivitiesToZone = false;
     private Boolean travelDiaries = true;
@@ -209,16 +210,23 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
         this.zoneAttribute = txt;
     }
 
-    @StringGetter("shapeFile")
-    public String getShapeFile() {
-        return shapeFile;
+    @StringGetter("zonesId")
+    public String getZonesId_asString() {
+        return this.zonesId == null ? null : this.zonesId.toString();
     }
 
-    @StringSetter("shapeFile")
-    void setShapeFile(String txt) {
-        this.shapeFile = txt;
+    public Id<Zones> getZonesId() {
+        return this.zonesId;
     }
 
+    @StringSetter("zonesId")
+    void setZonesId(String zonesId) {
+        this.zonesId = Id.create(zonesId, Zones.class);
+    }
+
+    void setZonesId(Id<Zones> zonesId) {
+        this.zonesId = zonesId;
+    }
 
     @StringGetter("mapActivitiesToZone")
     public Boolean getMapActivitiesToZone() {

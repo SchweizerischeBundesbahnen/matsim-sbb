@@ -1,6 +1,6 @@
 package ch.sbb.matsim.synpop.blurring;
 
-import ch.sbb.matsim.synpop.zoneAggregator.Zone;
+import ch.sbb.matsim.synpop.zoneAggregator.AggregationZone;
 import ch.sbb.matsim.synpop.zoneAggregator.ZoneAggregator;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -27,7 +27,7 @@ public class HomeFacilityBlurring {
         }
 
         int maxTries = 100;
-        for (Zone<ActivityFacility> zone : zoneAggregator.getZones()) {
+        for (AggregationZone<ActivityFacility> zone : zoneAggregator.getZones()) {
             for (int i = 0; i <= maxTries; i++) {
                 try {
                     this.blurZone(zone);
@@ -50,7 +50,7 @@ public class HomeFacilityBlurring {
         return zoneAggregator;
     }
 
-    private void blurZone(Zone<ActivityFacility> zone) {
+    private void blurZone(AggregationZone<ActivityFacility> zone) {
 
         ArrayList<ActivityFacility> facilites = zone.getData();
         ArrayList<Coord> coordinates = new ArrayList<>();
