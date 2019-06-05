@@ -13,7 +13,7 @@ import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
-import ch.sbb.matsim.zones.ZonesLoader;
+import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesQueryCache;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -106,7 +106,7 @@ public class EventsToTravelDiaries implements
     private Scenario scenario;
 
 
-    public EventsToTravelDiaries(Scenario scenario, String filename) {
+    public EventsToTravelDiaries(Scenario scenario, String filename, ZonesCollection allZones) {
         this.filename = filename;
         this.scenario = scenario;
 
@@ -121,7 +121,8 @@ public class EventsToTravelDiaries implements
         PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(this.config, PostProcessingConfigGroup.class);
 
         if (ppConfig.getMapActivitiesToZone()) {
-            this.setMapActToZone(ppConfig.getShapeFile(), ppConfig.getZoneAttribute());
+            Zones zones = allZones.getZones(ppConfig.getZonesId());
+            this.setMapActToZone(zones, ppConfig.getZoneAttribute());
         }
 
         if (ppConfig.getWriteVisumPuTSurvey()) {
@@ -419,8 +420,8 @@ public class EventsToTravelDiaries implements
         driverIdFromVehicleId = new HashMap<>();
     }
 
-    public void setMapActToZone(String shapefile, String attribute) {
-        this.zones = new ZonesQueryCache(ZonesLoader.loadZones("zones", shapefile, null));
+    public void setMapActToZone(Zones zones, String attribute) {
+        this.zones = new ZonesQueryCache(zones);
         this.zoneAttribute = attribute;
     }
 

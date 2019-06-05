@@ -47,7 +47,8 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
@@ -79,7 +80,8 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
@@ -113,7 +115,8 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
@@ -147,7 +150,8 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
@@ -181,7 +185,8 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);

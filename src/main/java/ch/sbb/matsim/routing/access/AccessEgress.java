@@ -4,8 +4,7 @@ import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRouting;
 import ch.sbb.matsim.routing.teleportation.SBBTeleportation;
 import ch.sbb.matsim.zones.Zones;
-import ch.sbb.matsim.zones.ZonesLoader;
-import ch.sbb.matsim.zones.ZonesQueryCache;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
@@ -16,22 +15,15 @@ import java.util.Collection;
 
 public class AccessEgress extends AbstractModule {
 
-    private final Scenario scenario;
-    private final Zones zones;
-
     public AccessEgress(Scenario scenario) {
         super(scenario.getConfig());
-        this.scenario = scenario;
-
-        SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
-        Zones zones = ZonesLoader.loadZones("zones", accessTimeConfigGroup.getShapefile(), null);
-        this.zones = new ZonesQueryCache(zones);
     }
 
     @Override
     public void install() {
         Config config = getConfig();
         SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
+        Id<Zones> zonesId = accessTimeConfigGroup.getZonesId();
 
         if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
             config.plansCalcRoute().setInsertingAccessEgressWalk(true);
@@ -42,11 +34,11 @@ public class AccessEgress extends AbstractModule {
             for (final String mode : modes) {
                 if (mainModes.contains(mode) || mode.equals(TransportMode.ride)) {
                     addRoutingModuleBinding(mode).toProvider(
-                            new SBBNetworkRouting(mode, this.zones)
+                            new SBBNetworkRouting(mode, zonesId)
                     );
                 } else {
                     addRoutingModuleBinding(mode).toProvider(
-                            new SBBTeleportation(config.plansCalcRoute().getOrCreateModeRoutingParams(mode), this.zones)
+                            new SBBTeleportation(config.plansCalcRoute().getOrCreateModeRoutingParams(mode), zonesId)
                     );
                 }
             }
