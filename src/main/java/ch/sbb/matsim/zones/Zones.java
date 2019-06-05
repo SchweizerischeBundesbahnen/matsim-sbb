@@ -14,4 +14,6 @@ public interface Zones {
     Zone findZone(double x, double y);
 
     Zone findNearestZone(double x, double y, double maxDistance);
+
+    Zone getZone(Id<Zone> id);
 }

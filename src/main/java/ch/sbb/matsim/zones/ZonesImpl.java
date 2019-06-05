@@ -9,6 +9,8 @@ import org.matsim.core.utils.geometry.geotools.MGC;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A collection of zones.
@@ -19,6 +21,7 @@ public class ZonesImpl implements Zones {
 
     private final Id<Zones> id;
     private final List<Zone> zones = new ArrayList<>();
+    private ConcurrentHashMap<Id<Zone>, Zone> lookup;
     private SpatialIndex qt = null;
 
     public ZonesImpl(Id<Zones> id) {
@@ -33,11 +36,13 @@ public class ZonesImpl implements Zones {
     public void add(Zone zone) {
         this.zones.add(zone);
         this.qt = null;
+        this.lookup = null;
     }
 
     public void remove(Zone zone) {
         this.zones.remove(zone);
         this.qt = null;
+        this.lookup = null;
     }
 
     public void clear() {
@@ -89,21 +94,51 @@ public class ZonesImpl implements Zones {
         return null;
     }
 
+    @Override
+    public Zone getZone(Id<Zone> id) {
+        return getLookupMap().get(id);
+    }
+
     private SpatialIndex getSpatialIndex() {
         SpatialIndex qt = this.qt;
         if (qt == null) {
             qt = buildSpatialIndex();
-            this.qt = qt;
         }
         return qt;
     }
 
     private synchronized SpatialIndex buildSpatialIndex() {
-        SpatialIndex qt = new Quadtree();
+        SpatialIndex qt = this.qt;
+        if (qt != null) {
+            return qt;
+        }
+        qt = new Quadtree();
         for (Zone zone : this.zones) {
             Envelope envelope = zone.getEnvelope();
             qt.insert(envelope, zone);
         }
+        this.qt = qt;
         return qt;
+    }
+
+    private Map<Id<Zone>, Zone> getLookupMap() {
+        Map<Id<Zone>, Zone> map = this.lookup;
+        if (map == null) {
+            map = buildLookupMap();
+        }
+        return map;
+    }
+
+    private synchronized Map<Id<Zone>, Zone> buildLookupMap() {
+        ConcurrentHashMap<Id<Zone>, Zone> map = this.lookup;
+        if (map != null) {
+            return map;
+        }
+        map = new ConcurrentHashMap<>();
+        for (Zone zone : this.zones) {
+            map.put(zone.getId(), zone);
+        }
+        this.lookup = map;
+        return map;
     }
 }

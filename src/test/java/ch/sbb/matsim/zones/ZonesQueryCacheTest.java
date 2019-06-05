@@ -72,6 +72,21 @@ public class ZonesQueryCacheTest {
         Assert.assertNull(z);
     }
 
+    @Test
+    public void testGetZone() {
+        TestZones zones = new TestZones("test");
+        zones.zones.add(new TestZone("A", "aa", 10, 0, 20, 10));
+        zones.zones.add(new TestZone("B", "bb", 50, 0, 70, 10));
+        zones.zones.add(new TestZone("C", "cc", 80, 0, 90, 10));
+
+        Zone z;
+        ZonesQueryCache cache = new ZonesQueryCache(zones);
+        z = cache.getZone(Id.create("A", Zone.class));
+        Assert.assertEquals("aa", z.getAttribute("-").toString());
+        z = cache.getZone(Id.create("B", Zone.class));
+        Assert.assertEquals("bb", z.getAttribute("-").toString());
+    }
+
     private static class TestZones implements Zones {
 
         private final Id<Zones> id;
@@ -116,6 +131,16 @@ public class ZonesQueryCacheTest {
             }
             if (bestDistance < maxDistance) {
                 return nearest;
+            }
+            return null;
+        }
+
+        @Override
+        public Zone getZone(Id<Zone> id) {
+            for (Zone z : this.zones) {
+                if (z.getId().equals(id)) {
+                    return z;
+                }
             }
             return null;
         }

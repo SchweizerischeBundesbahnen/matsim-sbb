@@ -57,6 +57,10 @@ public class ZonesQueryCache implements Zones {
         z = this.zones.findNearestZone(x, y, maxDistance);
         this.nearestCache.put(c, z);
         return z;
+    }
 
+    @Override
+    public Zone getZone(Id<Zone> id) {
+        return this.zones.getZone(id);
     }
 }
