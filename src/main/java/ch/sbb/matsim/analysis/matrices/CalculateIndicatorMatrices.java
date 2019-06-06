@@ -8,11 +8,12 @@ import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.misc.Time;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.function.BiPredicate;
 
 /**
  * @author mrieser / SBB
@@ -31,10 +32,31 @@ public class CalculateIndicatorMatrices {
         String outputDirectory = args[6];
         int numberOfPointsPerZone = Integer.valueOf(args[7]);
         int numberOfThreads = Integer.valueOf(args[8]);
+        String trainLinePredStr = args[9].equals("-") ? null : args[9]; // list of ; separated "or" conditions
+        BiPredicate<TransitLine, TransitRoute> trainLinePredictor = new BiPredicate<TransitLine, TransitRoute>() {
+            @Override
+            public boolean test(TransitLine line, TransitRoute route) {
+                if(trainLinePredStr != null) {
+                    String[] trainLinePred = trainLinePredStr.split(";");
+                    for (int i = 0; i < trainLinePred.length; i++) {
+                        String[] c = trainLinePred[i].split(",");
+                        if((c[1].equals("equals") && route.getAttributes().getAttribute(c[0]).toString().equals(c[2])) ||
+                                (c[1].equals("contains") && route.getAttributes().getAttribute(c[0]).toString().contains(c[2])))   {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                else    {
+                    return false;
+                }
+            }
+        };
+
         Map<String, double[]> timesCar = new LinkedHashMap<>();
         Map<String, double[]> timesPt = new LinkedHashMap<>();
 
-        for (int argIdx = 9; argIdx < args.length; argIdx++) {
+        for (int argIdx = 10; argIdx < args.length; argIdx++) {
             String arg = args[argIdx];
             String mode = null;
             String data = null;
@@ -84,10 +106,9 @@ public class CalculateIndicatorMatrices {
         for (Map.Entry<String, double[]> e : timesPt.entrySet()) {
             String prefix = e.getKey();
             double[] times = e.getValue();
-            skims.calculatePTMatrices(networkFilename, transitScheduleFilename, times[0], times[1], config, prefix, (line, route) -> "SBB_Simba.CH_2016".equals(route.getAttributes().getAttribute("01_Datenherkunft")));
+            skims.calculatePTMatrices(networkFilename, transitScheduleFilename, times[0], times[1], config, prefix, trainLinePredictor);
         }
 
         skims.calculateBeelineMatrix();
     }
-
 }
