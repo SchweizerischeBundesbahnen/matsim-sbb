@@ -1,7 +1,10 @@
 package ch.sbb.matsim.preparation;
 
-import ch.sbb.matsim.analysis.LocateAct;
 import ch.sbb.matsim.utils.SBBPersonUtils;
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesLoader;
+import ch.sbb.matsim.zones.ZonesQueryCache;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
@@ -42,7 +45,7 @@ public class ShapeAttribute2PersonAttribute {
         new PopulationReader(scenario).readFile(planFile);
         new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(attributeFileIn);
 
-        LocateAct locAct = new LocateAct(shapeFile, shapeAttribute);
+        Zones zones = new ZonesQueryCache(ZonesLoader.loadZones("zones", shapeFile, null));
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
 
@@ -50,8 +53,10 @@ public class ShapeAttribute2PersonAttribute {
 
             if (homeAct != null) {
                 Coord coord = homeAct.getCoord();
-                String shapeValue = locAct.getZoneAttribute(coord);
-                if (shapeValue.equals(LocateAct.UNDEFINED)) {
+                Zone z = zones.findZone(coord.getX(), coord.getY());
+                Object attrVal = z == null ? null : z.getAttribute(shapeAttribute);
+                String shapeValue = attrVal == null ? null : attrVal.toString();
+                if (shapeValue == null) {
                     log.warn("no zone defined for person " + person.getId().toString());
                     List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
                     log.info(l);
