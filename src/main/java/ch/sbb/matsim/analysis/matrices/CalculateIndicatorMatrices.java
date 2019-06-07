@@ -33,25 +33,7 @@ public class CalculateIndicatorMatrices {
         int numberOfPointsPerZone = Integer.valueOf(args[7]);
         int numberOfThreads = Integer.valueOf(args[8]);
         String trainLinePredStr = args[9].equals("-") ? null : args[9]; // list of ; separated "or" conditions
-        BiPredicate<TransitLine, TransitRoute> trainLinePredictor = new BiPredicate<TransitLine, TransitRoute>() {
-            @Override
-            public boolean test(TransitLine line, TransitRoute route) {
-                if(trainLinePredStr != null) {
-                    String[] trainLinePred = trainLinePredStr.split(";");
-                    for (int i = 0; i < trainLinePred.length; i++) {
-                        String[] c = trainLinePred[i].split(",");
-                        if((c[1].equals("equals") && route.getAttributes().getAttribute(c[0]).toString().equals(c[2])) ||
-                                (c[1].equals("contains") && route.getAttributes().getAttribute(c[0]).toString().contains(c[2])))   {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                else    {
-                    return false;
-                }
-            }
-        };
+        BiPredicate<TransitLine, TransitRoute> trainLinePredictor = buildTrainLinePredictor(trainLinePredStr);
 
         Map<String, double[]> timesCar = new LinkedHashMap<>();
         Map<String, double[]> timesPt = new LinkedHashMap<>();
@@ -110,5 +92,64 @@ public class CalculateIndicatorMatrices {
         }
 
         skims.calculateBeelineMatrix();
+    }
+
+    private static BiPredicate<TransitLine, TransitRoute> buildTrainLinePredictor(String str) {
+        if (str == null) {
+            return (line, route) -> false;
+        }
+
+        String[] conditionStrings = str.split(";");
+        Condition[] conditions = new Condition[conditionStrings.length];
+        for (int i = 0; i < conditionStrings.length; i++) {
+            String[] parts = conditionStrings[i].split(",");
+            String attribute = parts[0];
+            String method = parts[1];
+            String value = parts[2];
+            ConditionType type;
+            if (method.equals("equals")) {
+                type = ConditionType.EQUALS;
+            } else if (method.equals("contains")) {
+                type = ConditionType.CONTAINS;
+            } else {
+                throw new UnsupportedOperationException("Unsupported condition type: " + method);
+            }
+            conditions[i] = new Condition(attribute, type, value);
+        }
+
+        return (line, route) -> {
+           for (Condition c : conditions) {
+               if (c.testCondition(route)) {
+                   return true;
+               }
+           }
+           return false;
+        };
+    }
+
+    private enum ConditionType { EQUALS, CONTAINS }
+
+    private static class Condition {
+        final String attribute;
+        final ConditionType type;
+        final String value;
+
+        Condition(String attribute, ConditionType type, String value) {
+            this.attribute = attribute;
+            this.type = type;
+            this.value = value;
+        }
+
+        boolean testCondition(TransitRoute route) {
+            Object attributeValueObj = route.getAttributes().getAttribute(this.attribute);
+            String attributeValue = attributeValueObj == null ? "" : attributeValueObj.toString();
+            switch (this.type) {
+                case EQUALS:
+                    return attributeValue.equals(this.value);
+                case CONTAINS:
+                    return attributeValue.contains(this.value);
+            }
+            throw new RuntimeException("Unsupported condition type " + this.type);
+        }
     }
 }
