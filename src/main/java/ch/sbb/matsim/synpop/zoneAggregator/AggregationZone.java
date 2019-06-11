@@ -2,11 +2,11 @@ package ch.sbb.matsim.synpop.zoneAggregator;
 
 import java.util.ArrayList;
 
-public class Zone<T> {
+public class AggregationZone<T> {
     private final int zoneId;
     private ArrayList<T> data;
 
-    public Zone(int id) {
+    public AggregationZone(int id) {
         this.zoneId = id;
         this.data = new ArrayList<T>();
     }

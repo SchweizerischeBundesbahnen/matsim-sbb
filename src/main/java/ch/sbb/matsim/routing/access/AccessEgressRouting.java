@@ -1,7 +1,7 @@
 package ch.sbb.matsim.routing.access;
 
-import java.util.List;
-
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -19,9 +19,8 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.router.StageActivityTypes;
 import org.matsim.facilities.Facility;
-import org.opengis.feature.simple.SimpleFeature;
 
-import ch.sbb.matsim.analysis.LocateAct;
+import java.util.List;
 
 /**
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
@@ -33,19 +32,17 @@ import ch.sbb.matsim.analysis.LocateAct;
 
 public class AccessEgressRouting {
     private static final Logger log = Logger.getLogger(AccessEgressRouting.class);
-    final private LocateAct actLocator;
+    final private Zones zones;
     final private PopulationFactory populationFactory;
     final private String stageActivityType;
-    final private String mode;
     final private Network network;
     final private String attribute;
 
-    public AccessEgressRouting(final LocateAct locateAct, final PopulationFactory populationFactory, final String mode, final Network network) {
+    public AccessEgressRouting(final Zones zones, final PopulationFactory populationFactory, final String mode, final Network network) {
         this.network = network;
-        this.actLocator = locateAct;
+        this.zones = zones;
         this.populationFactory = populationFactory;
-        this.mode = mode;
-        this.stageActivityType = this.mode + " interaction";
+        this.stageActivityType = mode + " interaction";
         this.attribute = "ACC" + mode.toUpperCase(); // ?
     }
 
@@ -86,7 +83,7 @@ public class AccessEgressRouting {
     private double routeBushwhackingLeg(final Person person, final Leg leg, final Coord coord, final double depTime, final Id<Link> dpLinkId, final Id<Link> arLinkId) {
         final Route route = this.populationFactory.getRouteFactories().createRoute(Route.class, dpLinkId, arLinkId);
 
-        final SimpleFeature zone = this.actLocator.getZone(coord);
+        Zone zone = this.zones.findZone(coord.getX(), coord.getY());
         int travTime = 0;
 
         if (zone != null) {

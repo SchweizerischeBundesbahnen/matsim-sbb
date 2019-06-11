@@ -5,6 +5,9 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -29,11 +32,15 @@ public class RunSBBPostProcessing {
 
         final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup());
         PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
+        ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
+
+        ZonesCollection allZones = new ZonesCollection();
+        ZonesLoader.loadAllZones(zonesConfig, allZones);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
         EventsManager eventsManager = new EventsManagerImpl();
 
-        List<EventWriter> eventWriters = SBBPostProcessingOutputHandler.buildEventWriters(scenario, ppConfig, outputPath);
+        List<EventWriter> eventWriters = SBBPostProcessingOutputHandler.buildEventWriters(scenario, ppConfig, outputPath, allZones);
 
         for (EventWriter eventWriter : eventWriters) {
             eventsManager.addHandler(eventWriter);
