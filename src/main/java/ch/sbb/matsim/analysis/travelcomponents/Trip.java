@@ -131,9 +131,4 @@ public 	 class Trip extends TravelComponent {
 		this.distance += linkLength;
 		
 	}
-
-	public void incrementTime(double linkTime) {
-		this.setEndTime(this.getEndTime()+linkTime);
-		
-	}
 }
