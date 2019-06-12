@@ -399,20 +399,17 @@ public class EventsToTravelDiaries implements
     public void writeSimulationResultsToTabSeparated(String appendage) throws IOException {
         String actTableName;
         String journeyTableName;
-//        String transferTableName;
         String tripTableName;
 
         if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
             actTableName = appendage + "matsim_activities.txt";
             journeyTableName = appendage + "matsim_journeys.txt";
-//            transferTableName = appendage + "matsim_transfers.txt";
             tripTableName = appendage + "matsim_trips.txt";
         } else {
             if (appendage.matches("[a-zA-Z0-9]*"))
                 appendage = "_" + appendage;
             actTableName = "matsim_activities" + appendage + ".txt";
             journeyTableName = "matsim_journeys" + appendage + ".txt";
-//            transferTableName = "matsim_transfers" + appendage + ".txt";
             tripTableName = "matsim_trips" + appendage + ".txt";
         }
         BufferedWriter activityWriter = IOUtils.getBufferedWriter(this.filename + actTableName);
@@ -435,11 +432,6 @@ public class EventsToTravelDiaries implements
                 "distance\tmode\tline\troute\tboarding_stop\t" +
                 "alighting_stop\tdeparture_time\tdeparture_delay\tsample_selector\t" +
                  "from_x\tfrom_y\tto_x\tto_y\tprevious_trip_id\tnext_trip_id\n");
-
-//        BufferedWriter transferWriter = IOUtils.getBufferedWriter(this.filename + transferTableName);
-//        transferWriter.write("transfer_id\tjourney_id\tstart_time\t" +
-//                "end_time\tfrom_trip\tto_trip\twalk_distance\t" +
-//                "walk_time\twait_time\tsample_selector\n");
 
         // read a static field that increments with every inheriting object constructed
         Counter counter = new Counter("Output lines written: ");
@@ -493,7 +485,6 @@ public class EventsToTravelDiaries implements
                     );
                     counter.incCounter();
 
-                    // comment (PManser): in my opinion, isCarJourney() does not mean anything
                     if (!(journey.isTeleportJourney())) {
                         int ind = 0;
                         for (Trip trip : journey.getTrips()) {
@@ -525,26 +516,6 @@ public class EventsToTravelDiaries implements
                                     next_trip_id));
                             counter.incCounter();
                         }
-//                        for (Transfer transfer : journey.getTransfers()) {
-//                            transferWriter.write(String.format(
-//                                    "%d\t%d\t%d\t%d\t%d\t%d\t%.3f\t%d\t%d\t%f\n",
-//                                    transfer.getElementId(),
-//                                    journey.getElementId(),
-//                                    (int) transfer.getStartTime(),
-//                                    (int) transfer.getEndTime(),
-//                                    transfer.getFromTrip()
-//                                            .getElementId(),
-//                                    transfer.getToTrip()
-//                                            .getElementId(),
-//
-//                                    transfer.getWalkDistance(),
-//                                    (int) transfer.getWalkTime(),
-//                                    (int) transfer.getWaitTime(),
-//                                    MatsimRandom.getRandom().nextDouble()
-//
-//                            ));
-//                            counter.incCounter();
-//                        }
                     } else {
                         for (Trip trip : journey.getTrips()) {
 
@@ -578,7 +549,6 @@ public class EventsToTravelDiaries implements
         activityWriter.close();
         journeyWriter.close();
         tripWriter.close();
-//        transferWriter.close();
         counter.printCounter();
     }
 
