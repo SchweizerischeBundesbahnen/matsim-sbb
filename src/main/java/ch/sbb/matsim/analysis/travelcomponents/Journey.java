@@ -99,10 +99,10 @@ public class Journey extends TravelComponent {
 
 	public String getMainModeMikroZensus() {
 		try {
-			Trip firstTrip = getFirstTrip();
 			if (getTrips().size() > 1) {
 				return "pt";
 			}
+			Trip firstTrip = getFirstTrip();
 			if(firstTrip.getMode().equals("transit_walk"))
 				return "walk";
 			else
@@ -140,16 +140,10 @@ public class Journey extends TravelComponent {
 	}
 
 	public Trip getFirstTrip() {
-		if (this.trips.isEmpty()) {
-			return null;
-		}
 		return this.trips.get(0);
 	}
 
 	public Trip getLastTrip() {
-		if (this.trips.isEmpty()) {
-			return null;
-		}
 		return this.trips.get(this.trips.size() - 1);
 	}
 
