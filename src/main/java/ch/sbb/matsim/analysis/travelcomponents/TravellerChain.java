@@ -15,7 +15,6 @@ public class TravellerChain {
 	private boolean isStuck = false;
 	private List<Activity> acts = new ArrayList<>(5);
 	private List<Journey> journeys = new ArrayList<>(5);
-	private List<TravelComponent> planElements = new ArrayList<>(5);
 	private final Config config;
 
 	public TravellerChain(Config config){
@@ -25,14 +24,12 @@ public class TravellerChain {
 	public Journey addJourney() {
 		Journey journey = new Journey(this.config);
 		getJourneys().add(journey);
-		planElements.add(journey);
 		return journey;
 	}
 
 	public Activity addActivity() {
 		Activity activity = new Activity(this.config);
 		getActs().add(activity);
-		planElements.add(activity);
 		return activity;
 	}
 
