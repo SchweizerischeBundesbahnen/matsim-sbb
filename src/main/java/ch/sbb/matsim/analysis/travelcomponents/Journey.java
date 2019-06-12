@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public class Journey extends TravelComponent {
-	private String mainmode = null;
-	private String mainmode_mz = null;
 	private Activity fromAct;
 	private Activity toAct;
 	private boolean teleportJourney = false;
@@ -69,9 +67,6 @@ public class Journey extends TravelComponent {
 	}
 
 	public String getMainMode() {
-		if (!(mainmode == null)) {
-			return mainmode;
-		}
 		try {
 			Trip longestTrip = null;
 			if (getTrips().size() > 1) {
@@ -99,9 +94,6 @@ public class Journey extends TravelComponent {
 	}
 
 	public String getMainModeMikroZensus() {
-		if (!(mainmode_mz == null)) {
-			return mainmode_mz;
-		}
 		try {
 			Trip firstTrip = getFirstTrip();
 			if (getTrips().size() > 1) {
@@ -163,10 +155,6 @@ public class Journey extends TravelComponent {
 
 	public void setTrips(LinkedList<Trip> trips) {
 		this.trips = trips;
-	}
-
-	public void setMainmode(String mainmode) {
-		this.mainmode = mainmode;
 	}
 
 	public Id getFirstBoardingStop() {
