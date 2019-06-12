@@ -230,7 +230,7 @@ public class EventsToTravelDiaries implements
             if (!isTransitDriver(event.getPersonId())) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 setStuck(getStuck() + 1);
-                chain.setStucked();
+                chain.setStuck();
                 if (chain.getJourneys().size() > 0)
                     chain.removeLastJourney();
             }
@@ -477,7 +477,7 @@ public class EventsToTravelDiaries implements
                             0 /*(int) journey.getTransferWalkTime()*/,
                             0 /*(int) journey.getTransferWaitTime()*/,
                             MatsimRandom.getRandom().nextDouble(),
-                            chain.getStucked())
+                            chain.isStuck())
                     );
                     counter.incCounter();
 

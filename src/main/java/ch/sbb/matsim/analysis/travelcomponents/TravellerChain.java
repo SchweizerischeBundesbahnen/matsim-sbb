@@ -12,11 +12,11 @@ import java.util.NoSuchElementException;
 
 
 public class TravellerChain {
-	private Boolean stucked = false;
+	private boolean isStuck = false;
 	private List<Activity> acts = new ArrayList<>(5);
 	private List<Journey> journeys = new ArrayList<>(5);
 	private List<TravelComponent> planElements = new ArrayList<>(5);
-	private Config config = null;
+	private final Config config;
 
 	public TravellerChain(Config config){
 		this.config = config;
@@ -36,11 +36,11 @@ public class TravellerChain {
 		return activity;
 	}
 
-	public Boolean getStucked() {
-		return stucked;
+	public boolean isStuck() {
+		return isStuck;
 	}
-	public void setStucked(){
-		this.stucked = true;
+	public void setStuck(){
+		this.isStuck = true;
 	}
 
 	public Journey getLastJourney() {
