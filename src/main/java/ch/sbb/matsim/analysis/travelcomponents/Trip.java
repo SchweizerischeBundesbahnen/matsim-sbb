@@ -18,8 +18,8 @@ public 	 class Trip extends TravelComponent {
 	private Id alightingStop;
 	private Id vehicleId;
 	private double distance;
-	private double PtDepartureTime;
-	private double PtDepartureDelay;
+	private double ptDepartureTime;
+	private double ptDepartureDelay;
 	private boolean departureTimeIsSet = false;
 
 	Trip(Config config){
@@ -107,24 +107,24 @@ public 	 class Trip extends TravelComponent {
 
 	public void setPtDepartureTime(double time){
 		if (!this.departureTimeIsSet){
-			this.PtDepartureTime = time;
+			this.ptDepartureTime = time;
 			this.departureTimeIsSet = true;
 		}
 	}
 
 	public void setDepartureDelay(double delay){
 		if (!this.departureTimeIsSet){
-			this.PtDepartureDelay = delay;
+			this.ptDepartureDelay = delay;
 			this.departureTimeIsSet = true;
 		}
 	}
 
 	public double getDepartureDelay(){
-		return this.PtDepartureDelay;
+		return this.ptDepartureDelay;
 	}
 
 	public double getPtDepartureTime(){
-		return this.PtDepartureTime;
+		return this.ptDepartureTime;
 	}
 
 	public void incrementDistance(double linkLength) {
