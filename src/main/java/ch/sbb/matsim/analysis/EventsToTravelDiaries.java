@@ -34,6 +34,7 @@ import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.vehicles.Vehicle;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -68,10 +69,10 @@ public class EventsToTravelDiaries implements
 
     private String filename;
 
-    private Map<Id, TravellerChain> chains = new HashMap<>();
-    private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
-    private HashSet<Id> transitDriverIds = new HashSet<>();
-    private HashMap<Id, Id> driverIdFromVehicleId = new HashMap<>();
+    private Map<Id<Person>, TravellerChain> chains = new HashMap<>();
+    private Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
+    private HashSet<Id<Person>> transitDriverIds = new HashSet<>();
+    private HashMap<Id<Vehicle>, Id<Person>> driverIdFromVehicleId = new HashMap<>();
     private int stuck = 0;
     private TransitSchedule transitSchedule;
     private final boolean isTransitScenario;
@@ -442,7 +443,7 @@ public class EventsToTravelDiaries implements
 
         // read a static field that increments with every inheriting object constructed
         Counter counter = new Counter("Output lines written: ");
-        for (Entry<Id, TravellerChain> entry : chains.entrySet()) {
+        for (Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
             String pax_id = entry.getKey().toString();
             TravellerChain chain = entry.getValue();
             for (Activity act : chain.getActs()) {
@@ -585,7 +586,7 @@ public class EventsToTravelDiaries implements
         return stuck;
     }
 
-    public Map<Id, TravellerChain> getChains() {
+    public Map<Id<Person>, TravellerChain> getChains() {
         return chains;
     }
 

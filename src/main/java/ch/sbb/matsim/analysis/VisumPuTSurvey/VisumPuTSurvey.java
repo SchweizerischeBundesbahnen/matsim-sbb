@@ -7,6 +7,7 @@ import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.Departure;
@@ -14,6 +15,7 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.utils.objectattributes.attributable.Attributes;
+import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -50,15 +52,15 @@ public class VisumPuTSurvey {
     private static final String LINEROUTENAME = "03_LineRouteName";
     private static final String FZPNAME = "05_Name";
 
-    final private Map<Id, TravellerChain> chains;
-    final private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
+    final private Map<Id<Person>, TravellerChain> chains;
+    final private Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
     final private TransitSchedule transitSchedule;
     final private Scenario scenario;
     private Double scaleFactor;
 
     private final static Logger log = Logger.getLogger(VisumPuTSurvey.class);
 
-    public VisumPuTSurvey(Map<Id, TravellerChain> chains, Scenario scenario, Double scaleFactor) {
+    public VisumPuTSurvey(Map<Id<Person>, TravellerChain> chains, Scenario scenario, Double scaleFactor) {
         this.chains = chains;
         readVehicles(scenario.getTransitSchedule());
         this.scenario = scenario;
@@ -86,7 +88,7 @@ public class VisumPuTSurvey {
         log.info("write Visum PuT Survey File to " + filepath);
 
         try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath)) {
-            for (Map.Entry<Id, TravellerChain> entry : chains.entrySet()) {
+            for (Map.Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
                 String pax_id = entry.getKey().toString();
                 TravellerChain chain = entry.getValue();
                 for (Journey journey : chain.getJourneys()) {
