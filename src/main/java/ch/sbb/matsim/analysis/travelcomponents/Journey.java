@@ -22,8 +22,7 @@ public class Journey extends TravelComponent {
 
 	private Activity fromAct;
 	private Activity toAct;
-	private boolean teleportJourney = false;
-	private List<Trip> trips = new ArrayList<>();
+    private List<Trip> trips = new ArrayList<>();
 	private List<TravelComponent> planElements = new ArrayList<>();
 	private final Config config;
 
@@ -174,10 +173,6 @@ public class Journey extends TravelComponent {
 			return this.getFirstTrip().getAlightingStop();
 		}
 		return null;
-	}
-
-	public boolean isTeleportJourney() {
-		return teleportJourney;
 	}
 
 	public static void setWalkSpeed(double walkSpeed) {

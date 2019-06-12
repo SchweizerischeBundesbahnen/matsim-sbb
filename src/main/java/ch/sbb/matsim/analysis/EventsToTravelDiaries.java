@@ -481,53 +481,35 @@ public class EventsToTravelDiaries implements
                     );
                     counter.incCounter();
 
-                    if (!(journey.isTeleportJourney())) {
-                        int ind = 0;
-                        for (Trip trip : journey.getTrips()) {
+                    int ind = 0;
+                    for (Trip trip : journey.getTrips()) {
 
-                            String previous_trip_id = null;
-                            String next_trip_id = null;
-                            if(ind > 0)
-                                previous_trip_id = Integer.toString(journey.getTrips().get(ind - 1).getElementId());
-                            if(ind < journey.getTrips().size() - 1)
-                                next_trip_id = Integer.toString(journey.getTrips().get(ind + 1).getElementId());
-                            ind++;
+                        String previous_trip_id = null;
+                        String next_trip_id = null;
+                        if(ind > 0)
+                            previous_trip_id = Integer.toString(journey.getTrips().get(ind - 1).getElementId());
+                        if(ind < journey.getTrips().size() - 1)
+                            next_trip_id = Integer.toString(journey.getTrips().get(ind + 1).getElementId());
+                        ind++;
 
-                            tripWriter.write(String.format(
-                                    "%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\t%s\n",
-                                    trip.getElementId(),
-                                    journey.getElementId(),
-                                    (int) trip.getStartTime(),
-                                    (int) trip.getEndTime(),
-                                    trip.getDistance(),
-                                    trip.getMode(), trip.getLine(),
-                                    trip.getRoute(), trip.getBoardingStop(),
-                                    trip.getAlightingStop(), (int) trip.getPtDepartureTime(), (int) trip.getDepartureDelay(),
-                                    MatsimRandom.getRandom().nextDouble(),
-                                    trip.getOrig().getX(),
-                                    trip.getOrig().getY(),
-                                    trip.getDest().getX(),
-                                    trip.getDest().getY(),
-                                    previous_trip_id,
-                                    next_trip_id));
-                            counter.incCounter();
-                        }
-                    } else {
-                        for (Trip trip : journey.getTrips()) {
-
-                            tripWriter.write(String.format(
-                                    "%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%f\n",
-                                    trip.getElementId(),
-                                    journey.getElementId(),
-                                    (int) trip.getStartTime(),
-                                    (int) trip.getEndTime(),
-                                    trip.getDistance(),
-                                    trip.getMode(), "", "", "", "", "", "",
-                                    MatsimRandom.getRandom().nextDouble()
-
-                            ));
-                            counter.incCounter();
-                        }
+                        tripWriter.write(String.format(
+                                "%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\t%s\n",
+                                trip.getElementId(),
+                                journey.getElementId(),
+                                (int) trip.getStartTime(),
+                                (int) trip.getEndTime(),
+                                trip.getDistance(),
+                                trip.getMode(), trip.getLine(),
+                                trip.getRoute(), trip.getBoardingStop(),
+                                trip.getAlightingStop(), (int) trip.getPtDepartureTime(), (int) trip.getDepartureDelay(),
+                                MatsimRandom.getRandom().nextDouble(),
+                                trip.getOrig().getX(),
+                                trip.getOrig().getY(),
+                                trip.getDest().getX(),
+                                trip.getDest().getY(),
+                                previous_trip_id,
+                                next_trip_id));
+                        counter.incCounter();
                     }
                 } catch (NullPointerException e) {
                     setStuck(getStuck() + 1);
