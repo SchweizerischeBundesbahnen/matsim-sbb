@@ -244,12 +244,12 @@ public class EventsToTravelDiaries implements
         try {
             if (isTransitDriver(event.getPersonId()))
                 return;
-            if (ptVehicles.containsKey(event.getVehicleId())) {
+            PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
+            if (vehicle != null) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 Journey journey = chain.getLastJourney();
                 // first, handle the end of the wait
                 // now, create a new trip
-                PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
                 vehicle.addPassenger(event.getPersonId());
                 Trip trip = journey.getLastTrip();
                 trip.setLine(vehicle.transitLineId);
@@ -260,7 +260,7 @@ public class EventsToTravelDiaries implements
                 trip.setBoardingStop(vehicle.lastStop);
                 // trip.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
                 // trip.setOrig(journey.getWaits().getLast().getCoord());
-                trip.setRoute(ptVehicles.get(event.getVehicleId()).transitRouteId);
+                trip.setRoute(vehicle.transitRouteId);
                 trip.setStartTime(event.getTime());
                 // check for the end of a transfer
             } else {
@@ -277,10 +277,10 @@ public class EventsToTravelDiaries implements
         if (isTransitDriver(event.getPersonId()))
             return;
         try {
-            if (ptVehicles.containsKey(event.getVehicleId())) {
+            PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
+            if (vehicle != null) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 chain.traveledVehicle = true;
-                PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
                 double stageDistance = vehicle.removePassenger(event.getPersonId());
                 Trip trip = chain.getLastJourney().getLastTrip();
                 trip.setDistance(stageDistance);
@@ -297,14 +297,13 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(LinkEnterEvent event) {
         try {
-            if (ptVehicles.containsKey(event.getVehicleId())) {
-                PTVehicle ptVehicle = ptVehicles.get(event.getVehicleId());
+            PTVehicle ptVehicle = ptVehicles.get(event.getVehicleId());
+            if (ptVehicle != null) {
                 ptVehicle.in = true;
 //                ptVehicle.setLinkEnterTime(event.getTime());
 /*            } else {
                 chains.get(driverIdFromVehicleId.get(event.getVehicleId())).setLinkEnterTime(event.getTime());*/
             }
-
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
         }
@@ -314,12 +313,11 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(LinkLeaveEvent event) {
         try {
-            if (ptVehicles.containsKey(event.getVehicleId())) {
-                PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
+            PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
+            if (vehicle != null) {
                 if (vehicle.in)
                     vehicle.in = false;
                 vehicle.incDistance(network.getLinks().get(event.getLinkId()).getLength());
-
             } else {
                 TravellerChain chain = chains.get(driverIdFromVehicleId.get(event.getVehicleId()));
                 Trip trip = chain.getLastJourney().getLastTrip();
