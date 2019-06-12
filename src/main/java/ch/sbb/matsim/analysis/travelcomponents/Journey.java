@@ -45,14 +45,11 @@ public class Journey extends TravelComponent {
 	public double getInVehDistance() {
 		if(getMainMode().equals("walk"))
 			return 0;
-		if (!isCarJourney()) {
-			double distance = 0;
-			for (Trip t : getTrips()) {
-				distance += t.getDistance();
-			}
-			return distance;
+		double distance = 0;
+		for (Trip t : getTrips()) {
+			distance += t.getDistance();
 		}
-		return 0;
+		return distance;
 	}
 
 	private double getWalkDistance() {
@@ -64,22 +61,16 @@ public class Journey extends TravelComponent {
 	public double getInVehTime() {
 		if(getMainMode().equals("walk"))
 			return 0;
-		if (!isCarJourney()) {
-			double time = 0;
-			for (Trip t : getTrips()) {
-				time += t.getDuration();
-			}
-			return time;
+		double time = 0;
+		for (Trip t : getTrips()) {
+			time += t.getDuration();
 		}
-		return getDuration();
+		return time;
 	}
 
 	public String getMainMode() {
 		if (!(mainmode == null)) {
 			return mainmode;
-		}
-		if (isCarJourney()) {
-			return "car";
 		}
 		try {
 			Trip longestTrip = null;
@@ -110,9 +101,6 @@ public class Journey extends TravelComponent {
 	public String getMainModeMikroZensus() {
 		if (!(mainmode_mz == null)) {
 			return mainmode_mz;
-		}
-		if (isCarJourney()) {
-			return "car";
 		}
 		try {
 			Trip firstTrip = getFirstTrip();
@@ -155,10 +143,6 @@ public class Journey extends TravelComponent {
 		this.toAct = toAct;
 	}
 
-	public boolean isCarJourney() {
-		return false;
-	}
-
 	public Trip getFirstTrip() {
 		if (this.trips.isEmpty()) {
 			return null;
@@ -186,14 +170,14 @@ public class Journey extends TravelComponent {
 	}
 
 	public Id getFirstBoardingStop() {
-		if (!isCarJourney() && this.getTrips().size() > 0) {
+		if (this.getTrips().size() > 0) {
 			return this.getFirstTrip().getBoardingStop();
 		}
 		return null;
 	}
 
 	public Id getLastAlightingStop() {
-		if (!isCarJourney() && this.getTrips().size() > 0) {
+		if (this.getTrips().size() > 0) {
 			return this.getFirstTrip().getAlightingStop();
 		}
 		return null;

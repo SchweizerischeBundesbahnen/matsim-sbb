@@ -495,7 +495,7 @@ public class EventsToTravelDiaries implements
                     counter.incCounter();
 
                     // comment (PManser): in my opinion, isCarJourney() does not mean anything
-                    if (!(journey.isCarJourney() || journey.isTeleportJourney())) {
+                    if (!(journey.isTeleportJourney())) {
                         int ind = 0;
                         for (Trip trip : journey.getTrips()) {
 
