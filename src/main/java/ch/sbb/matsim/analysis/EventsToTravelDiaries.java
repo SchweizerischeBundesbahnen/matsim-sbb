@@ -8,7 +8,7 @@ import ch.sbb.matsim.analysis.VisumPuTSurvey.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.Activity;
 import ch.sbb.matsim.analysis.travelcomponents.Journey;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
-import ch.sbb.matsim.analysis.travelcomponents.Trip;
+import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -47,7 +47,7 @@ import java.util.Set;
 /**
  * @author pieterfourie, sergioo
  *         <p>
- *         Converts events into journeys, trips/stages, transfers and activities
+ *         Converts events into journeys, legs/stages, transfers and activities
  *         tables. Originally designed for transit scenarios with full transit
  *         simulation, but should work with most teleported modes
  *         </p>
@@ -189,9 +189,9 @@ public class EventsToTravelDiaries implements
             journey.setEndTime(event.getTime());
 //            journey.setDest(network.getLinks().get(event.getLinkId()).getCoord());
             journey.setEndTime(event.getTime());
-            Trip trip = journey.getLastTrip();
-            trip.setEndTime(event.getTime());
-            trip.setDest(network.getLinks().get(event.getLinkId()).getCoord());
+            TravelledLeg leg = journey.getLastLeg();
+            leg.setEndTime(event.getTime());
+            leg.setDest(network.getLinks().get(event.getLinkId()).getCoord());
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
         }
@@ -205,7 +205,7 @@ public class EventsToTravelDiaries implements
             }
             TravellerChain chain = chains.get(event.getPersonId());
             Journey journey;
-            Trip trip;
+            TravelledLeg leg;
             if (!chain.isInPT()) {
                 journey = chain.addJourney();
 //                journey.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
@@ -214,10 +214,10 @@ public class EventsToTravelDiaries implements
                 // journey.setMainmode(event.getLegMode());
             }
             journey = chain.getLastJourney();
-            trip = journey.addTrip();
-            trip.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
-            trip.setMode(event.getLegMode());
-            trip.setStartTime(event.getTime());
+            leg = journey.addLeg();
+            leg.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
+            leg.setMode(event.getLegMode());
+            leg.setStartTime(event.getTime());
 
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
@@ -249,19 +249,19 @@ public class EventsToTravelDiaries implements
                 TravellerChain chain = chains.get(event.getPersonId());
                 Journey journey = chain.getLastJourney();
                 // first, handle the end of the wait
-                // now, create a new trip
+                // now, create a new leg
                 vehicle.addPassenger(event.getPersonId());
-                Trip trip = journey.getLastTrip();
-                trip.setLine(vehicle.transitLineId);
-                trip.setVehicleId(event.getVehicleId());
-                trip.setMode(transitSchedule.getTransitLines()
+                TravelledLeg leg = journey.getLastLeg();
+                leg.setLine(vehicle.transitLineId);
+                leg.setVehicleId(event.getVehicleId());
+                leg.setMode(transitSchedule.getTransitLines()
                         .get(vehicle.transitLineId).getRoutes()
                         .get(vehicle.transitRouteId).getTransportMode());
-                trip.setBoardingStop(vehicle.lastStop);
-                // trip.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
-                // trip.setOrig(journey.getWaits().getLast().getCoord());
-                trip.setRoute(vehicle.transitRouteId);
-                trip.setStartTime(event.getTime());
+                leg.setBoardingStop(vehicle.lastStop);
+                // leg.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
+                // leg.setOrig(journey.getWaits().getLast().getCoord());
+                leg.setRoute(vehicle.transitRouteId);
+                leg.setStartTime(event.getTime());
                 // check for the end of a transfer
             } else {
                 // add the person to the map that keeps track of who drives what
@@ -281,9 +281,9 @@ public class EventsToTravelDiaries implements
             if (vehicle != null) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 double stageDistance = vehicle.removePassenger(event.getPersonId());
-                Trip trip = chain.getLastJourney().getLastTrip();
-                trip.setDistance(stageDistance);
-                trip.setAlightingStop(vehicle.lastStop);
+                TravelledLeg leg = chain.getLastJourney().getLastLeg();
+                leg.setDistance(stageDistance);
+                leg.setAlightingStop(vehicle.lastStop);
             } else {
                 driverIdFromVehicleId.remove(event.getVehicleId());
             }
@@ -319,8 +319,8 @@ public class EventsToTravelDiaries implements
                 vehicle.incDistance(network.getLinks().get(event.getLinkId()).getLength());
             } else {
                 TravellerChain chain = chains.get(driverIdFromVehicleId.get(event.getVehicleId()));
-                Trip trip = chain.getLastJourney().getLastTrip();
-                trip.incrementDistance(network.getLinks().get(event.getLinkId()).getLength());
+                TravelledLeg leg = chain.getLastJourney().getLastLeg();
+                leg.incrementDistance(network.getLinks().get(event.getLinkId()).getLength());
             }
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
@@ -346,8 +346,8 @@ public class EventsToTravelDiaries implements
                 return;
             TravellerChain chain = chains.get(event.getPersonId());
             Journey journey = chain.getLastJourney();
-            Trip trip = journey.getLastTrip();
-            trip.setDistance((int) event.getDistance());
+            TravelledLeg leg = journey.getLastLeg();
+            leg.setDistance((int) event.getDistance());
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
         }
@@ -359,9 +359,9 @@ public class EventsToTravelDiaries implements
             PTVehicle pt_vehicle = ptVehicles.get(event.getVehicleId());
             for (Id passenger_id : pt_vehicle.getPassengersId()) {
                 TravellerChain chain = chains.get(passenger_id);
-                Trip trip = chain.getLastJourney().getLastTrip();
-                trip.setPtDepartureTime(event.getTime());
-                trip.setDepartureDelay(event.getDelay());
+                TravelledLeg leg = chain.getLastJourney().getLastLeg();
+                leg.setPtDepartureTime(event.getTime());
+                leg.setDepartureDelay(event.getDelay());
             }
 
         } catch (Exception e) {
@@ -395,18 +395,18 @@ public class EventsToTravelDiaries implements
     public void writeSimulationResultsToTabSeparated(String appendage) throws IOException {
         String actTableName;
         String journeyTableName;
-        String tripTableName;
+        String legsTableName;
 
         if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
             actTableName = appendage + "matsim_activities.txt";
             journeyTableName = appendage + "matsim_journeys.txt";
-            tripTableName = appendage + "matsim_trips.txt";
+            legsTableName = appendage + "matsim_legs.txt";
         } else {
             if (appendage.matches("[a-zA-Z0-9]*"))
                 appendage = "_" + appendage;
             actTableName = "matsim_activities" + appendage + ".txt";
             journeyTableName = "matsim_journeys" + appendage + ".txt";
-            tripTableName = "matsim_trips" + appendage + ".txt";
+            legsTableName = "matsim_legs" + appendage + ".txt";
         }
         BufferedWriter activityWriter = IOUtils.getBufferedWriter(this.filename + actTableName);
 
@@ -423,11 +423,11 @@ public class EventsToTravelDiaries implements
                 "transfer_walk_distance\ttransfer_walk_time\t" +
                 "transfer_wait_time\tsample_selector\tstucked\n");
 
-        BufferedWriter tripWriter = IOUtils.getBufferedWriter(this.filename + tripTableName);
-        tripWriter.write("trip_id\tjourney_id\tstart_time\tend_time\t" +
+        BufferedWriter legsWriter = IOUtils.getBufferedWriter(this.filename + legsTableName);
+        legsWriter.write("leg_id\tjourney_id\tstart_time\tend_time\t" +
                 "distance\tmode\tline\troute\tboarding_stop\t" +
                 "alighting_stop\tdeparture_time\tdeparture_delay\tsample_selector\t" +
-                 "from_x\tfrom_y\tto_x\tto_y\tprevious_trip_id\tnext_trip_id\n");
+                 "from_x\tfrom_y\tto_x\tto_y\tprevious_leg_id\tnext_leg_id\n");
 
         // read a static field that increments with every inheriting object constructed
         Counter counter = new Counter("Output lines written: ");
@@ -482,33 +482,33 @@ public class EventsToTravelDiaries implements
                     counter.incCounter();
 
                     int ind = 0;
-                    for (Trip trip : journey.getTrips()) {
+                    for (TravelledLeg leg : journey.getLegs()) {
 
-                        String previous_trip_id = null;
-                        String next_trip_id = null;
+                        String previous_leg_id = null;
+                        String next_leg_id = null;
                         if(ind > 0)
-                            previous_trip_id = Integer.toString(journey.getTrips().get(ind - 1).getElementId());
-                        if(ind < journey.getTrips().size() - 1)
-                            next_trip_id = Integer.toString(journey.getTrips().get(ind + 1).getElementId());
+                            previous_leg_id = Integer.toString(journey.getLegs().get(ind - 1).getElementId());
+                        if(ind < journey.getLegs().size() - 1)
+                            next_leg_id = Integer.toString(journey.getLegs().get(ind + 1).getElementId());
                         ind++;
 
-                        tripWriter.write(String.format(
+                        legsWriter.write(String.format(
                                 "%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\t%s\n",
-                                trip.getElementId(),
+                                leg.getElementId(),
                                 journey.getElementId(),
-                                (int) trip.getStartTime(),
-                                (int) trip.getEndTime(),
-                                trip.getDistance(),
-                                trip.getMode(), trip.getLine(),
-                                trip.getRoute(), trip.getBoardingStop(),
-                                trip.getAlightingStop(), (int) trip.getPtDepartureTime(), (int) trip.getDepartureDelay(),
+                                (int) leg.getStartTime(),
+                                (int) leg.getEndTime(),
+                                leg.getDistance(),
+                                leg.getMode(), leg.getLine(),
+                                leg.getRoute(), leg.getBoardingStop(),
+                                leg.getAlightingStop(), (int) leg.getPtDepartureTime(), (int) leg.getDepartureDelay(),
                                 MatsimRandom.getRandom().nextDouble(),
-                                trip.getOrig().getX(),
-                                trip.getOrig().getY(),
-                                trip.getDest().getX(),
-                                trip.getDest().getY(),
-                                previous_trip_id,
-                                next_trip_id));
+                                leg.getOrig().getX(),
+                                leg.getOrig().getY(),
+                                leg.getDest().getX(),
+                                leg.getDest().getY(),
+                                previous_leg_id,
+                                next_leg_id));
                         counter.incCounter();
                     }
                 } catch (NullPointerException e) {
@@ -526,7 +526,7 @@ public class EventsToTravelDiaries implements
 
         activityWriter.close();
         journeyWriter.close();
-        tripWriter.close();
+        legsWriter.close();
         counter.printCounter();
     }
 

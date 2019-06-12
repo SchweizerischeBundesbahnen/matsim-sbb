@@ -8,7 +8,7 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 
-public 	 class Trip extends TravelComponent {
+public class TravelledLeg extends TravelComponent {
 	private String mode;
 	private Id line;
 	private Id route;
@@ -22,13 +22,13 @@ public 	 class Trip extends TravelComponent {
 	private double ptDepartureDelay;
 	private boolean departureTimeIsSet = false;
 
-	Trip(Config config){
+	TravelledLeg(Config config){
 		super(config);
 	}
 
 	public String toString() {
 		return String
-				.format("\tTRIP: mode: %s start: %6.0f end: %6.0f distance: %6.0f \n",
+				.format("\tLEG: mode: %s start: %6.0f end: %6.0f distance: %6.0f \n",
 						getMode(), getStartTime(), getEndTime(), getDistance());
 	}
 

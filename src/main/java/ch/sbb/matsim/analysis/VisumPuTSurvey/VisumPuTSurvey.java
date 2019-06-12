@@ -2,7 +2,7 @@ package ch.sbb.matsim.analysis.VisumPuTSurvey;
 
 import ch.sbb.matsim.analysis.travelcomponents.Journey;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
-import ch.sbb.matsim.analysis.travelcomponents.Trip;
+import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -93,17 +93,17 @@ public class VisumPuTSurvey {
                 TravellerChain chain = entry.getValue();
                 for (Journey journey : chain.getJourneys()) {
                     Integer i = 1;
-                    for (Trip trip : journey.getTrips()) {
-                        if (this.ptVehicles.containsKey(trip.getVehicleId())) {
+                    for (TravelledLeg leg : journey.getLegs()) {
+                        if (this.ptVehicles.containsKey(leg.getVehicleId())) {
 
                             writer.set(COL_PATH_ID, Integer.toString(journey.getElementId()));
                             writer.set(COL_LEG_ID, Integer.toString(i));
-                            String boarding = this.transitSchedule.getFacilities().get(trip.getBoardingStop()).getAttributes().getAttribute(STOP_NO).toString();
+                            String boarding = this.transitSchedule.getFacilities().get(leg.getBoardingStop()).getAttributes().getAttribute(STOP_NO).toString();
                             writer.set(COL_FROM_STOP, boarding);
-                            String alighting = this.transitSchedule.getFacilities().get(trip.getAlightingStop()).getAttributes().getAttribute(STOP_NO).toString();
+                            String alighting = this.transitSchedule.getFacilities().get(leg.getAlightingStop()).getAttributes().getAttribute(STOP_NO).toString();
                             writer.set(COL_TO_STOP, alighting);
 
-                            Id vId = trip.getVehicleId();
+                            Id vId = leg.getVehicleId();
                             PTVehicle vehicle = this.ptVehicles.get(vId);
                             Id<TransitLine> lId = vehicle.getLineId();
                             Id<TransitRoute> rId = vehicle.getRouteId();
@@ -127,7 +127,7 @@ public class VisumPuTSurvey {
                             writer.set(COL_TEILWEG_KENNUNG, kennung);
                             writer.set(COL_EINHSTNR, boarding);
 
-                            int time = (int) trip.getPtDepartureTime();
+                            int time = (int) leg.getPtDepartureTime();
 
                             writer.set(COL_EINHSTABFAHRTSTAG, getDayIndex(time));
                             writer.set(COL_EINHSTABFAHRTSZEIT, getTime(time));

@@ -21,7 +21,7 @@ public class Journey extends TravelComponent {
 
 	private Activity fromAct;
 	private Activity toAct;
-    private List<Trip> trips = new ArrayList<>();
+    private List<TravelledLeg> legs = new ArrayList<>();
 	private final Config config;
 
 	Journey(Config config){
@@ -29,23 +29,23 @@ public class Journey extends TravelComponent {
 		this.config = config;
 	}
 
-	public Trip addTrip() {
-		Trip trip = new Trip(this.config);
-		this.trips.add(trip);
-		return trip;
+	public TravelledLeg addLeg() {
+		TravelledLeg leg = new TravelledLeg(this.config);
+		this.legs.add(leg);
+		return leg;
 	}
 
 	public String toString() {
 		return String.format("JOURNEY: start: %6.0f end: %6.0f dur: %6.0f invehDist: %6.0f walkDist: %6.0f \n %s",
 				getStartTime(), getEndTime(), getDuration(), getInVehDistance(), getWalkDistance(),
-				trips.toString());
+				legs.toString());
 	}
 
 	public double getInVehDistance() {
 		if(getMainMode().equals("walk"))
 			return 0;
 		double distance = 0;
-		for (Trip t : getTrips()) {
+		for (TravelledLeg t : getLegs()) {
 			distance += t.getDistance();
 		}
 		return distance;
@@ -61,7 +61,7 @@ public class Journey extends TravelComponent {
 		if(getMainMode().equals("walk"))
 			return 0;
 		double time = 0;
-		for (Trip t : getTrips()) {
+		for (TravelledLeg t : getLegs()) {
 			time += t.getDuration();
 		}
 		return time;
@@ -69,23 +69,23 @@ public class Journey extends TravelComponent {
 
 	public String getMainMode() {
 		try {
-			Trip longestTrip = null;
-			if (getTrips().size() > 1) {
-				for (int i = 1; i < getTrips().size(); i++) {
-					Trip trip = getTrips().get(i);
-					if(trip.getMode().equals(TransportMode.egress_walk) || trip.getMode().equals(TransportMode.access_walk)){
+			TravelledLeg longestLeg = null;
+			if (getLegs().size() > 1) {
+				for (int i = 1; i < getLegs().size(); i++) {
+					TravelledLeg leg = getLegs().get(i);
+					if (leg.getMode().equals(TransportMode.egress_walk) || leg.getMode().equals(TransportMode.access_walk)) {
 					}
-					else if(longestTrip == null){
-						longestTrip = trip;
+					else if (longestLeg == null) {
+						longestLeg = leg;
 					}
-					else if (trip.getDistance() > longestTrip.getDistance()) {
-						longestTrip = getTrips().get(i);
+					else if (leg.getDistance() > longestLeg.getDistance()) {
+						longestLeg = getLegs().get(i);
 					}
 				}
-				return longestTrip.getMode();
+				return longestLeg.getMode();
 			}
 			else{
-				return getFirstTrip().getMode();
+				return getFirstLeg().getMode();
 			}
 
 		} catch (NoSuchElementException e) {
@@ -96,14 +96,14 @@ public class Journey extends TravelComponent {
 
 	public String getMainModeMikroZensus() {
 		try {
-			if (this.trips.size() > 1) {
+			if (this.legs.size() > 1) {
 				return "pt";
 			}
-			Trip firstTrip = getFirstTrip();
-			if(firstTrip.getMode().equals("transit_walk"))
+			TravelledLeg firstLeg = getFirstLeg();
+			if (firstLeg.getMode().equals("transit_walk"))
 				return "walk";
 			else
-				return firstTrip.getMode();
+				return firstLeg.getMode();
 
 		} catch (NoSuchElementException e) {
 			return "walk";
@@ -136,30 +136,30 @@ public class Journey extends TravelComponent {
 		this.toAct = toAct;
 	}
 
-	public Trip getFirstTrip() {
-		return this.trips.get(0);
+	public TravelledLeg getFirstLeg() {
+		return this.legs.get(0);
 	}
 
-	public Trip getLastTrip() {
-		return this.trips.get(this.trips.size() - 1);
+	public TravelledLeg getLastLeg() {
+		return this.legs.get(this.legs.size() - 1);
 	}
 
-	public List<Trip> getTrips() {
-		return trips;
+	public List<TravelledLeg> getLegs() {
+		return legs;
 	}
 
 	public Id getFirstBoardingStop() {
-	    if (this.trips.isEmpty()) {
+	    if (this.legs.isEmpty()) {
 	        return null;
         }
-		return this.getFirstTrip().getBoardingStop();
+		return this.getFirstLeg().getBoardingStop();
 	}
 
 	public Id getLastAlightingStop() {
-	    if (this.trips.isEmpty()) {
+	    if (this.legs.isEmpty()) {
 	        return null;
         }
-		return this.getFirstTrip().getAlightingStop();
+		return this.getFirstLeg().getAlightingStop();
 	}
 
 	public static void setWalkSpeed(double walkSpeed) {
