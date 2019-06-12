@@ -12,7 +12,6 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.pt.router.TransitRouterConfig;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -23,7 +22,6 @@ public class Journey extends TravelComponent {
 	private Activity fromAct;
 	private Activity toAct;
     private List<Trip> trips = new ArrayList<>();
-	private List<TravelComponent> planElements = new ArrayList<>();
 	private final Config config;
 
 	Journey(Config config){
@@ -33,15 +31,14 @@ public class Journey extends TravelComponent {
 
 	public Trip addTrip() {
 		Trip trip = new Trip(this.config);
-		getTrips().add(trip);
-		planElements.add(trip);
+		this.trips.add(trip);
 		return trip;
 	}
 
 	public String toString() {
 		return String.format("JOURNEY: start: %6.0f end: %6.0f dur: %6.0f invehDist: %6.0f walkDist: %6.0f \n %s",
 				getStartTime(), getEndTime(), getDuration(), getInVehDistance(), getWalkDistance(),
-				planElements.toString());
+				trips.toString());
 	}
 
 	public double getInVehDistance() {
@@ -99,7 +96,7 @@ public class Journey extends TravelComponent {
 
 	public String getMainModeMikroZensus() {
 		try {
-			if (getTrips().size() > 1) {
+			if (this.trips.size() > 1) {
 				return "pt";
 			}
 			Trip firstTrip = getFirstTrip();
@@ -151,22 +148,18 @@ public class Journey extends TravelComponent {
 		return trips;
 	}
 
-	public void setTrips(LinkedList<Trip> trips) {
-		this.trips = trips;
-	}
-
 	public Id getFirstBoardingStop() {
-		if (this.getTrips().size() > 0) {
-			return this.getFirstTrip().getBoardingStop();
-		}
-		return null;
+	    if (this.trips.isEmpty()) {
+	        return null;
+        }
+		return this.getFirstTrip().getBoardingStop();
 	}
 
 	public Id getLastAlightingStop() {
-		if (this.getTrips().size() > 0) {
-			return this.getFirstTrip().getAlightingStop();
-		}
-		return null;
+	    if (this.trips.isEmpty()) {
+	        return null;
+        }
+		return this.getFirstTrip().getAlightingStop();
 	}
 
 	public static void setWalkSpeed(double walkSpeed) {
