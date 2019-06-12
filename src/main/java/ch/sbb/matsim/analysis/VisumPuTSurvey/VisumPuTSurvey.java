@@ -1,6 +1,6 @@
 package ch.sbb.matsim.analysis.VisumPuTSurvey;
 
-import ch.sbb.matsim.analysis.travelcomponents.Journey;
+import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.csv.CSVWriter;
@@ -91,12 +91,12 @@ public class VisumPuTSurvey {
             for (Map.Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
                 String pax_id = entry.getKey().toString();
                 TravellerChain chain = entry.getValue();
-                for (Journey journey : chain.getJourneys()) {
+                for (Trip trip : chain.getTrips()) {
                     Integer i = 1;
-                    for (TravelledLeg leg : journey.getLegs()) {
+                    for (TravelledLeg leg : trip.getLegs()) {
                         if (this.ptVehicles.containsKey(leg.getVehicleId())) {
 
-                            writer.set(COL_PATH_ID, Integer.toString(journey.getElementId()));
+                            writer.set(COL_PATH_ID, Integer.toString(trip.getElementId()));
                             writer.set(COL_LEG_ID, Integer.toString(i));
                             String boarding = this.transitSchedule.getFacilities().get(leg.getBoardingStop()).getAttributes().getAttribute(STOP_NO).toString();
                             writer.set(COL_FROM_STOP, boarding);

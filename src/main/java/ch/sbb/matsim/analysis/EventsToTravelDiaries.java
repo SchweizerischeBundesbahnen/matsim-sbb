@@ -6,7 +6,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.VisumPuTSurvey.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.Activity;
-import ch.sbb.matsim.analysis.travelcomponents.Journey;
+import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
@@ -47,7 +47,7 @@ import java.util.Set;
 /**
  * @author pieterfourie, sergioo
  *         <p>
- *         Converts events into journeys, legs/stages, transfers and activities
+ *         Converts events into trips, legs/stages, transfers and activities
  *         tables. Originally designed for transit scenarios with full transit
  *         simulation, but should work with most teleported modes
  *         </p>
@@ -167,11 +167,11 @@ public class EventsToTravelDiaries implements
                 act.setFacility(event.getFacilityId());
                 act.setStartTime(event.getTime());
                 act.setType(event.getActType());
-                // end the preceding journey
-                Journey journey = chain.getLastJourney();
-//                journey.setDest(act.getCoord());
-                journey.setEndTime(event.getTime());
-                journey.setToAct(act);
+                // end the preceding trip
+                Trip trip = chain.getLastTrip();
+//                trip.setDest(act.getCoord());
+                trip.setEndTime(event.getTime());
+                trip.setToAct(act);
             }
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
@@ -185,11 +185,11 @@ public class EventsToTravelDiaries implements
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
-            Journey journey = chain.getLastJourney();
-            journey.setEndTime(event.getTime());
-//            journey.setDest(network.getLinks().get(event.getLinkId()).getCoord());
-            journey.setEndTime(event.getTime());
-            TravelledLeg leg = journey.getLastLeg();
+            Trip trip = chain.getLastTrip();
+            trip.setEndTime(event.getTime());
+//            trip.setDest(network.getLinks().get(event.getLinkId()).getCoord());
+            trip.setEndTime(event.getTime());
+            TravelledLeg leg = trip.getLastLeg();
             leg.setEndTime(event.getTime());
             leg.setDest(network.getLinks().get(event.getLinkId()).getCoord());
         } catch (Exception e) {
@@ -204,17 +204,17 @@ public class EventsToTravelDiaries implements
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
-            Journey journey;
+            Trip trip;
             TravelledLeg leg;
             if (!chain.isInPT()) {
-                journey = chain.addJourney();
-//                journey.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
-                journey.setFromAct(chain.getLastActivity());
-                journey.setStartTime(event.getTime());
-                // journey.setMainmode(event.getLegMode());
+                trip = chain.addTrip();
+//                trip.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
+                trip.setFromAct(chain.getLastActivity());
+                trip.setStartTime(event.getTime());
+                // trip.setMainmode(event.getLegMode());
             }
-            journey = chain.getLastJourney();
-            leg = journey.addLeg();
+            trip = chain.getLastTrip();
+            leg = trip.addLeg();
             leg.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
             leg.setMode(event.getLegMode());
             leg.setStartTime(event.getTime());
@@ -231,8 +231,8 @@ public class EventsToTravelDiaries implements
                 TravellerChain chain = chains.get(event.getPersonId());
                 setStuck(getStuck() + 1);
                 chain.setStuck();
-                if (chain.getJourneys().size() > 0)
-                    chain.removeLastJourney();
+                if (chain.getTrips().size() > 0)
+                    chain.removeLastTrip();
             }
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
@@ -247,11 +247,11 @@ public class EventsToTravelDiaries implements
             PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
             if (vehicle != null) {
                 TravellerChain chain = chains.get(event.getPersonId());
-                Journey journey = chain.getLastJourney();
+                Trip trip = chain.getLastTrip();
                 // first, handle the end of the wait
                 // now, create a new leg
                 vehicle.addPassenger(event.getPersonId());
-                TravelledLeg leg = journey.getLastLeg();
+                TravelledLeg leg = trip.getLastLeg();
                 leg.setLine(vehicle.transitLineId);
                 leg.setVehicleId(event.getVehicleId());
                 leg.setMode(transitSchedule.getTransitLines()
@@ -259,7 +259,7 @@ public class EventsToTravelDiaries implements
                         .get(vehicle.transitRouteId).getTransportMode());
                 leg.setBoardingStop(vehicle.lastStop);
                 // leg.setOrig(network.getLinks().get(event.getLinkId()).getCoord());
-                // leg.setOrig(journey.getWaits().getLast().getCoord());
+                // leg.setOrig(trip.getWaits().getLast().getCoord());
                 leg.setRoute(vehicle.transitRouteId);
                 leg.setStartTime(event.getTime());
                 // check for the end of a transfer
@@ -281,7 +281,7 @@ public class EventsToTravelDiaries implements
             if (vehicle != null) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 double stageDistance = vehicle.removePassenger(event.getPersonId());
-                TravelledLeg leg = chain.getLastJourney().getLastLeg();
+                TravelledLeg leg = chain.getLastTrip().getLastLeg();
                 leg.setDistance(stageDistance);
                 leg.setAlightingStop(vehicle.lastStop);
             } else {
@@ -319,7 +319,7 @@ public class EventsToTravelDiaries implements
                 vehicle.incDistance(network.getLinks().get(event.getLinkId()).getLength());
             } else {
                 TravellerChain chain = chains.get(driverIdFromVehicleId.get(event.getVehicleId()));
-                TravelledLeg leg = chain.getLastJourney().getLastLeg();
+                TravelledLeg leg = chain.getLastTrip().getLastLeg();
                 leg.incrementDistance(network.getLinks().get(event.getLinkId()).getLength());
             }
         } catch (Exception e) {
@@ -345,8 +345,8 @@ public class EventsToTravelDiaries implements
             if (isTransitDriver(event.getPersonId()))
                 return;
             TravellerChain chain = chains.get(event.getPersonId());
-            Journey journey = chain.getLastJourney();
-            TravelledLeg leg = journey.getLastLeg();
+            Trip trip = chain.getLastTrip();
+            TravelledLeg leg = trip.getLastLeg();
             leg.setDistance((int) event.getDistance());
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
@@ -359,7 +359,7 @@ public class EventsToTravelDiaries implements
             PTVehicle pt_vehicle = ptVehicles.get(event.getVehicleId());
             for (Id passenger_id : pt_vehicle.getPassengersId()) {
                 TravellerChain chain = chains.get(passenger_id);
-                TravelledLeg leg = chain.getLastJourney().getLastLeg();
+                TravelledLeg leg = chain.getLastTrip().getLastLeg();
                 leg.setPtDepartureTime(event.getTime());
                 leg.setDepartureDelay(event.getDelay());
             }
@@ -394,18 +394,18 @@ public class EventsToTravelDiaries implements
 
     public void writeSimulationResultsToTabSeparated(String appendage) throws IOException {
         String actTableName;
-        String journeyTableName;
+        String tripsTableName;
         String legsTableName;
 
         if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
             actTableName = appendage + "matsim_activities.txt";
-            journeyTableName = appendage + "matsim_journeys.txt";
+            tripsTableName = appendage + "matsim_trips.txt";
             legsTableName = appendage + "matsim_legs.txt";
         } else {
             if (appendage.matches("[a-zA-Z0-9]*"))
                 appendage = "_" + appendage;
             actTableName = "matsim_activities" + appendage + ".txt";
-            journeyTableName = "matsim_journeys" + appendage + ".txt";
+            tripsTableName = "matsim_trips" + appendage + ".txt";
             legsTableName = "matsim_legs" + appendage + ".txt";
         }
         BufferedWriter activityWriter = IOUtils.getBufferedWriter(this.filename + actTableName);
@@ -413,8 +413,8 @@ public class EventsToTravelDiaries implements
         activityWriter.write("activity_id\tperson_id\tfacility_id\ttype\t" +
                 "start_time\tend_time\tx\ty\tsample_selector\tzone\n");
 
-        BufferedWriter journeyWriter = IOUtils.getBufferedWriter(this.filename + journeyTableName);
-        journeyWriter.write("journey_id\tperson_id\tstart_time\t" +
+        BufferedWriter tripsWriter = IOUtils.getBufferedWriter(this.filename + tripsTableName);
+        tripsWriter.write("trip_id\tperson_id\tstart_time\t" +
                 "end_time\tdistance\tmain_mode\tmain_mode_mikrozensus\tfrom_act\tto_act\tto_act_type\t" +
                 "in_vehicle_distance\tin_vehicle_time\t" +
                 "access_walk_distance\taccess_walk_time\taccess_wait_time\t" +
@@ -424,7 +424,7 @@ public class EventsToTravelDiaries implements
                 "transfer_wait_time\tsample_selector\tstucked\n");
 
         BufferedWriter legsWriter = IOUtils.getBufferedWriter(this.filename + legsTableName);
-        legsWriter.write("leg_id\tjourney_id\tstart_time\tend_time\t" +
+        legsWriter.write("leg_id\ttrip_id\tstart_time\tend_time\t" +
                 "distance\tmode\tline\troute\tboarding_stop\t" +
                 "alighting_stop\tdeparture_time\tdeparture_delay\tsample_selector\t" +
                  "from_x\tfrom_y\tto_x\tto_y\tprevious_leg_id\tnext_leg_id\n");
@@ -450,52 +450,52 @@ public class EventsToTravelDiaries implements
                     log.error("Couldn't print activity chain!", e);
                 }
             }
-            for (Journey journey : chain.getJourneys()) {
+            for (Trip trip : chain.getTrips()) {
                 try {
-                    journeyWriter.write(String.format(
+                    tripsWriter.write(String.format(
                             "%d\t%s\t%d\t%d\t%.3f\t%s\t%s\t%d\t%d\t%s\t%.3f\t%d\t%.3f\t%d\t%d\t%s\t%.3f\t%d\t%s\t%.3f\t%d\t%d\t%f\t%b\n",
-                            journey.getElementId(),
+                            trip.getElementId(),
                             pax_id,
-                            (int) journey.getStartTime(),
-                            (int) journey.getEndTime(),
-                            journey.getDistance(),
-                            journey.getMainMode(),
-                            journey.getMainModeMikroZensus(),
-                            journey.getFromAct().getElementId(),
-                            journey.getToAct().getElementId(),
-                            journey.getToActType(),
-                            journey.getInVehDistance(),
-                            (int) journey.getInVehTime(),
-                            0 /*journey.getAccessWalkDistance()*/,
-                            0 /*(int) journey.getAccessWalkTime()*/,
-                            0 /*(int) journey.getAccessWaitTime()*/,
-                            journey.getFirstBoardingStop(),
-                            0 /*journey.getEgressWalkDistance()*/,
-                            0 /*(int) journey.getEgressWalkTime()*/,
-                            journey.getLastAlightingStop(),
-                            0 /*journey.getTransferWalkDistance()*/,
-                            0 /*(int) journey.getTransferWalkTime()*/,
-                            0 /*(int) journey.getTransferWaitTime()*/,
+                            (int) trip.getStartTime(),
+                            (int) trip.getEndTime(),
+                            trip.getDistance(),
+                            trip.getMainMode(),
+                            trip.getMainModeMikroZensus(),
+                            trip.getFromAct().getElementId(),
+                            trip.getToAct().getElementId(),
+                            trip.getToActType(),
+                            trip.getInVehDistance(),
+                            (int) trip.getInVehTime(),
+                            0 /*trip.getAccessWalkDistance()*/,
+                            0 /*(int) trip.getAccessWalkTime()*/,
+                            0 /*(int) trip.getAccessWaitTime()*/,
+                            trip.getFirstBoardingStop(),
+                            0 /*trip.getEgressWalkDistance()*/,
+                            0 /*(int) trip.getEgressWalkTime()*/,
+                            trip.getLastAlightingStop(),
+                            0 /*trip.getTransferWalkDistance()*/,
+                            0 /*(int) trip.getTransferWalkTime()*/,
+                            0 /*(int) trip.getTransferWaitTime()*/,
                             MatsimRandom.getRandom().nextDouble(),
                             chain.isStuck())
                     );
                     counter.incCounter();
 
                     int ind = 0;
-                    for (TravelledLeg leg : journey.getLegs()) {
+                    for (TravelledLeg leg : trip.getLegs()) {
 
                         String previous_leg_id = null;
                         String next_leg_id = null;
                         if(ind > 0)
-                            previous_leg_id = Integer.toString(journey.getLegs().get(ind - 1).getElementId());
-                        if(ind < journey.getLegs().size() - 1)
-                            next_leg_id = Integer.toString(journey.getLegs().get(ind + 1).getElementId());
+                            previous_leg_id = Integer.toString(trip.getLegs().get(ind - 1).getElementId());
+                        if(ind < trip.getLegs().size() - 1)
+                            next_leg_id = Integer.toString(trip.getLegs().get(ind + 1).getElementId());
                         ind++;
 
                         legsWriter.write(String.format(
                                 "%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\t%s\n",
                                 leg.getElementId(),
-                                journey.getElementId(),
+                                trip.getElementId(),
                                 (int) leg.getStartTime(),
                                 (int) leg.getEndTime(),
                                 leg.getDistance(),
@@ -525,7 +525,7 @@ public class EventsToTravelDiaries implements
         }
 
         activityWriter.close();
-        journeyWriter.close();
+        tripsWriter.close();
         legsWriter.close();
         counter.printCounter();
     }

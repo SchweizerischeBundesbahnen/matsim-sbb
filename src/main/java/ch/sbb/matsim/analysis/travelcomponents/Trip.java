@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class Journey extends TravelComponent {
+public class Trip extends TravelComponent {
 
     private static double walkSpeed = new TransitRouterConfig(ConfigUtils.createConfig()).getBeelineWalkSpeed();
 
@@ -24,7 +24,7 @@ public class Journey extends TravelComponent {
     private List<TravelledLeg> legs = new ArrayList<>();
 	private final Config config;
 
-	Journey(Config config){
+	Trip(Config config){
 		super(config);
 		this.config = config;
 	}
@@ -36,7 +36,7 @@ public class Journey extends TravelComponent {
 	}
 
 	public String toString() {
-		return String.format("JOURNEY: start: %6.0f end: %6.0f dur: %6.0f invehDist: %6.0f walkDist: %6.0f \n %s",
+		return String.format("TRIP: start: %6.0f end: %6.0f dur: %6.0f invehDist: %6.0f walkDist: %6.0f \n %s",
 				getStartTime(), getEndTime(), getDuration(), getInVehDistance(), getWalkDistance(),
 				legs.toString());
 	}
@@ -163,6 +163,6 @@ public class Journey extends TravelComponent {
 	}
 
 	public static void setWalkSpeed(double walkSpeed) {
-		Journey.walkSpeed = walkSpeed;
+		Trip.walkSpeed = walkSpeed;
 	}
 }

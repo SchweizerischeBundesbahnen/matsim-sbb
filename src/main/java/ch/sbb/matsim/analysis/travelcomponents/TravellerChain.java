@@ -14,17 +14,17 @@ import java.util.NoSuchElementException;
 public class TravellerChain {
 	private boolean isStuck = false;
 	private List<Activity> acts = new ArrayList<>(5);
-	private List<Journey> journeys = new ArrayList<>(5);
+	private List<Trip> trips = new ArrayList<>(5);
 	private final Config config;
 
 	public TravellerChain(Config config){
 		this.config = config;
 	}
 
-	public Journey addJourney() {
-		Journey journey = new Journey(this.config);
-		getJourneys().add(journey);
-		return journey;
+	public Trip addTrip() {
+		Trip trip = new Trip(this.config);
+		getTrips().add(trip);
+		return trip;
 	}
 
 	public Activity addActivity() {
@@ -40,19 +40,19 @@ public class TravellerChain {
 		this.isStuck = true;
 	}
 
-	public Journey getLastJourney() {
-		if (this.journeys.isEmpty()) {
+	public Trip getLastTrip() {
+		if (this.trips.isEmpty()) {
 			throw new NoSuchElementException();
 		}
-		return this.journeys.get(this.journeys.size() - 1);
+		return this.trips.get(this.trips.size() - 1);
 	}
 
-	public List<Journey> getJourneys() {
-		return journeys;
+	public List<Trip> getTrips() {
+		return trips;
 	}
 
-	public void removeLastJourney() {
-		this.journeys.remove(this.journeys.size() - 1);
+	public void removeLastTrip() {
+		this.trips.remove(this.trips.size() - 1);
 	}
 
 	public Activity getLastActivity() {
