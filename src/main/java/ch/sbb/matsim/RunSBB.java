@@ -5,6 +5,10 @@
 package ch.sbb.matsim;
 
 
+import ch.ethz.matsim.discrete_mode_choice.modules.ConstraintModule;
+import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceConfigurator;
+import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceModule;
+import ch.ethz.matsim.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
@@ -14,14 +18,13 @@ import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
+import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
 import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.vehicles.RideParkingCostTracker;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
-import ch.sbb.matsim.s3.S3Downloader;
-
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
@@ -63,6 +66,14 @@ public class RunSBB {
 
         // controler
         Controler controler = new Controler(scenario);
+
+        double dMC = 0.2;
+        if (dMC > 0.0) {
+            controler.addOverridingModule(new DiscreteModeChoiceModule());
+            DiscreteModeChoiceConfigurator.configureAsImportanceSampler(config);
+            DiscreteModeChoiceConfigGroup dmcConfig = (DiscreteModeChoiceConfigGroup) config.getModules().get(DiscreteModeChoiceConfigGroup.GROUP_NAME);
+            dmcConfig.setTourConstraintsAsString(ConstraintModule.SUBTOUR_MODE);
+        }
 
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
         if(samplerConfig.getDoSample()){
