@@ -78,8 +78,5 @@ public class TravellerChain {
 	}
 
 	private boolean inPT = false;
-	public boolean traveledVehicle;
-	public boolean traveling=false;
-	public boolean walking=false;
 
 }

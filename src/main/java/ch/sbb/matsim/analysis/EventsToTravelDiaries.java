@@ -162,7 +162,6 @@ public class EventsToTravelDiaries implements
 
             } else {
                 chain.setInPT(false);
-                chain.traveling = false;
                 Activity act = chain.addActivity();
                 act.setCoord(network.getLinks().get(event.getLinkId()).getCoord());
                 act.setFacility(event.getFacilityId());
@@ -281,7 +280,6 @@ public class EventsToTravelDiaries implements
             PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
             if (vehicle != null) {
                 TravellerChain chain = chains.get(event.getPersonId());
-                chain.traveledVehicle = true;
                 double stageDistance = vehicle.removePassenger(event.getPersonId());
                 Trip trip = chain.getLastJourney().getLastTrip();
                 trip.setDistance(stageDistance);
@@ -350,8 +348,6 @@ public class EventsToTravelDiaries implements
             Journey journey = chain.getLastJourney();
             Trip trip = journey.getLastTrip();
             trip.setDistance((int) event.getDistance());
-            if (chain.traveledVehicle)
-                chain.traveledVehicle = false;
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
         }
