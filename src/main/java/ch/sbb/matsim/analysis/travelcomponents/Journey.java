@@ -8,6 +8,8 @@ import ch.sbb.matsim.config.variables.SBBActivities;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.pt.router.TransitRouterConfig;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -15,6 +17,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public class Journey extends TravelComponent {
+
+    private static double walkSpeed = new TransitRouterConfig(ConfigUtils.createConfig()).getBeelineWalkSpeed();
+
 	private Activity fromAct;
 	private Activity toAct;
 	private boolean teleportJourney = false;
