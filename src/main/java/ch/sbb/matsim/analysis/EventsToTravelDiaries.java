@@ -10,6 +10,10 @@ import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesQueryCache;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -76,12 +80,13 @@ public class EventsToTravelDiaries implements
     private TransitSchedule transitSchedule;
     private final boolean isTransitScenario;
     private boolean writeVisumPuTSurvey = false;
-    private LocateAct locateAct = null;
+    private Zones zones = null;
+    private String zoneAttribute = null;
     private Config config;
     private Scenario scenario;
 
 
-    public EventsToTravelDiaries(Scenario scenario, String filename) {
+    public EventsToTravelDiaries(Scenario scenario, String filename, ZonesCollection allZones) {
         this.filename = filename;
         this.scenario = scenario;
 
@@ -96,7 +101,8 @@ public class EventsToTravelDiaries implements
         PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(this.config, PostProcessingConfigGroup.class);
 
         if (ppConfig.getMapActivitiesToZone()) {
-            this.setMapActToZone(ppConfig.getShapeFile(), ppConfig.getZoneAttribute());
+            Zones zones = allZones.getZones(ppConfig.getZonesId());
+            this.setMapActToZone(zones, ppConfig.getZoneAttribute());
         }
 
         if (ppConfig.getWriteVisumPuTSurvey()) {
@@ -387,8 +393,9 @@ public class EventsToTravelDiaries implements
         driverIdFromVehicleId = new HashMap<>();
     }
 
-    public void setMapActToZone(String shapefile, String attribute) {
-        this.locateAct = new LocateAct(shapefile, attribute);
+    public void setMapActToZone(Zones zones, String attribute) {
+        this.zones = new ZonesQueryCache(zones);
+        this.zoneAttribute = attribute;
     }
 
     public void writeSimulationResultsToTabSeparated(String appendage) throws IOException {
@@ -433,6 +440,8 @@ public class EventsToTravelDiaries implements
             TravellerChain chain = entry.getValue();
             for (Activity act : chain.getActs()) {
                 try {
+                    Zone z = (this.zones == null) ? null : this.zones.findZone(act.getCoord().getX(), act.getCoord().getY());
+                    Object attrVal = (z == null) ? null : z.getAttribute(this.zoneAttribute);
                     activityWriter.write(String.format(
                             "%d\t%s\t%s\t%s\t%d\t%d\t%f\t%f\t%f\t%s\n",
                             act.getElementId(), pax_id,
@@ -442,7 +451,7 @@ public class EventsToTravelDiaries implements
                             act.getCoord().getX(),
                             act.getCoord().getY(),
                             MatsimRandom.getRandom().nextDouble(),
-                            (this.locateAct != null) ? this.locateAct.getZoneAttribute(act.getCoord()) : ""));
+                            (attrVal == null) ? "" : attrVal.toString()));
                 } catch (Exception e) {
                     log.error("Couldn't print activity chain!", e);
                 }

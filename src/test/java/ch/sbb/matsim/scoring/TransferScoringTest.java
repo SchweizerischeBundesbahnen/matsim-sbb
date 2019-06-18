@@ -38,9 +38,9 @@ import java.util.List;
  *
  * @author mrieser
  */
-public class TransferScoringIT {
+public class TransferScoringTest {
 
-    private static final Logger log = Logger.getLogger(TransferScoringIT.class);
+    private static final Logger log = Logger.getLogger(TransferScoringTest.class);
 
     @Rule
     public MatsimTestUtils helper = new MatsimTestUtils();
@@ -113,6 +113,10 @@ public class TransferScoringIT {
             this.config.controler().setDumpDataAtEnd(false);
 
             this.config.transit().setUseTransit(true);
+
+            PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
+            params.setScoringThisActivityAtAll(false);
+            config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(params);
         }
 
         void setLineSwitchConfig(double lineSwitchUtility) {

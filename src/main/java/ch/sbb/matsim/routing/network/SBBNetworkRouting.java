@@ -21,10 +21,11 @@
 
 package ch.sbb.matsim.routing.network;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesCollection;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
@@ -37,10 +38,9 @@ import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.LeastCostPathCalculatorFactory;
 import org.matsim.core.router.util.TravelTime;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-
-import ch.sbb.matsim.analysis.LocateAct;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Based on org.matsim.core.router.NetworkRouting
@@ -72,18 +72,21 @@ public class SBBNetworkRouting implements Provider<RoutingModule>
     @Inject
     LeastCostPathCalculatorFactory leastCostPathCalculatorFactory;
 
-    private LocateAct actLocator;
+    @Inject
+    ZonesCollection allZones;
 
-    public SBBNetworkRouting(String mode, LocateAct actLocator) {
+    private Id<Zones> zonesId;
+
+    public SBBNetworkRouting(String mode, Id<Zones> accessEgressZonesId) {
         this.mode = mode;
-        this.actLocator = actLocator;
-
+        this.zonesId = accessEgressZonesId;
     }
 
     private final String mode;
 
     @Override
     public RoutingModule get() {
+        Zones zones = allZones.getZones(this.zonesId);
         Network filteredNetwork = null;
 
         // Ensure this is not performed concurrently by multiple threads!
@@ -114,7 +117,7 @@ public class SBBNetworkRouting implements Provider<RoutingModule>
 
         if (plansCalcRouteConfigGroup.isInsertingAccessEgressWalk()) {
             return new SBBNetworkRoutingInclAccessEgressModule(mode, populationFactory, filteredNetwork, routeAlgo,
-                    plansCalcRouteConfigGroup, this.actLocator);
+                    plansCalcRouteConfigGroup, zones);
         } else {
             // return DefaultRoutingModules.createPureNetworkRouter(mode, populationFactory, filteredNetwork, routeAlgo);
             throw new RuntimeException("You should not use this router or activate isInsertingAccessEgressWalk");

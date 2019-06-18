@@ -1,7 +1,7 @@
 package ch.sbb.matsim.synpop.facilities.blurring;
 
 import ch.sbb.matsim.synpop.blurring.HomeFacilityBlurring;
-import ch.sbb.matsim.synpop.zoneAggregator.Zone;
+import ch.sbb.matsim.synpop.zoneAggregator.AggregationZone;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -59,7 +59,7 @@ public class BlurringTest {
             Assert.assertNotEquals(coords.get(j), activityFacilities.getFacilities().get(ids.get(j)).getCoord());
         }
 
-        for(Zone<ActivityFacility> zone: homeFacilityBlurring.getZoneAggregator().getZones()){
+        for(AggregationZone<ActivityFacility> zone: homeFacilityBlurring.getZoneAggregator().getZones()){
             log.info(zone.count());
         }
     }

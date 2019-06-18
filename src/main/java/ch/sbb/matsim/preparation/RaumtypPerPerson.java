@@ -1,7 +1,9 @@
 package ch.sbb.matsim.preparation;
 
-import ch.sbb.matsim.analysis.LocateAct;
-import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesLoader;
+import ch.sbb.matsim.zones.ZonesQueryCache;
 import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
@@ -15,13 +17,11 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -61,7 +61,7 @@ public class RaumtypPerPerson {
         new PopulationReader(scenario).readFile(planFile);
         new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(attributeFile);
 
-        LocateAct locAct = new LocateAct(shapeFile, "SL3");
+        Zones zones = new ZonesQueryCache(ZonesLoader.loadZones("zones", shapeFile, null));
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
             Plan firstPlan = person.getPlans().get(0);
@@ -76,8 +76,10 @@ public class RaumtypPerPerson {
                     nbNotHomeType += 1;
                 } else {
                     Coord coord = ((Activity) firstPlanElement).getCoord();
-                    String raumTyp9 = locAct.getNearestZoneAttribute(coord, 200.0);
-                    if (raumTyp9.equals(LocateAct.UNDEFINED)) {
+                    Zone z = zones.findNearestZone(coord.getX(), coord.getY(), 200.0);
+                    Object attrVal = z == null ? null : z.getAttribute("SL3");
+                    String raumTyp9 = attrVal == null ? null : attrVal.toString();
+                    if (raumTyp9 == null) {
                         log.info("no zone defined for person " + person.getId().toString());
                         List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
                         notDefinedLog += String.join(";", l) + "\n";

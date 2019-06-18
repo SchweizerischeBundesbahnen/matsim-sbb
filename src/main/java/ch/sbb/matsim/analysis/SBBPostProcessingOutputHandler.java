@@ -8,6 +8,7 @@ import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
+import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -34,6 +35,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     private List<EventsAnalysis> analyses = new LinkedList<>();
     private ControlerConfigGroup config;
     private PostProcessingConfigGroup ppConfig;
+    private ZonesCollection zones;
 
     @Inject
     public SBBPostProcessingOutputHandler(
@@ -41,12 +43,14 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
             final Scenario scenario,
             final OutputDirectoryHierarchy controlerIO,
             final ControlerConfigGroup config,
-            final PostProcessingConfigGroup ppConfig) {
+            final PostProcessingConfigGroup ppConfig,
+            final ZonesCollection zones) {
         this.eventsManager = eventsManager;
         this.scenario = scenario;
         this.controlerIO = controlerIO;
         this.config = config;
         this.ppConfig = ppConfig;
+        this.zones = zones;
     }
 
     @Override
@@ -60,11 +64,11 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     @Override
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
         if ((this.ppConfig.getWriteOutputsInterval() > 0) && (event.getIteration() % this.ppConfig.getWriteOutputsInterval() == 0)) {
-            this.analyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""));
+            this.analyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""), this.zones);
         }
 
         if (event.getIteration() == this.config.getLastIteration()) {
-            List<EventsAnalysis> finalAnalyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""));
+            List<EventsAnalysis> finalAnalyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""), this.zones);
             this.analyses.addAll(finalAnalyses);
         }
 
@@ -83,7 +87,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         this.analyses.clear();
     }
 
-    public static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
+    public static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
         Double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
         List<EventsAnalysis> analyses = new LinkedList<>();
 
@@ -93,7 +97,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         }
 
         if (ppConfig.getTravelDiaries()) {
-            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename);
+            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename, zones);
             analyses.add(diariesWriter);
         }
 

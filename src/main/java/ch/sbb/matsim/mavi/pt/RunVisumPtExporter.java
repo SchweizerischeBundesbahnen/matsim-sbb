@@ -53,9 +53,11 @@ public class RunVisumPtExporter {
         Visum visum = new Visum(18);
         visum.loadVersion(exporterConfig.getPathToVisum());
 
-        // filter time profiles if desired
-        if(exporterConfig.getTimeProfilFilterParams().size() != 0)
-            visum.setTimeProfilFilter(exporterConfig.getTimeProfilFilterConditions());
+        if(exporterConfig.getAngebotName() != null) visum.filterForAngebot(exporterConfig.getAngebotName());
+
+        // currently not supported: additional filter for time profiles if desired
+        //if(exporterConfig.getTimeProfilFilterParams().size() != 0)
+        //    visum.setTimeProfilFilter(exporterConfig.getTimeProfilFilterConditions());
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
@@ -72,7 +74,6 @@ public class RunVisumPtExporter {
         // load transit lines
         TimeProfileExporter tpe = new TimeProfileExporter(scenario);
         tpe.createTransitLines(visum, exporterConfig);
-        tpe.writeLinkSequence(exporterConfig.getOutputPath());
 
         // reduce the size of the network and the schedule by taking necessary things only.
         cleanStops(scenario.getTransitSchedule());
@@ -80,6 +81,7 @@ public class RunVisumPtExporter {
 
         // write outputs
         createOutputPath(exporterConfig.getOutputPath());
+        tpe.writeLinkSequence(exporterConfig.getOutputPath());
         writeFiles(scenario, exporterConfig.getOutputPath());
     }
 
