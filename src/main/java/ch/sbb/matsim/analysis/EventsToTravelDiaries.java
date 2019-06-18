@@ -417,11 +417,9 @@ public class EventsToTravelDiaries implements
         tripsWriter.write("trip_id\tperson_id\tstart_time\t" +
                 "end_time\tdistance\tmain_mode\tmain_mode_mikrozensus\tfrom_act\tto_act\tto_act_type\t" +
                 "in_vehicle_distance\tin_vehicle_time\t" +
-                "access_walk_distance\taccess_walk_time\taccess_wait_time\t" +
-                "first_boarding_stop\tegress_walk_distance\t" +
-                "egress_walk_time\tlast_alighting_stop\t" +
-                "transfer_walk_distance\ttransfer_walk_time\t" +
-                "transfer_wait_time\tsample_selector\tstucked\n");
+                "first_boarding_stop\t" +
+                "last_alighting_stop\t" +
+                "sample_selector\tstucked\n");
 
         BufferedWriter legsWriter = IOUtils.getBufferedWriter(this.filename + legsTableName);
         legsWriter.write("leg_id\ttrip_id\tstart_time\tend_time\t" +
@@ -453,7 +451,7 @@ public class EventsToTravelDiaries implements
             for (Trip trip : chain.getTrips()) {
                 try {
                     tripsWriter.write(String.format(
-                            "%d\t%s\t%d\t%d\t%.3f\t%s\t%s\t%d\t%d\t%s\t%.3f\t%d\t%.3f\t%d\t%d\t%s\t%.3f\t%d\t%s\t%.3f\t%d\t%d\t%f\t%b\n",
+                            "%d\t%s\t%d\t%d\t%.3f\t%s\t%s\t%d\t%d\t%s\t%.3f\t%d\t%s\t%s\t%f\t%b\n",
                             trip.getElementId(),
                             pax_id,
                             (int) trip.getStartTime(),
@@ -466,16 +464,8 @@ public class EventsToTravelDiaries implements
                             trip.getToActType(),
                             trip.getInVehDistance(),
                             (int) trip.getInVehTime(),
-                            0 /*trip.getAccessWalkDistance()*/,
-                            0 /*(int) trip.getAccessWalkTime()*/,
-                            0 /*(int) trip.getAccessWaitTime()*/,
                             trip.getFirstBoardingStop(),
-                            0 /*trip.getEgressWalkDistance()*/,
-                            0 /*(int) trip.getEgressWalkTime()*/,
                             trip.getLastAlightingStop(),
-                            0 /*trip.getTransferWalkDistance()*/,
-                            0 /*(int) trip.getTransferWalkTime()*/,
-                            0 /*(int) trip.getTransferWaitTime()*/,
                             MatsimRandom.getRandom().nextDouble(),
                             chain.isStuck())
                     );
