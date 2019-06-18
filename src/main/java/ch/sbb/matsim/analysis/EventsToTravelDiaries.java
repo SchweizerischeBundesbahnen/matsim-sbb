@@ -6,9 +6,9 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.VisumPuTSurvey.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.Activity;
-import ch.sbb.matsim.analysis.travelcomponents.Trip;
-import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
+import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
+import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -25,7 +25,6 @@ import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityE
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
@@ -61,7 +60,7 @@ public class EventsToTravelDiaries implements
         LinkEnterEventHandler, LinkLeaveEventHandler,
         TeleportationArrivalEventHandler, VehicleArrivesAtFacilityEventHandler,
         VehicleDepartsAtFacilityEventHandler,
-        EventWriter {
+        EventsAnalysis {
 
     private static final Logger log = Logger.getLogger(EventsToTravelDiaries.class);
 
@@ -533,7 +532,7 @@ public class EventsToTravelDiaries implements
     }
 
     @Override
-    public void closeFile() {
+    public void writeResults() {
         try {
             this.writeSimulationResultsToTabSeparated("");
         } catch (IOException e) {

@@ -12,7 +12,6 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsManagerImpl;
 import org.matsim.core.events.MatsimEventsReader;
-import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import java.io.IOException;
@@ -33,16 +32,16 @@ public class RunSBBPostProcessing {
         Scenario scenario = ScenarioUtils.loadScenario(config);
         EventsManager eventsManager = new EventsManagerImpl();
 
-        List<EventWriter> eventWriters = SBBPostProcessingOutputHandler.buildEventWriters(scenario, ppConfig, outputPath);
+        List<EventsAnalysis> eventWriters = SBBPostProcessingOutputHandler.buildEventWriters(scenario, ppConfig, outputPath);
 
-        for (EventWriter eventWriter : eventWriters) {
+        for (EventsAnalysis eventWriter : eventWriters) {
             eventsManager.addHandler(eventWriter);
         }
 
         new MatsimEventsReader(eventsManager).readFile(eventsFileName);
 
-        for (EventWriter eventWriter : eventWriters) {
-            eventWriter.closeFile();
+        for (EventsAnalysis eventWriter : eventWriters) {
+            eventWriter.writeResults();
         }
 
         if (ppConfig.getWriteAgentsCSV() || ppConfig.getWritePlanElementsCSV()) {
