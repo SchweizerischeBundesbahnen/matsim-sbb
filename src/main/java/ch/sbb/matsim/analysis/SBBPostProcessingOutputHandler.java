@@ -63,11 +63,15 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
     @Override
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
-        if ((this.ppConfig.getWriteOutputsInterval() > 0) && (event.getIteration() % this.ppConfig.getWriteOutputsInterval() == 0)) {
+        int iteration = event.getIteration();
+        int lastIteration = this.config.getLastIteration();
+        int interval = this.ppConfig.getWriteOutputsInterval();
+
+        if ((interval > 0) && (iteration % interval == 0) && (iteration != lastIteration)) {
             this.analyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""), this.zones);
         }
 
-        if (event.getIteration() == this.config.getLastIteration()) {
+        if (iteration == lastIteration) {
             List<EventsAnalysis> finalAnalyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""), this.zones);
             this.analyses.addAll(finalAnalyses);
         }
