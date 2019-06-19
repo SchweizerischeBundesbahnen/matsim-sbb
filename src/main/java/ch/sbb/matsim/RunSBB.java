@@ -5,9 +5,13 @@
 package ch.sbb.matsim;
 
 
+import ch.ethz.matsim.utils.CommandLine;
+import ch.ethz.matsim.utils.CommandLine.ConfigurationException;
 import ch.ethz.matsim.discrete_mode_choice.modules.ConstraintModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceConfigurator;
 import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceModule;
+import ch.ethz.matsim.discrete_mode_choice.modules.EstimatorModule;
+import ch.ethz.matsim.discrete_mode_choice.modules.SelectorModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.*;
@@ -45,19 +49,41 @@ public class RunSBB {
 
     private final static Logger log = Logger.getLogger(RunSBB.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ConfigurationException {
+    	
+    	
+    	
+    	CommandLine cmd = new CommandLine.Builder(args)
+                .allowOptions("configPath", "output", "iterations", "mcMode", "useEstimates", "stMC", "lMC", "dMC", "selectionMode", "tripEstimationMode", "tourEstimationMode", "innovationTurnoffFraction", "nrPeopleToKeep", "resetPlans")
+                .build();
+
+        final String configFile = cmd.getOption("configPath").orElse("..\\input\\CNB\\config\\config_parsed.xml");
+        String outputPath = cmd.getOption("output").orElse("output_sbb_dmc");
+        int iterations = cmd.getOption("iterations").map(Integer::parseInt).orElse(10);
+        double stMC = cmd.getOption("stMC").map(Double::parseDouble).orElse(0.0); // subtourModeChoice
+        double dMC = cmd.getOption("dMC").map(Double::parseDouble).orElse(0.0); // DiscreteModeChoice
+        double innovationTurnoffFraction = cmd.getOption("innovationTurnoffFraction").map(Double::parseDouble).orElse(0.7);
+        String selectionMode = cmd.getOption("selectionMode").orElse(SelectorModule.RANDOM);
+        String tripEstimationMode = cmd.getOption("tripEstimationMode").orElse(EstimatorModule.UNIFORM);
+        String tourEstimationMode = cmd.getOption("tourEstimationMode").orElse(EstimatorModule.UNIFORM);
+        int nrPeopleToKeep = cmd.getOption("nrPeopleToKeep").map(Integer::parseInt).orElse(-1);
+        boolean resetPlans = cmd.getOption("resetPlans").map(Boolean::parseBoolean).orElse(false);
+    	
+    	
+    	
         System.setProperty("matsim.preferLocalDtds", "true");
 
-        final String configFile = args[0];
+        /*final String configFile = args[0];*/
         log.info(configFile);
         final Config config = buildConfig(configFile);
 
-        if(args.length > 1)
-            config.controler().setOutputDirectory(args[1]);
+        config.controler().setOutputDirectory(outputPath);
 
         new S3Downloader(config);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
+        scenario.getConfig().controler().setLastIteration(iterations);
+        
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
         // vehicle types
@@ -67,10 +93,13 @@ public class RunSBB {
         // controler
         Controler controler = new Controler(scenario);
 
-        double dMC = 0.2;
         if (dMC > 0.0) {
             controler.addOverridingModule(new DiscreteModeChoiceModule());
-            DiscreteModeChoiceConfigurator.configureAsImportanceSampler(config);
+            if (SelectorModule.RANDOM.equals(selectionMode)) {
+                DiscreteModeChoiceConfigurator.configureAsSubtourModeChoiceReplacement(config);
+            } else {
+                DiscreteModeChoiceConfigurator.configureAsImportanceSampler(config);
+            }
             DiscreteModeChoiceConfigGroup dmcConfig = (DiscreteModeChoiceConfigGroup) config.getModules().get(DiscreteModeChoiceConfigGroup.GROUP_NAME);
             dmcConfig.setTourConstraintsAsString(ConstraintModule.SUBTOUR_MODE);
         }
