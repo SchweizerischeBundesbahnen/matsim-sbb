@@ -10,6 +10,7 @@ import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
@@ -30,7 +31,6 @@ import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityE
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
-import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.transitSchedule.api.Departure;
@@ -39,7 +39,6 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.vehicles.Vehicle;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -398,40 +397,35 @@ public class EventsToTravelDiaries implements
         this.zoneAttribute = attribute;
     }
 
-    public void writeSimulationResultsToTabSeparated(String appendage) throws IOException {
+    public void writeSimulationResultsToCsv(String appendage) throws IOException {
         String actTableName;
         String tripsTableName;
         String legsTableName;
 
         if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
-            actTableName = appendage + "matsim_activities.txt";
-            tripsTableName = appendage + "matsim_trips.txt";
-            legsTableName = appendage + "matsim_legs.txt";
+            actTableName = appendage + "matsim_activities.csv.gz";
+            tripsTableName = appendage + "matsim_trips.csv.gz";
+            legsTableName = appendage + "matsim_legs.csv.gz";
         } else {
             if (appendage.matches("[a-zA-Z0-9]*"))
                 appendage = "_" + appendage;
-            actTableName = "matsim_activities" + appendage + ".txt";
-            tripsTableName = "matsim_trips" + appendage + ".txt";
-            legsTableName = "matsim_legs" + appendage + ".txt";
+            actTableName = "matsim_activities" + appendage + ".csv.gz";
+            tripsTableName = "matsim_trips" + appendage + ".csv.gz";
+            legsTableName = "matsim_legs" + appendage + ".csv.gz";
         }
-        BufferedWriter activityWriter = IOUtils.getBufferedWriter(this.filename + actTableName);
 
-        activityWriter.write("activity_id\tperson_id\tfacility_id\ttype\t" +
-                "start_time\tend_time\tx\ty\tsample_selector\tzone\n");
+        String[] actsData = new String[] {"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "sample_selector", "zone"};
+        CSVWriter activityWriter = new CSVWriter(null, actsData, this.filename + actTableName);
 
-        BufferedWriter tripsWriter = IOUtils.getBufferedWriter(this.filename + tripsTableName);
-        tripsWriter.write("trip_id\tperson_id\tstart_time\t" +
-                "end_time\tdistance\tmain_mode\tmain_mode_mikrozensus\tfrom_act\tto_act\tto_act_type\t" +
-                "in_vehicle_distance\tin_vehicle_time\t" +
-                "first_boarding_stop\t" +
-                "last_alighting_stop\t" +
-                "sample_selector\tstucked\n");
+        String[] tripsData = new String[]{"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode", "main_mode_mikrozensus",
+                "from_act", "to_act", "to_act_type", "in_vehicle_distance", "in_vehicle_time", "first_boarding_stop", "last_alighting_stop",
+                "sample_selector", "got_stuck"};
+        CSVWriter tripsWriter = new CSVWriter(null, tripsData, this.filename + tripsTableName);
 
-        BufferedWriter legsWriter = IOUtils.getBufferedWriter(this.filename + legsTableName);
-        legsWriter.write("leg_id\ttrip_id\tstart_time\tend_time\t" +
-                "distance\tmode\tline\troute\tboarding_stop\t" +
-                "alighting_stop\tdeparture_time\tdeparture_delay\tsample_selector\t" +
-                 "from_x\tfrom_y\tto_x\tto_y\tprevious_leg_id\tnext_leg_id\n");
+        String[] legsData = new String[]{"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
+                "boarding_stop", "alighting_stop", "departure_time", "departure_delay", "sample_selector", "from_x", "fromy_y",
+                "to_x", "to_y", "previous_leg_id", "next_leg_id"};
+        CSVWriter legsWriter = new CSVWriter(null, legsData, this.filename + legsTableName);
 
         // read a static field that increments with every inheriting object constructed
         Counter counter = new Counter("Output lines written: ");
@@ -442,41 +436,41 @@ public class EventsToTravelDiaries implements
                 try {
                     Zone z = (this.zones == null) ? null : this.zones.findZone(act.getCoord().getX(), act.getCoord().getY());
                     Object attrVal = (z == null) ? null : z.getAttribute(this.zoneAttribute);
-                    activityWriter.write(String.format(
-                            "%d\t%s\t%s\t%s\t%d\t%d\t%f\t%f\t%f\t%s\n",
-                            act.getElementId(), pax_id,
-                            act.getFacility(), act.getType(),
-                            (int) act.getStartTime(),
-                            (int) act.getEndTime(),
-                            act.getCoord().getX(),
-                            act.getCoord().getY(),
-                            MatsimRandom.getRandom().nextDouble(),
-                            (attrVal == null) ? "" : attrVal.toString()));
+                    activityWriter.set("activity_id", Integer.toString(act.getElementId()));
+                    activityWriter.set("person_id", pax_id);
+                    activityWriter.set("facility_id", id2string(act.getFacility()));
+                    activityWriter.set("type", act.getType());
+                    activityWriter.set("start_time", Integer.toString((int) act.getStartTime()));
+                    activityWriter.set("end_time", Integer.toString((int) act.getEndTime()));
+                    activityWriter.set("x", Double.toString(act.getCoord().getX()));
+                    activityWriter.set("y", Double.toString(act.getCoord().getY()));
+                    activityWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
+                    activityWriter.set("zone", (attrVal == null) ? "" : attrVal.toString());
+                    activityWriter.writeRow();
                 } catch (Exception e) {
-                    log.error("Couldn't print activity chain!", e);
+                    log.error("Couldn't write activity chain!", e);
                 }
             }
+
             for (Trip trip : chain.getTrips()) {
                 try {
-                    tripsWriter.write(String.format(
-                            "%d\t%s\t%d\t%d\t%.3f\t%s\t%s\t%d\t%d\t%s\t%.3f\t%d\t%s\t%s\t%f\t%b\n",
-                            trip.getElementId(),
-                            pax_id,
-                            (int) trip.getStartTime(),
-                            (int) trip.getEndTime(),
-                            trip.getDistance(),
-                            trip.getMainMode(),
-                            trip.getMainModeMikroZensus(),
-                            trip.getFromAct().getElementId(),
-                            trip.getToAct().getElementId(),
-                            trip.getToActType(),
-                            trip.getInVehDistance(),
-                            (int) trip.getInVehTime(),
-                            trip.getFirstBoardingStop(),
-                            trip.getLastAlightingStop(),
-                            MatsimRandom.getRandom().nextDouble(),
-                            chain.isStuck())
-                    );
+                    tripsWriter.set("trip_id", Integer.toString(trip.getElementId()));
+                    tripsWriter.set("person_id", pax_id);
+                    tripsWriter.set("start_time", Integer.toString((int) trip.getStartTime()));
+                    tripsWriter.set("end_time", Integer.toString((int) trip.getEndTime()));
+                    tripsWriter.set("distance", Double.toString(trip.getDistance()));
+                    tripsWriter.set("main_mode", trip.getMainMode());
+                    tripsWriter.set("main_mode_mikrozensus", trip.getMainModeMikroZensus());
+                    tripsWriter.set("from_act", Integer.toString(trip.getFromAct().getElementId()));
+                    tripsWriter.set("to_act", Integer.toString(trip.getToAct().getElementId()));
+                    tripsWriter.set("to_act_type", trip.getToActType());
+                    tripsWriter.set("in_vehicle_distance", Double.toString(trip.getInVehDistance()));
+                    tripsWriter.set("in_vehicle_time", Integer.toString((int) trip.getInVehTime()));
+                    tripsWriter.set("first_boarding_stop", id2string(trip.getFirstBoardingStop()));
+                    tripsWriter.set("last_alighting_stop", id2string(trip.getLastAlightingStop()));
+                    tripsWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
+                    tripsWriter.set("got_stuck", Boolean.toString(chain.isStuck()));
+                    tripsWriter.writeRow();
                     counter.incCounter();
 
                     int ind = 0;
@@ -490,23 +484,26 @@ public class EventsToTravelDiaries implements
                             next_leg_id = Integer.toString(trip.getLegs().get(ind + 1).getElementId());
                         ind++;
 
-                        legsWriter.write(String.format(
-                                "%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\t%s\n",
-                                leg.getElementId(),
-                                trip.getElementId(),
-                                (int) leg.getStartTime(),
-                                (int) leg.getEndTime(),
-                                leg.getDistance(),
-                                leg.getMode(), leg.getLine(),
-                                leg.getRoute(), leg.getBoardingStop(),
-                                leg.getAlightingStop(), (int) leg.getPtDepartureTime(), (int) leg.getDepartureDelay(),
-                                MatsimRandom.getRandom().nextDouble(),
-                                leg.getOrig().getX(),
-                                leg.getOrig().getY(),
-                                leg.getDest().getX(),
-                                leg.getDest().getY(),
-                                previous_leg_id,
-                                next_leg_id));
+                        legsWriter.set("leg_id", Integer.toString(leg.getElementId()));
+                        legsWriter.set("trip_id", Integer.toString(trip.getElementId()));
+                        legsWriter.set("start_time", Integer.toString((int) leg.getStartTime()));
+                        legsWriter.set("end_time", Integer.toString((int) leg.getEndTime()));
+                        legsWriter.set("distance", Double.toString(leg.getDistance()));
+                        legsWriter.set("mode", leg.getMode());
+                        legsWriter.set("line", id2string(leg.getLine()));
+                        legsWriter.set("route", id2string(leg.getRoute()));
+                        legsWriter.set("boarding_stop", id2string(leg.getBoardingStop()));
+                        legsWriter.set("alighting_stop", id2string(leg.getAlightingStop()));
+                        legsWriter.set("departure_time", Integer.toString((int) leg.getPtDepartureTime()));
+                        legsWriter.set("departure_delay", Integer.toString((int) leg.getDepartureDelay()));
+                        legsWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
+                        legsWriter.set("from_x", Double.toString(leg.getOrig().getX()));
+                        legsWriter.set("from_y", Double.toString(leg.getOrig().getY()));
+                        legsWriter.set("to_x", Double.toString(leg.getDest().getX()));
+                        legsWriter.set("to_y", Double.toString(leg.getDest().getY()));
+                        legsWriter.set("previous_leg_id", previous_leg_id);
+                        legsWriter.set("next_leg_id", next_leg_id);
+                        legsWriter.writeRow();
                         counter.incCounter();
                     }
                 } catch (NullPointerException e) {
@@ -528,6 +525,13 @@ public class EventsToTravelDiaries implements
         counter.printCounter();
     }
 
+    private static String id2string(Id<?> id) {
+        if (id == null) {
+            return "";
+        }
+        return id.toString();
+    }
+
     public int getStuck() {
         return stuck;
     }
@@ -543,7 +547,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void writeResults() {
         try {
-            this.writeSimulationResultsToTabSeparated("");
+            this.writeSimulationResultsToCsv("");
         } catch (IOException e) {
             log.error("Could not write data.", e);
         }
