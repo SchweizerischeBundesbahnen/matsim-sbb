@@ -20,6 +20,7 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ public class VisumPuTSurvey {
     private static final String FILENAME = "matsim_put_survey.att";
 
     private static final String DEFAULT_ZONE = "999999999";
+
     private static final String COL_PATH_ID = "$OEVTEILWEG:DATENSATZNR";
     private static final String COL_LEG_ID = "TWEGIND";
     private static final String COL_FROM_STOP = "VONHSTNR";
@@ -103,7 +105,7 @@ public class VisumPuTSurvey {
         final String filepath = path + FILENAME;
         log.info("write Visum PuT Survey File to " + filepath);
 
-        try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath, "Cp1252")) {
+        try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath, Charset.forName("Cp1252"))) {
             for (Map.Entry<Id, TravellerChain> entry : chains.entrySet()) {
                 String pax_id = entry.getKey().toString();
                 TravellerChain chain = entry.getValue();

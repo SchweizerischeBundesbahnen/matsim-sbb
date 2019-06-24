@@ -23,8 +23,8 @@ public class CSVWriter implements AutoCloseable {
         this(header, columns, IOUtils.getBufferedWriter(filename));
     }
 
-    public CSVWriter(final String header, final String[] columns, final String filename, final String encoding) throws IOException {
-        this(header, columns, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), Charset.forName(encoding))));
+    public CSVWriter(final String header, final String[] columns, final String filename, final Charset encoding) throws IOException {
+        this(header, columns, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), encoding)));
     }
 
     public CSVWriter(final String header, final String[] columns, final OutputStream stream) throws IOException {
