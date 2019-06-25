@@ -1,16 +1,16 @@
 package ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork;
 
+import ch.sbb.matsim.analysis.EventsAnalysis;
 import ch.sbb.matsim.analysis.LinkAnalyser.LinkAnalyser;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.core.events.algorithms.EventWriter;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class VisumNetworkEventWriter extends LinkAnalyser implements EventWriter {
+public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnalysis {
 
     double scale;
     String mode;
@@ -26,7 +26,7 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventWriter
     private final static Logger log = Logger.getLogger(VisumNetworkEventWriter.class);
 
     @Override
-    public void closeFile() {
+    public void writeResults() {
         this.writeVolumes(this.scale, this.mode, this.folder);
     }
 

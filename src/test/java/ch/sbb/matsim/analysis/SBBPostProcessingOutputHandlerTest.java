@@ -193,7 +193,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(10, eventsManager.getEventHandlers().size());
+        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
     }
 
     private PostProcessingConfigGroup getPostProcessingConfigGroup(int writeOutputsInterval, boolean eventPerPerson, boolean linkVolumes, boolean ptVolumes, boolean travelDiaries, boolean writePlansCSV, boolean visumNetFile) {
