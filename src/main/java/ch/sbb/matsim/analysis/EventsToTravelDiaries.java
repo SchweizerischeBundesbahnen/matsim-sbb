@@ -423,7 +423,7 @@ public class EventsToTravelDiaries implements
         CSVWriter tripsWriter = new CSVWriter(null, tripsData, this.filename + tripsTableName);
 
         String[] legsData = new String[]{"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
-                "boarding_stop", "alighting_stop", "departure_time", "departure_delay", "sample_selector", "from_x", "fromy_y",
+                "boarding_stop", "alighting_stop", "departure_time", "departure_delay", "sample_selector", "from_x", "from_y",
                 "to_x", "to_y", "previous_leg_id", "next_leg_id"};
         CSVWriter legsWriter = new CSVWriter(null, legsData, this.filename + legsTableName);
 
@@ -463,7 +463,7 @@ public class EventsToTravelDiaries implements
                     tripsWriter.set("main_mode_mikrozensus", trip.getMainModeMikroZensus());
                     tripsWriter.set("from_act", Integer.toString(trip.getFromAct().getElementId()));
                     tripsWriter.set("to_act", Integer.toString(trip.getToAct().getElementId()));
-                    tripsWriter.set("to_act_type", trip.getToActType());
+                    tripsWriter.set("to_act_type", (trip.getToActType() == null) ? "" : trip.getToActType());
                     tripsWriter.set("in_vehicle_distance", Double.toString(trip.getInVehDistance()));
                     tripsWriter.set("in_vehicle_time", Integer.toString((int) trip.getInVehTime()));
                     tripsWriter.set("first_boarding_stop", id2string(trip.getFirstBoardingStop()));
@@ -501,8 +501,8 @@ public class EventsToTravelDiaries implements
                         legsWriter.set("from_y", Double.toString(leg.getOrig().getY()));
                         legsWriter.set("to_x", Double.toString(leg.getDest().getX()));
                         legsWriter.set("to_y", Double.toString(leg.getDest().getY()));
-                        legsWriter.set("previous_leg_id", previous_leg_id);
-                        legsWriter.set("next_leg_id", next_leg_id);
+                        legsWriter.set("previous_leg_id", (previous_leg_id == null) ? "" : previous_leg_id);
+                        legsWriter.set("next_leg_id", (next_leg_id == null) ? "" : next_leg_id);
                         legsWriter.writeRow();
                         counter.incCounter();
                     }
