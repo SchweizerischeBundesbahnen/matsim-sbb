@@ -2,7 +2,9 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.mavi.visum.Visum;
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -41,11 +43,34 @@ public class PolylinesCreator {
         this.network = scenario.getNetwork();
     }
 
+    public void run(String networkFilename, Visum visum, Map<Id<Link>, String> linkSequences, String matsimPolylinesFilename, String outputPath) throws IOException {
+        String networkFilePath = String.format("%s\\%s", outputPath, networkFilename);
+        new MatsimNetworkReader(this.network).readFile(networkFilePath);
+        loadVisumPolylines(visum);
+        loadLinkSequences(linkSequences);
+        String matsimPolylinesFilePath = String.format("%s\\%s", outputPath, matsimPolylinesFilename);
+        processNetwork(matsimPolylinesFilePath);
+    }
+
     public void run(String networkFilename, String visumPolylinesFilename, String linkSequencesFilename, String matsimPolylinesFilename) throws IOException {
         new MatsimNetworkReader(this.network).readFile(networkFilename);
         loadVisumPolylines(visumPolylinesFilename);
         loadLinkSequences(linkSequencesFilename);
         processNetwork(matsimPolylinesFilename);
+    }
+
+    private void loadVisumPolylines(Visum visum)    {
+        Visum.ComObject links = visum.getNetObject("Links");
+        int nrOfLinks = links.countActive();
+        String[][] timeProfileAttributes = Visum.getArrayFromAttributeList(nrOfLinks, links, "No", "WKTPoly");
+        for (String[] timeProfileAttribute : timeProfileAttributes) {
+            String visumLinkId = timeProfileAttribute[0];
+            String polyline = timeProfileAttribute[1];
+            if (polyline != null) {
+                double[] xys = parseWktLinestring(polyline);
+                this.polylinePerVisumLink.put(visumLinkId, xys);
+            }
+        }
     }
 
     private void loadVisumPolylines(String visumFilename) throws IOException {
@@ -79,6 +104,15 @@ public class PolylinesCreator {
             xys[i * 2 + 1] = y;
         }
         return xys;
+    }
+
+    private void loadLinkSequences(Map<Id<Link>, String> linkSequences) {
+        for (Map.Entry<Id<Link>, String> entry : linkSequences.entrySet()) {
+            String matsimLinkId = String.valueOf(entry.getKey());
+            String linkSequence = entry.getValue();
+            String[] links = linkSequence.split(", *");
+            this.linkSequencePerMatsimLink.put(matsimLinkId, links);
+        }
     }
 
     private void loadLinkSequences(String linkSequencesFilename) throws IOException {

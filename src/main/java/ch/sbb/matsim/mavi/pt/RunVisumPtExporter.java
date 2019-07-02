@@ -19,6 +19,7 @@ import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.vehicles.VehicleWriterV1;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,11 +42,11 @@ public class RunVisumPtExporter {
     private static final String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
     private static final String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new RunVisumPtExporter().run(args[0]);
     }
 
-    public void run(String configFile) {
+    public void run(String configFile) throws IOException {
         Config config = ConfigUtils.loadConfig(configFile, new VisumPtExporterConfigGroup());
         VisumPtExporterConfigGroup exporterConfig = ConfigUtils.addOrGetModule(config, VisumPtExporterConfigGroup.class);
 
@@ -83,6 +84,7 @@ public class RunVisumPtExporter {
         createOutputPath(exporterConfig.getOutputPath());
         tpe.writeLinkSequence(exporterConfig.getOutputPath());
         writeFiles(scenario, exporterConfig.getOutputPath());
+        new PolylinesCreator().run(NETWORK_OUT, visum, tpe.linkToVisumSequence, "polylines.csv", exporterConfig.getOutputPath());
     }
 
     private static void cleanStops(TransitSchedule schedule)   {

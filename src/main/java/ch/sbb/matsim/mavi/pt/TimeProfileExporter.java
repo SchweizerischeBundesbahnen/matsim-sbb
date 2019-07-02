@@ -34,7 +34,7 @@ public class TimeProfileExporter {
     private final VehiclesFactory vehicleBuilder;
     private Network network;
     private TransitSchedule schedule;
-    private HashMap<Id<Link>, String> linkToVisumSequence = new HashMap<>();
+    public HashMap<Id<Link>, String> linkToVisumSequence = new HashMap<>();
 
     public TimeProfileExporter(Scenario scenario)   {
         this.network = scenario.getNetwork();
