@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.mavi.pt;
 
+import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;

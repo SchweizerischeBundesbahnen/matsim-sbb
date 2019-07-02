@@ -1,4 +1,4 @@
-package ch.sbb.matsim.mavi.pt;
+package ch.sbb.matsim.mavi;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
