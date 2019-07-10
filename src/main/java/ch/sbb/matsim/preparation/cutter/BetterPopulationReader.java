@@ -9,6 +9,11 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 import java.io.File;
 
+/**
+ * A helper class to load a population with only the selected plans for the persons.
+ *
+ * @author mrieser
+ */
 public class BetterPopulationReader {
 
     public static void readSelectedPlansOnly(Scenario scenario, File file) {

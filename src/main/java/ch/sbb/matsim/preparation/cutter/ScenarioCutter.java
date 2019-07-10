@@ -38,6 +38,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Code to cut out a smaller area from a bigger area in a scenario.
+ *
+ * @author mrieser
+ */
 public class ScenarioCutter {
 
     private final static Logger log = Logger.getLogger(ScenarioCutter.class);
@@ -988,7 +993,6 @@ public class ScenarioCutter {
         return findAvailableRouteStart(ctx, route);
     }
 
-
     private void addTeleportationLegToPlan(CutContext ctx, Plan plan, Activity fromAct, boolean fromActInside, Leg leg, Activity toAct, boolean toActInside) {
         boolean comingInside = !fromActInside && toActInside;
         boolean isPlanEmpty = plan.getPlanElements().isEmpty();
@@ -1041,8 +1045,9 @@ public class ScenarioCutter {
     }
 
     private boolean hasOutsideLinks(CutContext ctx, ExperimentalTransitRoute route) {
-        // TODO
-        return false;
+        AgentState state = new AgentState();
+        calcStateExtendedByTransitRoute(ctx, state, route);
+        return state.hasOutside;
     }
 
     private void calcNetworkCapacityChanges(CutContext ctx, double demandFactor) {

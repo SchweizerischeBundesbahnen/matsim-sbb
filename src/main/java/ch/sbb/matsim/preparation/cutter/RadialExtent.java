@@ -1,5 +1,10 @@
 package ch.sbb.matsim.preparation.cutter;
 
+/**
+ * Defines a radial extent with a specified radius around a given center.
+ *
+ * @author mrieser
+ */
 public class RadialExtent implements CutExtent {
 
     private final double centerX;
