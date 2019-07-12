@@ -2,6 +2,7 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.mavi.visum.Visum;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -30,14 +31,14 @@ public class VisumStopExporter {
 
     private HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints = new HashMap<>();
 
-    public VisumStopExporter(Scenario scenario)  {
+    public VisumStopExporter(Scenario scenario) {
         this.network = scenario.getNetwork();
         this.schedule = scenario.getTransitSchedule();
         this.networkBuilder = this.network.getFactory();
         this.scheduleBuilder = this.schedule.getFactory();
     }
 
-    public HashMap<Integer, Set<Id<TransitStopFacility>>> getStopAreasToStopPoints()    {
+    public HashMap<Integer, Set<Id<TransitStopFacility>>> getStopAreasToStopPoints() {
         return this.stopAreasToStopPoints;
     }
 
@@ -51,7 +52,7 @@ public class VisumStopExporter {
 
         String[][] customAttributes = Visum.getArrayFromAttributeList(nrOfStopPoints, stopPoints,
                 config.getStopAttributeParams().values().stream().
-                map(VisumPtExporterConfigGroup.StopAttributeParams::getAttributeValue).
+                        map(VisumPtExporterConfigGroup.StopAttributeParams::getAttributeValue).
                         toArray(String[]::new));
 
         IntStream.range(0, nrOfStopPoints).forEach(m -> createStopPoint(m, stopPointAttributes, customAttributes, config));
@@ -70,15 +71,14 @@ public class VisumStopExporter {
         double fromStopIsOnNode = Double.parseDouble(stopPointAttributes[i][4]);
         double fromStopIsOnLink = Double.parseDouble(stopPointAttributes[i][5]);
         Node stopNode = null;
-        if(fromStopIsOnNode == 1.0) {
+        if (fromStopIsOnNode == 1.0) {
             int stopNodeIDNo = (int) Double.parseDouble(stopPointAttributes[i][6]);
             Id<Node> stopNodeID = Id.createNodeId(config.getNetworkMode() + "_" + stopNodeIDNo);
             stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
             this.network.addNode(stopNode);
-        }
-        else if(fromStopIsOnLink == 1.0)    {
+        } else if (fromStopIsOnLink == 1.0) {
             int stopLinkFromNodeNo = (int) Double.parseDouble(stopPointAttributes[i][7]);
-            Id<Node> stopNodeID = Id.createNodeId(config.getNetworkMode() + "_" + stopLinkFromNodeNo + "_"  + stopPointNo);
+            Id<Node> stopNodeID = Id.createNodeId(config.getNetworkMode() + "_" + stopLinkFromNodeNo + "_" + stopPointNo);
             stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
             this.network.addNode(stopNode);
         }
@@ -93,7 +93,7 @@ public class VisumStopExporter {
         this.network.addLink(loopLink);
 
         int stopAreaNo = (int) Double.parseDouble(stopPointAttributes[i][8]);
-        if(this.stopAreasToStopPoints.get(stopAreaNo) == null)
+        if (this.stopAreasToStopPoints.get(stopAreaNo) == null)
             this.stopAreasToStopPoints.put(stopAreaNo, new HashSet<>());
         this.stopAreasToStopPoints.get(stopAreaNo).add(stopPointID);
 
@@ -110,9 +110,9 @@ public class VisumStopExporter {
         this.schedule.addStopFacility(st);
     }
 
-    private static void addAttribute(Attributes attributes, String name, String value, String dataType)  {
-        if(!value.isEmpty() && !value.equals("null"))    {
-            switch ( dataType ) {
+    private static void addAttribute(Attributes attributes, String name, String value, String dataType) {
+        if (!value.isEmpty() && !value.equals("null")) {
+            switch (dataType) {
                 case Type.STRING_CLASS:
                     attributes.putAttribute(name, value);
                     break;
@@ -122,8 +122,12 @@ public class VisumStopExporter {
                 case Type.INTEGER_CLASS:
                     attributes.putAttribute(name, (int) Double.parseDouble(value));
                     break;
+                case Type.BOOLEAN_CLASS:
+                    attributes.putAttribute(name, value);
+                    break;
+
                 default:
-                    throw new IllegalArgumentException( dataType );
+                    throw new IllegalArgumentException(dataType);
             }
         }
     }
