@@ -54,11 +54,10 @@ public class Isochrones {
     private PolygonFeatureFactory pff;
 
 
-    public Isochrones(String configFile) {
+    public Isochrones(String configFile, String eventsFilename) {
         this.config = ConfigUtils.loadConfig(configFile);
-        this.eventsFilename = null;
+        this.eventsFilename = eventsFilename;
 
-        this.eventsFilename = "\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output\\CH.10pct.2016.output_events.xml.gz";
 
         this.pff = new PolygonFeatureFactory.Builder()
                 .setName("EvacuationArea")
@@ -215,11 +214,13 @@ public class Isochrones {
         System.setProperty("matsim.preferLocalDtds", "true");
 
         String config = args[0];
-        Isochrones isochrones = new Isochrones(config);
+        String eventsFilename = args[1].equals("-") ? null : args[5];
+        String outputShapefile = args[2];
+        Isochrones isochrones = new Isochrones(config, eventsFilename);
         isochrones.load();
         isochrones.computeall(15 * 60);
         isochrones.computeall(10 * 60);
-        isochrones.write("\\\\Filer16L\\P-V160L\\SIMBA.A11244\\90_Persoenlich\\u222223\\tmp\\isochrones.shp");
+        isochrones.write(outputShapefile);
 
 
     }
