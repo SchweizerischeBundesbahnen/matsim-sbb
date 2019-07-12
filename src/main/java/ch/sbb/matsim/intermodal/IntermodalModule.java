@@ -27,7 +27,8 @@ public class IntermodalModule extends AbstractModule {
         addTravelTimeBinding(this.configGroup.getMode()).to(networkTravelTime());
         addTravelDisutilityFactoryBinding(this.configGroup.getMode()).to(carTravelDisutilityFactoryKey());
 
-        this.bind(RaptorIntermodalAccessEgress.class).toInstance(new SBBRaptorIntermodalAccessEgress(this.configGroup.getConstant(), this.configGroup.getMUTT(), this.configGroup.getWaitingtime()));
+        bind(RaptorIntermodalAccessEgress.class).toInstance(new SBBRaptorIntermodalAccessEgress(this.configGroup.getConstant(), this.configGroup.getMUTT(), this.configGroup.getWaitingtime()));
+
     }
 
 }

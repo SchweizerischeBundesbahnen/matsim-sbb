@@ -81,6 +81,7 @@ public class RunSBB {
             }
         });
 
+
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
@@ -89,11 +90,9 @@ public class RunSBB {
                 addTravelTimeBinding("ride").to(networkTravelTime());
                 addTravelDisutilityFactoryBinding("ride").to(carTravelDisutilityFactoryKey());
 
-
                 install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
                 install(new ZonesModule());
-                install(new IntermodalModule(scenario));
 
                 Config config = getConfig();
                 ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
@@ -116,7 +115,7 @@ public class RunSBB {
 
 
         controler.addOverridingModule(new AccessEgress(scenario));
-
+        controler.addOverridingModule(new IntermodalModule(scenario));
 
         controler.run();
     }
