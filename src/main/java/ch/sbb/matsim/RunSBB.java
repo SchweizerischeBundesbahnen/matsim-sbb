@@ -7,6 +7,7 @@ package ch.sbb.matsim;
 
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.*;
+import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.plans.abm.AbmConverter;
@@ -36,7 +37,6 @@ import org.matsim.core.scoring.ScoringFunctionFactory;
 
 /**
  * @author denism
- *
  */
 public class RunSBB {
 
@@ -49,12 +49,13 @@ public class RunSBB {
         log.info(configFile);
         final Config config = buildConfig(configFile);
 
-        if(args.length > 1)
+        if (args.length > 1)
             config.controler().setOutputDirectory(args[1]);
 
         new S3Downloader(config);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
+
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
         // vehicle types
@@ -65,7 +66,7 @@ public class RunSBB {
         Controler controler = new Controler(scenario);
 
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
-        if(samplerConfig.getDoSample()){
+        if (samplerConfig.getDoSample()) {
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
             sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
@@ -88,9 +89,11 @@ public class RunSBB {
                 addTravelTimeBinding("ride").to(networkTravelTime());
                 addTravelDisutilityFactoryBinding("ride").to(carTravelDisutilityFactoryKey());
 
+
                 install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
                 install(new ZonesModule());
+                install(new IntermodalModule(scenario));
 
                 Config config = getConfig();
                 ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
@@ -111,7 +114,9 @@ public class RunSBB {
             }
         });
 
+
         controler.addOverridingModule(new AccessEgress(scenario));
+
 
         controler.run();
     }
@@ -119,6 +124,6 @@ public class RunSBB {
     public static Config buildConfig(String filepath) {
         return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-                new ZonesListConfigGroup(), new ParkingCostConfigGroup());
+                new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup());
     }
 }

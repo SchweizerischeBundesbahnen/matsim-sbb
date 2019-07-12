@@ -3,22 +3,22 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package ch.sbb.matsim.routing.raptor;
+package ch.sbb.matsim.intermodal;
 
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.utils.misc.Time;
 
-import javax.swing.*;
+import javax.inject.Inject;
 import java.util.List;
 
+
+//https://github.com/google/guice/wiki/AssistedInject
 
 public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEgress {
 
@@ -35,14 +35,6 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         this.waiting = waiting;
         this.detourFactor = 1.3;
     }
-
-    public SBBRaptorIntermodalAccessEgress() {
-        this.constant = 1.5;
-        this.mutt = 0.003;
-        this.waiting = 15*60.0;
-        this.detourFactor = 1.3;
-    }
-
 
     private boolean isIntermodalMode(String mode) {
         return mode.equals("ride_feeder") || mode.equals("car");
