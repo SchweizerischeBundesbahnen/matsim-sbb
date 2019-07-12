@@ -112,19 +112,22 @@ public class Isochrones {
 //        this.computeIsochrone(new Coord(600000, 200000), threshold, "BN", false);
 //        this.computeIsochrone(new Coord(600000, 200000), 15 * 60, "BN", true);
 
+        int i = 0;
+
         for (TransitStopFacility stop : this.scenario.getTransitSchedule().getFacilities().values()) {
+
             String herkunft = stop.getAttributes().getAttribute("01_Datenherkunft").toString();
             String name = String.valueOf(stop.getAttributes().getAttribute("03_Stop_Code"));
 
 
-            if (herkunft.equals("SBB_Simba")) {
+            if (herkunft.equals("SBB_Simba") && i < 20) {
                 log.info(name);
                 this.computeIsochrone(stop.getCoord(), threshold, name, false);
                 if (this.eventsFilename != null) {
                     this.computeIsochrone(stop.getCoord(), threshold, name, true);
 
                 }
-
+                i++;
             }
         }
 
@@ -165,29 +168,33 @@ public class Isochrones {
             }
         }
 
-        DelaunayTriangulationIsolineBuilder instance = new DelaunayTriangulationIsolineBuilder();
-        //List<List<Coordinate>> buckets = isochrone.searchGPS(qr.getClosestNode(), 2);
+        try {
 
-        List<Coordinate[]> res = instance.calcList(buckets, buckets.size() - 1);
-        int polygonIndex = 1;
-        SimpleFeature lastF = null;
-        for (Coordinate[] polygonShell : res) {
-            SimpleFeature f = this.pff.createPolygon(polygonShell);
-            f.setAttribute("station", name);
-            f.setAttribute("threshold", threshold);
-            f.setAttribute("withLoad", ((withLoad) ? 1 : 0));
-            f.setAttribute("polyId", polygonIndex);
-            polygonIndex++;
-            collection.add(f);
-            lastF = f;
+            DelaunayTriangulationIsolineBuilder instance = new DelaunayTriangulationIsolineBuilder();
+            //List<List<Coordinate>> buckets = isochrone.searchGPS(qr.getClosestNode(), 2);
+
+            List<Coordinate[]> res = instance.calcList(buckets, buckets.size() - 1);
+            int polygonIndex = 1;
+            SimpleFeature lastF = null;
+            for (Coordinate[] polygonShell : res) {
+                SimpleFeature f = this.pff.createPolygon(polygonShell);
+                f.setAttribute("station", name);
+                f.setAttribute("threshold", threshold);
+                f.setAttribute("withLoad", ((withLoad) ? 1 : 0));
+                f.setAttribute("polyId", polygonIndex);
+                polygonIndex++;
+                collection.add(f);
+                lastF = f;
+            }
+
+            //not really nice but do the trick
+            if (lastF != null) {
+                collection.remove(lastF);
+            }
+
+        } catch (Exception e) {
+            log.error(e);
         }
-
-        //not really nice but do the trick
-        if (lastF != null) {
-            collection.remove(lastF);
-        }
-
-
     }
 
 
@@ -214,7 +221,7 @@ public class Isochrones {
         System.setProperty("matsim.preferLocalDtds", "true");
 
         String config = args[0];
-        String eventsFilename = args[1].equals("-") ? null : args[5];
+        String eventsFilename = args[1].equals("-") ? null : args[1];
         String outputShapefile = args[2];
         Isochrones isochrones = new Isochrones(config, eventsFilename);
         isochrones.load();
