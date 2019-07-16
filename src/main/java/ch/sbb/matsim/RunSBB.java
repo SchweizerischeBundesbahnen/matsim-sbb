@@ -13,6 +13,7 @@ import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.EstimatorModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.SelectorModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
+import ch.ethz.matsim.discrete_mode_choice.modules.config.ModeChainFilterRandomThresholdConfigGroup;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
@@ -29,8 +30,13 @@ import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.vehicles.RideParkingCostTracker;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
+
+import java.util.LinkedList;
+
 import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.QSimConfigGroup;
@@ -54,7 +60,7 @@ public class RunSBB {
     	
     	
     	CommandLine cmd = new CommandLine.Builder(args)
-                .allowOptions("configPath", "output", "iterations", "mcMode", "useEstimates", "stMC", "lMC", "dMC", "selectionMode", "tripEstimationMode", "tourEstimationMode", "innovationTurnoffFraction", "nrPeopleToKeep", "resetPlans")
+                .allowOptions("configPath", "output", "iterations", "mcMode", "useEstimates", "stMC", "lMC", "dMC", "selectionMode", "tripEstimationMode", "tourEstimationMode", "innovationTurnoffFraction", "nrPeopleToKeep", "resetPlans","maxModeChain")
                 .build();
 
         final String configFile = cmd.getOption("configPath").orElse("..\\input\\CNB\\config\\config_parsed.xml");
@@ -68,6 +74,7 @@ public class RunSBB {
         String tourEstimationMode = cmd.getOption("tourEstimationMode").orElse(EstimatorModule.UNIFORM);
         int nrPeopleToKeep = cmd.getOption("nrPeopleToKeep").map(Integer::parseInt).orElse(-1);
         boolean resetPlans = cmd.getOption("resetPlans").map(Boolean::parseBoolean).orElse(false);
+        int maxModeChain = cmd.getOption("maxModeChain").map(Integer::parseInt).orElse(256);
     	
     	
     	
@@ -93,7 +100,7 @@ public class RunSBB {
         // controler
         Controler controler = new Controler(scenario);
 
-        if (dMC > 0.0) {
+        /*if (dMC > 0.0) {
             controler.addOverridingModule(new DiscreteModeChoiceModule());
             if (SelectorModule.RANDOM.equals(selectionMode)) {
                 DiscreteModeChoiceConfigurator.configureAsSubtourModeChoiceReplacement(config);
@@ -102,13 +109,16 @@ public class RunSBB {
             }
             DiscreteModeChoiceConfigGroup dmcConfig = (DiscreteModeChoiceConfigGroup) config.getModules().get(DiscreteModeChoiceConfigGroup.GROUP_NAME);
             dmcConfig.setTourConstraintsAsString(ConstraintModule.SUBTOUR_MODE);
-        }
+            ((ModeChainFilterRandomThresholdConfigGroup)dmcConfig.getModeChainGeneratorConfigGroup()).setMaxChainsThreshold(maxModeChain);
+        }*/
 
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
         if(samplerConfig.getDoSample()){
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
             sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
+        
+        
 
         ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
         controler.setScoringFunctionFactory(scoringFunctionFactory);
@@ -152,7 +162,22 @@ public class RunSBB {
         });
 
         controler.addOverridingModule(new AccessEgress(scenario));
-
+        
+        // make population smaller
+        if (nrPeopleToKeep > 0) {
+            int interval = scenario.getPopulation().getPersons().size() / nrPeopleToKeep;
+            int i = 0;
+            LinkedList<Id<Person>> toRemove = new LinkedList<>();
+            for (Person person : scenario.getPopulation().getPersons().values()) {
+                if (i++ == interval) {
+                    i = 0;
+                } else {
+                    toRemove.addLast(person.getId());
+                }
+            }
+            toRemove.forEach(id -> scenario.getPopulation().removePerson(id));
+        }
+        
         controler.run();
     }
 
