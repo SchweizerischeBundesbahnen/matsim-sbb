@@ -1,0 +1,27 @@
+<module name="DiscreteModeChoice">
+	    <!-- the available options are Tour and Trip -->
+		<param name="modelType" value="Tour" />
+		<!-- the available options are MultinomialLogit and Random. Using MultinomialLogit a mode chain is selected by using MNL and the utility functions.  -->
+	    <param name="selector" value="MultinomialLogit" />
+		<!-- every leg in a tour can be constrained to take into consideration the mode used in the previous leg -->
+		<param name="tourConstraints" value="VehicleContinuity,SubtourMode" />
+		<param name="tourFinder" value="PlanBased" />
+		<!-- select the parameters for the utility function of the mode chains for evaluated in a tour. MATSimDayScoring uses the parameters in the config file -->
+		<param name="tourEstimator" value="MATSimDayScoring" />
+		<param name="cachedModes" value="pt, car, ride, walk, bike" />
+		<!-- in order to avoid a large number of mode chains, a selection strategy to limitate the combinations can be choose -->
+		<param name="modeChainGenerator" value="filterRandomThreshold" />
+        <!-- available modes in the mode chains generation -->
+		<parameterset type="modeAvailability:Car">
+			<param name="availableModes" value="pt, car, ride, walk, bike" />
+		</parameterset>
+		<!-- activity considered as a pivot in the creation of the tour for a single plan  -->
+		<parameterset type="tourFinder:ActivityBased">
+			<param name="activityType" value="home" />
+		</parameterset>
+	</module>
+	
+	<!-- this strategy for the modeChainGenerator evaluates all the mode chains if the number of combinations is smaller than the maxChainsThreshold. Otherwise is extracted a random sample of n = maxChainsThreshold mode chains -->
+	<module name="ModeChainFilterRandomThreshold">
+		<param name="maxChainsThreshold" value="1024" />
+	</module>
