@@ -5,10 +5,14 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.*;
 import org.matsim.api.core.v01.population.*;
+import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.events.EventsUtils;
+import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkChangeEvent;
 import org.matsim.core.network.NetworkChangeEvent.ChangeType;
@@ -19,7 +23,10 @@ import org.matsim.core.network.io.NetworkChangeEventsWriter;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
+import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.ActivityFacilities;
@@ -50,7 +57,7 @@ public class ScenarioCutter {
 
     private final static String CHANGE_EVENTS = "NetworkChangeEvents";
     private final static String MISSING_DEMAND = "HourlyMissingDemand";
-    private final static String RELEVANT_ACT_LOCATONS = "RelevantActivityLocations";
+    private final static String RELEVANT_ACT_LOCATIONS = "RelevantActivityLocations";
 
     private final static String OUTSIDE_LEG_MODE = "outside";
     private final static String OUTSIDE_ACT_TYPE = "outside";
@@ -59,15 +66,15 @@ public class ScenarioCutter {
         this.source = scenario;
     }
 
-    public Scenario analyzeCut(CutExtent extent) {
-        CutContext ctx = new CutContext(this.source, extent, extent);
+    public Scenario analyzeCut(CutExtent extent, TravelTime travelTime) {
+        CutContext ctx = new CutContext(this.source, travelTime, extent, extent);
         filterPersons(ctx);
         printStats(ctx);
         return ctx.dest;
     }
 
-    public Scenario performCut(CutExtent extent, CutExtent extendedExtent, double populationSample) {
-        CutContext ctx = new CutContext(this.source, extent, extendedExtent);
+    public Scenario performCut(CutExtent extent, CutExtent extendedExtent, TravelTime travelTime, double populationSample) {
+        CutContext ctx = new CutContext(this.source, travelTime, extent, extendedExtent);
         double demandFactor = 1 / populationSample;
 
         filterPersons(ctx);
@@ -570,7 +577,6 @@ public class ScenarioCutter {
     }
 
     private void cutPersons(CutContext ctx) {
-        Population dest = ctx.dest.getPopulation();
         for (Person p : ctx.source.getPopulation().getPersons().values()) {
             if (ctx.relevantPersons.containsKey(p.getId())) {
                 usePerson(ctx, p);
@@ -581,8 +587,9 @@ public class ScenarioCutter {
     private void usePerson(CutContext ctx, Person srcP) {
         Thread.currentThread().setName("Person " + srcP.getId());
         Person destP = ctx.dest.getPopulation().getFactory().createPerson(srcP.getId());
-        Plan plan = cutPlan(ctx, srcP.getSelectedPlan());
-        destP.addPlan(plan);
+        AttributesUtils.copyAttributesFromTo(srcP, destP);
+        ObjectAttributesUtils.copyAllAttributes(ctx.source.getPopulation().getPersonAttributes(), ctx.dest.getPopulation().getPersonAttributes(), srcP.getId().toString());
+        Plan plan = cutPlan(ctx, destP, srcP.getSelectedPlan());
         if (planWasCut(plan)) {
             ctx.cutPersons.put(destP.getId(), destP);
             destP.getAttributes().putAttribute("cut", true);
@@ -606,7 +613,7 @@ public class ScenarioCutter {
         return false;
     }
 
-    private Plan cutPlan(CutContext ctx, Plan srcPlan) {
+    private Plan cutPlan(CutContext ctx, Person destPerson, Plan srcPlan) {
         Activity fromAct;
         Activity toAct = null;
         Leg leg = null;
@@ -615,6 +622,7 @@ public class ScenarioCutter {
         boolean legInside;
 
         Plan plan = ctx.dest.getPopulation().getFactory().createPlan();
+        destPerson.addPlan(plan);
 
         List<PlanElement> srcPlanElements = srcPlan.getPlanElements();
         AgentState state = new AgentState();
@@ -676,7 +684,8 @@ public class ScenarioCutter {
                     Leg teleportLeg = createOutsideLeg(ctx, lastLinkId, newRoute.getStartLinkId());
                     plan.addLeg(teleportLeg);
                 }
-                Activity outsideAct = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime()); // TODO adapt end time
+                double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
+                Activity outsideAct = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime() + delay);
                 plan.addActivity(outsideAct);
                 plan.addLeg(newLeg);
                 plan.addActivity(toAct);
@@ -699,10 +708,11 @@ public class ScenarioCutter {
                     Leg teleportLeg = createOutsideLeg(ctx, lastLinkId, newRoute.getStartLinkId());
                     plan.addLeg(teleportLeg);
                 }
-                Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime()); // TODO adapt end time
+                double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
+                Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime() + delay);
                 plan.addActivity(outsideAct1);
                 plan.addLeg(newLeg);
-                Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime()); // TODO adapt end time
+                Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime());
                 plan.addActivity(outsideAct2);
             } else { // start and end inside, but going outside
                 NetworkRoute routeStart = findAvailableRouteStart(ctx, route);
@@ -715,8 +725,9 @@ public class ScenarioCutter {
                     plan.addActivity(fromAct);
                 }
                 plan.addLeg(newLeg1);
-                Activity outsideAct1 = createOutsideActivity(ctx, routeStart.getEndLinkId(), fromAct.getEndTime()); // TODO adapt end time
-                Activity outsideAct2 = createOutsideActivity(ctx, routeEnd.getStartLinkId(), fromAct.getEndTime());  // TODO adapt end time
+                double delay = calcDelay(ctx, route, routeEnd, fromAct.getEndTime(), plan.getPerson());
+                Activity outsideAct1 = createOutsideActivity(ctx, routeStart.getEndLinkId(), fromAct.getEndTime()); // time does not much matter here, better early than late
+                Activity outsideAct2 = createOutsideActivity(ctx, routeEnd.getStartLinkId(), fromAct.getEndTime() + delay);
 
                 plan.addActivity(outsideAct1);
                 Leg teleportLeg = createOutsideLeg(ctx, routeStart.getEndLinkId(), routeEnd.getStartLinkId());
@@ -782,6 +793,7 @@ public class ScenarioCutter {
         }
         // ignore startLink, we look for the route end and know that the route does not start inside
         Collections.reverse(linkIds);
+
         return RouteUtils.createNetworkRoute(linkIds, network);
     }
 
@@ -842,7 +854,8 @@ public class ScenarioCutter {
                     Leg teleportLeg = createOutsideLeg(ctx, lastLinkId, newRoute.getStartLinkId());
                     plan.addLeg(teleportLeg);
                 }
-                Activity outsideAct = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime()); // TODO adapt end time
+                double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
+                Activity outsideAct = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime() + delay);
                 plan.addActivity(outsideAct);
                 plan.addLeg(newLeg);
                 plan.addActivity(toAct);
@@ -865,10 +878,11 @@ public class ScenarioCutter {
                     Leg teleportLeg = createOutsideLeg(ctx, lastLinkId, newRoute.getStartLinkId());
                     plan.addLeg(teleportLeg);
                 }
-                Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime()); // TODO adapt end time
+                double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
+                Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime() + delay);
                 plan.addActivity(outsideAct1);
                 plan.addLeg(newLeg);
-                Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime()); // TODO adapt end time
+                Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime());
                 plan.addActivity(outsideAct2);
             } else { // start and end inside, but going outside
                 ExperimentalTransitRoute routeStart = findAvailableRouteStart(ctx, route);
@@ -881,8 +895,9 @@ public class ScenarioCutter {
                     plan.addActivity(fromAct);
                 }
                 plan.addLeg(newLeg1);
-                Activity outsideAct1 = createOutsideActivity(ctx, routeStart.getEndLinkId(), fromAct.getEndTime()); // TODO adapt end time
-                Activity outsideAct2 = createOutsideActivity(ctx, routeEnd.getStartLinkId(), fromAct.getEndTime());  // TODO adapt end time
+                double delay = calcDelay(ctx, route, routeEnd, fromAct.getEndTime(), plan.getPerson());
+                Activity outsideAct1 = createOutsideActivity(ctx, routeStart.getEndLinkId(), fromAct.getEndTime());
+                Activity outsideAct2 = createOutsideActivity(ctx, routeEnd.getStartLinkId(), fromAct.getEndTime() + delay);
 
                 plan.addActivity(outsideAct1);
                 Leg teleportLeg = createOutsideLeg(ctx, routeStart.getEndLinkId(), routeEnd.getStartLinkId());
@@ -993,6 +1008,53 @@ public class ScenarioCutter {
         return findAvailableRouteStart(ctx, route);
     }
 
+    private double calcDelay(CutContext ctx, NetworkRoute fullRoute, NetworkRoute shortenedRoute, double departureTime, Person p) {
+        double delay = 0;
+        Id<Link> startLinkId = shortenedRoute.getStartLinkId();
+        if (fullRoute.getStartLinkId().equals(startLinkId)) {
+            return delay;
+        }
+        delay += 2; // the first link is not travelled in QSim, only the to-node has to be crossed, assume 2 seconds
+        Network sourceNetwork = ctx.source.getNetwork();
+        for (Id<Link> linkId : fullRoute.getLinkIds()) {
+            if (linkId.equals(startLinkId)) {
+                return delay;
+            }
+            Link link = sourceNetwork.getLinks().get(linkId);
+            delay += ctx.travelTime.getLinkTravelTime(link, departureTime + delay, p, null);
+        }
+        return delay;
+    }
+
+    private double calcDelay(CutContext ctx, ExperimentalTransitRoute fullRoute, ExperimentalTransitRoute shortenedRoute, double departureTime, Person p) {
+        Id<TransitStopFacility> fullAccessId = fullRoute.getAccessStopId();
+        Id<TransitStopFacility> shortenedAccessId = shortenedRoute.getAccessStopId();
+
+        TransitRouteStop fullAccessStop = null;
+        TransitRouteStop shortenedAccessStop = null;
+
+        TransitLine line = ctx.source.getTransitSchedule().getTransitLines().get(fullRoute.getLineId());
+        TransitRoute ptRoute = line.getRoutes().get(fullRoute.getRouteId());
+
+        for (TransitRouteStop stop : ptRoute.getStops()) {
+            Id<TransitStopFacility> stopId = stop.getStopFacility().getId();
+            if (stopId.equals(fullAccessId)) {
+                fullAccessStop = stop;
+            }
+            if (stopId.equals(shortenedAccessId)) {
+                shortenedAccessStop = stop;
+                break;
+            }
+        }
+
+        if (fullAccessStop != null && shortenedAccessStop != null) {
+            double shortenedDepartureOffset = Time.isUndefinedTime(shortenedAccessStop.getDepartureOffset()) ? shortenedAccessStop.getArrivalOffset() : shortenedAccessStop.getDepartureOffset();
+            double fullDepartureOffset = Time.isUndefinedTime(fullAccessStop.getDepartureOffset()) ? fullAccessStop.getArrivalOffset() : fullAccessStop.getDepartureOffset();
+            return shortenedDepartureOffset - fullDepartureOffset;
+        }
+        return 0;
+    }
+
     private void addTeleportationLegToPlan(CutContext ctx, Plan plan, Activity fromAct, boolean fromActInside, Leg leg, Activity toAct, boolean toActInside) {
         boolean comingInside = !fromActInside && toActInside;
         boolean isPlanEmpty = plan.getPlanElements().isEmpty();
@@ -1078,26 +1140,21 @@ public class ScenarioCutter {
                                 time = leg.getDepartureTime();
                             }
                             int hour = (int) (time / 3600);
-                            Link link = srcNetwork.getLinks().get(route.getStartLinkId());
-                            double travelTime = link.getLength() / link.getFreespeed();
-                            if (hour >= 0 && hour < 24 && destLinks.contains(link.getId())) {
-                                missingHourlyDemand.computeIfAbsent(link.getId(), k -> new int[24])[hour]++;
+                            double travelTime = 2;// assume 2 seconds travel time on the start link, as agents basically only have to pass the to-node
+                            if (hour >= 0 && hour < 24 && destLinks.contains(route.getStartLinkId())) {
+                                missingHourlyDemand.computeIfAbsent(route.getStartLinkId(), k -> new int[24])[hour]++;
                             }
                             time += travelTime;
                             for (Id<Link> linkId : route.getLinkIds()) {
                                 hour = (int) (time / 3600);
-                                link = srcNetwork.getLinks().get(linkId);
-                                travelTime = link.getLength() / link.getFreespeed();
+                                Link link = srcNetwork.getLinks().get(linkId);
+                                travelTime = ctx.travelTime.getLinkTravelTime(link, time, p, null);
                                 if (hour >= 0 && hour < 24 && destLinks.contains(link.getId())) {
                                     missingHourlyDemand.computeIfAbsent(link.getId(), k -> new int[24])[hour]++;
                                 }
                                 time += travelTime;
                             }
-                            hour = (int) (time / 3600);
-                            link = srcNetwork.getLinks().get(route.getEndLinkId());
-                            if (hour >= 0 && hour < 24 && destLinks.contains(link.getId())) {
-                                missingHourlyDemand.computeIfAbsent(link.getId(), k -> new int[24])[hour]++;
-                            }
+                            // ignore the end link, as a vehicle does not consume any flow-capacity on the last link of a leg
                         }
                     }
                 }
@@ -1174,6 +1231,7 @@ public class ScenarioCutter {
         private final Scenario dest;
         private final CutExtent extent;
         private final CutExtent extendedExtent;
+        private final TravelTime travelTime;
         private final Map<Id<Person>, Person> relevantPersons = new HashMap<>();
         private final Map<Id<Person>, Person> fullyInsidePersons = new HashMap<>();
         private final Map<Id<Person>, Person> partiallyInsidePersons = new HashMap<>();
@@ -1183,12 +1241,13 @@ public class ScenarioCutter {
         private final Map<Id<Link>, int[]> missingHourlyDemand = new HashMap<>();
         private final List<Coord> relevantActivityCoords = new ArrayList<>();
 
-        CutContext(Scenario source, CutExtent extent, CutExtent extendedExtent) {
+        CutContext(Scenario source, TravelTime travelTime, CutExtent extent, CutExtent extendedExtent) {
             this.source = source;
+            this.travelTime = travelTime;
             this.dest = ScenarioUtils.createScenario(source.getConfig());
             this.extent = extent;
             this.extendedExtent = extendedExtent;
-            this.dest.addScenarioElement(RELEVANT_ACT_LOCATONS, this.relevantActivityCoords);
+            this.dest.addScenarioElement(RELEVANT_ACT_LOCATIONS, this.relevantActivityCoords);
         }
     }
 
@@ -1197,15 +1256,18 @@ public class ScenarioCutter {
 
         args = new String[] {
             "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_config_cutter.xml",
+            "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_events.xml.gz",
             "0.1",
             "C:\\devsbb\\codes\\_data\\CH2016_1.2.17_cut"
         };
 
         String configFilename = args[0];
-        double scenarioSampleSize = Double.parseDouble(args[1]);
-        String outputDirectoryname = args[2];
+        String eventsFilename = (args[1] == null || args[1].isEmpty()) ? null : args[1];
+        double scenarioSampleSize = Double.parseDouble(args[2]);
+        String outputDirectoryname = args[3];
 
         Thread ramObserver = new Thread(() -> {
+            //noinspection InfiniteLoopStatement
             while (true) {
                 Gbl.printMemoryUsage();
                 try {
@@ -1231,8 +1293,8 @@ public class ScenarioCutter {
         if (config.transit().getTransitLinesAttributesFile() != null) {
             new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitLinesAttributes()).readFile(config.transit().getTransitLinesAttributesFile());
         }
-        if (config.transit().getTransitLinesAttributesFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitLinesAttributes()).readFile(config.transit().getTransitLinesAttributesFile());
+        if (config.transit().getTransitStopsAttributesFile() != null) {
+            new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitStopsAttributes()).readFile(config.transit().getTransitStopsAttributesFile());
         }
         new VehicleReaderV1(scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
         BetterPopulationReader.readSelectedPlansOnly(scenario, new File(config.plans().getInputFile()));
@@ -1244,19 +1306,32 @@ public class ScenarioCutter {
         log.info("clean network");
         simpleCleanNetwork(scenario.getNetwork());
 
-
         CutExtent extent = new RadialExtent(600_000, 200_000, 10_000);
         CutExtent extended = new RadialExtent(600_000, 200_000, 15_000);
 
+        TravelTime travelTime = new FreeSpeedTravelTime();
+        if (eventsFilename != null) {
+            log.info("Extracting link travel times from Events file " + eventsFilename);
+            TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(scenario.getNetwork());
+            ttBuilder.setAnalyzedModes(Collections.singleton(TransportMode.car));
+            ttBuilder.setCalculateLinkTravelTimes(true);
+            TravelTimeCalculator ttCalculator = ttBuilder.build();
+            EventsManager eventsManager = EventsUtils.createEventsManager(scenario.getConfig());
+            eventsManager.addHandler(ttCalculator);
+            new MatsimEventsReader(eventsManager).readFile(eventsFilename);
+            travelTime = ttCalculator.getLinkTravelTimes();
+        }
+
         log.info("Analyzing scenario...");
-        Scenario analysisScenario = new ScenarioCutter(scenario).analyzeCut(extent);
+        Scenario analysisScenario = new ScenarioCutter(scenario).analyzeCut(extent, travelTime);
 
         log.info("Writing relevant activity locations...");
-        List<Coord> relevantActLocations = (List<Coord>) analysisScenario.getScenarioElement(RELEVANT_ACT_LOCATONS);
+        List<Coord> relevantActLocations = (List<Coord>) analysisScenario.getScenarioElement(RELEVANT_ACT_LOCATIONS);
         writeRelevantLocations(new File(outputDir, "relevantActivityLocations.csv.gz"), relevantActLocations);
+        relevantActLocations.clear(); // free the memory
 
         log.info("Cutting scenario...");
-        Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, scenarioSampleSize);
+        Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, travelTime, scenarioSampleSize);
 
         log.info("Writing cut scenario...");
 
