@@ -24,6 +24,7 @@ public class SBBIntermodalConfigGroupTest {
         mode1a.setDetourFactor(0.95); // the bicycle takes short cuts ;-)
         mode1a.setWaitingTime(3*60);
         mode1a.setMUTT(-0.6);
+        mode1a.setOnNetwork(false);
         intermodal1.addModeParameters(mode1a);
         SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet mode1b = new SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet();
         mode1b.setConstant(1.4);
@@ -31,6 +32,7 @@ public class SBBIntermodalConfigGroupTest {
         mode1b.setDetourFactor(1.08);
         mode1b.setWaitingTime(2*60);
         mode1b.setMUTT(-0.9);
+        mode1b.setOnNetwork(true);
         intermodal1.addModeParameters(mode1b);
 
         Config config1 = ConfigUtils.createConfig(intermodal1);
@@ -70,11 +72,13 @@ public class SBBIntermodalConfigGroupTest {
         Assert.assertEquals(mode1a.getDetourFactor(), mode2a.getDetourFactor(), 1e-7);
         Assert.assertEquals(mode1a.getWaitingTime(), mode2a.getWaitingTime(), 1e-7);
         Assert.assertEquals(mode1a.getMUTT(), mode2a.getMUTT(), 1e-7);
+        Assert.assertEquals(mode1a.isOnNetwork(), mode2a.isOnNetwork());
 
         Assert.assertEquals(mode1b.getConstant(), mode2b.getConstant(), 1e-7);
         Assert.assertEquals(mode1b.getDetourFactor(), mode2b.getDetourFactor(), 1e-7);
         Assert.assertEquals(mode1b.getWaitingTime(), mode2b.getWaitingTime(), 1e-7);
         Assert.assertEquals(mode1b.getMUTT(), mode2b.getMUTT(), 1e-7);
+        Assert.assertEquals(mode1b.isOnNetwork(), mode2b.isOnNetwork());
     }
 
 }

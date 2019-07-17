@@ -7,6 +7,9 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 public class IntermodalModule extends AbstractModule {
 
@@ -21,19 +24,25 @@ public class IntermodalModule extends AbstractModule {
 
     private void prepare(Scenario scenario) {
         for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
-            Intermodal.prepareNetwork(scenario.getNetwork(), mode.getMode());
+            if (mode.isOnNetwork()) {
+                Intermodal.prepareNetwork(scenario.getNetwork(), mode.getMode());
+                Set<String> mainModes = new HashSet<>(scenario.getConfig().qsim().getMainModes());
+                mainModes.add(mode.getMode());
+                scenario.getConfig().qsim().setMainModes(mainModes);
+            }
         }
     }
 
     @Override
     public void install() {
         for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
-            addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
-            addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
+            if (mode.isOnNetwork()) {
+                addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
+                addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
+            }
         }
 
         bind(RaptorIntermodalAccessEgress.class).toInstance(new SBBRaptorIntermodalAccessEgress(this.configGroup.getModeParameterSets()));
-
     }
 
 }
