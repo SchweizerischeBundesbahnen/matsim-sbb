@@ -1,5 +1,6 @@
 package ch.sbb.matsim.mavi.streets;
 
+import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.counts.VisumToCounts;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import com.jacob.activeX.ActiveXComponent;
@@ -23,8 +24,6 @@ import java.util.*;
 public class VisumStreetNetworkExporter {
 
     private final static Logger log = Logger.getLogger(VisumStreetNetworkExporter.class);
-
-    private static final String NETWORK_OUT = "network.xml.gz";
 
     private Scenario scenario;
     private NetworkFactory nf;
@@ -61,7 +60,7 @@ public class VisumStreetNetworkExporter {
         writeNetwork(outputPath);
 
         // Export Polylines
-        new PolylinesCreator().run(NETWORK_OUT, wktLineStringPerVisumLink, "polylines.csv", outputPath);
+        new PolylinesCreator().runStreets(this.scenario.getNetwork(), wktLineStringPerVisumLink, "polylines.csv", outputPath);
     }
 
     private void exportCountStations(Dispatch net, String outputFolder) throws IOException {
@@ -156,7 +155,7 @@ public class VisumStreetNetworkExporter {
         org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
         cleaner.run(scenario.getNetwork());
 
-        File file = new File(outputFolder, NETWORK_OUT);
+        File file = new File(outputFolder, Filenames.STREET_NETWORK);
         new NetworkWriter(this.scenario.getNetwork()).write(file.getAbsolutePath());
     }
 }

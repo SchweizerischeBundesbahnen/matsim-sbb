@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.mavi.pt;
 
+import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.apache.log4j.Logger;
@@ -39,7 +40,6 @@ public class RunVisumPtExporter {
 
     private static final Logger log = Logger.getLogger(RunVisumPtExporter.class);
 
-    private static final String NETWORK_OUT = "transitNetwork.xml.gz";
     private static final String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
     private static final String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
 
@@ -85,7 +85,9 @@ public class RunVisumPtExporter {
         createOutputPath(exporterConfig.getOutputPath());
         tpe.writeLinkSequence(exporterConfig.getOutputPath());
         writeFiles(scenario, exporterConfig.getOutputPath());
-        new PolylinesCreator().run(NETWORK_OUT, visum, tpe.linkToVisumSequence, "polylines.csv", exporterConfig.getOutputPath());
+
+        // write polyline file
+        new PolylinesCreator().runPt(scenario.getNetwork(), visum, tpe.linkToVisumSequence, exporterConfig.getOutputPath());
     }
 
     private static void cleanStops(TransitSchedule schedule)   {
@@ -143,7 +145,7 @@ public class RunVisumPtExporter {
     }
 
     private static void writeFiles(Scenario scenario, String outputPath)   {
-        new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, NETWORK_OUT).getPath());
+        new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, Filenames.PT_NETWORK).getPath());
         new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(new File(outputPath, TRANSITSCHEDULE_OUT).getPath());
         new VehicleWriterV1(scenario.getVehicles()).writeFile(new File(outputPath, TRANSITVEHICLES_OUT).getPath());
     }
