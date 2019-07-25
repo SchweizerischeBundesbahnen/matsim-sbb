@@ -99,7 +99,7 @@ public class RunSBB {
 
         // controler
         Controler controler = new Controler(scenario);
-
+        controler.addOverridingModule(new DiscreteModeChoiceModule());
         /*if (dMC > 0.0) {
             controler.addOverridingModule(new DiscreteModeChoiceModule());
             if (SelectorModule.RANDOM.equals(selectionMode)) {
@@ -184,6 +184,6 @@ public class RunSBB {
     public static Config buildConfig(String filepath) {
         return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-                new ZonesListConfigGroup(), new ParkingCostConfigGroup());
+                new ZonesListConfigGroup(), new ParkingCostConfigGroup(),new DiscreteModeChoiceConfigGroup(),new ModeChainFilterRandomThresholdConfigGroup());
     }
 }
