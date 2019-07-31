@@ -48,7 +48,7 @@ public class LinkVolumeToCSVTest {
 
         linkVolumeToCSV.writeResults();
 
-        BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv"));
+        BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv.gz"));
         StringBuilder sb = new StringBuilder();
         String line = br.readLine();
 
@@ -76,7 +76,7 @@ public class LinkVolumeToCSVTest {
 
         linkVolumeToCSV.writeResults();
 
-        BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv"));
+        BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv.gz"));
         StringBuilder sb = new StringBuilder();
         String line = br.readLine();
 
