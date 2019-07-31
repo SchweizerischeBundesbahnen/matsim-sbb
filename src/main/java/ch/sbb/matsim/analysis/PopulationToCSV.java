@@ -35,7 +35,7 @@ public class PopulationToCSV {
     }
 
     public void write(String filename) {
-        this.write(filename + "agents.csv", filename + "plan_elements.csv");
+        this.write(filename + "agents.csv.gz", filename + "plan_elements.csv.gz");
     }
 
     public void write(String agentsFilename, String planElementsFilename) {
@@ -60,7 +60,7 @@ public class PopulationToCSV {
                     agentsWriter.writeRow();
                 }
             } catch (IOException e) {
-                log.error("Could not write agents.csv. " + e.getMessage(), e);
+                log.error("Could not write agents.csv.gz " + e.getMessage(), e);
             }
         }
 
@@ -112,7 +112,7 @@ public class PopulationToCSV {
                     }
                 }
             } catch (IOException e) {
-                log.error("Could not write agents.csv. " + e.getMessage(), e);
+                log.error("Could not write agents.csv.gz " + e.getMessage(), e);
             }
         }
     }
@@ -143,7 +143,7 @@ public class PopulationToCSV {
             new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes()).readFile(config.households().getInputHouseholdAttributesFile());
         }
 
-        new PopulationToCSV(scenario).write("agents.csv", "planelements.csv");
+        new PopulationToCSV(scenario).write("agents.csv.gz", "planelements.csv.gz");
     }
 
 }
