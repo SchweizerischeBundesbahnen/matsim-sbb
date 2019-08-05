@@ -46,7 +46,7 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnaly
             }
         }
 
-        visumNetwork.writeLinkVolumesCSV(folder+"visum_volumes.csv", volumes);
+        visumNetwork.writeLinkVolumesCSV(folder+"visum_volumes.csv.gz", volumes);
     }
 
     // Methods

@@ -20,7 +20,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysi
 
     private final static Logger log = Logger.getLogger(LinkVolumeToCSV.class);
 
-    public static final String FILENAME_VOLUMES = "matsim_linkvolumes.csv";
+    public static final String FILENAME_VOLUMES = "matsim_linkvolumes.csv.gz";
     public static final String COL_LINK_ID = "link_id";
     public static final String COL_MODE = "mode";
     public static final String COL_BIN = "bin";
