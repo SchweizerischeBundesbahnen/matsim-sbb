@@ -1,6 +1,7 @@
 package ch.sbb.matsim.preparation.cutter;
 
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -9,6 +10,7 @@ import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.*;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.api.experimental.events.EventsManager;
+import org.matsim.core.api.internal.MatsimWriter;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsUtils;
@@ -81,6 +83,7 @@ public class ScenarioCutter {
         cutNetwork(ctx);
         cutTransit(ctx);
         cutPersons(ctx);
+
         calcNetworkCapacityChanges(ctx, demandFactor);
         filterFacilities(ctx);
 
@@ -867,6 +870,9 @@ public class ScenarioCutter {
                     plan.addActivity(fromAct);
                 }
                 plan.addLeg(newLeg);
+                if (!ctx.dest.getNetwork().getLinks().containsKey(newRoute.getEndLinkId())){
+                    throw new RuntimeException(newRoute.getEndLinkId() +"  is not part of the cut network");
+                }
                 Activity outsideAct = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime());
                 plan.addActivity(outsideAct);
             } else if (throughTraffic) {
@@ -1251,14 +1257,104 @@ public class ScenarioCutter {
         }
     }
 
+    public static void run(String runDirectory, String runId,String outputDirectoryname, double scenarioSampleSize, boolean parseEvents, CutExtent extent, CutExtent extended  ) throws IOException {
+        System.setProperty("matsim.preferLocalDtds", "true");
+        String outputPrefix = runDirectory+runId+".";
+
+        String eventsFilename = parseEvents?outputPrefix+"output_events.xml.gz":null;
+
+        Thread ramObserver = new Thread(() -> {
+            //noinspection InfiniteLoopStatement
+            while (true) {
+                Gbl.printMemoryUsage();
+                try {
+                    Thread.sleep(20_000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, "MemoryObserver");
+        ramObserver.setDaemon(true);
+        ramObserver.start();
+
+        File outputDir = new File(outputDirectoryname);
+        log.info("ScenarioCutter: output directory = " + outputDir.getAbsolutePath());
+        if (!outputDir.exists()) {
+            outputDir.mkdirs();
+        }
+
+        Config config = ConfigUtils.createConfig();
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(outputPrefix+"output_network.xml.gz");
+        new TransitScheduleReader(scenario).readFile(outputPrefix+"output_transitSchedule.xml.gz");
+        if (config.transit().getTransitLinesAttributesFile() != null) {
+            new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitLinesAttributes()).readFile(config.transit().getTransitLinesAttributesFile());
+        }
+        if (config.transit().getTransitStopsAttributesFile() != null) {
+            new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitStopsAttributes()).readFile(config.transit().getTransitStopsAttributesFile());
+        }
+        new VehicleReaderV1(scenario.getTransitVehicles()).readFile(outputPrefix+"output_transitVehicles.xml.gz");
+        BetterPopulationReader.readSelectedPlansOnly(scenario, new File(outputPrefix+"output_plans_test.xml.gz"));
+        if (config.plans().getInputPersonAttributeFile() != null) {
+            new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(config.plans().getInputPersonAttributeFile());
+        }
+        new MatsimFacilitiesReader(scenario).readFile(outputPrefix+"output_facilities.xml.gz");
+
+        log.info("clean network");
+        simpleCleanNetwork(scenario.getNetwork());
+
+        TravelTime travelTime = new FreeSpeedTravelTime();
+        if (eventsFilename != null) {
+            log.info("Extracting link travel times from Events file " + eventsFilename);
+            TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(scenario.getNetwork());
+            ttBuilder.setAnalyzedModes(Collections.singleton(TransportMode.car));
+            ttBuilder.setCalculateLinkTravelTimes(true);
+            TravelTimeCalculator ttCalculator = ttBuilder.build();
+            EventsManager eventsManager = EventsUtils.createEventsManager(scenario.getConfig());
+            eventsManager.addHandler(ttCalculator);
+            new MatsimEventsReader(eventsManager).readFile(eventsFilename);
+            travelTime = ttCalculator.getLinkTravelTimes();
+        }
+
+        log.info("Analyzing scenario...");
+        Scenario analysisScenario = new ScenarioCutter(scenario).analyzeCut(extent, travelTime);
+
+        log.info("Writing relevant activity locations...");
+        List<Coord> relevantActLocations = (List<Coord>) analysisScenario.getScenarioElement(RELEVANT_ACT_LOCATIONS);
+        writeRelevantLocations(new File(outputDir, "relevantActivityLocations.csv.gz"), relevantActLocations);
+        relevantActLocations.clear(); // free the memory
+
+        log.info("Cutting scenario...");
+        Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, travelTime, scenarioSampleSize);
+
+        log.info("Writing cut scenario...");
+
+        new NetworkWriter(cutScenario.getNetwork()).write(new File(outputDir, "network.xml.gz").getAbsolutePath());
+        new PopulationWriter(cutScenario.getPopulation()).write(new File(outputDir, "population.xml.gz").getAbsolutePath());
+        new VehicleWriterV1(cutScenario.getTransitVehicles()).writeFile(new File(outputDir, "transitVehicles.xml.gz").getAbsolutePath());
+        new TransitScheduleWriter(cutScenario.getTransitSchedule()).writeFile(new File(outputDir, "schedule.xml.gz").getAbsolutePath());
+        if (config.transit().getTransitLinesAttributesFile() != null) {
+            new ObjectAttributesXmlWriter(cutScenario.getTransitSchedule().getTransitLinesAttributes()).writeFile(new File(outputDir, "transitLinesAttributes.xml.gz").getAbsolutePath());
+        }
+        if (config.transit().getTransitStopsAttributesFile() != null) {
+            new ObjectAttributesXmlWriter(cutScenario.getTransitSchedule().getTransitStopsAttributes()).writeFile(new File(outputDir, "transitStopsAttributes.xml.gz").getAbsolutePath());
+        }
+        new FacilitiesWriter(cutScenario.getActivityFacilities()).write(new File(outputDir, "facilities.xml.gz").getAbsolutePath());
+
+        List<NetworkChangeEvent> changeEvents = (List<NetworkChangeEvent>) cutScenario.getScenarioElement(CHANGE_EVENTS);
+        new NetworkChangeEventsWriter().write(new File(outputDir, "networkChangeEvents.xml.gz").getAbsolutePath(), changeEvents);
+
+        writeMissingDemand(new File(outputDir, "missingDemand.csv"), cutScenario);
+
+    }
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
 
         args = new String[] {
-            "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_config_cutter.xml",
-            "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_events.xml.gz",
-            "0.1",
-            "C:\\devsbb\\codes\\_data\\CH2016_1.2.17_cut"
+                "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_config_cutter.xml",
+                "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_events.xml.gz",
+                "0.1",
+                "C:\\devsbb\\codes\\_data\\CH2016_1.2.17_cut"
         };
 
         String configFilename = args[0];
@@ -1352,7 +1448,6 @@ public class ScenarioCutter {
 
         writeMissingDemand(new File(outputDir, "missingDemand.csv"), cutScenario);
     }
-
     private static void simpleCleanNetwork(Network network) {
         List<Node> emptyNodes = new ArrayList<>();
         for (Node node : network.getNodes().values()) {
