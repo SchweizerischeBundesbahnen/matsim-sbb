@@ -1,7 +1,6 @@
 package ch.sbb.matsim.preparation.cutter;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -10,7 +9,6 @@ import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.*;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.api.experimental.events.EventsManager;
-import org.matsim.core.api.internal.MatsimWriter;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsUtils;
