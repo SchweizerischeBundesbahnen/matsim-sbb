@@ -847,7 +847,7 @@ public class ScenarioCutter {
 
         if (hasOutsideLinks) {
             if (comingInside) {
-                ExperimentalTransitRoute newRoute = findAvailableRouteEnd(ctx, route);
+                ExperimentalTransitRoute newRoute = findAvailableRouteStart(ctx, route);
                 Leg newLeg = PopulationUtils.createLeg(leg);
                 newLeg.setRoute(newRoute);
                 if (!isEmptyPlan) {
@@ -861,7 +861,7 @@ public class ScenarioCutter {
                 plan.addLeg(newLeg);
                 plan.addActivity(toAct);
             } else if (goingOutside) {
-                ExperimentalTransitRoute newRoute = findAvailableRouteStart(ctx, route);
+                ExperimentalTransitRoute newRoute = findAvailableRouteEnd(ctx, route);
                 Leg newLeg = PopulationUtils.createLeg(leg);
                 newLeg.setRoute(newRoute);
                 if (isEmptyPlan) {
@@ -869,7 +869,7 @@ public class ScenarioCutter {
                 }
                 plan.addLeg(newLeg);
                 if (!ctx.dest.getNetwork().getLinks().containsKey(newRoute.getEndLinkId())){
-                    throw new RuntimeException(newRoute.getEndLinkId() +"  is not part of the cut network");
+                    throw new RuntimeException(newRoute.getEndLinkId() + "  is not part of the cut network, but part of transit route:\n " + newRoute.toString());
                 }
                 Activity outsideAct = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime());
                 plan.addActivity(outsideAct);
