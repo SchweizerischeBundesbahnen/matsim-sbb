@@ -1257,7 +1257,7 @@ public class ScenarioCutter {
 
     public static void run(String runDirectory, String runId,String outputDirectoryname, double scenarioSampleSize, boolean parseEvents, CutExtent extent, CutExtent extended  ) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
-        String outputPrefix = runDirectory+runId+".";
+        String outputPrefix = runDirectory + "/" + runId + ".";
 
         String eventsFilename = parseEvents?outputPrefix+"output_events.xml.gz":null;
 
@@ -1292,7 +1292,7 @@ public class ScenarioCutter {
             new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitStopsAttributes()).readFile(config.transit().getTransitStopsAttributesFile());
         }
         new VehicleReaderV1(scenario.getTransitVehicles()).readFile(outputPrefix+"output_transitVehicles.xml.gz");
-        BetterPopulationReader.readSelectedPlansOnly(scenario, new File(outputPrefix+"output_plans_test.xml.gz"));
+        BetterPopulationReader.readSelectedPlansOnly(scenario, new File(outputPrefix + "output_plans.xml.gz"));
         if (config.plans().getInputPersonAttributeFile() != null) {
             new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(config.plans().getInputPersonAttributeFile());
         }
