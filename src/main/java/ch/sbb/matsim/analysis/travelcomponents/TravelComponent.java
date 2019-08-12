@@ -5,16 +5,12 @@
 package ch.sbb.matsim.analysis.travelcomponents;
 
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.pt.router.TransitRouterConfig;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 public class TravelComponent {
 
-	public static double walkSpeed = new TransitRouterConfig(ConfigUtils.createConfig()).getBeelineWalkSpeed();
 	public double getDuration() {
 		return getEndTime() - getStartTime();
 	}

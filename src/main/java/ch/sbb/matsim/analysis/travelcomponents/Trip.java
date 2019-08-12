@@ -4,137 +4,165 @@
 
 package ch.sbb.matsim.analysis.travelcomponents;
 
-import org.matsim.api.core.v01.Coord;
+import ch.sbb.matsim.config.variables.SBBActivities;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.pt.router.TransitRouterConfig;
 
-public 	 class Trip extends TravelComponent {
-	Journey journey;
-	private String mode;
-	private Id line;
-	private Id route;
-	private Coord orig;
-	private Coord dest;
-	private Id boardingStop;
-	private Id alightingStop;
-	private Id vehicleId;
-	private double distance;
-	private double PtDepartureTime;
-	private double PtDepartureDelay;
-	private boolean departureTimeIsSet = false;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+public class Trip extends TravelComponent {
+
+    private static double walkSpeed = new TransitRouterConfig(ConfigUtils.createConfig()).getBeelineWalkSpeed();
+
+	private Activity fromAct;
+	private Activity toAct;
+    private List<TravelledLeg> legs = new ArrayList<>();
+	private final Config config;
 
 	Trip(Config config){
 		super(config);
+		this.config = config;
+	}
+
+	public TravelledLeg addLeg() {
+		TravelledLeg leg = new TravelledLeg(this.config);
+		this.legs.add(leg);
+		return leg;
 	}
 
 	public String toString() {
-		return String
-				.format("\tTRIP: mode: %s start: %6.0f end: %6.0f distance: %6.0f \n",
-						getMode(), getStartTime(), getEndTime(), getDistance());
+		return String.format("TRIP: start: %6.0f end: %6.0f dur: %6.0f invehDist: %6.0f walkDist: %6.0f \n %s",
+				getStartTime(), getEndTime(), getDuration(), getInVehDistance(), getWalkDistance(),
+				legs.toString());
 	}
 
-	public Id getVehicleId() {
-		return vehicleId;
-	}
-
-	public void setVehicleId(Id vehicleId) {
-		this.vehicleId = vehicleId;
-	}
-
-
-	public Id getLine() {
-		return line;
-	}
-
-	public void setLine(Id line) {
-		this.line = line;
-	}
-
-	public Id getRoute() {
-		return route;
-	}
-
-	public void setRoute(Id route) {
-		this.route = route;
-	}
-
-	public Id getBoardingStop() {
-		return boardingStop;
-	}
-
-	public void setBoardingStop(Id boardingStop) {
-		this.boardingStop = boardingStop;
-	}
-
-	public String getMode() {
-		return mode;
-	}
-
-	public void setMode(String mode) {
-		this.mode = mode.trim();
-	}
-
-	public double getDistance() {
+	public double getInVehDistance() {
+		if(getMainMode().equals("walk"))
+			return 0;
+		double distance = 0;
+		for (TravelledLeg t : getLegs()) {
+			distance += t.getDistance();
+		}
 		return distance;
 	}
 
-	public void setDistance(double distance) {
-		this.distance = distance;
+	private double getWalkDistance() {
+		if(getMainMode().equals("walk"))
+			return walkSpeed * getDuration();
+		return 0;
 	}
 
-	public Id getAlightingStop() {
-		return alightingStop;
+	public double getInVehTime() {
+		if(getMainMode().equals("walk"))
+			return 0;
+		double time = 0;
+		for (TravelledLeg t : getLegs()) {
+			time += t.getDuration();
+		}
+		return time;
 	}
 
-	public void setAlightingStop(Id alightingStop) {
-		this.alightingStop = alightingStop;
-	}
+	public String getMainMode() {
+		try {
+			TravelledLeg longestLeg = null;
+			if (getLegs().size() > 1) {
+				for (int i = 1; i < getLegs().size(); i++) {
+					TravelledLeg leg = getLegs().get(i);
+					if (leg.getMode().equals(TransportMode.egress_walk) || leg.getMode().equals(TransportMode.access_walk)) {
+					}
+					else if (longestLeg == null) {
+						longestLeg = leg;
+					}
+					else if (leg.getDistance() > longestLeg.getDistance()) {
+						longestLeg = getLegs().get(i);
+					}
+				}
+				return longestLeg.getMode();
+			}
+			else{
+				return getFirstLeg().getMode();
+			}
 
-	public Coord getDest() {
-		return dest;
-	}
+		} catch (NoSuchElementException e) {
+			return "walk";
 
-	public void setDest(Coord dest) {
-		this.dest = dest;
-	}
-
-	public Coord getOrig() {
-		return orig;
-	}
-
-	public void setOrig(Coord orig) {
-		this.orig = orig;
-	}
-
-	public void setPtDepartureTime(double time){
-		if (!this.departureTimeIsSet){
-			this.PtDepartureTime = time;
-			this.departureTimeIsSet = true;
 		}
 	}
 
-	public void setDepartureDelay(double delay){
-		if (!this.departureTimeIsSet){
-			this.PtDepartureDelay = delay;
-			this.departureTimeIsSet = true;
+	public String getMainModeMikroZensus() {
+		try {
+			if (this.legs.size() > 1) {
+				return "pt";
+			}
+			TravelledLeg firstLeg = getFirstLeg();
+			if (firstLeg.getMode().equals("transit_walk"))
+				return "walk";
+			else
+				return firstLeg.getMode();
+
+		} catch (NoSuchElementException e) {
+			return "walk";
 		}
 	}
 
-	public double getDepartureDelay(){
-		return this.PtDepartureDelay;
+	public String getToActType()	{
+		String typeLong = this.toAct.getType();
+		String type = typeLong.split("_")[0];
+		return SBBActivities.matsimActs2abmActs.get(type);
 	}
 
-	public double getPtDepartureTime(){
-		return this.PtDepartureTime;
+	public double getDistance() {
+		return getInVehDistance() + getWalkDistance();
 	}
 
-	public void incrementDistance(double linkLength) {
-		this.distance += linkLength;
-		
+	public Activity getFromAct() {
+		return fromAct;
 	}
 
-	public void incrementTime(double linkTime) {
-		this.setEndTime(this.getEndTime()+linkTime);
-		
+	public void setFromAct(Activity fromAct) {
+		this.fromAct = fromAct;
+	}
+
+	public Activity getToAct() {
+		return toAct;
+	}
+
+	public void setToAct(Activity toAct) {
+		this.toAct = toAct;
+	}
+
+	public TravelledLeg getFirstLeg() {
+		return this.legs.get(0);
+	}
+
+	public TravelledLeg getLastLeg() {
+		return this.legs.get(this.legs.size() - 1);
+	}
+
+	public List<TravelledLeg> getLegs() {
+		return legs;
+	}
+
+	public Id getFirstBoardingStop() {
+	    if (this.legs.isEmpty()) {
+	        return null;
+        }
+		return this.getFirstLeg().getBoardingStop();
+	}
+
+	public Id getLastAlightingStop() {
+	    if (this.legs.isEmpty()) {
+	        return null;
+        }
+		return this.getFirstLeg().getAlightingStop();
+	}
+
+	public static void setWalkSpeed(double walkSpeed) {
+		Trip.walkSpeed = walkSpeed;
 	}
 }
