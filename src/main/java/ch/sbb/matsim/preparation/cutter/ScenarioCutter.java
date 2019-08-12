@@ -1255,7 +1255,17 @@ public class ScenarioCutter {
         }
     }
 
-    public static void run(String runDirectory, String runId,String outputDirectoryname, double scenarioSampleSize, boolean parseEvents, CutExtent extent, CutExtent extended  ) throws IOException {
+    /**
+     * @param runDirectory        MATSim Output Directory of a finished MATSim run
+     * @param runId               MATSim RunId
+     * @param outputDirectoryname Folder where cut scenario is written to
+     * @param scenarioSampleSize  Sample Size
+     * @param parseEvents         whether Events file of run should be parsed to generate more accurate network travel times
+     * @param extent              Inner Cut Extent
+     * @param extended            Outer Cut extend
+     * @throws IOException
+     */
+    public static void run(String runDirectory, String runId, String outputDirectoryname, double scenarioSampleSize, boolean parseEvents, CutExtent extent, CutExtent extended  ) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
         String outputPrefix = runDirectory + "/" + runId + ".";
 
