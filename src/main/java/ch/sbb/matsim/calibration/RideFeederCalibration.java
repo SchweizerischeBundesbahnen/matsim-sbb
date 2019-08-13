@@ -125,7 +125,7 @@ public class RideFeederCalibration {
                     Facility fromFacility = this.scenario.getActivityFacilities().getFactory().createActivityFacility(Id.create(1, ActivityFacility.class), fromCoord, NetworkUtils.getNearestLink(filteredNetwork, fromCoord).getId());
                     Facility toFacility = this.scenario.getActivityFacilities().getFactory().createActivityFacility(Id.create(2, ActivityFacility.class), toCoord, NetworkUtils.getNearestLink(filteredNetwork, toCoord).getId());
 
-                    int nWaiting = 5;
+                    int nWaiting = 10;
                     int nConstant = 10; // 10;
                     int nMutt = 10;
 
@@ -135,12 +135,12 @@ public class RideFeederCalibration {
                             IntStream.range(0, nMutt).forEachOrdered(mutt_i -> {
 
 
-                                double waiting = waiting_i * 60.0 * 5;
-                                double constant = constant_i * 0.5;
-                                double mutt = mutt_i / 3600.0 * 2.0;
+                                double waiting = waiting_i / ((double) nWaiting) * 30 * 60;
+                                double constant = constant_i / ((double) nConstant) * 2.0;
+                                double mutt = mutt_i / ((double) nMutt) * 0.005;
 
                                 TransitRouter router = this.createTransitRouter(new SBBRaptorIntermodalAccessEgress(constant, mutt, waiting));
-                                List<Leg> legs = router.calcRoute(fromFacility, toFacility, Integer.parseInt(row2.get("time")), person1);
+                                List<Leg> legs = router.calcRoute(fromFacility, toFacility, Double.parseDouble(row2.get("time")), person1);
                                 int leg_id = 1;
                                 for (Leg leg : legs) {
                                     csvWriter.set("trip_id", row2.get("trip_id"));
