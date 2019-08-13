@@ -47,6 +47,15 @@ public class PrepareActivitiesInPlans {
                 Activity firstAct = activities.get(0);
                 Activity lastAct = activities.get( activities.size() - 1 );
 
+
+                for(Activity act: activities) {
+                    // if it has already been processed
+                    if (act.getType().contains("_")) {
+                        activityList.add(act.getType());
+                    }
+                }
+
+
                 for(Activity act: activities)   {
                     if(act == firstAct) continue;
                     if(act == lastAct)  {
