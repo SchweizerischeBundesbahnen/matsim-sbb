@@ -5,6 +5,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -23,6 +24,7 @@ public class PrepareCutScenario {
         Config config = RunSBB.buildConfig(inputConfig);
         adjustConfig(config, inbase);
         adjustPopulationAttributes(config);
+
 
 
         new ConfigWriter(config).write(outputConfig);
@@ -59,6 +61,11 @@ public class PrepareCutScenario {
         outsideMode.setMarginalUtilityOfDistance(0);
         outsideMode.setMonetaryDistanceRate(0);
         config.planCalcScore().addModeParams(outsideMode);
+
+        PlansCalcRouteConfigGroup.ModeRoutingParams outsideRoutingParams = new PlansCalcRouteConfigGroup.ModeRoutingParams(ScenarioCutter.OUTSIDE_LEG_MODE);
+        outsideRoutingParams.setBeelineDistanceFactor(1.3);
+        outsideRoutingParams.setTeleportedModeFreespeedFactor(2.0);
+        config.plansCalcRoute().addModeRoutingParams(outsideRoutingParams);
 
         StrategyConfigGroup.StrategySettings outsideStrategy = new StrategyConfigGroup.StrategySettings();
         outsideStrategy.setStrategyName(DefaultPlanStrategiesModule.DefaultSelector.KeepLastSelected);
