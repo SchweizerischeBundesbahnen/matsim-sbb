@@ -3,6 +3,7 @@ package ch.sbb.matsim.calibration;
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.preparation.XLSXScoringParser;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
@@ -27,16 +28,18 @@ import org.matsim.pt.PtConstants;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class RideFeederScoringCalibration {
 
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
 
-        String configPath = "\\\\k13536\\mobi\\40_Projekte\\20190701_NMD_PotentialAnalyse_quicksim\\mobi\\sim\\waiting_300\\config_with_mapped_stations_and_para.xml";
-        String xlsx = "\\\\k13536\\mobi\\40_Projekte\\20190701_NMD_PotentialAnalyse_quicksim\\inputs\\scoring\\2.0.0_ridefeeder_v2.xlsx";
+        String configPath = "\\\\k13536\\mobi\\40_Projekte\\20190701_NMD_PotentialAnalyse_quicksim\\intermodal_scoring_calibration\\config_with_mapped_stations_and_para.xml";
+        String xlsx = "\\\\k13536\\mobi\\40_Projekte\\20190701_NMD_PotentialAnalyse_quicksim\\inputs\\scoring\\2.0.0_ridefeeder_v3.xlsx";
 
         RideFeederScoringCalibration rideFeederScoringCalibration = new RideFeederScoringCalibration(configPath, xlsx);
         rideFeederScoringCalibration.read();
@@ -58,6 +61,15 @@ public class RideFeederScoringCalibration {
         config.vehicles().setVehiclesFile(null);
 
 
+        try (FileInputStream inputStream = new FileInputStream(xlsx)) {
+            Workbook workbook = WorkbookFactory.create(inputStream);
+
+            XLSXScoringParser.parseXLSXWorkbook(workbook, config);
+        } catch (IOException | InvalidFormatException e) {
+            e.printStackTrace();
+        }
+
+
         this.scenario = ScenarioUtils.loadScenario(config);
 
 
@@ -76,93 +88,99 @@ public class RideFeederScoringCalibration {
         leg.setDepartureTime(departureTime);
         leg.setTravelTime(arrivalTime - departureTime);
         LinkNetworkRouteFactory factory = new LinkNetworkRouteFactory();
-        leg.setRoute(factory.createRoute(Id.createLinkId("1"), Id.createLinkId(2)));
-        leg.getRoute().setDistance(distance);
+        NetworkRoute route = (NetworkRoute) factory.createRoute(Id.createLinkId("1"), Id.createLinkId(2));
+        route.setDistance(distance);
+        route.setTravelTime(arrivalTime-departureTime);
+        //route.setLinkIds(link1.getId(), Arrays.asList(link2.getId()), link3.getId());
+        leg.setRoute(route);
         return leg;
     }
 
 
     private void read() throws IOException {
-        String csv_path = "\\\\k13536\\mobi\\40_Projekte\\20190701_NMD_PotentialAnalyse_quicksim\\intermodal_scoring_calibration\\plans_v3.csv";
-        try (CSVReader visumVolume = new CSVReader(csv_path, ";")) {
+        String csv_path = "\\\\k13536\\mobi\\40_Projekte\\20190701_NMD_PotentialAnalyse_quicksim\\intermodal_scoring_calibration\\plans_v7.csv";
+        String output_csv_path = "\\\\k13536\\mobi\\40_Projekte\\20190701_NMD_PotentialAnalyse_quicksim\\intermodal_scoring_calibration\\plans_v7_out.csv";
 
-            Map<String, String> row;
+        try (CSVWriter csvWriter = new CSVWriter("", new String[]{"plan_id", "mode", "end_time", "score", "distance"}, output_csv_path)) {
+            try (CSVReader visumVolume = new CSVReader(csv_path, ";")) {
 
-            boolean first = true;
-            int lastPlanId = 0;
-            boolean isAct = true;
+                Map<String, String> row;
 
-            PopulationFactory pf = scenario.getPopulation().getFactory();
-            Person person1 = null;
-            Plan plan = null;
+                boolean first = true;
+                int lastPlanId = 0;
+                boolean isAct = true;
 
-            while ((row = visumVolume.readLine()) != null) {
-                int planId = Integer.valueOf(row.get("plan_id"));
+                PopulationFactory pf = scenario.getPopulation().getFactory();
+                Person person1 = null;
+                Plan plan = null;
 
-                if (lastPlanId != planId) {
-                    first = true;
-                }
+                while ((row = visumVolume.readLine()) != null) {
+                    int planId = Integer.valueOf(row.get("plan_id"));
 
-                if (first) {
-                    plan = pf.createPlan();
-                    first = false;
-                    isAct = true;
-                }
-
-
-                if (isAct) {
-                    isAct = false;
-
-                    String start = row.get("start_time");
-                    String end = row.get("end_time");
-
-                    double start_time = Time.getUndefinedTime();
-                    double end_time = Time.getUndefinedTime();
-
-                    if (!start.equals("-")) {
-                        start_time = Integer.valueOf(start);
+                    if (lastPlanId != planId) {
+                        first = true;
                     }
 
-                    if (!end.equals("-")) {
-                        end_time = Integer.valueOf(end);
-                    }
-
-                    plan.addActivity(createActivity(pf, row.get("mode"), 0, 0, start_time, end_time));
-                    if (row.get("end_time").equals("-")) {
-
-
-                        person1 = pf.createPerson(Id.create(row.get("plan_id"), Person.class));
-                        scenario.getPopulation().getPersonAttributes().putAttribute(person1.getId().toString(), "subpopulation", "regular");
-                        person1.getAttributes().putAttribute("subpopulation", "regular");
-                        person1.getAttributes().putAttribute("carAvail", "never");
-                        person1.getAttributes().putAttribute("pt_subscr", "GA");
-                        person1.getAttributes().putAttribute("empl_pct_cat", 1);
-                        person1.getAttributes().putAttribute("edu_type", 1);
-                        person1.getAttributes().putAttribute("ms_region", 99);
-                        scenario.getPopulation().addPerson(person1);
-
+                    if (first) {
+                        plan = pf.createPlan();
+                        first = false;
                         isAct = true;
-
-
-                        person1.addPlan(plan);
-                        test(person1);
                     }
 
-                } else {
-                    plan.addLeg(createLeg(pf, row.get("mode"), Integer.valueOf(row.get("start_time")), Integer.valueOf(row.get("end_time")), Integer.valueOf(row.get("distance"))));
-                    isAct = true;
+
+                    if (isAct) {
+                        isAct = false;
+
+                        String start = row.get("start_time");
+                        String end = row.get("end_time");
+
+                        double start_time = 0;
+                        double end_time = 24 * 60 * 60;
+
+                        if (!start.equals("-")) {
+                            start_time = Integer.valueOf(start);
+                        }
+
+                        if (!end.equals("-")) {
+                            end_time = Integer.valueOf(end);
+                        }
+
+                        plan.addActivity(createActivity(pf, row.get("mode"), 0, 0, start_time, end_time));
+                        if (row.get("end_time").equals("-")) {
+
+
+                            person1 = pf.createPerson(Id.create(row.get("plan_id"), Person.class));
+                            scenario.getPopulation().getPersonAttributes().putAttribute(person1.getId().toString(), "subpopulation", "regular");
+                            person1.getAttributes().putAttribute("subpopulation", "regular");
+                            person1.getAttributes().putAttribute("carAvail", "never");
+                            person1.getAttributes().putAttribute("pt_subscr", "GA");
+                            person1.getAttributes().putAttribute("empl_pct_cat", 1);
+                            person1.getAttributes().putAttribute("edu_type", 1);
+                            person1.getAttributes().putAttribute("ms_region", 99);
+                            scenario.getPopulation().addPerson(person1);
+
+                            isAct = true;
+
+
+                            person1.addPlan(plan);
+                            test(person1, csvWriter);
+                        }
+
+                    } else {
+                        plan.addLeg(createLeg(pf, row.get("mode"), Integer.valueOf(row.get("start_time")), Integer.valueOf(row.get("end_time")), Integer.valueOf(row.get("distance"))));
+                        isAct = true;
+                    }
+
+
+                    lastPlanId = planId;
+
                 }
-
-
-                lastPlanId = planId;
-
-
             }
         }
     }
 
 
-    private void test(Person person) {
+    private void test(Person person, CSVWriter csvWriter) {
 
         Plan plan = person.getSelectedPlan();
 
@@ -173,14 +191,31 @@ public class RideFeederScoringCalibration {
 
         SBBScoringFunctionFactory factory = new SBBScoringFunctionFactory(scenario);
         ScoringFunction sf = factory.createNewScoringFunction(person);
+        String mode = "";
+        double distance = 0;
+        double end_time = 0;
         for (PlanElement pe : plan.getPlanElements()) {
             if (pe instanceof Leg) {
                 sf.handleLeg((Leg) pe);
+                Leg leg = (Leg) pe;
+                mode = leg.getMode();
+                distance = leg.getRoute().getDistance();
+                end_time = leg.getDepartureTime() + leg.getTravelTime();
             } else {
 
                 sf.handleActivity((Activity) pe);
+                mode = ((Activity) pe).getType();
+                distance = 0;
+                end_time = ((Activity) pe).getEndTime();
             }
             System.out.println(sf.getScore() + " " + pe.toString());
+
+            csvWriter.set("plan_id", person.getId().toString());
+            csvWriter.set("mode", mode);
+            csvWriter.set("end_time", String.valueOf(end_time));
+            csvWriter.set("score", String.valueOf(sf.getScore()));
+            csvWriter.set("distance", String.valueOf(distance));
+            csvWriter.writeRow();
         }
 
         TripStructureUtils.Trip trip = trips.get(0);
