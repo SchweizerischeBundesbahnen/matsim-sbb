@@ -15,9 +15,7 @@ public class Intermodal {
         log.info("Prepare network for intermodal routing");
         for (Link link : network.getLinks().values()) {
             if (link.getAllowedModes().contains(TransportMode.car)) {
-                Set<String> allowedModes = new HashSet<>();
-                for (String mode : link.getAllowedModes())
-                    allowedModes.add(mode);
+                Set<String> allowedModes = new HashSet<>(link.getAllowedModes());
                 allowedModes.add(newMode);
                 link.setAllowedModes(allowedModes);
             }

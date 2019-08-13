@@ -2,6 +2,7 @@ package ch.sbb.matsim.calibration;
 
 
 import ch.sbb.matsim.RunSBB;
+import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
@@ -139,8 +140,14 @@ public class RideFeederCalibration {
                                 double constant = constant_i / ((double) nConstant) * 2.0;
                                 double mutt = mutt_i / ((double) nMutt) * 0.005;
 
+<<<<<<< HEAD
                                 TransitRouter router = this.createTransitRouter(new SBBRaptorIntermodalAccessEgress(constant, mutt, waiting));
                                 List<Leg> legs = router.calcRoute(fromFacility, toFacility, Double.parseDouble(row2.get("time")), person1);
+=======
+                                List<SBBIntermodalModeParameterSet> modeParams = Collections.singletonList(new SBBIntermodalModeParameterSet("ride_feeder", (int) waiting, constant, mutt, 1.3));
+                                TransitRouter router = this.createTransitRouter(new SBBRaptorIntermodalAccessEgress(modeParams));
+                                List<Leg> legs = router.calcRoute(fromFacility, toFacility, Integer.parseInt(row2.get("time")), person1);
+>>>>>>> 595f7725b91a1bca58d0708d344668de2a3b1dc8
                                 int leg_id = 1;
                                 for (Leg leg : legs) {
                                     csvWriter.set("trip_id", row2.get("trip_id"));
