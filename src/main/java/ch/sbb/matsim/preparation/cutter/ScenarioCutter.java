@@ -22,6 +22,7 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkChangeEventsWriter;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.population.routes.GenericRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.util.TravelTime;
@@ -961,18 +962,10 @@ public class ScenarioCutter {
                 toAct = (Activity) pe;
                 toActInside = ctx.extendedExtent.isInside(toAct.getCoord());
                 if (toActInside && toAct.getLinkId() != null) {
-                    if (ctx.dest.getNetwork().getLinks().containsKey(toAct.getLinkId())) {
+                    if (!ctx.dest.getNetwork().getLinks().containsKey(toAct.getLinkId())) {
                         toAct.setLinkId(NetworkUtils.getNearestLink(ctx.dest.getNetwork(), toAct.getCoord()).getId());
                     }
                 }
-                if (toActInside) {
-                    if (toAct.getLinkId() != null) {
-                        if (!ctx.dest.getNetwork().getLinks().containsKey(toAct.getLinkId())) {
-                            toAct.setLinkId(null);
-                        }
-                    }
-                }
-
 
                 if (leg != null) {
                     if (!fromActInside && !toActInside) {
@@ -993,7 +986,40 @@ public class ScenarioCutter {
             }
         }
         removeEndTimesFromInteractionActivities(plan);
+        rematchInvalidTeleportRoutes(plan);
         return plan;
+    }
+
+
+    private void rematchInvalidTeleportRoutes(Plan plan) {
+        Id<Link> lastLinkId = null;
+        Leg lastLeg = null;
+        for (PlanElement planElement : plan.getPlanElements()) {
+            if (planElement instanceof Leg) {
+                lastLeg = (Leg) planElement;
+            } else if (planElement instanceof Activity) {
+                Activity activity = (Activity) planElement;
+                if (lastLinkId != null) {
+                    boolean changed = false;
+                    if (!lastLeg.getRoute().getStartLinkId().equals(lastLinkId)) {
+                        lastLeg.getRoute().setStartLinkId(lastLinkId);
+                        changed = true;
+                    }
+                    if (!lastLeg.getRoute().getEndLinkId().equals(activity.getLinkId())) {
+                        lastLeg.getRoute().setEndLinkId(activity.getLinkId());
+                        changed = true;
+                    }
+                    if (changed) {
+                        if (!(lastLeg.getRoute() instanceof GenericRouteImpl)) {
+                            lastLeg.setRoute(null);
+                        }
+                    }
+
+                }
+                lastLinkId = activity.getLinkId();
+            }
+        }
+
     }
 
     private Leg createOutsideLeg(CutContext ctx, Id<Link> startLinkId, Id<Link> endLinkId) {
