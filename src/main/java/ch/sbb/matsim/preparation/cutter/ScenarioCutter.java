@@ -142,7 +142,7 @@ public class ScenarioCutter {
 
         log.info("Cutting scenario...");
         Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, networkExtent, travelTime, scenarioSampleSize);
-
+        adjustSubpopulation(cutScenario);
         log.info("Writing cut scenario...");
 
         new NetworkWriter(cutScenario.getNetwork()).write(new File(outputDir, "network.xml.gz").getAbsolutePath());
@@ -157,6 +157,14 @@ public class ScenarioCutter {
 
         writeMissingDemand(new File(outputDir, "missingDemand.csv"), cutScenario);
 
+    }
+
+    private static void adjustSubpopulation(Scenario cutScenario) {
+        cutScenario.getPopulation().getPersons().values().stream()
+                .filter(ScenarioCutter.isCut())
+                .forEach(person ->
+                        cutScenario.getPopulation().getPersonAttributes()
+                                .putAttribute(person.getId().toString(), "subpopulation", ScenarioCutter.OUTSIDE_AGENT_SUBPOP));
     }
 
     public static void main(String[] args) throws IOException {
@@ -766,11 +774,10 @@ public class ScenarioCutter {
     }
 
     private void cutPersons(CutContext ctx) {
-        for (Person p : ctx.source.getPopulation().getPersons().values()) {
-            if (ctx.relevantPersons.containsKey(p.getId())) {
-                usePerson(ctx, p);
-            }
-        }
+        ctx.source.getPopulation().getPersons().values()
+                .parallelStream()
+                .filter(p -> ctx.relevantPersons.containsKey(p.getId()))
+                .forEach(p -> usePerson(ctx, p));
     }
 
     private boolean isNodeInsideNetworkExtent(CutContext ctx, Node node) {
