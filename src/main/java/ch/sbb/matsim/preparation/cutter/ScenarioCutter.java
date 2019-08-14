@@ -986,12 +986,12 @@ public class ScenarioCutter {
             }
         }
         removeEndTimesFromInteractionActivities(plan);
-        rematchInvalidTeleportRoutes(plan);
+        rematchInvalidTeleportRoutes(plan, ctx);
         return plan;
     }
 
 
-    private void rematchInvalidTeleportRoutes(Plan plan) {
+    private void rematchInvalidTeleportRoutes(Plan plan, CutContext ctx) {
         Id<Link> lastLinkId = null;
         Leg lastLeg = null;
         for (PlanElement planElement : plan.getPlanElements()) {
@@ -999,24 +999,27 @@ public class ScenarioCutter {
                 lastLeg = (Leg) planElement;
             } else if (planElement instanceof Activity) {
                 Activity activity = (Activity) planElement;
-                if (lastLinkId != null) {
+                //source facilities, filtering happens later
+                Id<Link> toLink = activity.getLinkId() == null ? ctx.source.getActivityFacilities().getFacilities().get(activity.getFacilityId()).getLinkId() : activity.getLinkId();
+                if (lastLinkId != null && toLink != null) {
                     boolean changed = false;
                     if (!lastLeg.getRoute().getStartLinkId().equals(lastLinkId)) {
                         lastLeg.getRoute().setStartLinkId(lastLinkId);
                         changed = true;
                     }
-                    if (!lastLeg.getRoute().getEndLinkId().equals(activity.getLinkId())) {
-                        lastLeg.getRoute().setEndLinkId(activity.getLinkId());
+                    if (!lastLeg.getRoute().getEndLinkId().equals(toLink)) {
+                        lastLeg.getRoute().setEndLinkId(toLink);
                         changed = true;
                     }
                     if (changed) {
+
                         if (!(lastLeg.getRoute() instanceof GenericRouteImpl)) {
                             lastLeg.setRoute(null);
                         }
                     }
 
                 }
-                lastLinkId = activity.getLinkId();
+                lastLinkId = toLink;
             }
         }
 
