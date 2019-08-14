@@ -849,9 +849,23 @@ public class ScenarioCutter {
             }
         }
         removeEndTimesFromInteractionActivities(plan);
-
+        renameInitialOrFinalInteractions(plan);
 
         return plan;
+    }
+
+    private void renameInitialOrFinalInteractions(Plan plan) {
+        Activity first = (Activity) plan.getPlanElements().get(0);
+        Activity last = (Activity) plan.getPlanElements().get(plan.getPlanElements().size() - 1);
+        renameInteractionActivity(first);
+        renameInteractionActivity(last);
+
+    }
+
+    private void renameInteractionActivity(Activity act) {
+        if (SBBActivities.stageActivityTypeList.contains(act.getType())) {
+            act.setType(OUTSIDE_ACT_TYPE);
+        }
     }
 
 
