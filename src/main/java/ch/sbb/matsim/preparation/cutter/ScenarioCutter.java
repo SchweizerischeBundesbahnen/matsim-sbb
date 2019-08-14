@@ -22,7 +22,6 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkChangeEventsWriter;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.population.routes.GenericRouteImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.util.TravelTime;
@@ -679,6 +678,22 @@ public class ScenarioCutter {
 
     }
 
+    private boolean planWasCut(Plan plan) {
+        for (PlanElement pe : plan.getPlanElements()) {
+            if (pe instanceof Activity) {
+                if (((Activity) pe).getType().equals(OUTSIDE_ACT_TYPE)) {
+                    return true;
+                }
+            }
+            if (pe instanceof Leg) {
+                if (((Leg) pe).getMode().equals(OUTSIDE_LEG_MODE)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
 
@@ -783,66 +798,57 @@ public class ScenarioCutter {
         writeMissingDemand(new File(outputDir, "missingDemand.csv"), cutScenario);
     }
 
-    private boolean planWasCut(Plan plan) {
-        for (PlanElement pe : plan.getPlanElements()) {
-            if (pe instanceof Activity) {
-                if (((Activity) pe).getType().equals(OUTSIDE_ACT_TYPE)) {
-                    return true;
-                }
-            }
-            if (pe instanceof Leg) {
-                if (((Leg) pe).getMode().equals(OUTSIDE_LEG_MODE)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     public static Predicate<Person> isCut() {
         return person -> person.getAttributes().getAsMap().containsKey(ScenarioCutter.CUT_ATTRIBUTE) && (boolean) person.getAttributes().getAttribute(ScenarioCutter.CUT_ATTRIBUTE);
     }
 
-    private void usePerson(CutContext ctx, Person srcP) {
-        Thread.currentThread().setName("Person " + srcP.getId());
-        Person destP = ctx.dest.getPopulation().getFactory().createPerson(srcP.getId());
-        AttributesUtils.copyAttributesFromTo(srcP, destP);
-        ObjectAttributesUtils.copyAllAttributes(ctx.source.getPopulation().getPersonAttributes(), ctx.dest.getPopulation().getPersonAttributes(), srcP.getId().toString());
-        Plan plan = cutPlan(ctx, destP, srcP.getSelectedPlan());
-        modifyLoneSomeAccessEgressWalks(plan);
-        if (planWasCut(plan)) {
-            ctx.cutPersons.put(destP.getId(), destP);
-            destP.getAttributes().putAttribute(CUT_ATTRIBUTE, true);
-        }
-        ctx.dest.getPopulation().addPerson(destP);
-    }
+    private Plan cutPlan(CutContext ctx, Person destPerson, Plan srcPlan) {
+        approximateEndtimesForInteractionActivities(srcPlan);
 
-    /**
-     * These may occur if an activity is inside, but its interaction activity is outside
-     *
-     * @param plan
-     */
-    private void modifyLoneSomeAccessEgressWalks(Plan plan) {
+        Activity fromAct;
+        Activity toAct = null;
+        Leg leg = null;
+        boolean fromActInside;
+        boolean toActInside = false;
+        boolean legInside;
 
-        Activity previousAct = null;
-        Leg previousLeg = null;
-        for (PlanElement planElement : plan.getPlanElements()) {
-            if (planElement instanceof Activity) {
-                Activity current = (Activity) planElement;
-                if (previousAct != null) {
-                    if (!previousAct.getType().endsWith("interaction") && !current.getType().endsWith("interaction")) {
-                        if (previousLeg.getMode().equals(TransportMode.access_walk) || previousLeg.getMode().equals(TransportMode.egress_walk)) {
-                            previousLeg.setMode(TransportMode.walk);
-                        }
+        Plan plan = ctx.dest.getPopulation().getFactory().createPlan();
+        destPerson.addPlan(plan);
+
+        List<PlanElement> srcPlanElements = srcPlan.getPlanElements();
+        AgentState state = new AgentState();
+        for (PlanElement pe : srcPlanElements) {
+            if (pe instanceof Activity) {
+                fromAct = toAct;
+                fromActInside = toActInside;
+
+                toAct = (Activity) pe;
+                toActInside = ctx.extendedExtent.isInside(toAct.getCoord());
+
+                if (leg != null) {
+                    if (!fromActInside && !toActInside) {
+                        state.reset();
+                        calcStateExtendedByRoute(ctx, state, leg.getRoute());
+                        legInside = state.hasInside;
+                    } else {
+                        legInside = true; // leg must be inside when either fromAct or toAct are inside
                     }
 
+                    if (fromActInside || toActInside || legInside) {
+                        addLegToPlan(ctx, plan, fromAct, fromActInside, leg, toAct, toActInside);
+                    }
                 }
-                previousAct = current;
-            } else if (planElement instanceof Leg) {
-                previousLeg = (Leg) planElement;
+            }
+            if (pe instanceof Leg) {
+                leg = (Leg) pe;
             }
         }
+        removeEndTimesFromInteractionActivities(plan);
+
+
+        return plan;
     }
+
 
     private void addLegToPlan(CutContext ctx, Plan plan, Activity fromAct, boolean fromActInside, Leg leg, Activity toAct, boolean toActInside) {
         Route route = leg.getRoute();
@@ -938,91 +944,21 @@ public class ScenarioCutter {
         return (Activity) elements.get(elements.size() - 1);
     }
 
-    private Plan cutPlan(CutContext ctx, Person destPerson, Plan srcPlan) {
-
-        approximateEndtimesForInteractionActivities(srcPlan);
-
-        Activity fromAct;
-        Activity toAct = null;
-        Leg leg = null;
-        boolean fromActInside;
-        boolean toActInside = false;
-        boolean legInside;
-
-        Plan plan = ctx.dest.getPopulation().getFactory().createPlan();
-        destPerson.addPlan(plan);
-
-        List<PlanElement> srcPlanElements = srcPlan.getPlanElements();
-        AgentState state = new AgentState();
-        for (PlanElement pe : srcPlanElements) {
-            if (pe instanceof Activity) {
-                fromAct = toAct;
-                fromActInside = toActInside;
-
-                toAct = (Activity) pe;
-                toActInside = ctx.extendedExtent.isInside(toAct.getCoord());
-                if (toActInside && toAct.getLinkId() != null) {
-                    if (!ctx.dest.getNetwork().getLinks().containsKey(toAct.getLinkId())) {
-                        toAct.setLinkId(NetworkUtils.getNearestLink(ctx.dest.getNetwork(), toAct.getCoord()).getId());
-                    }
-                }
-
-                if (leg != null) {
-                    if (!fromActInside && !toActInside) {
-                        state.reset();
-                        calcStateExtendedByRoute(ctx, state, leg.getRoute());
-                        legInside = state.hasInside;
-                    } else {
-                        legInside = true; // leg must be inside when either fromAct or toAct are inside
-                    }
-
-                    if (fromActInside || toActInside || legInside) {
-                        addLegToPlan(ctx, plan, fromAct, fromActInside, leg, toAct, toActInside);
-                    }
-                }
-            }
-            if (pe instanceof Leg) {
-                leg = (Leg) pe;
-            }
-        }
-        removeEndTimesFromInteractionActivities(plan);
-        rematchInvalidTeleportRoutes(plan, ctx);
-        return plan;
-    }
-
-
-    private void rematchInvalidTeleportRoutes(Plan plan, CutContext ctx) {
-        Id<Link> lastLinkId = null;
-        Leg lastLeg = null;
-        for (PlanElement planElement : plan.getPlanElements()) {
-            if (planElement instanceof Leg) {
-                lastLeg = (Leg) planElement;
-            } else if (planElement instanceof Activity) {
+    private void approximateEndtimesForInteractionActivities(Plan srcPlan) {
+        double lastKnownActivityEndTime = Double.NaN;
+        double timePassed = 0.0;
+        for (PlanElement planElement : srcPlan.getPlanElements()) {
+            if (planElement instanceof Activity) {
                 Activity activity = (Activity) planElement;
-                //source facilities, filtering happens later
-                Id<Link> toLink = activity.getLinkId() == null ? ctx.source.getActivityFacilities().getFacilities().get(activity.getFacilityId()).getLinkId() : activity.getLinkId();
-                if (lastLinkId != null && toLink != null) {
-                    boolean changed = false;
-                    if (!lastLeg.getRoute().getStartLinkId().equals(lastLinkId)) {
-                        lastLeg.getRoute().setStartLinkId(lastLinkId);
-                        changed = true;
-                    }
-                    if (!lastLeg.getRoute().getEndLinkId().equals(toLink)) {
-                        lastLeg.getRoute().setEndLinkId(toLink);
-                        changed = true;
-                    }
-                    if (changed) {
-
-                        if (!(lastLeg.getRoute() instanceof GenericRouteImpl)) {
-                            lastLeg.setRoute(null);
-                        }
-                    }
-
+                if (!Time.isUndefinedTime(activity.getMaximumDuration())) {
+                    activity.setEndTime(lastKnownActivityEndTime + timePassed + activity.getMaximumDuration());
                 }
-                lastLinkId = toLink;
+                lastKnownActivityEndTime = activity.getEndTime();
+                timePassed = 0.0;
+            } else if (planElement instanceof Leg) {
+                timePassed += ((Leg) planElement).getTravelTime();
             }
         }
-
     }
 
     private Leg createOutsideLeg(CutContext ctx, Id<Link> startLinkId, Id<Link> endLinkId) {
@@ -1336,21 +1272,18 @@ public class ScenarioCutter {
         return newAct;
     }
 
-    private void approximateEndtimesForInteractionActivities(Plan srcPlan) {
-        double lastKnownActivityEndTime = Double.NaN;
-        double timePassed = 0.0;
-        for (PlanElement planElement : srcPlan.getPlanElements()) {
-            if (planElement instanceof Activity) {
-                Activity activity = (Activity) planElement;
-                if (!Time.isUndefinedTime(activity.getMaximumDuration())) {
-                    activity.setEndTime(lastKnownActivityEndTime + timePassed + activity.getMaximumDuration());
-                }
-                lastKnownActivityEndTime = activity.getEndTime();
-                timePassed = 0.0;
-            } else if (planElement instanceof Leg) {
-                timePassed += ((Leg) planElement).getTravelTime();
-            }
+    private Id<Link> getLinkId(CutContext ctx, Activity act) {
+        Id<Link> linkId = act.getLinkId();
+        Coord coord = act.getCoord();
+        if (linkId == null) {
+            ActivityFacility fac = ctx.source.getActivityFacilities().getFacilities().get(act.getFacilityId());
+            coord = fac.getCoord();
+            linkId = fac.getLinkId();
         }
+        if (linkId == null) {
+            linkId = NetworkUtils.getNearestLink(ctx.source.getNetwork(), coord).getId();
+        }
+        return linkId;
     }
 
     private boolean hasOutsideLinks(CutContext ctx, NetworkRoute route) {
@@ -1514,46 +1447,24 @@ public class ScenarioCutter {
         }
     }
 
-    private Id<Link> getLinkId(CutContext ctx, Activity act) {
-
-        Id<Link> linkId = act.getLinkId();
-        Coord coord = act.getCoord();
-        if (linkId == null) {
-            ActivityFacility fac = ctx.source.getActivityFacilities().getFacilities().get(act.getFacilityId());
-            coord = fac.getCoord();
-            linkId = fac.getLinkId();
-        }
-        if (linkId != null) {
-            if (!ctx.dest.getNetwork().getLinks().containsKey(linkId)) {
-                linkId = null;
-            }
-        }
-        if (linkId == null) {
-            linkId = NetworkUtils.getNearestLink(ctx.dest.getNetwork(), coord).getId();
-        }
-        return linkId;
+    private Activity createOutsideActivity(CutContext ctx, Id<Link> linkId, double endTime) {
+        Link link = ctx.dest.getNetwork().getLinks().get(linkId);
+        Activity newAct = PopulationUtils.createActivityFromCoordAndLinkId(OUTSIDE_ACT_TYPE, link.getCoord(), linkId);
+        newAct.setEndTime(endTime);
+        return newAct;
     }
 
-    private double calcDelay(CutContext ctx, NetworkRoute fullRoute, NetworkRoute shortenedRoute, double departureTime, Person p) {
-        if (Time.isUndefinedTime(departureTime)) {
-            departureTime = 10 * 3600;
-            //FIXME: What is a good alternative if we have durations rather than departure times?
+    private void usePerson(CutContext ctx, Person srcP) {
+        Thread.currentThread().setName("Person " + srcP.getId());
+        Person destP = ctx.dest.getPopulation().getFactory().createPerson(srcP.getId());
+        AttributesUtils.copyAttributesFromTo(srcP, destP);
+        ObjectAttributesUtils.copyAllAttributes(ctx.source.getPopulation().getPersonAttributes(), ctx.dest.getPopulation().getPersonAttributes(), srcP.getId().toString());
+        Plan plan = cutPlan(ctx, destP, srcP.getSelectedPlan());
+        if (planWasCut(plan)) {
+            ctx.cutPersons.put(destP.getId(), destP);
+            destP.getAttributes().putAttribute(CUT_ATTRIBUTE, true);
         }
-        double delay = 0;
-        Id<Link> startLinkId = shortenedRoute.getStartLinkId();
-        if (fullRoute.getStartLinkId().equals(startLinkId)) {
-            return delay;
-        }
-        delay += 2; // the first link is not travelled in QSim, only the to-node has to be crossed, assume 2 seconds
-        Network sourceNetwork = ctx.source.getNetwork();
-        for (Id<Link> linkId : fullRoute.getLinkIds()) {
-            if (linkId.equals(startLinkId)) {
-                return delay;
-            }
-            Link link = sourceNetwork.getLinks().get(linkId);
-            delay += ctx.travelTime.getLinkTravelTime(link, departureTime + delay, p, null);
-        }
-        return delay;
+        ctx.dest.getPopulation().addPerson(destP);
     }
     private static void simpleCleanNetwork(Network network) {
         List<Node> emptyNodes = new ArrayList<>();
@@ -1597,14 +1508,25 @@ public class ScenarioCutter {
         }
     }
 
-    private Activity createOutsideActivity(CutContext ctx, Id<Link> linkId, double endTime) {
-        if (Time.isUndefinedTime(endTime)) {
-            log.info(endTime);
+    private double calcDelay(CutContext ctx, NetworkRoute fullRoute, NetworkRoute shortenedRoute, double departureTime, Person p) {
+        if (Time.isUndefinedTime(departureTime)) {
+            throw new RuntimeException("Departure Time is not provided / undefined, but required for travel time calculations");
         }
-        Link link = ctx.dest.getNetwork().getLinks().get(linkId);
-        Activity newAct = PopulationUtils.createActivityFromCoordAndLinkId(OUTSIDE_ACT_TYPE, link.getCoord(), linkId);
-        newAct.setEndTime(endTime);
-        return newAct;
+        double delay = 0;
+        Id<Link> startLinkId = shortenedRoute.getStartLinkId();
+        if (fullRoute.getStartLinkId().equals(startLinkId)) {
+            return delay;
+        }
+        delay += 2; // the first link is not travelled in QSim, only the to-node has to be crossed, assume 2 seconds
+        Network sourceNetwork = ctx.source.getNetwork();
+        for (Id<Link> linkId : fullRoute.getLinkIds()) {
+            if (linkId.equals(startLinkId)) {
+                return delay;
+            }
+            Link link = sourceNetwork.getLinks().get(linkId);
+            delay += ctx.travelTime.getLinkTravelTime(link, departureTime + delay, p, null);
+        }
+        return delay;
     }
 }
 
