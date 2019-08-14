@@ -113,7 +113,7 @@ public class ScenarioCutter {
         new VehicleReaderV1(scenario.getTransitVehicles()).readFile(outputPrefix + "output_transitVehicles.xml.gz");
         BetterPopulationReader.readSelectedPlansOnly(scenario, new File(outputPrefix + "output_plans.xml.gz"));
         new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(outputPrefix + "output_personAttributes.xml.gz");
-
+        new VehicleReaderV1(scenario.getVehicles()).readFile(outputPrefix + "output_vehicles.xml.gz");
         new MatsimFacilitiesReader(scenario).readFile(outputPrefix + "output_facilities.xml.gz");
 
         log.info("clean network");
@@ -148,6 +148,7 @@ public class ScenarioCutter {
         new NetworkWriter(cutScenario.getNetwork()).write(new File(outputDir, "network.xml.gz").getAbsolutePath());
         new PopulationWriter(cutScenario.getPopulation()).write(new File(outputDir, "population.xml.gz").getAbsolutePath());
         new VehicleWriterV1(cutScenario.getTransitVehicles()).writeFile(new File(outputDir, "transitVehicles.xml.gz").getAbsolutePath());
+        new VehicleWriterV1(cutScenario.getVehicles()).writeFile(new File(outputDir, "vehicles.xml.gz").getAbsolutePath());
         new TransitScheduleWriter(cutScenario.getTransitSchedule()).writeFile(new File(outputDir, "schedule.xml.gz").getAbsolutePath());
         new ObjectAttributesXmlWriter(cutScenario.getPopulation().getPersonAttributes()).writeFile(new File(outputDir, "personAttributes.xml.gz").getAbsolutePath());
         new FacilitiesWriter(cutScenario.getActivityFacilities()).write(new File(outputDir, "facilities.xml.gz").getAbsolutePath());
@@ -507,10 +508,16 @@ public class ScenarioCutter {
 
         calcNetworkCapacityChanges(ctx, demandFactor);
         filterFacilities(ctx);
-
+        copyVehicleTypes(ctx);
         printStats(ctx);
 
         return ctx.dest;
+    }
+
+    private void copyVehicleTypes(CutContext ctx) {
+        ctx.source.getVehicles().getVehicleTypes().values().stream()
+                .forEach(vehicleType -> ctx.dest.getVehicles().addVehicleType(vehicleType));
+
     }
 
     private void copyLink(Link link, Network dest) {
