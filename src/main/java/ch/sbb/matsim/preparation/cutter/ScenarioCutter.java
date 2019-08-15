@@ -1003,7 +1003,7 @@ public class ScenarioCutter {
         for (PlanElement planElement : srcPlan.getPlanElements()) {
             if (planElement instanceof Activity) {
                 Activity activity = (Activity) planElement;
-                if (!Time.isUndefinedTime(activity.getMaximumDuration())) {
+                if (Time.isUndefinedTime(activity.getEndTime())) {
                     activity.setEndTime(lastKnownActivityEndTime + timePassed + activity.getMaximumDuration());
                 }
                 lastKnownActivityEndTime = activity.getEndTime();
