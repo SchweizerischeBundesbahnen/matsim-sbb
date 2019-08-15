@@ -142,7 +142,7 @@ public class ScenarioCutter {
 
         log.info("Cutting scenario...");
         Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, networkExtent, travelTime, scenarioSampleSize);
-        adjustSubpopulation(cutScenario);
+
         log.info("Writing cut scenario...");
 
         new NetworkWriter(cutScenario.getNetwork()).write(new File(outputDir, "network.xml.gz").getAbsolutePath());
@@ -158,14 +158,6 @@ public class ScenarioCutter {
 
         writeMissingDemand(new File(outputDir, "missingDemand.csv"), cutScenario);
 
-    }
-
-    private static void adjustSubpopulation(Scenario cutScenario) {
-        cutScenario.getPopulation().getPersons().values().stream()
-                .filter(ScenarioCutter.isCut())
-                .forEach(person ->
-                        cutScenario.getPopulation().getPersonAttributes()
-                                .putAttribute(person.getId().toString(), "subpopulation", ScenarioCutter.OUTSIDE_AGENT_SUBPOP));
     }
 
     public static void main(String[] args) throws IOException {
@@ -782,7 +774,7 @@ public class ScenarioCutter {
 
     private void cutPersons(CutContext ctx) {
         ctx.source.getPopulation().getPersons().values()
-                .parallelStream()
+                .stream()
                 .filter(p -> ctx.relevantPersons.containsKey(p.getId()))
                 .forEach(p -> usePerson(ctx, p));
     }
@@ -864,9 +856,37 @@ public class ScenarioCutter {
         }
         removeEndTimesFromInteractionActivities(plan);
         renameInitialOrFinalInteractions(plan);
-
+        modifyLoneSomeAccessEgressWalks(plan);
         return plan;
     }
+
+    /**
+     * These may occur if an activity is inside, but its interaction activity is outside
+     *
+     * @param plan
+     */
+    private void modifyLoneSomeAccessEgressWalks(Plan plan) {
+
+        Activity previousAct = null;
+        Leg previousLeg = null;
+        for (PlanElement planElement : plan.getPlanElements()) {
+            if (planElement instanceof Activity) {
+                Activity current = (Activity) planElement;
+                if (previousAct != null) {
+                    if (!previousAct.getType().endsWith("interaction") && !current.getType().endsWith("interaction")) {
+                        if (previousLeg.getMode().equals(TransportMode.access_walk) || previousLeg.getMode().equals(TransportMode.egress_walk)) {
+                            previousLeg.setMode(TransportMode.walk);
+                        }
+                    }
+
+                }
+                previousAct = current;
+            } else if (planElement instanceof Leg) {
+                previousLeg = (Leg) planElement;
+            }
+        }
+    }
+
 
     private void renameInitialOrFinalInteractions(Plan plan) {
         Activity first = (Activity) plan.getPlanElements().get(0);
@@ -1499,6 +1519,7 @@ public class ScenarioCutter {
         if (planWasCut(plan)) {
             ctx.cutPersons.put(destP.getId(), destP);
             destP.getAttributes().putAttribute(CUT_ATTRIBUTE, true);
+            ctx.dest.getPopulation().getPersonAttributes().putAttribute(destP.getId().toString(), "subpopulation", OUTSIDE_AGENT_SUBPOP);
         }
         ctx.dest.getPopulation().addPerson(destP);
     }

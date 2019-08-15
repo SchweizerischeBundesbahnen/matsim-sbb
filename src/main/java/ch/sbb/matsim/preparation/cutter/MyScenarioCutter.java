@@ -24,7 +24,7 @@ public class MyScenarioCutter {
         CutExtent network = new ShapeExtent(ZonesLoader.loadZones
                 ("id", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-network.shp", "ID"));
 
-        ScenarioCutter.run("\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output", "CH.10pct.2016", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190812_thun_10pct\\input\\", 1.0, false, inside, outside, network);
+        ScenarioCutter.run("\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output", "CH.10pct.2016", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190812_thun_10pct\\input\\", 1.0, true, inside, outside, network);
 
         Config config = RunSBB.buildConfig(inputConfig);
         adjustConfig(config, inbase);
