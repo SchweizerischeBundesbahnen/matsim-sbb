@@ -53,11 +53,19 @@ public class MyScenarioCutter {
 
         config.counts().setInputFile(null);
 
+        // fix cut plans (no innovation, scoring parameters do not matter)
         PlanCalcScoreConfigGroup.ActivityParams outsideParams = new PlanCalcScoreConfigGroup.ActivityParams(ScenarioCutter.OUTSIDE_ACT_TYPE);
         outsideParams.setTypicalDuration(3600);
         outsideParams.setScoringThisActivityAtAll(false);
         config.planCalcScore().addActivityParams(outsideParams);
 
+        StrategyConfigGroup.StrategySettings outsideStrategy = new StrategyConfigGroup.StrategySettings();
+        outsideStrategy.setStrategyName(DefaultPlanStrategiesModule.DefaultSelector.KeepLastSelected);
+        outsideStrategy.setWeight(1.0);
+        outsideStrategy.setSubpopulation(ScenarioCutter.OUTSIDE_AGENT_SUBPOP);
+        config.strategy().addStrategySettings(outsideStrategy);
+
+        //these values are not required, but neccessary for the simulation to run
         PlanCalcScoreConfigGroup.ModeParams outsideMode = new PlanCalcScoreConfigGroup.ModeParams(ScenarioCutter.OUTSIDE_LEG_MODE);
         outsideMode.setMarginalUtilityOfTraveling(0);
         outsideMode.setConstant(0);
@@ -70,11 +78,6 @@ public class MyScenarioCutter {
         outsideRoutingParams.setTeleportedModeFreespeedFactor(2.0);
         config.plansCalcRoute().addModeRoutingParams(outsideRoutingParams);
 
-        StrategyConfigGroup.StrategySettings outsideStrategy = new StrategyConfigGroup.StrategySettings();
-        outsideStrategy.setStrategyName(DefaultPlanStrategiesModule.DefaultSelector.KeepLastSelected);
-        outsideStrategy.setWeight(1.0);
-        outsideStrategy.setSubpopulation(ScenarioCutter.OUTSIDE_AGENT_SUBPOP);
-        config.strategy().addStrategySettings(outsideStrategy);
     }
 
 
