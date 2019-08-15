@@ -25,8 +25,11 @@ public class MyScenarioCutter {
                 ("id", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-network.shp", "ID"));
 
         ScenarioCutter.run("\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output", "CH.10pct.2016", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190812_thun_10pct\\input\\", 1.0, true, inside, outside, network);
+        String newRunId = "thuncut";
+
 
         Config config = RunSBB.buildConfig(inputConfig);
+        config.controler().setRunId(newRunId);
         adjustConfig(config, inbase);
         new ConfigWriter(config).write(outputConfig);
 
