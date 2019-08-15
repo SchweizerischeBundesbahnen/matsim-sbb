@@ -1,11 +1,11 @@
 package ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines;
 
+import ch.sbb.matsim.analysis.EventsAnalysis;
 import ch.sbb.matsim.analysis.LinkAnalyser.LinkAnalyser;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.core.events.algorithms.EventWriter;
 
-public class ScreenLineEventWriter extends LinkAnalyser implements EventWriter {
+public class ScreenLineEventWriter extends LinkAnalyser implements EventsAnalysis {
     private final static Logger log = Logger.getLogger(ScreenLineEventWriter.class);
 
     double scale;
@@ -21,7 +21,7 @@ public class ScreenLineEventWriter extends LinkAnalyser implements EventWriter {
 
 
     @Override
-    public void closeFile() {
+    public void writeResults() {
         this.writeScreenLines(this.shapefilee, this.folder, this.scale);
     }
 
