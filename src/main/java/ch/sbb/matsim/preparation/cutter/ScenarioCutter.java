@@ -854,10 +854,22 @@ public class ScenarioCutter {
                 leg = (Leg) pe;
             }
         }
-        removeEndTimesFromInteractionActivities(plan);
         renameInitialOrFinalInteractions(plan);
+        removeEndTimesFromInteractionActivities(plan);
+        removeDurationWhenBothAreSet(plan);
         modifyLoneSomeAccessEgressWalks(plan);
         return plan;
+    }
+
+    private void removeDurationWhenBothAreSet(Plan plan) {
+        plan.getPlanElements().stream()
+                .filter(Activity.class::isInstance)
+                .forEach(a -> {
+                    Activity activity = (Activity) a;
+                    if (!Time.isUndefinedTime(activity.getEndTime()) && !Time.isUndefinedTime(activity.getMaximumDuration())) {
+                        activity.setMaximumDuration(Time.getUndefinedTime());
+                    }
+                });
     }
 
     /**
