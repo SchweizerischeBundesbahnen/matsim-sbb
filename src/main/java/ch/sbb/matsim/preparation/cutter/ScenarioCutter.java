@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Code to cut out a smaller area from a bigger area in a scenario.
@@ -534,49 +535,51 @@ public class ScenarioCutter {
     }
 
     private void cutTransit(CutContext ctx) {
-        cutSchedule(ctx);
+        cutScheduleWithallRoutes(ctx);
         filterTransitVehicles(ctx);
         filterMinTransferTimes(ctx);
         addMissingTransitLinks(ctx);
     }
 
-    private void cutSchedule(CutContext ctx) {
+
+    private void cutScheduleWithallRoutes(CutContext ctx) {
+        TransitSchedule dest = ctx.dest.getTransitSchedule();
         TransitSchedule schedule = ctx.dest.getTransitSchedule();
 
         TransitSchedule source = ctx.source.getTransitSchedule();
         Set<TransitStopFacility> insideStops = new HashSet<>();
         for (TransitStopFacility stop : source.getFacilities().values()) {
-            if (ctx.extendedExtent.isInside(stop.getCoord())) {
+            if (ctx.networkExtent.isInside(stop.getCoord())) {
                 insideStops.add(stop);
             }
         }
 
         for (TransitLine line : source.getTransitLines().values()) {
             for (TransitRoute route : line.getRoutes().values()) {
-                TransitRouteStop prevStop = null;
-                TransitRouteStop fromStop = null;
-                TransitRouteStop toStop = null;
-                boolean includeNextStop = false;
-                for (TransitRouteStop routeStop : route.getStops()) {
-                    if (includeNextStop) {
-                        toStop = routeStop;
-                        includeNextStop = false;
+                boolean keepRoute = route.getStops().stream()
+                        .map(TransitRouteStop::getStopFacility)
+                        .anyMatch(stop -> insideStops.contains(stop));
+                if (keepRoute) {
+                    TransitLine destLine = dest.getTransitLines().get(line.getId());
+                    if (destLine == null) {
+                        destLine = dest.getFactory().createTransitLine(line.getId());
+                        destLine.setName(line.getName());
+                        AttributesUtils.copyAttributesFromTo(line, destLine);
+                        dest.addTransitLine(destLine);
+                        ObjectAttributesUtils.copyAllAttributes(source.getTransitLinesAttributes(), dest.getTransitLinesAttributes(), line.getId().toString());
                     }
-                    boolean isInside = insideStops.contains(routeStop.getStopFacility());
-                    if (isInside) {
-                        if (fromStop == null) {
-                            fromStop = prevStop == null ? routeStop : prevStop;
-                        }
-                        toStop = routeStop;
-                        includeNextStop = true;
-                    }
-                    prevStop = routeStop;
-                }
-                if (fromStop != null) {
-                    cutTransitRoute(line, route, fromStop, toStop, source, schedule);
+                    destLine.addRoute(route);
                 }
             }
         }
+        Set<TransitStopFacility> usedStops = new HashSet<>();
+        for (TransitLine l : dest.getTransitLines().values()) {
+            usedStops.addAll(l.getRoutes().values().stream()
+                    .flatMap(transitRoute -> transitRoute.getStops().stream().map(TransitRouteStop::getStopFacility))
+                    .collect(Collectors.toSet()));
+
+        }
+        usedStops.stream().forEach(stop -> dest.addStopFacility(stop));
     }
 
     private void filterTransitVehicles(CutContext ctx) {
@@ -615,119 +618,7 @@ public class ScenarioCutter {
         }
     }
 
-    private void cutTransitRoute(TransitLine line, TransitRoute route, TransitRouteStop fromStop, TransitRouteStop toStop, TransitSchedule source, TransitSchedule dest) {
-        TransitScheduleFactory f = dest.getFactory();
 
-        TransitLine destLine = dest.getTransitLines().get(line.getId());
-        if (destLine == null) {
-            destLine = f.createTransitLine(line.getId());
-            destLine.setName(line.getName());
-            AttributesUtils.copyAttributesFromTo(line, destLine);
-            dest.addTransitLine(destLine);
-            ObjectAttributesUtils.copyAllAttributes(source.getTransitLinesAttributes(), dest.getTransitLinesAttributes(), line.getId().toString());
-        }
-        double offset = fromStop.getDepartureOffset();
-        if (Time.isUndefinedTime(offset)) {
-            offset = fromStop.getArrivalOffset();
-        }
-        List<TransitRouteStop> destStops = new ArrayList<>(route.getStops().size());
-        boolean include = false;
-        for (TransitRouteStop srcStop : route.getStops()) {
-            boolean isFirst = srcStop == fromStop;
-            boolean isLast = srcStop == toStop;
-            if (isFirst) {
-                include = true;
-            }
-            if (include) {
-                TransitStopFacility srcFacility = srcStop.getStopFacility();
-                TransitStopFacility destFacility = dest.getFacilities().get(srcFacility.getId());
-                if (destFacility == null) {
-                    destFacility = f.createTransitStopFacility(srcFacility.getId(), srcFacility.getCoord(), srcFacility.getIsBlockingLane());
-                    destFacility.setLinkId(srcFacility.getLinkId());
-                    destFacility.setName(srcFacility.getName());
-                    destFacility.setStopAreaId(srcFacility.getStopAreaId());
-                    AttributesUtils.copyAttributesFromTo(srcFacility, destFacility);
-                    dest.addStopFacility(destFacility);
-                    ObjectAttributesUtils.copyAllAttributes(source.getTransitStopsAttributes(), dest.getTransitStopsAttributes(), srcFacility.getId().toString());
-                }
-                TransitRouteStop destStop = f.createTransitRouteStop(destFacility, isFirst ? Time.getUndefinedTime() : adaptOffset(srcStop.getArrivalOffset(), offset), isLast ? Time.getUndefinedTime() : adaptOffset(srcStop.getDepartureOffset(), offset));
-                destStop.setAwaitDepartureTime(srcStop.isAwaitDepartureTime());
-                destStops.add(destStop);
-            }
-            if (isLast) {
-                break;
-            }
-        }
-        NetworkRoute netRoute = cutTransitNetworkRoute(route, fromStop, toStop);
-        TransitRoute destRoute = f.createTransitRoute(route.getId(), netRoute, destStops, route.getTransportMode());
-        destRoute.setDescription(route.getDescription());
-        AttributesUtils.copyAttributesFromTo(route, destRoute);
-        destLine.addRoute(destRoute);
-
-        for (Departure d : route.getDepartures().values()) {
-            Departure destD = f.createDeparture(d.getId(), d.getDepartureTime() + offset);
-            destD.setVehicleId(d.getVehicleId());
-            AttributesUtils.copyAttributesFromTo(d, destD);
-            destRoute.addDeparture(destD);
-        }
-    }
-
-    private static double adaptOffset(double srcOffset, double shift) {
-        if (Time.isUndefinedTime(srcOffset)) {
-            return srcOffset;
-        }
-        return srcOffset - shift;
-    }
-
-    private NetworkRoute cutTransitNetworkRoute(TransitRoute route, TransitRouteStop fromStop, TransitRouteStop toStop) {
-        Iterator<TransitRouteStop> stopIter = route.getStops().iterator();
-        TransitRouteStop nextStop = stopIter.next();
-        boolean include = false;
-
-        while (nextStop != fromStop && stopIter.hasNext()) {
-            nextStop = stopIter.next();
-        }
-        Id<Link> nextStopLink = nextStop == null ? null : nextStop.getStopFacility().getLinkId();
-
-        List<Id<Link>> requiredLinks = new ArrayList<>();
-        NetworkRoute netRoute = route.getRoute();
-        Id<Link> startLinkId = netRoute.getStartLinkId();
-
-        if (startLinkId.equals(nextStopLink)) {
-            include = true;
-            requiredLinks.add(startLinkId);
-            do {
-                nextStop = stopIter.hasNext() ? stopIter.next() : null;
-                nextStopLink = nextStop == null ? null : nextStop.getStopFacility().getLinkId();
-            } while (startLinkId.equals(nextStopLink));
-        }
-
-        for (Id<Link> linkId : netRoute.getLinkIds()) {
-            boolean isStopLink = linkId.equals(nextStopLink);
-            if (isStopLink || include) {
-                requiredLinks.add(linkId);
-            }
-            if (isStopLink) {
-                include = true;
-                if (nextStop == toStop) {
-                    include = false;
-                    break;
-                }
-                do {
-                    nextStop = stopIter.hasNext() ? stopIter.next() : null;
-                    nextStopLink = nextStop == null ? null : nextStop.getStopFacility().getLinkId();
-                } while (linkId.equals(nextStopLink));
-            }
-            if (nextStopLink == null) {
-                include = false;
-                break;
-            }
-        }
-        if (include) {
-            requiredLinks.add(netRoute.getEndLinkId());
-        }
-        return RouteUtils.createNetworkRoute(requiredLinks, null);
-    }
 
     private void filterMinTransferTimes(CutContext ctx) {
         TransitSchedule src = ctx.source.getTransitSchedule();

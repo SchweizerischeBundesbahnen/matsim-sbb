@@ -13,9 +13,9 @@ import java.io.IOException;
 
 public class MyScenarioCutter {
     public static void main(String[] args) throws IOException {
-        String inputConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190812_thun_10pct\\config_scoring_parsed.xml";
+        String inputConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\config_scoring_parsed.xml";
         String inbase = "input/";
-        String outputConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190812_thun_10pct\\config_scoring_cut.xml";
+        String outputConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\config_scoring_cut.xml";
 
         CutExtent inside = new ShapeExtent(ZonesLoader.loadZones
                 ("id", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-agglo.shp", "ID"));
@@ -24,8 +24,8 @@ public class MyScenarioCutter {
         CutExtent network = new ShapeExtent(ZonesLoader.loadZones
                 ("id", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-network.shp", "ID"));
 
-        ScenarioCutter.run("\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output", "CH.10pct.2016", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190812_thun_10pct\\input\\", 1.0, true, inside, outside, network);
-        String newRunId = "thuncut";
+        ScenarioCutter.run("\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output", "CH.10pct.2016", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\input\\", 1.0, false, inside, outside, network);
+        String newRunId = "thun";
 
 
         Config config = RunSBB.buildConfig(inputConfig);
@@ -75,7 +75,7 @@ public class MyScenarioCutter {
 
         PlansCalcRouteConfigGroup.ModeRoutingParams outsideRoutingParams = new PlansCalcRouteConfigGroup.ModeRoutingParams(ScenarioCutter.OUTSIDE_LEG_MODE);
         outsideRoutingParams.setBeelineDistanceFactor(1.3);
-        outsideRoutingParams.setTeleportedModeFreespeedFactor(2.0);
+        outsideRoutingParams.setTeleportedModeSpeed(8.0);
         config.plansCalcRoute().addModeRoutingParams(outsideRoutingParams);
 
     }
