@@ -59,10 +59,10 @@ public class VisumPuTSurvey {
     private static final String LINEROUTENAME = "03_LineRouteName";
     private static final String FZPNAME = "05_Name";
 
-    final private Map<Id<Person>, TravellerChain> chains;
-    final private Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
-    final private TransitSchedule transitSchedule;
-    final private Scenario scenario;
+    private final Map<Id<Person>, TravellerChain> chains;
+    private final Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
+    private final TransitSchedule transitSchedule;
+    private final Scenario scenario;
     private final Zones zones;
     private Double scaleFactor;
 
@@ -98,7 +98,7 @@ public class VisumPuTSurvey {
 
         try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath, Charset.forName("Cp1252"))) {
             for (Map.Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
-                String pax_id = entry.getKey().toString();
+                String paxId = entry.getKey().toString();
                 TravellerChain chain = entry.getValue();
                 for (Trip trip : chain.getTrips()) {
                     Integer i = 1;
@@ -144,7 +144,7 @@ public class VisumPuTSurvey {
                             Double pfahrt = 1.0 * scaleFactor;
                             writer.set(COL_PFAHRT, Integer.toString(pfahrt.intValue()));
 
-                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(pax_id,"subpopulation").toString();
+                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(paxId,"subpopulation").toString();
                             writer.set(COL_SUBPOP, subpopulation);
 
                             Object fromGem = this.zones.findZone(trip.getFromAct().getCoord().getX(),
