@@ -4,6 +4,7 @@ import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -147,20 +148,19 @@ public class VisumPuTSurvey {
                             String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(paxId,"subpopulation").toString();
                             writer.set(COL_SUBPOP, subpopulation);
 
-
-                            Object fromGem = (this.zones != null) ? this.zones.findZone(trip.getFromAct().getCoord().getX(),
-                                    trip.getFromAct().getCoord().getY()).getAttribute(GEM_SHAPE_ATTR) : null;
+                            Zone fromGem = (this.zones != null) ? this.zones.findZone(trip.getFromAct().getCoord().getX(),
+                                    trip.getFromAct().getCoord().getY()) : null;
                             if(fromGem != null) {
-                                writer.set(COL_ORIG_GEM, fromGem.toString());
+                                writer.set(COL_ORIG_GEM, fromGem.getAttribute(GEM_SHAPE_ATTR).toString());
                             }
                             else    {
                                 writer.set(COL_ORIG_GEM, DEFAULT_ZONE);
                             }
 
-                            Object toGem = (this.zones != null) ? this.zones.findZone(trip.getToAct().getCoord().getX(),
-                                    trip.getToAct().getCoord().getY()).getAttribute(GEM_SHAPE_ATTR) : null;
+                            Zone toGem = (this.zones != null) ? this.zones.findZone(trip.getToAct().getCoord().getX(),
+                                    trip.getToAct().getCoord().getY()) : null;
                             if(toGem != null) {
-                                writer.set(COL_DEST_GEM, toGem.toString());
+                                writer.set(COL_DEST_GEM, toGem.getAttribute(GEM_SHAPE_ATTR).toString());
                             }
                             else    {
                                 writer.set(COL_DEST_GEM, DEFAULT_ZONE);
