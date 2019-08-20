@@ -1,14 +1,16 @@
 package ch.sbb.matsim.analysis.VisumPuTSurvey;
 
 import ch.sbb.matsim.analysis.LocateAct;
-import ch.sbb.matsim.analysis.travelcomponents.Journey;
+import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.core.utils.misc.Time;
@@ -17,11 +19,19 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.utils.objectattributes.attributable.Attributes;
+import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+
+<<<<<<<HEAD
+        =======
+        >>>>>>>eada1a93a308abac71b7a96192e6dddf0b0f39f2
+        <<<<<<<HEAD
+        =======
+        >>>>>>>eada1a93a308abac71b7a96192e6dddf0b0f39f2
 
 public class VisumPuTSurvey {
 
@@ -59,23 +69,22 @@ public class VisumPuTSurvey {
     private static final String LINEROUTENAME = "03_LineRouteName";
     private static final String FZPNAME = "05_Name";
 
-    final private Map<Id, TravellerChain> chains;
-    final private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
+    final private Map<Id<Person>, TravellerChain> chains;
+    final private Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
     final private TransitSchedule transitSchedule;
     final private Scenario scenario;
-    private final LocateAct locateActGEM;
+    private final Zones zones;
     private Double scaleFactor;
 
     private final static Logger log = Logger.getLogger(VisumPuTSurvey.class);
 
-    public VisumPuTSurvey(Map<Id, TravellerChain> chains, Scenario scenario, Double scaleFactor) {
+    public VisumPuTSurvey(Map<Id<Person>, TravellerChain> chains, Scenario scenario, Zones zones, Double scaleFactor) {
         this.chains = chains;
         readVehicles(scenario.getTransitSchedule());
         this.scenario = scenario;
         this.transitSchedule = scenario.getTransitSchedule();
         this.scaleFactor = scaleFactor;
-        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), PostProcessingConfigGroup.class);
-        this.locateActGEM = new LocateAct(ppConfig.getShapeFile(), GEM_SHAPE_ATTR);
+        this.zones = zones;
     }
 
     private void readVehicles(TransitSchedule transitSchedule) {
@@ -98,22 +107,22 @@ public class VisumPuTSurvey {
         log.info("write Visum PuT Survey File to " + filepath);
 
         try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath, Charset.forName("Cp1252"))) {
-            for (Map.Entry<Id, TravellerChain> entry : chains.entrySet()) {
+            for (Map.Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
                 String pax_id = entry.getKey().toString();
                 TravellerChain chain = entry.getValue();
-                for (Journey journey : chain.getJourneys()) {
+                for (Trip trip : chain.getTrips()) {
                     Integer i = 1;
-                    for (Trip trip : journey.getTrips()) {
-                        if (this.ptVehicles.containsKey(trip.getVehicleId())) {
+                    for (TravelledLeg leg : trip.getLegs()) {
+                        if (this.ptVehicles.containsKey(leg.getVehicleId())) {
 
-                            writer.set(COL_PATH_ID, Integer.toString(journey.getElementId()));
+                            writer.set(COL_PATH_ID, Integer.toString(trip.getElementId()));
                             writer.set(COL_LEG_ID, Integer.toString(i));
-                            String boarding = this.transitSchedule.getFacilities().get(trip.getBoardingStop()).getAttributes().getAttribute(STOP_NO).toString();
+                            String boarding = this.transitSchedule.getFacilities().get(leg.getBoardingStop()).getAttributes().getAttribute(STOP_NO).toString();
                             writer.set(COL_FROM_STOP, boarding);
-                            String alighting = this.transitSchedule.getFacilities().get(trip.getAlightingStop()).getAttributes().getAttribute(STOP_NO).toString();
+                            String alighting = this.transitSchedule.getFacilities().get(leg.getAlightingStop()).getAttributes().getAttribute(STOP_NO).toString();
                             writer.set(COL_TO_STOP, alighting);
 
-                            Id vId = trip.getVehicleId();
+                            Id vId = leg.getVehicleId();
                             PTVehicle vehicle = this.ptVehicles.get(vId);
                             Id<TransitLine> lId = vehicle.getLineId();
                             Id<TransitRoute> rId = vehicle.getRouteId();
@@ -137,7 +146,7 @@ public class VisumPuTSurvey {
                             writer.set(COL_TEILWEG_KENNUNG, kennung);
                             writer.set(COL_EINHSTNR, boarding);
 
-                            int time = (int) trip.getPtDepartureTime();
+                            int time = (int) leg.getPtDepartureTime();
 
                             writer.set(COL_EINHSTABFAHRTSTAG, getDayIndex(time));
                             writer.set(COL_EINHSTABFAHRTSZEIT, getTime(time));
@@ -148,10 +157,23 @@ public class VisumPuTSurvey {
                             String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(pax_id,"subpopulation").toString();
                             writer.set(COL_SUBPOP, subpopulation);
 
-                            String fromGEM = (this.locateActGEM != null) ? this.locateActGEM.getZoneAttribute(journey.getFromAct().getCoord()) : DEFAULT_ZONE;
-                            writer.set(COL_ORIG_GEM, fromGEM.equals(LocateAct.UNDEFINED) ? DEFAULT_ZONE : fromGEM);
-                            String toGEM = (this.locateActGEM != null) ? this.locateActGEM.getZoneAttribute(journey.getToAct().getCoord()) : DEFAULT_ZONE;
-                            writer.set(COL_DEST_GEM, toGEM.equals(LocateAct.UNDEFINED) ? DEFAULT_ZONE : toGEM);
+                            Object fromGem = this.zones.findZone(trip.getFromAct().getCoord().getX(),
+                                    trip.getFromAct().getCoord().getY()).getAttribute(GEM_SHAPE_ATTR);
+                            if(fromGem != null) {
+                                writer.set(COL_ORIG_GEM, fromGem.toString());
+                            }
+                            else    {
+                                writer.set(COL_ORIG_GEM, DEFAULT_ZONE);
+                            }
+
+                            Object toGem = this.zones.findZone(trip.getToAct().getCoord().getX(),
+                                    trip.getToAct().getCoord().getY()).getAttribute(GEM_SHAPE_ATTR);
+                            if(toGem != null) {
+                                writer.set(COL_ORIG_GEM, toGem.toString());
+                            }
+                            else    {
+                                writer.set(COL_ORIG_GEM, DEFAULT_ZONE);
+                            }
 
                             writer.writeRow();
                             i++;

@@ -37,9 +37,9 @@ import java.util.List;
 /**
  * @author mrieser
  */
-public class ParkingCostScoringIT {
+public class ParkingCostScoringTest {
 
-    private static final Logger log = Logger.getLogger(ParkingCostScoringIT.class);
+    private static final Logger log = Logger.getLogger(ParkingCostScoringTest.class);
 
     @Rule
     public MatsimTestUtils helper = new MatsimTestUtils();
@@ -159,6 +159,10 @@ public class ParkingCostScoringIT {
             PlanCalcScoreConfigGroup.ActivityParams shopScoring = new PlanCalcScoreConfigGroup.ActivityParams("shop");
             shopScoring.setTypicalDuration(8*3600);
             scoringConfig.addActivityParams(shopScoring);
+
+            PlanCalcScoreConfigGroup.ActivityParams rideInteractionScoring = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
+            rideInteractionScoring.setScoringThisActivityAtAll(false);
+            config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(rideInteractionScoring);
 
             this.config.controler().setCreateGraphs(false);
             this.config.controler().setDumpDataAtEnd(false);

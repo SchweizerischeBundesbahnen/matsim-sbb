@@ -4,6 +4,8 @@
 
 package ch.sbb.matsim.mavi.pt;
 
+import ch.sbb.matsim.config.variables.Filenames;
+import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -19,6 +21,7 @@ import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.vehicles.VehicleWriterV1;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,15 +40,14 @@ public class RunVisumPtExporter {
 
     private static final Logger log = Logger.getLogger(RunVisumPtExporter.class);
 
-    private static final String NETWORK_OUT = "transitNetwork.xml.gz";
     private static final String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
     private static final String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new RunVisumPtExporter().run(args[0]);
     }
 
-    public void run(String configFile) {
+    public void run(String configFile) throws IOException {
         Config config = ConfigUtils.loadConfig(configFile, new VisumPtExporterConfigGroup());
         VisumPtExporterConfigGroup exporterConfig = ConfigUtils.addOrGetModule(config, VisumPtExporterConfigGroup.class);
 
@@ -53,9 +55,11 @@ public class RunVisumPtExporter {
         Visum visum = new Visum(18);
         visum.loadVersion(exporterConfig.getPathToVisum());
 
-        // filter time profiles if desired
-        if(exporterConfig.getTimeProfilFilterParams().size() != 0)
-            visum.setTimeProfilFilter(exporterConfig.getTimeProfilFilterConditions());
+        if(exporterConfig.getAngebotName() != null) visum.filterForAngebot(exporterConfig.getAngebotName());
+
+        // currently not supported: additional filter for time profiles if desired
+        //if(exporterConfig.getTimeProfilFilterParams().size() != 0)
+        //    visum.setTimeProfilFilter(exporterConfig.getTimeProfilFilterConditions());
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
@@ -70,7 +74,8 @@ public class RunVisumPtExporter {
         new VehicleTypeExporter(scenario).createVehicleTypes(visum);
 
         // load transit lines
-        new TimeProfileExporter(scenario).createTransitLines(visum, exporterConfig);
+        TimeProfileExporter tpe = new TimeProfileExporter(scenario);
+        tpe.createTransitLines(visum, exporterConfig);
 
         // reduce the size of the network and the schedule by taking necessary things only.
         cleanStops(scenario.getTransitSchedule());
@@ -78,7 +83,11 @@ public class RunVisumPtExporter {
 
         // write outputs
         createOutputPath(exporterConfig.getOutputPath());
+        tpe.writeLinkSequence(exporterConfig.getOutputPath());
         writeFiles(scenario, exporterConfig.getOutputPath());
+
+        // write polyline file
+        new PolylinesCreator().runPt(scenario.getNetwork(), visum, tpe.linkToVisumSequence, exporterConfig.getOutputPath());
     }
 
     private static void cleanStops(TransitSchedule schedule)   {
@@ -136,7 +145,7 @@ public class RunVisumPtExporter {
     }
 
     private static void writeFiles(Scenario scenario, String outputPath)   {
-        new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, NETWORK_OUT).getPath());
+        new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, Filenames.PT_NETWORK).getPath());
         new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(new File(outputPath, TRANSITSCHEDULE_OUT).getPath());
         new VehicleWriterV1(scenario.getVehicles()).writeFile(new File(outputPath, TRANSITVEHICLES_OUT).getPath());
     }

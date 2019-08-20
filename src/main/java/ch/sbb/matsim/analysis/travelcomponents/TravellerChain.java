@@ -6,56 +6,64 @@ package ch.sbb.matsim.analysis.travelcomponents;
 
 import org.matsim.core.config.Config;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 
-public 	 class TravellerChain {
-	// use linked lists so I can use the getlast method
-	private Boolean stucked = false;
-	private LinkedList<Activity> acts = new LinkedList<Activity>();
-	private LinkedList<Journey> journeys = new LinkedList<Journey>();
-	LinkedList<TravelComponent> planElements = new LinkedList<TravelComponent>();
-	private Config config = null;
+public class TravellerChain {
+	private boolean isStuck = false;
+	private List<Activity> acts = new ArrayList<>(5);
+	private List<Trip> trips = new ArrayList<>(5);
+	private final Config config;
 
 	public TravellerChain(Config config){
 		this.config = config;
 	}
 
-	public Journey addJourney() {
-		Journey journey = new Journey(this.config);
-		getJourneys().add(journey);
-		planElements.add(journey);
-		return journey;
+	public Trip addTrip() {
+		Trip trip = new Trip(this.config);
+		getTrips().add(trip);
+		return trip;
 	}
 
 	public Activity addActivity() {
 		Activity activity = new Activity(this.config);
 		getActs().add(activity);
-		planElements.add(activity);
 		return activity;
 	}
 
-	public Boolean getStucked() {
-		return stucked;
+	public boolean isStuck() {
+		return isStuck;
 	}
-	public void setStucked(){
-		this.stucked = true;
-	}
-
-	public LinkedList<Journey> getJourneys() {
-		return journeys;
+	public void setStuck(){
+		this.isStuck = true;
 	}
 
-	public void setJourneys(LinkedList<Journey> journeys) {
-		this.journeys = journeys;
+	public Trip getLastTrip() {
+		if (this.trips.isEmpty()) {
+			throw new NoSuchElementException();
+		}
+		return this.trips.get(this.trips.size() - 1);
 	}
 
-	public LinkedList<Activity> getActs() {
+	public List<Trip> getTrips() {
+		return trips;
+	}
+
+	public void removeLastTrip() {
+		this.trips.remove(this.trips.size() - 1);
+	}
+
+	public Activity getLastActivity() {
+		if (this.acts.isEmpty()) {
+			throw new NoSuchElementException();
+		}
+		return this.acts.get(this.acts.size() - 1);
+	}
+
+	public List<Activity> getActs() {
 		return acts;
-	}
-
-	public void setActs(LinkedList<Activity> acts) {
-		this.acts = acts;
 	}
 
 	public boolean isInPT() {
@@ -67,18 +75,5 @@ public 	 class TravellerChain {
 	}
 
 	private boolean inPT = false;
-	public boolean inCar;
-	public boolean traveledVehicle;
-	public boolean traveling=false;
-	public boolean walking=false;
-	private double linkEnterTime;
-
-	public double getLinkEnterTime() {
-		return linkEnterTime;
-	}
-
-	public void setLinkEnterTime(double linkEnterTime) {
-		this.linkEnterTime = linkEnterTime;
-	}
 
 }

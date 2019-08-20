@@ -22,13 +22,13 @@ import org.matsim.core.mobsim.qsim.*;
 import org.matsim.core.population.routes.LinkNetworkRouteFactory;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.io.IOUtils;
 import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
 import org.matsim.testcases.MatsimTestUtils;
 import org.matsim.testcases.utils.EventsCollector;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
@@ -46,9 +46,9 @@ public class LinkVolumeToCSVTest {
         testFixture.addDemand();
         testFixture.addEvents(linkVolumeToCSV);
 
-        linkVolumeToCSV.closeFile();
+        linkVolumeToCSV.writeResults();
 
-        BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv"));
+        BufferedReader br = IOUtils.getBufferedReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv.gz");
         StringBuilder sb = new StringBuilder();
         String line = br.readLine();
 
@@ -74,9 +74,9 @@ public class LinkVolumeToCSVTest {
         testFixture.addDemand();
         testFixture.addEvents(linkVolumeToCSV);
 
-        linkVolumeToCSV.closeFile();
+        linkVolumeToCSV.writeResults();
 
-        BufferedReader br = new BufferedReader(new FileReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv"));
+        BufferedReader br = IOUtils.getBufferedReader(this.utils.getOutputDirectory() + "matsim_linkvolumes.csv.gz");
         StringBuilder sb = new StringBuilder();
         String line = br.readLine();
 

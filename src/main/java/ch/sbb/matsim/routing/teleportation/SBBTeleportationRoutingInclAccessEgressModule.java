@@ -1,8 +1,7 @@
 package ch.sbb.matsim.routing.teleportation;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import ch.sbb.matsim.routing.access.AccessEgressRouting;
+import ch.sbb.matsim.zones.Zones;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
@@ -14,8 +13,8 @@ import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.TeleportationRoutingModule;
 import org.matsim.facilities.Facility;
 
-import ch.sbb.matsim.analysis.LocateAct;
-import ch.sbb.matsim.routing.access.AccessEgressRouting;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
@@ -24,10 +23,10 @@ import ch.sbb.matsim.routing.access.AccessEgressRouting;
 public class SBBTeleportationRoutingInclAccessEgressModule extends TeleportationRoutingModule {
     private AccessEgressRouting accessEgress;
 
-    public SBBTeleportationRoutingInclAccessEgressModule(String mode, PopulationFactory populationFactory, double networkTravelSpeed, double beelineDistanceFactor, LocateAct actLocator,
+    public SBBTeleportationRoutingInclAccessEgressModule(String mode, PopulationFactory populationFactory, double networkTravelSpeed, double beelineDistanceFactor, Zones zones,
             Network network) {
         super(mode, populationFactory, networkTravelSpeed, beelineDistanceFactor);
-        this.accessEgress = new AccessEgressRouting(actLocator, populationFactory, mode, network);
+        this.accessEgress = new AccessEgressRouting(zones, populationFactory, mode, network);
     }
 
     @Override

@@ -10,18 +10,17 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.counts.Counts;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
+public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysis {
 
     private final static Logger log = Logger.getLogger(LinkVolumeToCSV.class);
 
-    public static final String FILENAME_VOLUMES = "matsim_linkvolumes.csv";
+    public static final String FILENAME_VOLUMES = "matsim_linkvolumes.csv.gz";
     public static final String COL_LINK_ID = "link_id";
     public static final String COL_MODE = "mode";
     public static final String COL_BIN = "bin";
@@ -44,7 +43,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventWriter {
 
     // Methods
     @Override
-    public void closeFile() {
+    public void writeResults() {
         this.write(this.filename);
     }
 
