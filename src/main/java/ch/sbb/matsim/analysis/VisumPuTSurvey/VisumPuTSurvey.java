@@ -147,8 +147,9 @@ public class VisumPuTSurvey {
                             String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(paxId,"subpopulation").toString();
                             writer.set(COL_SUBPOP, subpopulation);
 
-                            Object fromGem = this.zones.findZone(trip.getFromAct().getCoord().getX(),
-                                    trip.getFromAct().getCoord().getY()).getAttribute(GEM_SHAPE_ATTR);
+
+                            Object fromGem = (this.zones != null) ? this.zones.findZone(trip.getFromAct().getCoord().getX(),
+                                    trip.getFromAct().getCoord().getY()).getAttribute(GEM_SHAPE_ATTR) : null;
                             if(fromGem != null) {
                                 writer.set(COL_ORIG_GEM, fromGem.toString());
                             }
@@ -156,13 +157,13 @@ public class VisumPuTSurvey {
                                 writer.set(COL_ORIG_GEM, DEFAULT_ZONE);
                             }
 
-                            Object toGem = this.zones.findZone(trip.getToAct().getCoord().getX(),
-                                    trip.getToAct().getCoord().getY()).getAttribute(GEM_SHAPE_ATTR);
+                            Object toGem = (this.zones != null) ? this.zones.findZone(trip.getToAct().getCoord().getX(),
+                                    trip.getToAct().getCoord().getY()).getAttribute(GEM_SHAPE_ATTR) : null;
                             if(toGem != null) {
-                                writer.set(COL_ORIG_GEM, toGem.toString());
+                                writer.set(COL_DEST_GEM, toGem.toString());
                             }
                             else    {
-                                writer.set(COL_ORIG_GEM, DEFAULT_ZONE);
+                                writer.set(COL_DEST_GEM, DEFAULT_ZONE);
                             }
 
                             writer.writeRow();
