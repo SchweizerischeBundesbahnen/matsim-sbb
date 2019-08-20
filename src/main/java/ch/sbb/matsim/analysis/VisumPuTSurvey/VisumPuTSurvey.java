@@ -1,17 +1,14 @@
 package ch.sbb.matsim.analysis.VisumPuTSurvey;
 
-import ch.sbb.matsim.analysis.LocateAct;
 import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.Departure;
@@ -25,13 +22,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-
-<<<<<<<HEAD
-        =======
-        >>>>>>>eada1a93a308abac71b7a96192e6dddf0b0f39f2
-        <<<<<<<HEAD
-        =======
-        >>>>>>>eada1a93a308abac71b7a96192e6dddf0b0f39f2
 
 public class VisumPuTSurvey {
 
