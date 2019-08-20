@@ -12,7 +12,6 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.core.utils.misc.Time;
-import org.matsim.facilities.ActivityFacility;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -29,6 +28,7 @@ public class VisumPuTSurvey {
     private static final String FILENAME = "matsim_put_survey.att";
 
     private static final String DEFAULT_ZONE = "999999999";
+    private static final String GEM_SHAPE_ATTR = "munid";
 
     private static final String COL_PATH_ID = "$OEVTEILWEG:DATENSATZNR";
     private static final String COL_LEG_ID = "TWEGIND";
@@ -45,14 +45,10 @@ public class VisumPuTSurvey {
     private static final String COL_EINHSTABFAHRTSZEIT = "EINHSTABFAHRTSZEIT";
     private static final String COL_PFAHRT = "PFAHRT";
     private static final String COL_SUBPOP = "SUBPOP";
-    private static final String COL_ORIG_MSR = "ORIG_MSR";
-    private static final String COL_DEST_MSR = "DEST_MSR";
     private static final String COL_ORIG_GEM = "ORIG_GEM";
     private static final String COL_DEST_GEM = "DEST_GEM";
-    private static final String COL_ORIG_NPVM = "ORIG_NPVM";
-    private static final String COL_DEST_NPVM = "DEST_NPVM";
     private static final String[] COLUMNS = new String[] { COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
-            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_MSR, COL_DEST_MSR, COL_ORIG_GEM, COL_DEST_GEM, COL_ORIG_NPVM, COL_DEST_NPVM };
+            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM };
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
@@ -67,9 +63,7 @@ public class VisumPuTSurvey {
     final private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     final private TransitSchedule transitSchedule;
     final private Scenario scenario;
-    private final LocateAct locateActMSR;
     private final LocateAct locateActGEM;
-    private final LocateAct locateActNPVM;
     private Double scaleFactor;
 
     private final static Logger log = Logger.getLogger(VisumPuTSurvey.class);
@@ -81,9 +75,7 @@ public class VisumPuTSurvey {
         this.transitSchedule = scenario.getTransitSchedule();
         this.scaleFactor = scaleFactor;
         PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), PostProcessingConfigGroup.class);
-        this.locateActMSR = new LocateAct(ppConfig.getShapeFile(), "msrid");
-        this.locateActGEM = new LocateAct(ppConfig.getShapeFile(), "munid");
-        this.locateActNPVM = new LocateAct(ppConfig.getShapeFile(), "npvmid");
+        this.locateActGEM = new LocateAct(ppConfig.getShapeFile(), GEM_SHAPE_ATTR);
     }
 
     private void readVehicles(TransitSchedule transitSchedule) {
@@ -161,27 +153,6 @@ public class VisumPuTSurvey {
                             String toGEM = (this.locateActGEM != null) ? this.locateActGEM.getZoneAttribute(journey.getToAct().getCoord()) : DEFAULT_ZONE;
                             writer.set(COL_DEST_GEM, toGEM.equals(LocateAct.UNDEFINED) ? DEFAULT_ZONE : toGEM);
 
-                            if(subpopulation.equals("regular")) {
-                                ActivityFacility origFac = scenario.getActivityFacilities().getFacilities().get(journey.getFromAct().getFacility());
-                                writer.set(COL_ORIG_MSR, getFacilityAttribute(origFac, "ms_region"));
-                                writer.set(COL_ORIG_NPVM, getFacilityAttribute(origFac, "tZone"));
-
-                                ActivityFacility destFac = scenario.getActivityFacilities().getFacilities().get(journey.getToAct().getFacility());
-                                writer.set(COL_DEST_MSR, getFacilityAttribute(destFac, "ms_region"));
-                                writer.set(COL_DEST_NPVM, getFacilityAttribute(destFac, "tZone"));
-                            }
-                            else    {
-                                String fromMSR = (this.locateActMSR != null) ? this.locateActMSR.getZoneAttribute(journey.getFromAct().getCoord()) : DEFAULT_ZONE;
-                                writer.set(COL_ORIG_MSR, fromMSR.equals(LocateAct.UNDEFINED) ? DEFAULT_ZONE : fromMSR);
-                                String fromNPVM = (this.locateActNPVM != null) ? this.locateActNPVM.getZoneAttribute(journey.getFromAct().getCoord()) : DEFAULT_ZONE;
-                                writer.set(COL_ORIG_NPVM, fromNPVM.equals(LocateAct.UNDEFINED) ? DEFAULT_ZONE : fromNPVM);
-
-                                String toMSR = (this.locateActMSR != null) ? this.locateActMSR.getZoneAttribute(journey.getToAct().getCoord()) : DEFAULT_ZONE;
-                                writer.set(COL_DEST_MSR, toMSR.equals(LocateAct.UNDEFINED) ? DEFAULT_ZONE : toMSR);
-                                String toNPVM = (this.locateActNPVM != null) ? this.locateActNPVM.getZoneAttribute(journey.getToAct().getCoord()) : DEFAULT_ZONE;
-                                writer.set(COL_DEST_NPVM, toNPVM.equals(LocateAct.UNDEFINED) ? DEFAULT_ZONE : toNPVM);
-                            }
-
                             writer.writeRow();
                             i++;
                         }
@@ -192,12 +163,6 @@ public class VisumPuTSurvey {
             throw new UncheckedIOException(e);
         }
     }
-
-    private static String getFacilityAttribute(ActivityFacility fac, String att)    {
-        if(fac == null) return DEFAULT_ZONE; // this should not happen...
-        return (fac.getAttributes() == null) ? DEFAULT_ZONE : fac.getAttributes().getAttribute(att).toString();
-    }
-
 
     public String getDayIndex(int time){
         int day = (int) Math.ceil(time / (24 * 60 * 60.0));
