@@ -2,6 +2,7 @@ package ch.sbb.matsim.preparation.cutter;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.zones.ZonesLoader;
+import org.apache.log4j.Logger;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
@@ -11,27 +12,84 @@ import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 
 import java.io.IOException;
 
-public class MyScenarioCutter {
+public class SBBScenarioCutter {
+
+    /*
+     *
+     */
     public static void main(String[] args) throws IOException {
-        String inputConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\config_scoring_parsed.xml";
-        String inbase = "input/";
-        String outputConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\config_scoring_cut.xml";
 
+        String inputConfig;
+        String newInputRelativeToNewConfig;
+        String newConfig;
+        String innerExtentShapeFile;
+        String networkExtentShapeFile;
+        String outerExtentShapeFile;
+        String originalRunDirectory;
+
+        String newRunId;
+        String originalRunId;
+        double newScenarioSampleSize;
+        boolean parseEvents;
+
+        if (args.length == 11) {
+            Logger.getLogger(SBBScenarioCutter.class).info("Will use input files defined by args!");
+            inputConfig = args[0];
+            newConfig = args[1];
+            newInputRelativeToNewConfig = args[2];
+
+            innerExtentShapeFile = args[3];
+            networkExtentShapeFile = args[4];
+            outerExtentShapeFile = args[5];
+
+            originalRunDirectory = args[6];
+            originalRunId = args[7];
+
+            newRunId = args[8];
+            newScenarioSampleSize = Double.parseDouble(args[9]);
+            parseEvents = Boolean.parseBoolean(args[10]);
+
+        } else {
+
+            Logger.getLogger(SBBScenarioCutter.class).info("Will use input files defined in code!");
+            inputConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\config_scoring_parsed.xml";
+            newConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\config_scoring_cut.xml";
+            newInputRelativeToNewConfig = "input/";
+
+            innerExtentShapeFile = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-agglo.shp";
+            networkExtentShapeFile = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-network.shp";
+            outerExtentShapeFile = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-umgebung.shp";
+
+            originalRunDirectory = "\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output";
+            originalRunId = "CH.10pct.2016";
+
+            newRunId = "thun";
+            newScenarioSampleSize = 1.0;
+            parseEvents = false;
+        }
+
+
+        final String zonesIdAttribute = "ID";
+        final String zonesId = "id";
         CutExtent inside = new ShapeExtent(ZonesLoader.loadZones
-                ("id", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-agglo.shp", "ID"));
+                (zonesId, innerExtentShapeFile, zonesIdAttribute));
+
         CutExtent outside = new ShapeExtent(ZonesLoader.loadZones
-                ("id", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-umgebung.shp", "ID"));
+                (zonesId, outerExtentShapeFile, zonesIdAttribute));
+
         CutExtent network = new ShapeExtent(ZonesLoader.loadZones
-                ("id", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-network.shp", "ID"));
-
-        ScenarioCutter.run("\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output", "CH.10pct.2016", "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\input\\", 1.0, false, inside, outside, network);
-        String newRunId = "thun";
-
+                (zonesId, networkExtentShapeFile, zonesIdAttribute));
 
         Config config = RunSBB.buildConfig(inputConfig);
+
+        String cutterOutputDirectory = config.getContext().getFile() + "/" + newInputRelativeToNewConfig;
+
+        ScenarioCutter.run(originalRunDirectory, originalRunId, cutterOutputDirectory, newScenarioSampleSize, parseEvents, inside, outside, network);
+
+
         config.controler().setRunId(newRunId);
-        adjustConfig(config, inbase);
-        new ConfigWriter(config).write(outputConfig);
+        adjustConfig(config, newInputRelativeToNewConfig);
+        new ConfigWriter(config).write(newConfig);
 
     }
 
