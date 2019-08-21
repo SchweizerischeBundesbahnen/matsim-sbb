@@ -8,10 +8,8 @@ import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.core.utils.misc.Counter;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
+import java.nio.charset.Charset;
 
 public class CSVWriter implements AutoCloseable {
 
@@ -23,6 +21,10 @@ public class CSVWriter implements AutoCloseable {
 
     public CSVWriter(final String header, final String[] columns, final String filename) throws IOException {
         this(header, columns, IOUtils.getBufferedWriter(filename));
+    }
+
+    public CSVWriter(final String header, final String[] columns, final String filename, final Charset encoding) throws IOException {
+        this(header, columns, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), encoding)));
     }
 
     public CSVWriter(final String header, final String[] columns, final OutputStream stream) throws IOException {
