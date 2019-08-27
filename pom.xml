@@ -52,9 +52,16 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.graphhopper</groupId>
+			<artifactId>graphhopper-isochrone</artifactId>
+			<version>0.13-SNAPSHOT</version>
+		</dependency>
+
+
+		<dependency>
 			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
-			<version>11.2</version>
+			<version>11.5</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->
