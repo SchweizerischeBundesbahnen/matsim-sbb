@@ -51,7 +51,7 @@ public class Synpop {
 
         new MATSimWriter(output.toString()).run(population, facilities);
         new PopulationCSVWriter(output.toString(), synpopAttributes).run(population, facilities);
-        new SQLWriter(config.getHost(), config.getPort(), config.getDatabase(), config.getYear(), synpopAttributes).run(population, facilities, config.getVersion());
+        //new SQLWriter(config.getHost(), config.getPort(), config.getDatabase(), config.getYear(), synpopAttributes).run(population, facilities, config.getVersion());
 
     }
 }
