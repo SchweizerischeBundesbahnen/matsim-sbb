@@ -50,20 +50,20 @@ public class SBBScenarioCutter {
             parseEvents = Boolean.parseBoolean(args[10]);
 
         } else {
-
+            // define your cut from code, see below:
             Logger.getLogger(SBBScenarioCutter.class).info("Will use input files defined in code!");
-            inputConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\config_scoring_parsed.xml";
-            newConfig = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190815_thun_10pct\\config_scoring_cut.xml";
+            inputConfig = "";
+            newConfig = "";
             newInputRelativeToNewConfig = "input/";
 
-            innerExtentShapeFile = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-agglo.shp";
-            networkExtentShapeFile = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-network.shp";
-            outerExtentShapeFile = "\\\\k13536\\mobi\\40_Projekte\\20190805_ScenarioCutter\\20190805_zones\\thun\\thun-umgebung.shp";
+            innerExtentShapeFile = "";
+            networkExtentShapeFile = "";
+            outerExtentShapeFile = "";
 
-            originalRunDirectory = "\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output";
-            originalRunId = "CH.10pct.2016";
+            originalRunDirectory = "";
+            originalRunId = "";
 
-            newRunId = "thun";
+            newRunId = "";
             newScenarioSampleSize = 1.0;
             parseEvents = false;
         }
