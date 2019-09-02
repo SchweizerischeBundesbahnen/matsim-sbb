@@ -13,8 +13,6 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.geometry.CoordinateTransformation;
-import org.matsim.core.utils.geometry.transformations.CH1903LV03PlustoCH1903LV03;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,27 +102,25 @@ public class VisumStreetNetworkExporter {
     private void createNetwork(String[][] attarraynode, String[][] attarraylink) {
         Network network = this.scenario.getNetwork();
         network.setCapacityPeriod(3600);
-        CoordinateTransformation transformation = new CH1903LV03PlustoCH1903LV03();
-
-        for (int i = 0; i < attarraynode.length; i++) {
-            Coord oldCoord = new Coord(Double.parseDouble(attarraynode[i][1]),
-                    Double.parseDouble(attarraynode[i][2]));
-            Coord newCoord = transformation.transform(oldCoord);
-            Node node = nf.createNode(Id.createNodeId("C_" + attarraynode[i][0]), newCoord);
+        
+        for (String[] anAttarraynode : attarraynode) {
+            Coord coord = new Coord(Double.parseDouble(anAttarraynode[1]),
+                    Double.parseDouble(anAttarraynode[2]));
+            Node node = nf.createNode(Id.createNodeId("C_" + anAttarraynode[0]), coord);
             network.addNode(node);
         }
 
-        for (int i = 0; i < attarraylink.length; i++) {
-            if (attarraylink[i][7].contains("P")) {
-                Id<Link> id = Id.createLinkId(attarraylink[i][8]);
-                Link link = createLink(id, attarraylink[i][0], attarraylink[i][1], Double.parseDouble(attarraylink[i][2]),
-                        Double.parseDouble(attarraylink[i][3]), (Double.parseDouble(attarraylink[i][4])),
-                        Integer.parseInt(attarraylink[i][6]));
+        for (String[] anAttarraylink : attarraylink) {
+            if (anAttarraylink[7].contains("P")) {
+                Id<Link> id = Id.createLinkId(anAttarraylink[8]);
+                Link link = createLink(id, anAttarraylink[0], anAttarraylink[1], Double.parseDouble(anAttarraylink[2]),
+                        Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
+                        Integer.parseInt(anAttarraylink[6]));
                 if (link != null) {
-                    link.getAttributes().putAttribute("accessControlled", Integer.parseInt(attarraylink[i][9]));
+                    link.getAttributes().putAttribute("accessControlled", Integer.parseInt(anAttarraylink[9]));
                     network.addLink(link);
                 }
-                this.wktLineStringPerVisumLink.put(id, attarraylink[i][10]);
+                this.wktLineStringPerVisumLink.put(id, anAttarraylink[10]);
             }
         }
     }
