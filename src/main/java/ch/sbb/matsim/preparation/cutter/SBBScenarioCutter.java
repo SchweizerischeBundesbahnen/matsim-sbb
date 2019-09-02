@@ -83,7 +83,8 @@ public class SBBScenarioCutter {
 
         Config config = RunSBB.buildConfig(inputConfig);
 
-        String cutterOutputDirectory = ConfigGroup.getInputFileURL(config.getContext(), "newInputRelativeToNewConfig").getFile();
+        String cutterOutputDirectory = ConfigGroup.getInputFileURL(config.getContext(), newInputRelativeToNewConfig.replace("/", "")).getFile();
+        Logger.getLogger(SBBScenarioCutter.class).info("Will write new scenario to " + cutterOutputDirectory);
 
         ScenarioCutter.run(originalRunDirectory, originalRunId, cutterOutputDirectory, newScenarioSampleSize, parseEvents, inside, outside, network);
 
