@@ -4,6 +4,7 @@ import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.log4j.Logger;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
@@ -82,7 +83,7 @@ public class SBBScenarioCutter {
 
         Config config = RunSBB.buildConfig(inputConfig);
 
-        String cutterOutputDirectory = config.getContext().getFile() + "/" + newInputRelativeToNewConfig;
+        String cutterOutputDirectory = ConfigGroup.getInputFileURL(config.getContext(), "newInputRelativeToNewConfig").getFile();
 
         ScenarioCutter.run(originalRunDirectory, originalRunId, cutterOutputDirectory, newScenarioSampleSize, parseEvents, inside, outside, network);
 
