@@ -39,8 +39,8 @@ public class SBBScenarioCutter {
             newInputRelativeToNewConfig = args[2];
 
             innerExtentShapeFile = args[3];
-            networkExtentShapeFile = args[4];
-            outerExtentShapeFile = args[5];
+            outerExtentShapeFile = args[4];
+            networkExtentShapeFile = args[5];
 
             originalRunDirectory = args[6];
             originalRunId = args[7];
