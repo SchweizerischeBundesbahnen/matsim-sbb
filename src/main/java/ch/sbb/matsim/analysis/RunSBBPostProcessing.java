@@ -29,7 +29,7 @@ public class RunSBBPostProcessing {
         final String outputPath = args[2];
         log.info(configFile);
 
-        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup());
+        final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new ZonesListConfigGroup());
         PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
         ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
 

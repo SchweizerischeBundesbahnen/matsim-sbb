@@ -22,7 +22,7 @@ import java.util.Set;
 
 public class PrepareActivitiesInPlans {
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) {
         String pathIn = args[0];
         String configIn = args[1];
         String pathOut = args[2];
@@ -32,157 +32,132 @@ public class PrepareActivitiesInPlans {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(pathIn);
 
-        Set<String> activityList = overwriteActivitiesInPlans(scenario.getPopulation());
-        ActivityParamsBuilder.buildActivityParams(config, activityList);
+        overwriteActivitiesInPlans(scenario.getPopulation());
+        ActivityParamsBuilder.buildActivityParams(config);
 
         new ConfigWriter(config).write(configOut);
         new PopulationWriter(scenario.getPopulation()).write(pathOut);
     }
 
-    public static Set<String> overwriteActivitiesInPlans(Population population)   {
-        Set<String> activityList = new HashSet<>();
-        for( Person p: population.getPersons().values() )   {
-            for( Plan plan: p.getPlans() )  {
+    public static void overwriteActivitiesInPlans(Population population) {
+        for (Person p : population.getPersons().values()) {
+            for (Plan plan : p.getPlans()) {
                 List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.stageActivitiesTypes);
                 Activity firstAct = activities.get(0);
-                Activity lastAct = activities.get( activities.size() - 1 );
+                Activity lastAct = activities.get(activities.size() - 1);
 
-                for(Activity act: activities)   {
-                    if(act == firstAct) continue;
-                    if(act == lastAct)  {
-                        processOvernightAct(firstAct, lastAct, activityList);
+
+                for (Activity act : activities) {
+                    if (act == firstAct) continue;
+                    if (act == lastAct) {
+                        processOvernightAct(firstAct, lastAct);
                         break;
                     }
 
                     double endTime = act.getEndTime();
-                    if( Time.isUndefinedTime(endTime) ) endTime = 36.0 * 3600;
+                    if (Time.isUndefinedTime(endTime)) endTime = 36.0 * 3600;
 
                     double startTime = act.getStartTime();
-                    if( Time.isUndefinedTime(startTime) )   startTime = 0.0;
+                    if (Time.isUndefinedTime(startTime)) startTime = 0.0;
 
                     double duration = endTime - startTime;
 
-                    if( act.getType().equals(SBBActivities.home) ) {
-                        if( startTime >= (16.0 * 3600) && startTime < (19.0 * 3600) )    {
+                    if (act.getType().equals(SBBActivities.home)) {
+                        if (startTime >= (16.0 * 3600) && startTime < (19.0 * 3600)) {
                             long ii = roundSecondsToMinInterval(duration, 60);
 
                             double hours = startTime / 3600 * 1;
                             double yy = ((int) (hours + 0.25)) / 1.0;
                             String type = SBBActivities.home + "_" + ii + "_" + yy;
-                            activityList.add(type);
                             act.setType(type);
-                        }
-                        else {
+                        } else {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.home + "_" + ii;
-                            activityList.add(type);
                             act.setType(type);
                         }
-                    }
-                    else if( act.getType().equals(SBBActivities.work) ) {
+                    } else if (act.getType().equals(SBBActivities.work)) {
                         // process morning peak (between 6.5am and 8.5am)
-                        if( startTime >= (6.25 * 3600) && startTime <= (8.25 * 3600) )    {
+                        if (startTime >= (6.25 * 3600) && startTime <= (8.25 * 3600)) {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.work + "_" + ii + "_mp";
-                            activityList.add(type);
                             act.setType(type);
                         }
                         // process noon peak (between 12pm and 2pm)
-                        else if( startTime >= (12.5 * 3600) && startTime <= (13.75 * 3600) )    {
+                        else if (startTime >= (12.5 * 3600) && startTime <= (13.75 * 3600)) {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.work + "_" + ii + "_np";
-                            activityList.add(type);
                             act.setType(type);
                         }
                         // process rest
-                        else    {
+                        else {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.work + "_" + ii;
-                            activityList.add(type);
                             act.setType(type);
                         }
-                    }
-                    else if( act.getType().equals(SBBActivities.education) ) {
+                    } else if (act.getType().equals(SBBActivities.education)) {
                         // process morning peak (between 7am and 9am)
-                        if( startTime >= (6.75 * 3600) && startTime <= (8.5 * 3600) )    {
+                        if (startTime >= (6.75 * 3600) && startTime <= (8.5 * 3600)) {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.education + "_" + ii + "_mp";
-                            activityList.add(type);
                             act.setType(type);
                         }
                         // process noon peak (between 12.5pm and 2pm)
-                        else if( startTime >= (12.5 * 3600) && startTime <= (13.5 * 3600) )    {
+                        else if (startTime >= (12.5 * 3600) && startTime <= (13.5 * 3600)) {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.education + "_" + ii + "_np";
-                            activityList.add(type);
                             act.setType(type);
                         }
                         // process rest
-                        else    {
+                        else {
                             long ii = roundSecondsToMinInterval(duration, 60);
                             String type = SBBActivities.education + "_" + ii;
-                            activityList.add(type);
                             act.setType(type);
                         }
-                    }
-                    else if( act.getType().equals(SBBActivities.business) ) {
+                    } else if (act.getType().equals(SBBActivities.business)) {
                         long ii = roundSecondsToMinInterval(duration, 60);
                         String type = SBBActivities.business + "_" + ii;
-                        activityList.add(type);
                         act.setType(type);
-                    }
-                    else if( act.getType().equals(SBBActivities.leisure) ) {
+                    } else if (act.getType().equals(SBBActivities.leisure)) {
                         long ii = roundSecondsToMinInterval(duration, 30);
                         String type = SBBActivities.leisure + "_" + ii;
-                        activityList.add(type);
                         act.setType(type);
-                    }
-                    else if( act.getType().equals(SBBActivities.other) ) {
+                    } else if (act.getType().equals(SBBActivities.other)) {
                         long ii = roundSecondsToMinInterval(duration, 30);
                         String type = SBBActivities.other + "_" + ii;
-                        activityList.add(type);
                         act.setType(type);
-                    }
-                    else if( act.getType().equals(SBBActivities.shopping) ) {
+                    } else if (act.getType().equals(SBBActivities.shopping)) {
                         long ii = roundSecondsToMinInterval(duration, 30);
                         String type = SBBActivities.shopping + "_" + ii;
-                        activityList.add(type);
                         act.setType(type);
-                    }
-                    else if( act.getType().equals(SBBActivities.accompany) ) {
+                    } else if (act.getType().equals(SBBActivities.accompany)) {
                         long ii = roundSecondsToMinInterval(duration, 30);
                         String type = SBBActivities.accompany + "_" + ii;
-                        activityList.add(type);
                         act.setType(type);
                     }
                 }
             }
         }
-        return activityList;
     }
 
-    private static void processOvernightAct(Activity firstAct, Activity lastAct, Set<String> activityList) {
+    private static void processOvernightAct(Activity firstAct, Activity lastAct) {
         double lastActStartTime = lastAct.getStartTime();
-        double totDuration = ( firstAct.getEndTime() + 24 * 3600.0 ) - lastAct.getStartTime();
-        if( totDuration <= 0 ) totDuration = 1;
+        double totDuration = (firstAct.getEndTime() + 24 * 3600.0) - lastAct.getStartTime();
+        if (totDuration <= 0) totDuration = 1;
 
-        if( lastActStartTime >= (16.0 * 3600) && lastActStartTime < (19.0 * 3600) ) {
+        if (lastActStartTime >= (16.0 * 3600) && lastActStartTime < (19.0 * 3600)) {
             long ii = roundSecondsToMinInterval(totDuration, 60);
 
             double hours = lastActStartTime / 3600 * 1;
             double yy = ((int) hours) / 1.0 + 1.0;
 
             String type = SBBActivities.home + "_" + ii + "_" + yy;
-            activityList.add( type );
-            firstAct.setType( type );
-            lastAct.setType( type);
-        }
-        else    {
+            firstAct.setType(type);
+            lastAct.setType(type);
+        } else {
             long ii = roundSecondsToMinInterval(totDuration, 60);
             String type = SBBActivities.home + "_" + ii;
-            activityList.add( type );
-            firstAct.setType( type );
-            lastAct.setType( type );
+            firstAct.setType(type);
+            lastAct.setType(type);
         }
     }
 
@@ -190,6 +165,6 @@ public class PrepareActivitiesInPlans {
         double minutes = seconds / 60;
         double toRound = minutes / interval;
         long rounded = (int) Math.ceil(toRound);
-        return ( rounded * interval );
+        return (rounded * interval);
     }
 }

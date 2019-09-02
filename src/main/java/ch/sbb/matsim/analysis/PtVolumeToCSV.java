@@ -35,8 +35,8 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
 
     private final static Logger log = Logger.getLogger(PtVolumeToCSV.class);
 
-    static final String FILENAME_STOPS =  "matsim_stops.csv";
-    private static final String FILENAME_VEHJOURNEYS = "matsim_vehjourneys.csv";
+    static final String FILENAME_STOPS =  "matsim_stops.csv.gz";
+    private static final String FILENAME_VEHJOURNEYS = "matsim_vehjourneys.csv.gz";
 
     static final String COL_STOP_ID = "stop_id";
     private static final String COL_FROM_STOP_ID = "from_stop_id";
