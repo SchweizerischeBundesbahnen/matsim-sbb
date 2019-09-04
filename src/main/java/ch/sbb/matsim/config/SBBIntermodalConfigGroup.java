@@ -7,6 +7,7 @@ package ch.sbb.matsim.config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,10 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
     @StringGetter(PARAM_CSV_PATH)
     public String getAttributesCSVPath() {
         return attributesCSVPath;
+    }
+
+    public URL getAttributesCSVPathURL(URL context) {
+        return attributesCSVPath != null ? ConfigGroup.getInputFileURL(context, attributesCSVPath) : null;
     }
 
     @StringSetter(PARAM_CSV_PATH)

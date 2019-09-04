@@ -13,6 +13,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,11 +28,14 @@ public class IntermodalModule extends AbstractModule {
         super(scenario.getConfig());
         this.configGroup = ConfigUtils.addOrGetModule(this.getConfig(), SBBIntermodalConfigGroup.class);
         this.prepare(scenario);
-        this.preparePopulation(scenario.getPopulation(), csvPath);
+        URL csvPath = configGroup.getAttributesCSVPathURL(scenario.getConfig().getContext());
+        if (csvPath != null) {
+            this.preparePopulation(scenario.getPopulation(), csvPath);
+        }
 
     }
 
-    private void preparePopulation(Population population, String csvPath) {
+    private void preparePopulation(Population population, URL csvPath) {
         try (CSVReader reader = new CSVReader(csvPath, ";")) {
             log.info(csvPath);
 
@@ -49,7 +53,6 @@ public class IntermodalModule extends AbstractModule {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
 
     }
 
