@@ -1,11 +1,9 @@
 package ch.sbb.matsim.intermodal;
 
-import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
-import ch.sbb.matsim.synpop.reader.Synpop2MATSim;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -13,10 +11,12 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
-import org.matsim.core.scenario.ScenarioUtils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 
 public class IntermodalModule extends AbstractModule {
@@ -47,7 +47,7 @@ public class IntermodalModule extends AbstractModule {
                 }
             }
         } catch (IOException e) {
-            log.warn(e);
+            throw new RuntimeException(e);
         }
 
 
