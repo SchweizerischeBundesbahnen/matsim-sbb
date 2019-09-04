@@ -15,6 +15,12 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
 
     static public final String GROUP_NAME = "SBBIntermodal";
 
+    static private final String PARAM_CSV_PATH = "interModalAccessEgressCSV";
+    static private final String PARAM_CSV_PATH_DESC = "If set, access&egress availability parameters will be read " +
+            "from CSV file and added to Person Attributes. Null by default.";
+
+    private String attributesCSVPath = null;
+
     private final List<SBBIntermodalModeParameterSet> modeParamSets = new ArrayList<>();
 
     @Override
@@ -23,6 +29,16 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             return new SBBIntermodalModeParameterSet();
         }
         throw new IllegalArgumentException("Unsupported parameterset-type: " + type);
+    }
+
+    @StringGetter(PARAM_CSV_PATH)
+    public String getAttributesCSVPath() {
+        return attributesCSVPath;
+    }
+
+    @StringSetter(PARAM_CSV_PATH)
+    public void setAttributesCSVPath(String attributesCSVPath) {
+        this.attributesCSVPath = attributesCSVPath;
     }
 
     @Override
@@ -46,6 +62,14 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
 
     }
 
+    @Override
+    public Map<String, String> getComments() {
+        Map<String, String> comments = super.getComments();
+        comments.put(PARAM_CSV_PATH, PARAM_CSV_PATH_DESC);
+        return (comments);
+
+    }
+
     public List<SBBIntermodalModeParameterSet> getModeParameterSets() {
         return this.modeParamSets;
     }
@@ -58,11 +82,23 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         static final String TYPE = "mode";
 
         static private final String PARAM_MODE = "mode";
+        public static final String PARAM_MODE_DESC = "Mode to use as feeder";
+
         static private final String PARAM_WAITINGTIME = "waitingTime";
+        public static final String PARAM_MUTT_DESC = "Marginal utility of travel time";
+
         static private final String PARAM_CONSTANT = "constant";
+        public static final String PARAM_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
+
         static private final String PARAM_MUTT = "mutt";
+        public static final String PARAM_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
+
         static private final String PARAM_DETOUR = "detourFactor";
+        static private final String PARAM_WAITINGTIME_DESC = "Additional waiting time.";
+
         static private final String PARAM_NETWORK = "isOnNetwork";
+        static private final String PARAM_CONSTANT_DESC = "ASC for feeder mode";
+
 
         private String mode = "ride_feeder";
         private int waitingTime = 15 * 60;
@@ -151,10 +187,12 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         @Override
         public Map<String, String> getComments() {
             Map<String, String> comments = super.getComments();
-            comments.put(PARAM_MODE, "Mode to use as feeder");
-            comments.put(PARAM_MUTT, "Marginal utility of travel time");
-            comments.put(PARAM_DETOUR, "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.");
-            comments.put(PARAM_NETWORK, "If true, the mode will be added as main-mode to be simulated on the road network.");
+            comments.put(PARAM_MODE, PARAM_MODE_DESC);
+            comments.put(PARAM_MUTT, PARAM_MUTT_DESC);
+            comments.put(PARAM_DETOUR, PARAM_FACTOR_DESC);
+            comments.put(PARAM_NETWORK, PARAM_NETWORKMODE_DESC);
+            comments.put(PARAM_CONSTANT, PARAM_CONSTANT_DESC);
+            comments.put(PARAM_WAITINGTIME, PARAM_WAITINGTIME_DESC);
             return comments;
         }
 
