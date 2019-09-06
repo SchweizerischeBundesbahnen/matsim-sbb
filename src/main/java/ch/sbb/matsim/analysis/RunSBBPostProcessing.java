@@ -31,10 +31,9 @@ public class RunSBBPostProcessing {
 
         final Config config = ConfigUtils.loadConfig(configFile, new PostProcessingConfigGroup(), new ZonesListConfigGroup());
         PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
-        ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
 
         ZonesCollection allZones = new ZonesCollection();
-        ZonesLoader.loadAllZones(zonesConfig, allZones);
+        ZonesLoader.loadAllZones(config, allZones);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
         EventsManager eventsManager = new EventsManagerImpl();
