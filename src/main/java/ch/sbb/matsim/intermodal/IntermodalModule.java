@@ -39,14 +39,16 @@ public class IntermodalModule extends AbstractModule {
         try (CSVReader reader = new CSVReader(csvPath, ";")) {
             log.info(csvPath);
 
-            //removing business_id from columns and read activities
-            Set<String> attributes = new HashSet<String>(Arrays.asList(reader.getColumns()));
+            Set<String> attributes = new HashSet<>(Arrays.asList(reader.getColumns()));
 
             Map<String, String> map;
             while ((map = reader.readLine()) != null) {
                 Id<Person> personId = Id.createPersonId(map.get("personId"));
                 Person person = population.getPersons().get(personId);
                 for (String attribute : attributes) {
+                    if (person.getAttributes().getAsMap().containsKey(attribute)) {
+                        throw new RuntimeException("Attribute " + attribute + " already exists. Overwriting by CSV should not be intended.");
+                    }
                     person.getAttributes().putAttribute(attribute, map.get(attribute));
                 }
             }
