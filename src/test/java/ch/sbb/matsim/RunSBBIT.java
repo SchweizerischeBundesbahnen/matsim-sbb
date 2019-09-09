@@ -9,7 +9,7 @@ public class RunSBBIT {
 
     @Test
     public void main() {
-        RunSBB.main(new String[]{"test/input/scenarios/mobi20test/runSBBTestConfig.xml"});
+        RunSBB.main(new String[]{"test/input/scenarios/mobi20test/testconfig.xml"});
 
     }
 }
