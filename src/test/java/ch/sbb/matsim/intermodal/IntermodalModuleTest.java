@@ -12,7 +12,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 public class IntermodalModuleTest {
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void install() {
         Config config = ConfigUtils.createConfig();
         config.controler().setOutputDirectory("test/output/ch/sbb/matsim/intermodal/");
@@ -23,6 +23,7 @@ public class IntermodalModuleTest {
         new PopulationReader(scenario).readFile("test/input/scenarios/mobi20test/population.xml");
         new IntermodalModule(scenario);
         Assert.assertTrue(Boolean.parseBoolean((String) scenario.getPopulation().getPersons().get(Id.createPersonId("P_1072505")).getAttributes().getAttribute("hasBike")));
-
+        // a second call should throw an exception
+        new IntermodalModule(scenario);
     }
 }
