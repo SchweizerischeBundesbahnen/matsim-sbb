@@ -3,6 +3,7 @@ package ch.sbb.matsim.config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -85,6 +86,11 @@ public class ZonesListConfigGroup extends ReflectiveConfigGroup {
         public String getFilename() {
             return this.filename;
         }
+
+        public URL getFilenameURL(URL context) {
+            return ConfigGroup.getInputFileURL(context, filename);
+        }
+
 
         @StringSetter(PARAM_FILENAME)
         public void setFilename(String filename) {

@@ -3,7 +3,6 @@ package ch.sbb.matsim.calibration;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
-import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.intermodal.SBBRaptorIntermodalAccessEgress;
@@ -22,7 +21,6 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.DijkstraFactory;
@@ -79,7 +77,7 @@ public class RideFeederCalibration {
         config.facilities().setInputFile(null);
 
         ZonesCollection zonesCollection = new ZonesCollection();
-        ZonesLoader.loadAllZones(ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class), zonesCollection);
+        ZonesLoader.loadAllZones(config, zonesCollection);
         this.zones = zonesCollection.getZones(Id.create("npvm_zones", Zones.class));
 
         this.config = config;
