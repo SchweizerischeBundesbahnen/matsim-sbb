@@ -15,14 +15,13 @@ import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
+import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
 import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.vehicles.RideParkingCostTracker;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
-import ch.sbb.matsim.s3.S3Downloader;
-
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
@@ -62,14 +61,15 @@ public class RunSBB {
         new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car").createVehicles();
         scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
-        // controler
-        Controler controler = new Controler(scenario);
-
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
         if (samplerConfig.getDoSample()) {
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
             sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
+
+        // controler
+        Controler controler = new Controler(scenario);
+
 
         ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
         controler.setScoringFunctionFactory(scoringFunctionFactory);
