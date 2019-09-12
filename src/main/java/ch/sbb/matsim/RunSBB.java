@@ -25,6 +25,7 @@ import com.google.inject.Provides;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.AbstractModule;
@@ -40,6 +41,10 @@ import org.matsim.core.scoring.ScoringFunctionFactory;
 public class RunSBB {
 
     private final static Logger log = Logger.getLogger(RunSBB.class);
+    public final static ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+            new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
+            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup()};
+
 
     public static void main(String[] args) {
         System.setProperty("matsim.preferLocalDtds", "true");
@@ -54,7 +59,15 @@ public class RunSBB {
         new S3Downloader(config);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
+        addSBBDefaultScenarioModules(scenario);
 
+        // controler
+        Controler controler = new Controler(scenario);
+        addSBBDefaultControlerModules(controler);
+        controler.run();
+    }
+
+    public static void addSBBDefaultScenarioModules(Scenario scenario) {
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
         // vehicle types
@@ -66,11 +79,11 @@ public class RunSBB {
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
             sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
+    }
 
-        // controler
-        Controler controler = new Controler(scenario);
-
-
+    public static void addSBBDefaultControlerModules(Controler controler) {
+        Config config = controler.getConfig();
+        Scenario scenario = controler.getScenario();
         ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
         controler.setScoringFunctionFactory(scoringFunctionFactory);
 
@@ -116,13 +129,9 @@ public class RunSBB {
 
         controler.addOverridingModule(new AccessEgress(scenario));
         controler.addOverridingModule(new IntermodalModule(scenario));
-
-        controler.run();
     }
 
     public static Config buildConfig(String filepath) {
-        return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-                new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-                new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup());
+        return ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
     }
 }
