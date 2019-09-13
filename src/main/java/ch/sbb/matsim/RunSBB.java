@@ -43,7 +43,7 @@ public class RunSBB {
     private final static Logger log = Logger.getLogger(RunSBB.class);
     public final static ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
             new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup()};
+            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup()};
 
 
     public static void main(String[] args) {
