@@ -41,7 +41,6 @@ import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -73,7 +72,6 @@ public class EventsToTravelDiaries implements
 
     private Map<Id<Person>, TravellerChain> chains = new HashMap<>();
     private Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
-    private HashSet<Id<Person>> transitDriverIds = new HashSet<>();
     private HashMap<Id<Vehicle>, Id<Person>> driverIdFromVehicleId = new HashMap<>();
     private int stuck = 0;
     private TransitSchedule transitSchedule;
@@ -124,14 +122,14 @@ public class EventsToTravelDiaries implements
         }
     }
 
-    private boolean isTransitDriver(Id<Person> personId) {
-        return isTransitScenario && transitDriverIds.contains(personId);
+    private boolean isAgentWithoutPlan(Id<Person> personId) {
+        return (!scenario.getPopulation().getPersons().containsKey(personId));
     }
 
     @Override
     public void handleEvent(ActivityEndEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId())) {
+            if (isAgentWithoutPlan(event.getPersonId())) {
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
@@ -157,7 +155,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(ActivityStartEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId())) {
+            if (isAgentWithoutPlan(event.getPersonId())) {
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
@@ -185,7 +183,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonArrivalEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId())) {
+            if (isAgentWithoutPlan(event.getPersonId())) {
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
@@ -204,7 +202,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonDepartureEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId())) {
+            if (isAgentWithoutPlan(event.getPersonId())) {
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
@@ -231,7 +229,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonStuckEvent event) {
         try {
-            if (!isTransitDriver(event.getPersonId())) {
+            if (!isAgentWithoutPlan(event.getPersonId())) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 setStuck(getStuck() + 1);
                 chain.setStuck();
@@ -246,7 +244,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId()))
+            if (isAgentWithoutPlan(event.getPersonId()))
                 return;
             PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
             if (vehicle != null) {
@@ -278,7 +276,7 @@ public class EventsToTravelDiaries implements
 
     @Override
     public void handleEvent(PersonLeavesVehicleEvent event) {
-        if (isTransitDriver(event.getPersonId()))
+        if (isAgentWithoutPlan(event.getPersonId()))
             return;
         try {
             PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
@@ -337,7 +335,6 @@ public class EventsToTravelDiaries implements
             ptVehicles.put(
                     event.getVehicleId(),
                     new PTVehicle(event.getTransitLineId(), event.getTransitRouteId()));
-            transitDriverIds.add(event.getDriverId());
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
         }
@@ -346,7 +343,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(TeleportationArrivalEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId()))
+            if (isAgentWithoutPlan(event.getPersonId()))
                 return;
             TravellerChain chain = chains.get(event.getPersonId());
             Trip trip = chain.getLastTrip();
@@ -388,7 +385,6 @@ public class EventsToTravelDiaries implements
     public void reset(int iteration) {
         chains = new HashMap<>();
         ptVehicles = new HashMap<>();
-        transitDriverIds = new HashSet<>();
         driverIdFromVehicleId = new HashMap<>();
     }
 
