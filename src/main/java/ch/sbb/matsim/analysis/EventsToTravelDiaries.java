@@ -320,9 +320,12 @@ public class EventsToTravelDiaries implements
                     vehicle.in = false;
                 vehicle.incDistance(network.getLinks().get(event.getLinkId()).getLength());
             } else {
-                TravellerChain chain = chains.get(driverIdFromVehicleId.get(event.getVehicleId()));
-                TravelledLeg leg = chain.getLastTrip().getLastLeg();
-                leg.incrementDistance(network.getLinks().get(event.getLinkId()).getLength());
+                Id<Person> driverId = driverIdFromVehicleId.get(event.getVehicleId());
+                TravellerChain chain = chains.get(driverId);
+                if (chain != null) {
+                    TravelledLeg leg = chain.getLastTrip().getLastLeg();
+                    leg.incrementDistance(network.getLinks().get(event.getLinkId()).getLength());
+                }
             }
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
