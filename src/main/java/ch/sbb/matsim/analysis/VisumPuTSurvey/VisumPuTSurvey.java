@@ -1,9 +1,11 @@
 package ch.sbb.matsim.analysis.VisumPuTSurvey;
 
-import ch.sbb.matsim.analysis.travelcomponents.Trip;
-import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
+import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
+import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -18,12 +20,16 @@ import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 public class VisumPuTSurvey {
 
     private static final String FILENAME = "matsim_put_survey.att";
+
+    private static final String DEFAULT_ZONE = "999999999";
+    private static final String GEM_SHAPE_ATTR = "munid";
 
     private static final String COL_PATH_ID = "$OEVTEILWEG:DATENSATZNR";
     private static final String COL_LEG_ID = "TWEGIND";
@@ -40,8 +46,10 @@ public class VisumPuTSurvey {
     private static final String COL_EINHSTABFAHRTSZEIT = "EINHSTABFAHRTSZEIT";
     private static final String COL_PFAHRT = "PFAHRT";
     private static final String COL_SUBPOP = "SUBPOP";
+    private static final String COL_ORIG_GEM = "ORIG_GEM";
+    private static final String COL_DEST_GEM = "DEST_GEM";
     private static final String[] COLUMNS = new String[] { COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
-            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP };
+            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM };
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
@@ -52,20 +60,22 @@ public class VisumPuTSurvey {
     private static final String LINEROUTENAME = "03_LineRouteName";
     private static final String FZPNAME = "05_Name";
 
-    final private Map<Id<Person>, TravellerChain> chains;
-    final private Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
-    final private TransitSchedule transitSchedule;
-    final private Scenario scenario;
+    private final Map<Id<Person>, TravellerChain> chains;
+    private final Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
+    private final TransitSchedule transitSchedule;
+    private final Scenario scenario;
+    private final Zones zones;
     private Double scaleFactor;
 
     private final static Logger log = Logger.getLogger(VisumPuTSurvey.class);
 
-    public VisumPuTSurvey(Map<Id<Person>, TravellerChain> chains, Scenario scenario, Double scaleFactor) {
+    public VisumPuTSurvey(Map<Id<Person>, TravellerChain> chains, Scenario scenario, Zones zones, Double scaleFactor) {
         this.chains = chains;
         readVehicles(scenario.getTransitSchedule());
         this.scenario = scenario;
         this.transitSchedule = scenario.getTransitSchedule();
         this.scaleFactor = scaleFactor;
+        this.zones = zones;
     }
 
     private void readVehicles(TransitSchedule transitSchedule) {
@@ -87,9 +97,9 @@ public class VisumPuTSurvey {
         final String filepath = path + FILENAME;
         log.info("write Visum PuT Survey File to " + filepath);
 
-        try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath)) {
+        try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath, Charset.forName("Cp1252"))) {
             for (Map.Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
-                String pax_id = entry.getKey().toString();
+                String paxId = entry.getKey().toString();
                 TravellerChain chain = entry.getValue();
                 for (Trip trip : chain.getTrips()) {
                     Integer i = 1;
@@ -135,8 +145,27 @@ public class VisumPuTSurvey {
                             Double pfahrt = 1.0 * scaleFactor;
                             writer.set(COL_PFAHRT, Integer.toString(pfahrt.intValue()));
 
-                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(pax_id,"subpopulation").toString();
+                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(paxId,"subpopulation").toString();
                             writer.set(COL_SUBPOP, subpopulation);
+
+                            Zone fromGem = (this.zones != null) ? this.zones.findZone(trip.getFromAct().getCoord().getX(),
+                                    trip.getFromAct().getCoord().getY()) : null;
+                            if(fromGem != null) {
+                                writer.set(COL_ORIG_GEM, fromGem.getAttribute(GEM_SHAPE_ATTR).toString());
+                            }
+                            else    {
+                                writer.set(COL_ORIG_GEM, DEFAULT_ZONE);
+                            }
+
+                            Zone toGem = (this.zones != null) ? this.zones.findZone(trip.getToAct().getCoord().getX(),
+                                    trip.getToAct().getCoord().getY()) : null;
+                            if(toGem != null) {
+                                writer.set(COL_DEST_GEM, toGem.getAttribute(GEM_SHAPE_ATTR).toString());
+                            }
+                            else    {
+                                writer.set(COL_DEST_GEM, DEFAULT_ZONE);
+                            }
+
                             writer.writeRow();
                             i++;
                         }
@@ -147,7 +176,6 @@ public class VisumPuTSurvey {
             throw new UncheckedIOException(e);
         }
     }
-
 
     public String getDayIndex(int time){
         int day = (int) Math.ceil(time / (24 * 60 * 60.0));

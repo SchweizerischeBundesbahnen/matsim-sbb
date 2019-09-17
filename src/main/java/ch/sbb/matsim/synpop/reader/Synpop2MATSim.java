@@ -19,8 +19,8 @@ public class Synpop2MATSim {
     private final static String HOUSEHOLD_ID = "household_id";
     public final static String BUSINESS_ID = "business_id";
 
-    public final static String X = "X";
-    public final static String Y = "Y";
+    public final static String X = "xcoord";
+    public final static String Y = "ycoord";
 
 
     private final Population population;
@@ -69,9 +69,9 @@ public class Synpop2MATSim {
     }
 
 
-    private Coord transformCoord(Coord coord) {
-        return new CH1903LV03PlustoCH1903LV03().transform(coord);
-    }
+//    private Coord transformCoord(Coord coord) {
+//        return new CH1903LV03PlustoCH1903LV03().transform(coord);
+//    }
 
     private String transformHouseholdId(String id) {
         if (id.equals("-1")) return id;
@@ -86,7 +86,7 @@ public class Synpop2MATSim {
     public void loadHousehold(Map<String, String> map) {
         Coord coord = new Coord(Double.valueOf(map.get(X)), Double.valueOf(map.get(Y)));
         Id id = Id.create(this.transformHouseholdId(map.get(HOUSEHOLD_ID)), ActivityFacility.class);
-        ActivityFacility facility = facilites.getFactory().createActivityFacility(id, this.transformCoord(coord));
+        ActivityFacility facility = facilites.getFactory().createActivityFacility(id, coord);
         for (String column : map.keySet()) {
             if (!(column.equals(HOUSEHOLD_ID) || column.equals(X) || column.equals(Y))) {
                 facility.getAttributes().putAttribute(column, parseValue(map.get(column)));
@@ -106,7 +106,7 @@ public class Synpop2MATSim {
     public void loadBusiness(Map<String, String> map) {
         Coord coord = new Coord(Double.valueOf(map.get(X)), Double.valueOf(map.get(Y)));
         Id id = Id.create(this.transformBusinessId(map.get(BUSINESS_ID)), ActivityFacility.class);
-        ActivityFacility facility = facilites.getFactory().createActivityFacility(id, this.transformCoord(coord));
+        ActivityFacility facility = facilites.getFactory().createActivityFacility(id, coord);
         for (String column : map.keySet()) {
             if (!(column.equals(BUSINESS_ID) || column.equals(X) || column.equals(Y))) {
                 facility.getAttributes().putAttribute(column, parseValue(map.get(column)));

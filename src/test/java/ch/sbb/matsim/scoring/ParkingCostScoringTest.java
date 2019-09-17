@@ -261,8 +261,7 @@ public class ParkingCostScoringTest {
         }
 
         private void loadZones() {
-            ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);
-            ZonesLoader.loadAllZones(zonesConfig, this.zones);
+            ZonesLoader.loadAllZones(config, this.zones);
         }
 
     }

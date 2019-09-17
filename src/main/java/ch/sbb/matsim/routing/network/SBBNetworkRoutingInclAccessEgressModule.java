@@ -34,7 +34,7 @@ public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingMod
     private final LeastCostPathCalculator routeAlgo;
     private AccessEgressRouting accessEgress;
 
-    SBBNetworkRoutingInclAccessEgressModule(
+    public SBBNetworkRoutingInclAccessEgressModule(
             final String mode,
             final PopulationFactory populationFactory,
             final Network network,
