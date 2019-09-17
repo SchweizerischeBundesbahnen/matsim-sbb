@@ -21,8 +21,8 @@ import java.util.Set;
 
 public class FacilitiesReader {
     public static final String FACILITY_ID = "facility_id";
-    public static final String X = "X";
-    public static final String Y = "Y";
+    public static final String X = "xcoord";
+    public static final String Y = "ycoord";
 
     private static final Logger log = Logger.getLogger(FacilitiesReader.class);
     private final ActivityFacilities facilities;
