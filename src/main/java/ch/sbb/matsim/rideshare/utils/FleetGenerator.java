@@ -28,8 +28,8 @@ public class FleetGenerator {
     private static final double operationEndTime = 30 * 60 * 60; //24h
     private static final Random random = MatsimRandom.getRandom();
 
-    private static final Path networkFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\scenarios\\0.01_neuenburg\\input\\network.xml.gz");
-    private static final Path outputFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\scenarios\\0.01_neuenburg\\input\\fleetVehicles.xml");
+    private static final Path networkFile = Paths.get("C:\\devsbb\\data\\0.01_neuenburg\\input\\NE.100.output_network.xml.gz");
+    private static final Path outputFile = Paths.get("C:\\devsbb\\data\\0.01_neuenburg\\input\\fleetVehicles.xml");
 
     public static void main(String[] args) {
 

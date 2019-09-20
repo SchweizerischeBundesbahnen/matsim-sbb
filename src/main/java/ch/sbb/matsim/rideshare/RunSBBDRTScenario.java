@@ -1,6 +1,7 @@
 package ch.sbb.matsim.rideshare;
 
 import ch.sbb.matsim.RunSBB;
+import ch.sbb.matsim.routing.pt.raptor.IntermodalAwareRouterModeIdentifier;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.run.*;
@@ -10,7 +11,10 @@ import org.matsim.contrib.dvrp.run.DvrpQSimComponents;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.controler.OutputDirectoryHierarchy;
+import org.matsim.core.router.MainModeIdentifier;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import java.util.ArrayList;
@@ -28,7 +32,7 @@ public class RunSBBDRTScenario {
         Config config = ConfigUtils.loadConfig(configFile, getSBBAndDrtConfigGroups());
         if (args.length > 1)
             config.controler().setOutputDirectory(args[1]);
-
+        config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
         prepareDrtConfig(config);
         Scenario scenario = DrtControlerCreator.createScenarioWithDrtRouteFactory(config);
         ScenarioUtils.loadScenario(scenario);
@@ -58,6 +62,12 @@ public class RunSBBDRTScenario {
         controler.addOverridingModule(new DrtModule());
         controler.addOverridingModule(new DvrpModule());
         controler.configureQSimComponents(DvrpQSimComponents.activateModes(DrtConfigGroup.get(controler.getConfig()).getMode()));
+        controler.addOverridingModule(new AbstractModule() {
+            @Override
+            public void install() {
+                bind(MainModeIdentifier.class).to(IntermodalAwareRouterModeIdentifier.class);
+            }
+        });
     }
 
 
