@@ -749,7 +749,21 @@ public class ScenarioCutter {
         removeEndTimesFromInteractionActivities(plan);
         removeDurationWhenBothAreSet(plan);
         modifyLoneSomeAccessEgressWalks(plan);
+        removeRoutesWithLinksThatDoNotExist(plan, ctx);
         return plan;
+    }
+
+    private void removeRoutesWithLinksThatDoNotExist(Plan plan, CutContext ctx) {
+
+        plan.getPlanElements().stream()
+                .filter(Leg.class::isInstance)
+                .forEach(leg -> {
+                    if (!ctx.dest.getNetwork().getLinks().containsKey(((Leg) leg).getRoute().getStartLinkId()) || !ctx.dest.getNetwork().getLinks().containsKey(((Leg) leg).getRoute().getEndLinkId())) {
+                        ((Leg) leg).setRoute(null);
+                    }
+
+                });
+
     }
 
     private void removeDurationWhenBothAreSet(Plan plan) {
