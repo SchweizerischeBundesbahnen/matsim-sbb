@@ -24,6 +24,7 @@ import org.matsim.core.network.io.NetworkChangeEventsWriter;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
@@ -749,7 +750,14 @@ public class ScenarioCutter {
         removeEndTimesFromInteractionActivities(plan);
         removeDurationWhenBothAreSet(plan);
         modifyLoneSomeAccessEgressWalks(plan);
+        removeRoutesWithLinksThatDoNotExist(plan, ctx);
         return plan;
+    }
+
+    private void removeRoutesWithLinksThatDoNotExist(Plan plan, CutContext ctx) {
+        TripStructureUtils.getLegs(plan).stream()
+                .filter(leg -> ctx.dest.getNetwork().getLinks().containsKey(leg.getRoute().getStartLinkId()) || !ctx.dest.getNetwork().getLinks().containsKey(leg.getRoute().getEndLinkId()))
+                .forEach(leg -> leg.setRoute(null));
     }
 
     private void removeDurationWhenBothAreSet(Plan plan) {
