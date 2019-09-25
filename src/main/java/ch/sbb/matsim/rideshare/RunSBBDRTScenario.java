@@ -1,9 +1,10 @@
 package ch.sbb.matsim.rideshare;
 
 import ch.sbb.matsim.RunSBB;
-import ch.sbb.matsim.routing.pt.raptor.IntermodalAwareRouterModeIdentifier;
+import ch.sbb.matsim.rideshare.utils.RideshareAwareIntermodalMainModeIdentifier;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.contrib.av.robotaxi.fares.drt.DrtFaresConfigGroup;
 import org.matsim.contrib.drt.run.*;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
 import org.matsim.contrib.dvrp.run.DvrpModule;
@@ -44,26 +45,27 @@ public class RunSBBDRTScenario {
     public static ConfigGroup[] getSBBAndDrtConfigGroups() {
         List<ConfigGroup> configGroupList = new ArrayList<>();
         configGroupList.addAll(Arrays.asList(RunSBB.sbbDefaultConfigGroups));
-        configGroupList.add(new DrtConfigGroup());
+        configGroupList.add(new MultiModeDrtConfigGroup());
         configGroupList.add(new DvrpConfigGroup());
+        configGroupList.add(new DrtFaresConfigGroup());
+
         return configGroupList.toArray(new ConfigGroup[configGroupList.size()]);
     }
 
     public static void prepareDrtConfig(Config config) {
-        DrtConfigGroup drtCfg = DrtConfigGroup.get(config);
-        DrtConfigs.adjustDrtConfig(drtCfg, config.planCalcScore());
+        DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore());
         config.addConfigConsistencyChecker(new DrtConfigConsistencyChecker());
         config.checkConsistency();
     }
 
     public static void prepareDrtControler(Controler controler) {
-        controler.addOverridingModule(new DrtModule());
+        controler.addOverridingModule(new MultiModeDrtModule());
         controler.addOverridingModule(new DvrpModule());
-        controler.configureQSimComponents(DvrpQSimComponents.activateModes(DrtConfigGroup.get(controler.getConfig()).getMode()));
+        controler.configureQSimComponents(DvrpQSimComponents.activateAllModes(MultiModeDrtConfigGroup.get(controler.getConfig())));
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
-                bind(MainModeIdentifier.class).to(IntermodalAwareRouterModeIdentifier.class);
+                bind(MainModeIdentifier.class).to(RideshareAwareIntermodalMainModeIdentifier.class);
             }
         });
     }

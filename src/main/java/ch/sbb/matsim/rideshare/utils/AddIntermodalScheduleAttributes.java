@@ -11,9 +11,16 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 public class AddIntermodalScheduleAttributes {
     public static void main(String[] args) {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new TransitScheduleReader(scenario).readFile("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\scenarios\\testscenario\\transitschedule.xml");
-        scenario.getTransitSchedule().getFacilities().get(Id.create("3", TransitStopFacility.class)).getAttributes().putAttribute("drtfeeder", 1);
-        scenario.getTransitSchedule().getFacilities().get(Id.create("3", TransitStopFacility.class)).getAttributes().putAttribute("drtfeeder_linkId", 4241);
-        new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\scenarios\\testscenario\\transitscheduledrt.xml");
+        new TransitScheduleReader(scenario).readFile("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\scenarios\\0.01_neuenburg\\input\\schedule.xml.gz");
+        scenario.getTransitSchedule().getFacilities().get(Id.create("1460", TransitStopFacility.class)).getAttributes().putAttribute("drtfeeder", 1);
+        scenario.getTransitSchedule().getFacilities().get(Id.create("1460", TransitStopFacility.class)).getAttributes().putAttribute("drtfeeder_linkId", 177382);
+
+        scenario.getTransitSchedule().getFacilities().get(Id.create("2340", TransitStopFacility.class)).getAttributes().putAttribute("drtfeeder", 1);
+        scenario.getTransitSchedule().getFacilities().get(Id.create("2340", TransitStopFacility.class)).getAttributes().putAttribute("drtfeeder_linkId", 598836);
+
+        new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\scenarios\\0.01_neuenburg\\input\\schedule_lcdf_ne.xml.gz");
+
+
+        //  1460-177382 lcdf
     }
 }
