@@ -1,7 +1,6 @@
 package ch.sbb.matsim.s3;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Map;
 
 import ch.sbb.matsim.config.SBBS3ConfigGroup;
@@ -51,7 +50,7 @@ public class S3Downloader {
     }
 
     private File getLocalPath(String key, String bucketName) {
-        return new File(this.downloadFolder, bucketName + "/" + key);
+        return new File(this.downloadFolder, bucketName +"/"+ key);
 
     }
 
@@ -102,12 +101,6 @@ public class S3Downloader {
 
 
         for (ConfigGroup configGroup : this.config.getModules().values()) {
-            for (Collection<? extends ConfigGroup> paramSet : configGroup.getParameterSets().values()) {
-                for (ConfigGroup group : paramSet) {
-                    parseConfigGroup(group);
-                }
-            }
-
             parseConfigGroup(configGroup);
         }
 

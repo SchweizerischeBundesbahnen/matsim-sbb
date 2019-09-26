@@ -14,6 +14,8 @@ import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.routing.access.AccessEgress;
+import ch.sbb.matsim.routing.pt.raptor.IntermodalRaptorStopFinder;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
@@ -116,6 +118,12 @@ public class RunSBB {
 
         controler.addOverridingModule(new AccessEgress(scenario));
         controler.addOverridingModule(new IntermodalModule(scenario));
+        controler.addOverridingModule(new AbstractModule() {
+            @Override
+            public void install() {
+                this.bind(RaptorStopFinder.class).to(IntermodalRaptorStopFinder.class);
+            }
+        });
 
         controler.run();
     }
