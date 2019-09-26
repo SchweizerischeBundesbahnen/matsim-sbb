@@ -96,6 +96,7 @@ public class VisumPuTSurvey {
     }
 
     public void write(String path) {
+        boolean isRail;
         final String filepath = path + FILENAME;
         log.info("write Visum PuT Survey File to " + filepath);
 
@@ -104,6 +105,11 @@ public class VisumPuTSurvey {
                 String paxId = entry.getKey().toString();
                 TravellerChain chain = entry.getValue();
                 for (Trip trip : chain.getTrips()) {
+                    isRail = trip.isRailJourney();
+                    if (isRail) {
+                        trip.getFirstLeg().setIsAccess(true);
+                        trip.getLastLeg().setIsEgress(true);
+                    }
                     Integer i = 1;
                     for (TravelledLeg leg : trip.getLegs()) {
                         if (this.ptVehicles.containsKey(leg.getVehicleId())) {

@@ -175,7 +175,6 @@ public class Trip extends TravelComponent {
 	}
 	public String getAccessMode(boolean isRailJourney) {
 		if (isRailJourney()) {
-			getFirstLeg().setIsAccess(true);
 			return getFirstLeg().getMode();
 		}
 		return "";
@@ -183,7 +182,6 @@ public class Trip extends TravelComponent {
 
 	public String getEgressMode(boolean isRailJourney) {
 		if (isRailJourney) {
-			getLastLeg().setIsEgress(true);
 			return getLastLeg().getMode();
 		}
 		return "";
@@ -191,7 +189,6 @@ public class Trip extends TravelComponent {
 
 	public double getAccessDist(boolean isRailJourney) {
 		if (isRailJourney()) {
-			getFirstLeg().setIsAccess(true);
 			return getFirstLeg().getDistance();
 		}
 		return 0;
@@ -199,7 +196,6 @@ public class Trip extends TravelComponent {
 
 	public double getEgressDist(boolean isRailJourney) {
 		if (isRailJourney()) {
-			getLastLeg().setIsEgress(true);
 			return getLastLeg().getDistance();
 		}
 		return 0;

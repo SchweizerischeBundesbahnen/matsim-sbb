@@ -473,6 +473,10 @@ public class EventsToTravelDiaries implements
                     tripsWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
                     tripsWriter.set("got_stuck", Boolean.toString(chain.isStuck()));
                     isRailJourney = trip.isRailJourney();
+                    if (isRailJourney) {
+                        trip.getFirstLeg().setIsAccess(true);
+                        trip.getLastLeg().setIsEgress(true);
+                    }
                     tripsWriter.set("access_mode", trip.getAccessMode(isRailJourney));
                     tripsWriter.set("egress_mode", trip.getEgressMode(isRailJourney));
                     tripsWriter.set("access_dist", String.valueOf(trip.getAccessDist(isRailJourney)));
