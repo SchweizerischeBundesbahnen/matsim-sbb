@@ -419,12 +419,12 @@ public class EventsToTravelDiaries implements
 
         String[] tripsData = new String[]{"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode", "main_mode_mikrozensus",
                 "from_act", "to_act", "to_act_type", "in_vehicle_distance", "in_vehicle_time", "first_boarding_stop", "last_alighting_stop",
-                "sample_selector", "got_stuck"};
+                "sample_selector", "got_stuck", "access_mode", "egress_mode", "access_dist", "egress_dist"};
         CSVWriter tripsWriter = new CSVWriter(null, tripsData, this.filename + tripsTableName);
 
         String[] legsData = new String[]{"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
                 "boarding_stop", "alighting_stop", "departure_time", "departure_delay", "sample_selector", "from_x", "from_y",
-                "to_x", "to_y", "previous_leg_id", "next_leg_id"};
+                "to_x", "to_y", "previous_leg_id", "next_leg_id", "is_access", "is_egress"};
         CSVWriter legsWriter = new CSVWriter(null, legsData, this.filename + legsTableName);
 
         // read a static field that increments with every inheriting object constructed
@@ -452,6 +452,8 @@ public class EventsToTravelDiaries implements
                 }
             }
 
+            boolean isRailJourney;
+
             for (Trip trip : chain.getTrips()) {
                 try {
                     tripsWriter.set("trip_id", Integer.toString(trip.getElementId()));
@@ -470,17 +472,23 @@ public class EventsToTravelDiaries implements
                     tripsWriter.set("last_alighting_stop", id2string(trip.getLastAlightingStop()));
                     tripsWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
                     tripsWriter.set("got_stuck", Boolean.toString(chain.isStuck()));
+                    isRailJourney = trip.isRailJourney();
+                    tripsWriter.set("access_mode", trip.getAccessMode(isRailJourney));
+                    tripsWriter.set("egress_mode", trip.getEgressMode(isRailJourney));
+                    tripsWriter.set("access_dist", String.valueOf(trip.getAccessDist(isRailJourney)));
+                    tripsWriter.set("egress_dist", String.valueOf(trip.getEgressDist(isRailJourney)));
                     tripsWriter.writeRow();
                     counter.incCounter();
 
                     int ind = 0;
+                    int size = trip.getLegs().size() - 1;
                     for (TravelledLeg leg : trip.getLegs()) {
 
                         String previous_leg_id = null;
                         String next_leg_id = null;
                         if(ind > 0)
                             previous_leg_id = Integer.toString(trip.getLegs().get(ind - 1).getElementId());
-                        if(ind < trip.getLegs().size() - 1)
+                        if(ind < size)
                             next_leg_id = Integer.toString(trip.getLegs().get(ind + 1).getElementId());
                         ind++;
 
@@ -503,6 +511,8 @@ public class EventsToTravelDiaries implements
                         legsWriter.set("to_y", Double.toString(leg.getDest().getY()));
                         legsWriter.set("previous_leg_id", (previous_leg_id == null) ? "" : previous_leg_id);
                         legsWriter.set("next_leg_id", (next_leg_id == null) ? "" : next_leg_id);
+                        legsWriter.set("is_access", (leg.isAccessMode()) ? "1" : "0");
+                        legsWriter.set("is_egress", (leg.isEgressMode()) ? "1" : "0");
                         legsWriter.writeRow();
                         counter.incCounter();
                     }
