@@ -48,8 +48,10 @@ public class VisumPuTSurvey {
     private static final String COL_SUBPOP = "SUBPOP";
     private static final String COL_ORIG_GEM = "ORIG_GEM";
     private static final String COL_DEST_GEM = "DEST_GEM";
+    private static final String COL_ISACCESS = "IS_ACCESS";
+    private static final String COL_ISEGRESS = "IS_EGRESS";
     private static final String[] COLUMNS = new String[] { COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
-            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM };
+            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM, COL_ISACCESS, COL_ISEGRESS };
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
@@ -165,6 +167,9 @@ public class VisumPuTSurvey {
                             else    {
                                 writer.set(COL_DEST_GEM, DEFAULT_ZONE);
                             }
+
+                            writer.set(COL_ISACCESS, (leg.isAccessMode()) ? "1" : "0");
+                            writer.set(COL_ISEGRESS, (leg.isEgressMode()) ? "1" : "0");
 
                             writer.writeRow();
                             i++;
