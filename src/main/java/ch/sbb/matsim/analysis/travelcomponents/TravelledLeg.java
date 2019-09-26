@@ -21,6 +21,8 @@ public class TravelledLeg extends TravelComponent {
 	private double ptDepartureTime;
 	private double ptDepartureDelay;
 	private boolean departureTimeIsSet = false;
+	private boolean isAccess;
+	private boolean isEgress;
 
 	TravelledLeg(Config config){
 		super(config);
@@ -130,5 +132,32 @@ public class TravelledLeg extends TravelComponent {
 	public void incrementDistance(double linkLength) {
 		this.distance += linkLength;
 		
+	}
+
+	public boolean isAccessMode() {
+		return (this.isAccess);
+	}
+
+	public boolean isEgressMode() {
+		return (this.isEgress);
+	}
+
+	public void setIsAccess(boolean value) {
+		this.isAccess = value;
+	}
+
+	public void setIsEgress(boolean value) {
+		this.isEgress = value;
+	}
+
+	public boolean isPtLeg() {
+		return (this.mode.equals("detPt"));
+	}
+
+	public boolean isRailLeg() {
+		if (this.isPtLeg()) {
+			return (this.line.toString().substring(1,5).equals("S2016"));
+		}
+		return false;
 	}
 }
