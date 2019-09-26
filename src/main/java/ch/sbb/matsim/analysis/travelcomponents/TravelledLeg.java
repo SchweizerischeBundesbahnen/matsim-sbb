@@ -21,8 +21,8 @@ public class TravelledLeg extends TravelComponent {
 	private double ptDepartureTime;
 	private double ptDepartureDelay;
 	private boolean departureTimeIsSet = false;
-	private boolean isAccess;
-	private boolean isEgress;
+	private boolean isAccess = false;
+	private boolean isEgress = false;
 
 	TravelledLeg(Config config){
 		super(config);
