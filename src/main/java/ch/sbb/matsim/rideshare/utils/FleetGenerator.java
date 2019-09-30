@@ -2,7 +2,7 @@ package ch.sbb.matsim.rideshare.utils;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicleSpecification;
 import org.matsim.contrib.dvrp.fleet.FleetWriter;
@@ -14,8 +14,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Random;
-import java.util.stream.Stream;
+import java.util.*;
 
 public class FleetGenerator {
     /**
@@ -28,8 +27,8 @@ public class FleetGenerator {
     private static final double operationEndTime = 30 * 60 * 60; //24h
     private static final Random random = MatsimRandom.getRandom();
 
-    private static final Path networkFile = Paths.get("C:\\devsbb\\data\\0.01_neuenburg\\input\\NE.100.output_network.xml.gz");
-    private static final Path outputFile = Paths.get("C:\\devsbb\\data\\0.01_neuenburg\\input\\fleetVehicles.xml");
+    private static final Path networkFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\network.xml.gz");
+    private static final Path outputFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\fleetVehicles_feeder.xml");
 
     public static void main(String[] args) {
 
@@ -40,20 +39,19 @@ public class FleetGenerator {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile.toString());
-        final int[] i = {0};
-        Stream<DvrpVehicleSpecification> vehicleSpecificationStream = scenario.getNetwork().getLinks().entrySet().stream()
-                .filter(entry -> entry.getValue().getAllowedModes().contains(TransportMode.car)) // drt can only start on links with Transport mode 'car'
-
-                .sorted((e1, e2) -> (random.nextInt(2) - 1)) // shuffle links
-                .limit(numberOfVehicles) // select the first *numberOfVehicles* links
-                .map(entry -> ImmutableDvrpVehicleSpecification.newBuilder()
-                        .id(Id.create("drt_" + i[0]++, DvrpVehicle.class))
-                        .startLinkId(entry.getKey())
-                        .capacity(seatsPerVehicle)
-                        .serviceBeginTime(operationStartTime)
-                        .serviceEndTime(operationEndTime)
-                        .build());
-
-        new FleetWriter(vehicleSpecificationStream).write(outputFile.toString());
+        //List<Id<Link>> availableLinks  = scenario.getNetwork().getLinks().entrySet().stream()
+        //      .filter(entry -> entry.getValue().getAllowedModes().contains(TransportMode.car)).map(e->e.getKey()).collect(Collectors.toList());
+        List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(177382));
+        Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
+        for (int z = 0; z < numberOfVehicles; z++) {
+            vehicleSpecifications.add(ImmutableDvrpVehicleSpecification.newBuilder()
+                    .id(Id.create("drt_" + z, DvrpVehicle.class))
+                    .startLinkId(availableLinks.get(random.nextInt(availableLinks.size())))
+                    .capacity(seatsPerVehicle)
+                    .serviceBeginTime(operationStartTime)
+                    .serviceEndTime(operationEndTime)
+                    .build());
+        }
+        new FleetWriter(vehicleSpecifications.stream().sorted(Comparator.comparing(v -> v.getId().toString()))).write(outputFile.toString());
     }
 }
