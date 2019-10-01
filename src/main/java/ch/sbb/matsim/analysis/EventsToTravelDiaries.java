@@ -449,6 +449,8 @@ public class EventsToTravelDiaries implements
                 }
             }
 
+            ArrayList<TravelledLeg> accessLegs;
+            ArrayList<TravelledLeg> egressLegs;
             boolean isRailJourney;
 
             for (Trip trip : chain.getTrips()) {
@@ -470,14 +472,26 @@ public class EventsToTravelDiaries implements
                     tripsWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
                     tripsWriter.set("got_stuck", Boolean.toString(chain.isStuck()));
                     isRailJourney = trip.isRailJourney();
+
+                    accessLegs = null;
+                    egressLegs = null;
+
                     if (isRailJourney) {
-                        trip.getFirstLeg().setIsAccess(true);
-                        trip.getLastLeg().setIsEgress(true);
+                        accessLegs = trip.getAccessLegs();
+                        egressLegs = trip.getEgressLegs();
+
+                        for (TravelledLeg leg : accessLegs) {
+                            leg.setIsAccess(true);
+                        }
+                        for (TravelledLeg leg : egressLegs) {
+                            leg.setIsEgress(true);
+                        }
                     }
-                    tripsWriter.set("access_mode", trip.getAccessMode(isRailJourney));
-                    tripsWriter.set("egress_mode", trip.getEgressMode(isRailJourney));
-                    tripsWriter.set("access_dist", String.valueOf(trip.getAccessDist(isRailJourney)));
-                    tripsWriter.set("egress_dist", String.valueOf(trip.getEgressDist(isRailJourney)));
+                    tripsWriter.set("access_mode", trip.getAccessMode(accessLegs));
+                    tripsWriter.set("egress_mode", trip.getEgressMode(egressLegs));
+                    tripsWriter.set("access_dist", String.valueOf(trip.getAccessDist(accessLegs)));
+                    tripsWriter.set("egress_dist", String.valueOf(trip.getEgressDist(egressLegs)));
+
                     tripsWriter.writeRow();
                     counter.incCounter();
 
