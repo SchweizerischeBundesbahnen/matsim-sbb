@@ -142,12 +142,12 @@ public class TravelledLeg extends TravelComponent {
 		return (this.isEgress);
 	}
 
-	public void setIsAccess(boolean value) {
-		this.isAccess = value;
+	public void setIsAccess(String accessMode) {
+		this.isAccess = this.getMode().equals(accessMode);
 	}
 
-	public void setIsEgress(boolean value) {
-		this.isEgress = value;
+	public void setIsEgress(String egressMode) {
+		this.isEgress = this.getMode().equals(egressMode);
 	}
 
 	public boolean isPtLeg() {
