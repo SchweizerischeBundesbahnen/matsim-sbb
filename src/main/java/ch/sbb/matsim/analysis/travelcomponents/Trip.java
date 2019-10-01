@@ -145,7 +145,7 @@ public class Trip extends TravelComponent {
 
     public ArrayList<TravelledLeg> getAccessLegs() {
         ArrayList<TravelledLeg> accessLegs = new ArrayList<>();
-        for (TravelledLeg leg: this.legs) {
+        for (TravelledLeg leg : this.legs) {
             if (leg.isRailLeg()) {
                 break;
             }
