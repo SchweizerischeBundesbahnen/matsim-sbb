@@ -411,7 +411,7 @@ public class EventsToTravelDiaries implements
             legsTableName = "matsim_legs" + appendage + ".csv.gz";
         }
 
-        String[] actsData = new String[] {"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "sample_selector", "zone"};
+        String[] actsData = new String[]{"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "sample_selector", "zone"};
         CSVWriter activityWriter = new CSVWriter(null, actsData, this.filename + actTableName);
 
         String[] tripsData = new String[]{"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode", "main_mode_mikrozensus",
@@ -501,9 +501,9 @@ public class EventsToTravelDiaries implements
 
                         String previous_leg_id = null;
                         String next_leg_id = null;
-                        if(ind > 0)
+                        if (ind > 0)
                             previous_leg_id = Integer.toString(trip.getLegs().get(ind - 1).getElementId());
-                        if(ind < size)
+                        if (ind < size)
                             next_leg_id = Integer.toString(trip.getLegs().get(ind + 1).getElementId());
                         ind++;
 
