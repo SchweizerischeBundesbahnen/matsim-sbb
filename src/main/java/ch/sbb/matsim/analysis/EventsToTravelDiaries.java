@@ -40,19 +40,16 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author pieterfourie, sergioo
- *         <p>
- *         Converts events into trips, legs/stages, transfers and activities
- *         tables. Originally designed for transit scenarios with full transit
- *         simulation, but should work with most teleported modes
- *         </p>
+ * <p>
+ * Converts events into trips, legs/stages, transfers and activities
+ * tables. Originally designed for transit scenarios with full transit
+ * simulation, but should work with most teleported modes
+ * </p>
  */
 
 public class EventsToTravelDiaries implements
