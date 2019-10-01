@@ -14,7 +14,6 @@ import org.matsim.pt.router.TransitTravelDisutility;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Collections;
 import java.util.NoSuchElementException;
 
 public class Trip extends TravelComponent {
@@ -158,9 +157,9 @@ public class Trip extends TravelComponent {
 
     public ArrayList<TravelledLeg> getEgressLegs() {
         ArrayList<TravelledLeg> egressLegs = new ArrayList<>();
-        ArrayList<TravelledLeg> reversedLegs = new ArrayList<>(this.legs);
-        Collections.reverse(reversedLegs);
-        for (TravelledLeg leg: reversedLegs) {
+        TravelledLeg leg;
+        for (int i = this.legs.size() - 1; i >= 0; i--) {
+            leg = this.legs.get(i);
             if (leg.isRailLeg()) {
                 break;
             }
