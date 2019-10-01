@@ -151,12 +151,16 @@ public class TravelledLeg extends TravelComponent {
 	}
 
 	public boolean isPtLeg() {
-		return (this.mode.equals("detPt"));
+		return (this.mode.equals("detPt") || this.mode.equals("pt"));
+	}
+
+	public boolean isFeederLeg() {
+		return (this.getMode().substring(this.getMode().toString().length()-7, this.getMode().toString().length()).equals("_feeder"));
 	}
 
 	public boolean isRailLeg() {
 		if (this.isPtLeg()) {
-			return (this.line.toString().substring(1,5).equals("S2016"));
+			return (this.line.toString().substring(0,5).equals("S2016"));
 		}
 		return false;
 	}
