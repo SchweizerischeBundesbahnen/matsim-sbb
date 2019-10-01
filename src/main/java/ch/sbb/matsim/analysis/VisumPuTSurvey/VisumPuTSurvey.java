@@ -189,8 +189,8 @@ public class VisumPuTSurvey {
                                 writer.set(COL_DEST_GEM, DEFAULT_ZONE);
                             }
 
-                            writer.set(COL_ISACCESS, (leg.isAccessMode()) ? "1" : "0");
-                            writer.set(COL_ISEGRESS, (leg.isEgressMode()) ? "1" : "0");
+                            writer.set(COL_ISACCESS, (leg.isAccessLeg()) ? "1" : "0");
+                            writer.set(COL_ISEGRESS, (leg.isEgressLeg()) ? "1" : "0");
 
                             writer.writeRow();
                             i++;

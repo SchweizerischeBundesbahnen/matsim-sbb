@@ -533,8 +533,8 @@ public class EventsToTravelDiaries implements
                         legsWriter.set("to_y", Double.toString(leg.getDest().getY()));
                         legsWriter.set("previous_leg_id", (previous_leg_id == null) ? "" : previous_leg_id);
                         legsWriter.set("next_leg_id", (next_leg_id == null) ? "" : next_leg_id);
-                        legsWriter.set("is_access", (leg.isAccessMode()) ? "1" : "0");
-                        legsWriter.set("is_egress", (leg.isEgressMode()) ? "1" : "0");
+                        legsWriter.set("is_access", (leg.isAccessLeg()) ? "1" : "0");
+                        legsWriter.set("is_egress", (leg.isEgressLeg()) ? "1" : "0");
                         legsWriter.writeRow();
                         counter.incCounter();
                     }

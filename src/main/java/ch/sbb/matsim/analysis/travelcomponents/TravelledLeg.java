@@ -134,11 +134,11 @@ public class TravelledLeg extends TravelComponent {
 		
 	}
 
-	public boolean isAccessMode() {
+	public boolean isAccessLeg() {
 		return (this.isAccess);
 	}
 
-	public boolean isEgressMode() {
+	public boolean isEgressLeg() {
 		return (this.isEgress);
 	}
 
