@@ -49,10 +49,12 @@ public class VisumPuTSurvey {
     private static final String COL_SUBPOP = "SUBPOP";
     private static final String COL_ORIG_GEM = "ORIG_GEM";
     private static final String COL_DEST_GEM = "DEST_GEM";
-    private static final String COL_ISACCESS = "IS_ACCESS";
-    private static final String COL_ISEGRESS = "IS_EGRESS";
-    private static final String[] COLUMNS = new String[] { COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
-            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM, COL_ISACCESS, COL_ISEGRESS };
+    private static final String COL_ACCESS_MODE = "ACCESS_MODE";
+    private static final String COL_EGRESS_MODE = "EGRESS_MODE";
+    private static final String COL_ACCESS_DIST = "ACCESS_DIST";
+    private static final String COL_EGRESS_DIST = "EGRESS_DIST";
+    private static final String[] COLUMNS = new String[]{COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
+            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM, COL_ACCESS_MODE, COL_EGRESS_MODE, COL_ACCESS_DIST, COL_EGRESS_DIST};
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
@@ -100,8 +102,12 @@ public class VisumPuTSurvey {
         boolean isRail;
         ArrayList<TravelledLeg> accessLegs;
         ArrayList<TravelledLeg> egressLegs;
-        String accessMode;
-        String egressMode;
+        String accessMode = "";
+        String egressMode = "";
+        double accessDist = 0;
+        double egressDist = 0;
+        int first_rail_leg = 9999;
+        int last_rail_leg = -1;
         final String filepath = path + FILENAME;
         log.info("write Visum PuT Survey File to " + filepath);
 
@@ -117,12 +123,18 @@ public class VisumPuTSurvey {
 
                         accessMode = trip.getAccessMode(accessLegs);
                         egressMode = trip.getEgressMode(egressLegs);
+                        accessDist = trip.getAccessDist(accessLegs);
+                        egressDist = trip.getEgressDist(egressLegs);
 
-                        for (TravelledLeg leg : accessLegs) {
-                            leg.setIsAccess(accessMode);
-                        }
-                        for (TravelledLeg leg : egressLegs) {
-                            leg.setIsEgress(egressMode);
+                        first_rail_leg = 9999;
+                        last_rail_leg = -1;
+
+                        TravelledLeg leg;
+                        for (int i = 0; i < trip.getLegs().size(); i++) {
+                            if (trip.getLegs().get(i).isRailLeg()) {
+                                last_rail_leg = i;
+                                if (first_rail_leg == 9999) first_rail_leg = i;
+                            }
                         }
                     }
                     Integer i = 1;
@@ -189,8 +201,10 @@ public class VisumPuTSurvey {
                                 writer.set(COL_DEST_GEM, DEFAULT_ZONE);
                             }
 
-                            writer.set(COL_ISACCESS, (leg.isAccessLeg()) ? "1" : "0");
-                            writer.set(COL_ISEGRESS, (leg.isEgressLeg()) ? "1" : "0");
+                            writer.set(COL_ACCESS_MODE, (isRail && (i == first_rail_leg)) ? accessMode : "");
+                            writer.set(COL_EGRESS_MODE, (isRail && (i == last_rail_leg)) ? egressMode : "");
+                            writer.set(COL_ACCESS_DIST, (isRail && (i == first_rail_leg)) ? Double.toString(accessDist) : "0");
+                            writer.set(COL_EGRESS_DIST, (isRail && (i == last_rail_leg)) ? Double.toString(egressDist) : "0");
 
                             writer.writeRow();
                             i++;
