@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class VisumPuTSurvey {
 
@@ -97,6 +98,10 @@ public class VisumPuTSurvey {
 
     public void write(String path) {
         boolean isRail;
+        ArrayList<TravelledLeg> accessLegs;
+        ArrayList<TravelledLeg> egressLegs;
+        String accessMode;
+        String egressMode;
         final String filepath = path + FILENAME;
         log.info("write Visum PuT Survey File to " + filepath);
 
@@ -107,8 +112,18 @@ public class VisumPuTSurvey {
                 for (Trip trip : chain.getTrips()) {
                     isRail = trip.isRailJourney();
                     if (isRail) {
-                        trip.getFirstLeg().setIsAccess(true);
-                        trip.getLastLeg().setIsEgress(true);
+                        accessLegs = trip.getAccessLegs();
+                        egressLegs = trip.getEgressLegs();
+
+                        accessMode = trip.getAccessMode(accessLegs);
+                        egressMode = trip.getEgressMode(egressLegs);
+
+                        for (TravelledLeg leg : accessLegs) {
+                            leg.setIsAccess(accessMode);
+                        }
+                        for (TravelledLeg leg : egressLegs) {
+                            leg.setIsEgress(egressMode);
+                        }
                     }
                     Integer i = 1;
                     for (TravelledLeg leg : trip.getLegs()) {
