@@ -154,10 +154,6 @@ public class TravelledLeg extends TravelComponent {
 		return (this.mode.equals("detPt") || this.mode.equals("pt"));
 	}
 
-	public boolean isFeederLeg() {
-		return (this.getMode().substring(this.getMode().toString().length()-7, this.getMode().toString().length()).equals("_feeder"));
-	}
-
 	public boolean isRailLeg() {
 		if (this.isPtLeg()) {
 			return (this.line.toString().substring(0,5).equals("S2016"));
