@@ -67,12 +67,12 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         for (PlanElement pe : legs) {
             if (pe instanceof Leg) {
                 String mode = ((Leg) pe).getMode();
-                if (mode.equals(TransportMode.access_walk)) {
+                if (mode.equals(TransportMode.non_network_walk)) {
 
                     ((Leg) pe).setTravelTime(0.0);
                     ((Leg) pe).getRoute().setTravelTime(0.0);
                 }
-                if (mode.equals(TransportMode.egress_walk)) {
+                if (mode.equals(TransportMode.non_network_walk)) {
                     ((Leg) pe).setTravelTime(.0);
                     ((Leg) pe).getRoute().setTravelTime(0.0);
                 }

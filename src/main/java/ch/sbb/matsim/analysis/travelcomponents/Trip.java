@@ -73,7 +73,7 @@ public class Trip extends TravelComponent {
 			if (getLegs().size() > 1) {
 				for (int i = 1; i < getLegs().size(); i++) {
 					TravelledLeg leg = getLegs().get(i);
-					if (leg.getMode().equals(TransportMode.egress_walk) || leg.getMode().equals(TransportMode.access_walk)) {
+					if (leg.getMode().equals(TransportMode.non_network_walk)) {
 					}
 					else if (longestLeg == null) {
 						longestLeg = leg;

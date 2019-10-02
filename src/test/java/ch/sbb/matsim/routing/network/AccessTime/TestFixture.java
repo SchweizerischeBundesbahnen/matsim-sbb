@@ -141,14 +141,14 @@ public class TestFixture {
         params3.setScoringThisActivityAtAll(false);
         scenario.getConfig().planCalcScore().addActivityParams(params3);
 
-        accessParams = config.planCalcScore().getOrCreateModeParams(TransportMode.access_walk);
+        accessParams = config.planCalcScore().getOrCreateModeParams(TransportMode.non_network_walk);
         accessParams.setConstant(constant);
 
-        egressParams = config.planCalcScore().getOrCreateModeParams(TransportMode.egress_walk);
+        egressParams = config.planCalcScore().getOrCreateModeParams(TransportMode.non_network_walk);
         egressParams.setConstant(constant);
 
         StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
-        settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator.toString());
+        settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);
         settings.setWeight(1.0);
         scenario.getConfig().strategy().addStrategySettings(settings);
 

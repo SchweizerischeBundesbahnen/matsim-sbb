@@ -785,7 +785,7 @@ public class ScenarioCutter {
                 Activity current = (Activity) planElement;
                 if (previousAct != null) {
                     if (!previousAct.getType().endsWith("interaction") && !current.getType().endsWith("interaction")) {
-                        if (previousLeg.getMode().equals(TransportMode.access_walk) || previousLeg.getMode().equals(TransportMode.egress_walk)) {
+                        if (previousLeg.getMode().equals(TransportMode.non_network_walk)) {
                             previousLeg.setMode(TransportMode.walk);
                         }
                     }

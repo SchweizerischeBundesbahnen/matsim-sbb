@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
  *
- * Extend a network leg with an access_walk and an egress_walk legs. Duration of access/egress is read from a shapefile.
+ * Extend a network leg with non_network_walk legs before and after. Duration of access/egress is read from a shapefile.
  * The duration is a zone attribute. For the mode "car", this class read the column "ACCCAR". For identical zone, the access and egress times are equal.
  *
  */
@@ -48,7 +48,7 @@ public class AccessEgressRouting {
 
     public double addAccess(final Facility fromFacility, final Link accessActLink, double now, final List<PlanElement> result, final Person person) {
 
-        final Leg accessLeg = this.populationFactory.createLeg(TransportMode.access_walk);
+        final Leg accessLeg = this.populationFactory.createLeg(TransportMode.non_network_walk);
         accessLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, accessLeg, fromFacility.getCoord(), now, accessActLink.getId(), accessActLink.getId());
 
@@ -64,7 +64,7 @@ public class AccessEgressRouting {
         final Activity interactionActivity = createInteractionActivity(egressActLink);
         result.add(interactionActivity);
 
-        final Leg egressLeg = this.populationFactory.createLeg(TransportMode.egress_walk);
+        final Leg egressLeg = this.populationFactory.createLeg(TransportMode.non_network_walk);
         egressLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, egressLeg, toFacility.getCoord(), now, egressActLink.getId(), egressActLink.getId());
         result.add(egressLeg);

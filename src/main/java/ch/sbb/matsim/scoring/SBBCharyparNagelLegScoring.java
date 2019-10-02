@@ -71,8 +71,7 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		double travelTime = arrivalTime - departureTime; // travel time in seconds
 		ModeUtilityParameters modeParams = this.params.modeParams.get(leg.getMode());
 		if (modeParams == null) {
-			if (leg.getMode().equals(TransportMode.transit_walk) || leg.getMode().equals(TransportMode.access_walk) 
-					|| leg.getMode().equals(TransportMode.egress_walk) ) {
+			if (leg.getMode().equals(TransportMode.transit_walk) || leg.getMode().equals(TransportMode.non_network_walk)) {
 				modeParams = this.params.modeParams.get(TransportMode.walk);
 			} else {
 //				modeParams = this.params.modeParams.get(TransportMode.other);
