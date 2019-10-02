@@ -27,30 +27,34 @@
 		</repository>
 	</repositories>
 
+	<properties>
+		<matsim.version>12.0-2019w39-SNAPSHOT</matsim.version>
+	</properties>
+
 	<dependencies>
 
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>12.0-2019w39-SNAPSHOT</version>
+			<version>${matsim.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>drt</artifactId>
-            <version>0.11.0-SNAPSHOT</version>
+            <version>${matsim.version}</version>
 		</dependency>
 
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>av</artifactId>
-            <version>0.11.0-SNAPSHOT</version>
+            <version>${matsim.version}</version>
         </dependency>
 
         <dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>12.0-2019w39-SNAPSHOT</version>
+			<version>${matsim.version}</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 			<type>test-jar</type>
