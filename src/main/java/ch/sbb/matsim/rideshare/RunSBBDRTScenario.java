@@ -54,7 +54,6 @@ public class RunSBBDRTScenario {
 
     public static void prepareDrtConfig(Config config) {
         DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore());
-        config.addConfigConsistencyChecker(new DrtConfigConsistencyChecker());
         config.checkConsistency();
     }
 
