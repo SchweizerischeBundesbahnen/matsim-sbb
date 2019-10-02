@@ -1,7 +1,6 @@
 package ch.sbb.matsim.accessibility;
 
 import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
-import ch.sbb.matsim.analysis.skims.StreamingFacilities;
 import ch.sbb.matsim.routing.pt.raptor.*;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -30,8 +29,6 @@ import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
-import org.matsim.facilities.ActivityFacility;
-import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
@@ -43,7 +40,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
-import java.util.function.ToDoubleFunction;
 
 public class Accessibility {
 
@@ -53,7 +49,7 @@ public class Accessibility {
     private final String eventsFilename;
     private final String scheduleFilename;
     private final String transitNetworkFilename;
-    private final Scenario scenario;
+    private final Config config;
     private final Map<Coord, Double> attractions;
     private Predicate<Link> xy2linksPredicate;
     private boolean scenarioLoaded = false;
@@ -75,7 +71,7 @@ public class Accessibility {
         this.eventsFilename = eventsFilename;
         this.scheduleFilename = scheduleFilename;
         this.transitNetworkFilename = transitNetworkFilename;
-        this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        this.config = ConfigUtils.createConfig();
         this.attractions = attractions;
         this.carAMDepTimes = carAMDepTimes;
         this.carPMDepTimes = carPMDepTimes;
@@ -127,7 +123,7 @@ public class Accessibility {
             for (int i = 0; i < this.threadCount; i++) {
                 RowWorker worker = new RowWorker(
                         this.carNetwork, xy2linksNetwork, tt, td, this.carAMDepTimes, this.carPMDepTimes,
-                        this.raptorData, RaptorUtils.createParameters(this.scenario.getConfig()), ptMinDepartureTime, ptMaxDepartureTime, trainDetector,
+                        this.raptorData, RaptorUtils.createParameters(this.config), ptMinDepartureTime, ptMaxDepartureTime, trainDetector,
                         zoneData, modes, counter, accessibilityCoords, results);
                 threads[i] = new Thread(worker, "accessibility-" + i);
                 threads[i].start();
@@ -160,7 +156,7 @@ public class Accessibility {
     }
 
     private void loadScenario() {
-        Config config = scenario.getConfig();
+        Scenario scenario = ScenarioUtils.createScenario(this.config);
         log.info("loading network from " + networkFilename);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFilename);
 
@@ -183,11 +179,16 @@ public class Accessibility {
         new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.carNetwork, Collections.singleton(TransportMode.car));
 
         log.info("loading schedule from " + this.scheduleFilename);
-        Scenario ptScenario = ScenarioUtils.createScenario(scenario.getConfig());
-        new MatsimNetworkReader(ptScenario.getNetwork()).readFile(transitNetworkFilename);
-        (new TransitScheduleReader(ptScenario)).readFile(this.scheduleFilename);
+        Scenario ptScenario;
+        if (transitNetworkFilename.equals(networkFilename)) {
+            ptScenario = scenario;
+        } else {
+            ptScenario = ScenarioUtils.createScenario(this.config);
+            new MatsimNetworkReader(ptScenario.getNetwork()).readFile(transitNetworkFilename);
+        }
+        new TransitScheduleReader(ptScenario).readFile(this.scheduleFilename);
         log.info("prepare PT Matrix calculation");
-        RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(config);
+        RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(this.config);
         raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
         this.raptorData = SwissRailRaptorData.create(ptScenario.getTransitSchedule(), raptorConfig, ptScenario.getNetwork());
 
@@ -719,74 +720,13 @@ public class Accessibility {
             this.id = id;
         }
 
-        public Modes(String id, boolean car, boolean pt, boolean walk, boolean bike, double missingModeUtility) {
+        public Modes(String id, boolean car, boolean pt, boolean walk, boolean bike) {
             this.id = id;
             this.car = car;
             this.pt = pt;
             this.walk = walk;
             this.bike = bike;
-            this.missingModeUtility = missingModeUtility;
         }
     }
 
-    public static void main(String[] args) {
-        System.setProperty("matsim.preferLocalDtds", "true");
-
-        String networkFilename = "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_network.xml.gz";
-        String eventsFilename = "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_events.xml.gz";
-        eventsFilename = null;
-        String transitNetworkFilename = "C:\\devsbb\\codes\\_data\\skims\\20190816_Angebot_17\\transitNetwork.xml.gz";
-        String scheduleFilename = "C:\\devsbb\\codes\\_data\\skims\\20190816_Angebot_17\\transitSchedule.xml.gz";
-        String facilitiesFilename = "C:\\devsbb\\codes\\_data\\skims\\v_20190109\\facilities.xml.gz";
-        double[] carAMDepTimes = new double[] {6*3600 + 1800, 7*3600 - 600, 7*3600 + 600, 7*3600 + 1800};
-        double[] carPMDepTimes = new double[] {17*3600 - 600, 17*3600 + 600, 17*3600 + 1800, 18*3600 - 600};
-        String csvOutputFilename = "C:\\devsbb\\codes\\_data\\skims\\accessibility_java1.csv";
-        double ptMinDepTime = 7*3600;
-        double ptMaxDepTime = 7*3600;
-
-        List<Coord> coordinates = new ArrayList<>();
-
-        int gridSize = 2000;
-
-        for (double x = 590_000; x <= 610_000; x += gridSize) {
-            for (double y = 190_000; y <= 210_000; y += gridSize) {
-                coordinates.add(new Coord(x, y));
-            }
-        }
-
-        Modes[] modes = new Modes[] {
-                new Modes("mm", true, true, true, true, -9999),
-                new Modes("car", true, false, true, true, -9999),
-                new Modes("pt", false, true, true, true, -9999)
-        };
-
-        Map<Coord, Double> attractions = new HashMap<>();
-        log.info("loading facilities from " + facilitiesFilename);
-        ToDoubleFunction<ActivityFacility> weightFunction = f -> {
-            double weight = 2; // default for households // TODO adapt to actual population
-            String fte = (String) f.getAttributes().getAttribute("fte");
-            if (fte != null) {
-                weight = 2.54 * Double.parseDouble(fte);
-            }
-            return weight;
-        };
-        Counter facCounter = new Counter("#");
-        new MatsimFacilitiesReader(null, null, new StreamingFacilities(
-                f -> {
-                    facCounter.incCounter();
-                    double weight = weightFunction.applyAsDouble(f);
-                    Coord c = new Coord(((int) (f.getCoord().getX() / gridSize)) * gridSize, ((int) (f.getCoord().getY() / gridSize)) * gridSize);
-                    attractions.compute(c, (k, oldVal) -> oldVal == null ? weight : (oldVal + weight));
-                }
-        )).readFile(facilitiesFilename);
-        facCounter.printCounter();
-
-        BiPredicate<TransitLine, TransitRoute> trainDetector = (tl, tr) -> {
-            return true;
-        };
-
-        Accessibility accessibility = new Accessibility(networkFilename, eventsFilename, scheduleFilename, transitNetworkFilename, attractions, carAMDepTimes, carPMDepTimes, ptMinDepTime, ptMaxDepTime, trainDetector);
-        accessibility.setThreadCount(3);
-        accessibility.calculateAccessibility(coordinates, modes, csvOutputFilename);
-    }
 }
