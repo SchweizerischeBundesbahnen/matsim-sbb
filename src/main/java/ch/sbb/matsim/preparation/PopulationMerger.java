@@ -10,20 +10,13 @@ import ch.sbb.matsim.config.variables.Variables;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.utils.objectattributes.ObjectAttributes;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 import java.io.File;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class PopulationMerger {
 
@@ -44,23 +37,14 @@ public class PopulationMerger {
     public PopulationMerger(PopulationMergerConfigGroup config) {
         this.config = config;
 
-        this.scenario = this.loadScenario(this.config.getInputPlansFiles(), this.config.getInputAttributesFiles());
+        this.scenario = this.loadScenario(this.config.getInputPlansFiles());
     }
 
-
-    private Scenario loadScenario(String plansFile, String attributesFile) {
-        final Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new PopulationReader(scenario2).readFile(plansFile);
-        new ObjectAttributesXmlReader(scenario2.getPopulation().getPersonAttributes()).readFile(attributesFile);
-        return scenario2;
-    }
-
-    private Scenario loadScenario(final String plansFile) {
+    private Scenario loadScenario(String plansFile) {
         final Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario2).readFile(plansFile);
         return scenario2;
     }
-
 
     public void run() {
         for (final String subpopulation : this.config.getPopulationTypes()) {
@@ -82,7 +66,7 @@ public class PopulationMerger {
     private void merge(final Scenario scenario2, final String subpopulation) {
         for (Person person : scenario2.getPopulation().getPersons().values()) {
             this.scenario.getPopulation().addPerson(person);
-            this.scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), Variables.SUBPOPULATION, subpopulation);
+            person.getAttributes().putAttribute(Variables.SUBPOPULATION, subpopulation);
         }
     }
 
@@ -90,6 +74,5 @@ public class PopulationMerger {
     protected void write() {
         final String outputFolder = this.config.getOutputFolder();
         new PopulationWriter(this.scenario.getPopulation()).write(new File(outputFolder, Filenames.PLANS).toString());
-        new ObjectAttributesXmlWriter(this.scenario.getPopulation().getPersonAttributes()).writeFile(new File(outputFolder, Filenames.PERSON_ATTRIBUTES).toString());
     }
 }

@@ -13,6 +13,13 @@ import java.io.InputStreamReader;
 
 public class VisumPuTSurveyIntegrationTest {
 
+    /**
+     * This test fails in IntelliJ when run as part of all tests in the project, but works if run individually.
+     * It always works if run with Maven. I guess there's no easy fix, as the test seems to be dependent on some
+     * internal ordering of Ids, which might be different when other tests have run before.
+     *
+     * @throws IOException
+     */
     @Test
     public void test() throws IOException {
         TestFixture fixture = new TestFixture();
@@ -46,6 +53,6 @@ public class VisumPuTSurveyIntegrationTest {
         }
         String everything = sb.toString();
         System.out.println(everything);
-        Assert.assertEquals(expected, everything);
+        Assert.assertEquals(expected, everything); // if this fails, check the comment at the top.
     }
 }

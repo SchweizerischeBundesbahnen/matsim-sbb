@@ -25,6 +25,7 @@ import ch.sbb.matsim.s3.S3Downloader;
 
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.QSimConfigGroup;
@@ -121,8 +122,15 @@ public class RunSBB {
     }
 
     public static Config buildConfig(String filepath) {
-        return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+        Config config = ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
                 new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup());
+
+        if (config.plansCalcRoute().getNetworkModes().contains(TransportMode.ride)) {
+            // MATSim defines ride by default as teleported, which conflicts with the network mode
+            config.plansCalcRoute().removeModeRoutingParams(TransportMode.ride);
+        }
+
+        return config;
     }
 }

@@ -99,7 +99,7 @@ public class VisumPuTSurvey {
 
         try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath, Charset.forName("Cp1252"))) {
             for (Map.Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
-                String paxId = entry.getKey().toString();
+                Id<Person> paxId = entry.getKey();
                 TravellerChain chain = entry.getValue();
                 for (Trip trip : chain.getTrips()) {
                     Integer i = 1;
@@ -145,7 +145,7 @@ public class VisumPuTSurvey {
                             Double pfahrt = 1.0 * scaleFactor;
                             writer.set(COL_PFAHRT, Integer.toString(pfahrt.intValue()));
 
-                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(paxId,"subpopulation").toString();
+                            String subpopulation = this.scenario.getPopulation().getPersons().get(paxId).getAttributes().getAttribute("subpopulation").toString();
                             writer.set(COL_SUBPOP, subpopulation);
 
                             Zone fromGem = (this.zones != null) ? this.zones.findZone(trip.getFromAct().getCoord().getX(),

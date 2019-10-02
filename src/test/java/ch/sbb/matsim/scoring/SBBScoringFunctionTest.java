@@ -29,7 +29,7 @@ public class SBBScoringFunctionTest {
 
     @Test
     public void testTransferScoring() {
-        testTransferScoring("access_walk", "egress_walk");
+        testTransferScoring("non_network_walk", "non_network_walk");
     }
 
     @Test
@@ -165,7 +165,7 @@ public class SBBScoringFunctionTest {
 
         int interactionActtypeCount = SBBActivities.stageActivityTypeList.size();
 
-        SBBCharyparNagelScoringParametersForPerson spfp = new SBBCharyparNagelScoringParametersForPerson(config.plans(), config.planCalcScore(), config.scenario(), population, config.transit(), sbbBehaviour);
+        SBBCharyparNagelScoringParametersForPerson spfp = new SBBCharyparNagelScoringParametersForPerson(config.plans(), config.planCalcScore(), config.scenario(), sbbBehaviour);
 
         SBBScoringParameters sp1 = spfp.getSBBScoringParameters(w1);
         ActivityUtilityParameters home1 = sp1.getMatsimScoringParameters().utilParams.get("home");

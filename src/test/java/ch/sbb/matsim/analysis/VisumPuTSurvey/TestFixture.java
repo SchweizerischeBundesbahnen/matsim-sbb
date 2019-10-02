@@ -38,6 +38,8 @@ import org.matsim.testcases.utils.EventsCollector;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleCapacity;
 import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleType.DoorOperationMode;
+import org.matsim.vehicles.VehicleUtils;
 import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
@@ -80,7 +82,7 @@ public class TestFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(1, Person.class));
-        population.getPersonAttributes().putAttribute(person.getId().toString(), "subpopulation","regular");
+        person.getAttributes().putAttribute("subpopulation","regular");
         Plan plan = pf.createPlan();
         Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
         act1.setEndTime(29500);
@@ -129,10 +131,9 @@ public class TestFixture {
         VehiclesFactory vf = vehicles.getFactory();
 
         VehicleType vehType1 = vf.createVehicleType(Id.create("some_train", VehicleType.class));
-        VehicleCapacity vehCapacity = vf.createVehicleCapacity();
+        VehicleCapacity vehCapacity = vehType1.getCapacity();
         vehCapacity.setSeats(300);
         vehCapacity.setStandingRoom(150);
-        vehType1.setCapacity(vehCapacity);
         vehicles.addVehicleType(vehType1);
         vehType1.setDoorOperationMode(VehicleType.DoorOperationMode.serial);
         vehType1.setAccessTime(2); // 1 person takes 2 seconds to board

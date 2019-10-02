@@ -14,17 +14,19 @@ import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 public class AttributeMerger {
     public static void main(final String[] args) {
+        if (args.length != 5) {
+            System.err.println("Wrong number of arguments.");
+            return;
+        }
         final Config config = ConfigUtils.createConfig();
         final String planFile = args[0];
         final String attributeFileA = args[1];
         final String attributeFileB = args[2];
-        final String attributeFile = args[3];
-        final String attributesStr = args[4];
-        final String populationFile = args[5];
+        final String attributesStr = args[3];
+        final String populationFile = args[4];
         config.plans().setInputFile(planFile);
 
         Scenario scenario = ScenarioUtils.createScenario(config);
@@ -52,11 +54,11 @@ public class AttributeMerger {
                 else if(A == null && B!= null){
                     C = B;
                 }
-                else if(A != null && B!= null){
+                else if(A != null){
                     C = A.toString()+"_"+B.toString();
                 }
 
-                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), attribute, C);
+                person.getAttributes().putAttribute(attribute, C);
 
                 if (attribute.equals("availability: car")) {
                     if (!"never".equals(C.toString())) {
@@ -78,7 +80,6 @@ public class AttributeMerger {
                 }
             }
         }
-        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile( attributeFile);
         new PopulationWriter(scenario.getPopulation()).write(populationFile);
     }
 }

@@ -177,9 +177,8 @@ public class TransferScoringTest {
             Vehicles vehicles = this.scenario.getTransitVehicles();
             VehiclesFactory vf = vehicles.getFactory();
             VehicleType vt = vf.createVehicleType(Id.create("train", VehicleType.class));
-            VehicleCapacity vc = vf.createVehicleCapacity();
+            VehicleCapacity vc = vt.getCapacity();
             vc.setSeats(100);
-            vt.setCapacity(vc);
             vehicles.addVehicleType(vt);
             vehicles.addVehicle(vf.createVehicle(Id.create("b1", Vehicle.class), vt));
             vehicles.addVehicle(vf.createVehicle(Id.create("r1", Vehicle.class), vt));

@@ -51,9 +51,6 @@ public class PopulationToCSV {
                         Object attribute;
                         attribute = person.getAttributes().getAttribute(attribute_name);
 
-                        if (attribute == null)
-                            attribute = population.getPersonAttributes().getAttribute(person.getId().toString(), attribute_name);
-
                         if (attribute != null)
                             agentsWriter.set(attribute_name, attribute.toString());
                     }
@@ -133,9 +130,6 @@ public class PopulationToCSV {
 
         new PopulationReader(scenario).readFile(config.plans().getInputFile());
 
-        if (config.plans().getInputPersonAttributeFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(config.plans().getInputPersonAttributeFile());
-        }
         if (config.households().getInputFile() != null) {
             new HouseholdsReaderV10(scenario.getHouseholds()).readFile(config.households().getInputFile());
         }

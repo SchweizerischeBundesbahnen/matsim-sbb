@@ -53,13 +53,13 @@ public class SBBPopulationSamplerIT {
         SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
         Assert.assertEquals(size, population.getPersons().size());
         for(Person person: population.getPersons().values()) {
-            Assert.assertNotNull(population.getPersonAttributes().getAttribute(person.getId().toString(), "attribute"));
-            Assert.assertNull(population.getPersonAttributes().getAttribute(person.getId().toString(), "no_attribute"));
+            Assert.assertNotNull(person.getAttributes().getAttribute("attribute"));
+            Assert.assertNull(person.getAttributes().getAttribute("no_attribute"));
         }
         sbbPopulationSampler.sample(population, fraction);
         Assert.assertEquals(expectedSize, population.getPersons().size());
         for(Person person: population.getPersons().values()) {
-            Assert.assertNotNull(population.getPersonAttributes().getAttribute(person.getId().toString(), "attribute"));
+            Assert.assertNotNull(person.getAttributes().getAttribute("attribute"));
         }
     }
 
@@ -71,7 +71,7 @@ public class SBBPopulationSamplerIT {
         SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
         Assert.assertEquals(size, population.getPersons().size());
         for(Person person: population.getPersons().values()) {
-            Assert.assertNull(population.getPersonAttributes().getAttribute(person.getId().toString(), "attribute"));
+            Assert.assertNull(person.getAttributes().getAttribute("attribute"));
         }
         sbbPopulationSampler.sample(population, fraction);
         Assert.assertEquals(expectedSize, population.getPersons().size());

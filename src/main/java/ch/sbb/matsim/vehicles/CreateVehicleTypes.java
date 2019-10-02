@@ -9,12 +9,13 @@ import org.matsim.vehicles.VehicleTypeImpl;
 import org.matsim.vehicles.VehicleWriterV1;
 import org.matsim.vehicles.Vehicles;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CreateVehicleTypes {
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) throws IOException {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
         Map<String, Double> typeToPCE = new HashMap<>();
@@ -28,16 +29,17 @@ public class CreateVehicleTypes {
     }
 
     private static void createVehicleTypes(Vehicles vehicles, Map<String, Double> typeToPCE) {
+        VehiclesFactory vf = vehicles.getFactory();
         for(Map.Entry<String, Double> typeStr: typeToPCE.entrySet())    {
             Id<VehicleType> typeId = Id.create(typeStr.getKey(), VehicleType.class);
-            VehicleType type = new VehicleTypeImpl(typeId);
+            VehicleType type = vf.createVehicleType(typeId);
             type.setPcuEquivalents(typeStr.getValue());
 
             vehicles.addVehicleType(type);
         }
     }
 
-    private static void writeVehicleTypes(Vehicles vehicles, String output) {
-        new VehicleWriterV1(vehicles).writeFile(output);
+    private static void writeVehicleTypes(Vehicles vehicles, String output) throws IOException {
+        new MatsimVehicleWriter(vehicles).writeFile(output);
     }
 }

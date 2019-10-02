@@ -18,7 +18,6 @@ import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +55,7 @@ public class Cleaner {
             log.info("Cleaner cleans routes for subpop: " + subpop);
 
         for(Person p: population.getPersons().values()){
-            if(!subpopulationsToClean.contains(population.getPersonAttributes().getAttribute(p.getId().toString(), "subpopulation")) &&
+            if(!subpopulationsToClean.contains(p.getAttributes().getAttribute("subpopulation")) &&
                     !subpopulationsToClean.contains("all"))
                 continue;
 
@@ -112,7 +111,6 @@ public class Cleaner {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(planFile);
-        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(attributeFile);
 
         Cleaner cleaner = new Cleaner(scenario.getPopulation());
         cleaner.removeNonSelectedPlans();
