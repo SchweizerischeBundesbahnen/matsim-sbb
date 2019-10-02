@@ -36,10 +36,15 @@ import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.routes.ExperimentalTransitRoute;
-import org.matsim.pt.transitSchedule.api.*;
-import org.matsim.utils.objectattributes.ObjectAttributesUtils;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
+import org.matsim.pt.transitSchedule.api.Departure;
+import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.AttributesUtils;
 import org.matsim.vehicles.*;
 
@@ -199,12 +204,6 @@ public class ScenarioCutter {
         Scenario scenario = ScenarioUtils.createScenario(config);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
         new TransitScheduleReader(scenario).readFile(config.transit().getTransitScheduleFile());
-        if (config.transit().getTransitLinesAttributesFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitLinesAttributes()).readFile(config.transit().getTransitLinesAttributesFile());
-        }
-        if (config.transit().getTransitStopsAttributesFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitStopsAttributes()).readFile(config.transit().getTransitStopsAttributesFile());
-        }
         new MatsimVehicleReader(scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
         BetterPopulationReader.readSelectedPlansOnly(scenario, new File(config.plans().getInputFile()));
         new MatsimFacilitiesReader(scenario).readFile(config.facilities().getInputFile());
@@ -244,15 +243,8 @@ public class ScenarioCutter {
 
         new NetworkWriter(cutScenario.getNetwork()).write(new File(outputDir, "network.xml.gz").getAbsolutePath());
         new PopulationWriter(cutScenario.getPopulation()).write(new File(outputDir, "population.xml.gz").getAbsolutePath());
-        new VehicleWriterV1(cutScenario.getTransitVehicles()).writeFile(new File(outputDir, "transitVehicles.xml.gz").getAbsolutePath());
+        new MatsimVehicleWriter(cutScenario.getTransitVehicles()).writeFile(new File(outputDir, "transitVehicles.xml.gz").getAbsolutePath());
         new TransitScheduleWriter(cutScenario.getTransitSchedule()).writeFile(new File(outputDir, "schedule.xml.gz").getAbsolutePath());
-        if (config.transit().getTransitLinesAttributesFile() != null) {
-            new ObjectAttributesXmlWriter(cutScenario.getTransitSchedule().getTransitLinesAttributes()).writeFile(new File(outputDir, "transitLinesAttributes.xml.gz").getAbsolutePath());
-        }
-        if (config.transit().getTransitStopsAttributesFile() != null) {
-            new ObjectAttributesXmlWriter(cutScenario.getTransitSchedule().getTransitStopsAttributes()).writeFile(new File(outputDir, "transitStopsAttributes.xml.gz").getAbsolutePath());
-        }
-
 
         new FacilitiesWriter(cutScenario.getActivityFacilities()).write(new File(outputDir, "facilities.xml.gz").getAbsolutePath());
 
@@ -562,7 +554,6 @@ public class ScenarioCutter {
                         destLine.setName(line.getName());
                         AttributesUtils.copyAttributesFromTo(line, destLine);
                         dest.addTransitLine(destLine);
-                        ObjectAttributesUtils.copyAllAttributes(source.getTransitLinesAttributes(), dest.getTransitLinesAttributes(), line.getId().toString());
                     }
                     destLine.addRoute(route);
                 }
