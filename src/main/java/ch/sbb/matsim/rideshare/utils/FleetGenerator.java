@@ -28,7 +28,7 @@ public class FleetGenerator {
     private static final Random random = MatsimRandom.getRandom();
 
     private static final Path networkFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\network.xml.gz");
-    private static final Path outputFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\fleetVehicles_feeder.xml");
+    private static final Path outputFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\fleetVehicles_feeder_ne.xml");
 
     public static void main(String[] args) {
 
@@ -41,7 +41,8 @@ public class FleetGenerator {
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile.toString());
         //List<Id<Link>> availableLinks  = scenario.getNetwork().getLinks().entrySet().stream()
         //      .filter(entry -> entry.getValue().getAllowedModes().contains(TransportMode.car)).map(e->e.getKey()).collect(Collectors.toList());
-        List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(177382));
+//        List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(177382)); //lcf
+        List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(598836)); //ne
         Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
         for (int z = 0; z < numberOfVehicles; z++) {
             vehicleSpecifications.add(ImmutableDvrpVehicleSpecification.newBuilder()
