@@ -11,6 +11,7 @@ import ch.ethz.matsim.discrete_mode_choice.modules.ConstraintModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceConfigurator;
 import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.EstimatorModule;
+import ch.ethz.matsim.discrete_mode_choice.modules.SBBEstimatorModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.SelectorModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.ModeChainFilterRandomThresholdConfigGroup;
@@ -104,6 +105,14 @@ public class RunSBB {
         Controler controler = new Controler(scenario);
         
         controler.addOverridingModule(new DiscreteModeChoiceModule());
+        
+        controler.addOverridingModule(new AbstractModule() {
+            @Override
+            public void install() {
+            	install(new SBBEstimatorModule());
+            	}
+         });
+        
 //        DiscreteModeChoiceConfigurator.configureAsImportanceSampler(config);
 //        DiscreteModeChoiceConfigGroup dmcConfig = (DiscreteModeChoiceConfigGroup) config.getModules().get(DiscreteModeChoiceConfigGroup.GROUP_NAME);
 //        dmcConfig.setTourConstraintsAsString(ConstraintModule.SUBTOUR_MODE);
@@ -140,12 +149,12 @@ public class RunSBB {
 
                 Config config = getConfig();
                 ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
-//                if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
-//                    addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
-//                }
-//                if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
-//                    addEventHandlerBinding().to(RideParkingCostTracker.class);
-//                }
+                if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+                    addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+                }
+                if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+                    addEventHandlerBinding().to(RideParkingCostTracker.class);
+                }
             }
 
             @Provides
