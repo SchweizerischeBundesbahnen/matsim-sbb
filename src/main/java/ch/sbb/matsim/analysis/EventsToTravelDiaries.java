@@ -453,6 +453,8 @@ public class EventsToTravelDiaries implements
             ArrayList<TravelledLeg> egressLegs;
             String accessMode;
             String egressMode;
+            String accessDist;
+            String egressDist;
             boolean isRailJourney;
 
             for (Trip trip : chain.getTrips()) {
@@ -477,6 +479,8 @@ public class EventsToTravelDiaries implements
 
                     accessMode = "";
                     egressMode = "";
+                    accessDist = "0";
+                    egressDist = "0";
 
                     if (isRailJourney) {
                         accessLegs = trip.getAccessLegs();
@@ -491,6 +495,10 @@ public class EventsToTravelDiaries implements
                         for (TravelledLeg leg : egressLegs) {
                             leg.setIsEgress(egressMode);
                         }
+
+                        accessDist = String.valueOf(trip.getAccessDist(accessLegs));
+                        egressDist = String.valueOf(trip.getEgressDist(egressLegs));
+
                         if (accessMode.equals("access_walk") || accessMode.equals("transit_walk")) {
                             accessMode = "walk";
                         }
@@ -501,8 +509,8 @@ public class EventsToTravelDiaries implements
                     }
                     tripsWriter.set("access_mode", accessMode);
                     tripsWriter.set("egress_mode", egressMode);
-                    tripsWriter.set("access_dist", String.valueOf(trip.getAccessDist(accessLegs)));
-                    tripsWriter.set("egress_dist", String.valueOf(trip.getEgressDist(egressLegs)));
+                    tripsWriter.set("access_dist", accessDist);
+                    tripsWriter.set("egress_dist", egressDist);
 
                     tripsWriter.writeRow();
                     counter.incCounter();
