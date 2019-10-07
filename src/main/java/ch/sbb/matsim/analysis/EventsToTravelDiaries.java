@@ -493,6 +493,13 @@ public class EventsToTravelDiaries implements
                         for (TravelledLeg leg : egressLegs) {
                             leg.setIsEgress(egressMode);
                         }
+                        if (accessMode.equals("access_walk") || accessMode.equals("transit_walk")) {
+                            accessMode = "walk";
+                        }
+
+                        if (egressMode.equals("egress_walk") || egressMode.equals("transit_walk")) {
+                            egressMode = "walk";
+                        }
                     }
                     tripsWriter.set("access_mode", accessMode);
                     tripsWriter.set("egress_mode", egressMode);
