@@ -8,7 +8,7 @@
 	<name>MATSim SBB Project</name>
 	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P </description>
 
-	<repositories>
+    	<repositories>
 		<repository>
 			<!-- MATSim is not on Maven central -->
 			<id>matsim</id>
@@ -18,6 +18,11 @@
 		<repository>
 			<id>matsim-eth</id>
 			<url>http://dl.bintray.com/matsim-eth/matsim</url>
+		</repository>
+
+        <repository>
+			<id>matsim-snapshot</id>
+			<url>http://oss.jfrog.org/libs-snapshot</url>
 		</repository>
 
 		<repository>
@@ -62,7 +67,7 @@
 			<version>1.0.5-benchmark</version>
 		</dependency> 
 		
-		<!-- <dependency>
+		<!-- .. <dependency>
 			<groupId>ch.ethz.matsim</groupId>
 			<artifactId>baseline_scenario</artifactId>
 			<version>0.3.2</version>
@@ -74,7 +79,7 @@
 			<version>11.2</version>
 		</dependency>
 
-		<!-- Include the JUnit testing library -->
+<!-- 		Include the JUnit testing library -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

@@ -79,6 +79,7 @@ public class RunSBB {
     	
     	
         System.setProperty("matsim.preferLocalDtds", "true");
+        System.setProperty("scenario","sbb");
 
         /*final String configFile = args[0];*/
         log.info(configFile);
@@ -86,40 +87,35 @@ public class RunSBB {
 
         config.controler().setOutputDirectory(outputPath);
 
+//sbb
         new S3Downloader(config);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
         scenario.getConfig().controler().setLastIteration(iterations);
-        
+//sbb
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
         // vehicle types
+//sbb
         new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car").createVehicles();
         scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
         // controler
         Controler controler = new Controler(scenario);
+        
         controler.addOverridingModule(new DiscreteModeChoiceModule());
-        /*if (dMC > 0.0) {
-            controler.addOverridingModule(new DiscreteModeChoiceModule());
-            if (SelectorModule.RANDOM.equals(selectionMode)) {
-                DiscreteModeChoiceConfigurator.configureAsSubtourModeChoiceReplacement(config);
-            } else {
-                DiscreteModeChoiceConfigurator.configureAsImportanceSampler(config);
-            }
-            DiscreteModeChoiceConfigGroup dmcConfig = (DiscreteModeChoiceConfigGroup) config.getModules().get(DiscreteModeChoiceConfigGroup.GROUP_NAME);
-            dmcConfig.setTourConstraintsAsString(ConstraintModule.SUBTOUR_MODE);
-            ((ModeChainFilterRandomThresholdConfigGroup)dmcConfig.getModeChainGeneratorConfigGroup()).setMaxChainsThreshold(maxModeChain);
-        }*/
+//        DiscreteModeChoiceConfigurator.configureAsImportanceSampler(config);
+//        DiscreteModeChoiceConfigGroup dmcConfig = (DiscreteModeChoiceConfigGroup) config.getModules().get(DiscreteModeChoiceConfigGroup.GROUP_NAME);
+//        dmcConfig.setTourConstraintsAsString(ConstraintModule.SUBTOUR_MODE);
 
+        
+//sbb
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
         if(samplerConfig.getDoSample()){
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
             sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
         
-        
-
         ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
         controler.setScoringFunctionFactory(scoringFunctionFactory);
 
@@ -144,12 +140,12 @@ public class RunSBB {
 
                 Config config = getConfig();
                 ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
-                if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
-                    addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
-                }
-                if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
-                    addEventHandlerBinding().to(RideParkingCostTracker.class);
-                }
+//                if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+//                    addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+//                }
+//                if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+//                    addEventHandlerBinding().to(RideParkingCostTracker.class);
+//                }
             }
 
             @Provides
@@ -185,5 +181,5 @@ public class RunSBB {
         return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
                 new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
                 new ZonesListConfigGroup(), new ParkingCostConfigGroup(),new DiscreteModeChoiceConfigGroup(),new ModeChainFilterRandomThresholdConfigGroup());
-    }
+     }
 }
