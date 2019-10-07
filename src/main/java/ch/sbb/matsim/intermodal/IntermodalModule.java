@@ -3,6 +3,8 @@ package ch.sbb.matsim.intermodal;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.intermodal.analysis.IntermodalControlerListener;
+import ch.sbb.matsim.intermodal.analysis.IntermodalTransferTimeAnalyser;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -77,7 +79,8 @@ public class IntermodalModule extends AbstractModule {
                 addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
             }
         }
-
+        bind(IntermodalTransferTimeAnalyser.class).asEagerSingleton();
+        addControlerListenerBinding().to(IntermodalControlerListener.class).asEagerSingleton();
         bind(RaptorIntermodalAccessEgress.class).toInstance(new SBBRaptorIntermodalAccessEgress(this.configGroup.getModeParameterSets()));
     }
 
