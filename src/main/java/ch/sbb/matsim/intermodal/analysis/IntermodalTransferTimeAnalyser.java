@@ -130,10 +130,11 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
         final String medianTT = "Median Transfer Time";
         final String p95TT = "P95 Transfer Time";
         final String maxTT = "Max Transfer Time";
+        final String n = "Count";
         DefaultBoxAndWhiskerCategoryDataset dataset = new DefaultBoxAndWhiskerCategoryDataset();
 
 
-        try (CSVWriter csvWriter = new CSVWriter(null, new String[]{fromModeD, toModeD, minTT, meanTT, medianTT, p95TT, maxTT}, iterationFilename + ".csv")) {
+        try (CSVWriter csvWriter = new CSVWriter(null, new String[]{fromModeD, toModeD, n, minTT, meanTT, medianTT, p95TT, maxTT}, iterationFilename + ".csv")) {
 
             for (Map.Entry<String, Map<String, DescriptiveStatistics>> fromStats : transferStats.entrySet()) {
                 String fromMode = fromStats.getKey();
@@ -150,6 +151,8 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
                         csvWriter.set(medianTT, Double.toString(entry.getValue().getGeometricMean()));
                         csvWriter.set(p95TT, Double.toString(entry.getValue().getPercentile(0.95)));
                         csvWriter.set(maxTT, Double.toString(entry.getValue().getMax()));
+                        csvWriter.set(n, Long.toString(entry.getValue().getN()));
+
                         csvWriter.writeRow();
                     }
 
@@ -164,7 +167,10 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
         if (writePng) {
 
             final CategoryAxis xAxis = new CategoryAxis("Type");
+            final Font font = new Font("SansSerif", Font.BOLD, 16);
+            xAxis.setLabelFont(font);
             final NumberAxis yAxis = new NumberAxis("Value");
+            yAxis.setLabelFont(font);
             yAxis.setAutoRangeIncludesZero(false);
             final BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();
             renderer.setFillBox(true);
@@ -174,10 +180,11 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
 
             final JFreeChart chart = new JFreeChart(
                     "Intermodal Transfer Times",
-                    new Font("SansSerif", Font.BOLD, 14),
+                    new Font("SansSerif", Font.BOLD, 24),
                     plot,
                     true
             );
+            chart.getLegend().setItemFont(font);
             ChartSaveUtils.saveAsPNG(chart, iterationFilename, 2048, 1536);
 
         }
