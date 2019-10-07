@@ -475,8 +475,6 @@ public class EventsToTravelDiaries implements
                     tripsWriter.set("got_stuck", Boolean.toString(chain.isStuck()));
                     isRailJourney = trip.isRailJourney();
 
-                    accessLegs = null;
-                    egressLegs = null;
                     accessMode = "";
                     egressMode = "";
 

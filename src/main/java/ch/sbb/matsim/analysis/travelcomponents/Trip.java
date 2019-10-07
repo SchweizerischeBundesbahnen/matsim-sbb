@@ -223,9 +223,11 @@ public class Trip extends TravelComponent {
     public double getAccessDist(ArrayList<TravelledLeg> accessLegs) {
         double dist = 0;
 
-        for (TravelledLeg leg : accessLegs) {
-            if (leg.isAccessLeg()) {
-                dist += leg.getDistance();
+        if (accessLegs != null) {
+            for (TravelledLeg leg : accessLegs) {
+                if (leg.isAccessLeg()) {
+                    dist += leg.getDistance();
+                }
             }
         }
 
@@ -235,9 +237,11 @@ public class Trip extends TravelComponent {
     public double getEgressDist(ArrayList<TravelledLeg> egressLegs) {
         double dist = 0;
 
-        for (TravelledLeg leg : egressLegs) {
-            if (leg.isEgressLeg()) {
-                dist += leg.getDistance();
+        if (egressLegs != null) {
+            for (TravelledLeg leg : egressLegs) {
+                if (leg.isEgressLeg()) {
+                    dist += leg.getDistance();
+                }
             }
         }
 
