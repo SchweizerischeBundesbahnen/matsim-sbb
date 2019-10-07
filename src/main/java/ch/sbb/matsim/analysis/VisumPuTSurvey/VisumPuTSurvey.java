@@ -125,10 +125,10 @@ public class VisumPuTSurvey {
                         accessLegs = trip.getAccessLegs();
                         egressLegs = trip.getEgressLegs();
 
-                        accessMode = trip.getAccessMode(accessLegs);
-                        egressMode = trip.getEgressMode(egressLegs);
-                        accessDist = trip.getAccessDist(accessLegs);
-                        egressDist = trip.getEgressDist(egressLegs);
+                        accessMode = trip.getAccessToRailMode(accessLegs);
+                        egressMode = trip.getEgressFromRailMode(egressLegs);
+                        accessDist = trip.getAccessToRailDist(accessLegs);
+                        egressDist = trip.getEgressFromRailDist(egressLegs);
 
                         first_rail_leg = 9999;
                         last_rail_leg = -1;

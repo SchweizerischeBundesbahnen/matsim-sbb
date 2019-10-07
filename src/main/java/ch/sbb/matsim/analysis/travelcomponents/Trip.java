@@ -200,7 +200,7 @@ public class Trip extends TravelComponent {
         return hasRail;
     }
 
-    public String getAccessMode(ArrayList<TravelledLeg> accessLegs) {
+    public String getAccessToRailMode(ArrayList<TravelledLeg> accessLegs) {
         if (accessLegs == null || accessLegs.isEmpty()) {
             return "";
         } else if (accessLegs.size() > 1) {
@@ -210,7 +210,7 @@ public class Trip extends TravelComponent {
         }
     }
 
-    public String getEgressMode(ArrayList<TravelledLeg> egressLegs) {
+    public String getEgressFromRailMode(ArrayList<TravelledLeg> egressLegs) {
         if (egressLegs == null || egressLegs.isEmpty()) {
             return "";
         } else if (egressLegs.size() > 1) {
@@ -220,7 +220,7 @@ public class Trip extends TravelComponent {
         }
     }
 
-    public double getAccessDist(ArrayList<TravelledLeg> accessLegs) {
+    public double getAccessToRailDist(ArrayList<TravelledLeg> accessLegs) {
         double dist = 0;
 
         if (accessLegs != null) {
@@ -234,7 +234,7 @@ public class Trip extends TravelComponent {
         return dist;
     }
 
-    public double getEgressDist(ArrayList<TravelledLeg> egressLegs) {
+    public double getEgressFromRailDist(ArrayList<TravelledLeg> egressLegs) {
         double dist = 0;
 
         if (egressLegs != null) {

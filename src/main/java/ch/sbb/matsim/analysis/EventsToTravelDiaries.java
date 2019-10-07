@@ -488,8 +488,8 @@ public class EventsToTravelDiaries implements
                         accessLegs = trip.getAccessLegs();
                         egressLegs = trip.getEgressLegs();
 
-                        accessMode = trip.getAccessMode(accessLegs);
-                        egressMode = trip.getEgressMode(egressLegs);
+                        accessMode = trip.getAccessToRailMode(accessLegs);
+                        egressMode = trip.getEgressFromRailMode(egressLegs);
 
                         for (TravelledLeg leg : accessLegs) {
                             leg.setIsAccess(accessMode);
@@ -498,8 +498,8 @@ public class EventsToTravelDiaries implements
                             leg.setIsEgress(egressMode);
                         }
 
-                        accessDist = String.valueOf(trip.getAccessDist(accessLegs));
-                        egressDist = String.valueOf(trip.getEgressDist(egressLegs));
+                        accessDist = String.valueOf(trip.getAccessToRailDist(accessLegs));
+                        egressDist = String.valueOf(trip.getEgressFromRailDist(egressLegs));
 
                         if (accessMode.equals("access_walk") || accessMode.equals("transit_walk")) {
                             accessMode = "walk";

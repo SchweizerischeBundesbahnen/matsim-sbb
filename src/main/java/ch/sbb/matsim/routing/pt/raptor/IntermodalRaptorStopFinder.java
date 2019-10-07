@@ -32,12 +32,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.log4j.Logger;
 
 /**
  * @author mrieser / Simunto GmbH
  */
 public class IntermodalRaptorStopFinder implements RaptorStopFinder {
 
+    private final static Logger log = Logger.getLogger(IntermodalRaptorStopFinder.class);
     private final ObjectAttributes personAttributes;
     private final RaptorIntermodalAccessEgress intermodalAE;
     private final Map<String, RoutingModule> routingModules;
@@ -65,6 +67,7 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
 
     @Override
     public List<InitialStop> findStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data, RaptorStopFinder.Direction type) {
+        List<InitialStop> list;
         if (type == Direction.ACCESS) {
             return findAccessStops(facility, person, departureTime, parameters, data);
         }
@@ -208,7 +211,10 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
                     }
                 }
             }
+//            log.info("stops: " + ((direction ==Direction.ACCESS) ? "A " : "E ") + Integer.toString(initialStops.size()) + ":" + mode + ":" + Double.toString(radius));
         }
+
+
         return initialStops;
     }
 
