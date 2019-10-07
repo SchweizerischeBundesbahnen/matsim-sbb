@@ -149,7 +149,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
                         csvWriter.set(minTT, Double.toString(entry.getValue().getMin()));
                         csvWriter.set(meanTT, Double.toString(entry.getValue().getMean()));
                         csvWriter.set(medianTT, Double.toString(entry.getValue().getGeometricMean()));
-                        csvWriter.set(p95TT, Double.toString(entry.getValue().getPercentile(0.95)));
+                        csvWriter.set(p95TT, Double.toString(entry.getValue().getPercentile(95)));
                         csvWriter.set(maxTT, Double.toString(entry.getValue().getMax()));
                         csvWriter.set(n, Long.toString(entry.getValue().getN()));
 
