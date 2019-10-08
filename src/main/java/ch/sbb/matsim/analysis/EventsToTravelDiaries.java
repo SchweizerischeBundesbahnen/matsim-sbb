@@ -40,18 +40,18 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
+import java.util.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author pieterfourie, sergioo
- *         <p>
- *         Converts events into trips, legs/stages, transfers and activities
- *         tables. Originally designed for transit scenarios with full transit
- *         simulation, but should work with most teleported modes
- *         </p>
+ * <p>
+ * Converts events into trips, legs/stages, transfers and activities
+ * tables. Originally designed for transit scenarios with full transit
+ * simulation, but should work with most teleported modes
+ * </p>
  */
 
 public class EventsToTravelDiaries implements
@@ -413,17 +413,17 @@ public class EventsToTravelDiaries implements
             legsTableName = "matsim_legs" + appendage + ".csv.gz";
         }
 
-        String[] actsData = new String[] {"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "sample_selector", "zone"};
+        String[] actsData = new String[]{"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "sample_selector", "zone"};
         CSVWriter activityWriter = new CSVWriter(null, actsData, this.filename + actTableName);
 
         String[] tripsData = new String[]{"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode", "main_mode_mikrozensus",
                 "from_act", "to_act", "to_act_type", "in_vehicle_distance", "in_vehicle_time", "first_boarding_stop", "last_alighting_stop",
-                "sample_selector", "got_stuck"};
+                "sample_selector", "got_stuck", "access_mode", "egress_mode", "access_dist", "egress_dist"};
         CSVWriter tripsWriter = new CSVWriter(null, tripsData, this.filename + tripsTableName);
 
         String[] legsData = new String[]{"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
                 "boarding_stop", "alighting_stop", "departure_time", "departure_delay", "sample_selector", "from_x", "from_y",
-                "to_x", "to_y", "previous_leg_id", "next_leg_id"};
+                "to_x", "to_y", "previous_leg_id", "next_leg_id", "is_access", "is_egress"};
         CSVWriter legsWriter = new CSVWriter(null, legsData, this.filename + legsTableName);
 
         // read a static field that increments with every inheriting object constructed
@@ -451,6 +451,14 @@ public class EventsToTravelDiaries implements
                 }
             }
 
+            ArrayList<TravelledLeg> accessLegs;
+            ArrayList<TravelledLeg> egressLegs;
+            String accessMode;
+            String egressMode;
+            String accessDist;
+            String egressDist;
+            boolean isRailJourney;
+
             for (Trip trip : chain.getTrips()) {
                 try {
                     tripsWriter.set("trip_id", Integer.toString(trip.getElementId()));
@@ -469,17 +477,55 @@ public class EventsToTravelDiaries implements
                     tripsWriter.set("last_alighting_stop", id2string(trip.getLastAlightingStop()));
                     tripsWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
                     tripsWriter.set("got_stuck", Boolean.toString(chain.isStuck()));
+                    isRailJourney = trip.isRailJourney();
+
+                    accessMode = "";
+                    egressMode = "";
+                    accessDist = "0";
+                    egressDist = "0";
+
+                    if (isRailJourney) {
+                        accessLegs = trip.getAccessLegs();
+                        egressLegs = trip.getEgressLegs();
+
+                        accessMode = trip.getAccessToRailMode(accessLegs);
+                        egressMode = trip.getEgressFromRailMode(egressLegs);
+
+                        for (TravelledLeg leg : accessLegs) {
+                            leg.setIsAccess(accessMode);
+                        }
+                        for (TravelledLeg leg : egressLegs) {
+                            leg.setIsEgress(egressMode);
+                        }
+
+                        accessDist = String.valueOf(trip.getAccessToRailDist(accessLegs));
+                        egressDist = String.valueOf(trip.getEgressFromRailDist(egressLegs));
+
+                        if (accessMode.equals("access_walk") || accessMode.equals("transit_walk")) {
+                            accessMode = "walk";
+                        }
+
+                        if (egressMode.equals("egress_walk") || egressMode.equals("transit_walk")) {
+                            egressMode = "walk";
+                        }
+                    }
+                    tripsWriter.set("access_mode", accessMode);
+                    tripsWriter.set("egress_mode", egressMode);
+                    tripsWriter.set("access_dist", accessDist);
+                    tripsWriter.set("egress_dist", egressDist);
+
                     tripsWriter.writeRow();
                     counter.incCounter();
 
                     int ind = 0;
+                    int size = trip.getLegs().size() - 1;
                     for (TravelledLeg leg : trip.getLegs()) {
 
                         String previous_leg_id = null;
                         String next_leg_id = null;
-                        if(ind > 0)
+                        if (ind > 0)
                             previous_leg_id = Integer.toString(trip.getLegs().get(ind - 1).getElementId());
-                        if(ind < trip.getLegs().size() - 1)
+                        if (ind < size)
                             next_leg_id = Integer.toString(trip.getLegs().get(ind + 1).getElementId());
                         ind++;
 
@@ -502,6 +548,8 @@ public class EventsToTravelDiaries implements
                         legsWriter.set("to_y", Double.toString(leg.getDest().getY()));
                         legsWriter.set("previous_leg_id", (previous_leg_id == null) ? "" : previous_leg_id);
                         legsWriter.set("next_leg_id", (next_leg_id == null) ? "" : next_leg_id);
+                        legsWriter.set("is_access", (leg.isAccessLeg()) ? "1" : "0");
+                        legsWriter.set("is_egress", (leg.isEgressLeg()) ? "1" : "0");
                         legsWriter.writeRow();
                         counter.incCounter();
                     }
