@@ -39,8 +39,8 @@ public class FleetGenerator {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile.toString());
-        //List<Id<Link>> availableLinks  = scenario.getNetwork().getLinks().entrySet().stream()
-        //      .filter(entry -> entry.getValue().getAllowedModes().contains(TransportMode.car)).map(e->e.getKey()).collect(Collectors.toList());
+//        List<Id<Link>> availableLinks  = scenario.getNetwork().getLinks().entrySet().stream()
+//              .filter(entry -> entry.getValue().getAllowedModes().contains(TransportMode.car)).map(e->e.getKey()).collect(Collectors.toList());
 //        List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(177382)); //lcf
         List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(598836)); //ne
         Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
