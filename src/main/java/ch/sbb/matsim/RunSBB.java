@@ -142,6 +142,6 @@ public class RunSBB {
     }
 
     public static Config buildConfig(String filepath) {
-        return ConfigUtils.loadConfig(filepath, new PostProcessingConfigGroup(), new SBBTransitConfigGroup(), new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(), new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup());
+        return ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
     }
 }
