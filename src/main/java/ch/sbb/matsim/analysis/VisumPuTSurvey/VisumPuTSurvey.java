@@ -49,16 +49,12 @@ public class VisumPuTSurvey {
     private static final String COL_SUBPOP = "SUBPOP";
     private static final String COL_ORIG_GEM = "ORIG_GEM";
     private static final String COL_DEST_GEM = "DEST_GEM";
-    private static final String COL_ACCESS_MODE_BIKE = "ACCESS_MODE_BIKE";
-    private static final String COL_ACCESS_MODE_CAR = "ACCESS_MODE_CAR";
-    private static final String COL_ACCESS_MODE_RIDE = "ACCESS_MODE_RIDE";
-    private static final String COL_EGRESS_MODE_BIKE = "EGRESS_MODE_BIKE";
-    private static final String COL_EGRESS_MODE_CAR = "EGRESS_MODE_CAR";
-    private static final String COL_EGRESS_MODE_RIDE = "EGRESS_MODE_RIDE";
-    private static final String COL_ACCESS_DIST = "ACCESS_DIST";
-    private static final String COL_EGRESS_DIST = "EGRESS_DIST";
+    private static final String COL_ACCESS_TO_RAIL_MODE = "ACCESS_TO_RAIL_MODE";
+    private static final String COL_EGRESS_FROM_RAIL_MODE = "EGRESS_FROM_RAIL_MODE";
+    private static final String COL_ACCESS_TO_RAIL_DIST = "ACCESS_TO_RAIL_DIST";
+    private static final String COL_EGRESS_FROM_RAIL_DIST = "EGRESS_FROM_RAIL_DIST";
     private static final String[] COLUMNS = new String[]{COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
-            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM, COL_ACCESS_MODE_BIKE, COL_ACCESS_MODE_CAR, COL_ACCESS_MODE_RIDE, COL_EGRESS_MODE_BIKE, COL_EGRESS_MODE_CAR, COL_EGRESS_MODE_RIDE, COL_ACCESS_DIST, COL_EGRESS_DIST};
+            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM, COL_ACCESS_TO_RAIL_MODE, COL_EGRESS_FROM_RAIL_MODE, COL_ACCESS_TO_RAIL_DIST, COL_EGRESS_FROM_RAIL_DIST};
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
@@ -121,6 +117,10 @@ public class VisumPuTSurvey {
                 TravellerChain chain = entry.getValue();
                 for (Trip trip : chain.getTrips()) {
                     isRail = trip.isRailJourney();
+                    accessMode = "";
+                    egressMode = "";
+                    accessDist = 0;
+                    egressDist = 0;
                     if (isRail) {
                         accessLegs = trip.getAccessLegs();
                         egressLegs = trip.getEgressLegs();
@@ -129,16 +129,12 @@ public class VisumPuTSurvey {
                         egressMode = trip.getEgressFromRailMode(egressLegs);
                         accessDist = trip.getAccessToRailDist(accessLegs);
                         egressDist = trip.getEgressFromRailDist(egressLegs);
+                        if (accessMode.equals("access_walk") || accessMode.equals("transit_walk")) {
+                            accessMode = "walk";
+                        }
 
-                        first_rail_leg = 9999;
-                        last_rail_leg = -1;
-
-                        TravelledLeg leg;
-                        for (int i = 0; i < trip.getLegs().size(); i++) {
-                            if (trip.getLegs().get(i).isRailLeg()) {
-                                last_rail_leg = i;
-                                if (first_rail_leg == 9999) first_rail_leg = i;
-                            }
+                        if (egressMode.equals("egress_walk") || egressMode.equals("transit_walk")) {
+                            egressMode = "walk";
                         }
                     }
                     Integer i = 1;
@@ -203,14 +199,10 @@ public class VisumPuTSurvey {
                                 writer.set(COL_DEST_GEM, DEFAULT_ZONE);
                             }
 
-                            writer.set(COL_ACCESS_MODE_BIKE, (isRail && (i == first_rail_leg) && accessMode.equals("bike_feeder")) ? "1" : "0");
-                            writer.set(COL_ACCESS_MODE_CAR, (isRail && (i == first_rail_leg) && accessMode.equals("car_feeder")) ? "1" : "0");
-                            writer.set(COL_ACCESS_MODE_RIDE, (isRail && (i == first_rail_leg) && accessMode.equals("ride_feeder")) ? "1" : "0");
-                            writer.set(COL_EGRESS_MODE_BIKE, (isRail && (i == first_rail_leg) && egressMode.equals("bike_feeder")) ? "1" : "0");
-                            writer.set(COL_EGRESS_MODE_CAR, (isRail && (i == first_rail_leg) && egressMode.equals("car_feeder")) ? "1" : "0");
-                            writer.set(COL_EGRESS_MODE_RIDE, (isRail && (i == first_rail_leg) && egressMode.equals("ride_feeder")) ? "1" : "0");
-                            writer.set(COL_ACCESS_DIST, (isRail && (i == first_rail_leg)) ? Integer.toString((int)accessDist) : "0");
-                            writer.set(COL_EGRESS_DIST, (isRail && (i == last_rail_leg)) ? Integer.toString((int)egressDist) : "0");
+                            writer.set(COL_ACCESS_TO_RAIL_MODE, (isRail ? accessMode : ""));
+                            writer.set(COL_EGRESS_FROM_RAIL_MODE, (isRail ? egressMode : ""));
+                            writer.set(COL_ACCESS_TO_RAIL_DIST, (isRail ? Integer.toString((int)accessDist) : "0"));
+                            writer.set(COL_EGRESS_FROM_RAIL_DIST, (isRail ? Integer.toString((int)egressDist) : "0"));
 
                             writer.writeRow();
                             i++;
