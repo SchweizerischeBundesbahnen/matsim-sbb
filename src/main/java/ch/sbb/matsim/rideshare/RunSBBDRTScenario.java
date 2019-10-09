@@ -1,6 +1,7 @@
 package ch.sbb.matsim.rideshare;
 
 import ch.sbb.matsim.RunSBB;
+import ch.sbb.matsim.rideshare.analysis.SBBDRTAnalysisModule;
 import ch.sbb.matsim.rideshare.utils.RideshareAwareIntermodalMainModeIdentifier;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -62,6 +63,7 @@ public class RunSBBDRTScenario {
         controler.addOverridingModule(new MultiModeDrtModule());
         controler.addOverridingModule(new DvrpModule());
         controler.configureQSimComponents(DvrpQSimComponents.activateAllModes(MultiModeDrtConfigGroup.get(controler.getConfig())));
+        controler.addOverridingModule(new SBBDRTAnalysisModule());
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
