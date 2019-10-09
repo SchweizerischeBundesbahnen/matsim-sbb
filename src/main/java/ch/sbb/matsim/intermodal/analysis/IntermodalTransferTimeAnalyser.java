@@ -76,7 +76,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     }
 
     private boolean isIgnoredMode(String mode) {
-        return mode.equals(TransportMode.access_walk) || mode.equals(TransportMode.egress_walk) || mode.equals(TransportMode.transit_walk);
+        return mode.equals(TransportMode.non_network_walk) || mode.equals(TransportMode.transit_walk);
 
     }
 
@@ -175,7 +175,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
             final BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();
             renderer.setFillBox(true);
             renderer.setMeanVisible(false);
-            renderer.setBaseToolTipGenerator(new BoxAndWhiskerToolTipGenerator());
+            renderer.setDefaultToolTipGenerator(new BoxAndWhiskerToolTipGenerator());
             final CategoryPlot plot = new CategoryPlot(dataset, xAxis, yAxis, renderer);
 
             final JFreeChart chart = new JFreeChart(

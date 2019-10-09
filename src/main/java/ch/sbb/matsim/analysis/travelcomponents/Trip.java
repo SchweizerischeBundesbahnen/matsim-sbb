@@ -10,7 +10,6 @@ import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.pt.router.TransitRouterConfig;
-import org.matsim.pt.router.TransitTravelDisutility;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +73,7 @@ public class Trip extends TravelComponent {
             if (getLegs().size() > 1) {
                 for (int i = 1; i < getLegs().size(); i++) {
                     TravelledLeg leg = getLegs().get(i);
-                    if (leg.getMode().equals(TransportMode.egress_walk) || leg.getMode().equals(TransportMode.access_walk)) {
+                    if (leg.getMode().equals(TransportMode.non_network_walk)) {
                     } else if (longestLeg == null) {
                         longestLeg = leg;
                     } else if (leg.getDistance() > longestLeg.getDistance()) {

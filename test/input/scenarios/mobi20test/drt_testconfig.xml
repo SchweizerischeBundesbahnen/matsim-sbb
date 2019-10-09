@@ -34,7 +34,7 @@
     </module>
     <module name="dvrp">
         <!-- Mode of which the network will be used for routing vehicles, calculating travel times, etc. (fleet operator's perspective). If null, no mode filtering is done; the standard network (Scenario.getNetwork()) is used -->
-        <param name="networkMode" value="car"/>
+        <param name="networkModes" value="car"/>
         <!-- Used for estimation of travel times for VrpOptimizer by means of the exponential moving average. The weighting decrease, alpha, must be in (0,1]. We suggest small values of alpha, e.g. 0.05. The averaging starts from the initial travel time estimates. If not provided, the free-speed TTs is used as the initial estimates For more info see comments in: VrpTravelTimeEstimator, VrpTravelTimeModules, DvrpModule. -->
         <param name="travelTimeEstimationAlpha" value="0.05"/>
     </module>
@@ -98,8 +98,6 @@
         <param name="mutationAffectsDuration" value="true"/>
         <!-- Default:1800.0; Defines how many seconds a time mutation can maximally shift a time. -->
         <param name="mutationRange" value="1800.0"/>
-        <!-- false; Use individual settings for each subpopulation. If enabled but no settings are found, regular settings are uses as fallback. -->
-        <param name="useIndividualSettingsForSubpopulations" value="false"/>
     </module>
     <module name="changeMode">
         <!-- Defines whether car availability is considered be considered or not. An agent has no car only if it has no license, or never access to a car. Default: true -->
@@ -2887,7 +2885,6 @@
         <param name="activityDurationInterpretation" value="minOfDurationAndEndTime"/>
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
         <param name="inputCRS" value="null"/>
-        <param name="inputPersonAttributesFile" value="personAttributes.xml.gz"/>
         <param name="inputPlansFile" value="drtpopulation.xml.gz"/>
         <!-- Defines how routes are stored in memory. Currently supported: LinkNetworkRoute, CompressedNetworkRoute. -->
         <param name="networkRouteType" value="LinkNetworkRoute"/>
