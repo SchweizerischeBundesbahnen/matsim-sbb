@@ -1,7 +1,18 @@
 package ch.sbb.matsim.accessibility;
 
 import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
-import ch.sbb.matsim.routing.pt.raptor.*;
+import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
+import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
+import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
+import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
+import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -36,7 +47,14 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -63,10 +81,12 @@ public class Accessibility {
     private final double ptMinDepartureTime;
     private final double ptMaxDepartureTime;
     private final BiPredicate<TransitLine, TransitRoute> trainDetector;
+    private final Zones zones;
 
     public Accessibility(String networkFilename, String eventsFilename, String scheduleFilename, String transitNetworkFilename,
                          Map<Coord, Double> attractions, double[] carAMDepTimes, double[] carPMDepTimes,
-                         double ptMinDepartureTime, double ptMaxDepartureTime, BiPredicate<TransitLine, TransitRoute> trainDetector) {
+                         double ptMinDepartureTime, double ptMaxDepartureTime, BiPredicate<TransitLine, TransitRoute> trainDetector,
+                         Zones zones) {
         this.networkFilename = networkFilename;
         this.eventsFilename = eventsFilename;
         this.scheduleFilename = scheduleFilename;
@@ -78,6 +98,7 @@ public class Accessibility {
         this.ptMinDepartureTime = ptMinDepartureTime;
         this.ptMaxDepartureTime = ptMaxDepartureTime;
         this.trainDetector = trainDetector;
+        this.zones = zones;
     }
 
     public void setXy2LinksPredicate(Predicate<Link> xy2linksPredicate) {
@@ -124,7 +145,7 @@ public class Accessibility {
                 RowWorker worker = new RowWorker(
                         this.carNetwork, xy2linksNetwork, tt, td, this.carAMDepTimes, this.carPMDepTimes,
                         this.raptorData, RaptorUtils.createParameters(this.config), ptMinDepartureTime, ptMaxDepartureTime, trainDetector,
-                        zoneData, modes, counter, accessibilityCoords, results);
+                        zoneData, modes, this.zones, counter, accessibilityCoords, results);
                 threads[i] = new Thread(worker, "accessibility-" + i);
                 threads[i].start();
             }
@@ -270,10 +291,11 @@ public class Accessibility {
         private final Counter counter;
         private final Queue<Coord> coordinates;
         private final Queue<Tuple<Coord, double[]>> results;
+        private Zones zones;
 
         RowWorker(Network carNetwork, Network xy2linksNetwork, TravelTime tt, TravelDisutility td, double[] carAMDepTimes, double[] carPMDepTimes,
                   SwissRailRaptorData raptorData, RaptorParameters parameters, double ptMinDepartureTime, double ptMaxDepartureTime, BiPredicate<TransitLine, TransitRoute> trainDetector,
-                  Map<Coord, ZoneData> zoneData, Modes[] modes, Counter counter, Queue<Coord> coordinates, Queue<Tuple<Coord, double[]>> results) {
+                  Map<Coord, ZoneData> zoneData, Modes[] modes, Zones zones, Counter counter, Queue<Coord> coordinates, Queue<Tuple<Coord, double[]>> results) {
             this.carNetwork = carNetwork;
             this.xy2linksNetwork = xy2linksNetwork;
             this.tt = tt;
@@ -296,6 +318,7 @@ public class Accessibility {
 
             this.zoneData = zoneData;
             this.modes = modes;
+            this.zones = zones;
             this.counter = counter;
             this.coordinates = coordinates;
             this.results = results;
@@ -344,6 +367,8 @@ public class Accessibility {
                 Map<Id<TransitStopFacility>, SwissRailRaptorCore.TravelInfo> tree = this.raptor.calcTree(fromStops, time, this.parameters);
                 trees.add(tree);
             }
+
+            double carAccessTime = ((Number) this.zones.findZone(fromCoord.getX(), fromCoord.getY()).getAttribute("ACCCAR")).doubleValue(); // in seconds
 
             // CALCULATION
 
@@ -461,16 +486,14 @@ public class Accessibility {
 
                     ttTrain = travelTime / 60 * trainShareByTravelTime; // in minutes
                     ttBus = travelTime / 60 - ttTrain; // in minutes
-                    ptAccessTime = accessTime; // in seconds
-                    ptEgressTime = egressTime; // in seconds
+                    ptAccessTime = accessTime / 60; // in minutes
+                    ptEgressTime = egressTime / 60; // in minutes
                     ptFrequency = 900 / avgAdaptionTime;
                     ptTransfers = transferCount;
                 }
 
 
                 // ACCESSIBILITY
-
-
 
 //                U(bike)= -0.25 + (-0.150)*dist_car/0.21667
 //
@@ -480,9 +503,9 @@ public class Accessibility {
 //
 //                U(walk)= +2.30 + (-0.100)*dist_car/0.078336
 
-                double carAccessTime = 0; // TODO, in seconds
-                double carEgressTime = 0; // TODO, in seconds
-                double carParkingCost = 0; // TODO
+                Zone zone = this.zones.findZone(toCoord.getX(), toCoord.getY());
+                double carEgressTime = ((Number) zone.getAttribute("ACCCAR")).doubleValue(); // in seconds
+                double carParkingCost = ((Number) zone.getAttribute("PCOST")).doubleValue();
 
                 for (int m = 0; m < this.modes.length; m++) {
                     Modes modes = this.modes[m];
@@ -521,7 +544,7 @@ public class Accessibility {
                 Id<TransitStopFacility> egressStopId = egressEntry.getKey();
                 Double egressTime = egressEntry.getValue();
                 SwissRailRaptorCore.TravelInfo info = tree.get(egressStopId);
-                if (info != null/* && !info.isWalkOnly()*/) { // FIXME requires newer SwissRailRaptor dependency
+                if (info != null/* && !info.isWalkOnly()*/) { // TODO requires newer SwissRailRaptor dependency
                     ODConnection connection = new ODConnection(info.ptDepartureTime, info.ptTravelTime, info.accessTime, egressTime, info.transferCount, info);
                     connections.add(connection);
                 }
