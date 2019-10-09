@@ -139,7 +139,6 @@ public class RunSBB {
             }
         });
 
-        controler.run();
     }
 
     public static Config buildConfig(String filepath) {
