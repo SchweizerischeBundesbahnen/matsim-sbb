@@ -287,6 +287,18 @@
                 <param name="typicalDurationScoreComputation" value="relative"/>
             </parameterset>
             <parameterset type="activityParams">
+                <param name="activityType" value="drt interaction"/>
+                <param name="closingTime" value="undefined"/>
+                <param name="earliestEndTime" value="undefined"/>
+                <param name="latestStartTime" value="undefined"/>
+                <param name="minimalDuration" value="undefined"/>
+                <param name="openingTime" value="undefined"/>
+                <param name="priority" value="1.0"/>
+                <param name="scoringThisActivityAtAll" value="false"/>
+                <param name="typicalDuration" value="00:02:00"/>
+                <param name="typicalDurationScoreComputation" value="relative"/>
+            </parameterset>
+            <parameterset type="activityParams">
                 <param name="activityType" value="bike interaction"/>
                 <param name="closingTime" value="undefined"/>
                 <param name="earliestEndTime" value="undefined"/>
