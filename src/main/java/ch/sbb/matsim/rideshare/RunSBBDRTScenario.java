@@ -38,8 +38,9 @@ public class RunSBBDRTScenario {
         ScenarioUtils.loadScenario(scenario);
         RunSBB.addSBBDefaultScenarioModules(scenario);
         Controler controler = new Controler(scenario);
+
         RunSBB.addSBBDefaultControlerModules(controler);
-        prepareDrtControler(controler);
+        prepareDrtQsimControler(controler);
         controler.run();
     }
 
@@ -60,8 +61,14 @@ public class RunSBBDRTScenario {
     }
 
     public static void prepareDrtControler(Controler controler) {
+        //these modules need to be inserted before the SBB modules are initialised
         controler.addOverridingModule(new MultiModeDrtModule());
         controler.addOverridingModule(new DvrpModule());
+    }
+
+    public static void prepareDrtQsimControler(Controler controler) {
+        //these modules need to be inserted before the SBB modules are initialised
+        //in order to work with deterministic PT and raptor
         controler.configureQSimComponents(DvrpQSimComponents.activateAllModes(MultiModeDrtConfigGroup.get(controler.getConfig())));
         controler.addOverridingModule(new SBBDRTAnalysisModule());
         controler.addOverridingModule(new AbstractModule() {
