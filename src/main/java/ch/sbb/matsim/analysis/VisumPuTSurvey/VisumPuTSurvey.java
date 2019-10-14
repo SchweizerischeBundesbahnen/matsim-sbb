@@ -3,6 +3,7 @@ package ch.sbb.matsim.analysis.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -21,15 +22,14 @@ import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.ArrayList;
 
 public class VisumPuTSurvey {
 
     private static final String FILENAME = "matsim_put_survey.att";
 
-    private static final String DEFAULT_ZONE = "999999999";
     private static final String GEM_SHAPE_ATTR = "munid";
 
     private static final String COL_PATH_ID = "$OEVTEILWEG:DATENSATZNR";
@@ -188,7 +188,7 @@ public class VisumPuTSurvey {
                             if (fromGem != null) {
                                 writer.set(COL_ORIG_GEM, fromGem.getAttribute(GEM_SHAPE_ATTR).toString());
                             } else {
-                                writer.set(COL_ORIG_GEM, DEFAULT_ZONE);
+                                writer.set(COL_ORIG_GEM, Variables.DEFAULT_ZONE);
                             }
 
                             Zone toGem = (this.zones != null) ? this.zones.findZone(trip.getToAct().getCoord().getX(),
@@ -196,7 +196,7 @@ public class VisumPuTSurvey {
                             if (toGem != null) {
                                 writer.set(COL_DEST_GEM, toGem.getAttribute(GEM_SHAPE_ATTR).toString());
                             } else {
-                                writer.set(COL_DEST_GEM, DEFAULT_ZONE);
+                                writer.set(COL_DEST_GEM, Variables.DEFAULT_ZONE);
                             }
 
                             writer.set(COL_ACCESS_TO_RAIL_MODE, (isRail ? accessMode : ""));
