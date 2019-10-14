@@ -29,7 +29,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.collections.CollectionUtils;
-import org.matsim.core.utils.geometry.transformations.WGS84toCH1903LV03;
+import org.matsim.core.utils.geometry.transformations.WGS84toCH1903LV03Plus;
 import org.matsim.facilities.Facility;
 
 import java.io.File;
@@ -155,7 +155,7 @@ public class RunTravelTimeValidation {
     }
 
     private Coord transformCoord(Coord coord) {
-        return new WGS84toCH1903LV03().transform(coord);
+        return new WGS84toCH1903LV03Plus().transform(coord);
     }
 
     public Leg fetch(float fromX, float fromY, float toX, float toY) {
