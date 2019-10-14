@@ -7,8 +7,8 @@ package ch.sbb.matsim.analysis.travelcomponents;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
-import org.matsim.pt.router.TransitRouterConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +28,7 @@ public class Trip extends TravelComponent {
     Trip(Config config) {
         super(config);
         this.config = config;
-        this.walkSpeed = new TransitRouterConfig(config).getBeelineWalkSpeed();
+        this.walkSpeed = config.plansCalcRoute().getModeRoutingParams().get( TransportMode.walk ).getBeelineDistanceFactor();
     }
 
     public TravelledLeg addLeg() {
