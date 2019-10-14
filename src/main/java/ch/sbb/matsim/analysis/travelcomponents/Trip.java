@@ -27,7 +27,7 @@ public class Trip extends TravelComponent {
     Trip(Config config) {
         super(config);
         this.config = config;
-        this.walkSpeed = config.plansCalcRoute().getModeRoutingParams().get( TransportMode.walk ).getBeelineDistanceFactor();
+        this.walkSpeed = config.plansCalcRoute().getModeRoutingParams().get( TransportMode.walk ).getTeleportedModeSpeed();
     }
 
     public TravelledLeg addLeg() {
