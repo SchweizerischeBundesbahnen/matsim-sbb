@@ -49,22 +49,23 @@ public class RunTravelTimeValidation {
 
     public static void main(String[] args) {
         String runOutputFolder = args[0];
-        boolean calcCongestedTravelTimes = Boolean.parseBoolean(args[1]);
-        double startTime = Double.parseDouble(args[2]); // start time in hours (e.g. 7am)
-        String relationFile = args[3];
-        String outputFile = args[4];
+        String runPrefix = args[1];
+        boolean calcCongestedTravelTimes = Boolean.parseBoolean(args[2]);
+        double startTime = Double.parseDouble(args[3]); // start time in hours (e.g. 7am)
+        String relationFile = args[4];
+        String outputFile = args[5];
 
         // read network file
         Network network = NetworkUtils.createNetwork();
-        new MatsimNetworkReader(network).readFile(runOutputFolder + "\\CH.10pct.2016.output_network.xml.gz");
+        new MatsimNetworkReader(network).readFile(runOutputFolder + "\\" + runPrefix + ".output_network.xml.gz");
         Network reducedNetwork = NetworkUtils.createNetwork();
         new TransportModeNetworkFilter(network).filter(reducedNetwork,
                 CollectionUtils.stringToSet( TransportMode.car ));
 
         RunTravelTimeValidation validation;
         if(calcCongestedTravelTimes) {
-            String config = runOutputFolder + "\\CH.10pct.2016.output_config.xml";
-            String events = runOutputFolder + "\\CH.10pct.2016.output_events.xml.gz";
+            String config = runOutputFolder + "\\" + runPrefix + ".output_config.xml";
+            String events = runOutputFolder + "\\" + runPrefix + ".output_events.xml.gz";
             validation = new RunTravelTimeValidation(reducedNetwork, config, events, startTime);
         }
         else {
@@ -156,7 +157,6 @@ public class RunTravelTimeValidation {
     private Coord transformCoord(Coord coord) {
         return new WGS84toCH1903LV03().transform(coord);
     }
-
 
     public Leg fetch(float fromX, float fromY, float toX, float toY) {
         Scenario onePlan = ScenarioUtils.createScenario(ConfigUtils.createConfig());
