@@ -5,7 +5,6 @@
 package ch.sbb.matsim.analysis.travelcomponents;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
-import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
@@ -79,19 +78,9 @@ public class Trip extends TravelComponent {
 
     public String getMainMode() {
         // get main mode according to hierarchical order
-        Integer max = this.legs.stream()
-                .filter(leg -> SBBModes.mode2HierarchalNumber.get(leg.getMode()) != null)
-                .mapToInt(leg -> {
-                    String mode = leg.getMode();
-                    if (leg.isRailLeg())  {
-                        mode = SBBModes.pt_rail;
-                    }
-                    return SBBModes.mode2HierarchalNumber.get(mode);
-                })
-                .max().orElse(0);
-
-        if (max != 0) {
-            return SBBModes.hierarchalNumber2Mode.get(max);
+        TravelledLeg leg = Collections.min(this.legs, Comparator.comparing(TravelledLeg::getModeHierarchy));
+        if (leg.getModeHierarchy() != 99) {
+            return leg.getMode();
         }
         else    {
             // fallback solution -> get main mode according to longest distance
