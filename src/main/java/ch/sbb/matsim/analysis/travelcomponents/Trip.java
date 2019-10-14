@@ -112,6 +112,9 @@ public class Trip extends TravelComponent {
 
     public List<TravelledLeg> getAccessLegs() {
         List<TravelledLeg> accessLegs = new ArrayList<>();
+        if(!isRailJourney())    {
+            return accessLegs;
+        }
         for (TravelledLeg leg : this.legs) {
             if (leg.isRailLeg()) {
                 this.firstRailLeg = leg;
@@ -127,6 +130,9 @@ public class Trip extends TravelComponent {
     public List<TravelledLeg> getEgressLegs() {
         List<TravelledLeg> egressLegs = new ArrayList<>();
         TravelledLeg leg;
+        if(!isRailJourney())    {
+            return egressLegs;
+        }
         for (int i = this.legs.size() - 1; i >= 0; i--) {
             leg = this.legs.get(i);
             if (leg.isRailLeg()) {
