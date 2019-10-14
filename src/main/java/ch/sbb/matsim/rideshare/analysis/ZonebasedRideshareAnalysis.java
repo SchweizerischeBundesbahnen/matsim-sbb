@@ -1,6 +1,7 @@
 package ch.sbb.matsim.rideshare.analysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -120,7 +121,10 @@ public class ZonebasedRideshareAnalysis implements DrtRequestSubmittedEventHandl
     }
 
     private Id<Zone> findZone(Id<Link> linkId) {
-        return links2zoneCache.computeIfAbsent(linkId, l -> zones.findZone(network.getLinks().get(linkId).getCoord()).getId());
+        return links2zoneCache.computeIfAbsent(linkId, l -> {
+            Zone zone = zones.findZone(network.getLinks().get(linkId).getCoord());
+            return zone == null ? Id.create(Variables.DEFAULT_ZONE, Zone.class) : zone.getId();
+        });
 
     }
 
