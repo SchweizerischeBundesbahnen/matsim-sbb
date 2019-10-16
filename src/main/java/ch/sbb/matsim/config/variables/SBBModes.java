@@ -1,16 +1,18 @@
 package ch.sbb.matsim.config.variables;
 
+import org.matsim.api.core.v01.TransportMode;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class SBBModes {
     private SBBModes() {}
 
-    public static final String CAR = "car";
-    public static final String RIDE = "ride";
-    public static final String PT = "pt";
-    public static final String WALK = "walk";
-    public static final String BIKE = "bike";
+    public static final String CAR = TransportMode.car;
+    public static final String RIDE = TransportMode.ride;
+    public static final String PT = TransportMode.pt;
+    public static final String WALK = TransportMode.walk;
+    public static final String BIKE = TransportMode.bike;
 
     public static final int DEFAULT_MODE_HIERARCHY = 99;
     public final static Map<String, Integer> mode2HierarchalNumber;
