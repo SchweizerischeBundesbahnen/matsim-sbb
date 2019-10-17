@@ -4,12 +4,14 @@
 
 package ch.sbb.matsim.analysis.travelcomponents;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 
 public class TravelledLeg extends TravelComponent {
     private String mode;
+    private int modeHierarchy;
     private Id line;
     private Id route;
     private Coord orig;
@@ -73,6 +75,18 @@ public class TravelledLeg extends TravelComponent {
 
     public void setMode(String mode) {
         this.mode = mode.trim();
+        setModeHierarchy(mode);
+    }
+
+    public int getModeHierarchy()   {
+        return this.modeHierarchy;
+    }
+
+    public void setModeHierarchy(String mode)   {
+        if (this.isPtLeg())  {
+            mode = SBBModes.PT;
+        }
+        this.modeHierarchy = SBBModes.mode2HierarchalNumber.getOrDefault(mode, SBBModes.DEFAULT_MODE_HIERARCHY);
     }
 
     public double getDistance() {
