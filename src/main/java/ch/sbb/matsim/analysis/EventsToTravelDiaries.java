@@ -30,7 +30,6 @@ import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityE
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.utils.misc.Counter;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.transitSchedule.api.Departure;
@@ -41,18 +40,18 @@ import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 /**
  * @author pieterfourie, sergioo
- *         <p>
- *         Converts events into trips, legs/stages, transfers and activities
- *         tables. Originally designed for transit scenarios with full transit
- *         simulation, but should work with most teleported modes
- *         </p>
+ * <p>
+ * Converts events into trips, legs/stages, transfers and activities
+ * tables. Originally designed for transit scenarios with full transit
+ * simulation, but should work with most teleported modes
+ * </p>
  */
 
 public class EventsToTravelDiaries implements
@@ -73,7 +72,6 @@ public class EventsToTravelDiaries implements
 
     private Map<Id<Person>, TravellerChain> chains = new HashMap<>();
     private Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
-    private HashSet<Id<Person>> transitDriverIds = new HashSet<>();
     private HashMap<Id<Vehicle>, Id<Person>> driverIdFromVehicleId = new HashMap<>();
     private int stuck = 0;
     private TransitSchedule transitSchedule;
@@ -124,14 +122,14 @@ public class EventsToTravelDiaries implements
         }
     }
 
-    private boolean isTransitDriver(Id<Person> personId) {
-        return isTransitScenario && transitDriverIds.contains(personId);
+    private boolean isAgentWithoutPlan(Id<Person> personId) {
+        return (!scenario.getPopulation().getPersons().containsKey(personId));
     }
 
     @Override
     public void handleEvent(ActivityEndEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId())) {
+            if (isAgentWithoutPlan(event.getPersonId())) {
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
@@ -157,7 +155,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(ActivityStartEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId())) {
+            if (isAgentWithoutPlan(event.getPersonId())) {
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
@@ -185,7 +183,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonArrivalEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId())) {
+            if (isAgentWithoutPlan(event.getPersonId())) {
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
@@ -204,7 +202,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonDepartureEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId())) {
+            if (isAgentWithoutPlan(event.getPersonId())) {
                 return;
             }
             TravellerChain chain = chains.get(event.getPersonId());
@@ -231,7 +229,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonStuckEvent event) {
         try {
-            if (!isTransitDriver(event.getPersonId())) {
+            if (!isAgentWithoutPlan(event.getPersonId())) {
                 TravellerChain chain = chains.get(event.getPersonId());
                 setStuck(getStuck() + 1);
                 chain.setStuck();
@@ -246,7 +244,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId()))
+            if (isAgentWithoutPlan(event.getPersonId()))
                 return;
             PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
             if (vehicle != null) {
@@ -278,7 +276,7 @@ public class EventsToTravelDiaries implements
 
     @Override
     public void handleEvent(PersonLeavesVehicleEvent event) {
-        if (isTransitDriver(event.getPersonId()))
+        if (isAgentWithoutPlan(event.getPersonId()))
             return;
         try {
             PTVehicle vehicle = ptVehicles.get(event.getVehicleId());
@@ -322,9 +320,12 @@ public class EventsToTravelDiaries implements
                     vehicle.in = false;
                 vehicle.incDistance(network.getLinks().get(event.getLinkId()).getLength());
             } else {
-                TravellerChain chain = chains.get(driverIdFromVehicleId.get(event.getVehicleId()));
-                TravelledLeg leg = chain.getLastTrip().getLastLeg();
-                leg.incrementDistance(network.getLinks().get(event.getLinkId()).getLength());
+                Id<Person> driverId = driverIdFromVehicleId.get(event.getVehicleId());
+                TravellerChain chain = chains.get(driverId);
+                if (chain != null) {
+                    TravelledLeg leg = chain.getLastTrip().getLastLeg();
+                    leg.incrementDistance(network.getLinks().get(event.getLinkId()).getLength());
+                }
             }
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
@@ -337,7 +338,6 @@ public class EventsToTravelDiaries implements
             ptVehicles.put(
                     event.getVehicleId(),
                     new PTVehicle(event.getTransitLineId(), event.getTransitRouteId()));
-            transitDriverIds.add(event.getDriverId());
         } catch (Exception e) {
             log.error("Exception while handling event " + event.toString(), e);
         }
@@ -346,7 +346,7 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(TeleportationArrivalEvent event) {
         try {
-            if (isTransitDriver(event.getPersonId()))
+            if (isAgentWithoutPlan(event.getPersonId()))
                 return;
             TravellerChain chain = chains.get(event.getPersonId());
             Trip trip = chain.getLastTrip();
@@ -388,7 +388,6 @@ public class EventsToTravelDiaries implements
     public void reset(int iteration) {
         chains = new HashMap<>();
         ptVehicles = new HashMap<>();
-        transitDriverIds = new HashSet<>();
         driverIdFromVehicleId = new HashMap<>();
     }
 
@@ -414,17 +413,17 @@ public class EventsToTravelDiaries implements
             legsTableName = "matsim_legs" + appendage + ".csv.gz";
         }
 
-        String[] actsData = new String[] {"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "sample_selector", "zone"};
+        String[] actsData = new String[]{"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "zone"};
         CSVWriter activityWriter = new CSVWriter(null, actsData, this.filename + actTableName);
 
-        String[] tripsData = new String[]{"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode", "main_mode_mikrozensus",
-                "from_act", "to_act", "to_act_type", "in_vehicle_distance", "in_vehicle_time", "first_boarding_stop", "last_alighting_stop",
-                "sample_selector", "got_stuck"};
+        String[] tripsData = new String[]{"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode",
+                "from_act", "to_act", "to_act_type", "in_vehicle_distance", "in_vehicle_time", "first_rail_boarding_stop",
+                "last_rail_alighting_stop", "got_stuck", "access_mode", "egress_mode", "access_dist", "egress_dist"};
         CSVWriter tripsWriter = new CSVWriter(null, tripsData, this.filename + tripsTableName);
 
         String[] legsData = new String[]{"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
-                "boarding_stop", "alighting_stop", "departure_time", "departure_delay", "sample_selector", "from_x", "from_y",
-                "to_x", "to_y", "previous_leg_id", "next_leg_id"};
+                "boarding_stop", "alighting_stop", "departure_time", "departure_delay", "from_x", "from_y",
+                "to_x", "to_y", "previous_leg_id", "next_leg_id", "is_access", "is_egress"};
         CSVWriter legsWriter = new CSVWriter(null, legsData, this.filename + legsTableName);
 
         // read a static field that increments with every inheriting object constructed
@@ -444,13 +443,20 @@ public class EventsToTravelDiaries implements
                     activityWriter.set("end_time", Integer.toString((int) act.getEndTime()));
                     activityWriter.set("x", Double.toString(act.getCoord().getX()));
                     activityWriter.set("y", Double.toString(act.getCoord().getY()));
-                    activityWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
                     activityWriter.set("zone", (attrVal == null) ? "" : attrVal.toString());
                     activityWriter.writeRow();
                 } catch (Exception e) {
                     log.error("Couldn't write activity chain!", e);
                 }
             }
+
+            List<TravelledLeg> accessLegs;
+            List<TravelledLeg> egressLegs;
+            String accessMode;
+            String egressMode;
+            String accessDist;
+            String egressDist;
+            boolean isRailJourney;
 
             for (Trip trip : chain.getTrips()) {
                 try {
@@ -460,27 +466,63 @@ public class EventsToTravelDiaries implements
                     tripsWriter.set("end_time", Integer.toString((int) trip.getEndTime()));
                     tripsWriter.set("distance", Double.toString(trip.getDistance()));
                     tripsWriter.set("main_mode", trip.getMainMode());
-                    tripsWriter.set("main_mode_mikrozensus", trip.getMainModeMikroZensus());
                     tripsWriter.set("from_act", Integer.toString(trip.getFromAct().getElementId()));
                     tripsWriter.set("to_act", Integer.toString(trip.getToAct().getElementId()));
                     tripsWriter.set("to_act_type", (trip.getToActType() == null) ? "" : trip.getToActType());
                     tripsWriter.set("in_vehicle_distance", Double.toString(trip.getInVehDistance()));
                     tripsWriter.set("in_vehicle_time", Integer.toString((int) trip.getInVehTime()));
-                    tripsWriter.set("first_boarding_stop", id2string(trip.getFirstBoardingStop()));
-                    tripsWriter.set("last_alighting_stop", id2string(trip.getLastAlightingStop()));
-                    tripsWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
+                    tripsWriter.set("first_rail_boarding_stop", id2string(trip.getFirstRailBoardingStop()));
+                    tripsWriter.set("last_rail_alighting_stop", id2string(trip.getLastRailAlightingStop()));
                     tripsWriter.set("got_stuck", Boolean.toString(chain.isStuck()));
+                    isRailJourney = trip.isRailJourney();
+
+                    accessMode = "";
+                    egressMode = "";
+                    accessDist = "0";
+                    egressDist = "0";
+
+                    if (isRailJourney) {
+                        accessLegs = trip.getAccessLegs();
+                        egressLegs = trip.getEgressLegs();
+
+                        accessMode = trip.getAccessToRailMode(accessLegs);
+                        egressMode = trip.getEgressFromRailMode(egressLegs);
+
+                        for (TravelledLeg leg : accessLegs) {
+                            leg.setIsAccess(accessMode);
+                        }
+                        for (TravelledLeg leg : egressLegs) {
+                            leg.setIsEgress(egressMode);
+                        }
+
+                        accessDist = String.valueOf(trip.getAccessToRailDist(accessLegs));
+                        egressDist = String.valueOf(trip.getEgressFromRailDist(egressLegs));
+
+                        if (accessMode.equals("access_walk") || accessMode.equals("transit_walk")) {
+                            accessMode = "walk";
+                        }
+
+                        if (egressMode.equals("egress_walk") || egressMode.equals("transit_walk")) {
+                            egressMode = "walk";
+                        }
+                    }
+                    tripsWriter.set("access_mode", accessMode);
+                    tripsWriter.set("egress_mode", egressMode);
+                    tripsWriter.set("access_dist", accessDist);
+                    tripsWriter.set("egress_dist", egressDist);
+
                     tripsWriter.writeRow();
                     counter.incCounter();
 
                     int ind = 0;
+                    int size = trip.getLegs().size() - 1;
                     for (TravelledLeg leg : trip.getLegs()) {
 
                         String previous_leg_id = null;
                         String next_leg_id = null;
-                        if(ind > 0)
+                        if (ind > 0)
                             previous_leg_id = Integer.toString(trip.getLegs().get(ind - 1).getElementId());
-                        if(ind < trip.getLegs().size() - 1)
+                        if (ind < size)
                             next_leg_id = Integer.toString(trip.getLegs().get(ind + 1).getElementId());
                         ind++;
 
@@ -496,13 +538,14 @@ public class EventsToTravelDiaries implements
                         legsWriter.set("alighting_stop", id2string(leg.getAlightingStop()));
                         legsWriter.set("departure_time", Integer.toString((int) leg.getPtDepartureTime()));
                         legsWriter.set("departure_delay", Integer.toString((int) leg.getDepartureDelay()));
-                        legsWriter.set("sample_selector", Double.toString(MatsimRandom.getRandom().nextDouble()));
                         legsWriter.set("from_x", Double.toString(leg.getOrig().getX()));
                         legsWriter.set("from_y", Double.toString(leg.getOrig().getY()));
                         legsWriter.set("to_x", Double.toString(leg.getDest().getX()));
                         legsWriter.set("to_y", Double.toString(leg.getDest().getY()));
                         legsWriter.set("previous_leg_id", (previous_leg_id == null) ? "" : previous_leg_id);
                         legsWriter.set("next_leg_id", (next_leg_id == null) ? "" : next_leg_id);
+                        legsWriter.set("is_access", (leg.isAccessLeg()) ? "1" : "0");
+                        legsWriter.set("is_egress", (leg.isEgressLeg()) ? "1" : "0");
                         legsWriter.writeRow();
                         counter.incCounter();
                     }

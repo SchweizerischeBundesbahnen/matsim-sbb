@@ -22,6 +22,7 @@ import org.matsim.vehicles.Vehicle;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class VisumPuTSurvey {
@@ -48,8 +49,12 @@ public class VisumPuTSurvey {
     private static final String COL_SUBPOP = "SUBPOP";
     private static final String COL_ORIG_GEM = "ORIG_GEM";
     private static final String COL_DEST_GEM = "DEST_GEM";
-    private static final String[] COLUMNS = new String[] { COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
-            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM };
+    private static final String COL_ACCESS_TO_RAIL_MODE = "ACCESS_TO_RAIL_MODE";
+    private static final String COL_EGRESS_FROM_RAIL_MODE = "EGRESS_FROM_RAIL_MODE";
+    private static final String COL_ACCESS_TO_RAIL_DIST = "ACCESS_TO_RAIL_DIST";
+    private static final String COL_EGRESS_FROM_RAIL_DIST = "EGRESS_FROM_RAIL_DIST";
+    private static final String[] COLUMNS = new String[]{COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
+            COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM, COL_ACCESS_TO_RAIL_MODE, COL_EGRESS_FROM_RAIL_MODE, COL_ACCESS_TO_RAIL_DIST, COL_EGRESS_FROM_RAIL_DIST};
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
@@ -94,6 +99,15 @@ public class VisumPuTSurvey {
     }
 
     public void write(String path) {
+        boolean isRail;
+        List<TravelledLeg> accessLegs;
+        List<TravelledLeg> egressLegs;
+        String accessMode = "";
+        String egressMode = "";
+        double accessDist = 0;
+        double egressDist = 0;
+        int first_rail_leg = 9999;
+        int last_rail_leg = -1;
         final String filepath = path + FILENAME;
         log.info("write Visum PuT Survey File to " + filepath);
 
@@ -102,6 +116,27 @@ public class VisumPuTSurvey {
                 String paxId = entry.getKey().toString();
                 TravellerChain chain = entry.getValue();
                 for (Trip trip : chain.getTrips()) {
+                    isRail = trip.isRailJourney();
+                    accessMode = "";
+                    egressMode = "";
+                    accessDist = 0;
+                    egressDist = 0;
+                    if (isRail) {
+                        accessLegs = trip.getAccessLegs();
+                        egressLegs = trip.getEgressLegs();
+
+                        accessMode = trip.getAccessToRailMode(accessLegs);
+                        egressMode = trip.getEgressFromRailMode(egressLegs);
+                        accessDist = trip.getAccessToRailDist(accessLegs);
+                        egressDist = trip.getEgressFromRailDist(egressLegs);
+                        if (accessMode.equals("access_walk") || accessMode.equals("transit_walk")) {
+                            accessMode = "walk";
+                        }
+
+                        if (egressMode.equals("egress_walk") || egressMode.equals("transit_walk")) {
+                            egressMode = "walk";
+                        }
+                    }
                     Integer i = 1;
                     for (TravelledLeg leg : trip.getLegs()) {
                         if (this.ptVehicles.containsKey(leg.getVehicleId())) {
@@ -145,26 +180,29 @@ public class VisumPuTSurvey {
                             Double pfahrt = 1.0 * scaleFactor;
                             writer.set(COL_PFAHRT, Integer.toString(pfahrt.intValue()));
 
-                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(paxId,"subpopulation").toString();
+                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(paxId, "subpopulation").toString();
                             writer.set(COL_SUBPOP, subpopulation);
 
                             Zone fromGem = (this.zones != null) ? this.zones.findZone(trip.getFromAct().getCoord().getX(),
                                     trip.getFromAct().getCoord().getY()) : null;
-                            if(fromGem != null) {
+                            if (fromGem != null) {
                                 writer.set(COL_ORIG_GEM, fromGem.getAttribute(GEM_SHAPE_ATTR).toString());
-                            }
-                            else    {
+                            } else {
                                 writer.set(COL_ORIG_GEM, DEFAULT_ZONE);
                             }
 
                             Zone toGem = (this.zones != null) ? this.zones.findZone(trip.getToAct().getCoord().getX(),
                                     trip.getToAct().getCoord().getY()) : null;
-                            if(toGem != null) {
+                            if (toGem != null) {
                                 writer.set(COL_DEST_GEM, toGem.getAttribute(GEM_SHAPE_ATTR).toString());
-                            }
-                            else    {
+                            } else {
                                 writer.set(COL_DEST_GEM, DEFAULT_ZONE);
                             }
+
+                            writer.set(COL_ACCESS_TO_RAIL_MODE, (isRail ? accessMode : ""));
+                            writer.set(COL_EGRESS_FROM_RAIL_MODE, (isRail ? egressMode : ""));
+                            writer.set(COL_ACCESS_TO_RAIL_DIST, (isRail ? Integer.toString((int)accessDist) : "0"));
+                            writer.set(COL_EGRESS_FROM_RAIL_DIST, (isRail ? Integer.toString((int)egressDist) : "0"));
 
                             writer.writeRow();
                             i++;
@@ -177,15 +215,15 @@ public class VisumPuTSurvey {
         }
     }
 
-    public String getDayIndex(int time){
+    public String getDayIndex(int time) {
         int day = (int) Math.ceil(time / (24 * 60 * 60.0));
         assert day > 0;
         return Integer.toString(day);
     }
 
 
-    public String getTime(int time){
-        int sec = time % (24*60*60);
+    public String getTime(int time) {
+        int sec = time % (24 * 60 * 60);
         return Time.writeTime(sec);
     }
 
