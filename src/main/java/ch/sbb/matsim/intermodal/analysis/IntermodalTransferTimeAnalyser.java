@@ -47,7 +47,6 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     private final boolean writePng;
     private Map<Id<Person>, IntermodalTransfer> openTransfers = new HashMap<>();
 
-
     @Inject
     public IntermodalTransferTimeAnalyser(Config config, EventsManager eventsManager) {
         eventsManager.addHandler(this);
@@ -58,6 +57,19 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
                 .collect(Collectors.toSet());
         monitoredPtModes = config.transit().getTransitModes();
         writePng = config.controler().isCreateGraphs();
+
+        monitoredModes = new HashSet<>(monitoredAccessEgressModes);
+        monitoredModes.addAll(monitoredPtModes);
+        initializeTransferStats();
+
+
+    }
+
+    public IntermodalTransferTimeAnalyser(Set<String> monitoredAccessEgressModes, Set<String> monitoredPtModes) {
+
+        this.monitoredAccessEgressModes = monitoredAccessEgressModes;
+        this.monitoredPtModes = monitoredPtModes;
+        writePng = true;
 
         monitoredModes = new HashSet<>(monitoredAccessEgressModes);
         monitoredModes.addAll(monitoredPtModes);
@@ -139,7 +151,6 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
             for (Map.Entry<String, Map<String, DescriptiveStatistics>> fromStats : transferStats.entrySet()) {
                 String fromMode = fromStats.getKey();
                 for (Map.Entry<String, DescriptiveStatistics> entry : fromStats.getValue().entrySet()) {
-                    if (fromMode.equals(entry.getKey())) continue;
                     String describer = fromMode + " -> " + entry.getKey();
                     List<Double> values = Arrays.stream(entry.getValue().getValues()).boxed().collect(Collectors.toList());
                     if (!values.isEmpty()) {
