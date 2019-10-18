@@ -54,7 +54,7 @@ public class AddIntermodalScheduleAttributesAndCreateFleetVehicles {
         final int[] i = {0};
         scenario.getTransitSchedule().getFacilities().values().stream()
                 .filter(transitStopFacility -> String.valueOf(transitStopFacility.getAttributes().getAttribute("01_Datenherkunft")).equals("SBB_Simba"))
-                .filter(transitStopFacility -> envelope.intersects(MGC.coord2Coordinate(transitStopFacility.getCoord())))
+                .filter(transitStopFacility -> envelope.contains(MGC.coord2Coordinate(transitStopFacility.getCoord())))
                 .forEach(transitStopFacility ->
                 {
                     transitStopFacility.getAttributes().putAttribute(DRTFEEDER, 1);
