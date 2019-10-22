@@ -16,6 +16,7 @@ import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
@@ -209,7 +210,7 @@ public class AbmConverter {
             if(p.getPlans().size() > 1) log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
 
             Plan plan = p.getSelectedPlan();
-            List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.stageActivitiesTypes);
+            List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
             List<String> endTimeList = new ArrayList<>();
             int i = 0;
 

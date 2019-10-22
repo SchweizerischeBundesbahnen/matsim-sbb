@@ -91,11 +91,7 @@ public class PTMerger {
     private void write(String outFolder) throws UncheckedIOException {
         new NetworkWriter(this.scenario.getNetwork()).write(outFolder+"/network.xml.gz");
         new TransitScheduleWriter(this.scenario.getTransitSchedule()).writeFile(outFolder+"/transitSchedule.xml.gz");
-        try {
-            new MatsimVehicleWriter(this.scenario.getTransitVehicles()).writeFile(outFolder + "/transitVehicle.xml.gz");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        new MatsimVehicleWriter(this.scenario.getTransitVehicles()).writeFile(outFolder + "/transitVehicle.xml.gz");
     }
 
     private void removeUnusedStopFacilities(){

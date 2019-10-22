@@ -28,7 +28,6 @@ import org.matsim.vehicles.MatsimVehicleWriter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -154,10 +153,6 @@ public class RunVisumPtExporter {
     private static void writeFiles(Scenario scenario, String outputPath)   {
         new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, Filenames.PT_NETWORK).getPath());
         new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(new File(outputPath, TRANSITSCHEDULE_OUT).getPath());
-        try {
-            new MatsimVehicleWriter(scenario.getVehicles()).writeFile(new File(outputPath, TRANSITVEHICLES_OUT).getPath());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        new MatsimVehicleWriter(scenario.getVehicles()).writeFile(new File(outputPath, TRANSITVEHICLES_OUT).getPath());
     }
 }

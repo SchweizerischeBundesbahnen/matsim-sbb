@@ -1,8 +1,5 @@
 package ch.sbb.matsim.config.variables;
 
-import org.matsim.core.router.StageActivityTypes;
-import org.matsim.core.router.StageActivityTypesImpl;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,7 +21,6 @@ public final class SBBActivities {
     public final static Map<String, String> matsimActs2abmActs;
 
     public final static Set<String> stageActivityTypeList;
-    public final static StageActivityTypes stageActivitiesTypes;
 
     static {
         abmActs2matsimActs = new HashMap<>();
@@ -54,7 +50,5 @@ public final class SBBActivities {
         stageActivityTypeList.add("ride interaction");
         stageActivityTypeList.add("car interaction");
         stageActivityTypeList.add("bike interaction");
-
-        stageActivitiesTypes = new StageActivityTypesImpl(stageActivityTypeList);
     }
 }

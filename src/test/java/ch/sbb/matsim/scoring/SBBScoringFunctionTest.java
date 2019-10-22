@@ -11,8 +11,6 @@ import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
-import org.matsim.core.router.StageActivityTypes;
-import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunction;
@@ -70,8 +68,7 @@ public class SBBScoringFunctionTest {
         plan.addActivity(homeAct2);
         person1.addPlan(plan);
 
-        StageActivityTypes stageActivities = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
-        List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan, stageActivities);
+        List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan);
 
         PlanCalcScoreConfigGroup.ActivityParams homeParams = new PlanCalcScoreConfigGroup.ActivityParams("home");
         homeParams.setTypicalDuration(12*3600);

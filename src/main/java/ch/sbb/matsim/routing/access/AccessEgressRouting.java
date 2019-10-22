@@ -17,7 +17,6 @@ import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.router.StageActivityTypes;
 import org.matsim.facilities.Facility;
 
 import java.util.List;
@@ -115,32 +114,6 @@ public class AccessEgressRouting {
             Gbl.assertNotNull(accessActLink);
         }
         return accessActLink;
-    }
-
-
-    public StageActivityTypes getStageActivityTypes() {
-        return new AccessEgressStageActivityTypes();
-    }
-
-    private final class AccessEgressStageActivityTypes implements StageActivityTypes {
-        @Override
-        public boolean isStageActivity(final String activityType) {
-            return AccessEgressRouting.this.stageActivityType.equals(activityType);
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (!(obj instanceof AccessEgressStageActivityTypes)) {
-                return false;
-            }
-            final AccessEgressStageActivityTypes other = (AccessEgressStageActivityTypes) obj;
-            return other.isStageActivity(AccessEgressRouting.this.stageActivityType);
-        }
-
-        @Override
-        public int hashCode() {
-            return AccessEgressRouting.this.stageActivityType.hashCode();
-        }
     }
 
 }

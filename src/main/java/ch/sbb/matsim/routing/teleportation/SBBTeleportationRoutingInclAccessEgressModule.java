@@ -9,7 +9,6 @@ import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.gbl.Gbl;
-import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.TeleportationRoutingModule;
 import org.matsim.facilities.Facility;
 
@@ -51,11 +50,6 @@ public class SBBTeleportationRoutingInclAccessEgressModule extends Teleportation
         now = accessEgress.addEgress(toFacility, egressActLink, now, result, person);
 
         return result;
-    }
-
-    @Override
-    public StageActivityTypes getStageActivityTypes() {
-        return this.accessEgress.getStageActivityTypes();
     }
 
 }

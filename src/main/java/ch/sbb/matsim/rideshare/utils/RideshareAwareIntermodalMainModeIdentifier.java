@@ -2,10 +2,10 @@ package ch.sbb.matsim.rideshare.utils;
 
 import ch.sbb.matsim.routing.pt.raptor.IntermodalAwareRouterModeIdentifier;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.contrib.drt.routing.DrtStageActivityType;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
 import org.matsim.core.config.Config;
 import org.matsim.core.router.MainModeIdentifier;
+import org.matsim.core.router.TripRouter;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -23,8 +23,7 @@ public class RideshareAwareIntermodalMainModeIdentifier implements MainModeIdent
         MultiModeDrtConfigGroup drtCfg = MultiModeDrtConfigGroup.get(config);
         this.drtWalkTypes = drtCfg.getModalElements().stream()
                 .map((drtConfigGroup) -> drtConfigGroup.getMode())
-                .collect(Collectors.toMap((s) -> (new DrtStageActivityType(s))
-                        .drtWalk, s -> s));
+                .collect(Collectors.toMap(s -> TripRouter.getFallbackMode(s), s -> s));
     }
 
 
