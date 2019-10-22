@@ -368,7 +368,8 @@ public class Accessibility {
                 trees.add(tree);
             }
 
-            double carAccessTime = ((Number) this.zones.findZone(fromCoord.getX(), fromCoord.getY()).getAttribute("ACCCAR")).doubleValue(); // in seconds
+            Zone fromZone = this.zones.findZone(fromCoord.getX(), fromCoord.getY());
+            double carAccessTime = fromZone == null ? 0 : ((Number) fromZone.getAttribute("ACCCAR")).doubleValue(); // in seconds
 
             // CALCULATION
 
@@ -482,7 +483,7 @@ public class Accessibility {
                         trainInVehTime += share * connTrainInVehTime;
                     }
 
-                    float trainShareByTravelTime = (float) (trainInVehTime / totalInVehTime);
+                    float trainShareByTravelTime = totalInVehTime > 0 ? (float) (trainInVehTime / totalInVehTime) : 0;
 
                     ttTrain = travelTime / 60 * trainShareByTravelTime; // in minutes
                     ttBus = travelTime / 60 - ttTrain; // in minutes
@@ -503,9 +504,9 @@ public class Accessibility {
 //
 //                U(walk)= +2.30 + (-0.100)*dist_car/0.078336
 
-                Zone zone = this.zones.findZone(toCoord.getX(), toCoord.getY());
-                double carEgressTime = ((Number) zone.getAttribute("ACCCAR")).doubleValue(); // in seconds
-                double carParkingCost = ((Number) zone.getAttribute("PCOST")).doubleValue();
+                Zone toZone = this.zones.findZone(toCoord.getX(), toCoord.getY());
+                double carEgressTime = toZone == null ? 0 : ((Number) toZone.getAttribute("ACCCAR")).doubleValue(); // in seconds
+                double carParkingCost = toZone == null ? 0 : ((Number) toZone.getAttribute("PCOST")).doubleValue();
 
                 for (int m = 0; m < this.modes.length; m++) {
                     Modes modes = this.modes[m];
@@ -544,7 +545,7 @@ public class Accessibility {
                 Id<TransitStopFacility> egressStopId = egressEntry.getKey();
                 Double egressTime = egressEntry.getValue();
                 SwissRailRaptorCore.TravelInfo info = tree.get(egressStopId);
-                if (info != null/* && !info.isWalkOnly()*/) { // TODO requires newer SwissRailRaptor dependency
+                if (info != null/* && !info.isWalkOnly()*/) { // FIXME requires newer SwissRailRaptor dependency
                     ODConnection connection = new ODConnection(info.ptDepartureTime, info.ptTravelTime, info.accessTime, egressTime, info.transferCount, info);
                     connections.add(connection);
                 }
