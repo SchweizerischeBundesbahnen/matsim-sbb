@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class VisumPuTSurvey {
@@ -100,8 +101,8 @@ public class VisumPuTSurvey {
 
     public void write(String path) {
         boolean isRail;
-        ArrayList<TravelledLeg> accessLegs;
-        ArrayList<TravelledLeg> egressLegs;
+        List<TravelledLeg> accessLegs;
+        List<TravelledLeg> egressLegs;
         String accessMode = "";
         String egressMode = "";
         double accessDist = 0;
