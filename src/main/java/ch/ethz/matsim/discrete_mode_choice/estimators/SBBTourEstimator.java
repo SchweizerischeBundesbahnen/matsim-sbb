@@ -1,10 +1,14 @@
 package ch.ethz.matsim.discrete_mode_choice.estimators;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
@@ -27,6 +31,8 @@ import ch.sbb.matsim.zones.ZonesQueryCache;
 
 public class SBBTourEstimator implements TourEstimator{
 	
+	 private final static Logger log = Logger.getLogger(SBBTourEstimator.class);
+	
 	private final TourEstimator delegate;
 	private final ScoringParametersForPerson scoringParametersForPerson;
 	private final ZonesQueryCache zonesQuery;
@@ -48,6 +54,7 @@ public class SBBTourEstimator implements TourEstimator{
 	public TourCandidate estimateTour(Person person, List<String> modes, List<DiscreteModeChoiceTrip> trips,
 			List<TourCandidate> previousTours) {
 		
+		
 		final SBBScoringParameters parameters = this.paramsForPerson.getSBBScoringParameters(person);
 		//ScoringParameters parameters = scoringParametersForPerson.getScoringParameters(person);
 
@@ -67,12 +74,15 @@ public class SBBTourEstimator implements TourEstimator{
 			utility += parameters.getMatsimScoringParameters().marginalUtilityOfMoney * modeParams.dailyMoneyConstant;
 		}
 
+		//log.log(Level.DEBUG,"DMC person id " + person.getId().toString() + " Utility : "+  Double.toString(utility) + " Trips "+Arrays.toString(modes.toArray()) );
+		
 		return new DefaultTourCandidate(utility, candidate.getTripCandidates());
 	}
 
 	public double estimateParkingCosts(SBBScoringParameters parameters, List<String> modes, List<DiscreteModeChoiceTrip> trips,
 			List<TourCandidate> previousTours) {
 		double utility = 0.0;
+		
 		if(modes.get(0).compareTo("car")==0) {
 			List<DiscreteModeChoiceTrip> carTrips = new ArrayList();
 			for (int i = 0; i < modes.size(); i++) {
