@@ -92,12 +92,12 @@ public class AccessibilityUtils {
     }
 
     public static void main(String[] args) {
-        String networkFilename = "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_network.xml.gz";
-        String coordsNetworkFilename = "C:\\devsbb\\codes\\_data\\skims\\gridCoords250network400.csv";
+        String networkFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\network.xml.gz";
+        String coordsNetworkFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\gridCoords250network400.csv";
 
-        String populationFilename = "C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_plans.xml.gz";
-        String coordsPopulation1Filename = "C:\\devsbb\\codes\\_data\\skims\\gridCoords250plans0.csv";
-        String coordsPopulation2Filename = "C:\\devsbb\\codes\\_data\\skims\\gridCoords250plans500.csv";
+        String populationFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\MOBi21.10pct.output_plans.xml.gz";
+        String coordsPopulation1Filename = "C:\\devsbb\\codes\\_data\\skims2.1\\gridCoords250plans0.csv";
+        String coordsPopulation2Filename = "C:\\devsbb\\codes\\_data\\skims2.1\\gridCoords250plans500.csv";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
@@ -105,7 +105,7 @@ public class AccessibilityUtils {
 
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFilename);
 
-        Collection<Node> nodes = AccessibilityUtils.getNodesInRange(scenario.getNetwork(), 550_000, 650_000, 150_000, 250_000);
+        Collection<Node> nodes = AccessibilityUtils.getNodesInRange(scenario.getNetwork(), 2_550_000, 2_650_000, 1_150_000, 1_250_000);
         Collection<Coord> nodeCoords = AccessibilityUtils.extractCoords(nodes);
         Collection<Coord> gridCoords = AccessibilityUtils.getGridCoordinates(nodeCoords, 250, 400);
         writeCoords(gridCoords, coordsNetworkFilename);

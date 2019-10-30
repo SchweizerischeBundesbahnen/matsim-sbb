@@ -545,7 +545,7 @@ public class Accessibility {
                 Id<TransitStopFacility> egressStopId = egressEntry.getKey();
                 Double egressTime = egressEntry.getValue();
                 SwissRailRaptorCore.TravelInfo info = tree.get(egressStopId);
-                if (info != null/* && !info.isWalkOnly()*/) { // FIXME requires newer SwissRailRaptor dependency
+                if (info != null && !info.isWalkOnly()) {
                     ODConnection connection = new ODConnection(info.ptDepartureTime, info.ptTravelTime, info.accessTime, egressTime, info.transferCount, info);
                     connections.add(connection);
                 }

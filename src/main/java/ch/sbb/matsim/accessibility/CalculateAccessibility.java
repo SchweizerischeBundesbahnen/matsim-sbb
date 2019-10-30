@@ -118,9 +118,9 @@ public class CalculateAccessibility {
         String facilitiesFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\facilities.xml.gz";
         double[] carAMDepTimes = new double[] {6*3600 + 1800, 7*3600 - 600, 7*3600 + 600, 7*3600 + 1800};
         double[] carPMDepTimes = new double[] {17*3600 - 600, 17*3600 + 600, 17*3600 + 1800, 18*3600 - 600};
-        String csvOutputFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\accessibility_java1.csv";
+        String csvOutputFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\accessibility_java_debug.csv";
         String zonesFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\mobi_zones.shp";
-        int gridSize = 500;
+        int gridSize = 300;
         String attractionsFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\attractions_" + gridSize + ".csv";
         double ptMinDepTime = 7*3600;
         double ptMaxDepTime = 8*3600;
@@ -130,8 +130,8 @@ public class CalculateAccessibility {
         List<Coord> coordinates = new ArrayList<>();
 
 
-        for (double x = 2_592_000; x <= 2_602_000; x += gridSize) {
-            for (double y = 1_192_000; y <= 1_202_000; y += gridSize) {
+        for (double x = 2_580_000; x <= 2_603_000; x += gridSize) {
+            for (double y = 1_180_000; y <= 1_203_000; y += gridSize) {
                 coordinates.add(new Coord(x, y));
             }
         }
