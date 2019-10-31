@@ -46,6 +46,7 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -109,7 +110,7 @@ public class Accessibility {
         this.threadCount = threadCount;
     }
 
-    public void calculateAccessibility(List<Coord> coordinates, Modes[] modes, String csvOutputFilename) {
+    public void calculateAccessibility(List<Coord> coordinates, Modes[] modes, File csvOutputFile) {
         if (!this.scenarioLoaded) {
             loadScenario();
         }
@@ -131,7 +132,7 @@ public class Accessibility {
 
         ConcurrentLinkedQueue<Coord> accessibilityCoords = new ConcurrentLinkedQueue<>(coordinates);
         ConcurrentLinkedQueue<Tuple<Coord, double[]>> results = new ConcurrentLinkedQueue<>();
-        try (BufferedWriter writer = IOUtils.getBufferedWriter(csvOutputFilename)) {
+        try (BufferedWriter writer = IOUtils.getBufferedWriter(csvOutputFile.getAbsolutePath())) {
             writer.write("X,Y");
             for (Modes mode : modes) {
                 writer.write(',');
@@ -248,16 +249,6 @@ public class Accessibility {
             }
         }
         return xy2lNetwork;
-    }
-
-    private static class WeightedCoord {
-        Coord coord;
-        double weight;
-
-        private WeightedCoord(Coord coord, double weight) {
-            this.coord = coord;
-            this.weight = weight;
-        }
     }
 
     private static class ZoneData {

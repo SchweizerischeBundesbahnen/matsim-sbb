@@ -1,5 +1,6 @@
 package ch.sbb.matsim.accessibility;
 
+import ch.sbb.matsim.analysis.matrices.CalculateIndicatorMatrices;
 import ch.sbb.matsim.analysis.skims.StreamingFacilities;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
@@ -14,12 +15,15 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
+import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -97,7 +101,7 @@ public class CalculateAccessibility {
         return attractions;
     }
 
-    /** fixes an issue with streaming facilties. Should not be needed anymore with MATSim 12.0-2019w44 or newer, see https://github.com/matsim-org/matsim/pull/707 */
+    /** fixes an issue with streaming facilities. Should not be needed anymore with MATSim 12.0-2019w44 or newer, see https://github.com/matsim-org/matsim/pull/707 */
     private static class StreamingFacilityFixer implements Consumer<ActivityFacility> {
 
         private final Consumer<ActivityFacility> delegate;
@@ -138,29 +142,47 @@ public class CalculateAccessibility {
         memObs.setDaemon(true);
         memObs.start();
 
-        String populationFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\MOBi21.10pct.output_plans.xml.gz";
-        String networkFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\network.xml.gz";
-        String eventsFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\CH.25pct.2.2016.output_events.xml.gz";
-        eventsFilename = null;
-        String transitNetworkFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\transitNetwork.xml.gz";
-        String scheduleFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\transitSchedule.xml.gz";
-        String facilitiesFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\facilities.xml.gz";
-        double[] carAMDepTimes = new double[] {6*3600 + 1800, 7*3600 - 600, 7*3600 + 600, 7*3600 + 1800};
-        double[] carPMDepTimes = new double[] {17*3600 - 600, 17*3600 + 600, 17*3600 + 1800, 18*3600 - 600};
-        String csvOutputFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\accessibility_java_debug.csv";
-        String zonesFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\mobi_zones.shp";
-        int gridSize = 300;
-        String attractionsFilename = "C:\\devsbb\\codes\\_data\\skims2.1\\attractions_" + gridSize + ".csv";
-        double ptMinDepTime = 7*3600;
-        double ptMaxDepTime = 8*3600;
-        double personWeight = 10.0;
-        int numThreads = 1;
+        String startCoordsFilename = args[0];
+        String zonesFilename = args[1];
+        String facilitiesFilename = args[2];
+        String populationFilename = args[3];
+        double personWeight = Double.parseDouble(args[4]);
+        String networkFilename = args[5];
+        String scheduleFilename = args[6];
+        String transitNetworkFilename = args[7];
+        String eventsFilename = args[8].isEmpty() || args[8].equals("-") ? null : args[8];
+        String outputDirectory = args[9];
+        int gridSize = Integer.parseInt(args[10]);
+        int numThreads = Integer.parseInt(args[11]);
+        String trainFilter = args[12];
+        String[] timesPtStr = args[13].split(";");
+        String[] timesCarAMStr = args[14].split(";");
+        String[] timesCarPMStr = args[15].split(";");
+
+        double[] carAMDepTimes = new double[timesCarAMStr.length];
+        for (int i = 0; i < timesCarAMStr.length; i++)
+            carAMDepTimes[i] = Time.parseTime(timesCarAMStr[i]);
+
+        double[] carPMDepTimes = new double[timesCarPMStr.length];
+        for (int i = 0; i < timesCarPMStr.length; i++)
+            carPMDepTimes[i] = Time.parseTime(timesCarPMStr[i]);
+
+        double ptMinDepTime = Time.parseTime(timesPtStr[0]);
+        double ptMaxDepTime = Time.parseTime(timesPtStr[1]);
+
+        File csvOutputFile = new File(outputDirectory, "accessibility.csv");
+        File attractionsFile = new File(outputDirectory, "attractions_" + gridSize + ".csv");
 
         List<Coord> coordinates = new ArrayList<>();
-
-
-        for (double x = 2_580_000; x <= 2_603_000; x += gridSize) {
-            for (double y = 1_180_000; y <= 1_203_000; y += gridSize) {
+        try (BufferedReader reader = IOUtils.getBufferedReader(startCoordsFilename)) {
+            String line = reader.readLine();
+            if (!line.equals("X,Y")) {
+                throw new RuntimeException("expected header 'X,Y' in " + startCoordsFilename);
+            }
+            while ((line = reader.readLine()) != null) {
+                String[] xy = line.split(",");
+                double x = Double.parseDouble(xy[0]);
+                double y = Double.parseDouble(xy[1]);
                 coordinates.add(new Coord(x, y));
             }
         }
@@ -172,7 +194,6 @@ public class CalculateAccessibility {
         };
 
         Map<Coord, Double> attractions = null;
-        File attractionsFile = new File(attractionsFilename);
         if (attractionsFile.exists()) {
             log.info("loading attractions from " + attractionsFile.getAbsolutePath());
             attractions = loadAttractions(attractionsFile);
@@ -183,18 +204,14 @@ public class CalculateAccessibility {
             writeAttractions(attractionsFile, attractions);
         }
 
-        BiPredicate<TransitLine, TransitRoute> trainDetector = (tl, tr) -> {
-            Object attrVal = tr.getAttributes().getAttribute("01_Datenherkunft");
-            String value = attrVal == null ? "" : attrVal.toString();
-            return value.contains("Simba");
-        };
+        BiPredicate<TransitLine, TransitRoute> trainDetector = CalculateIndicatorMatrices.buildTrainLinePredictor(trainFilter);
 
         Zones zones = new ZonesQueryCache(ZonesLoader.loadZones("mobi", zonesFilename, "ID"));
 
         log.info("calculate accessibility...");
         Accessibility accessibility = new Accessibility(networkFilename, eventsFilename, scheduleFilename, transitNetworkFilename, attractions, carAMDepTimes, carPMDepTimes, ptMinDepTime, ptMaxDepTime, trainDetector, zones);
         accessibility.setThreadCount(numThreads);
-        accessibility.calculateAccessibility(coordinates, modes, csvOutputFilename);
+        accessibility.calculateAccessibility(coordinates, modes, csvOutputFile);
 
         log.info("done.");
     }
