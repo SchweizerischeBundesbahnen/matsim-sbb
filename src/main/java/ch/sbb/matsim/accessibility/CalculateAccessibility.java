@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.ToDoubleFunction;
 
 public class CalculateAccessibility {
@@ -46,24 +47,27 @@ public class CalculateAccessibility {
             return weight;
         };
         Counter facCounter = new Counter("#");
-        new MatsimFacilitiesReader(null, null, new StreamingFacilities(
-                f -> {
-                    facCounter.incCounter();
-                    double weight = weightFunction.applyAsDouble(f);
-                    if (weight > 0) {
-                        Coord c = AccessibilityUtils.getGridCoordinate(f.getCoord().getX(), f.getCoord().getY(), gridSize);
-                        attractions.compute(c, (k, oldVal) -> oldVal == null ? weight : (oldVal + weight));
-                    }
+
+        StreamingFacilityFixer streamFixer = new StreamingFacilityFixer(
+            f -> {
+                facCounter.incCounter();
+                double weight = weightFunction.applyAsDouble(f);
+                if (weight > 0) {
+                    Coord c = AccessibilityUtils.getGridCoordinate(f.getCoord().getX(), f.getCoord().getY(), gridSize);
+                    attractions.compute(c, (k, oldVal) -> oldVal == null ? weight : (oldVal + weight));
                 }
-        )).readFile(facilitiesFilename);
+            }
+        );
+        new MatsimFacilitiesReader(null, null, new StreamingFacilities(streamFixer)).readFile(facilitiesFilename);
+        streamFixer.finish();
         facCounter.printCounter();
 
         StreamingPopulationReader popReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
         popReader.addAlgorithm(p -> {
             Plan plan = p.getSelectedPlan();
-            Activity homeAct = (Activity) plan.getPlanElements().get(0);
-            if (homeAct.getType().startsWith("home")) {
-                Coord c = AccessibilityUtils.getGridCoordinate(homeAct.getCoord().getX(), homeAct.getCoord().getY(), gridSize);
+            Activity firstAct = (Activity) plan.getPlanElements().get(0);
+            if (firstAct.getType().startsWith("home")) {
+                Coord c = AccessibilityUtils.getGridCoordinate(firstAct.getCoord().getX(), firstAct.getCoord().getY(), gridSize);
                 attractions.compute(c, (k, oldVal) -> oldVal == null ? personWeight : (oldVal + personWeight));
             }
         });
@@ -91,6 +95,31 @@ public class CalculateAccessibility {
             }
         }
         return attractions;
+    }
+
+    /** fixes an issue with streaming facilties. Should not be needed anymore with MATSim 12.0-2019w44 or newer, see https://github.com/matsim-org/matsim/pull/707 */
+    private static class StreamingFacilityFixer implements Consumer<ActivityFacility> {
+
+        private final Consumer<ActivityFacility> delegate;
+        private ActivityFacility f;
+
+        public StreamingFacilityFixer(Consumer<ActivityFacility> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void accept(ActivityFacility activityFacility) {
+            if (this.f != null) {
+                this.delegate.accept(this.f);
+            }
+            this.f = activityFacility;
+        }
+
+        public void finish() {
+            if (this.f != null) {
+                this.delegate.accept(this.f);
+            }
+        }
     }
 
     public static void main(String[] args) throws IOException {
