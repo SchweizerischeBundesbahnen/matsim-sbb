@@ -68,6 +68,9 @@ public class ZonesQueryCache implements Zones {
             return z;
         }
         z = this.zones.findNearestZone(x, y, maxDistance);
+        if (z == null) {
+            z = NO_ZONE;
+        }
         this.nearestCache.put(c, z);
         return z;
     }
