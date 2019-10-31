@@ -93,8 +93,8 @@ public class Accessibility {
         this.transitNetworkFilename = transitNetworkFilename;
         this.config = ConfigUtils.createConfig();
         this.attractions = attractions;
-        this.carAMDepTimes = carAMDepTimes;
-        this.carPMDepTimes = carPMDepTimes;
+        this.carAMDepTimes = eventsFilename == null ? new double[] { 8*3600 } : carAMDepTimes;
+        this.carPMDepTimes = eventsFilename == null ? new double[0] : carPMDepTimes;
         this.ptMinDepartureTime = ptMinDepartureTime;
         this.ptMaxDepartureTime = ptMaxDepartureTime;
         this.trainDetector = trainDetector;
