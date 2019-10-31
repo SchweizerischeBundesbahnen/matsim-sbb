@@ -53,12 +53,12 @@ public class ZonesQueryCache implements Zones {
     public Zone findNearestZone(double x, double y, double maxDistance) {
         Coord c = new Coord(x, y);
         Zone z = this.cache.get(c);
-        if (z != null) {
+        if (z != null && z != NO_ZONE) {
             return zoneOrNull(z);
         }
         z = this.nearestCache.get(c);
         if (z != null || this.nearestCache.containsKey(c)) {
-            return z;
+            return zoneOrNull(z);
         }
         z = this.zones.findZone(x, y);
         if (z == null) {
@@ -69,7 +69,8 @@ public class ZonesQueryCache implements Zones {
         }
         z = this.zones.findNearestZone(x, y, maxDistance);
         if (z == null) {
-            z = NO_ZONE;
+            this.nearestCache.put(c, NO_ZONE);
+            return null;
         }
         this.nearestCache.put(c, z);
         return z;
