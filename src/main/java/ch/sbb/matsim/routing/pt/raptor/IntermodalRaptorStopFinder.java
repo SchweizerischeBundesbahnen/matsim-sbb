@@ -2,7 +2,6 @@ package ch.sbb.matsim.routing.pt.raptor;
 
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
-import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
@@ -22,6 +21,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.log4j.Logger;
 
 /**
  * @author mrieser / Simunto GmbH
@@ -43,7 +44,7 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
     private final Map<String, RoutingModule> routingModules;
 
     @Inject
-    public IntermodalRaptorStopFinder(Population population, Config config, RaptorIntermodalAccessEgress intermodalAE, Map<String, Provider<RoutingModule>> routingModuleProviders) {
+    public IntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE, Map<String, Provider<RoutingModule>> routingModuleProviders) {
         this.intermodalAE = intermodalAE;
 
         SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
@@ -56,7 +57,7 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
         }
     }
 
-    public IntermodalRaptorStopFinder(Population population, RaptorIntermodalAccessEgress intermodalAE, Map<String, RoutingModule> routingModules) {
+    public IntermodalRaptorStopFinder(RaptorIntermodalAccessEgress intermodalAE, Map<String, RoutingModule> routingModules) {
         this.intermodalAE = intermodalAE;
         this.routingModules = routingModules;
     }
@@ -83,8 +84,8 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
             List<InitialStop> initialStops = stops.stream().map(stop -> {
                 double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
                 double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
-                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
+                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.access_walk);
+                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.access_walk);
             }).collect(Collectors.toList());
             return initialStops;
         }
@@ -100,8 +101,8 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
             List<InitialStop> initialStops = stops.stream().map(stop -> {
                 double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
                 double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
-                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
+                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.egress_walk);
+                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.egress_walk);
             }).collect(Collectors.toList());
             return initialStops;
         }
@@ -111,13 +112,14 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
         SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
         double x = facility.getCoord().getX();
         double y = facility.getCoord().getY();
+        String personId = person.getId().toString();
         List<InitialStop> initialStops = new ArrayList<>();
         for (IntermodalAccessEgressParameterSet paramset : srrCfg.getIntermodalAccessEgressParameterSets()) {
-            double radius = paramset.getMaxRadius();
+            double radius = paramset.getRadius();
             String mode = paramset.getMode();
             String overrideMode = null;
             if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
-                overrideMode = TransportMode.non_network_walk;
+                overrideMode = direction == Direction.ACCESS ? TransportMode.access_walk : TransportMode.egress_walk;
             }
             String linkIdAttribute = paramset.getLinkIdAttribute();
             String personFilterAttribute = paramset.getPersonFilterAttribute();
