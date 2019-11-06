@@ -402,13 +402,12 @@ public class Accessibility {
                 distCar /= 1000.0; // we use kilometers in the following formulas
 
                 double ttCar = Math.max(amTravelTime, pmTravelTime) / 60; // we need minutes in the following formulas
-                double distCar0015 = (distCar < 15) ? distCar : 0;
-                double distCar1550 = (distCar >= 15 && distCar < 50) ? distCar : 0;
-                double distCar5099 = (distCar >= 50 && distCar < 100) ? distCar : 0;
-                double distCar100x = (distCar >= 100) ? distCar : 0;
+                double distCar0015 = Math.min(distCar, 15);
+                double distCar1550 = Math.max(0, Math.min(distCar - 15, 35)); // 35 = 50 - 15, upperBound - lowerBound
+                double distCar5099 = Math.max(0, Math.min(distCar - 50, 50)); // 50 = 100 - 50
+                double distCar100x = Math.max(0, distCar - 100);
 
                 // PT
-
                 Collection<TransitStopFacility> toStops = findStopCandidates(toCoord, this.raptor, this.parameters);
                 Map<Id<TransitStopFacility>, Double> egressTimes = new HashMap<>();
                 for (TransitStopFacility stop : toStops) {
@@ -505,7 +504,7 @@ public class Accessibility {
                     double uBike = modes.bike ? (-0.25 + (-0.150) * distCar / 0.21667) : modes.missingModeUtility;
                     double uCar = modes.car ? (-0.40 + (-0.053)*ttCar + (-0.040)*distCar0015 + (-0.040)*distCar1550 + 0.015*distCar5099 + 0.010*distCar100x + (-0.047)*(carAccessTime+carEgressTime)/60 + (-0.135)*carParkingCost*2) : modes.missingModeUtility;
                     double uPt = (modes.pt && hasPT) ? (+0.75 + (-0.042)*ttBus + (-0.0378)*ttTrain + (-0.015)*distCar0015 + (-0.015)*distCar1550 + 0.005*distCar5099 + 0.025*distCar100x + (-0.050)*(ptAccessTime+ptEgressTime) + (-0.014)*(60/ptFrequency) + (-0.227)*ptTransfers) : modes.missingModeUtility;
-                    double uWalk = modes.walk ? (+0.23 + (-0.100) * distCar / 0.078336) : modes.missingModeUtility;
+                    double uWalk = modes.walk ? (+2.30 + (-0.100) * distCar / 0.078336) : modes.missingModeUtility;
 
                     double theta = modes.theta;
                     double destinationUtility = Math.exp(uCar / theta) + Math.exp(uPt / theta) + Math.exp(uWalk / theta) + Math.exp(uBike / theta);
