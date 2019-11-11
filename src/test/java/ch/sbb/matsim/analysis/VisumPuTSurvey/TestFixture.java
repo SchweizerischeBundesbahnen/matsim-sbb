@@ -159,7 +159,7 @@ public class TestFixture {
         schedule.addStopFacility(this.stopD);
         schedule.addStopFacility(this.stopE);
 
-        this.line1 = f.createTransitLine(Id.create("1", TransitLine.class));
+        this.line1 = f.createTransitLine(Id.create("S2016_1", TransitLine.class));
 
         List<Id<Link>> linkIdList = new ArrayList<>();
         linkIdList.add(link2.getId());
