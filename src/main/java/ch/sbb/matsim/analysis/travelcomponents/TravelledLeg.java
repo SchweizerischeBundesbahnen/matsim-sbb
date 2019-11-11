@@ -165,7 +165,7 @@ public class TravelledLeg extends TravelComponent {
         return this.isEgress;
     }
 
-    private boolean isPtLeg() {
+    public boolean isPtLeg() {
         return (this.mode.equals("detPt") || this.mode.equals("pt"));
     }
 
