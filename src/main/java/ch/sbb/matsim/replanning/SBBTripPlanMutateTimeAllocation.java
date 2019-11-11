@@ -42,7 +42,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
         double now = 0;
         int i = 0;
 
-        List<Activity> actList = TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities);
+        List<Activity> actList = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
 
         // apply mutation to all activities except the last home activity
         for (PlanElement pe : plan.getPlanElements()) {

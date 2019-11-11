@@ -4,12 +4,17 @@
 
 package ch.sbb.matsim.analysis.travelcomponents;
 
+import ch.sbb.matsim.config.SBBTransitConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
 
 public class TravelledLeg extends TravelComponent {
+    private SBBTransitConfigGroup sbbTransitConfig;
     private String mode;
+    private int modeHierarchy;
     private Id line;
     private Id route;
     private Coord orig;
@@ -26,6 +31,7 @@ public class TravelledLeg extends TravelComponent {
 
     TravelledLeg(Config config) {
         super(config);
+        this.sbbTransitConfig = ConfigUtils.addOrGetModule(config, SBBTransitConfigGroup.class);
     }
 
     public String toString() {
@@ -73,6 +79,18 @@ public class TravelledLeg extends TravelComponent {
 
     public void setMode(String mode) {
         this.mode = mode.trim();
+        setModeHierarchy(mode);
+    }
+
+    public int getModeHierarchy()   {
+        return this.modeHierarchy;
+    }
+
+    public void setModeHierarchy(String mode)   {
+        if (this.isPtLeg())  {
+            mode = SBBModes.PT;
+        }
+        this.modeHierarchy = SBBModes.mode2HierarchalNumber.getOrDefault(mode, SBBModes.DEFAULT_MODE_HIERARCHY);
     }
 
     public double getDistance() {
@@ -131,7 +149,6 @@ public class TravelledLeg extends TravelComponent {
 
     public void incrementDistance(double linkLength) {
         this.distance += linkLength;
-
     }
 
     public void setIsAccess(String accessMode) {
@@ -151,12 +168,13 @@ public class TravelledLeg extends TravelComponent {
         return this.isEgress;
     }
 
-    private boolean isPtLeg() {
-        return (this.mode.equals("detPt") || this.mode.equals("pt"));
+    public boolean isPtLeg() {
+        return (this.mode.equals(SBBModes.PT) || this.sbbTransitConfig.getDeterministicServiceModes().contains(this.mode));
     }
 
     public boolean isRailLeg() {
         if (this.isPtLeg()) {
+            // TODO: we need a better solution here
             return (this.line.toString().substring(0, 5).equals("S2016"));
         }
         return false;
