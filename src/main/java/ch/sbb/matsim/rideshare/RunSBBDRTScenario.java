@@ -55,7 +55,7 @@ public class RunSBBDRTScenario {
     }
 
     public static void prepareDrtConfig(Config config) {
-        DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore());
+        DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore(), config.plansCalcRoute());
 
         if (config.plansCalcRoute().getNetworkModes().contains(TransportMode.ride)) {
             // MATSim defines ride by default as teleported, which conflicts with the network mode
