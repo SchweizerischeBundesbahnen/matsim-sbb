@@ -28,7 +28,7 @@
 	</repositories>
 
 	<properties>
-		<matsim.version>12.0-2019w42-SNAPSHOT</matsim.version>
+		<matsim.version>12.0-2019w45-SNAPSHOT</matsim.version>
 	</properties>
 
 	<dependencies>
