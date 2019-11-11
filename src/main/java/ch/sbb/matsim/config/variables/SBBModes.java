@@ -12,6 +12,7 @@ public class SBBModes {
     public static final String RIDE = TransportMode.ride;
     public static final String PT = TransportMode.pt;
     public static final String WALK = TransportMode.walk;
+    public static final String TRANSIT_WALK = TransportMode.transit_walk;
     public static final String BIKE = TransportMode.bike;
 
     public static final int DEFAULT_MODE_HIERARCHY = 99;
@@ -25,5 +26,6 @@ public class SBBModes {
         mode2HierarchalNumber.put(RIDE, 20);
         mode2HierarchalNumber.put(BIKE, 30);
         mode2HierarchalNumber.put(WALK, 40);
+        mode2HierarchalNumber.put(TRANSIT_WALK, 41);
     }
 }

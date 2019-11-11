@@ -56,13 +56,13 @@ public class Trip extends TravelComponent {
     }
 
     public double getInVehDistance() {
-        if (getMainMode().equals("walk"))
+        if (getMainMode().equals(SBBModes.WALK))
             return 0;
         return this.legs.stream().mapToDouble(TravelledLeg::getDistance).sum();
     }
 
     private double getWalkDistance() {
-        if (getMainMode().equals("walk"))
+        if (getMainMode().equals(SBBModes.WALK))
             return walkSpeed * getDuration();
         return 0;
     }
@@ -72,7 +72,7 @@ public class Trip extends TravelComponent {
     }
 
     public double getInVehTime() {
-        if (getMainMode().equals("walk"))
+        if (getMainMode().equals(SBBModes.WALK))
             return 0;
         return this.legs.stream().mapToDouble(TravelledLeg::getDuration).sum();
     }
@@ -80,10 +80,13 @@ public class Trip extends TravelComponent {
     public String getMainMode() {
         // get main mode according to hierarchical order
         TravelledLeg leg = Collections.min(this.legs, Comparator.comparing(TravelledLeg::getModeHierarchy));
-        if (leg.getModeHierarchy() != 99) {
+        if (leg.getModeHierarchy() != SBBModes.DEFAULT_MODE_HIERARCHY) {
             String mainMode = leg.getMode();
             if(leg.isPtLeg())   {
                 return SBBModes.PT;
+            }
+            if(mainMode.equals(SBBModes.TRANSIT_WALK)) {
+                return SBBModes.WALK;
             }
             return mainMode;
         }
