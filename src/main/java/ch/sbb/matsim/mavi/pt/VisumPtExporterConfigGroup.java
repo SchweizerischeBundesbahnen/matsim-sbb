@@ -7,9 +7,11 @@ package ch.sbb.matsim.mavi.pt;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
-import org.matsim.core.utils.collections.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author pmanser / SBB
@@ -27,7 +29,6 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
     static private final String PARAM_PATHTOATTRIBUTES = "PathToVisumAttributeFile";
     static private final String PARAM_OUTPUT_PATH = "OutputPath";
     static private final String PARAM_NETWORK_MODE = "NetworkMode";
-    static private final String PARAM_VEHICLE_MODE = "VehicleMode";
     static private final String PARAM_TRANSFERTIMES = "ExportTransferTimes";
     static private final String PARAM_ANGEBOT = "AngebotName";
 
@@ -35,7 +36,6 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
     private String pathToVisumAttributeFile = null;
     private String outputPath = null;
     private String networkMode = null;
-    private String vehicleMode = null;
     private boolean exportTransferTimes = false;
     private String angebot = null;
 
@@ -61,16 +61,6 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
     @StringSetter(PARAM_NETWORK_MODE)
     public void setNetworkMode(String value) {
         this.networkMode = value;
-    }
-
-    @StringGetter(PARAM_VEHICLE_MODE)
-    public String getVehicleMode() {
-        return this.vehicleMode;
-    }
-
-    @StringSetter(PARAM_VEHICLE_MODE)
-    public void setVehicleMode(String value) {
-        this.vehicleMode = value;
     }
 
     @StringGetter(PARAM_TRANSFERTIMES)
