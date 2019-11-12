@@ -6,11 +6,8 @@ import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.population.algorithms.PlanAlgorithm;
-import org.matsim.core.router.TripStructureUtils;
-import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.utils.misc.Time;
 
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -41,8 +38,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 
         double now = 0;
         int i = 0;
-
-        List<Activity> actList = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
+        Activity lastAct = (Activity) plan.getPlanElements().listIterator(plan.getPlanElements().size()).previous();
 
         // apply mutation to all activities except the last home activity
         for (PlanElement pe : plan.getPlanElements()) {
@@ -65,7 +61,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
                 }
 
                 // handle middle activities
-                else if (i < (actList.size() - 1)) {
+                else if (act != lastAct) {
                     // assume that there will be no delay between arrival time and activity start time
                     act.setStartTime(now);
                     if (!act.getType().endsWith("interaction")) {
