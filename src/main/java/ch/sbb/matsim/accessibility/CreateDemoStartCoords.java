@@ -38,6 +38,12 @@ public class CreateDemoStartCoords {
         allCoords.addAll(extendedCoords);
         allCoords.addAll(fullHeightStripe);
 
+        System.out.println("# home coordinates: " + homeCoords.size());
+        System.out.println("# filtered home coordinates: " + filteredCoords.size());
+        System.out.println("# gridded, extended home coordinates: " + extendedCoords.size());
+        System.out.println("# coordinates in stripe: " + fullHeightStripe.size());
+        System.out.println("# coordinates total: " + allCoords.size());
+
         try (BufferedWriter writer = IOUtils.getBufferedWriter("C:\\devsbb\\codes\\_data\\skims2.1\\startCoordsLauBeAlps" + gridSize + ".csv")) {
             writer.write("X,Y\n");
             for (Coord c : allCoords) {
