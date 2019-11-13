@@ -3103,8 +3103,8 @@
         <parameterset type="mode">
             <param name="mode" value="bike"/>
             <param name="waitingTime" value="0"/>
-            <param name="constant" value="-10.0"/>
-            <param name="mutt" value="-0.0005"/>
+            <param name="constant" value="0.0"/>
+            <param name="mutt" value="15.5"/>
             <param name="detourFactor" value="1.0"/>
             <param name="isOnNetwork" value="false"/>
         </parameterset>
