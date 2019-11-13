@@ -81,7 +81,8 @@ public class IntermodalModule extends AbstractModule {
         }
         bind(IntermodalTransferTimeAnalyser.class).asEagerSingleton();
         addControlerListenerBinding().to(IntermodalControlerListener.class).asEagerSingleton();
-        bind(RaptorIntermodalAccessEgress.class).toInstance(new SBBRaptorIntermodalAccessEgress(this.configGroup.getModeParameterSets()));
+        //no need to be singleton
+        bind(RaptorIntermodalAccessEgress.class).to(SBBRaptorIntermodalAccessEgress.class);
     }
 
 }

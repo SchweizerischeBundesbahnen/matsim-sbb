@@ -5,6 +5,7 @@
 
 package ch.sbb.matsim.intermodal;
 
+import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
@@ -13,8 +14,11 @@ import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.misc.Time;
 
+import javax.inject.Inject;
 import java.util.List;
 
 
@@ -25,6 +29,14 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     private static final Logger log = Logger.getLogger(SBBRaptorIntermodalAccessEgress.class);
 
     private final List<SBBIntermodalModeParameterSet> intermodalModeParams;
+
+    @Inject
+    SBBRaptorIntermodalAccessEgress(Config config) {
+        SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
+        intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
+
+    }
+
 
     public SBBRaptorIntermodalAccessEgress(List<SBBIntermodalModeParameterSet> intermodalModeParams) {
         this.intermodalModeParams = intermodalModeParams;
