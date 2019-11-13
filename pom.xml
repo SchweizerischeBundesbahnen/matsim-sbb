@@ -200,6 +200,10 @@
 				<configuration>
 					<includes>
 						<include>**/*IT.java</include>
+                        <include>**/Test*.java</include>
+                        <include>**/Test.java</include>
+                        <include>**/Tests.java</include>
+                        <include>**/TestCase.java</include>
 					</includes>
 				</configuration>
 			</plugin>
