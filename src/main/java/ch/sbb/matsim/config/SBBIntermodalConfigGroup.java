@@ -220,7 +220,10 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
                 logger.warn("Constant for intermodal mode " + getMode() + "is > 0. This might be an unwanted utility!");
             }
             if (getMUTT() > 0) {
-                logger.warn("Marginal Utility of Travel time (per hour) for itnermodal " + getMode() + "is > 0. This might be an unwanted utility!");
+                logger.warn("Marginal Utility of Travel time (per hour) for intermodal " + getMode() + "is > 0. This might be an unwanted utility!");
+            }
+            if (getMUTT() < 0 && getMUTT() > -0.1) {
+                logger.warn("Marginal Utility of Travel time (per hour) for intermodal " + getMode() + "is very small (" + mutt + " Make sure you use the right units.");
             }
             Set<String> modesInRaptorConfig = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets()
                     .stream()
