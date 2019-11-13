@@ -96,25 +96,25 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         public static final String PARAM_MODE_DESC = "Mode to use as feeder";
 
         static private final String PARAM_WAITINGTIME = "waitingTime";
+        public static final String PARAM_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
+        public static final String PARAM_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
         public static final String PARAM_MUTT_DESC = "Marginal Utility of travel time (per hour)";
 
         static private final String PARAM_CONSTANT = "constant";
-        public static final String PARAM_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
-
-        static private final String PARAM_MUTT = "mutt";
-        public static final String PARAM_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
+        static private final String PARAM_WAITINGTIME_DESC = "Additional waiting time.";
 
         static private final String PARAM_DETOUR = "detourFactor";
-        static private final String PARAM_WAITINGTIME_DESC = "Additional waiting time.";
+        static private final String PARAM_MUTT = "mutt";
 
         static private final String PARAM_NETWORK = "isOnNetwork";
         static private final String PARAM_CONSTANT_DESC = "ASC for feeder mode";
 
 
+
         private String mode = "ride_feeder";
         private int waitingTime = 15 * 60;
         private double constant = -1.5;
-        private double mutt = 0.003;
+        private double mutt = -10.8;
         private double detourFactor = 1.3;
         private boolean onNetwork = true;
 
