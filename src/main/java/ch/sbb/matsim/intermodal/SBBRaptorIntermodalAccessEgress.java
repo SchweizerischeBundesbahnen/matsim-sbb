@@ -127,17 +127,19 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
 
     private double computeIntermodalDisutility(final List<? extends PlanElement> legs, RaptorParameters params, SBBIntermodalModeParameterSet modeParams) {
-        double disutility = 0.0;
+        double utility = 0.0;
         for (PlanElement pe : legs) {
             double time;
             if (pe instanceof Leg) {
                 time = ((Leg) pe).getTravelTime();
                 if (!Time.isUndefinedTime(time)) {
-                    disutility += time * modeParams.getMUTT();
+                    utility += time * modeParams.getMUTT_perSecond();
                 }
             }
         }
-        return modeParams.getConstant() + disutility;
+        utility += modeParams.getConstant();
+        //return the *mostly positive* disutility, as required by the router
+        return (-utility);
 
     }
 
