@@ -7,12 +7,15 @@ package ch.sbb.matsim.config;
 import org.apache.log4j.Logger;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
 
@@ -211,11 +214,21 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         @Override
         protected void checkConsistency(Config config) {
             super.checkConsistency(config);
+            SwissRailRaptorConfigGroup railRaptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
+
             if (constant > 0) {
                 logger.warn("Constant for intermodal mode " + getMode() + "is > 0. This might be an unwanted utility!");
             }
             if (getMUTT() > 0) {
                 logger.warn("Marginal Utility of Travel time (per hour) for itnermodal " + getMode() + "is > 0. This might be an unwanted utility!");
+            }
+            Set<String> modesInRaptorConfig = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets()
+                    .stream()
+                    .map(p -> p.getMode())
+                    .collect(Collectors.toSet());
+            if (!modesInRaptorConfig.contains(mode)) {
+                throw new RuntimeException("Mode " + mode + "is defined in SBBIntermodalConfigGroup, but not in SwissRailRaptorConfigGroup. " +
+                        "This will most likely be unwanted.");
             }
         }
     }
