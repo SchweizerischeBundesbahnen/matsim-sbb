@@ -14,6 +14,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.BufferedWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AccessibilityUtils {
 
@@ -117,5 +118,21 @@ public class AccessibilityUtils {
         Collection<Coord> gridCoords2 = AccessibilityUtils.getGridCoordinates(homeCoords, 250, 500);
         writeCoords(gridCoords1, coordsPopulation1Filename);
         writeCoords(gridCoords2, coordsPopulation2Filename);
+    }
+
+    public static Collection<Coord> filterCoordinatesInArea(Collection<Coord> homeCoords, double minX, double minY, double maxX, double maxY) {
+        return homeCoords.stream()
+                .filter(c -> c.getX() >= minX && c.getX() <= maxX && c.getY() >= minY && c.getY() <= maxY)
+                .collect(Collectors.toList());
+    }
+
+    public static Collection<Coord> getGridCoordinates(int gridSize, double minX, double minY, double maxX, double maxY) {
+        Collection<Coord> coords = new ArrayList<>();
+        for (double x = minX; x <= maxX; x += gridSize) {
+            for (double y = minY; y <= maxY; y += gridSize) {
+                coords.add(getGridCoordinate(x, y, gridSize));
+            }
+        }
+        return coords;
     }
 }

@@ -170,6 +170,11 @@ public class CalculateAccessibility {
         double ptMinDepTime = Time.parseTime(timesPtStr[0]);
         double ptMaxDepTime = Time.parseTime(timesPtStr[1]);
 
+        File outputDir = new File(outputDirectory);
+        if (!outputDir.exists()) {
+            outputDir.mkdirs();
+        }
+
         File csvOutputFile = new File(outputDirectory, "accessibility.csv");
         File attractionsFile = new File(outputDirectory, "attractions_" + gridSize + ".csv");
 
