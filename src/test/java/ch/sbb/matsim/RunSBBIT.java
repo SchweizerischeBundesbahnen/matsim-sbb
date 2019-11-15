@@ -12,4 +12,10 @@ public class RunSBBIT {
         RunSBB.main(new String[]{"test/input/scenarios/mobi20test/testconfig.xml"});
 
     }
+
+    @Test
+    public void interModalIT() {
+        RunSBB.main(new String[]{"test/input/scenarios/mobi20test/intermodal_testconfig.xml"});
+
+    }
 }
