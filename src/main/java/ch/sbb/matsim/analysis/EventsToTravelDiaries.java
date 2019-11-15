@@ -471,8 +471,6 @@ public class EventsToTravelDiaries implements
                     tripsWriter.set("to_act_type", (trip.getToActType() == null) ? "" : trip.getToActType());
                     tripsWriter.set("in_vehicle_distance", Double.toString(trip.getInVehDistance()));
                     tripsWriter.set("in_vehicle_time", Integer.toString((int) trip.getInVehTime()));
-                    tripsWriter.set("first_rail_boarding_stop", id2string(trip.getFirstRailBoardingStop()));
-                    tripsWriter.set("last_rail_alighting_stop", id2string(trip.getLastRailAlightingStop()));
                     tripsWriter.set("got_stuck", Boolean.toString(chain.isStuck()));
                     isRailJourney = trip.isRailJourney();
 
@@ -506,6 +504,9 @@ public class EventsToTravelDiaries implements
                             egressMode = "walk";
                         }
                     }
+
+                    tripsWriter.set("first_rail_boarding_stop", id2string(trip.getFirstRailBoardingStop()));
+                    tripsWriter.set("last_rail_alighting_stop", id2string(trip.getLastRailAlightingStop()));
                     tripsWriter.set("access_mode", accessMode);
                     tripsWriter.set("egress_mode", egressMode);
                     tripsWriter.set("access_dist", accessDist);
