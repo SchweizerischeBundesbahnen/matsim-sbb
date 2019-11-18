@@ -251,11 +251,9 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             if (getMUTT() < 0 && getMUTT() > -0.1) {
                 logger.warn("Marginal Utility of Travel time (per hour) for intermodal " + getMode() + "is very small (" + mutt + " Make sure you use the right units.");
             }
-
             if (detourFactor != null && detourFactorZoneId != null) {
                 throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
             }
-
             if (waitingTime != null && waitingTimeZoneId != null) {
                 throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
             }
