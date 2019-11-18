@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -30,14 +31,20 @@ public class VisumPuTSurveyIntegrationTest {
 
         System.out.println(chain.getTrips().get(0).getLegs().size());
         Files.createDirectories(Paths.get("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/"));
-        visumPuTSurvey.write("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/");
+        visumPuTSurvey.write("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/", Charset.forName("UTF-8"));
 
 //        System.out.println(visumPuTSurvey.getWriter().getData());
 
-        String expected = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n$OEVTEILWEG:DATENSATZNR;TWEGIND;VONHSTNR;NACHHSTNR;VSYSCODE;LINNAME;LINROUTENAME;RICHTUNGSCODE;FZPNAME;TEILWEG-KENNUNG;EINHSTNR;EINHSTABFAHRTSTAG;EINHSTABFAHRTSZEIT;PFAHRT;SUBPOP;ORIG_GEM;DEST_GEM;ACCESS_TO_RAIL_MODE;EGRESS_FROM_RAIL_MODE;ACCESS_TO_RAIL_DIST;EGRESS_FROM_RAIL_DIST\n2;1;B;D;code;code;code;code;code;E;B;1;08:22:00;10;regular;999999999;999999999;;;0;0\n";
+        String expected = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n" +
+                "* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT" +
+                "\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege" +
+                "\n$OEVTEILWEG:DATENSATZNR;TWEGIND;VONHSTNR;NACHHSTNR;VSYSCODE;" +
+                "LINNAME;LINROUTENAME;RICHTUNGSCODE;FZPNAME;TEILWEG-KENNUNG;EINHSTNR;EINHSTABFAHRTSTAG;" +
+                "EINHSTABFAHRTSZEIT;PFAHRT;SUBPOP;ORIG_GEM;DEST_GEM;ACCESS_TO_RAIL_MODE;EGRESS_FROM_RAIL_MODE;" +
+                "ACCESS_TO_RAIL_DIST;EGRESS_FROM_RAIL_DIST\n2;1;B;D;code;code;code;code;code;E;B;1;08:22:00;10;regular;999999999;999999999;;;0;0\n";
 
         // Add Assert
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/matsim_put_survey.att"), "Cp1252"));
+        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/matsim_put_survey.att")));
         StringBuilder sb = new StringBuilder();
         String line = br.readLine();
 
