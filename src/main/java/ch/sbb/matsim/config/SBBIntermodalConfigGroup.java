@@ -100,11 +100,16 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         static private final String PARAM_NETWORKMODE = "isOnNetwork";
         public static final String PARAM_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
 
+        public static final String PARAM_DETOUR_FACTOR_ZONEID_DESC = "Zone Id field for mode specific detour factor.";
+        public static final String PARAM_WAITTIME_ZONEID_DESC = "Zone Id field for mode specific wait time (in seconds).";
+        static private final String PARAM_DETOUR_FACTOR_ZONEID = "detourFactorZoneId";
+        static private final String PARAM_WAITTIME_ZONEID = "waitTimeZoneId";
+
         static private final String PARAM_MUTT = "mutt";
         public static final String PARAM_MUTT_DESC = "Marginal Utility of travel time (per hour)";
 
         static private final String PARAM_WAITINGTIME = "waitingTime";
-        static private final String PARAM_WAITINGTIME_DESC = "Additional waiting time.";
+        static private final String PARAM_WAITINGTIME_DESC = "Additional waiting time in seconds.";
 
         static private final String PARAM_CONSTANT = "constant";
         static private final String PARAM_CONSTANT_DESC = "ASC for feeder mode";
@@ -112,11 +117,13 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
 
 
         private String mode = "ride_feeder";
-        private int waitingTime = 15 * 60;
+        private Integer waitingTime = null;
         private double constant = -1.5;
         private double mutt = -10.8;
-        private double detourFactor = 1.3;
+        private Double detourFactor = null;
         private boolean onNetwork = true;
+        private String waitingTimeZoneId = null;
+        private String detourFactorZoneId = null;
 
         public SBBIntermodalModeParameterSet() {
             super(TYPE);
@@ -188,7 +195,6 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             this.mutt = mutt;
         }
 
-
         @StringGetter(PARAM_NETWORKMODE)
         public boolean isOnNetwork() {
             return this.onNetwork;
@@ -197,6 +203,26 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         @StringSetter(PARAM_NETWORKMODE)
         public void setOnNetwork(boolean onNetwork) {
             this.onNetwork = onNetwork;
+        }
+
+        @StringGetter(PARAM_WAITINGTIME)
+        public String getWaitingTimeZoneId() {
+            return waitingTimeZoneId;
+        }
+
+        @StringSetter(PARAM_WAITINGTIME)
+        public void setWaitingTimeZoneId(String waitingTimeZoneId) {
+            this.waitingTimeZoneId = waitingTimeZoneId;
+        }
+
+        @StringGetter(PARAM_DETOUR_FACTOR_ZONEID)
+        public String getDetourFactorZoneId() {
+            return detourFactorZoneId;
+        }
+
+        @StringSetter(PARAM_DETOUR_FACTOR_ZONEID)
+        public void setDetourFactorZoneId(String detourFactorZoneId) {
+            this.detourFactorZoneId = detourFactorZoneId;
         }
 
         @Override
@@ -225,6 +251,15 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             if (getMUTT() < 0 && getMUTT() > -0.1) {
                 logger.warn("Marginal Utility of Travel time (per hour) for intermodal " + getMode() + "is very small (" + mutt + " Make sure you use the right units.");
             }
+
+            if (detourFactor != null && detourFactorZoneId != null) {
+                throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
+            }
+
+            if (waitingTime != null && waitingTimeZoneId != null) {
+                throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
+            }
+
             Set<String> modesInRaptorConfig = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets()
                     .stream()
                     .map(p -> p.getMode())
