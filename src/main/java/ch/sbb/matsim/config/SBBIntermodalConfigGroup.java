@@ -149,7 +149,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         }
 
         @StringGetter(PARAM_WAITINGTIME)
-        public int getWaitingTime() {
+        public Integer getWaitingTime() {
             return this.waitingTime;
         }
 
@@ -171,7 +171,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
 
 
         @StringGetter(PARAM_DETOUR_FACTOR)
-        public double getDetourFactor() {
+        public Double getDetourFactor() {
             return this.detourFactor;
         }
 

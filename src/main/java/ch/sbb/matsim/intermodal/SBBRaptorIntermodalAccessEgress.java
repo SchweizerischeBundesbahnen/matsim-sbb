@@ -5,12 +5,19 @@
 
 package ch.sbb.matsim.intermodal;
 
+import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesCollection;
 import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
@@ -22,24 +29,29 @@ import javax.inject.Inject;
 import java.util.List;
 
 
-//https://github.com/google/guice/wiki/AssistedInject
 
 public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEgress {
 
     private static final Logger log = Logger.getLogger(SBBRaptorIntermodalAccessEgress.class);
 
     private final List<SBBIntermodalModeParameterSet> intermodalModeParams;
+    private final Zones zones;
+    private final Network network;
 
     @Inject
-    SBBRaptorIntermodalAccessEgress(Config config) {
+    SBBRaptorIntermodalAccessEgress(Config config, ZonesCollection zonesCollection, Network network) {
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
         intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
+        this.zones = zonesCollection.getZones(ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getZonesId());
+        this.network = network;
 
     }
 
 
     public SBBRaptorIntermodalAccessEgress(List<SBBIntermodalModeParameterSet> intermodalModeParams) {
         this.intermodalModeParams = intermodalModeParams;
+        this.zones = null;
+        this.network = null;
     }
 
     private boolean isIntermodalMode(String mode) {
@@ -78,29 +90,50 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     private void setIntermodalWaitingTimesAndDetour(final List<? extends PlanElement> legs, SBBIntermodalModeParameterSet modeParams) {
         for (PlanElement pe : legs) {
             if (pe instanceof Leg) {
-                String mode = ((Leg) pe).getMode();
+                Leg leg = (Leg) pe;
+                String mode = leg.getMode();
                 if (mode.equals(TransportMode.access_walk)) {
 
-                    ((Leg) pe).setTravelTime(0.0);
-                    ((Leg) pe).getRoute().setTravelTime(0.0);
+                    leg.setTravelTime(0.0);
+                    leg.getRoute().setTravelTime(0.0);
                 }
                 if (mode.equals(TransportMode.egress_walk)) {
-                    ((Leg) pe).setTravelTime(.0);
-                    ((Leg) pe).getRoute().setTravelTime(0.0);
+                    leg.setTravelTime(.0);
+                    leg.getRoute().setTravelTime(0.0);
                 }
-
                 if (this.isIntermodalMode(mode)) {
-                    double travelTime = ((Leg) pe).getTravelTime();
-                    travelTime *= modeParams.getDetourFactor();
-                    travelTime += modeParams.getWaitingTime();
-                    ((Leg) pe).setTravelTime(travelTime);
-                    ((Leg) pe).getRoute().setTravelTime(travelTime);
+                    double travelTime = leg.getTravelTime();
+                    travelTime *= getDetourFactor(leg.getRoute().getStartLinkId(), mode);
+                    travelTime += getWaitingTime(leg.getRoute().getStartLinkId(), mode);
+                    leg.setTravelTime(travelTime);
+                    leg.getRoute().setTravelTime(travelTime);
                 }
 
             }
         }
 
 
+    }
+
+    private double getWaitingTime(Id<Link> startLinkId, String mode) {
+        SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
+        if (parameterSet.getWaitingTime() != null) {
+            return parameterSet.getWaitingTime();
+        } else {
+            Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
+            return (double) zone.getAttribute(parameterSet.getWaitingTimeZoneId());
+        }
+
+    }
+
+    private double getDetourFactor(Id<Link> startLinkId, String mode) {
+        SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
+        if (parameterSet.getDetourFactor() != null) {
+            return parameterSet.getWaitingTime();
+        } else {
+            Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
+            return (double) zone.getAttribute(parameterSet.getDetourFactorZoneId());
+        }
     }
 
     private double getTotalTravelTime(final List<? extends PlanElement> legs) {
