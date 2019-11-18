@@ -95,18 +95,18 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         static private final String PARAM_MODE = "mode";
         public static final String PARAM_MODE_DESC = "Mode to use as feeder";
 
-        static private final String PARAM_WAITINGTIME = "waitingTime";
-        public static final String PARAM_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
+        public static final String PARAM_DETOUR_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
+        static private final String PARAM_DETOUR_FACTOR = "detourFactor";
+        static private final String PARAM_NETWORKMODE = "isOnNetwork";
         public static final String PARAM_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
+
+        static private final String PARAM_MUTT = "mutt";
         public static final String PARAM_MUTT_DESC = "Marginal Utility of travel time (per hour)";
 
-        static private final String PARAM_CONSTANT = "constant";
+        static private final String PARAM_WAITINGTIME = "waitingTime";
         static private final String PARAM_WAITINGTIME_DESC = "Additional waiting time.";
 
-        static private final String PARAM_DETOUR = "detourFactor";
-        static private final String PARAM_MUTT = "mutt";
-
-        static private final String PARAM_NETWORK = "isOnNetwork";
+        static private final String PARAM_CONSTANT = "constant";
         static private final String PARAM_CONSTANT_DESC = "ASC for feeder mode";
 
 
@@ -163,12 +163,12 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         }
 
 
-        @StringGetter(PARAM_DETOUR)
+        @StringGetter(PARAM_DETOUR_FACTOR)
         public double getDetourFactor() {
             return this.detourFactor;
         }
 
-        @StringSetter(PARAM_DETOUR)
+        @StringSetter(PARAM_DETOUR_FACTOR)
         public void setDetourFactor(double detourFactor) {
             this.detourFactor = detourFactor;
         }
@@ -189,12 +189,12 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         }
 
 
-        @StringGetter(PARAM_NETWORK)
+        @StringGetter(PARAM_NETWORKMODE)
         public boolean isOnNetwork() {
             return this.onNetwork;
         }
 
-        @StringSetter(PARAM_NETWORK)
+        @StringSetter(PARAM_NETWORKMODE)
         public void setOnNetwork(boolean onNetwork) {
             this.onNetwork = onNetwork;
         }
@@ -204,8 +204,8 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             Map<String, String> comments = super.getComments();
             comments.put(PARAM_MODE, PARAM_MODE_DESC);
             comments.put(PARAM_MUTT, PARAM_MUTT_DESC);
-            comments.put(PARAM_DETOUR, PARAM_FACTOR_DESC);
-            comments.put(PARAM_NETWORK, PARAM_NETWORKMODE_DESC);
+            comments.put(PARAM_DETOUR_FACTOR, PARAM_DETOUR_FACTOR_DESC);
+            comments.put(PARAM_NETWORKMODE, PARAM_NETWORKMODE_DESC);
             comments.put(PARAM_CONSTANT, PARAM_CONSTANT_DESC);
             comments.put(PARAM_WAITINGTIME, PARAM_WAITINGTIME_DESC);
             return comments;
