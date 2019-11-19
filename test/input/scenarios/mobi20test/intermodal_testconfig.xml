@@ -2843,6 +2843,16 @@
                 <param name="mode" value="outside"/>
                 <param name="monetaryDistanceRate" value="0.0"/>
             </parameterset>
+            <parameterset type="modeParams">
+                <param name="constant" value="0.0"/>
+                <param name="dailyMonetaryConstant" value="0.0"/>
+                <param name="dailyUtilityConstant" value="0.0"/>
+                <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
+                <param name="marginalUtilityOfTraveling_util_hr" value="0.0"/>
+                <param name="mode" value="drtfeeder"/>
+                <param name="monetaryDistanceRate" value="0.0"/>
+            </parameterset>
+
         </parameterset>
     </module>
     <module name="plans">
@@ -2879,6 +2889,12 @@
         <parameterset type="teleportedModeParameters">
             <param name="beelineDistanceFactor" value="1.3"/>
             <param name="mode" value="outside"/>
+            <param name="teleportedModeFreespeedFactor" value="null"/>
+            <param name="teleportedModeSpeed" value="8.0"/>
+        </parameterset>
+        <parameterset type="teleportedModeParameters">
+            <param name="beelineDistanceFactor" value="1.3"/>
+            <param name="mode" value="drtfeeder"/>
             <param name="teleportedModeFreespeedFactor" value="null"/>
             <param name="teleportedModeSpeed" value="8.0"/>
         </parameterset>
@@ -3091,7 +3107,11 @@
 
         <parameterset type="intermodalAccessEgress">
             <param name="mode" value="bike"/>
-            <param name="radius" value="5000"/>
+            <param name="radius" value="4000"/>
+        </parameterset>
+        <parameterset type="intermodalAccessEgress">
+            <param name="mode" value="drtfeeder"/>
+            <param name="radius" value="8000"/>
         </parameterset>
         <parameterset type="intermodalAccessEgress">
             <param name="mode" value="walk"/>
@@ -3104,8 +3124,16 @@
             <param name="mode" value="bike"/>
             <param name="waitingTime" value="0"/>
             <param name="constant" value="0.0"/>
-            <param name="mutt" value="15.5"/>
+            <param name="mutt" value="15"/>
             <param name="detourFactor" value="1.0"/>
+            <param name="isOnNetwork" value="false"/>
+        </parameterset>
+        <parameterset type="mode">
+            <param name="mode" value="drtfeeder"/>
+            <param name="constant" value="0.0"/>
+            <param name="mutt" value="20"/>
+            <param name="detourFactorZoneId" value="FEEDERDET"/>
+            <param name="accessTimeZoneId" value="FEEDERWAIT"/>
             <param name="isOnNetwork" value="false"/>
         </parameterset>
     </module>
