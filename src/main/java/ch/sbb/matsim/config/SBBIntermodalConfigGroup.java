@@ -205,12 +205,12 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             this.onNetwork = onNetwork;
         }
 
-        @StringGetter(PARAM_WAITINGTIME)
+        @StringGetter(PARAM_WAITTIME_ZONEID)
         public String getWaitingTimeZoneId() {
             return waitingTimeZoneId;
         }
 
-        @StringSetter(PARAM_WAITINGTIME)
+        @StringSetter(PARAM_WAITTIME_ZONEID)
         public void setWaitingTimeZoneId(String waitingTimeZoneId) {
             this.waitingTimeZoneId = waitingTimeZoneId;
         }
