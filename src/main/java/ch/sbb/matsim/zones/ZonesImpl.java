@@ -1,5 +1,6 @@
 package ch.sbb.matsim.zones;
 
+import com.google.common.collect.ImmutableList;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.index.SpatialIndex;
@@ -140,5 +141,9 @@ public class ZonesImpl implements Zones {
         }
         this.lookup = map;
         return map;
+    }
+
+    public List<Zone> getZones() {
+        return ImmutableList.copyOf(zones);
     }
 }
