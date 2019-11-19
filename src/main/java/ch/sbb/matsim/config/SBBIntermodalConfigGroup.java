@@ -100,10 +100,12 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         static private final String PARAM_NETWORKMODE = "isOnNetwork";
         public static final String PARAM_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
 
+        public static final String PARAM_ACCESSTIME_ZONEID_DESC = "Zone Id field for mode specific access (or wait) time (in seconds).";
         public static final String PARAM_DETOUR_FACTOR_ZONEID_DESC = "Zone Id field for mode specific detour factor.";
-        public static final String PARAM_WAITTIME_ZONEID_DESC = "Zone Id field for mode specific wait time (in seconds).";
+        public static final String PARAM_EGRESSTIME_ZONEID_DESC = "Zone Id field for mode specific egress time (in seconds).";
         static private final String PARAM_DETOUR_FACTOR_ZONEID = "detourFactorZoneId";
-        static private final String PARAM_WAITTIME_ZONEID = "waitTimeZoneId";
+        static private final String PARAM_ACCESSTIME_ZONEID = "accessTimeZoneId";
+        static private final String PARAM_EGRESSTIME_ZONEID = "egressTimeZoneId";
 
         static private final String PARAM_MUTT = "mutt";
         public static final String PARAM_MUTT_DESC = "Marginal Utility of travel time (per hour)";
@@ -122,7 +124,8 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         private double mutt = -10.8;
         private Double detourFactor = null;
         private boolean onNetwork = true;
-        private String waitingTimeZoneId = null;
+        private String accessTimeZoneId = null;
+        private String egressTimeZoneId = null;
         private String detourFactorZoneId = null;
 
         public SBBIntermodalModeParameterSet() {
@@ -205,14 +208,24 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             this.onNetwork = onNetwork;
         }
 
-        @StringGetter(PARAM_WAITTIME_ZONEID)
-        public String getWaitingTimeZoneId() {
-            return waitingTimeZoneId;
+        @StringGetter(PARAM_ACCESSTIME_ZONEID)
+        public String getAccessTimeZoneId() {
+            return accessTimeZoneId;
         }
 
-        @StringSetter(PARAM_WAITTIME_ZONEID)
-        public void setWaitingTimeZoneId(String waitingTimeZoneId) {
-            this.waitingTimeZoneId = waitingTimeZoneId;
+        @StringSetter(PARAM_ACCESSTIME_ZONEID)
+        public void setAccessTimeZoneId(String accessTimeZoneId) {
+            this.accessTimeZoneId = accessTimeZoneId;
+        }
+
+        @StringGetter(PARAM_EGRESSTIME_ZONEID)
+        public String getEgressTimeZoneId() {
+            return egressTimeZoneId;
+        }
+
+        @StringSetter(PARAM_EGRESSTIME_ZONEID)
+        public void setEgressTimeZoneId(String egressTimeZoneId) {
+            this.egressTimeZoneId = egressTimeZoneId;
         }
 
         @StringGetter(PARAM_DETOUR_FACTOR_ZONEID)
@@ -234,6 +247,9 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             comments.put(PARAM_NETWORKMODE, PARAM_NETWORKMODE_DESC);
             comments.put(PARAM_CONSTANT, PARAM_CONSTANT_DESC);
             comments.put(PARAM_WAITINGTIME, PARAM_WAITINGTIME_DESC);
+            comments.put(PARAM_DETOUR_FACTOR_ZONEID, PARAM_DETOUR_FACTOR_ZONEID_DESC);
+            comments.put(PARAM_EGRESSTIME_ZONEID, PARAM_EGRESSTIME_ZONEID_DESC);
+            comments.put(PARAM_ACCESSTIME_ZONEID, PARAM_ACCESSTIME_ZONEID_DESC);
             return comments;
         }
 
@@ -254,7 +270,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             if (detourFactor != null && detourFactorZoneId != null) {
                 throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
             }
-            if (waitingTime != null && waitingTimeZoneId != null) {
+            if (waitingTime != null && accessTimeZoneId != null) {
                 throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
             }
 
@@ -264,7 +280,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
                     .collect(Collectors.toSet());
             if (!modesInRaptorConfig.contains(mode)) {
                 throw new RuntimeException("Mode " + mode + "is defined in SBBIntermodalConfigGroup, but not in SwissRailRaptorConfigGroup. " +
-                        "This will most likely be unwanted.");
+                        " This will most likely be unwanted.");
             }
         }
     }

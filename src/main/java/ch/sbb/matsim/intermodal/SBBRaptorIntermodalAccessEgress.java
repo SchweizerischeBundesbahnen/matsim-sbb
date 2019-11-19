@@ -13,6 +13,7 @@ import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesQueryCache;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
@@ -42,7 +43,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     SBBRaptorIntermodalAccessEgress(Config config, ZonesCollection zonesCollection, Network network) {
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
         intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
-        this.zones = zonesCollection.getZones(ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getZonesId());
+        this.zones = new ZonesQueryCache(zonesCollection.getZones(ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getZonesId()));
         this.network = network;
 
     }
@@ -104,24 +105,33 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
                 if (this.isIntermodalMode(mode)) {
                     double travelTime = leg.getTravelTime();
                     travelTime *= getDetourFactor(leg.getRoute().getStartLinkId(), mode);
-                    travelTime += getWaitingTime(leg.getRoute().getStartLinkId(), mode);
+                    travelTime += getAccessTime(leg.getRoute().getStartLinkId(), mode);
+                    travelTime += getEgressTime(leg.getRoute().getEndLinkId(), mode);
                     leg.setTravelTime(travelTime);
                     leg.getRoute().setTravelTime(travelTime);
                 }
 
             }
         }
-
-
     }
 
-    private double getWaitingTime(Id<Link> startLinkId, String mode) {
+    private double getEgressTime(Id<Link> endLinkId, String mode) {
+        SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
+        if (parameterSet.getEgressTimeZoneId() != null) {
+            Zone zone = zones.findZone(network.getLinks().get(endLinkId).getCoord());
+            return zone != null ? (double) zone.getAttribute(parameterSet.getEgressTimeZoneId()) : 0.0;
+        } else {
+            return 0.0;
+        }
+    }
+
+    private double getAccessTime(Id<Link> startLinkId, String mode) {
         SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
         if (parameterSet.getWaitingTime() != null) {
             return parameterSet.getWaitingTime();
         } else {
             Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
-            return (double) zone.getAttribute(parameterSet.getWaitingTimeZoneId());
+            return zone != null ? (int) zone.getAttribute(parameterSet.getAccessTimeZoneId()) : 0.0;
         }
 
     }
@@ -129,10 +139,10 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     private double getDetourFactor(Id<Link> startLinkId, String mode) {
         SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
         if (parameterSet.getDetourFactor() != null) {
-            return parameterSet.getWaitingTime();
+            return parameterSet.getDetourFactor();
         } else {
             Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
-            return (double) zone.getAttribute(parameterSet.getDetourFactorZoneId());
+            return zone != null ? (Double) zone.getAttribute(parameterSet.getDetourFactorZoneId()) : 1.0;
         }
     }
 
