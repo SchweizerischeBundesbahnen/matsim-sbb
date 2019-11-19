@@ -119,7 +119,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
         if (parameterSet.getEgressTimeZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(endLinkId).getCoord());
-            return zone != null ? (double) zone.getAttribute(parameterSet.getEgressTimeZoneId()) : 0.0;
+            return zone != null ? (int) zone.getAttribute(parameterSet.getEgressTimeZoneId()) : 0.0;
         } else {
             return 0.0;
         }
@@ -129,10 +129,10 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
         if (parameterSet.getWaitingTime() != null) {
             return parameterSet.getWaitingTime();
-        } else {
+        } else if (parameterSet.getAccessTimeZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
             return zone != null ? (int) zone.getAttribute(parameterSet.getAccessTimeZoneId()) : 0.0;
-        }
+        } else return 0.0;
 
     }
 
@@ -140,10 +140,10 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
         if (parameterSet.getDetourFactor() != null) {
             return parameterSet.getDetourFactor();
-        } else {
+        } else if (parameterSet.getDetourFactorZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
             return zone != null ? (Double) zone.getAttribute(parameterSet.getDetourFactorZoneId()) : 1.0;
-        }
+        } else return 1.0;
     }
 
     private double getTotalTravelTime(final List<? extends PlanElement> legs) {

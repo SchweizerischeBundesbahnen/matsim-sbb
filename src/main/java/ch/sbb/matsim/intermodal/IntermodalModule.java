@@ -9,6 +9,7 @@ import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
@@ -74,7 +75,7 @@ public class IntermodalModule extends AbstractModule {
     @Override
     public void install() {
         for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
-            if (mode.isOnNetwork()) {
+            if (mode.isOnNetwork() && !mode.getMode().equals(TransportMode.car)) {
                 addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
                 addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
             }
