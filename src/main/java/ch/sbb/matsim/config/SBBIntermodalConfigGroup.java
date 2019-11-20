@@ -55,7 +55,9 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
 
     @StringSetter(PARAM_ZONESID)
     void setZonesId(String zonesId) {
-        this.zonesId = Id.create(zonesId, Zones.class);
+        if (zonesId != null) {
+            this.zonesId = Id.create(zonesId, Zones.class);
+        }
     }
 
     void setZonesId(Id<Zones> zonesId) {
@@ -283,7 +285,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         protected void checkConsistency(Config config) {
             super.checkConsistency(config);
             SwissRailRaptorConfigGroup railRaptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
-
+            SBBIntermodalConfigGroup sbbIntermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
             if (constant > 0) {
                 logger.warn("Constant for intermodal mode " + getMode() + "is > 0. This might be an unwanted utility!");
             }
@@ -308,6 +310,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
                 throw new RuntimeException("Mode " + mode + "is defined in SBBIntermodalConfigGroup, but not in SwissRailRaptorConfigGroup. " +
                         " This will most likely be unwanted.");
             }
+
         }
     }
 }

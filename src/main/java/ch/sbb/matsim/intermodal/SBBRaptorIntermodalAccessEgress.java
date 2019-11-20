@@ -42,7 +42,10 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     SBBRaptorIntermodalAccessEgress(Config config, ZonesCollection zonesCollection, Network network) {
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
         intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
-        this.zones = new ZonesQueryCache(zonesCollection.getZones(intermodalConfigGroup.getZonesId()));
+        Id<Zones> zonesId = intermodalConfigGroup.getZonesId();
+        this.zones = zonesId != null ? new ZonesQueryCache(zonesCollection.getZones(intermodalConfigGroup.getZonesId())) : null;
+
+
         this.network = network;
 
     }
