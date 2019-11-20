@@ -4,15 +4,13 @@
 
 package ch.sbb.matsim.analysis.travelcomponents;
 
-import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigUtils;
 
 public class TravelledLeg extends TravelComponent {
-    private SBBTransitConfigGroup sbbTransitConfig;
+
     private String mode;
     private int modeHierarchy;
     private Id line;
@@ -31,7 +29,6 @@ public class TravelledLeg extends TravelComponent {
 
     TravelledLeg(Config config) {
         super(config);
-        this.sbbTransitConfig = ConfigUtils.addOrGetModule(config, SBBTransitConfigGroup.class);
     }
 
     public String toString() {
