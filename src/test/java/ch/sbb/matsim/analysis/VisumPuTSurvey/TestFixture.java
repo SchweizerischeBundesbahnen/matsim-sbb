@@ -122,7 +122,7 @@ public class TestFixture {
         vehCapacity.setSeats(300);
         vehCapacity.setStandingRoom(150);
         vehicles.addVehicleType(vehType1);
-        VehicleUtils.setDoorOperationMode(vehType1, DoorOperationMode.serial);
+        VehicleUtils.setDoorOperationMode(vehType1, VehicleType.DoorOperationMode.serial);
         VehicleUtils.setAccessTime(vehType1, 2); // 1 person takes 2 seconds to board
         VehicleUtils.setEgressTime(vehType1, 2);
         Vehicle veh1 = vf.createVehicle(Id.create("train1", Vehicle.class), vehType1);
