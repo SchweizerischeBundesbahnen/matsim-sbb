@@ -5,7 +5,6 @@
 
 package ch.sbb.matsim.intermodal;
 
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
@@ -43,7 +42,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     SBBRaptorIntermodalAccessEgress(Config config, ZonesCollection zonesCollection, Network network) {
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
         intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
-        this.zones = new ZonesQueryCache(zonesCollection.getZones(ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getZonesId()));
+        this.zones = new ZonesQueryCache(zonesCollection.getZones(intermodalConfigGroup.getZonesId()));
         this.network = network;
 
     }
@@ -89,30 +88,49 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     }
 
     private void setIntermodalWaitingTimesAndDetour(final List<? extends PlanElement> legs, SBBIntermodalModeParameterSet modeParams) {
+        Leg accessLeg = null;
+        Leg mainAccessModeLeg = null;
+        Leg egressLeg = null;
+        double egressTime = 0.0;
         for (PlanElement pe : legs) {
             if (pe instanceof Leg) {
                 Leg leg = (Leg) pe;
                 String mode = leg.getMode();
                 if (mode.equals(TransportMode.access_walk)) {
-
-                    leg.setTravelTime(0.0);
-                    leg.getRoute().setTravelTime(0.0);
+                    accessLeg = leg;
                 }
                 if (mode.equals(TransportMode.egress_walk)) {
-                    leg.setTravelTime(.0);
-                    leg.getRoute().setTravelTime(0.0);
+                    egressLeg = leg;
                 }
                 if (this.isIntermodalMode(mode)) {
                     double travelTime = leg.getTravelTime();
                     travelTime *= getDetourFactor(leg.getRoute().getStartLinkId(), mode);
-                    travelTime += getAccessTime(leg.getRoute().getStartLinkId(), mode);
-                    travelTime += getEgressTime(leg.getRoute().getEndLinkId(), mode);
+                    final double accessTime = getAccessTime(leg.getRoute().getStartLinkId(), mode);
+                    if (accessLeg != null) {
+                        accessLeg.setTravelTime(accessTime);
+                        accessLeg.getRoute().setTravelTime(accessTime);
+                    } else {
+                        travelTime += accessTime;
+
+                    }
+                    egressTime = getEgressTime(leg.getRoute().getEndLinkId(), mode);
                     leg.setTravelTime(travelTime);
                     leg.getRoute().setTravelTime(travelTime);
+                    mainAccessModeLeg = leg;
                 }
 
             }
         }
+
+        if (egressLeg != null) {
+            egressLeg.setTravelTime(egressTime);
+            egressLeg.getRoute().setTravelTime(egressTime);
+        } else if (egressTime > 0.0) {
+            double mainLegTravelTime = mainAccessModeLeg.getTravelTime() + egressTime;
+            mainAccessModeLeg.setTravelTime(mainLegTravelTime);
+            mainAccessModeLeg.getRoute().setTravelTime(mainLegTravelTime);
+        }
+
     }
 
     private double getEgressTime(Id<Link> endLinkId, String mode) {
