@@ -3149,8 +3149,8 @@
             <param name="mode" value="carfeeder"/>
             <param name="constant" value="0.0"/>
             <param name="mutt" value="30"/>
-            <param name="accessTimeZoneId" value="ACCCAR"/>
-            <param name="egressTimeZoneId" value="ACCCAR"/>
+            <param name="accessTimeZonesAttributeName" value="ACCCAR"/>
+            <param name="egressTimeZonesAttributeName" value="ACCCAR"/>
             <param name="isOnNetwork" value="true"/>
         </parameterset>
         <parameterset type="mode">
@@ -3165,8 +3165,8 @@
             <param name="mode" value="drtfeeder"/>
             <param name="constant" value="0.0"/>
             <param name="mutt" value="25"/>
-            <param name="detourFactorZoneId" value="FEEDERDET"/>
-            <param name="accessTimeZoneId" value="FEEDERWAIT"/>
+            <param name="detourFactorZonesAttributeName" value="FEEDERDET"/>
+            <param name="accessTimeZonesAttributeName" value="FEEDERWAIT"/>
             <param name="isOnNetwork" value="false"/>
         </parameterset>
     </module>
