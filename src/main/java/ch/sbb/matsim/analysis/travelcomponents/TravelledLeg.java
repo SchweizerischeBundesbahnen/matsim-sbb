@@ -169,7 +169,7 @@ public class TravelledLeg extends TravelComponent {
     }
 
     public boolean isPtLeg() {
-        return (this.mode.equals(SBBModes.PT) || this.sbbTransitConfig.getDeterministicServiceModes().contains(this.mode));
+        return (this.mode.equals(SBBModes.PT) || SBBModes.PTSubModes.subModeList.contains(this.mode));
     }
 
     public boolean isRailLeg() {
