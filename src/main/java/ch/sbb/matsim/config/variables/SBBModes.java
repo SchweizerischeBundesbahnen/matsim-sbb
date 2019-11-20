@@ -2,7 +2,9 @@ package ch.sbb.matsim.config.variables;
 
 import org.matsim.api.core.v01.TransportMode;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SBBModes {
@@ -27,5 +29,23 @@ public class SBBModes {
         mode2HierarchalNumber.put(BIKE, 30);
         mode2HierarchalNumber.put(WALK, 40);
         mode2HierarchalNumber.put(TRANSIT_WALK, 41);
+    }
+
+    public static class PTSubModes {
+        private PTSubModes()    {}
+
+        public static final String RAIL = "rail";
+        public static final String TRAM = "tram";
+        public static final String BUS = "bus";
+        public static final String OTHER = "other"; // example for "other": Seilbahn, Gondelbahn, Schiff, ...
+
+        public final static List<String> subModeList;
+        static {
+            subModeList = new ArrayList<>();
+            subModeList.add(RAIL);
+            subModeList.add(TRAM);
+            subModeList.add(BUS);
+            subModeList.add(OTHER);
+        }
     }
 }

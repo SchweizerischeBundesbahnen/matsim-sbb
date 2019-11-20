@@ -174,8 +174,7 @@ public class TravelledLeg extends TravelComponent {
 
     public boolean isRailLeg() {
         if (this.isPtLeg()) {
-            // TODO: we need a better solution here
-            return (this.line.toString().substring(0, 5).equals("S2016"));
+            return (this.mode.equals(SBBModes.PTSubModes.RAIL));
         }
         return false;
     }
