@@ -179,7 +179,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>org.matsim.gui.MATSimGUI</mainClass>
+							<mainClass>ch.sbb.matsim.RunSBB</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
