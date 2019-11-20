@@ -4,13 +4,18 @@
 
 package ch.sbb.matsim.config;
 
+import org.apache.log4j.Logger;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
 
@@ -23,6 +28,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
     private String attributesCSVPath = null;
 
     private final List<SBBIntermodalModeParameterSet> modeParamSets = new ArrayList<>();
+    private static Logger logger = Logger.getLogger(SBBIntermodalConfigGroup.class);
 
     @Override
     public ConfigGroup createParameterSet(String type) {
@@ -90,25 +96,25 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         public static final String PARAM_MODE_DESC = "Mode to use as feeder";
 
         static private final String PARAM_WAITINGTIME = "waitingTime";
-        public static final String PARAM_MUTT_DESC = "Marginal utility of travel time";
+        public static final String PARAM_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
+        public static final String PARAM_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
+        public static final String PARAM_MUTT_DESC = "Marginal Utility of travel time (per hour)";
 
         static private final String PARAM_CONSTANT = "constant";
-        public static final String PARAM_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
-
-        static private final String PARAM_MUTT = "mutt";
-        public static final String PARAM_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
+        static private final String PARAM_WAITINGTIME_DESC = "Additional waiting time.";
 
         static private final String PARAM_DETOUR = "detourFactor";
-        static private final String PARAM_WAITINGTIME_DESC = "Additional waiting time.";
+        static private final String PARAM_MUTT = "mutt";
 
         static private final String PARAM_NETWORK = "isOnNetwork";
         static private final String PARAM_CONSTANT_DESC = "ASC for feeder mode";
 
 
+
         private String mode = "ride_feeder";
         private int waitingTime = 15 * 60;
-        private double constant = 1.5;
-        private double mutt = 0.003;
+        private double constant = -1.5;
+        private double mutt = -10.8;
         private double detourFactor = 1.3;
         private boolean onNetwork = true;
 
@@ -173,6 +179,10 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             return this.mutt;
         }
 
+        public double getMUTT_perSecond() {
+            return (mutt / 3600.0);
+        }
+
         @StringSetter(PARAM_MUTT)
         public void setMUTT(double mutt) {
             this.mutt = mutt;
@@ -201,5 +211,28 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             return comments;
         }
 
+        @Override
+        protected void checkConsistency(Config config) {
+            super.checkConsistency(config);
+            SwissRailRaptorConfigGroup railRaptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
+
+            if (constant > 0) {
+                logger.warn("Constant for intermodal mode " + getMode() + "is > 0. This might be an unwanted utility!");
+            }
+            if (getMUTT() > 0) {
+                logger.warn("Marginal Utility of Travel time (per hour) for intermodal " + getMode() + "is > 0. This might be an unwanted utility!");
+            }
+            if (getMUTT() < 0 && getMUTT() > -0.1) {
+                logger.warn("Marginal Utility of Travel time (per hour) for intermodal " + getMode() + "is very small (" + mutt + " Make sure you use the right units.");
+            }
+            Set<String> modesInRaptorConfig = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets()
+                    .stream()
+                    .map(p -> p.getMode())
+                    .collect(Collectors.toSet());
+            if (!modesInRaptorConfig.contains(mode)) {
+                throw new RuntimeException("Mode " + mode + "is defined in SBBIntermodalConfigGroup, but not in SwissRailRaptorConfigGroup. " +
+                        "This will most likely be unwanted.");
+            }
+        }
     }
 }

@@ -2,43 +2,15 @@
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">
 <!-- test config. all scoring parameters in this file are nonsense -->
 <config>
-    <module name="multiModeDrt">
-        <parameterset type="drt">
-        <!-- If true, the startLink is changed to last link in the current schedule, so the taxi starts the next day at the link where it stopped operating the day before. False by default. -->
-        <param name="changeStartLinkToLastLinkInSchedule" value="false"/>
-        <!-- Beeline distance factor for DRT. Used in analyis and in plans file. The default value is 1.3. -->
-        <param name="estimatedBeelineDistanceFactor" value="1.3"/>
-        <!-- Beeline-speed estimate for DRT. Used in analysis, optimisation constraints and in plans file, [m/s]. The default value is 25 km/h -->
-        <param name="estimatedDrtSpeed" value="8.333333333333334"/>
-        <!-- Defines the slope of the maxTravelTime estimation function (optimisation constraint), i.e. maxTravelTimeAlpha * estimated_drt_travel_time + maxTravelTimeBeta. alpha should not be smaller than 1. -->
-        <param name="maxTravelTimeAlpha" value="1.5"/>
-        <!-- Defines the shift of the maxTravelTime estimation function (optimisation constraint), i.e. maxTravelTimeAlpha * estimated_drt_travel_time + maxTravelTimeBeta. Beta should not be smaller than 0. -->
-        <param name="maxTravelTimeBeta" value="1200.0"/>
-        <!-- Max wait time for the bus to come (optimisation constraint). -->
-        <param name="maxWaitTime" value="1200.0"/>
-
-        <!-- Operational Scheme, either door2door or stopbased. door2door by default -->
-        <param name="operationalScheme" value="door2door"/>
-        <!-- Bus stop duration. -->
-        <param name="stopDuration" value="60.0"/>
-        <!-- An XML file specifying the vehicle fleet. The file format according to dvrp_vehicles_v1.dtd -->
-            <param name="vehiclesFile" value="fleetVehicles.xml"/>
-        <!-- Writes out detailed DRT customer stats in each iteration. True by default. -->
-        <param name="writeDetailedCustomerStats" value="true"/>
-        <parameterset type="minCostFlowRebalancing">
-            <param name="targetAlpha" value="0.5"/>
-            <param name="targetBeta" value="0.5"/>
-            <param name="cellSize" value="2000"/>
-        </parameterset>
-        </parameterset>
+    <module name="JDEQSim">
+        <param name="carSize" value="7.5"/>
+        <param name="endTime" value="undefined"/>
+        <param name="flowCapacityFactor" value="1.0"/>
+        <param name="gapTravelSpeed" value="15.0"/>
+        <param name="minimumInFlowCapacity" value="1800.0"/>
+        <param name="squeezeTime" value="1800.0"/>
+        <param name="storageCapacityFactor" value="1.0"/>
     </module>
-    <module name="dvrp">
-        <!-- Mode of which the network will be used for routing vehicles, calculating travel times, etc. (fleet operator's perspective). If null, no mode filtering is done; the standard network (Scenario.getNetwork()) is used -->
-        <param name="networkModes" value="car"/>
-        <!-- Used for estimation of travel times for VrpOptimizer by means of the exponential moving average. The weighting decrease, alpha, must be in (0,1]. We suggest small values of alpha, e.g. 0.05. The averaging starts from the initial travel time estimates. If not provided, the free-speed TTs is used as the initial estimates For more info see comments in: VrpTravelTimeEstimator, VrpTravelTimeModules, DvrpModule. -->
-        <param name="travelTimeEstimationAlpha" value="0.05"/>
-    </module>
-
     <module name="PostProcessing">
         <!-- Run Screenline Analysis -->
         <param name="analyseScreenline" value="false"/>
@@ -98,6 +70,8 @@
         <param name="mutationAffectsDuration" value="true"/>
         <!-- Default:1800.0; Defines how many seconds a time mutation can maximally shift a time. -->
         <param name="mutationRange" value="1800.0"/>
+        <!-- false; Use individual settings for each subpopulation. If enabled but no settings are found, regular settings are uses as fallback. -->
+        <param name="useIndividualSettingsForSubpopulations" value="false"/>
     </module>
     <module name="changeMode">
         <!-- Defines whether car availability is considered be considered or not. An agent has no car only if it has no license, or never access to a car. Default: true -->
@@ -120,12 +94,12 @@
         <!-- Default=0;  -->
         <param name="firstIteration" value="0"/>
         <!-- Default=1000;  -->
-        <param name="lastIteration" value="0"/>
+        <param name="lastIteration" value="1"/>
         <!-- Defines which mobility simulation will be used. Currently supported: qsim JDEQSim
 		Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
 		For 'qsim', add a module 'qsim' to the config. -->
         <param name="mobsim" value="qsim"/>
-        <param name="outputDirectory" value="test/output/RunSBBDRTScenarioIT"/>
+        <param name="outputDirectory" value="test/output/runSBBIntermodalIT"/>
         <!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
         <param name="overwriteFiles" value="deleteDirectoryIfExists"/>
         <!-- The type of routing (least cost path) algorithm used, may have the values: Dijkstra, FastDijkstra, AStarLandmarks or FastAStarLandmarks -->
@@ -276,18 +250,6 @@
             </parameterset>
             <parameterset type="activityParams">
                 <param name="activityType" value="pt interaction"/>
-                <param name="closingTime" value="undefined"/>
-                <param name="earliestEndTime" value="undefined"/>
-                <param name="latestStartTime" value="undefined"/>
-                <param name="minimalDuration" value="undefined"/>
-                <param name="openingTime" value="undefined"/>
-                <param name="priority" value="1.0"/>
-                <param name="scoringThisActivityAtAll" value="false"/>
-                <param name="typicalDuration" value="00:02:00"/>
-                <param name="typicalDurationScoreComputation" value="relative"/>
-            </parameterset>
-            <parameterset type="activityParams">
-                <param name="activityType" value="drt interaction"/>
                 <param name="closingTime" value="undefined"/>
                 <param name="earliestEndTime" value="undefined"/>
                 <param name="latestStartTime" value="undefined"/>
@@ -2881,15 +2843,6 @@
                 <param name="mode" value="outside"/>
                 <param name="monetaryDistanceRate" value="0.0"/>
             </parameterset>
-            <parameterset type="modeParams">
-                <param name="constant" value="-4.0"/>
-                <param name="dailyMonetaryConstant" value="0.0"/>
-                <param name="dailyUtilityConstant" value="0.0"/>
-                <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
-                <param name="marginalUtilityOfTraveling_util_hr" value="-2.0"/>
-                <param name="mode" value="drt"/>
-                <param name="monetaryDistanceRate" value="0.0"/>
-            </parameterset>
         </parameterset>
     </module>
     <module name="plans">
@@ -2897,7 +2850,8 @@
         <param name="activityDurationInterpretation" value="minOfDurationAndEndTime"/>
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
         <param name="inputCRS" value="null"/>
-        <param name="inputPlansFile" value="drtpopulation.xml"/>
+        <param name="inputPersonAttributesFile" value="personAttributes.xml.gz"/>
+        <param name="inputPlansFile" value="population.xml.gz"/>
         <!-- Defines how routes are stored in memory. Currently supported: LinkNetworkRoute, CompressedNetworkRoute. -->
         <param name="networkRouteType" value="LinkNetworkRoute"/>
         <!-- (not tested) will remove plan attributes that are presumably not used, such as activityStartTime. default=false. Use with Caution! -->
@@ -2973,7 +2927,7 @@
         <!-- Possible values: minOfEndtimeAndMobsimFinished, onlyUseEndtime -->
         <param name="simEndtimeInterpretation" value="null"/>
         <!-- Options: maxOfStarttimeAndEarliestActivityEnd onlyUseStarttime  -->
-        <param name="simStarttimeInterpretation" value="onlyUseStarttime"/>
+        <param name="simStarttimeInterpretation" value="maxOfStarttimeAndEarliestActivityEnd"/>
         <!-- snapshotStyle. One of: equiDist queue withHoles withHolesAndShowHoles kinematicWaves  -->
         <param name="snapshotStyle" value="equiDist"/>
         <param name="snapshotperiod" value="00:00:00"/>
@@ -3131,10 +3085,32 @@
         <param name="transferPenaltyCostPerTravelTimeHour" value="0.48"/>
         <param name="transferPenaltyMaxCost" value="0.85"/>
         <param name="transferPenaltyMinCost" value="0.1"/>
-        <param name="useIntermodalAccessEgress" value="false"/>
+        <param name="useIntermodalAccessEgress" value="true"/>
         <param name="useModeMappingForPassengers" value="false"/>
         <param name="useRangeQuery" value="false"/>
+
+        <parameterset type="intermodalAccessEgress">
+            <param name="mode" value="bike"/>
+            <param name="radius" value="5000"/>
+        </parameterset>
+        <parameterset type="intermodalAccessEgress">
+            <param name="mode" value="walk"/>
+            <param name="radius" value="1000"/>
+        </parameterset>
     </module>
+
+    <module name="SBBIntermodal">
+        <parameterset type="mode">
+            <param name="mode" value="bike"/>
+            <param name="waitingTime" value="0"/>
+            <param name="constant" value="0.0"/>
+            <param name="mutt" value="15.5"/>
+            <param name="detourFactor" value="1.0"/>
+            <param name="isOnNetwork" value="false"/>
+        </parameterset>
+    </module>
+
+
     <module name="transit">
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
         <param name="inputScheduleCRS" value="null"/>

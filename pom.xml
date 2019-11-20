@@ -222,5 +222,5 @@
 			<url>https://bin.sbb.ch/artifactory/simba.mvn/</url>
 		</snapshotRepository>
 	</distributionManagement>
-
+  
 </project>
