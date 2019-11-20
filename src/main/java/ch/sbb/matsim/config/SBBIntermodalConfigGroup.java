@@ -4,7 +4,9 @@
 
 package ch.sbb.matsim.config;
 
+import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
@@ -25,7 +27,11 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
     static private final String PARAM_CSV_PATH_DESC = "If set, access&egress availability parameters will be read " +
             "from CSV file and added to Person Attributes. Null by default.";
 
+    static private final String PARAM_ZONESID = "zonesId";
+    static private final String PARAM_ZONESID_DESC = "Zones ID";
+
     private String attributesCSVPath = null;
+    private Id<Zones> zonesId = null;
 
     private final List<SBBIntermodalModeParameterSet> modeParamSets = new ArrayList<>();
     private static Logger logger = Logger.getLogger(SBBIntermodalConfigGroup.class);
@@ -37,6 +43,25 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         }
         throw new IllegalArgumentException("Unsupported parameterset-type: " + type);
     }
+
+    @StringGetter(PARAM_ZONESID)
+    public String getZonesIdString() {
+        return this.zonesId == null ? null : this.zonesId.toString();
+    }
+
+    public Id<Zones> getZonesId() {
+        return this.zonesId;
+    }
+
+    @StringSetter(PARAM_ZONESID)
+    void setZonesId(String zonesId) {
+        this.zonesId = Id.create(zonesId, Zones.class);
+    }
+
+    void setZonesId(Id<Zones> zonesId) {
+        this.zonesId = zonesId;
+    }
+
 
     @StringGetter(PARAM_CSV_PATH)
     public String getAttributesCSVPath() {
@@ -77,6 +102,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
     public Map<String, String> getComments() {
         Map<String, String> comments = super.getComments();
         comments.put(PARAM_CSV_PATH, PARAM_CSV_PATH_DESC);
+        comments.put(PARAM_ZONESID, PARAM_ZONESID_DESC);
         return (comments);
 
     }
