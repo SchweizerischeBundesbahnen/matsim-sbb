@@ -3,6 +3,7 @@ package ch.sbb.matsim.analysis.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
@@ -134,12 +135,12 @@ public class VisumPuTSurvey {
                         egressMode = trip.getEgressFromRailMode(egressLegs);
                         accessDist = trip.getAccessToRailDist(accessLegs);
                         egressDist = trip.getEgressFromRailDist(egressLegs);
-                        if (accessMode.equals("access_walk") || accessMode.equals("transit_walk")) {
-                            accessMode = "walk";
+                        if (accessMode.equals(SBBModes.NON_NETWORK_WALK) || accessMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                            accessMode = SBBModes.WALK;
                         }
 
-                        if (egressMode.equals("egress_walk") || egressMode.equals("transit_walk")) {
-                            egressMode = "walk";
+                        if (egressMode.equals(SBBModes.NON_NETWORK_WALK) || egressMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                            egressMode = SBBModes.WALK;
                         }
                     }
                     Integer i = 1;

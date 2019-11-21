@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.apache.log4j.Logger;
 import org.junit.Rule;
 import org.junit.Test;
@@ -154,16 +155,16 @@ public class CleanerTest {
 
         Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("5")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertEquals(7, f.scenario.getPopulation().getPersons().get(Id.createPersonId("5")).getPlans().get(0).getPlanElements().size(), 0);
         assertEquals(leg.getRoute().getStartLinkId().toString(), "2");
 
         cleaner.clean(MODES_PT, SUBPOP_CB);
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.bike), SUBPOP_ALL);
@@ -201,16 +202,16 @@ public class CleanerTest {
 
         Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("7")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertEquals(3, f.scenario.getPopulation().getPersons().get(Id.createPersonId("7")).getPlans().get(0).getPlanElements().size(), 0);
         assertEquals(leg.getRoute().getStartLinkId().toString(), "2");
 
         cleaner.clean(MODES_PT, SUBPOP_CB);
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(MODES_CAR, SUBPOP_FREIGHT);
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.bike), SUBPOP_FREIGHT);

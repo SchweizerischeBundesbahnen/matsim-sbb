@@ -10,12 +10,13 @@ import java.util.Map;
 public class SBBModes {
     private SBBModes() {}
 
+    public static final String PT = TransportMode.pt;
     public static final String CAR = TransportMode.car;
     public static final String RIDE = TransportMode.ride;
-    public static final String PT = TransportMode.pt;
-    public static final String WALK = TransportMode.walk;
-    public static final String TRANSIT_WALK = TransportMode.transit_walk;
     public static final String BIKE = TransportMode.bike;
+    public static final String WALK = TransportMode.walk;
+    public static final String PT_FALLBACK_MODE = TransportMode.transit_walk;
+    public static final String NON_NETWORK_WALK = TransportMode.non_network_walk;
 
     public static final int DEFAULT_MODE_HIERARCHY = 99;
     public final static Map<String, Integer> mode2HierarchalNumber;
@@ -28,7 +29,8 @@ public class SBBModes {
         mode2HierarchalNumber.put(RIDE, 20);
         mode2HierarchalNumber.put(BIKE, 30);
         mode2HierarchalNumber.put(WALK, 40);
-        mode2HierarchalNumber.put(TRANSIT_WALK, 41);
+        mode2HierarchalNumber.put(PT_FALLBACK_MODE, 41);
+        mode2HierarchalNumber.put(NON_NETWORK_WALK, 50);
     }
 
     public static class PTSubModes {

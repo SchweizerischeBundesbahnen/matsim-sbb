@@ -1,6 +1,7 @@
 package ch.sbb.matsim.intermodal.analysis;
 
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.jfree.chart.JFreeChart;
@@ -11,7 +12,6 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.PersonArrivalEvent;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
@@ -30,8 +30,8 @@ import org.matsim.core.utils.misc.Time;
 import javax.inject.Inject;
 import java.awt.*;
 import java.io.IOException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -88,7 +88,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     }
 
     private boolean isIgnoredMode(String mode) {
-        return mode.equals(TransportMode.non_network_walk) || mode.equals(TransportMode.transit_walk);
+        return mode.equals(SBBModes.NON_NETWORK_WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE);
 
     }
 

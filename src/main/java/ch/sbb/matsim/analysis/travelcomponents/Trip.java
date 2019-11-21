@@ -85,7 +85,7 @@ public class Trip extends TravelComponent {
             if(leg.isPtLeg())   {
                 return SBBModes.PT;
             }
-            if(mainMode.equals(SBBModes.TRANSIT_WALK)) {
+            if(mainMode.equals(SBBModes.PT_FALLBACK_MODE)) {
                 return SBBModes.WALK;
             }
             return mainMode;
