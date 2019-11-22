@@ -6,7 +6,7 @@
 	<artifactId>matsim-sbb</artifactId>
 	<version>0.11.14-SNAPSHOT</version>
 	<name>MATSim SBB Project</name>
-	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P </description>
+	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P</description>
 
 	<repositories>
 		<repository>
