@@ -1,5 +1,6 @@
 package ch.sbb.matsim.accessibility;
 
+import ch.sbb.matsim.accessibility.Accessibility.Modes;
 import ch.sbb.matsim.analysis.matrices.CalculateIndicatorMatrices;
 import ch.sbb.matsim.analysis.skims.StreamingFacilities;
 import ch.sbb.matsim.csv.CSVReader;
@@ -29,8 +30,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.ToDoubleFunction;
@@ -155,9 +158,10 @@ public class CalculateAccessibility {
         int gridSize = Integer.parseInt(args[10]);
         int numThreads = Integer.parseInt(args[11]);
         String trainFilter = args[12];
-        String[] timesPtStr = args[13].split(";");
-        String[] timesCarAMStr = args[14].split(";");
-        String[] timesCarPMStr = args[15].split(";");
+        String[] modesStr = args[13].split(";"); // supported: mm (=multimodal), car, pt
+        String[] timesPtStr = args[14].split(";");
+        String[] timesCarAMStr = args[15].split(";");
+        String[] timesCarPMStr = args[16].split(";");
 
         double[] carAMDepTimes = new double[timesCarAMStr.length];
         for (int i = 0; i < timesCarAMStr.length; i++)
@@ -192,11 +196,21 @@ public class CalculateAccessibility {
             }
         }
 
-        Accessibility.Modes[] modes = new Accessibility.Modes[] {
-                new Accessibility.Modes("mm", true, true, true, true),
-                new Accessibility.Modes("car", true, false, true, true),
-                new Accessibility.Modes("pt", false, true, true, true)
-        };
+        Set<String> modesSet = new HashSet<>();
+        for (String mode : modesStr) {
+            modesSet.add(mode);
+        }
+        List<Accessibility.Modes> modesList = new ArrayList<>();
+        if (modesSet.contains("mm")) {
+            modesList.add(new Accessibility.Modes("mm", true, true, true, true));
+        }
+        if (modesSet.contains("car")) {
+            modesList.add(new Accessibility.Modes("car", true, false, true, true));
+        }
+        if (modesSet.contains("pt")) {
+            modesList.add(new Accessibility.Modes("pt", false, true, true, true));
+        }
+        Accessibility.Modes[] modes = modesList.toArray(new Modes[0]);
 
         Map<Coord, Double> attractions = null;
         if (attractionsFile.exists()) {

@@ -1,15 +1,18 @@
 package ch.sbb.matsim.accessibility;
 
 import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
+import ch.sbb.matsim.analysis.skims.LeastCostPathTree.NodeData;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
+import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.TravelInfo;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -55,6 +58,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiPredicate;
@@ -110,9 +114,20 @@ public class Accessibility {
         this.threadCount = threadCount;
     }
 
+    private static boolean requiresCar(Modes[] modes) {
+        for (Modes mode : modes) {
+            if (mode.car) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void calculateAccessibility(List<Coord> coordinates, Modes[] modes, File csvOutputFile) {
+        boolean requiresCar = requiresCar(modes);
+
         if (!this.scenarioLoaded) {
-            loadScenario();
+            loadScenario(requiresCar);
         }
 
         log.info("filter car-only network for assigning links to locations");
@@ -177,28 +192,33 @@ public class Accessibility {
         }
     }
 
-    private void loadScenario() {
+    private void loadScenario(boolean requiresCar) {
         Scenario scenario = ScenarioUtils.createScenario(this.config);
-        log.info("loading network from " + networkFilename);
-        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFilename);
-
-        if (eventsFilename != null) {
-            log.info("extracting actual travel times from " + eventsFilename);
-            TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), config.travelTimeCalculator());
-            EventsManager events = EventsUtils.createEventsManager();
-            events.addHandler(ttc);
-            new MatsimEventsReader(events).readFile(eventsFilename);
-            this.tt = ttc.getLinkTravelTimes();
-        } else {
-            this.tt = new FreeSpeedTravelTime();
-            log.info("No events specified. Travel Times will be calculated with free speed travel times.");
+        if (requiresCar || transitNetworkFilename.equals(networkFilename)) {
+            log.info("loading network from " + networkFilename);
+            new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFilename);
         }
+        if (requiresCar) {
+            if (eventsFilename != null) {
+                log.info("extracting actual travel times from " + eventsFilename);
+                TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), config.travelTimeCalculator());
+                EventsManager events = EventsUtils.createEventsManager();
+                events.addHandler(ttc);
+                new MatsimEventsReader(events).readFile(eventsFilename);
+                this.tt = ttc.getLinkTravelTimes();
+            } else {
+                this.tt = new FreeSpeedTravelTime();
+                log.info("No events specified. Travel Times will be calculated with free speed travel times.");
+            }
 
-        this.td = new OnlyTimeDependentTravelDisutility(tt);
+            this.td = new OnlyTimeDependentTravelDisutility(tt);
 
-        log.info("extracting car-only network");
-        this.carNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.carNetwork, Collections.singleton(TransportMode.car));
+            log.info("extracting car-only network");
+            this.carNetwork = NetworkUtils.createNetwork();
+            new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.carNetwork, Collections.singleton(TransportMode.car));
+        } else {
+            log.info("not loading events, as no car-accessibility needs to be calculated.");
+        }
 
         log.info("loading schedule from " + this.scheduleFilename);
         Scenario ptScenario;
@@ -263,10 +283,9 @@ public class Accessibility {
 
     private static class RowWorker implements Runnable {
 
+        private final boolean requiresCar;
         private final Network carNetwork;
         private final Network xy2linksNetwork;
-        private final TravelTime tt;
-        private final TravelDisutility td;
         private final LeastCostPathTree[] amLcpTree;
         private final LeastCostPathTree[] pmLcpTree;
         private final double[] carAMDepTimes;
@@ -289,8 +308,6 @@ public class Accessibility {
                   Map<Coord, ZoneData> zoneData, Modes[] modes, Zones zones, Counter counter, Queue<Coord> coordinates, Queue<Tuple<Coord, double[]>> results) {
             this.carNetwork = carNetwork;
             this.xy2linksNetwork = xy2linksNetwork;
-            this.tt = tt;
-            this.td = td;
             this.carAMDepTimes = carAMDepTimes;
             this.carPMDepTimes = carPMDepTimes;
             this.amLcpTree = new LeastCostPathTree[carAMDepTimes.length];
@@ -308,6 +325,7 @@ public class Accessibility {
             this.trainDetector = trainDetector;
 
             this.zoneData = zoneData;
+            this.requiresCar = requiresCar(modes);
             this.modes = modes;
             this.zones = zones;
             this.counter = counter;
@@ -329,15 +347,17 @@ public class Accessibility {
         }
 
         private double[] calcForCoord(Coord fromCoord) {
-            // CAR
-            Node node = this.carNetwork.getNodes().get(NetworkUtils.getNearestLink(this.xy2linksNetwork, fromCoord).getToNode().getId());
+            if (this.requiresCar) {
+                // CAR
+                Node node = this.carNetwork.getNodes().get(NetworkUtils.getNearestLink(this.xy2linksNetwork, fromCoord).getToNode().getId());
 
-            for (int i = 0; i < this.amLcpTree.length; i++) {
-                this.amLcpTree[i].calculate(this.carNetwork, node, this.carAMDepTimes[i]);
-            }
+                for (int i = 0; i < this.amLcpTree.length; i++) {
+                    this.amLcpTree[i].calculate(this.carNetwork, node, this.carAMDepTimes[i]);
+                }
 
-            for (int i = 0; i < this.pmLcpTree.length; i++) {
-                this.pmLcpTree[i].calculate(this.carNetwork, node, this.carPMDepTimes[i]);
+                for (int i = 0; i < this.pmLcpTree.length; i++) {
+                    this.pmLcpTree[i].calculate(this.carNetwork, node, this.carPMDepTimes[i]);
+                }
             }
 
             // PT
@@ -352,10 +372,10 @@ public class Accessibility {
                 accessTimes.put(stop.getId(), accessTime);
             }
 
-            List<Map<Id<TransitStopFacility>, SwissRailRaptorCore.TravelInfo>> trees = new ArrayList<>();
+            List<Map<Id<TransitStopFacility>, TravelInfo>> trees = new ArrayList<>();
 
             for (double time = this.ptMinDepartureTime; time < this.ptMaxDepartureTime; time += this.stepSize) {
-                Map<Id<TransitStopFacility>, SwissRailRaptorCore.TravelInfo> tree = this.raptor.calcTree(fromStops, time, this.parameters);
+                Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStops, time, this.parameters);
                 trees.add(tree);
             }
 
@@ -365,7 +385,7 @@ public class Accessibility {
             // CALCULATION
 
             double[] accessibility = new double[this.modes.length];
-            for (Map.Entry<Coord, ZoneData> e : this.zoneData.entrySet()) {
+            for (Entry<Coord, ZoneData> e : this.zoneData.entrySet()) {
                 Coord toCoord = e.getKey();
                 ZoneData zData = e.getValue();
                 Node toNode = zData.node;
@@ -375,31 +395,33 @@ public class Accessibility {
 
                 double distCar = 0;
                 double amTravelTime = 0;
-                int amCount = 0;
-                for (int i = 0; i < this.amLcpTree.length; i++) {
-                    LeastCostPathTree.NodeData data = this.amLcpTree[i].getTree().get(toNode.getId());
-                    if (data != null) {
-                        amTravelTime += data.getTime() - this.carAMDepTimes[i];
-                        distCar += data.getDistance();
-                        amCount++;
-                    }
-                }
-                amTravelTime /= Math.max(1, amCount);
-
                 double pmTravelTime = 0;
-                int pmCount = 0;
-                for (int i = 0; i < this.pmLcpTree.length; i++) {
-                    LeastCostPathTree.NodeData data = this.pmLcpTree[i].getTree().get(toNode.getId());
-                    if (data != null) {
-                        pmTravelTime += data.getTime() - this.carPMDepTimes[i];
-                        distCar += data.getDistance();
-                        pmCount++;
+                if (requiresCar) {
+                    int amCount = 0;
+                    for (int i = 0; i < this.amLcpTree.length; i++) {
+                        NodeData data = this.amLcpTree[i].getTree().get(toNode.getId());
+                        if (data != null) {
+                            amTravelTime += data.getTime() - this.carAMDepTimes[i];
+                            distCar += data.getDistance();
+                            amCount++;
+                        }
                     }
-                }
-                pmTravelTime /= Math.max(1, pmCount);
-                distCar /= Math.max(1, amCount + pmCount);
+                    amTravelTime /= Math.max(1, amCount);
 
-                distCar /= 1000.0; // we use kilometers in the following formulas
+                    int pmCount = 0;
+                    for (int i = 0; i < this.pmLcpTree.length; i++) {
+                        NodeData data = this.pmLcpTree[i].getTree().get(toNode.getId());
+                        if (data != null) {
+                            pmTravelTime += data.getTime() - this.carPMDepTimes[i];
+                            distCar += data.getDistance();
+                            pmCount++;
+                        }
+                    }
+                    pmTravelTime /= Math.max(1, pmCount);
+                    distCar /= Math.max(1, amCount + pmCount);
+
+                    distCar /= 1000.0; // we use kilometers in the following formulas
+                }
 
                 double ttCar = Math.max(amTravelTime, pmTravelTime) / 60; // we need minutes in the following formulas
                 double distCar0015 = Math.min(distCar, 15);
@@ -425,6 +447,7 @@ public class Accessibility {
                 double ptEgressTime = 0;
                 double ptFrequency = 0;
                 double ptTransfers = 0;
+                double ptDistance = 0;
 
                 if (hasPT) {
                     connections = sortAndFilterConnections(connections);
@@ -441,7 +464,7 @@ public class Accessibility {
                     double totalInVehTime = 0;
                     double trainInVehTime = 0;
 
-                    for (Map.Entry<ODConnection, Double> cs : connectionShares.entrySet()) {
+                    for (Entry<ODConnection, Double> cs : connectionShares.entrySet()) {
                         ODConnection connection = cs.getKey();
                         double share = cs.getValue();
 
@@ -450,17 +473,19 @@ public class Accessibility {
                         transferCount += share * (float) connection.transferCount;
                         travelTime += share * (float) connection.totalTravelTime();
 
+                        double connTotalDistance = 0;
                         double connTotalInVehTime = 0;
                         double connTrainInVehTime = 0;
 
                         RaptorRoute route = connection.travelInfo.getRaptorRoute();
-                        for (RaptorRoute.RoutePart part : route.getParts()) {
+                        for (RoutePart part : route.getParts()) {
                             if (part.line != null) {
                                 // it's a non-transfer part, an actual pt stage
 
                                 boolean isTrain = this.trainDetector.test(part.line, part.route);
                                 double inVehicleTime = part.arrivalTime - part.boardingTime;
 
+                                connTotalDistance += part.distance;
                                 connTotalInVehTime += inVehicleTime;
 
                                 if (isTrain) {
@@ -468,6 +493,7 @@ public class Accessibility {
                                 }
                             }
                         }
+                        ptDistance += share * connTotalDistance;
 
                         totalInVehTime += share * connTotalInVehTime;
                         trainInVehTime += share * connTrainInVehTime;
@@ -481,7 +507,13 @@ public class Accessibility {
                     ptEgressTime = egressTime / 60; // in minutes
                     ptFrequency = 900 / avgAdaptionTime;
                     ptTransfers = transferCount;
+
+                    ptDistance /= 1000.0; // we use kilometers in the following formulas
                 }
+                double distPt0015 = Math.min(ptDistance, 15);
+                double distPt1550 = Math.max(0, Math.min(ptDistance - 15, 35)); // 35 = 50 - 15, upperBound - lowerBound
+                double distPt5099 = Math.max(0, Math.min(ptDistance - 50, 50)); // 50 = 100 - 50
+                double distPt100x = Math.max(0, ptDistance - 100);
 
 
                 // ACCESSIBILITY
@@ -503,7 +535,7 @@ public class Accessibility {
 
                     double uBike = modes.bike ? (-0.25 + (-0.150) * distCar / 0.21667) : modes.missingModeUtility;
                     double uCar = modes.car ? (-0.40 + (-0.053)*ttCar + (-0.040)*distCar0015 + (-0.040)*distCar1550 + 0.015*distCar5099 + 0.010*distCar100x + (-0.047)*(carAccessTime+carEgressTime)/60 + (-0.135)*carParkingCost*2) : modes.missingModeUtility;
-                    double uPt = (modes.pt && hasPT) ? (+0.75 + (-0.042)*ttBus + (-0.0378)*ttTrain + (-0.015)*distCar0015 + (-0.015)*distCar1550 + 0.005*distCar5099 + 0.025*distCar100x + (-0.050)*(ptAccessTime+ptEgressTime) + (-0.014)*(60/ptFrequency) + (-0.227)*ptTransfers) : modes.missingModeUtility;
+                    double uPt = (modes.pt && hasPT) ? (+0.75 + (-0.042)*ttBus + (-0.0378)*ttTrain + (-0.015)*distPt0015 + (-0.015)*distPt1550 + 0.005*distPt5099 + 0.025*distPt100x + (-0.050)*(ptAccessTime+ptEgressTime) + (-0.014)*(60/ptFrequency) + (-0.227)*ptTransfers) : modes.missingModeUtility;
                     double uWalk = modes.walk ? (+2.30 + (-0.100) * distCar / 0.078336) : modes.missingModeUtility;
 
                     double theta = modes.theta;
