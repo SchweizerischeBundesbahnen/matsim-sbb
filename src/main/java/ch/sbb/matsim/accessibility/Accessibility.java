@@ -194,10 +194,8 @@ public class Accessibility {
 
     private void loadScenario(boolean requiresCar) {
         Scenario scenario = ScenarioUtils.createScenario(this.config);
-        if (requiresCar || transitNetworkFilename.equals(networkFilename)) {
-            log.info("loading network from " + networkFilename);
-            new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFilename);
-        }
+        log.info("loading network from " + networkFilename);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFilename);
         if (requiresCar) {
             if (eventsFilename != null) {
                 log.info("extracting actual travel times from " + eventsFilename);
@@ -213,12 +211,12 @@ public class Accessibility {
 
             this.td = new OnlyTimeDependentTravelDisutility(tt);
 
-            log.info("extracting car-only network");
-            this.carNetwork = NetworkUtils.createNetwork();
-            new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.carNetwork, Collections.singleton(TransportMode.car));
         } else {
             log.info("not loading events, as no car-accessibility needs to be calculated.");
         }
+        log.info("extracting car-only network"); // this is used in any case, not only when car is needed.
+        this.carNetwork = NetworkUtils.createNetwork();
+        new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.carNetwork, Collections.singleton(TransportMode.car));
 
         log.info("loading schedule from " + this.scheduleFilename);
         Scenario ptScenario;
