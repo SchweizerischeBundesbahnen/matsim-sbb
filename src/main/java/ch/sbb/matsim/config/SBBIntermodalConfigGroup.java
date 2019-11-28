@@ -125,8 +125,12 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
 
         public static final String PARAM_DETOUR_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
         static private final String PARAM_DETOUR_FACTOR = "detourFactor";
-        static private final String PARAM_NETWORKMODE = "isOnNetwork";
-        public static final String PARAM_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
+
+        static private final String PARAM_SIMULATION_NETWORKMODE = "isSimulatedOnNetwork";
+        public static final String PARAM_SIMULATION_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
+
+        static private final String PARAM_ROUTING_NETWORKMODE = "isRoutedOnNetwork";
+        public static final String PARAM_ROUTING_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
 
         public static final String PARAM_ACCESSTIME_ZONEATT_DESC = "Zone Id field for mode specific access (or wait) time (in seconds).";
         public static final String PARAM_DETOUR_FACTOR_ZONEATT_DESC = "Zone Id field for mode specific detour factor.";
@@ -134,6 +138,9 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         static private final String PARAM_ACCESSTIME_ZONEATT = "accessTimeZonesAttributeName";
         static private final String PARAM_DETOUR_FACTOR_ZONEATT = "detourFactorZonesAttributeName";
         static private final String PARAM_EGRESSTIME_ZONEATT = "egressTimeZonesAttributeName";
+
+        static private final String PARAM_USEMINIMALTRANSFERTIMES_DESC = "use minimal transfer times";
+        static private final String PARAM_USEMINIMALTRANSFERTIMES = "useMinimalTransferTimes";
 
         static private final String PARAM_MUTT = "mutt";
         public static final String PARAM_MUTT_DESC = "Marginal Utility of travel time (per hour)";
@@ -147,14 +154,16 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
 
 
         private String mode = "ride_feeder";
-        private Integer waitingTime = null;
+        private Integer waitingTime = 0;
         private double constant = -1.5;
         private double mutt = -10.8;
-        private Double detourFactor = null;
-        private boolean onNetwork = true;
+        private Double detourFactor = 1.0;
+        private boolean routedOnNetwork = true;
+        private boolean simulatedOnNetwork = true;
         private String accessTimeZoneId = null;
         private String egressTimeZoneId = null;
         private String detourFactorZoneId = null;
+        private boolean useMinimalTransferTimes = false;
 
         public SBBIntermodalModeParameterSet() {
             super(TYPE);
@@ -189,7 +198,6 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             this.waitingTime = waitingTime;
         }
 
-
         @StringGetter(PARAM_CONSTANT)
         public double getConstant() {
             return this.constant;
@@ -200,7 +208,6 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             this.constant = constant;
         }
 
-
         @StringGetter(PARAM_DETOUR_FACTOR)
         public Double getDetourFactor() {
             return this.detourFactor;
@@ -210,7 +217,6 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         public void setDetourFactor(double detourFactor) {
             this.detourFactor = detourFactor;
         }
-
 
         @StringGetter(PARAM_MUTT)
         public double getMUTT() {
@@ -226,14 +232,34 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             this.mutt = mutt;
         }
 
-        @StringGetter(PARAM_NETWORKMODE)
-        public boolean isOnNetwork() {
-            return this.onNetwork;
+        @StringGetter(PARAM_SIMULATION_NETWORKMODE)
+        public boolean isSimulatedOnNetwork() {
+            return this.simulatedOnNetwork;
         }
 
-        @StringSetter(PARAM_NETWORKMODE)
-        public void setOnNetwork(boolean onNetwork) {
-            this.onNetwork = onNetwork;
+        @StringSetter(PARAM_SIMULATION_NETWORKMODE)
+        public void setSimulatedOnNetwork(boolean simulatedOnNetwork) {
+            this.simulatedOnNetwork = simulatedOnNetwork;
+        }
+
+        @StringGetter(PARAM_USEMINIMALTRANSFERTIMES)
+        public boolean doUseMinimalTransferTimes() {
+            return this.useMinimalTransferTimes;
+        }
+
+        @StringSetter(PARAM_USEMINIMALTRANSFERTIMES)
+        public void setUseMinimalTransferTimes(boolean useMinimalTransferTimes) {
+            this.useMinimalTransferTimes = useMinimalTransferTimes;
+        }
+
+        @StringGetter(PARAM_ROUTING_NETWORKMODE)
+        public boolean isRoutedOnNetwork() {
+            return this.routedOnNetwork;
+        }
+
+        @StringSetter(PARAM_ROUTING_NETWORKMODE)
+        public void setRoutedOnNetwork(boolean routedOnNetwork) {
+            this.routedOnNetwork = routedOnNetwork;
         }
 
         @StringGetter(PARAM_ACCESSTIME_ZONEATT)
@@ -272,12 +298,14 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             comments.put(PARAM_MODE, PARAM_MODE_DESC);
             comments.put(PARAM_MUTT, PARAM_MUTT_DESC);
             comments.put(PARAM_DETOUR_FACTOR, PARAM_DETOUR_FACTOR_DESC);
-            comments.put(PARAM_NETWORKMODE, PARAM_NETWORKMODE_DESC);
+            comments.put(PARAM_SIMULATION_NETWORKMODE, PARAM_SIMULATION_NETWORKMODE_DESC);
+            comments.put(PARAM_ROUTING_NETWORKMODE, PARAM_ROUTING_NETWORKMODE_DESC);
             comments.put(PARAM_CONSTANT, PARAM_CONSTANT_DESC);
             comments.put(PARAM_WAITINGTIME, PARAM_WAITINGTIME_DESC);
             comments.put(PARAM_DETOUR_FACTOR_ZONEATT, PARAM_DETOUR_FACTOR_ZONEATT_DESC);
             comments.put(PARAM_EGRESSTIME_ZONEATT, PARAM_EGRESSTIME_ZONEATT_DESC);
             comments.put(PARAM_ACCESSTIME_ZONEATT, PARAM_ACCESSTIME_ZONEATT_DESC);
+            comments.put(PARAM_USEMINIMALTRANSFERTIMES, PARAM_USEMINIMALTRANSFERTIMES_DESC);
             return comments;
         }
 
@@ -295,10 +323,10 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             if (getMUTT() < 0 && getMUTT() > -0.1) {
                 logger.warn("Marginal Utility of Travel time (per hour) for intermodal " + getMode() + "is very small (" + mutt + " Make sure you use the right units.");
             }
-            if (detourFactor != null && detourFactorZoneId != null) {
+            if (detourFactor != 1.0 && detourFactorZoneId != null) {
                 throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
             }
-            if (waitingTime != null && accessTimeZoneId != null) {
+            if (waitingTime > 0 && accessTimeZoneId != null) {
                 throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
             }
 
