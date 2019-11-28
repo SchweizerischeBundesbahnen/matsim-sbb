@@ -155,10 +155,14 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
         if (parameterSet.getEgressTimeZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(endLinkId).getCoord());
-            return zone != null ? (int) zone.getAttribute(parameterSet.getEgressTimeZoneId()) : 0.0;
-        } else {
-            return 0.0;
+            if (zone != null) {
+                Object att = zone.getAttribute(parameterSet.getEgressTimeZoneId()).toString();
+                if (att != null) {
+                    return Double.parseDouble(att.toString());
+                }
+            }
         }
+        return 0.0;
     }
 
     private double getAccessTime(Id<Link> startLinkId, String mode) {
@@ -167,8 +171,14 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
             return parameterSet.getWaitingTime();
         } else if (parameterSet.getAccessTimeZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
-            return zone != null ? (int) zone.getAttribute(parameterSet.getAccessTimeZoneId()) : 0.0;
-        } else return 0.0;
+            if (zone != null) {
+                Object att = zone.getAttribute(parameterSet.getAccessTimeZoneId()).toString();
+                if (att != null) {
+                    return Double.parseDouble(att.toString());
+                }
+            }
+        }
+        return 0.0;
 
     }
 
@@ -178,8 +188,14 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
             return parameterSet.getDetourFactor();
         } else if (parameterSet.getDetourFactorZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
-            return zone != null ? (Double) zone.getAttribute(parameterSet.getDetourFactorZoneId()) : 1.0;
-        } else return 1.0;
+            if (zone != null) {
+                Object att = zone.getAttribute(parameterSet.getDetourFactorZoneId()).toString();
+                if (att != null) {
+                    return Double.parseDouble(att.toString());
+                }
+            }
+        }
+        return 1.0;
     }
 
     private double getTotalTravelTime(final List<? extends PlanElement> legs) {
