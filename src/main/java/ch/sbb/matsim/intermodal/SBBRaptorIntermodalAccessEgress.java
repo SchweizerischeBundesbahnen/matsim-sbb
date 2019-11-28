@@ -23,7 +23,11 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.ReflectiveConfigGroup;
 import org.matsim.core.utils.misc.Time;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -37,15 +41,16 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     private final List<SBBIntermodalModeParameterSet> intermodalModeParams;
     private final Zones zones;
     private final Network network;
+    private final TransitSchedule transitSchedule;
 
     @Inject
-    SBBRaptorIntermodalAccessEgress(Config config, ZonesCollection zonesCollection, Network network) {
+    SBBRaptorIntermodalAccessEgress(Config config, ZonesCollection zonesCollection, Network network, TransitSchedule transitSchedule) {
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
         intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
         Id<Zones> zonesId = intermodalConfigGroup.getZonesId();
         this.zones = zonesId != null ? new ZonesQueryCache(zonesCollection.getZones(intermodalConfigGroup.getZonesId())) : null;
 
-
+        this.transitSchedule = transitSchedule;
         this.network = network;
 
     }
@@ -55,6 +60,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         this.intermodalModeParams = intermodalModeParams;
         this.zones = null;
         this.network = null;
+        this.transitSchedule = null;
     }
 
     private boolean isIntermodalMode(String mode) {
