@@ -51,7 +51,7 @@ public class S3Downloader {
     }
 
     private File getLocalPath(String key, String bucketName) {
-        return new File(this.downloadFolder, bucketName + "/" + key);
+        return new File(this.downloadFolder, bucketName +"/"+ key);
 
     }
 

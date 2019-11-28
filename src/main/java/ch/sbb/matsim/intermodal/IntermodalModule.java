@@ -3,10 +3,13 @@ package ch.sbb.matsim.intermodal;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.intermodal.analysis.IntermodalControlerListener;
+import ch.sbb.matsim.intermodal.analysis.IntermodalTransferTimeAnalyser;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
@@ -72,13 +75,14 @@ public class IntermodalModule extends AbstractModule {
     @Override
     public void install() {
         for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
-            if (mode.isOnNetwork()) {
+            if (mode.isOnNetwork() && !mode.getMode().equals(TransportMode.car)) {
                 addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
                 addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
             }
         }
-
-        bind(RaptorIntermodalAccessEgress.class).toInstance(new SBBRaptorIntermodalAccessEgress(this.configGroup.getModeParameterSets()));
+        bind(IntermodalTransferTimeAnalyser.class).asEagerSingleton();
+        addControlerListenerBinding().to(IntermodalControlerListener.class).asEagerSingleton();
+        bind(RaptorIntermodalAccessEgress.class).to(SBBRaptorIntermodalAccessEgress.class).asEagerSingleton();
     }
 
 }
