@@ -1,5 +1,6 @@
 package ch.sbb.matsim.accessibility;
 
+import ch.sbb.matsim.analysis.skims.StreamingFacilities;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
@@ -11,9 +12,14 @@ import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
+import org.matsim.facilities.MatsimFacilitiesReader;
 
 import java.io.BufferedWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AccessibilityUtils {
@@ -75,6 +81,12 @@ public class AccessibilityUtils {
             }
         });
         popReader.readFile(populationFilename);
+        return coords;
+    }
+
+    public static Collection<Coord> getFacilityCoordinates(String facilitiesFilename) {
+        List<Coord> coords = new ArrayList<>();
+        new MatsimFacilitiesReader(null, null, new StreamingFacilities(f -> coords.add(f.getCoord()))).readFile(facilitiesFilename);
         return coords;
     }
 
