@@ -48,6 +48,8 @@ public class SBBModes {
             subModeList.add(TRAM);
             subModeList.add(BUS);
             subModeList.add(OTHER);
+            // TODO: remove detPt as soon as we merged the pt-submodes
+            subModeList.add("detPt");
         }
     }
 }
