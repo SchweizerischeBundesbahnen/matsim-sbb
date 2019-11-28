@@ -72,6 +72,15 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         return false;
     }
 
+    public boolean doUseMinimalTransferTimes(String mode) {
+        for (SBBIntermodalModeParameterSet modeParams : this.intermodalModeParams) {
+            if (mode.equals(modeParams.getMode())) {
+                return modeParams.doUseMinimalTransferTimes();
+            }
+        }
+        return false;
+    }
+
     private String getIntermodalTripMode(final List<? extends PlanElement> legs) {
         for (PlanElement pe : legs) {
             if (pe instanceof Leg) {
@@ -242,4 +251,10 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
         return new RIntermodalAccessEgress(legs, disutility, this.getTotalTravelTime(legs));
     }
+
+    public double getMinimalTransferTime(TransitStopFacility stop) {
+        MinimalTransferTimes mitt = this.transitSchedule.getMinimalTransferTimes();
+        return mitt.get(stop.getId(), stop.getId());
+    }
+
 }
