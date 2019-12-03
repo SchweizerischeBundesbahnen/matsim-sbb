@@ -171,7 +171,17 @@ public class TravelledLeg extends TravelComponent {
 
     public boolean isRailLeg() {
         if (this.isPtLeg()) {
-            return (this.line.toString().substring(0, 5).equals("S2016"));
+            String line = this.line.toString();
+            int len = line.length();
+            if (len < 5) {
+                return false;
+            } else {
+                if (len < 9) {
+                    return line.substring(0, 5).equals("S2016");
+                } else {
+                    return line.substring(0, 9).equals("Simba2017") || line.substring(0, 5).equals("S2016");
+                }
+            }
         }
         return false;
     }
