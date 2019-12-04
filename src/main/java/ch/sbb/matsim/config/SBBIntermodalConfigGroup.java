@@ -158,8 +158,8 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         private double constant = -1.5;
         private double mutt = -10.8;
         private Double detourFactor = 1.0;
-        private boolean routedOnNetwork = true;
-        private boolean simulatedOnNetwork = true;
+        private boolean routedOnNetwork = false;
+        private boolean simulatedOnNetwork = false;
         private String accessTimeZoneId = null;
         private String egressTimeZoneId = null;
         private String detourFactorZoneId = null;
