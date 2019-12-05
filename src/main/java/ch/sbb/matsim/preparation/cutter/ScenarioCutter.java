@@ -763,8 +763,24 @@ public class ScenarioCutter {
 
     private void removeRoutesWithLinksThatDoNotExist(Plan plan, CutContext ctx) {
         TripStructureUtils.getLegs(plan).stream()
-                .filter(leg -> ctx.dest.getNetwork().getLinks().containsKey(leg.getRoute().getStartLinkId()) || !ctx.dest.getNetwork().getLinks().containsKey(leg.getRoute().getEndLinkId()))
-                .forEach(leg -> leg.setRoute(null));
+                .filter(leg -> leg.getRoute() instanceof NetworkRoute)
+                .forEach(leg -> {
+                    if (!linksCoveredInNetwork((NetworkRoute) leg.getRoute(), ctx.dest.getNetwork())) {
+                        leg.setRoute(null);
+                    }
+                });
+    }
+
+    private boolean linksCoveredInNetwork(NetworkRoute route, Network network) {
+        if (!network.getLinks().containsKey(route.getEndLinkId()) || !network.getLinks().containsKey(route.getStartLinkId())) {
+            return false;
+        }
+        for (Id<Link> link : route.getLinkIds()) {
+            if (!network.getLinks().containsKey(link)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void removeDurationWhenBothAreSet(Plan plan) {
