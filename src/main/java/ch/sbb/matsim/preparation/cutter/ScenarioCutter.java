@@ -1,6 +1,7 @@
 package ch.sbb.matsim.preparation.cutter;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -702,7 +703,9 @@ public class ScenarioCutter {
         }
 
         MultimodalNetworkCleaner networkCleaner = new MultimodalNetworkCleaner(destNet);
-        Set<String> cleanedModes = Collections.singleton(TransportMode.car);
+        Set<String> cleanedModes = new HashSet<>();
+        cleanedModes.add(SBBModes.CAR);
+        cleanedModes.add(SBBModes.RIDE);
         Set<String> ptModes = Collections.singleton("detPt");
         networkCleaner.run(cleanedModes, ptModes);
 
