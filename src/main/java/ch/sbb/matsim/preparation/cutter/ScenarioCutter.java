@@ -19,6 +19,7 @@ import org.matsim.core.network.NetworkChangeEvent;
 import org.matsim.core.network.NetworkChangeEvent.ChangeType;
 import org.matsim.core.network.NetworkChangeEvent.ChangeValue;
 import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkChangeEventsWriter;
 import org.matsim.core.population.PopulationUtils;
@@ -699,6 +700,12 @@ public class ScenarioCutter {
                 copyLink(link, destNet);
             }
         }
+
+        MultimodalNetworkCleaner networkCleaner = new MultimodalNetworkCleaner(destNet);
+        Set<String> cleanedModes = Collections.singleton(TransportMode.car);
+        Set<String> ptModes = Collections.singleton("detPt");
+        networkCleaner.run(cleanedModes, ptModes);
+
     }
 
     public static Predicate<Person> isCut() {
