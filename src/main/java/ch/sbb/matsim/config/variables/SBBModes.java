@@ -13,6 +13,10 @@ public class SBBModes {
     public static final String PT = TransportMode.pt;
     public static final String WALK = TransportMode.walk;
     public static final String BIKE = TransportMode.bike;
+    public static final String AVTAXI = "avtaxi";
+    public static final String AVFEEDER = "avfeeder";
+    public static final String DRT = TransportMode.drt;
+
 
     public static final int DEFAULT_MODE_HIERARCHY = 99;
     public final static Map<String, Integer> mode2HierarchalNumber;
