@@ -26,7 +26,6 @@ import org.matsim.core.network.io.NetworkChangeEventsWriter;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
-import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
@@ -760,27 +759,50 @@ public class ScenarioCutter {
         removeEndTimesFromInteractionActivities(plan);
         removeDurationWhenBothAreSet(plan);
         modifyLoneSomeAccessEgressWalks(plan);
-        removeRoutesWithLinksThatDoNotExist(plan, ctx);
+        removeInconsistentRoutes(plan, ctx);
         return plan;
     }
 
-    private void removeRoutesWithLinksThatDoNotExist(Plan plan, CutContext ctx) {
-        TripStructureUtils.getLegs(plan).stream()
-                .filter(leg -> leg.getRoute() instanceof NetworkRoute)
-                .forEach(leg -> {
-                    if (!linksCoveredInNetwork((NetworkRoute) leg.getRoute(), ctx.dest.getNetwork())) {
-                        leg.setRoute(null);
+
+    private void removeInconsistentRoutes(Plan plan, CutContext ctx) {
+        Id<Link> lastActivityLink = null;
+        Leg currentLeg = null;
+        for (PlanElement pe : plan.getPlanElements()) {
+            if (pe instanceof Activity) {
+                Activity act = (Activity) pe;
+                if (currentLeg != null) {
+                    if (lastActivityLink != null && act.getLinkId() != null && currentLeg.getRoute() != null) {
+                        if (currentLeg.getRoute().getStartLinkId() != lastActivityLink || currentLeg.getRoute().getEndLinkId() != act.getLinkId()) {
+                            currentLeg.setRoute(null);
+                        }
                     }
-                });
+                }
+                lastActivityLink = act.getLinkId();
+            } else if (pe instanceof Leg) {
+                currentLeg = (Leg) pe;
+                if (currentLeg.getRoute() instanceof NetworkRoute) {
+                    if (!linksCoveredInNetwork(currentLeg.getRoute(), ctx.dest.getNetwork())) {
+                        currentLeg.setRoute(null);
+                    }
+                }
+            }
+
+        }
+
     }
 
-    private boolean linksCoveredInNetwork(NetworkRoute route, Network network) {
+
+    private boolean linksCoveredInNetwork(Route route, Network network) {
+        if (route == null) return false;
+
         if (!network.getLinks().containsKey(route.getEndLinkId()) || !network.getLinks().containsKey(route.getStartLinkId())) {
             return false;
         }
-        for (Id<Link> link : route.getLinkIds()) {
+        if (route instanceof NetworkRoute) {
+            for (Id<Link> link : ((NetworkRoute) route).getLinkIds()) {
             if (!network.getLinks().containsKey(link)) {
                 return false;
+            }
             }
         }
         return true;
