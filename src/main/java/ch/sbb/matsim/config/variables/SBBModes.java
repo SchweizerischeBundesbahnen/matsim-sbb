@@ -2,8 +2,7 @@ package ch.sbb.matsim.config.variables;
 
 import org.matsim.api.core.v01.TransportMode;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class SBBModes {
     private SBBModes() {}
@@ -13,6 +12,7 @@ public class SBBModes {
     public static final String PT = TransportMode.pt;
     public static final String WALK = TransportMode.walk;
     public static final String BIKE = TransportMode.bike;
+    public static final Set<String> PTNETWORKMODES = new HashSet<>(Arrays.asList("detPt", "rail", "tram", "bus", "otherPt"));
 
     public static final int DEFAULT_MODE_HIERARCHY = 99;
     public final static Map<String, Integer> mode2HierarchalNumber;

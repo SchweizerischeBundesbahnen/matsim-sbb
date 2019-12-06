@@ -705,8 +705,7 @@ public class ScenarioCutter {
         Set<String> cleanedModes = new HashSet<>();
         cleanedModes.add(SBBModes.CAR);
         cleanedModes.add(SBBModes.RIDE);
-        Set<String> ptModes = Collections.singleton("detPt");
-        networkCleaner.run(cleanedModes, ptModes);
+        networkCleaner.run(cleanedModes, SBBModes.PTNETWORKMODES);
 
     }
 
