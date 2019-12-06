@@ -47,7 +47,6 @@ import org.matsim.vehicles.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -709,9 +708,6 @@ public class ScenarioCutter {
 
     }
 
-    public static Predicate<Person> isCut() {
-        return person -> person.getAttributes().getAsMap().containsKey(ScenarioCutter.CUT_ATTRIBUTE) && (boolean) person.getAttributes().getAttribute(ScenarioCutter.CUT_ATTRIBUTE);
-    }
 
     private Plan cutPlan(CutContext ctx, Person destPerson, Plan srcPlan) {
         approximateEndtimesForInteractionActivities(srcPlan);
