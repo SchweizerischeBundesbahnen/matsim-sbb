@@ -156,7 +156,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         if (parameterSet.getEgressTimeZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(endLinkId).getCoord());
             if (zone != null) {
-                Object att = zone.getAttribute(parameterSet.getEgressTimeZoneId()).toString();
+                Object att = zone.getAttribute(parameterSet.getEgressTimeZoneId());
                 if (att != null) {
                     return Double.parseDouble(att.toString());
                 }
@@ -172,7 +172,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         } else if (parameterSet.getAccessTimeZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
             if (zone != null) {
-                Object att = zone.getAttribute(parameterSet.getAccessTimeZoneId()).toString();
+                Object att = zone.getAttribute(parameterSet.getAccessTimeZoneId());
                 if (att != null) {
                     return Double.parseDouble(att.toString());
                 }
