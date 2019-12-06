@@ -7,6 +7,7 @@ package ch.sbb.matsim;
 
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.config.*;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
@@ -102,8 +103,10 @@ public class RunSBB {
             public void install() {
                 addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 
-                addTravelTimeBinding("ride").to(networkTravelTime());
-                addTravelDisutilityFactoryBinding("ride").to(carTravelDisutilityFactoryKey());
+                addTravelTimeBinding(SBBModes.RIDE).to(networkTravelTime());
+                addTravelDisutilityFactoryBinding(SBBModes.RIDE).to(carTravelDisutilityFactoryKey());
+                addTravelTimeBinding(SBBModes.AVTAXI).to(networkTravelTime());
+                addTravelDisutilityFactoryBinding(SBBModes.AVTAXI).to(carTravelDisutilityFactoryKey());
 
                 install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
