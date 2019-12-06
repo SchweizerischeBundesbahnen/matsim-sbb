@@ -1,12 +1,12 @@
 package ch.sbb.matsim.routing.access;
 
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.network.SBBNetworkRouting;
 import ch.sbb.matsim.routing.teleportation.SBBTeleportation;
 import ch.sbb.matsim.zones.Zones;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
@@ -32,7 +32,7 @@ public class AccessEgress extends AbstractModule {
             final Collection<String> mainModes = config.qsim().getMainModes();
 
             for (final String mode : modes) {
-                if (mainModes.contains(mode) || mode.equals(TransportMode.ride)) {
+                if (mainModes.contains(mode) || mode.equals(SBBModes.RIDE) || mode.equals(SBBModes.AVTAXI)) {
                     addRoutingModuleBinding(mode).toProvider(
                             new SBBNetworkRouting(mode, zonesId)
                     );
