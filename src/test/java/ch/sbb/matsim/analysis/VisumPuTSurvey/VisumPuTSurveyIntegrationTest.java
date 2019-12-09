@@ -18,7 +18,6 @@ import java.nio.file.Paths;
 public class VisumPuTSurveyIntegrationTest {
 
     @Test
-    @Ignore
     public void test() throws IOException {
         TestFixture fixture = new TestFixture();
         fixture.addSingleTransitDemand();
