@@ -167,9 +167,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
     private double getAccessTime(Id<Link> startLinkId, String mode) {
         SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
-        if (parameterSet.getWaitingTime() != null) {
-            return parameterSet.getWaitingTime();
-        } else if (parameterSet.getAccessTimeZoneId() != null) {
+        if (parameterSet.getAccessTimeZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
             if (zone != null) {
                 Object att = zone.getAttribute(parameterSet.getAccessTimeZoneId());
@@ -177,6 +175,8 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
                     return Double.parseDouble(att.toString());
                 }
             }
+        } else if (parameterSet.getWaitingTime() != null) {
+            return parameterSet.getWaitingTime();
         }
         return 0.0;
 
