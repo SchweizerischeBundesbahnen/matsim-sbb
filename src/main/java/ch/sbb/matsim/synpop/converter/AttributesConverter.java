@@ -17,10 +17,13 @@ public class AttributesConverter {
     private final static Logger log = Logger.getLogger(AttributeMapper.class);
     private Map<String, Map<String, AttributeMappingParameterSet>> attributeMapping;
     private Map<String, ColumnMappingParameterSet> columnMapping;
+    private Integer baseYear;
 
-    public AttributesConverter(Map<String, Map<String, AttributeMappingParameterSet>> attributeMapping, Map<String, ColumnMappingParameterSet> columnMapping) {
+    public AttributesConverter(Map<String, Map<String, AttributeMappingParameterSet>> attributeMapping,
+                               Map<String, ColumnMappingParameterSet> columnMapping, Integer baseYear) {
         this.attributeMapping = attributeMapping;
         this.columnMapping = columnMapping;
+        this.baseYear = baseYear;
     }
 
     public interface ColumnMapper {
@@ -95,7 +98,7 @@ public class AttributesConverter {
             );
         });
 
-        PersonAttributes personAttributes = new PersonAttributes();
+        PersonAttributes personAttributes = new PersonAttributes(this.baseYear);
         for (Person person : population.getPersons().values()) {
             personAttributes.completeAttributes(person);
             person.getAttributes();

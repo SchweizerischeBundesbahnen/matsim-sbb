@@ -10,7 +10,6 @@ import ch.sbb.matsim.synpop.reader.SynpopCSVReaderImpl;
 import ch.sbb.matsim.synpop.reader.SynpopReader;
 import ch.sbb.matsim.synpop.writer.MATSimWriter;
 import ch.sbb.matsim.synpop.writer.PopulationCSVWriter;
-import ch.sbb.matsim.synpop.writer.SQLWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
@@ -41,7 +40,8 @@ public class Synpop {
         assigner.assignIds(Variables.T_ZONE);
         assigner.checkForMissingIds(facilities, Variables.T_ZONE);
 
-        final AttributesConverter attributesConverter = new AttributesConverter(config.getAttributeMappingSettings(), config.getColumnMappingSettings());
+        final AttributesConverter attributesConverter = new AttributesConverter(config.getAttributeMappingSettings(),
+                config.getColumnMappingSettings(), config.getBaseYear());
         attributesConverter.map(population);
         attributesConverter.map(facilities.getFacilitiesForActivityType("home").values(), "households");
         attributesConverter.map(facilities.getFacilitiesForActivityType("work").values(), "businesses");

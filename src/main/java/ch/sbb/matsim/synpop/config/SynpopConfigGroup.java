@@ -22,7 +22,7 @@ public class SynpopConfigGroup extends ReflectiveConfigGroup {
     private String host = "k13536";
     private String port = "25432";
     private String database = "mobi_synpop";
-    private String year = "2016test";
+    private int baseYear = 2016;
     private String attributesCSV = "";
     private String version = "v1";
 
@@ -125,15 +125,14 @@ public class SynpopConfigGroup extends ReflectiveConfigGroup {
     }
 
     @StringGetter("year")
-    public String getYear() {
-        return year;
+    public Integer getBaseYear() {
+        return baseYear;
     }
 
     @StringSetter("year")
-    public void setYear(String year) {
-        this.year = year;
+    public void setBaseYear(int year) {
+        this.baseYear = year;
     }
-
 
     @StringGetter("attributesCSV")
     public String getAttributesCSV() {
