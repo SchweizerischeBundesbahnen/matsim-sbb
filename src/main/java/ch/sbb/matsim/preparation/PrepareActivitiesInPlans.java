@@ -16,9 +16,7 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.misc.Time;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class PrepareActivitiesInPlans {
 
@@ -42,7 +40,7 @@ public class PrepareActivitiesInPlans {
     public static void overwriteActivitiesInPlans(Population population) {
         for (Person p : population.getPersons().values()) {
             for (Plan plan : p.getPlans()) {
-                List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.stageActivitiesTypes);
+                List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.getStageActivitiesTypes());
                 Activity firstAct = activities.get(0);
                 Activity lastAct = activities.get(activities.size() - 1);
 

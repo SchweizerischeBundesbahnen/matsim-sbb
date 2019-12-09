@@ -214,7 +214,7 @@ public class AbmConverter {
             if(p.getPlans().size() > 1) log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
 
             Plan plan = p.getSelectedPlan();
-            List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.stageActivitiesTypes);
+            List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.getStageActivitiesTypes());
             List<String> endTimeList = new ArrayList<>();
             int i = 0;
 

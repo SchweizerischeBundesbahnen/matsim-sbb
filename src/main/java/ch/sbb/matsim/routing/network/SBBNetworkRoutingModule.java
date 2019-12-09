@@ -1,5 +1,6 @@
 package ch.sbb.matsim.routing.network;
 
+import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -21,6 +22,7 @@ public class SBBNetworkRoutingModule extends AbstractModule {
         this.routedModes = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBNetworkRoutingConfigGroup.class).getNetworkRoutingModes();
         for (String mode : routedModes) {
             addNetworkMode(scenario.getNetwork(), mode, SBBModes.CAR);
+            SBBActivities.stageActivityTypeList.add(mode + " interaction");
         }
     }
 

@@ -24,7 +24,7 @@ public class SBBTimeAllocationMutator extends AbstractMultithreadedModule {
 
     @Override
     public PlanAlgorithm getPlanAlgoInstance() {
-        return new SBBTripPlanMutateTimeAllocation(SBBActivities.stageActivitiesTypes,
+        return new SBBTripPlanMutateTimeAllocation(SBBActivities.getStageActivitiesTypes(),
                 this.mutationRange, MatsimRandom.getLocalInstance());
     }
 }

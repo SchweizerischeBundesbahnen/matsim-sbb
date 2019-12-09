@@ -24,7 +24,6 @@ public final class SBBActivities {
     public final static Map<String, String> matsimActs2abmActs;
 
     public final static Set<String> stageActivityTypeList;
-    public final static StageActivityTypes stageActivitiesTypes;
 
     static {
         abmActs2matsimActs = new HashMap<>();
@@ -47,6 +46,9 @@ public final class SBBActivities {
         }
     }
 
+    /*
+     * These are default stage activities. Others may occur.
+     */
     static  {
         stageActivityTypeList = new HashSet<>();
 
@@ -54,8 +56,9 @@ public final class SBBActivities {
         stageActivityTypeList.add("ride interaction");
         stageActivityTypeList.add("car interaction");
         stageActivityTypeList.add("bike interaction");
-        stageActivityTypeList.add("avtaxi interaction");
+    }
 
-        stageActivitiesTypes = new StageActivityTypesImpl(stageActivityTypeList);
+    public static StageActivityTypes getStageActivitiesTypes() {
+        return new StageActivityTypesImpl(stageActivityTypeList);
     }
 }
