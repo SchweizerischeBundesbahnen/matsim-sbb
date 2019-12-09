@@ -94,7 +94,7 @@ public class CalculateIndicatorMatrices {
         skims.calculateBeelineMatrix();
     }
 
-    private static BiPredicate<TransitLine, TransitRoute> buildTrainLinePredictor(String str) {
+    public static BiPredicate<TransitLine, TransitRoute> buildTrainLinePredictor(String str) {
         if (str == null) {
             return (line, route) -> false;
         }
