@@ -2,9 +2,11 @@ package ch.sbb.matsim.intermodal;
 
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.intermodal.analysis.IntermodalControlerListener;
 import ch.sbb.matsim.intermodal.analysis.IntermodalTransferTimeAnalyser;
+import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -64,7 +66,7 @@ public class IntermodalModule extends AbstractModule {
     private void prepare(Scenario scenario) {
         for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
             if (mode.isOnNetwork()) {
-                Intermodal.prepareNetwork(scenario.getNetwork(), mode.getMode());
+                SBBNetworkRoutingModule.addNetworkMode(scenario.getNetwork(), mode.getMode(), SBBModes.CAR);
                 Set<String> mainModes = new HashSet<>(scenario.getConfig().qsim().getMainModes());
                 mainModes.add(mode.getMode());
                 scenario.getConfig().qsim().setMainModes(mainModes);
