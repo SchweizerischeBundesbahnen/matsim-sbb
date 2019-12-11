@@ -9,6 +9,8 @@ import org.matsim.vehicles.VehicleUtils;
 import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
+import java.util.Collection;
+
 /**
  * Creates vehicles for each agent, based on the vehicle type in an agent attribute.
  * This class expects the referred vehicle types to already exist in the Vehicles container,
@@ -26,12 +28,15 @@ public class CreateVehiclesFromType {
     private final Vehicles vehicles;
     private final String vehicleTypeAttributeName;
     private final String defaultVehicleType;
+    private final Collection<String> mainModes;
 
-    public CreateVehiclesFromType(Population population, Vehicles vehicles, String vehicleTypeAttributeName, String defaultVehicleType) {
+    public CreateVehiclesFromType(Population population, Vehicles vehicles, String vehicleTypeAttributeName,
+                                  String defaultVehicleType, Collection<String> mainModes) {
         this.population = population;
         this.vehicles = vehicles;
         this.vehicleTypeAttributeName = vehicleTypeAttributeName;
         this.defaultVehicleType = defaultVehicleType;
+        this.mainModes = mainModes;
     }
 
     /**
@@ -53,7 +58,9 @@ public class CreateVehiclesFromType {
             }
             Vehicle vehicle = vf.createVehicle(vehicleId, vehicleType);
             this.vehicles.addVehicle(vehicle);
-            VehicleUtils.insertVehicleIdIntoAttributes(person, "car", vehicleId);
+            for(String mode: this.mainModes) {
+                VehicleUtils.insertVehicleIdIntoAttributes(person, mode, vehicleId);
+            }
         }
     }
 }

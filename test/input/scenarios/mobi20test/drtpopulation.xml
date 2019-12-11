@@ -27,7 +27,7 @@
             <attribute name="tZone" class="java.lang.String">623801001.0</attribute>
         </attributes>
         <plan selected="yes">
-            <activity type="outside" link="442583" x="605889.0" y="125314.0" end_time="19:04:55">
+            <activity type="outside" x="605889.0" y="125314.0" end_time="19:04:55">
             </activity>
             <leg mode="drt"/>
             <activity type="leisure_30" facility="B_228261" x="614224.0" y="134386.0" start_time="19:31:31"
@@ -35,7 +35,7 @@
             </activity>
             <leg mode="drt"/>
 
-            <activity type="outside" link="433010" x="605858.5" y="125360.5" end_time="20:35:17">
+            <activity type="outside" x="605858.5" y="125360.5" end_time="20:35:17">
             </activity>
         </plan>
 

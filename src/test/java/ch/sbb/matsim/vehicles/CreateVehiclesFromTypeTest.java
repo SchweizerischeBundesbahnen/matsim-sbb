@@ -87,7 +87,8 @@ public class CreateVehiclesFromTypeTest {
         Scenario scenario = buildTestScenario();
         Assert.assertTrue(scenario.getVehicles().getVehicles().isEmpty());
 
-        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE, DEFAULT_VEHICLE_TYPE);
+        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE, DEFAULT_VEHICLE_TYPE,
+                scenario.getConfig().qsim().getMainModes());
         vehicleCreator.createVehicles();
 
         Assert.assertEquals(5, scenario.getVehicles().getVehicles().size());
@@ -105,7 +106,8 @@ public class CreateVehiclesFromTypeTest {
         Person person5 = scenario.getPopulation().getPersons().get(Id.create(5, Person.class));
         person5.getAttributes().removeAttribute(VEHTYPE_ATTRIBUTE);
 
-        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE, DEFAULT_VEHICLE_TYPE);
+        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE, DEFAULT_VEHICLE_TYPE,
+                scenario.getConfig().qsim().getMainModes());
         vehicleCreator.createVehicles();
 
         Assert.assertEquals(5, scenario.getVehicles().getVehicles().size());
@@ -123,7 +125,8 @@ public class CreateVehiclesFromTypeTest {
         Person person5 = scenario.getPopulation().getPersons().get(Id.create(5, Person.class));
         person5.getAttributes().putAttribute(VEHTYPE_ATTRIBUTE, "carHybrid");
 
-        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE, DEFAULT_VEHICLE_TYPE);
+        CreateVehiclesFromType vehicleCreator = new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), VEHTYPE_ATTRIBUTE, DEFAULT_VEHICLE_TYPE,
+                scenario.getConfig().qsim().getMainModes());
         try {
             vehicleCreator.createVehicles();
             Assert.fail("expected exception, got none.");

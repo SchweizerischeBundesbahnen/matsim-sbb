@@ -74,7 +74,8 @@ public class RunSBB {
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
         // vehicle types
-        new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car").createVehicles();
+        new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
+                scenario.getConfig().qsim().getMainModes()).createVehicles();
         scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
