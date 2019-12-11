@@ -23,11 +23,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.ReflectiveConfigGroup;
 import org.matsim.core.utils.misc.Time;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -41,18 +37,14 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     private final List<SBBIntermodalModeParameterSet> intermodalModeParams;
     private final Zones zones;
     private final Network network;
-    private final TransitSchedule transitSchedule;
 
     @Inject
-    SBBRaptorIntermodalAccessEgress(Config config, ZonesCollection zonesCollection, Network network, TransitSchedule transitSchedule) {
+    SBBRaptorIntermodalAccessEgress(Config config, ZonesCollection zonesCollection, Network network) {
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
         intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
         Id<Zones> zonesId = intermodalConfigGroup.getZonesId();
         this.zones = zonesId != null ? new ZonesQueryCache(zonesCollection.getZones(intermodalConfigGroup.getZonesId())) : null;
-
-        this.transitSchedule = transitSchedule;
         this.network = network;
-
     }
 
 
@@ -60,22 +52,12 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         this.intermodalModeParams = intermodalModeParams;
         this.zones = null;
         this.network = null;
-        this.transitSchedule = null;
     }
 
     private boolean isIntermodalMode(String mode) {
         for (SBBIntermodalModeParameterSet modeParams : this.intermodalModeParams) {
             if (mode.equals(modeParams.getMode())) {
                 return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean doUseMinimalTransferTimes(String mode) {
-        for (SBBIntermodalModeParameterSet modeParams : this.intermodalModeParams) {
-            if (mode.equals(modeParams.getMode())) {
-                return modeParams.doUseMinimalTransferTimes();
             }
         }
         return false;
@@ -189,7 +171,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         } else if (parameterSet.getDetourFactorZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
             if (zone != null) {
-                Object att = zone.getAttribute(parameterSet.getDetourFactorZoneId()).toString();
+                Object att = zone.getAttribute(parameterSet.getDetourFactorZoneId());
                 if (att != null) {
                     return Double.parseDouble(att.toString());
                 }
@@ -267,10 +249,4 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
         return new RIntermodalAccessEgress(legs, disutility, this.getTotalTravelTime(legs));
     }
-
-    public double getMinimalTransferTime(TransitStopFacility stop) {
-        MinimalTransferTimes mitt = this.transitSchedule.getMinimalTransferTimes();
-        return mitt.get(stop.getId(), stop.getId());
-    }
-
 }
