@@ -4,9 +4,12 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.vehicles.Vehicle;
-import org.matsim.vehicles.VehicleImpl;
 import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleUtils;
 import org.matsim.vehicles.Vehicles;
+import org.matsim.vehicles.VehiclesFactory;
+
+import java.util.Collection;
 
 /**
  * Creates vehicles for each agent, based on the vehicle type in an agent attribute.
@@ -25,18 +28,22 @@ public class CreateVehiclesFromType {
     private final Vehicles vehicles;
     private final String vehicleTypeAttributeName;
     private final String defaultVehicleType;
+    private final Collection<String> mainModes;
 
-    public CreateVehiclesFromType(Population population, Vehicles vehicles, String vehicleTypeAttributeName, String defaultVehicleType) {
+    public CreateVehiclesFromType(Population population, Vehicles vehicles, String vehicleTypeAttributeName,
+                                  String defaultVehicleType, Collection<String> mainModes) {
         this.population = population;
         this.vehicles = vehicles;
         this.vehicleTypeAttributeName = vehicleTypeAttributeName;
         this.defaultVehicleType = defaultVehicleType;
+        this.mainModes = mainModes;
     }
 
     /**
      * @throws RuntimeException when the agent is missing the vehicle type attribute, or the vehicle type is not found in the vehicles container.
      */
     public void createVehicles() {
+        VehiclesFactory vf = this.vehicles.getFactory();
         for (Person person : population.getPersons().values()) {
             Id<Person> personId = person.getId();
             Id<Vehicle> vehicleId = Id.create(personId.toString(), Vehicle.class);
@@ -49,8 +56,11 @@ public class CreateVehiclesFromType {
             if (vehicleType == null) {
                 throw new RuntimeException("VehicleType not found: " + vehicleTypeName);
             }
-            Vehicle vehicle = new VehicleImpl(vehicleId, vehicleType);
+            Vehicle vehicle = vf.createVehicle(vehicleId, vehicleType);
             this.vehicles.addVehicle(vehicle);
+            for(String mode: this.mainModes) {
+                VehicleUtils.insertVehicleIdIntoAttributes(person, mode, vehicleId);
+            }
         }
     }
 }

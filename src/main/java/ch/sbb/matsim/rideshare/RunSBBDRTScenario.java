@@ -5,6 +5,7 @@ import ch.sbb.matsim.rideshare.analysis.SBBDRTAnalysisModule;
 import ch.sbb.matsim.rideshare.utils.RideshareAwareIntermodalMainModeIdentifier;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.contrib.av.robotaxi.fares.drt.DrtFaresConfigGroup;
 import org.matsim.contrib.drt.run.*;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
@@ -54,8 +55,13 @@ public class RunSBBDRTScenario {
     }
 
     public static void prepareDrtConfig(Config config) {
-        DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore());
-        config.addConfigConsistencyChecker(new DrtConfigConsistencyChecker());
+        DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore(), config.plansCalcRoute());
+
+        if (config.plansCalcRoute().getNetworkModes().contains(TransportMode.ride)) {
+            // MATSim defines ride by default as teleported, which conflicts with the network mode
+            config.plansCalcRoute().removeModeRoutingParams(TransportMode.ride);
+        }
+
         config.checkConsistency();
     }
 

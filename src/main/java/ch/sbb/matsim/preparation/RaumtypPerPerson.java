@@ -14,11 +14,10 @@ import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.PopulationWriter;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -40,11 +39,13 @@ public class RaumtypPerPerson {
     public static String DEFAULT_RAUMTYP = "4";
 
     public static void main(final String[] args) {
+        if (args.length != 4) {
+            System.err.println("Wrong number of arguments.");
+        }
         final String planFile = args[0];
-        final String attributeFile = args[1];
-        final String shapeFile = args[2];
-        final String outputLog = args[3];
-        final String outputAttributes = args[4];
+        final String shapeFile = args[1];
+        final String outputLog = args[2];
+        final String outputPopulation = args[3];
 
         Logger log = Logger.getLogger(RaumtypPerPerson.class);
         int nbUndefined = 0;
@@ -59,7 +60,6 @@ public class RaumtypPerPerson {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(planFile);
-        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(attributeFile);
 
         Zones zones = new ZonesQueryCache(ZonesLoader.loadZones("zones", shapeFile, null));
 
@@ -89,12 +89,12 @@ public class RaumtypPerPerson {
                         raumTyp = raumTyp9.substring(0, 1);
                     }
                 }
-                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RAUMTYP, raumTyp);
+                person.getAttributes().putAttribute(RAUMTYP, raumTyp);
             } else
                 throw new IllegalStateException("first planelement of person " +
-                        person.getId().toString() + " cannot be not an activity");
+                        person.getId().toString() + " must be an activity");
         }
-        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(outputAttributes);
+        new PopulationWriter(scenario.getPopulation()).write(outputPopulation);
         log.info(notDefinedLog);
         log.info("nb persons with first activity not of type home " + nbNotHomeType);
         log.info("nb persons with undefined zone " + nbUndefined);

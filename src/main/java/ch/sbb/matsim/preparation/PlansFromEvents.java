@@ -70,7 +70,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
     private Map<Person, LinkedList<Id<Link>>> actLinkIdsPerPerson = new HashMap<>();
     private Map<Person, Double> actDistancePerPerson = new HashMap<>();
 
-    private List<String> toIgnore = Arrays.asList("vehicle_interaction", "vehicle_parking", "egress_walk", "access_walk");
+    private List<String> toIgnore = Arrays.asList("vehicle_interaction", "vehicle_parking", "non_network_walk");
 
     private final static Logger log = Logger.getLogger(PlansFromEvents.class);
 

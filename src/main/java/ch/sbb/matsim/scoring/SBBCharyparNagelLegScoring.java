@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.scoring;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
@@ -71,12 +72,11 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		double travelTime = arrivalTime - departureTime; // travel time in seconds
 		ModeUtilityParameters modeParams = this.params.modeParams.get(leg.getMode());
 		if (modeParams == null) {
-			if (leg.getMode().equals(TransportMode.transit_walk) || leg.getMode().equals(TransportMode.access_walk) 
-					|| leg.getMode().equals(TransportMode.egress_walk) ) {
+			if (leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) || leg.getMode().equals(SBBModes.NON_NETWORK_WALK)) {
 				modeParams = this.params.modeParams.get(TransportMode.walk);
 			} else {
 //				modeParams = this.params.modeParams.get(TransportMode.other);
-				throw new RuntimeException("just encountered mode for which no scoring parameters are defined: " + leg.getMode().toString() ) ;
+				throw new RuntimeException("just encountered mode for which no scoring parameters are defined: " + leg.getMode() ) ;
 			}
 		}
 		tmpScore += travelTime * modeParams.marginalUtilityOfTraveling_s;

@@ -7,6 +7,7 @@ package ch.sbb.matsim.intermodal;
 
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.zones.Zone;
@@ -15,7 +16,6 @@ import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesQueryCache;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
@@ -92,14 +92,15 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         Leg mainAccessModeLeg = null;
         Leg egressLeg = null;
         double egressTime = 0.0;
+        int i = 0;
         for (PlanElement pe : legs) {
             if (pe instanceof Leg) {
                 Leg leg = (Leg) pe;
                 String mode = leg.getMode();
-                if (mode.equals(TransportMode.access_walk)) {
+                if ((i == 0) && mode.equals(SBBModes.NON_NETWORK_WALK)) {
                     accessLeg = leg;
                 }
-                if (mode.equals(TransportMode.egress_walk)) {
+                if ((i == legs.size() - 1) && mode.equals(SBBModes.NON_NETWORK_WALK)) {
                     egressLeg = leg;
                 }
                 if (this.isIntermodalMode(mode)) {
@@ -111,14 +112,13 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
                         accessLeg.getRoute().setTravelTime(accessTime);
                     } else {
                         travelTime += accessTime;
-
                     }
                     egressTime = getEgressTime(leg.getRoute().getEndLinkId(), mode);
                     leg.setTravelTime(travelTime);
                     leg.getRoute().setTravelTime(travelTime);
                     mainAccessModeLeg = leg;
                 }
-
+                i++;
             }
         }
 

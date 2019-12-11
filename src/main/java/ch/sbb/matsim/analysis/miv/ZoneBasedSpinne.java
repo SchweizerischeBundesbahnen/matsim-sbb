@@ -20,7 +20,6 @@ import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 import java.io.IOException;
 import java.util.*;
@@ -47,8 +46,7 @@ public class ZoneBasedSpinne {
 
         List<InputFiles> planFiles = new ArrayList<>();
         for(int i = 1; i < 5; i++) {
-            planFiles.add(new InputFiles(plans + "2.0.1."+i+"_release_25pct_"+i+"\\output\\CH.25pct."+i+".2016.output_plans.xml.gz",
-                    plans + "2.0.1."+i+"_release_25pct_"+i+"\\output\\CH.25pct."+i+".2016.output_personAttributes.xml.gz"));
+            planFiles.add(new InputFiles(plans + "2.0.1."+i+"_release_25pct_"+i+"\\output\\CH.25pct."+i+".2016.output_plans.xml.gz"));
         }
         planFiles.parallelStream().forEach(planFile -> readPopulationAndCalcVolumes(planFile, linksInZone));
 
@@ -57,11 +55,9 @@ public class ZoneBasedSpinne {
 
     private static class InputFiles {
         private String plans;
-        private String personAttributes;
 
-        private InputFiles(String plans, String personAttributes)   {
+        private InputFiles(String plans)   {
             this.plans = plans;
-            this.personAttributes = personAttributes;
         }
     }
 
@@ -92,15 +88,10 @@ public class ZoneBasedSpinne {
     private void readPopulationAndCalcVolumes(InputFiles files, HashSet<Id<Link>> linksInZone)   {
         log.info("loading plans from file " + files.plans);
 
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        // TODO: get rid of personAttributes file
-        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(files.personAttributes);
-
         Scenario scenario1 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         StreamingPopulationReader r = new StreamingPopulationReader(scenario1);
         r.addAlgorithm(person -> {
-            String subpop = scenario.getPopulation().getPersonAttributes().getAttribute(person.getId().toString(),
-                    Variables.SUBPOPULATION).toString();
+            String subpop = person.getAttributes().getAttribute(Variables.SUBPOPULATION).toString();
             // take agent if it is not a freight agent
             if(subpop.equals("regular") || subpop.equals("cb_road") || subpop.equals("airport_road"))    {
                 Plan selectedPlan = person.getSelectedPlan();

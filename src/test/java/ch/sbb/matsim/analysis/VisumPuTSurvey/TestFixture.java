@@ -69,7 +69,7 @@ public class TestFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(1, Person.class));
-        population.getPersonAttributes().putAttribute(person.getId().toString(), "subpopulation","regular");
+        person.getAttributes().putAttribute("subpopulation","regular");
         Plan plan = pf.createPlan();
         Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
         act1.setEndTime(29500);
@@ -118,14 +118,13 @@ public class TestFixture {
         VehiclesFactory vf = vehicles.getFactory();
 
         VehicleType vehType1 = vf.createVehicleType(Id.create("some_train", VehicleType.class));
-        VehicleCapacity vehCapacity = vf.createVehicleCapacity();
+        VehicleCapacity vehCapacity = vehType1.getCapacity();
         vehCapacity.setSeats(300);
         vehCapacity.setStandingRoom(150);
-        vehType1.setCapacity(vehCapacity);
         vehicles.addVehicleType(vehType1);
-        vehType1.setDoorOperationMode(VehicleType.DoorOperationMode.serial);
-        vehType1.setAccessTime(2); // 1 person takes 2 seconds to board
-        vehType1.setEgressTime(2);
+        VehicleUtils.setDoorOperationMode(vehType1, VehicleType.DoorOperationMode.serial);
+        VehicleUtils.setAccessTime(vehType1, 2); // 1 person takes 2 seconds to board
+        VehicleUtils.setEgressTime(vehType1, 2);
         Vehicle veh1 = vf.createVehicle(Id.create("train1", Vehicle.class), vehType1);
         vehicles.addVehicle(veh1);
 
@@ -147,7 +146,7 @@ public class TestFixture {
         schedule.addStopFacility(this.stopD);
         schedule.addStopFacility(this.stopE);
 
-        this.line1 = f.createTransitLine(Id.create("1", TransitLine.class));
+        this.line1 = f.createTransitLine(Id.create("S2016_1", TransitLine.class));
 
         List<Id<Link>> linkIdList = new ArrayList<>();
         linkIdList.add(link2.getId());

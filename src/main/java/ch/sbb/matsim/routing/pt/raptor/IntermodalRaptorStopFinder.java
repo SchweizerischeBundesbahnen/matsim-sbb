@@ -3,6 +3,7 @@ package ch.sbb.matsim.routing.pt.raptor;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -87,13 +88,12 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
         } else {
             double distanceFactor = data.config.getBeelineWalkDistanceFactor();
             List<TransitStopFacility> stops = findNearbyStops(facility, parameters, data);
-            List<InitialStop> initialStops = stops.stream().map(stop -> {
+            return stops.stream().map(stop -> {
                 double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
                 double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.access_walk);
-                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.access_walk);
+                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
+                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
             }).collect(Collectors.toList());
-            return initialStops;
         }
     }
 
@@ -104,13 +104,12 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
         } else {
             double distanceFactor = data.config.getBeelineWalkDistanceFactor();
             List<TransitStopFacility> stops = findNearbyStops(facility, parameters, data);
-            List<InitialStop> initialStops = stops.stream().map(stop -> {
+            return stops.stream().map(stop -> {
                 double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
                 double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.egress_walk);
-                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.egress_walk);
+                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
+                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
             }).collect(Collectors.toList());
-            return initialStops;
         }
     }
 
@@ -121,15 +120,15 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
         String personId = person.getId().toString();
         List<InitialStop> initialStops = new ArrayList<>();
         for (IntermodalAccessEgressParameterSet paramset : srrCfg.getIntermodalAccessEgressParameterSets()) {
-            double radius = paramset.getRadius();
+            double radius = paramset.getMaxRadius();
             String mode = paramset.getMode();
             boolean useMinimalTransferTimes = false;
             if (this.doUseMinimalTransferTimes(mode)) {
                 useMinimalTransferTimes = true;
             }
             String overrideMode = null;
-            if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
-                overrideMode = direction == Direction.ACCESS ? TransportMode.access_walk : TransportMode.egress_walk;
+            if (mode.equals(SBBModes.WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                overrideMode = SBBModes.NON_NETWORK_WALK;
             }
             String linkIdAttribute = paramset.getLinkIdAttribute();
             String personFilterAttribute = paramset.getPersonFilterAttribute();
@@ -187,7 +186,7 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
                         }
                         if (stopFacility != stop) {
                             if (direction == Direction.ACCESS) {
-                                Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+                                Leg transferLeg = PopulationUtils.createLeg(SBBModes.NON_NETWORK_WALK);
                                 Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
                                 double transferTime = 0.0;
                                 if (useMinimalTransferTimes) {
@@ -203,7 +202,7 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
                                 tmp.add(transferLeg);
                                 routeParts = tmp;
                             } else {
-                                Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+                                Leg transferLeg = PopulationUtils.createLeg(SBBModes.NON_NETWORK_WALK);
                                 Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
                                 double transferTime = 0.0;
                                 if (useMinimalTransferTimes) {

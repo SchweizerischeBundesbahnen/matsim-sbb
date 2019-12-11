@@ -7,7 +7,6 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansConfigGroup;
@@ -16,8 +15,6 @@ import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.scoring.functions.ModeUtilityParameters;
 import org.matsim.core.scoring.functions.ScoringParameters;
 import org.matsim.core.scoring.functions.ScoringParametersForPerson;
-import org.matsim.pt.config.TransitConfigGroup;
-import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -42,9 +39,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
     private final PlanCalcScoreConfigGroup config;
     private final ScenarioConfigGroup scConfig;
     private final Map<Person, SBBScoringParameters> paramsPerPerson = new LinkedHashMap<>();
-    private final ObjectAttributes personAttributes;
     private final String subpopulationAttributeName;
-    private final TransitConfigGroup transitConfigGroup;
     private final SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup;
 
     private final Map<ComparableActivityParams, ComparableActivityParams> actParamCache = new ConcurrentHashMap<>();
@@ -53,8 +48,6 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
         this(scenario.getConfig().plans(),
                 scenario.getConfig().planCalcScore(),
                 scenario.getConfig().scenario(),
-                scenario.getPopulation(),
-                scenario.getConfig().transit(),
                 ConfigUtils.addOrGetModule(scenario.getConfig(), SBBBehaviorGroupsConfigGroup.class));
     }
 
@@ -62,14 +55,10 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
             PlansConfigGroup plansConfigGroup,
             PlanCalcScoreConfigGroup planCalcScoreConfigGroup,
             ScenarioConfigGroup scenarioConfigGroup,
-            Population population,
-            TransitConfigGroup transitConfigGroup,
             SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup) {
         this.config = planCalcScoreConfigGroup;
         this.scConfig = scenarioConfigGroup;
-        this.personAttributes = population.getPersonAttributes();
         this.subpopulationAttributeName = plansConfigGroup.getSubpopulationAttributeName();
-        this.transitConfigGroup = transitConfigGroup;
         this.behaviorGroupsConfigGroup = behaviorGroupsConfigGroup;
     }
 
@@ -85,7 +74,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
             return sbbParams;
         }
 
-        final String subpopulation = (String) personAttributes.getAttribute(person.getId().toString(), subpopulationAttributeName);
+        final String subpopulation = (String) person.getAttributes().getAttribute(subpopulationAttributeName);
 
         PlanCalcScoreConfigGroup.ScoringParameterSet scoringParameters = this.config.getScoringParameters(subpopulation);
         PlanCalcScoreConfigGroup.ScoringParameterSet filteredParameters = (PlanCalcScoreConfigGroup.ScoringParameterSet) this.config.createParameterSet(PlanCalcScoreConfigGroup.ScoringParameterSet.SET_TYPE);
