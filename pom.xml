@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.sbb</groupId>
 	<artifactId>matsim-sbb</artifactId>
-	<version>0.11.14-SNAPSHOT</version>
+	<version>0.12.0-SNAPSHOT</version>
 	<name>MATSim SBB Project</name>
 	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P</description>
 
@@ -27,30 +27,39 @@
 		</repository>
 	</repositories>
 
+	<properties>
+		<matsim.version>12.0-2019w45-SNAPSHOT</matsim.version>
+	</properties>
+
 	<dependencies>
 
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>11.0</version>
+			<version>${matsim.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>drt</artifactId>
-            <version>0.11.0-SNAPSHOT</version>
+            <version>${matsim.version}</version>
 		</dependency>
 
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>av</artifactId>
-            <version>0.11.0-SNAPSHOT</version>
+            <version>${matsim.version}</version>
         </dependency>
+		<dependency> <!-- MATSim uses Guice 4.1.0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>27.1-jre</version>
+		</dependency>
 
         <dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>11.0</version>
+			<version>${matsim.version}</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 			<type>test-jar</type>
@@ -69,11 +78,10 @@
 			<version>0.13-SNAPSHOT</version>
 		</dependency>
 
-
 		<dependency>
 			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
-			<version>11.6</version>
+			<version>12.1</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->
@@ -200,14 +208,13 @@
 				<configuration>
 					<includes>
 						<include>**/*IT.java</include>
-                        <include>**/Test*.java</include>
-                        <include>**/*Test.java</include>
-                        <include>**/*Tests.java</include>
-                        <include>**/*TestCase.java</include>
+						<include>**/Test*.java</include>
+						<include>**/*Test.java</include>
+						<include>**/*Tests.java</include>
+						<include>**/*TestCase.java</include>
 					</includes>
 				</configuration>
 			</plugin>
-
 		</plugins>
 	</build>
 

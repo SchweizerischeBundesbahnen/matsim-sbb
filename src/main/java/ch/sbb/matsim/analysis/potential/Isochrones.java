@@ -100,7 +100,9 @@ public class Isochrones {
 
     private TravelTime getTravelTime(String eventsFilename) {
         log.info("extracting actual travel times from " + eventsFilename);
-        TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), scenario.getConfig().travelTimeCalculator());
+        TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(scenario.getNetwork());
+        builder.configure(scenario.getConfig().travelTimeCalculator());
+        TravelTimeCalculator ttc = builder.build();
         EventsManager events = EventsUtils.createEventsManager();
         events.addHandler(ttc);
         new MatsimEventsReader(events).readFile(eventsFilename);

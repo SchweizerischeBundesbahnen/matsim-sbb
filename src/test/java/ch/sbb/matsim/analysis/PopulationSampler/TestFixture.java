@@ -32,7 +32,7 @@ public class TestFixture {
             Person person = pf.createPerson(Id.create(i, Person.class));
             population.addPerson(person);
             if(addAttributes)
-                population.getPersonAttributes().putAttribute(person.getId().toString(), "attribute", "value");
+                person.getAttributes().putAttribute("attribute", "value");
         }
     }
 }

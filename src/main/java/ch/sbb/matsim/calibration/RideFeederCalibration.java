@@ -35,7 +35,6 @@ import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.router.TransitRouter;
-import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -73,7 +72,6 @@ public class RideFeederCalibration {
 
         Config config = RunSBB.buildConfig(config_path);
         config.plans().setInputFile(null);
-        config.plans().setInputPersonAttributeFile(null);
         config.facilities().setInputFile(null);
 
         ZonesCollection zonesCollection = new ZonesCollection();
@@ -97,8 +95,7 @@ public class RideFeederCalibration {
 
 
         this.person1 = this.scenario.getPopulation().getFactory().createPerson(Id.create("1", Person.class));
-        ObjectAttributes personAttributes = this.scenario.getPopulation().getPersonAttributes();
-        personAttributes.putAttribute(person1.getId().toString(), "subpopulation", "regular");
+        this.person1.getAttributes().putAttribute("subpopulation", "regular");
         this.scenario.getPopulation().addPerson(person1);
 
         this.initRaptorData();
@@ -205,13 +202,13 @@ public class RideFeederCalibration {
         routingModules.put("ride_feeder", new SBBNetworkRoutingInclAccessEgressModule("car", scenario.getPopulation().getFactory(), scenario.getNetwork(),
                 routeAlgo, plansCalcRouteConfigGroup, zones));
         routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, scenario.getPopulation().getFactory(), 1.1, 1.3));
+                new TeleportationRoutingModule(TransportMode.walk, scenario, 1.1, 1.3));
 
 
         DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(scenario.getPopulation(), intermodalAE, routingModules);
         return new SwissRailRaptor(this.data, new DefaultRaptorParametersForPerson(this.config),
                 new LeastCostRaptorRouteSelector(),
-                stopFinder, "subpopulation", scenario.getPopulation().getPersonAttributes());
+                stopFinder, "subpopulation");
     }
 
 
