@@ -65,7 +65,7 @@ public class IntermodalModule extends AbstractModule {
 
     private void prepare(Scenario scenario) {
         for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
-            if (mode.isOnNetwork()) {
+            if (mode.isSimulatedOnNetwork()) {
                 SBBNetworkRoutingModule.addNetworkMode(scenario.getNetwork(), mode.getMode(), SBBModes.CAR);
                 Set<String> mainModes = new HashSet<>(scenario.getConfig().qsim().getMainModes());
                 mainModes.add(mode.getMode());
@@ -77,7 +77,7 @@ public class IntermodalModule extends AbstractModule {
     @Override
     public void install() {
         for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
-            if (mode.isOnNetwork() && !mode.getMode().equals(TransportMode.car)) {
+            if (mode.isRoutedOnNetwork() && !mode.getMode().equals(TransportMode.car)) {
                 addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
                 addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
             }

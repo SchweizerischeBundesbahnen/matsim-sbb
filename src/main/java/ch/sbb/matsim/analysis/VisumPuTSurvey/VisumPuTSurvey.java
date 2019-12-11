@@ -99,11 +99,6 @@ public class VisumPuTSurvey {
     }
 
     public void write(String path) {
-        write(path, Charset.forName("Cp1252"));
-    }
-
-    //non public, for integration tests. For Use in production, use default encoding
-    void write(String path, Charset charset) {
         boolean isRail;
         List<TravelledLeg> accessLegs;
         List<TravelledLeg> egressLegs;
@@ -116,7 +111,7 @@ public class VisumPuTSurvey {
         final String filepath = path + FILENAME;
         log.info("write Visum PuT Survey File to " + filepath);
 
-        try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath, charset)) {
+        try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath, Charset.forName("Cp1252"))) {
             for (Map.Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
                 String paxId = entry.getKey().toString();
                 TravellerChain chain = entry.getValue();
