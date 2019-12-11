@@ -140,7 +140,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
         if (parameterSet.getEgressTimeZoneId() != null) {
             Zone zone = zones.findZone(network.getLinks().get(endLinkId).getCoord());
-            return zone != null ? (int) zone.getAttribute(parameterSet.getEgressTimeZoneId()) : 0.0;
+            return zone != null ? Double.valueOf(zone.getAttribute(parameterSet.getEgressTimeZoneId()).toString()) : 0.0;
         } else {
             return 0.0;
         }
