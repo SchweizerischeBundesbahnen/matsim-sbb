@@ -141,6 +141,8 @@ public class RunSBB {
     }
 
     public static Config buildConfig(String filepath) {
-        return ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
+        Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
+        config.checkConsistency();
+        return config;
     }
 }
