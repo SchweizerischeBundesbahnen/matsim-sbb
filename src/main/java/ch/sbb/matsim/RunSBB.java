@@ -149,6 +149,7 @@ public class RunSBB {
             config.plansCalcRoute().removeModeRoutingParams(TransportMode.ride);
         }
 
+        config.checkConsistency();
         return config;
     }
 }

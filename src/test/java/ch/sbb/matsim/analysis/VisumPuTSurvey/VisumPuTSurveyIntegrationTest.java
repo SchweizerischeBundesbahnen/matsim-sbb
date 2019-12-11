@@ -3,6 +3,7 @@ package ch.sbb.matsim.analysis.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.EventsToTravelDiaries;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
 
@@ -10,7 +11,6 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -36,7 +36,7 @@ public class VisumPuTSurveyIntegrationTest {
         int elementId = chain.getLastTrip().getElementId();
 
         Files.createDirectories(Paths.get("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/"));
-        visumPuTSurvey.write("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/", Charset.forName("UTF-8"));
+        visumPuTSurvey.write("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/");
         String expected = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n" +
                 "* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT" +
                 "\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege" +
@@ -46,7 +46,7 @@ public class VisumPuTSurveyIntegrationTest {
                 "ACCESS_TO_RAIL_DIST;EGRESS_FROM_RAIL_DIST\n" +
                 elementId + ";1;B;D;code;code;code;code;code;E;B;1;08:22:00;10;regular;999999999;999999999;;;0;0\n";
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/matsim_put_survey.att")));
+        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("./test/output/ch/sbb/matsim/analysis/VisumPuTSurvey/VisumPuTSurveyIntegrationTest/matsim_put_survey.att"), "Cp1252"));
         StringBuilder sb = new StringBuilder();
         String line = br.readLine();
         while (line != null) {

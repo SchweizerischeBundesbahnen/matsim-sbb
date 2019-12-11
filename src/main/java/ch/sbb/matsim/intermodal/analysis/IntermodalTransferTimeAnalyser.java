@@ -61,8 +61,6 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
         monitoredModes = new HashSet<>(monitoredAccessEgressModes);
         monitoredModes.addAll(monitoredPtModes);
         initializeTransferStats();
-
-
     }
 
     public IntermodalTransferTimeAnalyser(Set<String> monitoredAccessEgressModes, Set<String> monitoredPtModes) {

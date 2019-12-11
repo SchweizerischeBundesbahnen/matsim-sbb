@@ -3151,7 +3151,8 @@
             <param name="mutt" value="30"/>
             <param name="accessTimeZonesAttributeName" value="ACCCAR"/>
             <param name="egressTimeZonesAttributeName" value="ACCCAR"/>
-            <param name="isOnNetwork" value="true"/>
+            <param name="isSimulatedOnNetwork" value="true"/>
+            <param name="isRoutedOnNetwork" value="true"/>
         </parameterset>
         <parameterset type="mode">
             <param name="mode" value="bike"/>
@@ -3159,7 +3160,8 @@
             <param name="constant" value="0.0"/>
             <param name="mutt" value="35"/>
             <param name="detourFactor" value="1.0"/>
-            <param name="isOnNetwork" value="false"/>
+            <param name="isSimulatedOnNetwork" value="false"/>
+            <param name="isRoutedOnNetwork" value="false"/>
         </parameterset>
         <parameterset type="mode">
             <param name="mode" value="drtfeeder"/>
@@ -3167,7 +3169,8 @@
             <param name="mutt" value="25"/>
             <param name="detourFactorZonesAttributeName" value="FEEDERDET"/>
             <param name="accessTimeZonesAttributeName" value="FEEDERWAIT"/>
-            <param name="isOnNetwork" value="false"/>
+            <param name="isSimulatedOnNetwork" value="false"/>
+            <param name="isRoutedOnNetwork" value="false"/>
         </parameterset>
     </module>
 
