@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.apache.log4j.Logger;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,6 +12,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -23,9 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  *
@@ -86,15 +86,15 @@ public class CleanerTest {
 
         List<PlanElement> pe =  f.scenario.getPopulation().getPersons().get(Id.createPersonId("2")).getPlans().get(0).getPlanElements();
         assertEquals(7, pe.size(), 0);
-        assertEquals(TransportMode.access_walk, ((Leg) pe.get(1)).getMode());
+        assertEquals(TransportMode.non_network_walk, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_PT, SUBPOP_REGULAR);
         assertEquals(7, pe.size(), 0);
-        assertEquals(TransportMode.access_walk, ((Leg) pe.get(1)).getMode());
+        assertEquals(TransportMode.non_network_walk, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_CAR, SUBPOP_CB);
         assertEquals(7, pe.size(), 0);
-        assertEquals(TransportMode.access_walk, ((Leg) pe.get(1)).getMode());
+        assertEquals(TransportMode.non_network_walk, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
         assertEquals(3, pe.size(), 0);
@@ -131,15 +131,15 @@ public class CleanerTest {
 
         List<PlanElement> pe =  f.scenario.getPopulation().getPersons().get(Id.createPersonId("4")).getPlans().get(0).getPlanElements();
         assertEquals(7, pe.size(), 0);
-        assertEquals(TransportMode.access_walk, ((Leg) pe.get(1)).getMode());
+        assertEquals(TransportMode.non_network_walk, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_PT, SUBPOP_REGULAR);
         assertEquals(7, pe.size(), 0);
-        assertEquals(TransportMode.access_walk, ((Leg) pe.get(1)).getMode());
+        assertEquals(TransportMode.non_network_walk, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_CAR, SUBPOP_CB);
         assertEquals(7, pe.size(), 0);
-        assertEquals(TransportMode.access_walk, ((Leg) pe.get(1)).getMode());
+        assertEquals(TransportMode.non_network_walk, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(Arrays.asList(TransportMode.bike), SUBPOP_REGULAR);
         assertEquals(3, pe.size(), 0);
@@ -153,16 +153,16 @@ public class CleanerTest {
 
         Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("5")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertEquals(7, f.scenario.getPopulation().getPersons().get(Id.createPersonId("5")).getPlans().get(0).getPlanElements().size(), 0);
         assertEquals(leg.getRoute().getStartLinkId().toString(), "2");
 
         cleaner.clean(MODES_PT, SUBPOP_CB);
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.bike), SUBPOP_ALL);
@@ -178,15 +178,15 @@ public class CleanerTest {
 
         List<PlanElement> pe =  f.scenario.getPopulation().getPersons().get(Id.createPersonId("6")).getPlans().get(0).getPlanElements();
         assertEquals(7, pe.size(), 0);
-        assertEquals(TransportMode.access_walk, ((Leg) pe.get(1)).getMode());
+        assertEquals(TransportMode.non_network_walk, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
         assertEquals(7, pe.size(), 0);
-        assertEquals(TransportMode.access_walk, ((Leg) pe.get(1)).getMode());
+        assertEquals(TransportMode.non_network_walk, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_PT, SUBPOP_CB);
         assertEquals(7, pe.size(), 0);
-        assertEquals(TransportMode.access_walk, ((Leg) pe.get(1)).getMode());
+        assertEquals(TransportMode.non_network_walk, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_PT, SUBPOP_REGULAR);
         assertEquals(3, pe.size(), 0);
@@ -200,16 +200,16 @@ public class CleanerTest {
 
         Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("7")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertEquals(3, f.scenario.getPopulation().getPersons().get(Id.createPersonId("7")).getPlans().get(0).getPlanElements().size(), 0);
         assertEquals(leg.getRoute().getStartLinkId().toString(), "2");
 
         cleaner.clean(MODES_PT, SUBPOP_CB);
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(MODES_CAR, SUBPOP_FREIGHT);
-        assertEquals(leg.getMode(), TransportMode.transit_walk);
+        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.bike), SUBPOP_FREIGHT);
@@ -225,7 +225,7 @@ public class CleanerTest {
 
         Leg oldLeg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(oldLeg.getMode(), TransportMode.access_walk);
+        assertEquals(oldLeg.getMode(), TransportMode.non_network_walk);
         assertEquals(13, f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().size(), 0);
         assertEquals(oldLeg.getRoute().getStartLinkId().toString(), "2");
 
@@ -280,7 +280,7 @@ public class CleanerTest {
                     "<person id=\"2\">" +
                     "  <plan>" +
                     "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"access_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
                     "     </leg>" +
                     "        <activity type=\"car interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
@@ -290,7 +290,7 @@ public class CleanerTest {
                     "     </leg>" +
                     "        <activity type=\"car interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
                     "        </activity>" +
-                    "     <leg mode=\"egress_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
                     "     </leg>" +
                     "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
@@ -310,7 +310,7 @@ public class CleanerTest {
                     "<person id=\"4\">" +
                     "  <plan>" +
                     "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"access_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
                     "     </leg>" +
                     "        <activity type=\"bike interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
@@ -320,7 +320,7 @@ public class CleanerTest {
                     "     </leg>" +
                     "        <activity type=\"bike interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
                     "        </activity>" +
-                    "     <leg mode=\"egress_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
                     "     </leg>" +
                     "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
@@ -350,7 +350,7 @@ public class CleanerTest {
                     "<person id=\"6\">" +
                     "  <plan>" +
                     "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"access_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
@@ -360,7 +360,7 @@ public class CleanerTest {
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
                     "        </activity>" +
-                    "     <leg mode=\"egress_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
                     "     </leg>" +
                     "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
@@ -380,7 +380,7 @@ public class CleanerTest {
                     "<person id=\"8\">" +
                     "  <plan>" +
                     "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"access_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
@@ -405,7 +405,7 @@ public class CleanerTest {
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
                     "        </activity>" +
-                    "     <leg mode=\"egress_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
                     "     </leg>" +
                     "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
@@ -416,14 +416,14 @@ public class CleanerTest {
 
             new PopulationReader(scenario).parse(new ByteArrayInputStream(plansXml.getBytes()));
 
-            scenario.getPopulation().getPersonAttributes().putAttribute("1", "subpopulation", "cb");
-            scenario.getPopulation().getPersonAttributes().putAttribute("2", "subpopulation", "regular");
-            scenario.getPopulation().getPersonAttributes().putAttribute("3", "subpopulation", "regular");
-            scenario.getPopulation().getPersonAttributes().putAttribute("4", "subpopulation", "regular");
+            scenario.getPopulation().getPersons().get(Id.create("1", Person.class)).getAttributes().putAttribute("subpopulation", "cb");
+            scenario.getPopulation().getPersons().get(Id.create("2", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
+            scenario.getPopulation().getPersons().get(Id.create("3", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
+            scenario.getPopulation().getPersons().get(Id.create("4", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
             // no attribute for person 5 -> "all" works
-            scenario.getPopulation().getPersonAttributes().putAttribute("6", "subpopulation", "regular");
-            scenario.getPopulation().getPersonAttributes().putAttribute("7", "subpopulation", "freight");
-            scenario.getPopulation().getPersonAttributes().putAttribute("8", "subpopulation", "regular");
+            scenario.getPopulation().getPersons().get(Id.create("6", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
+            scenario.getPopulation().getPersons().get(Id.create("7", Person.class)).getAttributes().putAttribute("subpopulation", "freight");
+            scenario.getPopulation().getPersons().get(Id.create("8", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
         }
     }
 }

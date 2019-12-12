@@ -28,6 +28,7 @@ import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
@@ -76,7 +77,8 @@ public class RunSBB {
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
         // vehicle types
-        new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car").createVehicles();
+        new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
+                scenario.getConfig().qsim().getMainModes()).createVehicles();
         scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
@@ -142,6 +144,12 @@ public class RunSBB {
 
     public static Config buildConfig(String filepath) {
         Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
+
+        if (config.plansCalcRoute().getNetworkModes().contains(TransportMode.ride)) {
+            // MATSim defines ride by default as teleported, which conflicts with the network mode
+            config.plansCalcRoute().removeModeRoutingParams(TransportMode.ride);
+        }
+
         config.checkConsistency();
         return config;
     }

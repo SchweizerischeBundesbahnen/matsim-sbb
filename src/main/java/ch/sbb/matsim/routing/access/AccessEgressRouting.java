@@ -8,16 +8,10 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.PopulationFactory;
-import org.matsim.api.core.v01.population.Route;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.router.StageActivityTypes;
 import org.matsim.facilities.Facility;
 
 import java.util.List;
@@ -25,7 +19,7 @@ import java.util.List;
 /**
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
  *
- * Extend a network leg with an access_walk and an egress_walk legs. Duration of access/egress is read from a shapefile.
+ * Extend a network leg with non_network_walk legs before and after. Duration of access/egress is read from a shapefile.
  * The duration is a zone attribute. For the mode "car", this class read the column "ACCCAR". For identical zone, the access and egress times are equal.
  *
  */
@@ -48,7 +42,7 @@ public class AccessEgressRouting {
 
     public double addAccess(final Facility fromFacility, final Link accessActLink, double now, final List<PlanElement> result, final Person person) {
 
-        final Leg accessLeg = this.populationFactory.createLeg(TransportMode.access_walk);
+        final Leg accessLeg = this.populationFactory.createLeg(TransportMode.non_network_walk);
         accessLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, accessLeg, fromFacility.getCoord(), now, accessActLink.getId(), accessActLink.getId());
 
@@ -64,7 +58,7 @@ public class AccessEgressRouting {
         final Activity interactionActivity = createInteractionActivity(egressActLink);
         result.add(interactionActivity);
 
-        final Leg egressLeg = this.populationFactory.createLeg(TransportMode.egress_walk);
+        final Leg egressLeg = this.populationFactory.createLeg(TransportMode.non_network_walk);
         egressLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, egressLeg, toFacility.getCoord(), now, egressActLink.getId(), egressActLink.getId());
         result.add(egressLeg);
@@ -115,32 +109,6 @@ public class AccessEgressRouting {
             Gbl.assertNotNull(accessActLink);
         }
         return accessActLink;
-    }
-
-
-    public StageActivityTypes getStageActivityTypes() {
-        return new AccessEgressStageActivityTypes();
-    }
-
-    private final class AccessEgressStageActivityTypes implements StageActivityTypes {
-        @Override
-        public boolean isStageActivity(final String activityType) {
-            return AccessEgressRouting.this.stageActivityType.equals(activityType);
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (!(obj instanceof AccessEgressStageActivityTypes)) {
-                return false;
-            }
-            final AccessEgressStageActivityTypes other = (AccessEgressStageActivityTypes) obj;
-            return other.isStageActivity(AccessEgressRouting.this.stageActivityType);
-        }
-
-        @Override
-        public int hashCode() {
-            return AccessEgressRouting.this.stageActivityType.hashCode();
-        }
     }
 
 }

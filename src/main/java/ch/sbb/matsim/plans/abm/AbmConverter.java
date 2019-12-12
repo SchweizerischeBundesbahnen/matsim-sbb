@@ -16,11 +16,10 @@ import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
-import org.matsim.utils.objectattributes.ObjectAttributes;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 import java.io.File;
 import java.io.IOException;
@@ -149,8 +148,6 @@ public class AbmConverter {
         new PopulationReader(synpopScenario).readFile(synpopFilename);
         final Population synpopPopulation = synpopScenario.getPopulation();
 
-        final ObjectAttributes attributes = population.getPersonAttributes();
-
         for (final Person person : population.getPersons().values()) {
             final Id<Person> pId = Id.createPersonId(person.getId().toString().replace("P_", ""));
             final Person synpopPerson = synpopPopulation.getPersons().get(pId);
@@ -184,7 +181,6 @@ public class AbmConverter {
                 }
 
                 person.getAttributes().putAttribute(Variables.SUBPOPULATION, Variables.REGULAR);
-                attributes.putAttribute(person.getId().toString(), Variables.SUBPOPULATION, Variables.REGULAR);
             } else {
                 log.info("Could not find attributes for person " + person);
             }
@@ -214,7 +210,7 @@ public class AbmConverter {
             if(p.getPlans().size() > 1) log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
 
             Plan plan = p.getSelectedPlan();
-            List<Activity> activities = TripStructureUtils.getActivities(plan, SBBActivities.getStageActivitiesTypes());
+            List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
             List<String> endTimeList = new ArrayList<>();
             int i = 0;
 
@@ -235,7 +231,5 @@ public class AbmConverter {
         }
 
         new PopulationWriter(population).write(new File(folder, Filenames.PLANS).toString());
-        new ObjectAttributesXmlWriter(population.getPersonAttributes()).writeFile(new File(folder, Filenames.PERSON_ATTRIBUTES).toString());
-
     }
 }

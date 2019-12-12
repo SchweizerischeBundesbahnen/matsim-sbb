@@ -1,17 +1,13 @@
 package ch.sbb.matsim.replanning;
 
-import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.Variables;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.population.algorithms.PlanAlgorithm;
-import org.matsim.core.router.StageActivityTypes;
-import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.utils.misc.Time;
 
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -24,13 +20,10 @@ import java.util.Random;
  */
 public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 
-    private final  StageActivityTypes stageActivities;
     private final double mutationRange;
     private final Random random;
 
-    public SBBTripPlanMutateTimeAllocation(final StageActivityTypes stageActivities, final double mutationRange,
-                                           final Random random) {
-        this.stageActivities = stageActivities;
+    public SBBTripPlanMutateTimeAllocation(final double mutationRange, final Random random) {
         this.mutationRange = mutationRange;
         this.random = random;
     }
@@ -45,8 +38,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 
         double now = 0;
         int i = 0;
-
-        List<Activity> actList = TripStructureUtils.getActivities(plan, SBBActivities.getStageActivitiesTypes());
+        Activity lastAct = (Activity) plan.getPlanElements().listIterator(plan.getPlanElements().size()).previous();
 
         // apply mutation to all activities except the last home activity
         for (PlanElement pe : plan.getPlanElements()) {
@@ -69,10 +61,10 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
                 }
 
                 // handle middle activities
-                else if (i < (actList.size() - 1)) {
+                else if (act != lastAct) {
                     // assume that there will be no delay between arrival time and activity start time
                     act.setStartTime(now);
-                    if (!this.stageActivities.isStageActivity(act.getType())) {
+                    if (!act.getType().endsWith("interaction")) {
                         if (act.getEndTime() == Time.getUndefinedTime()) {
                             throw new IllegalStateException("Can not mutate activity end time because it is not set for Person: " + plan.getPerson().getId());
                         }

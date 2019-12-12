@@ -1,6 +1,5 @@
 package ch.sbb.matsim.replanning;
 
-import ch.sbb.matsim.config.variables.SBBActivities;
 import org.matsim.core.config.groups.GlobalConfigGroup;
 import org.matsim.core.config.groups.TimeAllocationMutatorConfigGroup;
 import org.matsim.core.gbl.MatsimRandom;
@@ -24,7 +23,6 @@ public class SBBTimeAllocationMutator extends AbstractMultithreadedModule {
 
     @Override
     public PlanAlgorithm getPlanAlgoInstance() {
-        return new SBBTripPlanMutateTimeAllocation(SBBActivities.getStageActivitiesTypes(),
-                this.mutationRange, MatsimRandom.getLocalInstance());
+        return new SBBTripPlanMutateTimeAllocation(this.mutationRange, MatsimRandom.getLocalInstance());
     }
 }

@@ -10,6 +10,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 
 public class TravelledLeg extends TravelComponent {
+
     private String mode;
     private int modeHierarchy;
     private Id line;
@@ -145,7 +146,6 @@ public class TravelledLeg extends TravelComponent {
 
     public void incrementDistance(double linkLength) {
         this.distance += linkLength;
-
     }
 
     public void setIsAccess(String accessMode) {
@@ -165,23 +165,13 @@ public class TravelledLeg extends TravelComponent {
         return this.isEgress;
     }
 
-    private boolean isPtLeg() {
-        return (this.mode.equals("detPt") || this.mode.equals("pt"));
+    public boolean isPtLeg() {
+        return (this.mode.equals(SBBModes.PT) || SBBModes.PTSubModes.subModeList.contains(this.mode));
     }
 
     public boolean isRailLeg() {
         if (this.isPtLeg()) {
-            String line = this.line.toString();
-            int len = line.length();
-            if (len < 5) {
-                return false;
-            } else {
-                if (len < 9) {
-                    return line.substring(0, 5).equals("S2016");
-                } else {
-                    return line.substring(0, 9).equals("Simba2017") || line.substring(0, 5).equals("S2016");
-                }
-            }
+            return (this.mode.equals(SBBModes.PTSubModes.RAIL));
         }
         return false;
     }

@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.vehicles.*;
+import org.matsim.vehicles.VehicleType.DoorOperationMode;
 
 import java.util.stream.IntStream;
 
@@ -35,11 +36,10 @@ public class VehicleTypeExporter {
             // TODO e.g. for "Fernbusse", we need the possibility to set capacity constraints.
             VehicleType vehicleType = this.vehicleBuilder.createVehicleType(vehicleTypeId);
             vehicleType.setDescription(tSysName);
-            vehicleType.setDoorOperationMode(VehicleType.DoorOperationMode.serial);
-            VehicleCapacity vehicleCapacity = new VehicleCapacityImpl();
+            VehicleUtils.setDoorOperationMode(vehicleType, DoorOperationMode.serial);
+            VehicleCapacity vehicleCapacity = vehicleType.getCapacity();
             vehicleCapacity.setStandingRoom(500);
             vehicleCapacity.setSeats(10000);
-            vehicleType.setCapacity(vehicleCapacity);
 
             // the following parameters do not have any influence in a deterministic simulation engine
             vehicleType.setLength(10);

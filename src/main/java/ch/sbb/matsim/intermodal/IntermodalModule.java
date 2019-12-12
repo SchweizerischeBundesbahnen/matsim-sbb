@@ -65,8 +65,10 @@ public class IntermodalModule extends AbstractModule {
 
     private void prepare(Scenario scenario) {
         for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
-            if (mode.isSimulatedOnNetwork()) {
+            if (mode.isRoutedOnNetwork()) {
                 SBBNetworkRoutingModule.addNetworkMode(scenario.getNetwork(), mode.getMode(), SBBModes.CAR);
+            }
+            if (mode.isSimulatedOnNetwork()) {
                 Set<String> mainModes = new HashSet<>(scenario.getConfig().qsim().getMainModes());
                 mainModes.add(mode.getMode());
                 scenario.getConfig().qsim().setMainModes(mainModes);

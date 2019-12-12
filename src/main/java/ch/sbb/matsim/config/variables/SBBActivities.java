@@ -1,8 +1,5 @@
 package ch.sbb.matsim.config.variables;
 
-import org.matsim.core.router.StageActivityTypes;
-import org.matsim.core.router.StageActivityTypesImpl;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,9 +43,6 @@ public final class SBBActivities {
         }
     }
 
-    /*
-     * These are default stage activities. Others may occur.
-     */
     static  {
         stageActivityTypeList = new HashSet<>();
 
@@ -56,9 +50,5 @@ public final class SBBActivities {
         stageActivityTypeList.add("ride interaction");
         stageActivityTypeList.add("car interaction");
         stageActivityTypeList.add("bike interaction");
-    }
-
-    public static StageActivityTypes getStageActivitiesTypes() {
-        return new StageActivityTypesImpl(stageActivityTypeList);
     }
 }

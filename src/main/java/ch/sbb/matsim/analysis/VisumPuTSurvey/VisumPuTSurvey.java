@@ -3,6 +3,7 @@ package ch.sbb.matsim.analysis.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
@@ -113,7 +114,7 @@ public class VisumPuTSurvey {
 
         try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filepath, Charset.forName("Cp1252"))) {
             for (Map.Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
-                String paxId = entry.getKey().toString();
+                Id<Person> paxId = entry.getKey();
                 TravellerChain chain = entry.getValue();
                 for (Trip trip : chain.getTrips()) {
                     isRail = trip.isRailJourney();
@@ -129,12 +130,12 @@ public class VisumPuTSurvey {
                         egressMode = trip.getEgressFromRailMode(egressLegs);
                         accessDist = trip.getAccessToRailDist(accessLegs);
                         egressDist = trip.getEgressFromRailDist(egressLegs);
-                        if (accessMode.equals("access_walk") || accessMode.equals("transit_walk")) {
-                            accessMode = "walk";
+                        if (accessMode.equals(SBBModes.NON_NETWORK_WALK) || accessMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                            accessMode = SBBModes.WALK;
                         }
 
-                        if (egressMode.equals("egress_walk") || egressMode.equals("transit_walk")) {
-                            egressMode = "walk";
+                        if (egressMode.equals(SBBModes.NON_NETWORK_WALK) || egressMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                            egressMode = SBBModes.WALK;
                         }
                     }
                     Integer i = 1;
@@ -180,7 +181,7 @@ public class VisumPuTSurvey {
                             Double pfahrt = 1.0 * scaleFactor;
                             writer.set(COL_PFAHRT, Integer.toString(pfahrt.intValue()));
 
-                            String subpopulation = this.scenario.getPopulation().getPersonAttributes().getAttribute(paxId, "subpopulation").toString();
+                            String subpopulation = this.scenario.getPopulation().getPersons().get(paxId).getAttributes().getAttribute("subpopulation").toString();
                             writer.set(COL_SUBPOP, subpopulation);
 
                             Zone fromGem = (this.zones != null) ? this.zones.findZone(trip.getFromAct().getCoord().getX(),

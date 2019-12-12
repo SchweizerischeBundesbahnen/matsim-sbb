@@ -15,7 +15,6 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
-import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.facilities.Facility;
 
@@ -86,12 +85,6 @@ public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingMod
         accessEgress.addEgress(toFacility, egressActLink, now, result, person);
 
         return result;
-    }
-
-
-    @Override
-    public StageActivityTypes getStageActivityTypes() {
-        return this.accessEgress.getStageActivityTypes();
     }
 
     @Override
