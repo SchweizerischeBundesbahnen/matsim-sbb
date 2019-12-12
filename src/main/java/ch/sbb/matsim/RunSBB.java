@@ -86,6 +86,10 @@ public class RunSBB {
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
             sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
+        IntermodalModule.prepareIntermodalScenario(scenario);
+
+
+
     }
 
     public static void addSBBDefaultControlerModules(Controler controler) {
@@ -132,7 +136,7 @@ public class RunSBB {
 
         controler.addOverridingModule(new SBBNetworkRoutingModule(scenario));
         controler.addOverridingModule(new AccessEgress(scenario));
-        controler.addOverridingModule(new IntermodalModule(scenario));
+        controler.addOverridingModule(new IntermodalModule());
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {

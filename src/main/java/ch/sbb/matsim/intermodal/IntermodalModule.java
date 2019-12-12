@@ -27,20 +27,8 @@ import java.util.Set;
 
 public class IntermodalModule extends AbstractModule {
     private final static Logger log = Logger.getLogger(IntermodalModule.class);
-    private SBBIntermodalConfigGroup configGroup;
 
-    public IntermodalModule(Scenario scenario) {
-        super(scenario.getConfig());
-        this.configGroup = ConfigUtils.addOrGetModule(this.getConfig(), SBBIntermodalConfigGroup.class);
-        this.prepare(scenario);
-        URL csvPath = configGroup.getAttributesCSVPathURL(scenario.getConfig().getContext());
-        if (csvPath != null) {
-            this.preparePopulation(scenario.getPopulation(), csvPath);
-        }
-
-    }
-
-    private void preparePopulation(Population population, URL csvPath) {
+    private static void preparePopulation(Population population, URL csvPath) {
         try (CSVReader reader = new CSVReader(csvPath, ";")) {
             log.info(csvPath);
 
@@ -63,10 +51,20 @@ public class IntermodalModule extends AbstractModule {
 
     }
 
-    private void prepare(Scenario scenario) {
-        for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
+    public static void prepareIntermodalScenario(Scenario scenario) {
+        SBBIntermodalConfigGroup configGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBIntermodalConfigGroup.class);
+
+        URL csvPath = configGroup.getAttributesCSVPathURL(scenario.getConfig().getContext());
+        if (csvPath != null) {
+            preparePopulation(scenario.getPopulation(), csvPath);
+        }
+
+        for (SBBIntermodalModeParameterSet mode : configGroup.getModeParameterSets()) {
             if (mode.isRoutedOnNetwork()) {
                 SBBNetworkRoutingModule.addNetworkMode(scenario.getNetwork(), mode.getMode(), SBBModes.CAR);
+                Set<String> routedModes = new HashSet<>(scenario.getConfig().plansCalcRoute().getNetworkModes());
+                routedModes.add(mode.getMode());
+                scenario.getConfig().plansCalcRoute().setNetworkModes(routedModes);
             }
             if (mode.isSimulatedOnNetwork()) {
                 Set<String> mainModes = new HashSet<>(scenario.getConfig().qsim().getMainModes());
@@ -78,7 +76,9 @@ public class IntermodalModule extends AbstractModule {
 
     @Override
     public void install() {
-        for (SBBIntermodalModeParameterSet mode : this.configGroup.getModeParameterSets()) {
+        SBBIntermodalConfigGroup configGroup = ConfigUtils.addOrGetModule(this.getConfig(), SBBIntermodalConfigGroup.class);
+
+        for (SBBIntermodalModeParameterSet mode : configGroup.getModeParameterSets()) {
             if (mode.isRoutedOnNetwork() && !mode.getMode().equals(TransportMode.car)) {
                 addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
                 addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
