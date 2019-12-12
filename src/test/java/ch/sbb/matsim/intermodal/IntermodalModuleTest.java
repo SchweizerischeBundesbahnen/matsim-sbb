@@ -21,9 +21,10 @@ public class IntermodalModuleTest {
         config.addModule(intermodalConfigGroup);
         Scenario scenario = ScenarioUtils.createScenario(config);
         new PopulationReader(scenario).readFile("test/input/scenarios/mobi20test/population.xml");
-        new IntermodalModule(scenario);
+        IntermodalModule.prepareIntermodalScenario(scenario);
         Assert.assertTrue(Boolean.parseBoolean((String) scenario.getPopulation().getPersons().get(Id.createPersonId("P_1072505")).getAttributes().getAttribute("hasBike")));
         // a second call should throw an exception
-        new IntermodalModule(scenario);
+        IntermodalModule.prepareIntermodalScenario(scenario);
+
     }
 }
