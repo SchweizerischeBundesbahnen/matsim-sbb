@@ -34,7 +34,7 @@ public class TimeProfileExporter {
     private final VehiclesFactory vehicleBuilder;
     private Network network;
     private TransitSchedule schedule;
-    public HashMap<Id<Link>, String> linkToVisumSequence = new HashMap<>();
+    public Map<Id<Link>, String> linkToVisumSequence = new HashMap<>();
 
     public TimeProfileExporter(Scenario scenario)   {
         this.network = scenario.getNetwork();
@@ -61,12 +61,7 @@ public class TimeProfileExporter {
                 this.schedule.addTransitLine(line);
             }
 
-            String mode;
-            if(config.getVehicleMode().equals("Datenherkunft"))
-                mode = tp.datenHerkunft;
-            else
-                mode = config.getVehicleMode();
-
+            String mode = tp.tSysMOBi.toLowerCase();
             tp.vehicleJourneys.forEach(vj -> {
                 int routeName = tpId;
                 int from_tp_index = vj.fromTProfItemIndex;
@@ -134,6 +129,13 @@ public class TimeProfileExporter {
                                         if (this.linkToVisumSequence.get(linkID).equals(prevLinkSeq)) {
                                             hasSameLinkSequence = true;
                                             newLinkID = linkID;
+                                            Link link = this.network.getLinks().get(newLinkID);
+                                            Set<String> allowedModesOld = link.getAllowedModes();
+                                            if(!allowedModesOld.contains(mode)) {
+                                                Set<String> allowedModesNew = new HashSet<>(allowedModesOld);
+                                                allowedModesNew.add(mode);
+                                                link.setAllowedModes(allowedModesNew);
+                                            }
                                             break;
                                         }
                                         m++;
@@ -220,7 +222,8 @@ public class TimeProfileExporter {
         Visum.ComObject timeProfiles = visum.getNetObject("TimeProfiles");
         int nrOfTimeProfiles = timeProfiles.countActive();
         String[][] timeProfileAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfiles, timeProfiles,
-                "ID", "LineName", "LineRoute\\Line\\Datenherkunft", "TSysCode");
+                "ID", "LineName", "LineRoute\\Line\\Datenherkunft", "TSysCode",
+                "LineRoute\\Line\\TSys\\TSys_MOBi");
         String[][] customAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfiles, timeProfiles,
                 config.getRouteAttributeParams().values().stream().
                 map(VisumPtExporterConfigGroup.RouteAttributeParams::getAttributeValue).
@@ -231,6 +234,7 @@ public class TimeProfileExporter {
                     new TimeProfile(timeProfileAttributes[tp][1],
                             timeProfileAttributes[tp][2],
                             timeProfileAttributes[tp][3],
+                            timeProfileAttributes[tp][4],
                             customAttributes[tp]));
         }
 
@@ -298,14 +302,16 @@ public class TimeProfileExporter {
         final String lineName;
         final String datenHerkunft;
         final String tSysCode;
+        final String tSysMOBi;
         final ArrayList<VehicleJourney> vehicleJourneys;
         final ArrayList<TimeProfileItem> timeProfileItems;
         final String[] customAttributes;
 
-        public TimeProfile(String lineName, String datenHerkunft, String tSysCode, String[] customAttributes) {
+        public TimeProfile(String lineName, String datenHerkunft, String tSysCode, String tSysMOBi, String[] customAttributes) {
             this.lineName = lineName;
             this.datenHerkunft = datenHerkunft;
             this.tSysCode = tSysCode;
+            this.tSysMOBi = tSysMOBi;
             this.customAttributes = customAttributes;
             this.vehicleJourneys = new ArrayList<>();
             this.timeProfileItems = new ArrayList<>();
