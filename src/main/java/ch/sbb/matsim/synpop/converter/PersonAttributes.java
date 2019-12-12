@@ -16,7 +16,11 @@ public class PersonAttributes {
     private final static String COL_VA = "VA";
     private final static String COL_CAR_AVAIL = "car_avail";
 
+    private Integer baseYear;
 
+    public PersonAttributes(Integer baseYear) {
+        this.baseYear = baseYear;
+    }
 
     private boolean carAvail(Person person) {
         return Arrays.asList("10", "11", "12", "15", "16").contains(person.getAttributes().getAttribute(COL_MOBILITY));
@@ -39,10 +43,9 @@ public class PersonAttributes {
     }
 
     public void completeAttributes(final Person person) {
-
         String birth = person.getAttributes().getAttribute("dbirth").toString();
         String year = birth.substring(birth.lastIndexOf('-') + 1).replace("\"", "");
-        person.getAttributes().putAttribute(COL_AGE, String.valueOf(2016 - Integer.valueOf(year)));
+        person.getAttributes().putAttribute(COL_AGE, String.valueOf(this.baseYear - Integer.valueOf(year)));
         person.getAttributes().putAttribute(COL_CAR_AVAIL, this.carAvail(person));
         person.getAttributes().putAttribute(COL_GA, this.hasGA(person));
         person.getAttributes().putAttribute(COL_HTA, this.hasHTA(person));
