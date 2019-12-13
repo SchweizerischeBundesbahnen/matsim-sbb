@@ -20,10 +20,12 @@ import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ZoneBasedSpinne {
@@ -38,35 +40,8 @@ public class ZoneBasedSpinne {
                 args[0], args[1], args[2], args[3]);
     }
 
-    public void run(String plans, String networkFile, String shapeFile, String attName,
-                    String attValue, String name, String csvOut)    {
-        Zones zones = ZonesLoader.loadZones("spinne", shapeFile, null);
-        ZonesQueryCache zonesCache = new ZonesQueryCache(zones);
-
-        HashSet<Id<Link>> linksInZone = getLinksInZone(networkFile, zonesCache, attName, attValue);
-
-        List<InputFiles> planFiles = new ArrayList<>();
-        for(int i = 1; i < 5; i++) {
-            planFiles.add(new InputFiles(plans + "2.0.1."+i+"_release_25pct_"+i+"\\output\\CH.25pct."+i+".2016.output_plans.xml.gz",
-                    plans + "2.0.1."+i+"_release_25pct_"+i+"\\output\\CH.25pct."+i+".2016.output_personAttributes.xml.gz"));
-        }
-        planFiles.parallelStream().forEach(planFile -> readPopulationAndCalcVolumes(planFile, linksInZone));
-
-        writeCSV(name, csvOut);
-    }
-
-    private static class InputFiles {
-        private String plans;
-        private String personAttributes;
-
-        private InputFiles(String plans, String personAttributes)   {
-            this.plans = plans;
-            this.personAttributes = personAttributes;
-        }
-    }
-
     private static HashSet<Id<Link>> getLinksInZone(String networkFile, ZonesQueryCache zonesCache, String attName,
-                                                    String attValue)  {
+                                                    String attValue) {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
@@ -89,18 +64,29 @@ public class ZoneBasedSpinne {
         return linksInZone;
     }
 
+    public void run(String plans, String networkFile, String shapeFile, String attName,
+                    String attValue, String name, String csvOut) {
+        Zones zones = ZonesLoader.loadZones("spinne", shapeFile, null);
+        ZonesQueryCache zonesCache = new ZonesQueryCache(zones);
+
+        HashSet<Id<Link>> linksInZone = getLinksInZone(networkFile, zonesCache, attName, attValue);
+
+        List<InputFiles> planFiles = new ArrayList<>();
+        for (int i = 1; i < 5; i++) {
+            planFiles.add(new InputFiles(plans + "2.0.1." + i + "_release_25pct_" + i + "\\output\\CH.25pct." + i + ".2016.output_plans.xml.gz"));
+        }
+        planFiles.parallelStream().forEach(planFile -> readPopulationAndCalcVolumes(planFile, linksInZone));
+
+        writeCSV(name, csvOut);
+    }
+
     private void readPopulationAndCalcVolumes(InputFiles files, HashSet<Id<Link>> linksInZone)   {
         log.info("loading plans from file " + files.plans);
-
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        // TODO: get rid of personAttributes file
-        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(files.personAttributes);
 
         Scenario scenario1 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         StreamingPopulationReader r = new StreamingPopulationReader(scenario1);
         r.addAlgorithm(person -> {
-            String subpop = scenario.getPopulation().getPersonAttributes().getAttribute(person.getId().toString(),
-                    Variables.SUBPOPULATION).toString();
+            String subpop = person.getAttributes().getAttribute(Variables.SUBPOPULATION).toString();
             // take agent if it is not a freight agent
             if(subpop.equals("regular") || subpop.equals("cb_road") || subpop.equals("airport_road"))    {
                 Plan selectedPlan = person.getSelectedPlan();
@@ -122,6 +108,14 @@ public class ZoneBasedSpinne {
             }
         });
         r.readFile(files.plans);
+    }
+
+    private static class InputFiles {
+        private String plans;
+
+        private InputFiles(String plans) {
+            this.plans = plans;
+        }
     }
 
     private void addRouteToOrigDestVolumes(NetworkRoute route)  {

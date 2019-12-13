@@ -15,12 +15,9 @@ import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.population.routes.LinkNetworkRouteFactory;
 import org.matsim.core.population.routes.NetworkRoute;
-import org.matsim.core.router.StageActivityTypes;
-import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunction;
-import org.matsim.pt.PtConstants;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,7 +45,6 @@ public class RideFeederScoringCalibration {
 
         Config config = RunSBB.buildConfig(configPath);
         config.plans().setInputFile(null);
-        config.plans().setInputPersonAttributeFile(null);
         config.transit().setTransitScheduleFile(null);
         config.facilities().setInputFile(null);
         config.network().setInputFile(null);
@@ -142,9 +138,7 @@ public class RideFeederScoringCalibration {
                         plan.addActivity(createActivity(pf, row.get("mode"), 0, 0, start_time, end_time));
                         if (row.get("end_time").equals("-")) {
 
-
                             person1 = pf.createPerson(Id.create(row.get("plan_id"), Person.class));
-                            scenario.getPopulation().getPersonAttributes().putAttribute(person1.getId().toString(), "subpopulation", "regular");
                             person1.getAttributes().putAttribute("subpopulation", "regular");
                             person1.getAttributes().putAttribute("carAvail", "never");
                             person1.getAttributes().putAttribute("pt_subscr", "GA");
@@ -179,8 +173,7 @@ public class RideFeederScoringCalibration {
         Plan plan = person.getSelectedPlan();
 
 
-        StageActivityTypes stageActivities = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
-        List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan, stageActivities);
+        List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan);
 
 
         SBBScoringFunctionFactory factory = new SBBScoringFunctionFactory(scenario);

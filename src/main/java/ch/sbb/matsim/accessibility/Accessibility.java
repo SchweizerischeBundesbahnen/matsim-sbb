@@ -2,18 +2,9 @@ package ch.sbb.matsim.accessibility;
 
 import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
 import ch.sbb.matsim.analysis.skims.LeastCostPathTree.NodeData;
-import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
-import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
-import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
+import ch.sbb.matsim.routing.pt.raptor.*;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
-import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
-import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
-import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
-import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.TravelInfo;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
@@ -25,6 +16,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -47,19 +39,13 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.vehicles.Vehicle;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -279,11 +265,40 @@ public class Accessibility {
         }
     }
 
+    /**
+     * Simple implementation for TravelTime and TravelDisutility that assumes a fixed speed on all links,
+     * resulting in the shortest (and not the fastest) path to be found.
+     */
+    private static class FixedSpeedTravelTimeAndDisutility implements TravelTime, TravelDisutility {
+
+        private final double speed;
+
+        public FixedSpeedTravelTimeAndDisutility(double speed) {
+            this.speed = speed;
+        }
+
+        @Override
+        public double getLinkTravelDisutility(Link link, double v, Person person, Vehicle vehicle) {
+            return link.getLength() / this.speed;
+        }
+
+        @Override
+        public double getLinkMinimumTravelDisutility(Link link) {
+            return link.getLength() / this.speed;
+        }
+
+        @Override
+        public double getLinkTravelTime(Link link, double v, Person person, Vehicle vehicle) {
+            return link.getLength() / this.speed;
+        }
+    }
+
     private static class RowWorker implements Runnable {
 
         private final boolean requiresCar;
         private final Network carNetwork;
         private final Network xy2linksNetwork;
+        private final LeastCostPathTree shortestLcpTree;
         private final LeastCostPathTree[] amLcpTree;
         private final LeastCostPathTree[] pmLcpTree;
         private final double[] carAMDepTimes;
@@ -308,6 +323,10 @@ public class Accessibility {
             this.xy2linksNetwork = xy2linksNetwork;
             this.carAMDepTimes = carAMDepTimes;
             this.carPMDepTimes = carPMDepTimes;
+
+            FixedSpeedTravelTimeAndDisutility shortestTTD = new FixedSpeedTravelTimeAndDisutility(1.0);
+            this.shortestLcpTree = new LeastCostPathTree(shortestTTD, shortestTTD);
+
             this.amLcpTree = new LeastCostPathTree[carAMDepTimes.length];
             for (int i = 0; i < carAMDepTimes.length; i++) {
                 this.amLcpTree[i] = new LeastCostPathTree(tt, td);
@@ -316,7 +335,7 @@ public class Accessibility {
             for (int i = 0; i < carPMDepTimes.length; i++) {
                 this.pmLcpTree[i] = new LeastCostPathTree(tt, td);
             }
-            this.raptor = new SwissRailRaptor(raptorData, (RaptorParametersForPerson)null, (RaptorRouteSelector)null, (RaptorStopFinder)null);
+            this.raptor = new SwissRailRaptor(raptorData, null, null, null);
             this.parameters = parameters;
             this.ptMinDepartureTime = ptMinDepartureTime;
             this.ptMaxDepartureTime = ptMaxDepartureTime;
@@ -345,17 +364,22 @@ public class Accessibility {
         }
 
         private double[] calcForCoord(Coord fromCoord) {
-            if (this.requiresCar) {
-                // CAR
-                Node node = this.carNetwork.getNodes().get(NetworkUtils.getNearestLink(this.xy2linksNetwork, fromCoord).getToNode().getId());
+            Node nearestNode = this.carNetwork.getNodes().get(NetworkUtils.getNearestLink(this.xy2linksNetwork, fromCoord).getToNode().getId());
 
+            // CAR
+            if (this.requiresCar) {
                 for (int i = 0; i < this.amLcpTree.length; i++) {
-                    this.amLcpTree[i].calculate(this.carNetwork, node, this.carAMDepTimes[i]);
+                    this.amLcpTree[i].calculate(this.carNetwork, nearestNode, this.carAMDepTimes[i]);
                 }
 
                 for (int i = 0; i < this.pmLcpTree.length; i++) {
-                    this.pmLcpTree[i].calculate(this.carNetwork, node, this.carPMDepTimes[i]);
+                    this.pmLcpTree[i].calculate(this.carNetwork, nearestNode, this.carPMDepTimes[i]);
                 }
+            }
+
+            // WALK, BIKE
+            {
+                this.shortestLcpTree.calculate(this.carNetwork, nearestNode, 8 * 3600);
             }
 
             // PT
@@ -394,6 +418,7 @@ public class Accessibility {
                 double distCar = 0;
                 double amTravelTime = 0;
                 double pmTravelTime = 0;
+                boolean hasCar = false;
                 if (requiresCar) {
                     int amCount = 0;
                     for (int i = 0; i < this.amLcpTree.length; i++) {
@@ -415,6 +440,7 @@ public class Accessibility {
                             pmCount++;
                         }
                     }
+                    hasCar = (amCount + pmCount) > 0;
                     pmTravelTime /= Math.max(1, pmCount);
                     distCar /= Math.max(1, amCount + pmCount);
 
@@ -426,6 +452,20 @@ public class Accessibility {
                 double distCar1550 = Math.max(0, Math.min(distCar - 15, 35)); // 35 = 50 - 15, upperBound - lowerBound
                 double distCar5099 = Math.max(0, Math.min(distCar - 50, 50)); // 50 = 100 - 50
                 double distCar100x = Math.max(0, distCar - 100);
+
+                // WALK, BIKE
+
+                boolean hasShortestDistance = true;
+                double distShortest = 0;
+                {
+                    NodeData data = this.shortestLcpTree.getTree().get(toNode.getId());
+                    if (data != null) {
+                        distShortest = data.getDistance();
+                    } else {
+                        hasShortestDistance = false;
+                    }
+                }
+                distShortest /= 1000.0; // we use kilometers in the following formulas
 
                 // PT
                 Collection<TransitStopFacility> toStops = findStopCandidates(toCoord, this.raptor, this.parameters);
@@ -513,7 +553,6 @@ public class Accessibility {
                 double distPt5099 = Math.max(0, Math.min(ptDistance - 50, 50)); // 50 = 100 - 50
                 double distPt100x = Math.max(0, ptDistance - 100);
 
-
                 // ACCESSIBILITY
 
 //                U(bike)= -0.25 + (-0.150)*dist_car/0.21667
@@ -531,10 +570,10 @@ public class Accessibility {
                 for (int m = 0; m < this.modes.length; m++) {
                     Modes modes = this.modes[m];
 
-                    double uBike = modes.bike ? (-0.25 + (-0.150) * distCar / 0.21667) : modes.missingModeUtility;
-                    double uCar = modes.car ? (-0.40 + (-0.053)*ttCar + (-0.040)*distCar0015 + (-0.040)*distCar1550 + 0.015*distCar5099 + 0.010*distCar100x + (-0.047)*(carAccessTime+carEgressTime)/60 + (-0.135)*carParkingCost*2) : modes.missingModeUtility;
+                    double uBike = (modes.bike && hasShortestDistance) ? (-0.25 + (-0.150) * distShortest / 0.21667) : modes.missingModeUtility;
+                    double uCar = (modes.car && hasCar) ? (-0.40 + (-0.053) * ttCar + (-0.040) * distCar0015 + (-0.040) * distCar1550 + 0.015 * distCar5099 + 0.010 * distCar100x + (-0.047) * (carAccessTime + carEgressTime) / 60 + (-0.135) * carParkingCost * 2) : modes.missingModeUtility;
                     double uPt = (modes.pt && hasPT) ? (+0.75 + (-0.042)*ttBus + (-0.0378)*ttTrain + (-0.015)*distPt0015 + (-0.015)*distPt1550 + 0.005*distPt5099 + 0.025*distPt100x + (-0.050)*(ptAccessTime+ptEgressTime) + (-0.014)*(60/ptFrequency) + (-0.227)*ptTransfers) : modes.missingModeUtility;
-                    double uWalk = modes.walk ? (+2.30 + (-0.100) * distCar / 0.078336) : modes.missingModeUtility;
+                    double uWalk = (modes.walk && hasShortestDistance) ? (+2.30 + (-0.100) * distShortest / 0.078336) : modes.missingModeUtility;
 
                     double theta = modes.theta;
                     double destinationUtility = Math.exp(uCar / theta) + Math.exp(uPt / theta) + Math.exp(uWalk / theta) + Math.exp(uBike / theta);

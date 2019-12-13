@@ -104,7 +104,6 @@ public class SBBScenarioCutter {
         config.network().setTimeVariantNetwork(true);
 
         config.plans().setInputFile(inbase + "/population.xml.gz");
-        config.plans().setInputPersonAttributeFile(inbase + "/personAttributes.xml.gz");
 
         config.transit().setTransitScheduleFile(inbase + "/schedule.xml.gz");
         config.transit().setVehiclesFile(inbase + "/transitVehicles.xml.gz");

@@ -3,14 +3,10 @@ package ch.sbb.matsim.analysis.potential;
 import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
 import ch.sbb.matsim.preparation.FilteredNetwork;
 import com.graphhopper.isochrone.algorithm.DelaunayTriangulationIsolineBuilder;
-
-import java.io.IOException;
-import java.util.*;
-
 import org.apache.log4j.Logger;
 import org.geotools.feature.SchemaException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.locationtech.jts.geom.*;
+import org.locationtech.jts.geom.Coordinate;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -33,10 +29,12 @@ import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.gis.PolygonFeatureFactory;
 import org.matsim.core.utils.gis.ShapeFileWriter;
-
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.opengis.feature.simple.SimpleFeature;
+
+import java.io.IOException;
+import java.util.*;
 
 
 public class Isochrones {
@@ -100,7 +98,9 @@ public class Isochrones {
 
     private TravelTime getTravelTime(String eventsFilename) {
         log.info("extracting actual travel times from " + eventsFilename);
-        TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), scenario.getConfig().travelTimeCalculator());
+        TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(scenario.getNetwork());
+        builder.configure(scenario.getConfig().travelTimeCalculator());
+        TravelTimeCalculator ttc = builder.build();
         EventsManager events = EventsUtils.createEventsManager();
         events.addHandler(ttc);
         new MatsimEventsReader(events).readFile(eventsFilename);

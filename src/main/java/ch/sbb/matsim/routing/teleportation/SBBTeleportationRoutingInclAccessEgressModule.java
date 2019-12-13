@@ -2,14 +2,13 @@ package ch.sbb.matsim.routing.teleportation;
 
 import ch.sbb.matsim.routing.access.AccessEgressRouting;
 import ch.sbb.matsim.zones.Zones;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.gbl.Gbl;
-import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.TeleportationRoutingModule;
 import org.matsim.facilities.Facility;
 
@@ -23,10 +22,10 @@ import java.util.List;
 public class SBBTeleportationRoutingInclAccessEgressModule extends TeleportationRoutingModule {
     private AccessEgressRouting accessEgress;
 
-    public SBBTeleportationRoutingInclAccessEgressModule(String mode, PopulationFactory populationFactory, double networkTravelSpeed, double beelineDistanceFactor, Zones zones,
-            Network network) {
-        super(mode, populationFactory, networkTravelSpeed, beelineDistanceFactor);
-        this.accessEgress = new AccessEgressRouting(zones, populationFactory, mode, network);
+    public SBBTeleportationRoutingInclAccessEgressModule(String mode, Scenario scenario, double networkTravelSpeed, double beelineDistanceFactor, Zones zones,
+                                                         Network network) {
+        super(mode, scenario, networkTravelSpeed, beelineDistanceFactor);
+        this.accessEgress = new AccessEgressRouting(zones, scenario.getPopulation().getFactory(), mode, network);
     }
 
     @Override
@@ -51,11 +50,6 @@ public class SBBTeleportationRoutingInclAccessEgressModule extends Teleportation
         now = accessEgress.addEgress(toFacility, egressActLink, now, result, person);
 
         return result;
-    }
-
-    @Override
-    public StageActivityTypes getStageActivityTypes() {
-        return this.accessEgress.getStageActivityTypes();
     }
 
 }
