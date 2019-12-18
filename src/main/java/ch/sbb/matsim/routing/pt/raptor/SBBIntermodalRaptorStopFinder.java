@@ -5,21 +5,32 @@ import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterS
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.routing.pt.raptor.SBBLeastCostPathTree.NodeData;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
+import org.matsim.core.router.SingleModeNetworksCache;
+import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
+import org.matsim.core.router.util.TravelDisutility;
+import org.matsim.core.router.util.TravelTime;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
@@ -39,18 +50,25 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 
     private final static Logger log = Logger.getLogger(SBBIntermodalRaptorStopFinder.class);
 
+    private final Scenario scenario;
+    private final TransitSchedule transitSchedule;
     private final RaptorIntermodalAccessEgress intermodalAE;
     private final List<SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams;
     private final Map<String, RoutingModule> routingModules;
-    private final TransitSchedule transitSchedule;
+    private final Map<String, TravelTime> travelTimes;
+    private final Map<String, TravelDisutilityFactory> travelDisutilityFactories;
     private final Set<String> networkModes;
+    private final SingleModeNetworksCache singleModeNetworksCache;
 
     @Inject
-    public SBBIntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE,
+    public SBBIntermodalRaptorStopFinder(Scenario scenario, RaptorIntermodalAccessEgress intermodalAE,
                                          Map<String, Provider<RoutingModule>> routingModuleProviders,
-                                         TransitSchedule transitSchedule) {
+                                         Map<String, TravelTime> travelTimes,
+                                         Map<String, TravelDisutilityFactory> travelDisutilityFactories, SingleModeNetworksCache singleModeNetworksCache) {
         this.intermodalAE = intermodalAE;
-        this.transitSchedule = transitSchedule;
+        this.scenario = scenario;
+        this.transitSchedule = scenario.getTransitSchedule();
+        Config config = scenario.getConfig();
 
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
         this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
@@ -68,6 +86,9 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 }
             }
         }
+        this.travelTimes = travelTimes;
+        this.travelDisutilityFactories = travelDisutilityFactories;
+        this.singleModeNetworksCache = singleModeNetworksCache;
     }
 
     @Override
@@ -126,7 +147,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, radius);
                 boolean isNetworkMode = this.networkModes.contains(mode);
                 if (isNetworkMode) {
-                    // TODO
+                    calculateNetworkRoutesToStops(stopFacilities, paramset, parameters, person, direction, mode, facility, departureTime, initialStops);
                 } else {
                     calculateIndividualRoutesToStops(stopFacilities, paramset, parameters, person, direction, mode, facility, departureTime, initialStops);
                 }
@@ -134,6 +155,148 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         }
 
         return initialStops;
+    }
+
+    private void calculateNetworkRoutesToStops(Collection<TransitStopFacility> stopFacilities, IntermodalAccessEgressParameterSet paramset, RaptorParameters parameters,
+                                               Person person, Direction direction, String mode, Facility facility, double departureTime, List<InitialStop> initialStops) {
+        String linkIdAttribute = paramset.getLinkIdAttribute();
+        boolean useMinimalTransferTimes = doUseMinimalTransferTimes(mode);
+
+        Set<Id<Link>> destinationLinks = new HashSet<>();
+        for (TransitStopFacility stop : stopFacilities) {
+            if (linkIdAttribute == null) {
+                destinationLinks.add(stop.getLinkId());
+            } else {
+                Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
+                if (attr == null) {
+                    destinationLinks.add(stop.getLinkId());
+                } else {
+                    destinationLinks.add(Id.create(attr.toString(), Link.class));
+                }
+            }
+        }
+
+        TravelTime tt = this.travelTimes.get(mode);
+        TravelDisutility tc = this.travelDisutilityFactories.get(mode).createTravelDisutility(tt);
+        SBBLeastCostPathTree tree = new SBBLeastCostPathTree(tt, tc);
+
+        // Ensure this is not performed concurrently by multiple threads!
+        Map<String, Network> cache = this.singleModeNetworksCache.getSingleModeNetworksCache();
+        Network filteredNetwork = cache.get(mode);
+        if (filteredNetwork == null) {
+            synchronized (cache) {
+                filteredNetwork = cache.get(mode);
+                if (filteredNetwork == null) {
+                    TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
+                    Set<String> modes = new HashSet<>();
+                    modes.add(mode);
+                    filteredNetwork = NetworkUtils.createNetwork();
+                    filter.filter(filteredNetwork, modes);
+                    cache.put(mode, filteredNetwork);
+                }
+            }
+        }
+
+        Link originLink = filteredNetwork.getLinks().get(facility.getLinkId());
+
+        List<Tuple<Link, TransitStopFacility>> stopsAndLinks = new ArrayList<>();
+
+        for (TransitStopFacility stop : stopFacilities) {
+            if (stopMatches(stop, paramset)) {
+                Facility stopFacility = stop;
+                Id<Link> linkId = stopFacility.getLinkId();
+                if (linkIdAttribute != null) {
+                    Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
+                    if (attr != null) {
+                        linkId = Id.create(attr.toString(), Link.class);
+                    }
+                }
+                Link link = filteredNetwork.getLinks().get(linkId);
+                stopsAndLinks.add(new Tuple<>(link, stop));
+            }
+        }
+
+        Set<Node> nodesToReach = new HashSet<>();
+
+        SBBLeastCostPathTree.StopCriterion stopCriterion = (node, data, depTime) -> {
+            nodesToReach.remove(node);
+            return nodesToReach.isEmpty();
+        };
+
+        if (direction == Direction.ACCESS) {
+            Node origin = originLink.getToNode();
+            for (Tuple<Link, TransitStopFacility> t : stopsAndLinks) {
+                nodesToReach.add(t.getFirst().getFromNode());
+            }
+            Map<Id<Node>, NodeData> data = tree.calculate(filteredNetwork, origin, departureTime, stopCriterion);
+            for (Tuple<Link, TransitStopFacility> t : stopsAndLinks) {
+                Link link = t.getFirst();
+                TransitStopFacility stop = t.getSecond();
+
+                NodeData destination = data.get(link.getFromNode().getId());
+
+                List<PlanElement> routeParts = new ArrayList<>();
+                Leg leg = PopulationUtils.createLeg(mode);
+                List<Id<Link>> routeLinkIds = new ArrayList<>();
+                routeLinkIds.add(link.getId());
+                NodeData d = destination;
+                while (d.getLink() != null) {
+                    Link l = d.getLink();
+                    routeLinkIds.add(l.getId());
+                    d = data.get(l.getFromNode().getId());
+                }
+                routeLinkIds.add(originLink.getId());
+                Collections.reverse(routeLinkIds);
+                Route route = RouteUtils.createNetworkRoute(routeLinkIds, filteredNetwork);
+                route.setTravelTime(destination.getTime() - departureTime + tt.getLinkTravelTime(link, destination.getTime(), person, null));
+                route.setDistance(destination.getDistance() + link.getLength());
+                leg.setRoute(route);
+                leg.setTravelTime(route.getTravelTime());
+                routeParts.add(leg);
+                routeParts.add(createTransferLeg(link.getId(), stop.getLinkId(), useMinimalTransferTimes, stop));
+
+                RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
+                InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
+                initialStops.add(iStop);
+            }
+        }
+        if (direction == Direction.EGRESS) {
+            Node origin = originLink.getFromNode();
+            for (Tuple<Link, TransitStopFacility> t : stopsAndLinks) {
+                nodesToReach.add(t.getFirst().getToNode());
+            }
+            double egressArrivalTime = departureTime + 3600; // we don't know the actual arrival time...
+            Map<Id<Node>, NodeData> data = tree.calculateBackwards(filteredNetwork, origin, egressArrivalTime, stopCriterion);
+            for (Tuple<Link, TransitStopFacility> t : stopsAndLinks) {
+                Link link = t.getFirst();
+                TransitStopFacility stop = t.getSecond();
+
+                NodeData destination = data.get(link.getToNode().getId());
+
+                List<PlanElement> routeParts = new ArrayList<>();
+                Leg leg = PopulationUtils.createLeg(mode);
+                List<Id<Link>> routeLinkIds = new ArrayList<>();
+                routeLinkIds.add(link.getId());
+                NodeData d = destination;
+                while (d.getLink() != null) {
+                    Link l = d.getLink();
+                    routeLinkIds.add(l.getId());
+                    d = data.get(l.getToNode().getId());
+                }
+                routeLinkIds.add(originLink.getId());
+                Route route = RouteUtils.createNetworkRoute(routeLinkIds, filteredNetwork);
+                route.setTravelTime(egressArrivalTime - destination.getTime() + tt.getLinkTravelTime(originLink, egressArrivalTime, person, null));
+                route.setDistance(destination.getDistance() + originLink.getLength());
+                leg.setRoute(route);
+                leg.setTravelTime(route.getTravelTime());
+                routeParts.add(createTransferLeg(stop.getLinkId(), link.getId(), useMinimalTransferTimes, stop));
+                routeParts.add(leg);
+
+                RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
+                InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
+                initialStops.add(iStop);
+            }
+        }
     }
 
     private void calculateIndividualRoutesToStops(Collection<TransitStopFacility> stopFacilities, IntermodalAccessEgressParameterSet paramset, RaptorParameters parameters,
