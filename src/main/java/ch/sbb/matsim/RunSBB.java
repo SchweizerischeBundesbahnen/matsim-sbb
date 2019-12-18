@@ -76,6 +76,7 @@ public class RunSBB {
     public static void addSBBDefaultScenarioModules(Scenario scenario) {
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
+        IntermodalModule.prepareIntermodalScenario(scenario);
         // vehicle types
         new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
                 scenario.getConfig().qsim().getMainModes()).createVehicles();
@@ -86,7 +87,6 @@ public class RunSBB {
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
             sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
-        IntermodalModule.prepareIntermodalScenario(scenario);
 
 
 
