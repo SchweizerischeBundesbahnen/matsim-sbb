@@ -164,54 +164,23 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 
         Set<Id<Link>> destinationLinks = new HashSet<>();
         for (TransitStopFacility stop : stopFacilities) {
-            if (linkIdAttribute == null) {
-                destinationLinks.add(stop.getLinkId());
-            } else {
-                Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
-                if (attr == null) {
-                    destinationLinks.add(stop.getLinkId());
-                } else {
-                    destinationLinks.add(Id.create(attr.toString(), Link.class));
-                }
-            }
+            destinationLinks.add(getStopLinkId(stop, linkIdAttribute));
         }
 
         TravelTime tt = this.travelTimes.get(mode);
         TravelDisutility tc = this.travelDisutilityFactories.get(mode).createTravelDisutility(tt);
         SBBLeastCostPathTree tree = new SBBLeastCostPathTree(tt, tc);
 
-        // Ensure this is not performed concurrently by multiple threads!
-        Map<String, Network> cache = this.singleModeNetworksCache.getSingleModeNetworksCache();
-        Network filteredNetwork = cache.get(mode);
-        if (filteredNetwork == null) {
-            synchronized (cache) {
-                filteredNetwork = cache.get(mode);
-                if (filteredNetwork == null) {
-                    TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
-                    Set<String> modes = new HashSet<>();
-                    modes.add(mode);
-                    filteredNetwork = NetworkUtils.createNetwork();
-                    filter.filter(filteredNetwork, modes);
-                    cache.put(mode, filteredNetwork);
-                }
-            }
-        }
+        Network routingNetwork = getRoutingNetwork(mode);
 
-        Link originLink = filteredNetwork.getLinks().get(facility.getLinkId());
+        Link originLink = routingNetwork.getLinks().get(facility.getLinkId());
 
         List<Tuple<Link, TransitStopFacility>> stopsAndLinks = new ArrayList<>();
 
         for (TransitStopFacility stop : stopFacilities) {
             if (stopMatches(stop, paramset)) {
-                Facility stopFacility = stop;
-                Id<Link> linkId = stopFacility.getLinkId();
-                if (linkIdAttribute != null) {
-                    Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
-                    if (attr != null) {
-                        linkId = Id.create(attr.toString(), Link.class);
-                    }
-                }
-                Link link = filteredNetwork.getLinks().get(linkId);
+                Id<Link> linkId = getStopLinkId(stop, linkIdAttribute);
+                Link link = routingNetwork.getLinks().get(linkId);
                 stopsAndLinks.add(new Tuple<>(link, stop));
             }
         }
@@ -228,7 +197,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             for (Tuple<Link, TransitStopFacility> t : stopsAndLinks) {
                 nodesToReach.add(t.getFirst().getFromNode());
             }
-            Map<Id<Node>, NodeData> data = tree.calculate(filteredNetwork, origin, departureTime, stopCriterion);
+            Map<Id<Node>, NodeData> data = tree.calculate(routingNetwork, origin, departureTime, stopCriterion);
             for (Tuple<Link, TransitStopFacility> t : stopsAndLinks) {
                 Link link = t.getFirst();
                 TransitStopFacility stop = t.getSecond();
@@ -247,7 +216,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 }
                 routeLinkIds.add(originLink.getId());
                 Collections.reverse(routeLinkIds);
-                Route route = RouteUtils.createNetworkRoute(routeLinkIds, filteredNetwork);
+                Route route = RouteUtils.createNetworkRoute(routeLinkIds, routingNetwork);
                 route.setTravelTime(destination.getTime() - departureTime + tt.getLinkTravelTime(link, destination.getTime(), person, null));
                 route.setDistance(destination.getDistance() + link.getLength());
                 leg.setRoute(route);
@@ -266,7 +235,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 nodesToReach.add(t.getFirst().getToNode());
             }
             double egressArrivalTime = departureTime + 3600; // we don't know the actual arrival time...
-            Map<Id<Node>, NodeData> data = tree.calculateBackwards(filteredNetwork, origin, egressArrivalTime, stopCriterion);
+            Map<Id<Node>, NodeData> data = tree.calculateBackwards(routingNetwork, origin, egressArrivalTime, stopCriterion);
             for (Tuple<Link, TransitStopFacility> t : stopsAndLinks) {
                 Link link = t.getFirst();
                 TransitStopFacility stop = t.getSecond();
@@ -284,7 +253,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                     d = data.get(l.getToNode().getId());
                 }
                 routeLinkIds.add(originLink.getId());
-                Route route = RouteUtils.createNetworkRoute(routeLinkIds, filteredNetwork);
+                Route route = RouteUtils.createNetworkRoute(routeLinkIds, routingNetwork);
                 route.setTravelTime(egressArrivalTime - destination.getTime() + tt.getLinkTravelTime(originLink, egressArrivalTime, person, null));
                 route.setDistance(destination.getDistance() + originLink.getLength());
                 leg.setRoute(route);
@@ -410,6 +379,39 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         else    {
             return transferTime;
         }
+    }
+
+    private Id<Link> getStopLinkId(TransitStopFacility stop, String linkIdAttribute) {
+        if (linkIdAttribute == null) {
+            return stop.getLinkId();
+        } else {
+            Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
+            if (attr == null) {
+                return stop.getLinkId();
+            } else {
+                return Id.create(attr.toString(), Link.class);
+            }
+        }
+    }
+
+    private Network getRoutingNetwork(String mode) {
+        Map<String, Network> cache = this.singleModeNetworksCache.getSingleModeNetworksCache();
+        Network filteredNetwork = cache.get(mode);
+        if (filteredNetwork == null) {
+            // Ensure this is not performed concurrently by multiple threads!
+            synchronized (cache) {
+                filteredNetwork = cache.get(mode);
+                if (filteredNetwork == null) {
+                    TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
+                    Set<String> modes = new HashSet<>();
+                    modes.add(mode);
+                    filteredNetwork = NetworkUtils.createNetwork();
+                    filter.filter(filteredNetwork, modes);
+                    cache.put(mode, filteredNetwork);
+                }
+            }
+        }
+        return filteredNetwork;
     }
 
     private List<TransitStopFacility> findNearbyStops(Facility facility, RaptorParameters parameters, SwissRailRaptorData data) {
