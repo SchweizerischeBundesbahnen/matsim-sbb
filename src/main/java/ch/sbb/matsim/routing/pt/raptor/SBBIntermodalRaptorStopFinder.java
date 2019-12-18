@@ -307,11 +307,17 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 List<? extends PlanElement> routeParts;
                 if (direction == Direction.ACCESS) {
                     RoutingModule module = this.routingModules.get(mode);
+                    if (module == null) {
+                        throw new RuntimeException("Could not find routing module for mode " + mode);
+                    }
                     routeParts = module.calcRoute(facility, stopFacility, departureTime, person);
                 } else { // it's Egress
                     // We don't know the departure time for the egress trip, so just use the original departureTime,
                     // although it is wrong and might result in a wrong traveltime and thus wrong route.
                     RoutingModule module = this.routingModules.get(mode);
+                    if (module == null) {
+                        throw new RuntimeException("Could not find routing module for mode " + mode);
+                    }
                     routeParts = module.calcRoute(stopFacility, facility, departureTime, person);
                     // clear the (wrong) departureTime so users don't get confused
                     for (PlanElement pe : routeParts) {
