@@ -117,7 +117,6 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
         double x = facility.getCoord().getX();
         double y = facility.getCoord().getY();
-        String personId = person.getId().toString();
         List<InitialStop> initialStops = new ArrayList<>();
         for (IntermodalAccessEgressParameterSet paramset : srrCfg.getIntermodalAccessEgressParameterSets()) {
             double radius = paramset.getMaxRadius();
@@ -131,28 +130,11 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 overrideMode = SBBModes.NON_NETWORK_WALK;
             }
             String linkIdAttribute = paramset.getLinkIdAttribute();
-            String personFilterAttribute = paramset.getPersonFilterAttribute();
-            String personFilterValue = paramset.getPersonFilterValue();
-            String stopFilterAttribute = paramset.getStopFilterAttribute();
-            String stopFilterValue = paramset.getStopFilterValue();
 
-            boolean personMatches = true;
-            if (personFilterAttribute != null) {
-                Object attr = person.getAttributes().getAttribute(personFilterAttribute);
-                String attrValue = attr == null ? null : attr.toString();
-                personMatches = personFilterValue.equals(attrValue);
-            }
-
-            if (personMatches) {
+            if (personMatches(person, paramset)) {
                 Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, radius);
                 for (TransitStopFacility stop : stopFacilities) {
-                    boolean filterMatches = true;
-                    if (stopFilterAttribute != null) {
-                        Object attr = stop.getAttributes().getAttribute(stopFilterAttribute);
-                        String attrValue = attr == null ? null : attr.toString();
-                        filterMatches = stopFilterValue.equals(attrValue);
-                    }
-                    if (filterMatches) {
+                    if (stopMatches(stop, paramset)) {
                         Facility stopFacility = stop;
                         if (linkIdAttribute != null) {
                             Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
@@ -229,6 +211,32 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 
 
         return initialStops;
+    }
+
+    private boolean personMatches(Person person, IntermodalAccessEgressParameterSet paramset) {
+        String personFilterAttribute = paramset.getPersonFilterAttribute();
+        String personFilterValue = paramset.getPersonFilterValue();
+
+        boolean personMatches = true;
+        if (personFilterAttribute != null) {
+            Object attr = person.getAttributes().getAttribute(personFilterAttribute);
+            String attrValue = attr == null ? null : attr.toString();
+            personMatches = personFilterValue.equals(attrValue);
+        }
+        return personMatches;
+    }
+
+    private boolean stopMatches(TransitStopFacility stop, IntermodalAccessEgressParameterSet paramset) {
+        String stopFilterAttribute = paramset.getStopFilterAttribute();
+        String stopFilterValue = paramset.getStopFilterValue();
+
+        boolean filterMatches = true;
+        if (stopFilterAttribute != null) {
+            Object attr = stop.getAttributes().getAttribute(stopFilterAttribute);
+            String attrValue = attr == null ? null : attr.toString();
+            filterMatches = stopFilterValue.equals(attrValue);
+        }
+        return filterMatches;
     }
 
     private boolean doUseMinimalTransferTimes(String mode) {
