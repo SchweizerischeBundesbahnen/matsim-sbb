@@ -34,9 +34,9 @@ import java.util.stream.Collectors;
 /**
  * @author mrieser / Simunto GmbH
  */
-public class IntermodalRaptorStopFinder implements RaptorStopFinder {
+public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 
-    private final static Logger log = Logger.getLogger(IntermodalRaptorStopFinder.class);
+    private final static Logger log = Logger.getLogger(SBBIntermodalRaptorStopFinder.class);
 
     private final RaptorIntermodalAccessEgress intermodalAE;
     private final List<SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams;
@@ -44,9 +44,9 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
     private final TransitSchedule transitSchedule;
 
     @Inject
-    public IntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE,
-                                      Map<String, Provider<RoutingModule>> routingModuleProviders,
-                                      TransitSchedule transitSchedule) {
+    public SBBIntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE,
+                                         Map<String, Provider<RoutingModule>> routingModuleProviders,
+                                         TransitSchedule transitSchedule) {
         this.intermodalAE = intermodalAE;
         this.transitSchedule = transitSchedule;
 
@@ -63,7 +63,7 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
         }
     }
 
-    public IntermodalRaptorStopFinder(RaptorIntermodalAccessEgress intermodalAE, Map<String, RoutingModule> routingModules) {
+    public SBBIntermodalRaptorStopFinder(RaptorIntermodalAccessEgress intermodalAE, Map<String, RoutingModule> routingModules) {
         this.intermodalAE = intermodalAE;
         this.routingModules = routingModules;
         this.transitSchedule = null;
