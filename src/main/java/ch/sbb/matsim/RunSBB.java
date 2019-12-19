@@ -14,6 +14,8 @@ import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.routing.access.AccessEgress;
+import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
+import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.IntermodalRaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
@@ -46,7 +48,7 @@ public class RunSBB {
     private final static Logger log = Logger.getLogger(RunSBB.class);
     public final static ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
             new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup()};
+            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(), new SBBNetworkRoutingConfigGroup()};
 
 
     public static void main(String[] args) {
@@ -70,9 +72,11 @@ public class RunSBB {
         controler.run();
     }
 
+
     public static void addSBBDefaultScenarioModules(Scenario scenario) {
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
 
+        IntermodalModule.prepareIntermodalScenario(scenario);
         // vehicle types
         new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
                 scenario.getConfig().qsim().getMainModes()).createVehicles();
@@ -83,6 +87,8 @@ public class RunSBB {
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
             sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
+
+
     }
 
     public static void addSBBDefaultControlerModules(Controler controler) {
@@ -103,9 +109,6 @@ public class RunSBB {
             @Override
             public void install() {
                 addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
-
-                addTravelTimeBinding("ride").to(networkTravelTime());
-                addTravelDisutilityFactoryBinding("ride").to(carTravelDisutilityFactoryKey());
 
                 install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
@@ -130,9 +133,9 @@ public class RunSBB {
             }
         });
 
-
+        controler.addOverridingModule(new SBBNetworkRoutingModule(scenario));
         controler.addOverridingModule(new AccessEgress(scenario));
-        controler.addOverridingModule(new IntermodalModule(scenario));
+        controler.addOverridingModule(new IntermodalModule());
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {

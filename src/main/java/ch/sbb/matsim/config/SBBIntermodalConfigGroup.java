@@ -327,6 +327,9 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             if (waitingTime > 0 && accessTimeZoneId != null) {
                 throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
             }
+            if (!isRoutedOnNetwork() && isSimulatedOnNetwork()) {
+                throw new RuntimeException("Mode " + mode + " is simulated but not routed on network. This will not work.");
+            }
 
             Set<String> modesInRaptorConfig = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets()
                     .stream()
