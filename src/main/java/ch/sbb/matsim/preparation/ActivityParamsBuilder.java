@@ -4,14 +4,12 @@ import ch.sbb.matsim.config.variables.SBBActivities;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
 
-import java.util.Set;
-
 public class ActivityParamsBuilder {
 
     public static void buildActivityParams(Config config)   {
         for( String stageActivityType: SBBActivities.stageActivityTypeList )    {
             final ActivityParams params = new ActivityParams( stageActivityType ) ;
-            params.setTypicalDuration( 120.0 );
+            //params.setTypicalDuration( 120.0 );
             params.setScoringThisActivityAtAll( false );
             config.planCalcScore().addActivityParams( params );
         }
