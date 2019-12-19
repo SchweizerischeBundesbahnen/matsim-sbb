@@ -81,11 +81,11 @@ public class Trip extends TravelComponent {
         // get main mode according to hierarchical order
         TravelledLeg leg = Collections.min(this.legs, Comparator.comparing(TravelledLeg::getModeHierarchy));
         if (leg.getModeHierarchy() != SBBModes.DEFAULT_MODE_HIERARCHY) {
-            if(leg.isPtLeg())   {
+            if (leg.isPtLeg()) {
                 return SBBModes.PT;
             }
             String mainMode = leg.getMode();
-            if(mainMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+            if (mainMode.equals(SBBModes.PT_FALLBACK_MODE)) {
                 return SBBModes.WALK;
             }
             return mainMode;

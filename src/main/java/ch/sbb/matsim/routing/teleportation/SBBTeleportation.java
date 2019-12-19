@@ -26,7 +26,8 @@ public class SBBTeleportation implements Provider<RoutingModule> {
         this.zonesId = zonesId;
     }
 
-    @Inject private Scenario scenario;
+    @Inject
+    private Scenario scenario;
 
     @Inject private Network network;
 

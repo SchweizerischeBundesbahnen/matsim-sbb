@@ -50,7 +50,7 @@ public class Cleaner {
             log.info("Cleaner cleans routes for subpop: " + subpop);
 
         for(Person p: population.getPersons().values()){
-            if(!subpopulationsToClean.contains(p.getAttributes().getAttribute("subpopulation")) &&
+            if (!subpopulationsToClean.contains(p.getAttributes().getAttribute("subpopulation")) &&
                     !subpopulationsToClean.contains("all"))
                 continue;
 
@@ -78,7 +78,7 @@ public class Cleaner {
                             leg.setMode(mode);
                             leg.setRoute(null);
                         }
-                        if(leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) && modesToClean.contains(SBBModes.PT)) {
+                        if (leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) && modesToClean.contains(SBBModes.PT)) {
                             leg.setMode(SBBModes.PT);
                             leg.setRoute(null);
                         }

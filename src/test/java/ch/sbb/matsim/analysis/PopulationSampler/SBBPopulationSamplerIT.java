@@ -1,11 +1,10 @@
 package ch.sbb.matsim.analysis.PopulationSampler;
 
+import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
-
-import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 
 public class SBBPopulationSamplerIT {
 

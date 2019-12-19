@@ -10,11 +10,14 @@ import java.util.Map;
 public class SBBModes {
     private SBBModes() {}
 
-    public static final String PT = TransportMode.pt;
     public static final String CAR = TransportMode.car;
     public static final String RIDE = TransportMode.ride;
-    public static final String BIKE = TransportMode.bike;
+    public static final String PT = TransportMode.pt;
     public static final String WALK = TransportMode.walk;
+    public static final String BIKE = TransportMode.bike;
+    public static final String AVTAXI = "avtaxi";
+    public static final String AVFEEDER = "avfeeder";
+    public static final String DRT = TransportMode.drt;
     public static final String PT_FALLBACK_MODE = TransportMode.transit_walk;
     public static final String NON_NETWORK_WALK = TransportMode.non_network_walk;
 
@@ -34,14 +37,12 @@ public class SBBModes {
     }
 
     public static class PTSubModes {
-        private PTSubModes()    {}
-
         public static final String RAIL = "rail";
         public static final String TRAM = "tram";
         public static final String BUS = "bus";
         public static final String OTHER = "other"; // example for "other": Seilbahn, Gondelbahn, Schiff, ...
-
         public final static List<String> subModeList;
+
         static {
             subModeList = new ArrayList<>();
             subModeList.add(RAIL);
@@ -50,6 +51,9 @@ public class SBBModes {
             subModeList.add(OTHER);
             // TODO: remove detPt as soon as we merged the pt-submodes
             subModeList.add("detPt");
+        }
+
+        private PTSubModes() {
         }
     }
 }

@@ -3119,20 +3119,20 @@
 
         <parameterset type="intermodalAccessEgress">
             <param name="mode" value="bike"/>
-			<param name="initialSearchRadius" value="3500"/>
-			<param name="searchExtensionRadius" value="500"/>
+            <param name="initialSearchRadius" value="3500"/>
+            <param name="searchExtensionRadius" value="500"/>
             <param name="maxRadius" value="4000"/>
         </parameterset>
         <parameterset type="intermodalAccessEgress">
             <param name="mode" value="drtfeeder"/>
-			<param name="initialSearchRadius" value="7500"/>
-			<param name="searchExtensionRadius" value="500"/>
+            <param name="initialSearchRadius" value="7500"/>
+            <param name="searchExtensionRadius" value="500"/>
             <param name="maxRadius" value="8000"/>
         </parameterset>
         <parameterset type="intermodalAccessEgress">
             <param name="mode" value="carfeeder"/>
-			<param name="initialSearchRadius" value="7500"/>
-			<param name="searchExtensionRadius" value="500"/>
+            <param name="initialSearchRadius" value="7500"/>
+            <param name="searchExtensionRadius" value="500"/>
             <param name="maxRadius" value="8000"/>
             <param name="linkIdAttribute" value="carfeederaccessLink"/>
             <param name="stopFilterAttribute" value="carfeederaccess"/>
@@ -3142,7 +3142,7 @@
         <parameterset type="intermodalAccessEgress">
             <param name="mode" value="walk"/>
             <param name="initialSearchRadius" value="1000"/>
-			<param name="searchExtensionRadius" value="100"/>
+            <param name="searchExtensionRadius" value="100"/>
             <param name="maxRadius" value="1100"/>
         </parameterset>
     </module>

@@ -22,7 +22,10 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ZoneBasedSpinne {
@@ -37,32 +40,8 @@ public class ZoneBasedSpinne {
                 args[0], args[1], args[2], args[3]);
     }
 
-    public void run(String plans, String networkFile, String shapeFile, String attName,
-                    String attValue, String name, String csvOut)    {
-        Zones zones = ZonesLoader.loadZones("spinne", shapeFile, null);
-        ZonesQueryCache zonesCache = new ZonesQueryCache(zones);
-
-        HashSet<Id<Link>> linksInZone = getLinksInZone(networkFile, zonesCache, attName, attValue);
-
-        List<InputFiles> planFiles = new ArrayList<>();
-        for(int i = 1; i < 5; i++) {
-            planFiles.add(new InputFiles(plans + "2.0.1."+i+"_release_25pct_"+i+"\\output\\CH.25pct."+i+".2016.output_plans.xml.gz"));
-        }
-        planFiles.parallelStream().forEach(planFile -> readPopulationAndCalcVolumes(planFile, linksInZone));
-
-        writeCSV(name, csvOut);
-    }
-
-    private static class InputFiles {
-        private String plans;
-
-        private InputFiles(String plans)   {
-            this.plans = plans;
-        }
-    }
-
     private static HashSet<Id<Link>> getLinksInZone(String networkFile, ZonesQueryCache zonesCache, String attName,
-                                                    String attValue)  {
+                                                    String attValue) {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
@@ -83,6 +62,22 @@ public class ZoneBasedSpinne {
         log.info("Links in zone: " + linksInZone.size());
         log.info("Total number of links: " + scenario.getNetwork().getLinks().size());
         return linksInZone;
+    }
+
+    public void run(String plans, String networkFile, String shapeFile, String attName,
+                    String attValue, String name, String csvOut)    {
+        Zones zones = ZonesLoader.loadZones("spinne", shapeFile, null);
+        ZonesQueryCache zonesCache = new ZonesQueryCache(zones);
+
+        HashSet<Id<Link>> linksInZone = getLinksInZone(networkFile, zonesCache, attName, attValue);
+
+        List<InputFiles> planFiles = new ArrayList<>();
+        for(int i = 1; i < 5; i++) {
+            planFiles.add(new InputFiles(plans + "2.0.1." + i + "_release_25pct_" + i + "\\output\\CH.25pct." + i + ".2016.output_plans.xml.gz"));
+        }
+        planFiles.parallelStream().forEach(planFile -> readPopulationAndCalcVolumes(planFile, linksInZone));
+
+        writeCSV(name, csvOut);
     }
 
     private void readPopulationAndCalcVolumes(InputFiles files, HashSet<Id<Link>> linksInZone)   {
@@ -113,6 +108,14 @@ public class ZoneBasedSpinne {
             }
         });
         r.readFile(files.plans);
+    }
+
+    private static class InputFiles {
+        private String plans;
+
+        private InputFiles(String plans) {
+            this.plans = plans;
+        }
     }
 
     private void addRouteToOrigDestVolumes(NetworkRoute route)  {
