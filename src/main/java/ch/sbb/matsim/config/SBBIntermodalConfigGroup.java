@@ -126,11 +126,10 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         public static final String PARAM_DETOUR_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
         static private final String PARAM_DETOUR_FACTOR = "detourFactor";
 
-        static private final String PARAM_SIMULATION_NETWORKMODE = "isSimulatedOnNetwork";
         public static final String PARAM_SIMULATION_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
-
-        static private final String PARAM_ROUTING_NETWORKMODE = "isRoutedOnNetwork";
         public static final String PARAM_ROUTING_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the road network.";
+        static private final String PARAM_SIMULATION_NETWORKMODE = "isSimulatedOnNetwork";
+        static private final String PARAM_ROUTING_NETWORKMODE = "isRoutedOnNetwork";
 
         public static final String PARAM_ACCESSTIME_ZONEATT_DESC = "Zone Id field for mode specific access (or wait) time (in seconds).";
         public static final String PARAM_DETOUR_FACTOR_ZONEATT_DESC = "Zone Id field for mode specific detour factor.";
@@ -138,7 +137,6 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         static private final String PARAM_ACCESSTIME_ZONEATT = "accessTimeZonesAttributeName";
         static private final String PARAM_DETOUR_FACTOR_ZONEATT = "detourFactorZonesAttributeName";
         static private final String PARAM_EGRESSTIME_ZONEATT = "egressTimeZonesAttributeName";
-
         static private final String PARAM_USEMINIMALTRANSFERTIMES_DESC = "use minimal transfer times";
         static private final String PARAM_USEMINIMALTRANSFERTIMES = "useMinimalTransferTimes";
 

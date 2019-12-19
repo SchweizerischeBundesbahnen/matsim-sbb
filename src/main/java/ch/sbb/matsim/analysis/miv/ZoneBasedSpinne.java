@@ -65,14 +65,14 @@ public class ZoneBasedSpinne {
     }
 
     public void run(String plans, String networkFile, String shapeFile, String attName,
-                    String attValue, String name, String csvOut)    {
+                    String attValue, String name, String csvOut) {
         Zones zones = ZonesLoader.loadZones("spinne", shapeFile, null);
         ZonesQueryCache zonesCache = new ZonesQueryCache(zones);
 
         HashSet<Id<Link>> linksInZone = getLinksInZone(networkFile, zonesCache, attName, attValue);
 
         List<InputFiles> planFiles = new ArrayList<>();
-        for(int i = 1; i < 5; i++) {
+        for (int i = 1; i < 5; i++) {
             planFiles.add(new InputFiles(plans + "2.0.1." + i + "_release_25pct_" + i + "\\output\\CH.25pct." + i + ".2016.output_plans.xml.gz"));
         }
         planFiles.parallelStream().forEach(planFile -> readPopulationAndCalcVolumes(planFile, linksInZone));
