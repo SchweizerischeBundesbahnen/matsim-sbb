@@ -5,6 +5,7 @@
 package ch.sbb.matsim.analysis.travelcomponents;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
@@ -55,13 +56,13 @@ public class Trip extends TravelComponent {
     }
 
     public double getInVehDistance() {
-        if (getMainMode().equals("walk"))
+        if (getMainMode().equals(SBBModes.WALK))
             return 0;
         return this.legs.stream().mapToDouble(TravelledLeg::getDistance).sum();
     }
 
     private double getWalkDistance() {
-        if (getMainMode().equals("walk"))
+        if (getMainMode().equals(SBBModes.WALK))
             return walkSpeed * getDuration();
         return 0;
     }
@@ -71,7 +72,7 @@ public class Trip extends TravelComponent {
     }
 
     public double getInVehTime() {
-        if (getMainMode().equals("walk"))
+        if (getMainMode().equals(SBBModes.WALK))
             return 0;
         return this.legs.stream().mapToDouble(TravelledLeg::getDuration).sum();
     }
@@ -79,8 +80,15 @@ public class Trip extends TravelComponent {
     public String getMainMode() {
         // get main mode according to hierarchical order
         TravelledLeg leg = Collections.min(this.legs, Comparator.comparing(TravelledLeg::getModeHierarchy));
-        if (leg.getModeHierarchy() != 99) {
-            return leg.getMode();
+        if (leg.getModeHierarchy() != SBBModes.DEFAULT_MODE_HIERARCHY) {
+            if (leg.isPtLeg()) {
+                return SBBModes.PT;
+            }
+            String mainMode = leg.getMode();
+            if (mainMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                return SBBModes.WALK;
+            }
+            return mainMode;
         }
         else    {
             // fallback solution -> get main mode according to longest distance

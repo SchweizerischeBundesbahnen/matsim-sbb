@@ -14,11 +14,13 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 
     private final SBBScoringParameters params;
     private final Set<String> ptModes;
+    private final Set<String> ptFeederModes;
     private double score = 0.0;
 
-    public SBBTransferScoring(SBBScoringParameters params, Set<String> ptModes) {
+    public SBBTransferScoring(SBBScoringParameters params, Set<String> ptModes, Set<String> ptFeederModes) {
         this.params = params;
         this.ptModes = ptModes;
+        this.ptFeederModes = ptFeederModes;
     }
 
     @Override
@@ -29,7 +31,7 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 
         for (Leg leg : trip.getLegsOnly()) {
             String legMode = leg.getMode();
-            boolean isTransit = this.ptModes.contains(legMode);
+            boolean isTransit = this.ptModes.contains(legMode) || this.ptFeederModes.contains(legMode);
             if (isTransit) {
                 transitLegsCount++;
                 if (Time.isUndefinedTime(departureTime)) {

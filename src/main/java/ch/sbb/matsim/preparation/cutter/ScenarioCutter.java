@@ -1,6 +1,7 @@
 package ch.sbb.matsim.preparation.cutter;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -19,12 +20,12 @@ import org.matsim.core.network.NetworkChangeEvent;
 import org.matsim.core.network.NetworkChangeEvent.ChangeType;
 import org.matsim.core.network.NetworkChangeEvent.ChangeValue;
 import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkChangeEventsWriter;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
-import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
@@ -37,16 +38,12 @@ import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.routes.ExperimentalTransitRoute;
 import org.matsim.pt.transitSchedule.api.*;
-import org.matsim.utils.objectattributes.ObjectAttributesUtils;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 import org.matsim.utils.objectattributes.attributable.AttributesUtils;
 import org.matsim.vehicles.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -112,10 +109,9 @@ public class ScenarioCutter {
         Scenario scenario = ScenarioUtils.createScenario(config);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(outputPrefix + "output_network.xml.gz");
         new TransitScheduleReader(scenario).readFile(outputPrefix + "output_transitSchedule.xml.gz");
-        new VehicleReaderV1(scenario.getTransitVehicles()).readFile(outputPrefix + "output_transitVehicles.xml.gz");
+        new MatsimVehicleReader(scenario.getTransitVehicles()).readFile(outputPrefix + "output_transitVehicles.xml.gz");
         BetterPopulationReader.readSelectedPlansOnly(scenario, new File(outputPrefix + "output_plans.xml.gz"));
-        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(outputPrefix + "output_personAttributes.xml.gz");
-        new VehicleReaderV1(scenario.getVehicles()).readFile(outputPrefix + "output_vehicles.xml.gz");
+        new MatsimVehicleReader(scenario.getVehicles()).readFile(outputPrefix + "output_vehicles.xml.gz");
         new MatsimFacilitiesReader(scenario).readFile(outputPrefix + "output_facilities.xml.gz");
 
         log.info("clean network");
@@ -149,10 +145,9 @@ public class ScenarioCutter {
 
         new NetworkWriter(cutScenario.getNetwork()).write(new File(outputDir, "network.xml.gz").getAbsolutePath());
         new PopulationWriter(cutScenario.getPopulation()).write(new File(outputDir, "population.xml.gz").getAbsolutePath());
-        new VehicleWriterV1(cutScenario.getTransitVehicles()).writeFile(new File(outputDir, "transitVehicles.xml.gz").getAbsolutePath());
-        new VehicleWriterV1(cutScenario.getVehicles()).writeFile(new File(outputDir, "vehicles.xml.gz").getAbsolutePath());
+        new MatsimVehicleWriter(cutScenario.getTransitVehicles()).writeFile(new File(outputDir, "transitVehicles.xml.gz").getAbsolutePath());
+        new MatsimVehicleWriter(cutScenario.getVehicles()).writeFile(new File(outputDir, "vehicles.xml.gz").getAbsolutePath());
         new TransitScheduleWriter(cutScenario.getTransitSchedule()).writeFile(new File(outputDir, "schedule.xml.gz").getAbsolutePath());
-        new ObjectAttributesXmlWriter(cutScenario.getPopulation().getPersonAttributes()).writeFile(new File(outputDir, "personAttributes.xml.gz").getAbsolutePath());
         new FacilitiesWriter(cutScenario.getActivityFacilities()).write(new File(outputDir, "facilities.xml.gz").getAbsolutePath());
 
         List<NetworkChangeEvent> changeEvents = (List<NetworkChangeEvent>) cutScenario.getScenarioElement(CHANGE_EVENTS);
@@ -201,17 +196,8 @@ public class ScenarioCutter {
         Scenario scenario = ScenarioUtils.createScenario(config);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
         new TransitScheduleReader(scenario).readFile(config.transit().getTransitScheduleFile());
-        if (config.transit().getTransitLinesAttributesFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitLinesAttributes()).readFile(config.transit().getTransitLinesAttributesFile());
-        }
-        if (config.transit().getTransitStopsAttributesFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getTransitSchedule().getTransitStopsAttributes()).readFile(config.transit().getTransitStopsAttributesFile());
-        }
-        new VehicleReaderV1(scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
+        new MatsimVehicleReader(scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
         BetterPopulationReader.readSelectedPlansOnly(scenario, new File(config.plans().getInputFile()));
-        if (config.plans().getInputPersonAttributeFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(config.plans().getInputPersonAttributeFile());
-        }
         new MatsimFacilitiesReader(scenario).readFile(config.facilities().getInputFile());
 
         log.info("clean network");
@@ -249,15 +235,8 @@ public class ScenarioCutter {
 
         new NetworkWriter(cutScenario.getNetwork()).write(new File(outputDir, "network.xml.gz").getAbsolutePath());
         new PopulationWriter(cutScenario.getPopulation()).write(new File(outputDir, "population.xml.gz").getAbsolutePath());
-        new VehicleWriterV1(cutScenario.getTransitVehicles()).writeFile(new File(outputDir, "transitVehicles.xml.gz").getAbsolutePath());
+        new MatsimVehicleWriter(cutScenario.getTransitVehicles()).writeFile(new File(outputDir, "transitVehicles.xml.gz").getAbsolutePath());
         new TransitScheduleWriter(cutScenario.getTransitSchedule()).writeFile(new File(outputDir, "schedule.xml.gz").getAbsolutePath());
-        if (config.transit().getTransitLinesAttributesFile() != null) {
-            new ObjectAttributesXmlWriter(cutScenario.getTransitSchedule().getTransitLinesAttributes()).writeFile(new File(outputDir, "transitLinesAttributes.xml.gz").getAbsolutePath());
-        }
-        if (config.transit().getTransitStopsAttributesFile() != null) {
-            new ObjectAttributesXmlWriter(cutScenario.getTransitSchedule().getTransitStopsAttributes()).writeFile(new File(outputDir, "transitStopsAttributes.xml.gz").getAbsolutePath());
-        }
-
 
         new FacilitiesWriter(cutScenario.getActivityFacilities()).write(new File(outputDir, "facilities.xml.gz").getAbsolutePath());
 
@@ -567,7 +546,6 @@ public class ScenarioCutter {
                         destLine.setName(line.getName());
                         AttributesUtils.copyAttributesFromTo(line, destLine);
                         dest.addTransitLine(destLine);
-                        ObjectAttributesUtils.copyAllAttributes(source.getTransitLinesAttributes(), dest.getTransitLinesAttributes(), line.getId().toString());
                     }
                     destLine.addRoute(route);
                 }
@@ -598,17 +576,16 @@ public class ScenarioCutter {
                         VehicleType destVehicleType = destVehicles.getVehicleTypes().get(srcVehicleType.getId());
                         if (destVehicleType == null) {
                             destVehicleType = destVehicles.getFactory().createVehicleType(srcVehicleType.getId());
-                            destVehicleType.setCapacity(srcVehicleType.getCapacity());
+                            copyVehicleCapacity(srcVehicleType.getCapacity(), destVehicleType.getCapacity());
                             destVehicleType.setPcuEquivalents(srcVehicleType.getPcuEquivalents());
                             destVehicleType.setMaximumVelocity(srcVehicleType.getMaximumVelocity());
-                            destVehicleType.setDoorOperationMode(srcVehicleType.getDoorOperationMode());
+                            VehicleUtils.setDoorOperationMode(destVehicleType, VehicleUtils.getDoorOperationMode(srcVehicleType));
                             destVehicleType.setDescription(srcVehicleType.getDescription());
                             destVehicleType.setLength(srcVehicleType.getLength());
                             destVehicleType.setWidth(srcVehicleType.getWidth());
                             destVehicleType.setFlowEfficiencyFactor(srcVehicleType.getFlowEfficiencyFactor());
-                            destVehicleType.setAccessTime(srcVehicleType.getAccessTime());
-                            destVehicleType.setEgressTime(srcVehicleType.getEgressTime());
-                            destVehicleType.setEngineInformation(srcVehicleType.getEngineInformation());
+                            VehicleUtils.setAccessTime(destVehicleType, VehicleUtils.getAccessTime(srcVehicleType));
+                            VehicleUtils.setEgressTime(destVehicleType, VehicleUtils.getEgressTime(srcVehicleType));
                             destVehicles.addVehicleType(destVehicleType);
                         }
                         vehicle = f.createVehicle(srcVehicle.getId(), destVehicleType);
@@ -619,7 +596,13 @@ public class ScenarioCutter {
         }
     }
 
-
+    private void copyVehicleCapacity(VehicleCapacity src, VehicleCapacity dest) {
+        dest.setSeats(src.getSeats());
+        dest.setStandingRoom(src.getStandingRoom());
+        dest.setOther(src.getOther());
+        dest.setVolumeInCubicMeters(src.getVolumeInCubicMeters());
+        dest.setWeightInTons(src.getWeightInTons());
+    }
 
     private void filterMinTransferTimes(CutContext ctx) {
         TransitSchedule src = ctx.source.getTransitSchedule();
@@ -699,11 +682,15 @@ public class ScenarioCutter {
                 copyLink(link, destNet);
             }
         }
+
+        MultimodalNetworkCleaner networkCleaner = new MultimodalNetworkCleaner(destNet);
+        Set<String> cleanedModes = new HashSet<>();
+        cleanedModes.add(SBBModes.CAR);
+        cleanedModes.add(SBBModes.RIDE);
+        networkCleaner.run(cleanedModes, SBBModes.PTSubModes.submodes);
+
     }
 
-    public static Predicate<Person> isCut() {
-        return person -> person.getAttributes().getAsMap().containsKey(ScenarioCutter.CUT_ATTRIBUTE) && (boolean) person.getAttributes().getAttribute(ScenarioCutter.CUT_ATTRIBUTE);
-    }
 
     private Plan cutPlan(CutContext ctx, Person destPerson, Plan srcPlan) {
         approximateEndtimesForInteractionActivities(srcPlan);
@@ -750,14 +737,53 @@ public class ScenarioCutter {
         removeEndTimesFromInteractionActivities(plan);
         removeDurationWhenBothAreSet(plan);
         modifyLoneSomeAccessEgressWalks(plan);
-        removeRoutesWithLinksThatDoNotExist(plan, ctx);
+        removeInconsistentRoutes(plan, ctx);
         return plan;
     }
 
-    private void removeRoutesWithLinksThatDoNotExist(Plan plan, CutContext ctx) {
-        TripStructureUtils.getLegs(plan).stream()
-                .filter(leg -> ctx.dest.getNetwork().getLinks().containsKey(leg.getRoute().getStartLinkId()) || !ctx.dest.getNetwork().getLinks().containsKey(leg.getRoute().getEndLinkId()))
-                .forEach(leg -> leg.setRoute(null));
+
+    private void removeInconsistentRoutes(Plan plan, CutContext ctx) {
+        Id<Link> lastActivityLink = null;
+        Leg currentLeg = null;
+        for (PlanElement pe : plan.getPlanElements()) {
+            if (pe instanceof Activity) {
+                Activity act = (Activity) pe;
+                if (currentLeg != null) {
+                    if (lastActivityLink != null && act.getLinkId() != null && currentLeg.getRoute() != null) {
+                        if (currentLeg.getRoute().getStartLinkId() != lastActivityLink || currentLeg.getRoute().getEndLinkId() != act.getLinkId()) {
+                            currentLeg.setRoute(null);
+                        }
+                    }
+                }
+                lastActivityLink = act.getLinkId();
+            } else if (pe instanceof Leg) {
+                currentLeg = (Leg) pe;
+                if (currentLeg.getRoute() instanceof NetworkRoute) {
+                    if (!linksCoveredInNetwork(currentLeg.getRoute(), ctx.dest.getNetwork())) {
+                        currentLeg.setRoute(null);
+                    }
+                }
+            }
+
+        }
+
+    }
+
+
+    private boolean linksCoveredInNetwork(Route route, Network network) {
+        if (route == null) return false;
+
+        if (!network.getLinks().containsKey(route.getEndLinkId()) || !network.getLinks().containsKey(route.getStartLinkId())) {
+            return false;
+        }
+        if (route instanceof NetworkRoute) {
+            for (Id<Link> link : ((NetworkRoute) route).getLinkIds()) {
+            if (!network.getLinks().containsKey(link)) {
+                return false;
+            }
+            }
+        }
+        return true;
     }
 
     private void removeDurationWhenBothAreSet(Plan plan) {
@@ -785,7 +811,7 @@ public class ScenarioCutter {
                 Activity current = (Activity) planElement;
                 if (previousAct != null) {
                     if (!previousAct.getType().endsWith("interaction") && !current.getType().endsWith("interaction")) {
-                        if (previousLeg.getMode().equals(TransportMode.access_walk) || previousLeg.getMode().equals(TransportMode.egress_walk)) {
+                        if (previousLeg.getMode().equals(TransportMode.non_network_walk)) {
                             previousLeg.setMode(TransportMode.walk);
                         }
                     }
@@ -1425,12 +1451,11 @@ public class ScenarioCutter {
         Thread.currentThread().setName("Person " + srcP.getId());
         Person destP = ctx.dest.getPopulation().getFactory().createPerson(srcP.getId());
         AttributesUtils.copyAttributesFromTo(srcP, destP);
-        ObjectAttributesUtils.copyAllAttributes(ctx.source.getPopulation().getPersonAttributes(), ctx.dest.getPopulation().getPersonAttributes(), srcP.getId().toString());
         Plan plan = cutPlan(ctx, destP, srcP.getSelectedPlan());
         if (planWasCut(plan)) {
             ctx.cutPersons.put(destP.getId(), destP);
             destP.getAttributes().putAttribute(CUT_ATTRIBUTE, true);
-            ctx.dest.getPopulation().getPersonAttributes().putAttribute(destP.getId().toString(), "subpopulation", OUTSIDE_AGENT_SUBPOP);
+            destP.getAttributes().putAttribute("subpopulation", OUTSIDE_AGENT_SUBPOP);
         }
         ctx.dest.getPopulation().addPerson(destP);
     }

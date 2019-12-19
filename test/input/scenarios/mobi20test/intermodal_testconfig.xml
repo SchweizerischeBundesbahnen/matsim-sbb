@@ -97,7 +97,7 @@
 		Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
 		For 'qsim', add a module 'qsim' to the config. -->
         <param name="mobsim" value="qsim"/>
-        <param name="outputDirectory" value="test/output/runSBBIT"/>
+        <param name="outputDirectory" value="test/output/runSBBIntermodalIT"/>
         <!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
         <param name="overwriteFiles" value="deleteDirectoryIfExists"/>
         <!-- The type of routing (least cost path) algorithm used, may have the values: Dijkstra, FastDijkstra, AStarLandmarks or FastAStarLandmarks -->
@@ -2770,6 +2770,21 @@
                 <param name="monetaryDistanceRate" value="0.0"/>
             </parameterset>
             <parameterset type="modeParams">
+                <!-- [utils] alternative-specific constant.  Normally per trip, but that is probably buggy for multi-leg trips. -->
+                <param name="constant" value="-1.0"/>
+                <!-- [money] daily monetary constant. default=0 to be backwards compatible -->
+                <param name="dailyMonetaryConstant" value="0.0"/>
+                <!-- [utils] daily utility constant. default=0 to be backwards compatible -->
+                <param name="dailyUtilityConstant" value="0.0"/>
+                <!-- [utils/m] utility of traveling (e.g. walking or driving) per m, normally negative.  this is on top of the time (dis)utility. -->
+                <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
+                <!-- [utils/hr] additional marginal utility of traveling.  normally negative.  this comes on top of the opportunity cost of time -->
+                <param name="marginalUtilityOfTraveling_util_hr" value="-1.00"/>
+                <param name="mode" value="carfeeder"/>
+                <!-- [unit_of_money/m] conversion of distance into money. Normally negative. -->
+                <param name="monetaryDistanceRate" value="0.0"/>
+            </parameterset>
+            <parameterset type="modeParams">
                 <param name="constant" value="0.0"/>
                 <param name="dailyMonetaryConstant" value="0.0"/>
                 <param name="dailyUtilityConstant" value="0.0"/>
@@ -2841,6 +2856,16 @@
                 <param name="mode" value="outside"/>
                 <param name="monetaryDistanceRate" value="0.0"/>
             </parameterset>
+            <parameterset type="modeParams">
+                <param name="constant" value="0.0"/>
+                <param name="dailyMonetaryConstant" value="0.0"/>
+                <param name="dailyUtilityConstant" value="0.0"/>
+                <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
+                <param name="marginalUtilityOfTraveling_util_hr" value="0.0"/>
+                <param name="mode" value="drtfeeder"/>
+                <param name="monetaryDistanceRate" value="0.0"/>
+            </parameterset>
+
         </parameterset>
     </module>
     <module name="plans">
@@ -2858,7 +2883,7 @@
     </module>
     <module name="planscalcroute">
         <!-- All the modes for which the router is supposed to generate network routes (like car) -->
-        <param name="networkModes" value="car,ride"/>
+        <param name="networkModes" value="car,ride,carfeeder"/>
         <parameterset type="teleportedModeParameters">
             <param name="beelineDistanceFactor" value="1.3"/>
             <param name="mode" value="bike"/>
@@ -2876,6 +2901,12 @@
         <parameterset type="teleportedModeParameters">
             <param name="beelineDistanceFactor" value="1.3"/>
             <param name="mode" value="outside"/>
+            <param name="teleportedModeFreespeedFactor" value="null"/>
+            <param name="teleportedModeSpeed" value="8.0"/>
+        </parameterset>
+        <parameterset type="teleportedModeParameters">
+            <param name="beelineDistanceFactor" value="1.3"/>
+            <param name="mode" value="drtfeeder"/>
             <param name="teleportedModeFreespeedFactor" value="null"/>
             <param name="teleportedModeSpeed" value="8.0"/>
         </parameterset>
@@ -2912,7 +2943,7 @@
         <!-- The (initial) width of the links of the network. Use positive floating point values. This is used only for visualisation. -->
         <param name="linkWidth" value="30.0"/>
         <!-- [comma-separated list] Defines which modes are congested modes. Technically, these are the modes that the departure handler of the netsimengine handles.  Effective cell size, effective lane width, flow capacity factor, and storage capacity factor need to be set with diligence.  Need to be vehicular modes to make sense. -->
-        <param name="mainMode" value="car"/>
+        <param name="mainMode" value="car,carfeeder"/>
         <!-- Shortens a link in the visualization, i.e. its start and end point are moved into towards the center. Does not affect traffic flow.  -->
         <param name="nodeOffset" value="0.0"/>
         <!-- Number of threads used for the QSim.  Note that this setting is independent from the "global" threads setting.  In contrast to earlier versions, the non-parallel special version is no longer there. -->
@@ -3082,10 +3113,73 @@
         <param name="transferPenaltyCostPerTravelTimeHour" value="0.48"/>
         <param name="transferPenaltyMaxCost" value="0.85"/>
         <param name="transferPenaltyMinCost" value="0.1"/>
-        <param name="useIntermodalAccessEgress" value="false"/>
+        <param name="useIntermodalAccessEgress" value="true"/>
         <param name="useModeMappingForPassengers" value="false"/>
         <param name="useRangeQuery" value="false"/>
+
+        <parameterset type="intermodalAccessEgress">
+            <param name="mode" value="bike"/>
+            <param name="initialSearchRadius" value="3500"/>
+            <param name="searchExtensionRadius" value="500"/>
+            <param name="maxRadius" value="4000"/>
+        </parameterset>
+        <parameterset type="intermodalAccessEgress">
+            <param name="mode" value="drtfeeder"/>
+            <param name="initialSearchRadius" value="7500"/>
+            <param name="searchExtensionRadius" value="500"/>
+            <param name="maxRadius" value="8000"/>
+        </parameterset>
+        <parameterset type="intermodalAccessEgress">
+            <param name="mode" value="carfeeder"/>
+            <param name="initialSearchRadius" value="7500"/>
+            <param name="searchExtensionRadius" value="500"/>
+            <param name="maxRadius" value="8000"/>
+            <param name="linkIdAttribute" value="carfeederaccessLink"/>
+            <param name="stopFilterAttribute" value="carfeederaccess"/>
+            <param name="stopFilterValue" value="1"/>
+
+        </parameterset>
+        <parameterset type="intermodalAccessEgress">
+            <param name="mode" value="walk"/>
+            <param name="initialSearchRadius" value="1000"/>
+            <param name="searchExtensionRadius" value="100"/>
+            <param name="maxRadius" value="1100"/>
+        </parameterset>
     </module>
+
+    <module name="SBBIntermodal">
+        <param name="zonesId" value="npvm_zones"/>
+
+        <parameterset type="mode">
+            <param name="mode" value="carfeeder"/>
+            <param name="constant" value="0.0"/>
+            <param name="mutt" value="30"/>
+            <param name="accessTimeZonesAttributeName" value="ACCCAR"/>
+            <param name="egressTimeZonesAttributeName" value="ACCCAR"/>
+            <param name="isSimulatedOnNetwork" value="true"/>
+            <param name="isRoutedOnNetwork" value="true"/>
+        </parameterset>
+        <parameterset type="mode">
+            <param name="mode" value="bike"/>
+            <param name="waitingTime" value="0"/>
+            <param name="constant" value="0.0"/>
+            <param name="mutt" value="35"/>
+            <param name="detourFactor" value="1.0"/>
+            <param name="isSimulatedOnNetwork" value="false"/>
+            <param name="isRoutedOnNetwork" value="false"/>
+        </parameterset>
+        <parameterset type="mode">
+            <param name="mode" value="drtfeeder"/>
+            <param name="constant" value="0.0"/>
+            <param name="mutt" value="25"/>
+            <param name="detourFactorZonesAttributeName" value="FEEDERDET"/>
+            <param name="accessTimeZonesAttributeName" value="FEEDERWAIT"/>
+            <param name="isSimulatedOnNetwork" value="false"/>
+            <param name="isRoutedOnNetwork" value="false"/>
+        </parameterset>
+    </module>
+
+
     <module name="transit">
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
         <param name="inputScheduleCRS" value="null"/>
@@ -3094,7 +3188,7 @@
         <!-- Comma-separated list of transportation modes that are handled as transit. Defaults to 'pt'. -->
         <param name="transitModes" value="pt"/>
         <!-- Input file containing the transit schedule to be simulated. -->
-        <param name="transitScheduleFile" value="schedule.xml.gz"/>
+        <param name="transitScheduleFile" value="schedule_intermodal.xml.gz"/>
         <!-- Optional input file containing additional attributes for transit stop facilities, stored as ObjectAttributes. -->
         <param name="transitStopsAttributesFile" value="null"/>
         <!-- Set this parameter to true if transit should be simulated, false if not. -->

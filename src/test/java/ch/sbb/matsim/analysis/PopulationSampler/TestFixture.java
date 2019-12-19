@@ -1,6 +1,7 @@
 package ch.sbb.matsim.analysis.PopulationSampler;
 
 
+import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -9,8 +10,6 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
 
 public class TestFixture {
 
@@ -32,7 +31,7 @@ public class TestFixture {
             Person person = pf.createPerson(Id.create(i, Person.class));
             population.addPerson(person);
             if(addAttributes)
-                population.getPersonAttributes().putAttribute(person.getId().toString(), "attribute", "value");
+                person.getAttributes().putAttribute("attribute", "value");
         }
     }
 }

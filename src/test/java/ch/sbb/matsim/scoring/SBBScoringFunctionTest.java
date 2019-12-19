@@ -2,6 +2,7 @@ package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
@@ -11,8 +12,6 @@ import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
-import org.matsim.core.router.StageActivityTypes;
-import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunction;
@@ -29,12 +28,12 @@ public class SBBScoringFunctionTest {
 
     @Test
     public void testTransferScoring() {
-        testTransferScoring("access_walk", "egress_walk");
+        testTransferScoring(SBBModes.NON_NETWORK_WALK, SBBModes.NON_NETWORK_WALK);
     }
 
     @Test
     public void testTransferScoring_accessEgressJustTransit() {
-        testTransferScoring("transit_walk", "transit_walk");
+        testTransferScoring(SBBModes.PT_FALLBACK_MODE, SBBModes.PT_FALLBACK_MODE);
     }
 
     private void testTransferScoring(String accessMode, String egressMode) {
@@ -49,7 +48,7 @@ public class SBBScoringFunctionTest {
         Activity ptInteraction1 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, 8.1 * 3600, 8.1 * 3600);
         Leg ptLeg1 = createLeg(pf, "pt", 8.1 * 3600, 8.5 * 3600-60);
         Activity ptInteraction2 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, 8.5 * 3600, 8.5 * 3600);
-        Leg transferLeg = createLeg(pf, "transit_walk", 8.5 * 3600 - 60, 8.5 * 3600 + 60);
+        Leg transferLeg = createLeg(pf, SBBModes.NON_NETWORK_WALK, 8.5 * 3600 - 60, 8.5 * 3600 + 60);
         Activity ptInteraction3 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, 8.5 * 3600, 8.5 * 3600);
         Leg ptLeg2 = createLeg(pf, "pt", 8.5 * 3600 + 60, 8.9 * 3600);
         Activity ptInteraction4 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, 8.9 * 3600, 8.9 * 3600);
@@ -70,8 +69,7 @@ public class SBBScoringFunctionTest {
         plan.addActivity(homeAct2);
         person1.addPlan(plan);
 
-        StageActivityTypes stageActivities = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
-        List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan, stageActivities);
+        List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan);
 
         PlanCalcScoreConfigGroup.ActivityParams homeParams = new PlanCalcScoreConfigGroup.ActivityParams("home");
         homeParams.setTypicalDuration(12*3600);
@@ -165,7 +163,7 @@ public class SBBScoringFunctionTest {
 
         int interactionActtypeCount = SBBActivities.stageActivityTypeList.size();
 
-        SBBCharyparNagelScoringParametersForPerson spfp = new SBBCharyparNagelScoringParametersForPerson(config.plans(), config.planCalcScore(), config.scenario(), population, config.transit(), sbbBehaviour);
+        SBBCharyparNagelScoringParametersForPerson spfp = new SBBCharyparNagelScoringParametersForPerson(config.plans(), config.planCalcScore(), config.scenario(), sbbBehaviour);
 
         SBBScoringParameters sp1 = spfp.getSBBScoringParameters(w1);
         ActivityUtilityParameters home1 = sp1.getMatsimScoringParameters().utilParams.get("home");

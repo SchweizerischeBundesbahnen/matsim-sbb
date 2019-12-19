@@ -3,8 +3,8 @@ package ch.sbb.matsim.routing.teleportation;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.router.RoutingModule;
 
@@ -26,7 +26,8 @@ public class SBBTeleportation implements Provider<RoutingModule> {
         this.zonesId = zonesId;
     }
 
-    @Inject private PopulationFactory populationFactory;
+    @Inject
+    private Scenario scenario;
 
     @Inject private Network network;
 
@@ -35,7 +36,7 @@ public class SBBTeleportation implements Provider<RoutingModule> {
     @Override
     public RoutingModule get() {
         Zones zones = this.allZones.getZones(this.zonesId);
-        return new SBBTeleportationRoutingInclAccessEgressModule(params.getMode(), populationFactory, params.getTeleportedModeSpeed(), params.getBeelineDistanceFactor(), zones, network);
+        return new SBBTeleportationRoutingInclAccessEgressModule(params.getMode(), scenario, params.getTeleportedModeSpeed(), params.getBeelineDistanceFactor(), zones, network);
     }
 
 }
