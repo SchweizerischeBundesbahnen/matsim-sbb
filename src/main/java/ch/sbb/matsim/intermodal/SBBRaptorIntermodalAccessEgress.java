@@ -118,8 +118,8 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
                     leg.getRoute().setTravelTime(travelTime);
                     mainAccessModeLeg = leg;
                 }
-                i++;
             }
+            i++;
         }
 
         if (egressLeg != null) {
