@@ -26,6 +26,8 @@ public class SBBModes {
 
         mode2HierarchalNumber.put(PT, 0);
         mode2HierarchalNumber.put(CAR, 10);
+        mode2HierarchalNumber.put(AVTAXI, 11);
+        mode2HierarchalNumber.put(DRT, 11);
         mode2HierarchalNumber.put(RIDE, 20);
         mode2HierarchalNumber.put(BIKE, 30);
         mode2HierarchalNumber.put(WALK, 40);
