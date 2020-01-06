@@ -133,7 +133,7 @@ public class RunSBB {
             }
         });
 
-        controler.addOverridingModule(new SBBNetworkRoutingModule(scenario));
+        controler.addOverridingModule(new SBBNetworkRoutingModule());
         controler.addOverridingModule(new AccessEgress(scenario));
         controler.addOverridingModule(new IntermodalModule());
         controler.addOverridingModule(new AbstractModule() {
