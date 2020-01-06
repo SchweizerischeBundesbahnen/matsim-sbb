@@ -4,7 +4,6 @@ import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.ScoringFunctionFactory;
@@ -14,7 +13,6 @@ import org.matsim.core.scoring.functions.CharyparNagelMoneyScoring;
 import org.matsim.core.scoring.functions.ScoringParameters;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 

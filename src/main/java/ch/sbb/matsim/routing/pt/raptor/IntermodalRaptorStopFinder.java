@@ -246,8 +246,7 @@ public class IntermodalRaptorStopFinder implements RaptorStopFinder {
         if (transferTime == Double.NaN) {
             // return a default value of 30 seconds
             return 30.0;
-        }
-        else    {
+        } else {
             return transferTime;
         }
     }

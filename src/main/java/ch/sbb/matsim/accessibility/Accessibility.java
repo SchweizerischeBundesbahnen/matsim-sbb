@@ -2,18 +2,9 @@ package ch.sbb.matsim.accessibility;
 
 import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
 import ch.sbb.matsim.analysis.skims.LeastCostPathTree.NodeData;
-import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
-import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
-import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
+import ch.sbb.matsim.routing.pt.raptor.*;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
-import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
-import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
-import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
-import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.TravelInfo;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
@@ -53,15 +44,8 @@ import org.matsim.vehicles.Vehicle;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -281,7 +265,8 @@ public class Accessibility {
         }
     }
 
-    /** Simple implementation for TravelTime and TravelDisutility that assumes a fixed speed on all links,
+    /**
+     * Simple implementation for TravelTime and TravelDisutility that assumes a fixed speed on all links,
      * resulting in the shortest (and not the fastest) path to be found.
      */
     private static class FixedSpeedTravelTimeAndDisutility implements TravelTime, TravelDisutility {
@@ -350,7 +335,7 @@ public class Accessibility {
             for (int i = 0; i < carPMDepTimes.length; i++) {
                 this.pmLcpTree[i] = new LeastCostPathTree(tt, td);
             }
-            this.raptor = new SwissRailRaptor(raptorData, (RaptorParametersForPerson)null, (RaptorRouteSelector)null, (RaptorStopFinder)null);
+            this.raptor = new SwissRailRaptor(raptorData, null, null, null);
             this.parameters = parameters;
             this.ptMinDepartureTime = ptMinDepartureTime;
             this.ptMaxDepartureTime = ptMaxDepartureTime;
@@ -586,7 +571,7 @@ public class Accessibility {
                     Modes modes = this.modes[m];
 
                     double uBike = (modes.bike && hasShortestDistance) ? (-0.25 + (-0.150) * distShortest / 0.21667) : modes.missingModeUtility;
-                    double uCar = (modes.car && hasCar) ? (-0.40 + (-0.053)*ttCar + (-0.040)*distCar0015 + (-0.040)*distCar1550 + 0.015*distCar5099 + 0.010*distCar100x + (-0.047)*(carAccessTime+carEgressTime)/60 + (-0.135)*carParkingCost*2) : modes.missingModeUtility;
+                    double uCar = (modes.car && hasCar) ? (-0.40 + (-0.053) * ttCar + (-0.040) * distCar0015 + (-0.040) * distCar1550 + 0.015 * distCar5099 + 0.010 * distCar100x + (-0.047) * (carAccessTime + carEgressTime) / 60 + (-0.135) * carParkingCost * 2) : modes.missingModeUtility;
                     double uPt = (modes.pt && hasPT) ? (+0.75 + (-0.042)*ttBus + (-0.0378)*ttTrain + (-0.015)*distPt0015 + (-0.015)*distPt1550 + 0.005*distPt5099 + 0.025*distPt100x + (-0.050)*(ptAccessTime+ptEgressTime) + (-0.014)*(60/ptFrequency) + (-0.227)*ptTransfers) : modes.missingModeUtility;
                     double uWalk = (modes.walk && hasShortestDistance) ? (+2.30 + (-0.100) * distShortest / 0.078336) : modes.missingModeUtility;
 

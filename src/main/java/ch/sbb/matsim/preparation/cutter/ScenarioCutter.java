@@ -1,6 +1,7 @@
 package ch.sbb.matsim.preparation.cutter;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -19,12 +20,12 @@ import org.matsim.core.network.NetworkChangeEvent;
 import org.matsim.core.network.NetworkChangeEvent.ChangeType;
 import org.matsim.core.network.NetworkChangeEvent.ChangeValue;
 import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkChangeEventsWriter;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
-import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
@@ -43,7 +44,6 @@ import org.matsim.vehicles.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -682,11 +682,15 @@ public class ScenarioCutter {
                 copyLink(link, destNet);
             }
         }
+
+        MultimodalNetworkCleaner networkCleaner = new MultimodalNetworkCleaner(destNet);
+        Set<String> cleanedModes = new HashSet<>();
+        cleanedModes.add(SBBModes.CAR);
+        cleanedModes.add(SBBModes.RIDE);
+        networkCleaner.run(cleanedModes, SBBModes.PTSubModes.submodes);
+
     }
 
-    public static Predicate<Person> isCut() {
-        return person -> person.getAttributes().getAsMap().containsKey(ScenarioCutter.CUT_ATTRIBUTE) && (boolean) person.getAttributes().getAttribute(ScenarioCutter.CUT_ATTRIBUTE);
-    }
 
     private Plan cutPlan(CutContext ctx, Person destPerson, Plan srcPlan) {
         approximateEndtimesForInteractionActivities(srcPlan);
@@ -733,14 +737,53 @@ public class ScenarioCutter {
         removeEndTimesFromInteractionActivities(plan);
         removeDurationWhenBothAreSet(plan);
         modifyLoneSomeAccessEgressWalks(plan);
-        removeRoutesWithLinksThatDoNotExist(plan, ctx);
+        removeInconsistentRoutes(plan, ctx);
         return plan;
     }
 
-    private void removeRoutesWithLinksThatDoNotExist(Plan plan, CutContext ctx) {
-        TripStructureUtils.getLegs(plan).stream()
-                .filter(leg -> ctx.dest.getNetwork().getLinks().containsKey(leg.getRoute().getStartLinkId()) || !ctx.dest.getNetwork().getLinks().containsKey(leg.getRoute().getEndLinkId()))
-                .forEach(leg -> leg.setRoute(null));
+
+    private void removeInconsistentRoutes(Plan plan, CutContext ctx) {
+        Id<Link> lastActivityLink = null;
+        Leg currentLeg = null;
+        for (PlanElement pe : plan.getPlanElements()) {
+            if (pe instanceof Activity) {
+                Activity act = (Activity) pe;
+                if (currentLeg != null) {
+                    if (lastActivityLink != null && act.getLinkId() != null && currentLeg.getRoute() != null) {
+                        if (currentLeg.getRoute().getStartLinkId() != lastActivityLink || currentLeg.getRoute().getEndLinkId() != act.getLinkId()) {
+                            currentLeg.setRoute(null);
+                        }
+                    }
+                }
+                lastActivityLink = act.getLinkId();
+            } else if (pe instanceof Leg) {
+                currentLeg = (Leg) pe;
+                if (currentLeg.getRoute() instanceof NetworkRoute) {
+                    if (!linksCoveredInNetwork(currentLeg.getRoute(), ctx.dest.getNetwork())) {
+                        currentLeg.setRoute(null);
+                    }
+                }
+            }
+
+        }
+
+    }
+
+
+    private boolean linksCoveredInNetwork(Route route, Network network) {
+        if (route == null) return false;
+
+        if (!network.getLinks().containsKey(route.getEndLinkId()) || !network.getLinks().containsKey(route.getStartLinkId())) {
+            return false;
+        }
+        if (route instanceof NetworkRoute) {
+            for (Id<Link> link : ((NetworkRoute) route).getLinkIds()) {
+            if (!network.getLinks().containsKey(link)) {
+                return false;
+            }
+            }
+        }
+        return true;
     }
 
     private void removeDurationWhenBothAreSet(Plan plan) {

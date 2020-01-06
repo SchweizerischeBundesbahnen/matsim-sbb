@@ -2,10 +2,7 @@ package ch.sbb.matsim.config.variables;
 
 import org.matsim.api.core.v01.TransportMode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SBBModes {
     private SBBModes() {}
@@ -41,16 +38,17 @@ public class SBBModes {
         public static final String TRAM = "tram";
         public static final String BUS = "bus";
         public static final String OTHER = "other"; // example for "other": Seilbahn, Gondelbahn, Schiff, ...
-        public final static List<String> subModeList;
+        public final static Set<String> submodes;
 
         static {
-            subModeList = new ArrayList<>();
-            subModeList.add(RAIL);
-            subModeList.add(TRAM);
-            subModeList.add(BUS);
-            subModeList.add(OTHER);
-            // TODO: remove detPt as soon as we merged the pt-submodes
-            subModeList.add("detPt");
+            Set submodeset = new HashSet<>();
+            submodeset.add(RAIL);
+            submodeset.add(TRAM);
+            submodeset.add(BUS);
+            submodeset.add(OTHER);
+            // TODO: remove detPt as soon as we merged the pt-submodeset
+            submodeset.add("detPt");
+            submodes = Collections.unmodifiableSet(submodeset);
         }
 
         private PTSubModes() {
