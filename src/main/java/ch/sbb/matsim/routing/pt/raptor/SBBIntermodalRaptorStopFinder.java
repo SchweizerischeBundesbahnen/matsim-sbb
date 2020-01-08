@@ -64,7 +64,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     private final Scenario scenario;
     private final TransitSchedule transitSchedule;
     private final RaptorIntermodalAccessEgress intermodalAE;
-    private final List<SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams;
+    private final Map<String, SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
     private final Map<String, RoutingModule> routingModules;
     private final Map<String, TravelTime> travelTimes;
     private final Map<String, TravelDisutilityFactory> travelDisutilityFactories;
@@ -84,7 +84,9 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         Config config = scenario.getConfig();
 
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
-        this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
+        for (SBBIntermodalModeParameterSet paramset : intermodalConfigGroup.getModeParameterSets()) {
+            this.intermodalModeParams.put(paramset.getMode(), paramset);
+        }
 
         SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
         boolean useAccessEgress = config.plansCalcRoute().isInsertingAccessEgressWalk() || accessTimeConfigGroup.getInsertingAccessEgressWalk();
@@ -93,13 +95,20 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         this.routingModules = new HashMap<>();
         this.networkModes = new HashSet<>();
         if (srrConfig.isUseIntermodalAccessEgress()) {
-            for (SBBIntermodalModeParameterSet params : this.intermodalModeParams) {
-                String mode = params.getMode();
-                if (params.isRoutedOnNetwork()) {
+            for (IntermodalAccessEgressParameterSet srrParams : srrConfig.getIntermodalAccessEgressParameterSets()) {
+                String mode = srrParams.getMode();
+                SBBIntermodalModeParameterSet params = this.intermodalModeParams.get(mode);
+                if (params != null && params.isRoutedOnNetwork()) {
                     this.networkModes.add(mode);
                     if (useAccessEgress) {
                         Zones zones = allZones.getZones(accessTimeConfigGroup.getZonesId());
-                        this.accessEgressRouting.put(mode, new AccessEgressRouting(zones, scenario.getPopulation().getFactory(), mode, scenario.getNetwork()));
+                        String replacementMode = params.getAccessTimeZoneId();
+                        if (replacementMode == null) {
+                            replacementMode = mode;
+                        } else {
+                            replacementMode = replacementMode.substring(3); // cut off "ACC" in the beginning;
+                        }
+                        this.accessEgressRouting.put(mode, new AccessEgressRouting(zones, scenario.getPopulation().getFactory(), replacementMode, scenario.getNetwork()));
                     }
                 } else {
                     this.routingModules.put(mode, routingModuleProviders.get(mode).get());
@@ -189,6 +198,9 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         Network routingNetwork = getRoutingNetwork(mode);
 
         Link originLink = routingNetwork.getLinks().get(facility.getLinkId());
+        if (originLink == null) {
+            originLink = NetworkUtils.getNearestLinkExactly(routingNetwork, facility.getCoord());
+        }
 
         List<Tuple<Link, TransitStopFacility>> stopsAndLinks = new ArrayList<>();
 
@@ -196,6 +208,9 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             if (stopMatches(stop, paramset)) {
                 Id<Link> linkId = getStopLinkId(stop, linkIdAttribute);
                 Link link = routingNetwork.getLinks().get(linkId);
+                if (link == null) {
+                    throw new RuntimeException("Link " + linkId + " for stop " + stop + " could not be found in routing-network for mode " + mode);
+                }
                 stopsAndLinks.add(new Tuple<>(link, stop));
             }
         }
@@ -218,6 +233,9 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 TransitStopFacility stop = t.getSecond();
 
                 NodeData destination = data.get(link.getFromNode().getId());
+                if (destination == null) {
+                    continue; // stop could not be reached
+                }
 
                 Leg accessLeg = PopulationUtils.createLeg(mode);
                 List<Id<Link>> routeLinkIds = new ArrayList<>();
@@ -384,10 +402,9 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     }
 
     private boolean doUseMinimalTransferTimes(String mode) {
-        for (SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet modeParams : this.intermodalModeParams) {
-            if (mode.equals(modeParams.getMode())) {
-                return modeParams.doUseMinimalTransferTimes();
-            }
+        SBBIntermodalModeParameterSet modeParams = this.intermodalModeParams.get(mode);
+        if (modeParams != null) {
+            return modeParams.doUseMinimalTransferTimes();
         }
         return false;
     }
