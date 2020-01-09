@@ -75,11 +75,11 @@ public class RunSBB {
 
     public static void addSBBDefaultScenarioModules(Scenario scenario) {
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
-
+        SBBNetworkRoutingModule.prepareScenario(scenario);
         IntermodalModule.prepareIntermodalScenario(scenario);
         // vehicle types
         new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
-                scenario.getConfig().qsim().getMainModes()).createVehicles();
+                scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
         scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
@@ -133,7 +133,7 @@ public class RunSBB {
             }
         });
 
-        controler.addOverridingModule(new SBBNetworkRoutingModule(scenario));
+        controler.addOverridingModule(new SBBNetworkRoutingModule());
         controler.addOverridingModule(new AccessEgress(scenario));
         controler.addOverridingModule(new IntermodalModule());
         controler.addOverridingModule(new AbstractModule() {

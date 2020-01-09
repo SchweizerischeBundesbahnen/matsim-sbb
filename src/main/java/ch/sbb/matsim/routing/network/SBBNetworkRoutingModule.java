@@ -16,15 +16,6 @@ import java.util.Set;
  */
 public class SBBNetworkRoutingModule extends AbstractModule {
 
-    private final Set<String> routedModes;
-
-    public SBBNetworkRoutingModule(Scenario scenario) {
-        this.routedModes = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBNetworkRoutingConfigGroup.class).getNetworkRoutingModes();
-        for (String mode : routedModes) {
-            addNetworkMode(scenario.getNetwork(), mode, SBBModes.CAR);
-            SBBActivities.stageActivityTypeList.add(mode + " interaction");
-        }
-    }
 
     public static void addNetworkMode(Network network, String transportMode, String routingMode) {
         for (Link l : network.getLinks().values()) {
@@ -36,9 +27,20 @@ public class SBBNetworkRoutingModule extends AbstractModule {
         }
     }
 
+    public static void prepareScenario(Scenario scenario) {
+        Set<String> routedModes = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBNetworkRoutingConfigGroup.class).getNetworkRoutingModes();
+        for (String mode : routedModes) {
+            addNetworkMode(scenario.getNetwork(), mode, SBBModes.CAR);
+            SBBActivities.stageActivityTypeList.add(mode + " interaction");
+            Set<String> networkModes = new HashSet<>(scenario.getConfig().plansCalcRoute().getNetworkModes());
+            networkModes.add(mode);
+            scenario.getConfig().plansCalcRoute().setNetworkModes(networkModes);
+        }
+    }
 
     @Override
     public void install() {
+        Set<String> routedModes = ConfigUtils.addOrGetModule(getConfig(), SBBNetworkRoutingConfigGroup.class).getNetworkRoutingModes();
         for (String mode : routedModes) {
             addTravelTimeBinding(mode).to(networkTravelTime());
             addTravelDisutilityFactoryBinding(mode).to(carTravelDisutilityFactoryKey());
