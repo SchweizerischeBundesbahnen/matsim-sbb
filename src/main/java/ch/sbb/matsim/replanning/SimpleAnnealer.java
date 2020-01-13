@@ -128,6 +128,8 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener 
                     break;
                 case disabled:
                     return;
+                default:
+                    throw new IllegalArgumentException();
             }
 
             log.info("Annealling will be performed on parameter " + this.saConfig.getAnnealParameter().toString() + ". Value: " + this.currentValue +
@@ -217,7 +219,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener 
         int globalInnovationDisableAfter = (int) ((config.controler().getLastIteration() - config.controler().getFirstIteration())
                 * config.strategy().getFractionOfIterationsToDisableInnovation() + config.controler().getFirstIteration());
 
-        int innovationStop = -1;
+        int innoStop = -1;
 
         for (StrategyConfigGroup.StrategySettings strategy : config.strategy().getStrategySettings()) {
             // check if this modules should be disabled after some iterations
@@ -226,18 +228,18 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener 
                 maxIter = globalInnovationDisableAfter;
             }
 
-            if(innovationStop == -1) {
-                innovationStop = maxIter;
+            if(innoStop == -1) {
+                innoStop = maxIter;
             }
 
-            if(innovationStop != maxIter){
+            if(innoStop != maxIter){
                 log.warn("Different 'Disable After Interation' values are set for different replaning modules." +
                         " Annealing doesn't support this function and will be performed according to the 'Disable After Interation' setting of the first replanning module " +
                         "or 'globalInnovationDisableAfter', which ever value is lower.");
             }
         }
 
-        return innovationStop;
+        return innoStop;
     }
 
     private static void writeAnnealingRates(String filename, int iteration, List<Double> values) {
