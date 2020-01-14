@@ -236,7 +236,7 @@ public class EventsToTravelDiaries implements
                 TravellerChain chain = chains.get(event.getPersonId());
                 setStuck(getStuck() + 1);
                 chain.setStuck();
-                if (chain.getTrips().isEmpty())
+                if (!chain.getTrips().isEmpty())
                     chain.removeLastTrip();
             }
         } catch (Exception e) {
@@ -400,15 +400,15 @@ public class EventsToTravelDiaries implements
     }
 
     private void writeSimulationResultsToCsv() throws IOException {
-        String[] actsData = new String[] {"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "sample_selector", "zone"};
+        String[] actsData = new String[] {"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "zone"};
         CSVWriter activityWriter = new CSVWriter(null, actsData, this.filename + FILENAME_ACTIVITIES);
 
-        String[] tripsData = new String[]{"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode",
+        String[] tripsData = new String[] {"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode",
                 "from_act", "to_act", "to_act_type", "in_vehicle_distance", "in_vehicle_time", "first_rail_boarding_stop",
                 "last_rail_alighting_stop", "got_stuck", "access_mode", "egress_mode", "access_dist", "egress_dist"};
         CSVWriter tripsWriter = new CSVWriter(null, tripsData, this.filename + FILENAME_TRIPS);
 
-        String[] legsData = new String[]{"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
+        String[] legsData = new String[] {"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
                 "boarding_stop", "alighting_stop", "departure_time", "departure_delay", "from_x", "from_y",
                 "to_x", "to_y", "previous_leg_id", "next_leg_id", "is_access", "is_egress"};
         CSVWriter legsWriter = new CSVWriter(null, legsData, this.filename + FILENAME_LEGS);
@@ -530,8 +530,8 @@ public class EventsToTravelDiaries implements
                         legsWriter.set("from_y", Double.toString(leg.getOrig().getY()));
                         legsWriter.set("to_x", Double.toString(leg.getDest().getX()));
                         legsWriter.set("to_y", Double.toString(leg.getDest().getY()));
-                        legsWriter.set("previousLegId", (previousLegId == null) ? "" : previousLegId);
-                        legsWriter.set("nextLegId", (nextLegId == null) ? "" : nextLegId);
+                        legsWriter.set("previous_leg_id", (previousLegId == null) ? "" : previousLegId);
+                        legsWriter.set("next_leg_id", (nextLegId == null) ? "" : nextLegId);
                         legsWriter.set("is_access", (leg.isAccessLeg()) ? "1" : "0");
                         legsWriter.set("is_egress", (leg.isEgressLeg()) ? "1" : "0");
                         legsWriter.writeRow();
