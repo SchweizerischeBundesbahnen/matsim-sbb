@@ -1,4 +1,4 @@
-package ch.sbb.matsim.analysis.PopulationSampler;
+package ch.sbb.matsim.analysis.TestFixtures;
 
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
@@ -11,12 +11,14 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
-public class TestFixture {
+import ch.sbb.matsim.config.PostProcessingConfigGroup;
 
-    Scenario scenario;
-    Config config;
+public class PopTestFixture {
 
-    TestFixture(int size, boolean addAttributes) {
+    public Scenario scenario;
+    public Config config;
+
+    public PopTestFixture(int size, boolean addAttributes) {
 
         this.config = ConfigUtils.createConfig(new PostProcessingConfigGroup());
 
