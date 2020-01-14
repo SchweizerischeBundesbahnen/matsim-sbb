@@ -69,7 +69,7 @@ public class TestFixture {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(1, Person.class));
-        person.getAttributes().putAttribute("subpopulation","regular");
+        person.getAttributes().putAttribute("subpopulation", "regular");
         Plan plan = pf.createPlan();
         Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
         act1.setEndTime(29500);

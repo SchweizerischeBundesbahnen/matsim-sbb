@@ -25,9 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  *
@@ -282,7 +280,7 @@ public class CleanerTest {
                     "<person id=\"2\">" +
                     "  <plan>" +
                     "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
                     "     </leg>" +
                     "        <activity type=\"car interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
@@ -292,7 +290,7 @@ public class CleanerTest {
                     "     </leg>" +
                     "        <activity type=\"car interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
                     "        </activity>" +
-                    "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
                     "     </leg>" +
                     "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
@@ -312,7 +310,7 @@ public class CleanerTest {
                     "<person id=\"4\">" +
                     "  <plan>" +
                     "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
                     "     </leg>" +
                     "        <activity type=\"bike interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
@@ -322,7 +320,7 @@ public class CleanerTest {
                     "     </leg>" +
                     "        <activity type=\"bike interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
                     "        </activity>" +
-                    "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
                     "     </leg>" +
                     "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
@@ -352,7 +350,7 @@ public class CleanerTest {
                     "<person id=\"6\">" +
                     "  <plan>" +
                     "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
@@ -362,7 +360,7 @@ public class CleanerTest {
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
                     "        </activity>" +
-                    "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
                     "     </leg>" +
                     "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
@@ -382,7 +380,7 @@ public class CleanerTest {
                     "<person id=\"8\">" +
                     "  <plan>" +
                     "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
@@ -407,7 +405,7 @@ public class CleanerTest {
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
                     "        </activity>" +
-                    "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
                     "     </leg>" +
                     "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +

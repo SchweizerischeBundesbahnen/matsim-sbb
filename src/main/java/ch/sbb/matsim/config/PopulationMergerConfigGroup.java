@@ -7,7 +7,9 @@ package ch.sbb.matsim.config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
 

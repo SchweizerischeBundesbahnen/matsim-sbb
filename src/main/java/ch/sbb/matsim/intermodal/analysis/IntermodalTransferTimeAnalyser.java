@@ -30,8 +30,8 @@ import org.matsim.core.utils.misc.Time;
 import javax.inject.Inject;
 import java.awt.*;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**

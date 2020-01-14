@@ -42,19 +42,19 @@
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>drt</artifactId>
-            <version>${matsim.version}</version>
+			<version>${matsim.version}</version>
 		</dependency>
 
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>av</artifactId>
-            <version>${matsim.version}</version>
-        </dependency>
+			<version>${matsim.version}</version>
+		</dependency>
 		<dependency> <!-- MATSim uses Guice 4.1.0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>27.1-jre</version>
-		</dependency>
+        </dependency>
 
         <dependency>
 			<groupId>org.matsim</groupId>
@@ -208,10 +208,10 @@
 				<configuration>
 					<includes>
 						<include>**/*IT.java</include>
-						<include>**/Test*.java</include>
-						<include>**/*Test.java</include>
-						<include>**/*Tests.java</include>
-						<include>**/*TestCase.java</include>
+                        <include>**/Test*.java</include>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                        <include>**/*TestCase.java</include>
 					</includes>
 				</configuration>
 			</plugin>

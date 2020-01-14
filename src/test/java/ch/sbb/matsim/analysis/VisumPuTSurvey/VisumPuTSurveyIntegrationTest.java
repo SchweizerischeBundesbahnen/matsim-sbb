@@ -3,7 +3,6 @@ package ch.sbb.matsim.analysis.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.EventsToTravelDiaries;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
 

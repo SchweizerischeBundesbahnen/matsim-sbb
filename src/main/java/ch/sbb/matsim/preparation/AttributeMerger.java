@@ -53,8 +53,7 @@ public class AttributeMerger {
                 }
                 else if(A == null && B!= null){
                     C = B;
-                }
-                else if(A != null){
+                } else if (A != null) {
                     C = A.toString()+"_"+B.toString();
                 }
 
