@@ -29,8 +29,9 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysi
 
     private final String filename;
     private Network network;
+    private final double scale;
 
-    public LinkVolumeToCSV(Scenario scenario, String filename) {
+    public LinkVolumeToCSV(Scenario scenario, double scale, String filename) {
         super(3600, 24 * 3600 - 1, scenario.getNetwork());
         Counts<Link> counts = (Counts<Link>) scenario.getScenarioElement(Counts.ELEMENT_NAME);
         if (counts != null && !counts.getCounts().isEmpty()) { // by default, an empty counts is registered, even if no inputCountsFile was specified
@@ -39,12 +40,16 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysi
         }
         this.filename = filename;
         this.network = scenario.getNetwork();
+        this.scale = scale;
     }
 
     // Methods
     @Override
-    public void writeResults() {
+    public void writeResults(boolean lastIteration) {
         this.write(this.filename);
+        if (lastIteration) {
+            EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_VOLUMES);
+        }
     }
 
     public void write(String filename) {
@@ -58,7 +63,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysi
                             linkVolumesWriter.set(COL_LINK_ID, linkId.toString());
                             linkVolumesWriter.set(COL_MODE, aMode);
                             linkVolumesWriter.set(COL_BIN, Integer.toString(i + 1));
-                            linkVolumesWriter.set(COL_VOLUME, Integer.toString(volumes[i]));
+                            linkVolumesWriter.set(COL_VOLUME, Double.toString(this.scale * volumes[i]));
                             linkVolumesWriter.writeRow();
                         }
                     }

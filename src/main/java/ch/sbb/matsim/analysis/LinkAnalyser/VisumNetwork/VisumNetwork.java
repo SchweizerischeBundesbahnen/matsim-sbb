@@ -114,12 +114,11 @@ public class VisumNetwork {
         }
     }
 
-    public void writeLinkVolumesCSV(String filename, Map<Link, Double> linkVolumes) {
+    public void writeLinkVolumesCSV(String filename, Map<Id<Link>, Map<Integer, Double>> linkVolumesPerIteration, int iterationIndex) {
         try (CSVWriter writer = new CSVWriter("", VOLUMES_COLUMNS, filename)) {
-            for (Map.Entry<Link, Double> entry : linkVolumes.entrySet()) {
-                Link link = entry.getKey();
-                double volume = entry.getValue();
-                String id = link.getId().toString();
+            for (Map.Entry<Id<Link>, Map<Integer, Double>> entry : linkVolumesPerIteration.entrySet()) {
+                double volume = entry.getValue().get(iterationIndex);
+                String id = entry.getKey().toString();
                 writer.set("LINK_ID_SIM", id);
                 writer.set("VOLUME_SIM", Double.toString(volume));
                 writer.writeRow();

@@ -39,7 +39,8 @@ public class EventsToEventsPerPersonTable implements
 
     private static final Logger log = Logger.getLogger(EventsToEventsPerPersonTable.class);
 
-    private final static String SEPARATOR = ";";
+    private static final String SEPARATOR = ";";
+    private static final String FILENAME_EVENTSPERPERSON = "events_per_person.csv";
 
     private boolean isTransitScenario = false;
 
@@ -225,7 +226,6 @@ public class EventsToEventsPerPersonTable implements
                     "",
                     String.valueOf(event.getDistance())));
         } catch (Exception e) {
-            e.printStackTrace(System.out);
             log.error("Exception while working on event: " + event.toString(), e);
         }
     }
@@ -245,21 +245,6 @@ public class EventsToEventsPerPersonTable implements
         eventsPerPerson = new HashMap<>();
     }
 
-    public void writeSimulationResultsToTabSeparated(String appendage) throws IOException {
-        String eventPerPersonTableName;
-        eventPerPersonTableName = "events_per_person" + appendage + ".csv";
-
-        BufferedWriter eventsPerPersonWriter = IOUtils.getBufferedWriter(this.filename + eventPerPersonTableName);
-        eventsPerPersonWriter.write(String.join(SEPARATOR, getPersonEventHeaderAttributList()) + "\n");
-        for (Entry<Id, List<PersonEvent>> entry: eventsPerPerson.entrySet()) {
-            for (PersonEvent personEvent: entry.getValue()) {
-                eventsPerPersonWriter.write(personEvent.getSepString());
-            }
-        }
-
-        eventsPerPersonWriter.close();
-    }
-
     public int getStuck() {
         return stuck;
     }
@@ -270,22 +255,26 @@ public class EventsToEventsPerPersonTable implements
 
 
     private void addNewEventToEventsPerPerson(Id id, PersonEvent personEvent) {
-        List<PersonEvent> eventsPerPersonList = eventsPerPerson.get(id);
-        if (eventsPerPersonList == null) {
-            List<PersonEvent> newList = new ArrayList<>();
-            newList.add(personEvent);
-            eventsPerPerson.put(id, newList);
-            return;
-        }
-        eventsPerPersonList.add(personEvent);
+        eventsPerPerson.putIfAbsent(id, new ArrayList<>());
+        eventsPerPerson.get(id).add(personEvent);
     }
 
     @Override
-    public void writeResults() {
+    public void writeResults(boolean lastIteration) {
         try {
-            this.writeSimulationResultsToTabSeparated("");
+            BufferedWriter eventsPerPersonWriter = IOUtils.getBufferedWriter(this.filename + FILENAME_EVENTSPERPERSON);
+            eventsPerPersonWriter.write(String.join(SEPARATOR, getPersonEventHeaderAttributList()) + "\n");
+            for (Entry<Id, List<PersonEvent>> entry: eventsPerPerson.entrySet()) {
+                for (PersonEvent personEvent: entry.getValue()) {
+                    eventsPerPersonWriter.write(personEvent.getSepString());
+                }
+            }
+            eventsPerPersonWriter.close();
         } catch (IOException e) {
             log.error("Could not write simulation results.", e);
+        }
+        if (lastIteration) {
+            EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_EVENTSPERPERSON);
         }
     }
 
@@ -304,7 +293,15 @@ public class EventsToEventsPerPersonTable implements
             attributList.add(distance);
         }
 
-        public String getSepString() {
+        private String millisToHHMMSS(double secondsDbl) {
+            int seconds = (int) secondsDbl;
+            long s = seconds % 60;
+            long m = (seconds / 60) % 60;
+            long h = (seconds / (60 * 60)) % 24;
+            return String.format("%02d:%02d:%02d", h, m, s);
+        }
+
+        private String getSepString() {
             return String.join(SEPARATOR, attributList) + "\n";
         }
 
@@ -326,13 +323,5 @@ public class EventsToEventsPerPersonTable implements
         out.add("vehicle");
         out.add("distance");
         return out;
-    }
-
-    private String millisToHHMMSS(double secondsDbl) {
-        int seconds = (int) secondsDbl;
-        long s = seconds % 60;
-        long m = (seconds / 60) % 60;
-        long h = (seconds / (60 * 60)) % 24;
-        return String.format("%02d:%02d:%02d", h, m, s);
     }
 }
