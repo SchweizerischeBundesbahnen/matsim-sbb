@@ -128,8 +128,12 @@ public final class SBBLeastCostPathTree {
         for (Link l : n.getInLinks().values()) {
             Node nn = l.getFromNode();
             NodeData nnData = nodeData.computeIfAbsent(nn.getId(), id -> new NodeData());
-            double visitCost = currCost + tcFunction.getLinkTravelDisutility(l, currTime, PERSON, VEHICLE);
-            double visitTime = currTime - ttFunction.getLinkTravelTime(l, currTime, PERSON, VEHICLE);
+            double queryTime = currTime;
+            while (queryTime < 0) {
+                queryTime += 86400; // shift time by 24 hours to prevent exceptions when querying link travel times and link travel disutility
+            }
+            double visitCost = currCost + tcFunction.getLinkTravelDisutility(l, queryTime, PERSON, VEHICLE);
+            double visitTime = currTime - ttFunction.getLinkTravelTime(l, queryTime, PERSON, VEHICLE);
             double distance = currDistance + l.getLength();
 
             if (visitCost < nnData.getCost()) {
