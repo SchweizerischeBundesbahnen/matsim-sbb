@@ -107,7 +107,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         List<EventsAnalysis> analyses = new LinkedList<>();
 
         if (ppConfig.getPtVolumes()) {
-            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(filename, scaleFactor, false);
+            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, scaleFactor, false);
             analyses.add(ptVolumeWriter);
         }
 
@@ -143,7 +143,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         Double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
         List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
 
-        PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(filename, scaleFactor, true);
+        PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, scaleFactor, true);
         persistentAnalyses.add(ptVolumeWriter);
 
         VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkMode(), filename, true);

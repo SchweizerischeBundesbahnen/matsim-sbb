@@ -5,8 +5,10 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.csv.CSVWriter;
+import com.google.common.base.Functions;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
@@ -23,6 +25,7 @@ import org.matsim.vehicles.Vehicle;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +43,7 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     private static final String FILENAME_VEHJOURNEYS = "matsim_vehjourneys.csv.gz";
     private static final String FILENAME_FINALDAILYSTOPVOLUMES =  "matsim_stops_daily.csv.gz";
 
+    private static final String COL_ITERATION = "it";
     private static final String COL_STOP_ID = "stop_id";
     private static final String COL_FROM_STOP_ID = "from_stop_id";
     private static final String COL_TO_STOP_ID = "to_stop_id";
@@ -60,15 +64,15 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> ptAgents = new HashSet<>();
     private CSVWriter stopsWriter = null;
+    private CSVWriter stopsVolumesPerIterationWriter = null;
     private CSVWriter vehJourneyWriter = null;
 
     private final double scale;
-    private int currentIteration = 0;
     private String filename;
     private boolean writeFinalDailyVolumes;
-    private Map<Id<TransitStopFacility>, List<Double>> dailyStopVolumes = new HashMap<>();
+    private Map<Id<TransitStopFacility>, Double> dailyStopVolumes = new HashMap<>();
 
-    public PtVolumeToCSV(String filename, double scale, boolean writeFinalDailyVolumes) {
+    public PtVolumeToCSV(Scenario scenario, String filename, double scale, boolean writeFinalDailyVolumes) {
         this.scale = scale;
         this.filename = filename;
         this.writeFinalDailyVolumes = writeFinalDailyVolumes;
@@ -76,6 +80,16 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
             try {
                 this.stopsWriter = new CSVWriter("", COLS_STOPS, this.filename + FILENAME_STOPS);
                 this.vehJourneyWriter = new CSVWriter("", COLS_VEHJOURNEYS, this.filename + FILENAME_VEHJOURNEYS);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        } else {
+            try {
+                this.dailyStopVolumes = scenario.getTransitSchedule().getFacilities().keySet()
+                        .stream().collect(Collectors.toMap(Functions.identity(), i -> 0.0));
+                List<String> columns = this.dailyStopVolumes.keySet().stream().map(Id::toString).collect(Collectors.toList());
+                columns.add(0, COL_ITERATION);
+                this.stopsVolumesPerIterationWriter = new CSVWriter("", columns.toArray(new String[0]), this.filename + FILENAME_FINALDAILYSTOPVOLUMES);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -87,7 +101,15 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     public void reset(int iteration) {
         this.ptAgents.clear();
         this.ptVehicles.clear();
-        this.currentIteration = iteration;
+        if (this.stopsVolumesPerIterationWriter != null) {
+            this.stopsVolumesPerIterationWriter.set(COL_ITERATION, String.valueOf(iteration));
+            for (Map.Entry<Id<TransitStopFacility>, Double> e : this.dailyStopVolumes.entrySet()) {
+                this.stopsVolumesPerIterationWriter.set(e.getKey().toString(), String.valueOf(e.getValue()));
+            }
+            this.stopsVolumesPerIterationWriter.writeRow();
+            this.dailyStopVolumes.replaceAll((k, v) -> 0.0);
+        }
+
     }
 
     private void closeAll() {
@@ -149,7 +171,11 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     @Override
     public void writeResults(boolean lastIteration) {
         if (this.writeFinalDailyVolumes) {
-            writeFinalDailyVolumesToCSV();
+            try {
+                this.stopsVolumesPerIterationWriter.close();
+            } catch (IOException e) {
+                log.error("Could not close volumes per iteration file.", e);
+            }
         } else {
             this.closeAll();
             if (lastIteration) {
@@ -158,25 +184,6 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
             }
         }
 
-    }
-
-    private void writeFinalDailyVolumesToCSV() {
-        List<String> columns = Stream.iterate("0", n -> String.valueOf(Integer.valueOf(n) + 1))
-                .limit(this.currentIteration + 1).collect(Collectors.toList());
-        columns.add(0, "stopId");
-        try {
-            CSVWriter writer = new CSVWriter("", columns.toArray(new String[0]), this.filename + FILENAME_FINALDAILYSTOPVOLUMES);
-            for (Map.Entry<Id<TransitStopFacility>, List<Double>> stopVolumes : this.dailyStopVolumes.entrySet()) {
-                writer.set("stopId", stopVolumes.getKey().toString());
-                for (int i = 0; i < stopVolumes.getValue().size(); i++) {
-                    writer.set(String.valueOf(i), String.valueOf(stopVolumes.getValue().get(i)));
-                }
-                writer.writeRow();
-            }
-            writer.close();
-        } catch (IOException e) {
-            log.warn(e);
-        }
     }
 
     // Private classes
@@ -214,7 +221,7 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
             this.passengers -= 1*PtVolumeToCSV.this.scale;
         }
 
-        void setDeparture(double departure, Id stop) {
+        void setDeparture(double departure, Id<TransitStopFacility> stop) {
             this.departure = departure;
 
             if (PtVolumeToCSV.this.stopsWriter != null) {
@@ -233,16 +240,8 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
                 writer.writeRow();
             }
             if (PtVolumeToCSV.this.writeFinalDailyVolumes) {
-                List<Double> stopVolumes = PtVolumeToCSV.this.dailyStopVolumes.get(stop);
-                if (stopVolumes == null) {
-                    PtVolumeToCSV.this.dailyStopVolumes.put(stop, new LinkedList<>());
-                    stopVolumes = PtVolumeToCSV.this.dailyStopVolumes.get(stop);
-                }
-                if (stopVolumes.size() < PtVolumeToCSV.this.currentIteration + 1) {
-                    stopVolumes.add(PtVolumeToCSV.this.currentIteration, 0.0);
-                }
-                Double currentItVol = stopVolumes.get(PtVolumeToCSV.this.currentIteration);
-                stopVolumes.set(PtVolumeToCSV.this.currentIteration, currentItVol + this.alightings + this.boardings);
+                Double currentItVol = PtVolumeToCSV.this.dailyStopVolumes.get(stop);
+                PtVolumeToCSV.this.dailyStopVolumes.put(stop, currentItVol + this.alightings + this.boardings);
             }
             this.alightings = 0.0;
             this.boardings = 0.0;

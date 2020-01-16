@@ -244,17 +244,17 @@ public class SBBPostProcessingOutputHandlerTest {
             BeforeMobsimEvent beforeMobsimEvent = new BeforeMobsimEvent(controler, i);
             IterationEndsEvent iterationEndsEvent = new IterationEndsEvent(controler, i);
 
-            testFixture.eventsManager.resetHandlers(i);
             outputHandler.notifyBeforeMobsim(beforeMobsimEvent);
             testFixture.addEvents();
+            testFixture.eventsManager.resetHandlers(i);
             outputHandler.notifyIterationEnds(iterationEndsEvent);
         }
         ShutdownEvent shutdownEvent = new ShutdownEvent(startupEvent.getServices(), false);
         outputHandler.notifyShutdown(shutdownEvent);
 
-        Assert.assertEquals(expectedStops, readResult(this.utils.getOutputDirectory() + "matsim_stops.csv.gz"));
-        Assert.assertEquals(expectedVehJourneys, readResult(this.utils.getOutputDirectory() + "matsim_vehjourneys.csv.gz"));
-        Assert.assertEquals(expectedStopsDaily, readResult(this.utils.getOutputDirectory() + "matsim_stops_daily.csv.gz"));
+        Assert.assertEquals(PtVolumeToCSVTest.expectedStops, readResult(this.utils.getOutputDirectory() + "matsim_stops.csv.gz"));
+        Assert.assertEquals(PtVolumeToCSVTest.expectedVehJourneys, readResult(this.utils.getOutputDirectory() + "matsim_vehjourneys.csv.gz"));
+        Assert.assertEquals(PtVolumeToCSVTest.expectedStopsDaily, readResult(this.utils.getOutputDirectory() + "matsim_stops_daily.csv.gz"));
         Assert.assertEquals(
                 readResult(this.utils.getOutputDirectory() + "ITERS/it." + lastIteration + "/" + lastIteration + ".matsim_stops.csv.gz"),
                 readResult(this.utils.getOutputDirectory() + "matsim_stops.csv.gz"));
@@ -301,13 +301,16 @@ public class SBBPostProcessingOutputHandlerTest {
             BeforeMobsimEvent beforeMobsimEvent = new BeforeMobsimEvent(controler, i);
             IterationEndsEvent iterationEndsEvent = new IterationEndsEvent(controler, i);
 
-            testFixture.eventsManager.resetHandlers(i);
             outputHandler.notifyBeforeMobsim(beforeMobsimEvent);
             testFixture.addEvents();
+            testFixture.eventsManager.resetHandlers(i);
             outputHandler.notifyIterationEnds(iterationEndsEvent);
         }
         ShutdownEvent shutdownEvent = new ShutdownEvent(startupEvent.getServices(), false);
         outputHandler.notifyShutdown(shutdownEvent);
+
+        String expectedLinksDaily = "it;2;3;4\n0;0;1;1\n1;0;1;1\n2;0;1;1\n";
+        String expectedLinks = "LINK_ID_SIM;VOLUME_SIM\n3;1.0\n4;1.0\n";
 
         Assert.assertEquals(expectedLinks, readResult(this.utils.getOutputDirectory() + "visum_volumes.csv.gz"));
         Assert.assertEquals(expectedLinksDaily, readResult(this.utils.getOutputDirectory() + "visum_volumes_daily.csv.gz"));
@@ -381,37 +384,4 @@ public class SBBPostProcessingOutputHandlerTest {
         public void finishProcessing() {}
     }
 
-    private String expectedStopsDaily =
-            "stopId;0;1;2\n" +
-                    "A;0.0;0.0;0.0\n" +
-                    "B;1.0;1.0;1.0\n" +
-                    "C;0.0;0.0;0.0\n" +
-                    "D;1.0;1.0;1.0\n" +
-                    "E;0.0;0.0;0.0\n";
-
-    private String expectedLinksDaily =
-            "linkId;0;1;2\n" +
-                    "3;1.0;1.0;1.0\n" +
-                    "4;1.0;1.0;1.0\n";
-
-    private String expectedLinks =
-            "LINK_ID_SIM;VOLUME_SIM\n" +
-                    "3;1.0\n" +
-                    "4;1.0\n";
-
-    private String expectedStops =
-            "index;stop_id;boarding;alighting;line;lineroute;departure_id;vehicle_id;departure;arrival\n" +
-                    "0;A;0.0;0.0;S2016_1;A2E;1;train1;30000.0;30000.0\n" +
-                    "1;B;1.0;0.0;S2016_1;A2E;1;train1;30120.0;30100.0\n" +
-                    "2;C;0.0;0.0;S2016_1;A2E;1;train1;30300.0;30300.0\n" +
-                    "3;D;0.0;1.0;S2016_1;A2E;1;train1;30600.0;30570.0\n" +
-                    "4;E;0.0;0.0;S2016_1;A2E;1;train1;30720.0;30720.0\n";
-
-
-    private String expectedVehJourneys =
-            "index;from_stop_id;to_stop_id;passengers;line;lineroute;departure_id;vehicle_id;departure;arrival\n" +
-                    "1;A;B;0.0;S2016_1;A2E;1;train1;30000.0;30100.0\n" +
-                    "2;B;C;1.0;S2016_1;A2E;1;train1;30120.0;30300.0\n" +
-                    "3;C;D;1.0;S2016_1;A2E;1;train1;30300.0;30570.0\n" +
-                    "4;D;E;0.0;S2016_1;A2E;1;train1;30600.0;30720.0\n";
 }

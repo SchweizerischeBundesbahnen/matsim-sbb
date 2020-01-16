@@ -22,7 +22,7 @@ public class PtVolumeToCSVTest {
 
         PtTestFixture testFixture = new PtTestFixture();
         Double scaleFactor = 1.0 / testFixture.config.qsim().getFlowCapFactor();
-        PtVolumeToCSV ptVolumeToCSV = new PtVolumeToCSV(this.utils.getOutputDirectory(), scaleFactor, false);
+        PtVolumeToCSV ptVolumeToCSV = new PtVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory(), scaleFactor, false);
 
         testFixture.eventsManager.addHandler(ptVolumeToCSV);
         testFixture.addSingleTransitDemand();
@@ -40,15 +40,18 @@ public class PtVolumeToCSVTest {
 
         PtTestFixture testFixture = new PtTestFixture();
         Double scaleFactor = 1.0 / testFixture.config.qsim().getFlowCapFactor();
-        PtVolumeToCSV ptVolumeToCSV = new PtVolumeToCSV(this.utils.getOutputDirectory(), scaleFactor, true);
+        PtVolumeToCSV ptVolumeToCSV = new PtVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory(), scaleFactor, true);
 
         testFixture.eventsManager.addHandler(ptVolumeToCSV);
         testFixture.addSingleTransitDemand();
         testFixture.addEvents();
+        ptVolumeToCSV.reset(0);
 
-        // increment to next iteration and write events again
+        // increment iteration and write events again
+        testFixture.addEvents();
         ptVolumeToCSV.reset(1);
         testFixture.addEvents();
+        ptVolumeToCSV.reset(2);
 
         // write final daily volumes and check results
         ptVolumeToCSV.writeResults(true);
@@ -69,7 +72,7 @@ public class PtVolumeToCSVTest {
         return sb.toString();
     }
 
-    private String expectedStops =
+    static String expectedStops =
             "index;stop_id;boarding;alighting;line;lineroute;departure_id;vehicle_id;departure;arrival\n" +
             "0;A;0.0;0.0;S2016_1;A2E;1;train1;30000.0;30000.0\n" +
             "1;B;1.0;0.0;S2016_1;A2E;1;train1;30120.0;30100.0\n" +
@@ -78,18 +81,17 @@ public class PtVolumeToCSVTest {
             "4;E;0.0;0.0;S2016_1;A2E;1;train1;30720.0;30720.0\n";
 
 
-    private String expectedVehJourneys =
+    static String expectedVehJourneys =
             "index;from_stop_id;to_stop_id;passengers;line;lineroute;departure_id;vehicle_id;departure;arrival\n" +
             "1;A;B;0.0;S2016_1;A2E;1;train1;30000.0;30100.0\n" +
             "2;B;C;1.0;S2016_1;A2E;1;train1;30120.0;30300.0\n" +
             "3;C;D;1.0;S2016_1;A2E;1;train1;30300.0;30570.0\n" +
             "4;D;E;0.0;S2016_1;A2E;1;train1;30600.0;30720.0\n";
 
-    private String expectedStopsDaily =
-            "stopId;0;1\n" +
-            "A;0.0;0.0\n" +
-            "B;1.0;1.0\n" +
-            "C;0.0;0.0\n" +
-            "D;1.0;1.0\n" +
-            "E;0.0;0.0\n";
+    static String expectedStopsDaily =
+            "it;A;B;C;D;E\n" +
+            "0;0.0;1.0;0.0;1.0;0.0\n" +
+            "1;0.0;1.0;0.0;1.0;0.0\n" +
+            "2;0.0;1.0;0.0;1.0;0.0\n";
+
 }
