@@ -21,8 +21,10 @@ import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
 
@@ -31,7 +33,7 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
 
 
     protected Scenario scenario;
-    protected HashMap<Id, Integer> linkVolumes;
+    protected LinkedHashMap<Id, Integer> linkVolumes;
     protected HashMap<Id<Vehicle>, Integer> passengers;
     HashSet<Id> transitDrivers;
 
@@ -39,7 +41,7 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
         this.scenario = scenario;
         this.passengers = new HashMap<>();
         this.transitDrivers = new HashSet<>();
-        this.linkVolumes = new HashMap<>();
+        this.linkVolumes = new LinkedHashMap<>();
         this.linkVolumes.putAll(scenario.getNetwork().getLinks().keySet()
                 .stream().collect(Collectors.toMap(Functions.identity(), i -> 0)));
     }
