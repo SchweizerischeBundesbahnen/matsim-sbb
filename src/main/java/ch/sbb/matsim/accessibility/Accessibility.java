@@ -1,10 +1,16 @@
 package ch.sbb.matsim.accessibility;
 
-import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
-import ch.sbb.matsim.analysis.skims.LeastCostPathTree.NodeData;
-import ch.sbb.matsim.routing.pt.raptor.*;
+import ch.sbb.matsim.routing.graph.LeastCostPathTree;
+import ch.sbb.matsim.routing.graph.Graph;
+import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
+import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
+import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.TravelInfo;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import org.apache.log4j.Logger;
@@ -35,6 +41,7 @@ import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
+import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
@@ -116,6 +123,7 @@ public class Accessibility {
             loadScenario(requiresCar);
         }
 
+        Graph carGraph = new Graph(this.carNetwork);
         log.info("filter car-only network for assigning links to locations");
         Network xy2linksNetwork = extractXy2LinksNetwork(this.carNetwork);
 
@@ -145,7 +153,7 @@ public class Accessibility {
             Thread[] threads = new Thread[this.threadCount];
             for (int i = 0; i < this.threadCount; i++) {
                 RowWorker worker = new RowWorker(
-                        this.carNetwork, xy2linksNetwork, tt, td, this.carAMDepTimes, this.carPMDepTimes,
+                        this.carNetwork, carGraph, xy2linksNetwork, tt, td, this.carAMDepTimes, this.carPMDepTimes,
                         this.raptorData, RaptorUtils.createParameters(this.config), ptMinDepartureTime, ptMaxDepartureTime, trainDetector,
                         zoneData, modes, this.zones, counter, accessibilityCoords, results);
                 threads[i] = new Thread(worker, "accessibility-" + i);
@@ -316,7 +324,7 @@ public class Accessibility {
         private final Queue<Tuple<Coord, double[]>> results;
         private Zones zones;
 
-        RowWorker(Network carNetwork, Network xy2linksNetwork, TravelTime tt, TravelDisutility td, double[] carAMDepTimes, double[] carPMDepTimes,
+        RowWorker(Network carNetwork, Graph carGraph, Network xy2linksNetwork, TravelTime tt, TravelDisutility td, double[] carAMDepTimes, double[] carPMDepTimes,
                   SwissRailRaptorData raptorData, RaptorParameters parameters, double ptMinDepartureTime, double ptMaxDepartureTime, BiPredicate<TransitLine, TransitRoute> trainDetector,
                   Map<Coord, ZoneData> zoneData, Modes[] modes, Zones zones, Counter counter, Queue<Coord> coordinates, Queue<Tuple<Coord, double[]>> results) {
             this.carNetwork = carNetwork;
@@ -325,15 +333,15 @@ public class Accessibility {
             this.carPMDepTimes = carPMDepTimes;
 
             FixedSpeedTravelTimeAndDisutility shortestTTD = new FixedSpeedTravelTimeAndDisutility(1.0);
-            this.shortestLcpTree = new LeastCostPathTree(shortestTTD, shortestTTD);
+            this.shortestLcpTree = new LeastCostPathTree(carGraph, shortestTTD, shortestTTD);
 
             this.amLcpTree = new LeastCostPathTree[carAMDepTimes.length];
             for (int i = 0; i < carAMDepTimes.length; i++) {
-                this.amLcpTree[i] = new LeastCostPathTree(tt, td);
+                this.amLcpTree[i] = new LeastCostPathTree(carGraph, tt, td);
             }
             this.pmLcpTree = new LeastCostPathTree[carPMDepTimes.length];
             for (int i = 0; i < carPMDepTimes.length; i++) {
-                this.pmLcpTree[i] = new LeastCostPathTree(tt, td);
+                this.pmLcpTree[i] = new LeastCostPathTree(carGraph, tt, td);
             }
             this.raptor = new SwissRailRaptor(raptorData, null, null, null);
             this.parameters = parameters;
@@ -369,17 +377,17 @@ public class Accessibility {
             // CAR
             if (this.requiresCar) {
                 for (int i = 0; i < this.amLcpTree.length; i++) {
-                    this.amLcpTree[i].calculate(this.carNetwork, nearestNode, this.carAMDepTimes[i]);
+                    this.amLcpTree[i].calculate(nearestNode.getId().index(), this.carAMDepTimes[i], null, null);
                 }
 
                 for (int i = 0; i < this.pmLcpTree.length; i++) {
-                    this.pmLcpTree[i].calculate(this.carNetwork, nearestNode, this.carPMDepTimes[i]);
+                    this.pmLcpTree[i].calculate(nearestNode.getId().index(), this.carPMDepTimes[i], null, null);
                 }
             }
 
             // WALK, BIKE
             {
-                this.shortestLcpTree.calculate(this.carNetwork, nearestNode, 8 * 3600);
+                this.shortestLcpTree.calculate(nearestNode.getId().index(), 8 * 3600, null, null);
             }
 
             // PT
@@ -412,6 +420,7 @@ public class Accessibility {
                 ZoneData zData = e.getValue();
                 Node toNode = zData.node;
                 double attraction = zData.attraction;
+                int toNodeIndex = toNode.getId().index();
 
                 // CAR
 
@@ -422,10 +431,10 @@ public class Accessibility {
                 if (requiresCar) {
                     int amCount = 0;
                     for (int i = 0; i < this.amLcpTree.length; i++) {
-                        NodeData data = this.amLcpTree[i].getTree().get(toNode.getId());
-                        if (data != null) {
-                            amTravelTime += data.getTime() - this.carAMDepTimes[i];
-                            distCar += data.getDistance();
+                        double time = this.amLcpTree[i].getTime(toNodeIndex);
+                        if (!Time.isUndefinedTime(time)) {
+                            amTravelTime += time - this.carAMDepTimes[i];
+                            distCar += this.amLcpTree[i].getDistance(toNodeIndex);
                             amCount++;
                         }
                     }
@@ -433,10 +442,10 @@ public class Accessibility {
 
                     int pmCount = 0;
                     for (int i = 0; i < this.pmLcpTree.length; i++) {
-                        NodeData data = this.pmLcpTree[i].getTree().get(toNode.getId());
-                        if (data != null) {
-                            pmTravelTime += data.getTime() - this.carPMDepTimes[i];
-                            distCar += data.getDistance();
+                        double time = this.pmLcpTree[i].getTime(toNodeIndex);
+                        if (!Time.isUndefinedTime(time)) {
+                            pmTravelTime += time - this.carPMDepTimes[i];
+                            distCar += this.pmLcpTree[i].getDistance(toNodeIndex);
                             pmCount++;
                         }
                     }
@@ -458,9 +467,9 @@ public class Accessibility {
                 boolean hasShortestDistance = true;
                 double distShortest = 0;
                 {
-                    NodeData data = this.shortestLcpTree.getTree().get(toNode.getId());
-                    if (data != null) {
-                        distShortest = data.getDistance();
+                    double time = this.shortestLcpTree.getTime(toNodeIndex);
+                    if (!Time.isUndefinedTime(time)) {
+                        distShortest = this.shortestLcpTree.getDistance(toNodeIndex);
                     } else {
                         hasShortestDistance = false;
                     }

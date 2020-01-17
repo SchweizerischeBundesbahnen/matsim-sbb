@@ -4,6 +4,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
+import org.matsim.core.utils.misc.Time;
 import org.matsim.vehicles.Vehicle;
 
 import java.util.Arrays;
@@ -29,8 +30,7 @@ public class LeastCostPathTree {
     private final Graph graph;
     private final TravelTime tt;
     private final TravelDisutility td;
-    private final double[] arrivalTimes;
-    private final double[] arrivalCosts;
+    private final double[] data; // 3 entries per node: time, cost, distance
     private final int[] comingFrom;
     private final Graph.LinkIterator outLI;
     private final NodeMinHeap pq;
@@ -39,28 +39,26 @@ public class LeastCostPathTree {
         this.graph = graph;
         this.tt = tt;
         this.td = td;
-        this.arrivalTimes = new double[graph.nodeCount];
-        this.arrivalCosts = new double[graph.nodeCount];
+        this.data = new double[graph.nodeCount * 3];
         this.comingFrom = new int[graph.nodeCount];
         this.pq = new NodeMinHeap();
         this.outLI = graph.getOutLinkIterator();
     }
 
     public void calculate(int startNode, double startTime, Person person, Vehicle vehicle) {
-        Arrays.fill(this.arrivalCosts, Double.POSITIVE_INFINITY);
-        Arrays.fill(this.arrivalTimes, Double.POSITIVE_INFINITY);
+        Arrays.fill(this.data, Double.POSITIVE_INFINITY);
         Arrays.fill(this.comingFrom, -1);
 
-        this.arrivalCosts[startNode] = 0;
-        this.arrivalTimes[startNode] = startTime;
+        setData(startNode, 0, startTime, 0);
 
         this.pq.clear();
         this.pq.insert(startNode);
 
         while (!pq.isEmpty()) {
             final int nodeIdx = pq.poll();
-            double currTime = this.arrivalTimes[nodeIdx];
-            double currCost = this.arrivalCosts[nodeIdx];
+            double currTime = getTime(nodeIdx);
+            double currCost = getCost(nodeIdx);
+            double currDistance = getDistance(nodeIdx);
             outLI.reset(nodeIdx);
             while (outLI.next()) {
                 int linkIdx = outLI.getLinkIndex();
@@ -71,16 +69,15 @@ public class LeastCostPathTree {
                 double newTime = currTime + travelTime;
                 double newCost = currCost + this.td.getLinkTravelDisutility(link, currTime, person, vehicle);
 
-                double oldCost = this.arrivalCosts[toNode];
+                double oldCost = getCost(toNode);
                 if (Double.isFinite(oldCost)) {
-                    if (newCost < this.arrivalCosts[toNode]) {
-                        this.arrivalTimes[toNode] = newTime;
+                    if (newCost < oldCost) {
                         pq.decreaseKey(toNode, newCost);
+                        setData(toNode, newCost, newTime, currDistance + link.getLength());
                         this.comingFrom[toNode] = nodeIdx;
                     }
                 } else {
-                    this.arrivalCosts[toNode] = newCost;
-                    this.arrivalTimes[toNode] = newTime;
+                    setData(toNode, newCost, newTime, currDistance + link.getLength());
                     pq.insert(toNode);
                     this.comingFrom[toNode] = nodeIdx;
                 }
@@ -89,11 +86,30 @@ public class LeastCostPathTree {
     }
 
     public double getCost(int nodeIndex) {
-        return this.arrivalCosts[nodeIndex];
+        return this.data[nodeIndex * 3];
     }
 
     public double getTime(int nodeIndex) {
-        return this.arrivalTimes[nodeIndex];
+        double time = this.data[nodeIndex * 3 + 1];
+        if (Double.isInfinite(time)) {
+            return Time.getUndefinedTime();
+        }
+        return time;
+    }
+
+    public double getDistance(int nodeIndex) {
+        return this.data[nodeIndex * 3 + 2];
+    }
+
+    private void setCost(int nodeIndex, double cost) {
+        this.data[nodeIndex * 3] = cost;
+    }
+
+    private void setData(int nodeIndex, double cost, double time, double distance) {
+        int index = nodeIndex * 3;
+        this.data[index] = cost;
+        this.data[index + 1] = time;
+        this.data[index + 2] = distance;
     }
 
     public int getComingFrom(int nodeIndex) {
@@ -115,7 +131,7 @@ public class LeastCostPathTree {
 
             int parent = parent(i);
 
-            while (parent != i && arrivalCosts[heap[i]] < arrivalCosts[heap[parent]]) {
+            while (parent != i && getCost(heap[i]) < getCost(heap[parent])) {
                 swap(i, parent);
                 i = parent;
                 parent = parent(i);
@@ -129,15 +145,15 @@ public class LeastCostPathTree {
                     break;
                 }
             }
-            if (arrivalCosts[heap[i]] < cost) {
+            if (getCost(heap[i]) < cost) {
                 throw new IllegalArgumentException("existing cost is already smaller than new cost.");
             }
 
-            arrivalCosts[node] = cost;
+            setCost(node, cost);
             int parent = parent(i);
 
             // sift up
-            while (i > 0 && arrivalCosts[heap[parent]] > arrivalCosts[heap[i]]) {
+            while (i > 0 && getCost(heap[parent]) > getCost(heap[i])) {
                 swap(i, parent);
                 i = parent;
                 parent = parent(parent);
@@ -190,10 +206,10 @@ public class LeastCostPathTree {
             int right = right(i);
             int smallest = i;
 
-            if (left <= (size - 1) && arrivalCosts[heap[left]] < arrivalCosts[heap[i]]) {
+            if (left <= (size - 1) && getCost(heap[left]) < getCost(heap[i])) {
                 smallest = left;
             }
-            if (right <= (size - 1) && arrivalCosts[heap[right]] < arrivalCosts[heap[smallest]]) {
+            if (right <= (size - 1) && getCost(heap[right]) < getCost(heap[smallest])) {
                 smallest = right;
             }
             if (smallest != i) {
