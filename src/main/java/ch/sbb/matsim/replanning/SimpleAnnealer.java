@@ -1,25 +1,28 @@
 package ch.sbb.matsim.replanning;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.StrategyConfigGroup;
+import org.matsim.core.controler.events.ShutdownEvent;
 import org.matsim.core.controler.events.StartupEvent;
+import org.matsim.core.controler.listener.ShutdownListener;
 import org.matsim.core.controler.listener.StartupListener;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule.DefaultSelector;
 import org.matsim.core.controler.events.IterationStartsEvent;
 import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.replanning.GenericPlanStrategy;
 import org.matsim.core.replanning.StrategyManager;
+import static ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup.annealParameterOption;
+import static ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup.annealOption;
+import static ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup.AnnealingVariable;
 
 import javax.inject.Inject;
 
@@ -27,158 +30,164 @@ import javax.inject.Inject;
  * @author fouriep, davig
  */
 
-public class SimpleAnnealer implements IterationStartsListener, StartupListener {
+public class SimpleAnnealer implements IterationStartsListener, StartupListener, ShutdownListener {
 
-    private Double currentValue;
+    private EnumMap<annealParameterOption, Double> currentValues;
     private int currentIter;
     private static Logger log = Logger.getLogger(SimpleAnnealer.class);
     private Config config;
     private SimpleAnnealerConfigGroup saConfig;
-    private final SimpleAnnealerConfigGroup.annealOption annealType;
-    private final SimpleAnnealerConfigGroup.annealParameterOption annealParameter;
-    private static final String ANNEAL_FILENAME = "annealingRates.txt";
-    private String filename;
+    private static final String ANNEAL_FILENAME = "annealingRates.csv";
+    private static final String COL_IT = "it";
     private int innovationStop;
+    private CSVWriter writer;
 
     @Inject
     public SimpleAnnealer(Config config) {
         this.config = config;
         this.saConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
-        this.annealType = this.saConfig.getAnnealType();
-        this.annealParameter = this.saConfig.getAnnealParameter();
+        currentValues = new EnumMap<>(annealParameterOption.class);
     }
 
     @Override
     public void notifyStartup(StartupEvent event) {
-        if (!this.saConfig.getAnnealType().equals(SimpleAnnealerConfigGroup.annealOption.disabled)) {
-            // fix final iteration
-            if (this.saConfig.getIterationToFreezeAnnealingRates() >= this.config.controler().getLastIteration()) {
-                this.saConfig.setIterationToFreezeAnnealingRates(this.config.controler().getLastIteration());
-            }
-            this.innovationStop = getInnovationStop(this.config);
-            if (this.saConfig.getAnnealParameter().equals(SimpleAnnealerConfigGroup.annealParameterOption.globalInnovationRate)
-                    && this.saConfig.getIterationToFreezeAnnealingRates() > this.innovationStop) {
-                log.info("IterationToFreezeAnnealingRates set after globalInnovationStop. Resetting IterationToFreezeAnnealingRates to the same value...");
-                this.saConfig.setIterationToFreezeAnnealingRates(this.innovationStop);
-            }
-            // check and fix initial value if needed
-            Double configValue;
-            String header = this.annealParameter.toString();
-            switch (this.annealParameter) {
-                case BrainExpBeta:
-                    configValue = this.config.planCalcScore().getBrainExpBeta();
-                    break;
-                case PathSizeLogitBeta:
-                    configValue = this.config.planCalcScore().getPathSizeLogitBeta();
-                    break;
-                case learningRate:
-                    configValue = this.config.planCalcScore().getLearningRate();
-                    break;
-                case globalInnovationRate:
-                    configValue = getGlobalInnovationRate(this.config, this.saConfig.getDefaultSubpopulation());
-                    header = this.config.strategy().getStrategySettings().stream()
+        List<String> header = new ArrayList<>();
+        header.add(COL_IT);
+        for (AnnealingVariable av : this.saConfig.getAnnealingVariables().values()) {
+            if (!av.getAnnealType().equals(annealOption.disabled)) {
+                // fix final iteration
+                if (av.getIterationToFreezeAnnealingRates() >= this.config.controler().getLastIteration()) {
+                    av.setIterationToFreezeAnnealingRates(this.config.controler().getLastIteration());
+                }
+                this.innovationStop = getInnovationStop(this.config);
+                if (av.getAnnealParameter().equals(annealParameterOption.globalInnovationRate)
+                        && av.getIterationToFreezeAnnealingRates() > this.innovationStop) {
+                    log.info("IterationToFreezeAnnealingRates set after globalInnovationStop. Resetting IterationToFreezeAnnealingRates to the same value...");
+                    av.setIterationToFreezeAnnealingRates(this.innovationStop);
+                }
+                // check and fix initial value if needed
+                checkAndFixStartValue(av);
+
+                this.currentValues.put(av.getAnnealParameter(), av.getStartValue());
+                header.add(av.getAnnealParameter().name());
+                if (av.getAnnealParameter().equals(annealParameterOption.globalInnovationRate)) {
+                    header.addAll(this.config.strategy().getStrategySettings().stream()
                             .map(StrategyConfigGroup.StrategySettings::getStrategyName)
-                            .collect(Collectors.joining("\t"));
-                    break;
-                default:
-                    throw new IllegalArgumentException();
+                            .collect(Collectors.toList()));
+                }
             }
-            if (!configValue.equals(this.saConfig.getStartValue())) {
-                log.warn("Anneal start value doesn't match config value. Resetting startValue to config value " + this.annealParameter.toString() + " of " + configValue);
-                this.saConfig.setStartValue(configValue);
-            }
+        }
+        // prepare output file
+        try {
+            this.writer = new CSVWriter("", header.toArray(new String[0]),
+                    event.getServices().getControlerIO().getOutputFilename(ANNEAL_FILENAME));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
-            this.currentValue = this.saConfig.getStartValue();
-
-            // prepare output file
-            this.filename = event.getServices().getControlerIO().getOutputFilename(ANNEAL_FILENAME);
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(
-                    new File(this.filename)))) {
-                bw.write("it\t" + header);
-                bw.newLine();
-            } catch (IOException e) { log.warn(e); }
+    @Override
+    public void notifyShutdown(ShutdownEvent event) {
+        try {
+            this.writer.close();
+        } catch (IOException e) {
+            log.warn("Couldn't close annealing rates file ", e);
         }
     }
 
     @Override
     public void notifyIterationStarts(IterationStartsEvent event) {
         this.currentIter = event.getIteration() - this.config.controler().getFirstIteration();
-        if (this.currentIter > 0 && this.currentIter <= this.saConfig.getIterationToFreezeAnnealingRates()) {
-            switch (this.annealType) {
-                case geometric:
-                    this.currentValue *= this.saConfig.getShapeFactor();
-                    break;
-                case exponential:
-                    this.currentValue =
-                            this.saConfig.getStartValue() / Math.exp((double) this.currentIter / this.saConfig.getHalfLife());
-                    break;
-                case msa:
-                    this.currentValue =
-                            this.saConfig.getStartValue() / Math.pow(this.currentIter, this.saConfig.getShapeFactor());
-                    break;
-                case sigmoid:
-                    this.currentValue =
-                            this.saConfig.getEndValue() + (this.saConfig.getStartValue() - this.saConfig.getEndValue()) /
-                                    (1 + Math.exp(this.saConfig.getShapeFactor()*(this.currentIter - this.saConfig.getHalfLife())));
-                    break;
-                case linear:
-                    double slope = (this.saConfig.getStartValue() - this.saConfig.getEndValue())
-                            / (this.config.controler().getFirstIteration() - this.saConfig.getIterationToFreezeAnnealingRates());
-                    this.currentValue = this.currentIter * slope + this.saConfig.getStartValue();
-                    break;
-                case disabled:
-                    return;
-                default:
-                    throw new IllegalArgumentException();
+        this.writer.set(COL_IT, String.valueOf(this.currentIter));
+        for (AnnealingVariable av : this.saConfig.getAnnealingVariables().values()) {
+            if (this.currentIter > 0 && this.currentIter <= av.getIterationToFreezeAnnealingRates()) {
+                switch (av.getAnnealType()) {
+                    case geometric:
+                        this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
+                                v * av.getShapeFactor());
+                        break;
+                    case exponential:
+                        this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
+                                av.getStartValue() / Math.exp((double) this.currentIter / av.getHalfLife()));
+                        break;
+                    case msa:
+                        this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
+                                av.getStartValue() / Math.pow(this.currentIter, av.getShapeFactor()));
+                        break;
+                    case sigmoid:
+                        this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
+                                av.getEndValue() + (av.getStartValue() - av.getEndValue()) /
+                                        (1 + Math.exp(av.getShapeFactor()*(this.currentIter - av.getHalfLife()))));
+                        break;
+                    case linear:
+                        double slope = (av.getStartValue() - av.getEndValue())
+                                / (this.config.controler().getFirstIteration() - av.getIterationToFreezeAnnealingRates());
+                        this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
+                                this.currentIter * slope + av.getStartValue());
+                        break;
+                    case disabled:
+                        return;
+                    default:
+                        throw new IllegalArgumentException();
+                }
+
+                log.info("Annealling will be performed on parameter " + av.getAnnealParameter() +
+                        ". Value: " + this.currentValues.get(av.getAnnealParameter()));
+
+                this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
+                        Math.max(v, av.getEndValue()));
             }
-
-            log.info("Annealling will be performed on parameter " + this.saConfig.getAnnealParameter().toString() + ". Value: " + this.currentValue +
-                    (this.saConfig.getAnnealParameter().equals(SimpleAnnealerConfigGroup.annealParameterOption.globalInnovationRate) ?
-                            (". Subpopulation name: " + this.saConfig.getDefaultSubpopulation()) : ""));
-
-            this.currentValue = Math.max(this.currentValue, this.saConfig.getEndValue());
-
-            anneal(event, this.saConfig.getAnnealParameter());
+            double annealValue = this.currentValues.get(av.getAnnealParameter());
+            this.writer.set(av.getAnnealParameter().name(), String.format("%.4f", annealValue));
+            anneal(event, av, annealValue);
         }
-
-        List<Double> values = this.saConfig.getAnnealParameter().equals(SimpleAnnealerConfigGroup.annealParameterOption.globalInnovationRate) ?
-                annealReplanning(this.currentValue, event.getServices().getStrategyManager(), this.saConfig.getDefaultSubpopulation(), true) :
-                Collections.singletonList(this.currentValue);
-
-        writeAnnealingRates(this.filename, event.getIteration(), values);
+        this.writer.writeRow();
     }
 
-    private void anneal(IterationStartsEvent event, SimpleAnnealerConfigGroup.annealParameterOption annealParameter) {
-        switch (annealParameter) {
+    private void anneal(IterationStartsEvent event, AnnealingVariable av, double annealValue) {
+        switch (av.getAnnealParameter()) {
             case BrainExpBeta:
-                this.config.planCalcScore().setBrainExpBeta(this.currentValue);
+                this.config.planCalcScore().setBrainExpBeta(annealValue);
                 break;
             case PathSizeLogitBeta:
-                this.config.planCalcScore().setPathSizeLogitBeta(this.currentValue);
+                this.config.planCalcScore().setPathSizeLogitBeta(annealValue);
                 break;
             case learningRate:
-                this.config.planCalcScore().setLearningRate(this.currentValue);
+                this.config.planCalcScore().setLearningRate(annealValue);
+                break;
+            case SBBTimeMutatorReRoute: case TimeAllocationMutator: case SubtourModeChoice: case ReRoute:
+                this.config.strategy().getStrategySettings().stream()
+                        .filter(s -> av.getAnnealParameter().name().equals(s.getStrategyName()))
+                        .collect(Collectors.toList()).get(0).setWeight(annealValue);
                 break;
             case globalInnovationRate:
-                annealReplanning(this.currentValue, event.getServices().getStrategyManager(),
-                        this.saConfig.getDefaultSubpopulation(), false);
+                List<Double> annealValues = annealReplanning(annealValue,
+                        event.getServices().getStrategyManager(), av.getDefaultSubpopulation());
+                int i = 0;
+                for (StrategyConfigGroup.StrategySettings ss : this.config.strategy().getStrategySettings()) {
+                    this.writer.set(ss.getStrategyName(), String.format("%.4f", annealValues.get(i)));
+                    i++;
+                }
+                this.writer.set(av.getAnnealParameter().name(), String.format("%.4f", // update value in case of switchoff
+                        getGlobalInnovationRate(event.getServices().getStrategyManager(), av.getDefaultSubpopulation())));
                 break;
             default:
                 throw new IllegalArgumentException();
         }
     }
 
-    private List<Double> annealReplanning(double globalValue, StrategyManager stratMan, String subpopulation, boolean coldRun) {
+    private List<Double> annealReplanning(double globalValue, StrategyManager stratMan, String subpopulation) {
         List<Double> annealValues = new ArrayList<>();
         double totalInnovationWeights = getGlobalInnovationRate(stratMan, subpopulation);
         List<GenericPlanStrategy<Plan, Person>> strategies = stratMan.getStrategies(subpopulation);
         for (GenericPlanStrategy<Plan, Person> strategy : strategies) {
-            double newWeight = totalInnovationWeights > 0 ? globalValue * stratMan.getWeights(subpopulation)
-                    .get(strategies.indexOf(strategy))/totalInnovationWeights : 0.0;
-            annealValues.add(newWeight);
-            if(!coldRun && isInnovationStrategy(strategy.toString())) {
-                stratMan.changeWeightOfStrategy(strategy, subpopulation, newWeight);
+            double weight = stratMan.getWeights(subpopulation).get(strategies.indexOf(strategy));
+            if (isInnovationStrategy(strategy.toString())) {
+                weight = totalInnovationWeights > 0 ?
+                        globalValue * weight/totalInnovationWeights : 0.0;
+                stratMan.changeWeightOfStrategy(strategy, subpopulation, weight);
             }
+            annealValues.add(weight);
         }
         return annealValues;
     }
@@ -247,5 +256,34 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener 
             bw.write(iteration + "\t" + values.stream().map(o -> String.format("%.4f", o)).collect(Collectors.joining("\t")));
             bw.newLine();
         } catch (IOException e) { log.warn(e); }
+    }
+
+    private void checkAndFixStartValue(SimpleAnnealerConfigGroup.AnnealingVariable av) {
+        Double configValue;
+        switch (av.getAnnealParameter()) {
+            case BrainExpBeta:
+                configValue = this.config.planCalcScore().getBrainExpBeta();
+                break;
+            case PathSizeLogitBeta:
+                configValue = this.config.planCalcScore().getPathSizeLogitBeta();
+                break;
+            case learningRate:
+                configValue = this.config.planCalcScore().getLearningRate();
+                break;
+            case ReRoute: case SubtourModeChoice: case TimeAllocationMutator: case SBBTimeMutatorReRoute:
+                configValue = this.config.strategy().getStrategySettings().stream()
+                        .filter(s -> av.getAnnealParameter().name().equals(s.getStrategyName()))
+                        .collect(Collectors.toList()).get(0).getWeight();
+                break;
+            case globalInnovationRate:
+                configValue = getGlobalInnovationRate(this.config, av.getDefaultSubpopulation());
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+        if (!configValue.equals(av.getStartValue())) {
+            log.warn("Anneal start value doesn't match config value. Resetting startValue to config value " + av.getAnnealParameter() + " of " + configValue);
+            av.setStartValue(configValue);
+        }
     }
 }

@@ -127,7 +127,7 @@ public class RunSBB {
                 }
 
                 SimpleAnnealerConfigGroup annealerConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
-                if (!annealerConfig.getAnnealType().equals(SimpleAnnealerConfigGroup.annealOption.disabled)) {
+                if (annealerConfig.isActivateAnnealingModule()) {
                     addControlerListenerBinding().to(SimpleAnnealer.class);
                 }
 
