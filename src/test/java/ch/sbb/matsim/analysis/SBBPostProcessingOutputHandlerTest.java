@@ -310,7 +310,7 @@ public class SBBPostProcessingOutputHandlerTest {
         outputHandler.notifyShutdown(shutdownEvent);
 
         String expectedLinksDaily = "it;2;3;4\n0;0;1;1\n1;0;1;1\n2;0;1;1\n";
-        String expectedLinks = "LINK_ID_SIM;VOLUME_SIM\n4;1.0\n3;1.0\n";
+        String expectedLinks = "LINK_ID_SIM;VOLUME_SIM\n3;1.0\n4;1.0\n";
 
         Assert.assertEquals(expectedLinks, readResult(this.utils.getOutputDirectory() + "visum_volumes.csv.gz"));
         Assert.assertEquals(expectedLinksDaily, readResult(this.utils.getOutputDirectory() + "visum_volumes_daily.csv.gz"));

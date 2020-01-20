@@ -3,20 +3,15 @@ package ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork;
 import ch.sbb.matsim.analysis.EventsAnalysis;
 import ch.sbb.matsim.analysis.LinkAnalyser.LinkAnalyser;
 import ch.sbb.matsim.csv.CSVWriter;
-import com.google.common.base.Functions;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.core.utils.io.UncheckedIOException;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnalysis {
 
@@ -37,7 +32,8 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnaly
         this.writeFinalDailyVolumes = writeFinalDailyVolumes;
         if (writeFinalDailyVolumes) {
             try {
-                List<String> columns = this.linkVolumes.keySet().stream().map(Id::toString).collect(Collectors.toList());
+                List<String> columns = this.linkVolumes.keySet().stream().map(Id::toString)
+                        .sorted(String::compareTo).collect(Collectors.toList());
                 columns.add(0, COL_ITERATION);
                 this.linkVolumesPerIterationWriter = new CSVWriter("", columns.toArray(new String[0]), this.filename + FILENAME_FINALDAILYLINKVOLUMES);
             } catch (IOException e) {
@@ -67,7 +63,7 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnaly
     private void writeVolumes(double scale, String mode) {
 
         VisumNetwork visumNetwork = new VisumNetwork();
-        Map<Link, Double> volumes = new HashMap<>();
+        Map<Link, Double> volumes = new LinkedHashMap<>();
 
         for (Map.Entry<Id, Integer> entry : this.linkVolumes.entrySet()) {
             final Link link = this.scenario.getNetwork().getLinks().get(entry.getKey());
