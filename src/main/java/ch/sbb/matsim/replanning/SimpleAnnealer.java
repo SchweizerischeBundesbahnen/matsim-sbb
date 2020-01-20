@@ -34,19 +34,20 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
 
     private EnumMap<annealParameterOption, Double> currentValues;
     private int currentIter;
-    private static Logger log = Logger.getLogger(SimpleAnnealer.class);
-    private Config config;
-    private SimpleAnnealerConfigGroup saConfig;
+    private static final Logger log = Logger.getLogger(SimpleAnnealer.class);
+    private final Config config;
+    private final SimpleAnnealerConfigGroup saConfig;
     private static final String ANNEAL_FILENAME = "annealingRates.csv";
     private static final String COL_IT = "it";
-    private int innovationStop;
+    private final int innovationStop;
     private CSVWriter writer;
 
     @Inject
     public SimpleAnnealer(Config config) {
         this.config = config;
         this.saConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
-        currentValues = new EnumMap<>(annealParameterOption.class);
+        this.currentValues = new EnumMap<>(annealParameterOption.class);
+        this.innovationStop = getInnovationStop(config);
     }
 
     @Override
@@ -55,16 +56,6 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
         header.add(COL_IT);
         for (AnnealingVariable av : this.saConfig.getAnnealingVariables().values()) {
             if (!av.getAnnealType().equals(annealOption.disabled)) {
-                // fix final iteration
-                if (av.getIterationToFreezeAnnealingRates() >= this.config.controler().getLastIteration()) {
-                    av.setIterationToFreezeAnnealingRates(this.config.controler().getLastIteration());
-                }
-                this.innovationStop = getInnovationStop(this.config);
-                if (av.getAnnealParameter().equals(annealParameterOption.globalInnovationRate)
-                        && av.getIterationToFreezeAnnealingRates() > this.innovationStop) {
-                    log.info("IterationToFreezeAnnealingRates set after globalInnovationStop. Resetting IterationToFreezeAnnealingRates to the same value...");
-                    av.setIterationToFreezeAnnealingRates(this.innovationStop);
-                }
                 // check and fix initial value if needed
                 checkAndFixStartValue(av);
 
@@ -100,7 +91,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
         this.currentIter = event.getIteration() - this.config.controler().getFirstIteration();
         this.writer.set(COL_IT, String.valueOf(this.currentIter));
         for (AnnealingVariable av : this.saConfig.getAnnealingVariables().values()) {
-            if (this.currentIter > 0 && this.currentIter <= av.getIterationToFreezeAnnealingRates()) {
+            if (this.currentIter > 0) {
                 switch (av.getAnnealType()) {
                     case geometric:
                         this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
@@ -121,7 +112,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                         break;
                     case linear:
                         double slope = (av.getStartValue() - av.getEndValue())
-                                / (this.config.controler().getFirstIteration() - av.getIterationToFreezeAnnealingRates());
+                                / (this.config.controler().getFirstIteration() - this.innovationStop);
                         this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
                                 this.currentIter * slope + av.getStartValue());
                         break;
@@ -248,14 +239,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
             }
         }
 
-        return innoStop;
-    }
-
-    private static void writeAnnealingRates(String filename, int iteration, List<Double> values) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename), true))) {
-            bw.write(iteration + "\t" + values.stream().map(o -> String.format("%.4f", o)).collect(Collectors.joining("\t")));
-            bw.newLine();
-        } catch (IOException e) { log.warn(e); }
+        return Math.min(innoStop, config.controler().getLastIteration());
     }
 
     private void checkAndFixStartValue(SimpleAnnealerConfigGroup.AnnealingVariable av) {

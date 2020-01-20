@@ -222,9 +222,9 @@ public class SimpleAnnealerTest {
 
     @Test
     public void testFreezeEarlyAnneal() throws IOException {
-        this.saConfigVar.setIterationToFreezeAnnealingRates(5);
         this.saConfigVar.setAnnealType("msa");
         this.saConfigVar.setShapeFactor(1.0);
+        this.saConfigVar.setEndValue(0.1);
 
         Controler controler = new Controler(this.scenario);
         controler.addOverridingModule(new AbstractModule() {
