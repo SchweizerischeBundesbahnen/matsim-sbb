@@ -1,11 +1,9 @@
 package ch.sbb.matsim.replanning;
 
-import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
 import java.util.EnumMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -38,7 +36,7 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
     @Override
     public ConfigGroup createParameterSet(final String type) {
         if (AnnealingVariable.GROUP_NAME.equals(type)) {
-            return new SBBBehaviorGroupsConfigGroup.BehaviorGroupParams();
+            return new AnnealingVariable();
         }
         throw new IllegalArgumentException(type);
     }
@@ -67,7 +65,7 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
         for (ConfigGroup pars : getParameterSets(AnnealingVariable.GROUP_NAME)) {
             final annealParameterOption name = ((AnnealingVariable) pars).getAnnealParameter();
             final AnnealingVariable old = map.put(name, (AnnealingVariable) pars);
-            if (old != null) throw new IllegalStateException("several parameter sets for behavior group " + name);
+            if (old != null) throw new IllegalStateException("several parameter sets for variable " + name);
         }
         return map;
     }
@@ -76,7 +74,7 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
         final AnnealingVariable previous = this.getAnnealingVariables().get(params.getAnnealParameter());
         if (previous != null) {
             final boolean removed = removeParameterSet(previous);
-            if (!removed) throw new RuntimeException("problem replacing behavior group params ");
+            if (!removed) throw new RuntimeException("problem replacing annealing variable");
         }
         super.addParameterSet(params);
     }
