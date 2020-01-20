@@ -67,13 +67,11 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     private CSVWriter stopsVolumesPerIterationWriter = null;
     private CSVWriter vehJourneyWriter = null;
 
-    private final double scale;
     private String filename;
     private boolean writeFinalDailyVolumes;
     private Map<Id<TransitStopFacility>, Double> dailyStopVolumes = new HashMap<>();
 
-    public PtVolumeToCSV(Scenario scenario, String filename, double scale, boolean writeFinalDailyVolumes) {
-        this.scale = scale;
+    public PtVolumeToCSV(Scenario scenario, String filename, boolean writeFinalDailyVolumes) {
         this.filename = filename;
         this.writeFinalDailyVolumes = writeFinalDailyVolumes;
         if (!writeFinalDailyVolumes) {
@@ -212,13 +210,13 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         }
 
         void addPassenger() {
-            this.boardings += 1*PtVolumeToCSV.this.scale;
-            this.passengers += 1*PtVolumeToCSV.this.scale;
+            this.boardings += 1;
+            this.passengers += 1;
         }
 
         void removePassenger() {
-            this.alightings += 1*PtVolumeToCSV.this.scale;
-            this.passengers -= 1*PtVolumeToCSV.this.scale;
+            this.alightings += 1;
+            this.passengers -= 1;
         }
 
         void setDeparture(double departure, Id<TransitStopFacility> stop) {
