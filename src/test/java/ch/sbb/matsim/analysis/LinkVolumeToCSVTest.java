@@ -22,8 +22,7 @@ public class LinkVolumeToCSVTest {
     public void test_allLinks() throws IOException {
 
         LinkTestFixture testFixture = new LinkTestFixture();
-        Double scaleFactor = 1.0 / testFixture.config.qsim().getFlowCapFactor();
-        LinkVolumeToCSV linkVolumeToCSV = new LinkVolumeToCSV(testFixture.scenario, scaleFactor, this.utils.getOutputDirectory());
+        LinkVolumeToCSV linkVolumeToCSV = new LinkVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory());
 
         testFixture.eventsManager.addHandler(linkVolumeToCSV);
         testFixture.addDemand();
@@ -48,12 +47,11 @@ public class LinkVolumeToCSVTest {
     @Test
     public void test_withLinkFilter() throws IOException {
         LinkTestFixture testFixture = new LinkTestFixture();
-        Double scaleFactor = 1.0 / testFixture.config.qsim().getFlowCapFactor();
         Counts<Link> counts = new Counts<>();
         Count<Link> count = counts.createAndAddCount(Id.create(3, Link.class), "in the ghetto");
         count.createVolume(1, 987); // we'll probably only provide daily values in the first hour.
         testFixture.scenario.addScenarioElement(Counts.ELEMENT_NAME, counts);
-        LinkVolumeToCSV linkVolumeToCSV = new LinkVolumeToCSV(testFixture.scenario, scaleFactor, this.utils.getOutputDirectory());
+        LinkVolumeToCSV linkVolumeToCSV = new LinkVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory());
 
         testFixture.eventsManager.addHandler(linkVolumeToCSV);
         testFixture.addDemand();

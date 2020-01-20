@@ -21,8 +21,7 @@ public class PtVolumeToCSVTest {
     public void test_writeResults() throws IOException {
 
         PtTestFixture testFixture = new PtTestFixture();
-        Double scaleFactor = 1.0 / testFixture.config.qsim().getFlowCapFactor();
-        PtVolumeToCSV ptVolumeToCSV = new PtVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory(), scaleFactor, false);
+        PtVolumeToCSV ptVolumeToCSV = new PtVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory(), false);
 
         testFixture.eventsManager.addHandler(ptVolumeToCSV);
         testFixture.addSingleTransitDemand();
@@ -39,8 +38,7 @@ public class PtVolumeToCSVTest {
     public void test_writeLastIteration() throws IOException {
 
         PtTestFixture testFixture = new PtTestFixture();
-        Double scaleFactor = 1.0 / testFixture.config.qsim().getFlowCapFactor();
-        PtVolumeToCSV ptVolumeToCSV = new PtVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory(), scaleFactor, true);
+        PtVolumeToCSV ptVolumeToCSV = new PtVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory(), true);
 
         testFixture.eventsManager.addHandler(ptVolumeToCSV);
         testFixture.addSingleTransitDemand();
