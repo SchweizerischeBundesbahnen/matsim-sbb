@@ -1,5 +1,6 @@
-package ch.sbb.matsim.analysis.PopulationSampler;
+package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.analysis.TestFixtures.PopTestFixture;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,7 +47,7 @@ public class SBBPopulationSamplerIT {
 
     private void makeTest_withAttributes(int size, double fraction, int expectedSize) {
 
-        TestFixture fixture = new TestFixture(size, true);
+        PopTestFixture fixture = new PopTestFixture(size, true);
         Population population = fixture.scenario.getPopulation();
 
         SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
@@ -64,7 +65,7 @@ public class SBBPopulationSamplerIT {
 
     private void makeTest_noAttributes(int size, double fraction, int expectedSize) {
 
-        TestFixture fixture = new TestFixture(size, false);
+        PopTestFixture fixture = new PopTestFixture(size, false);
         Population population = fixture.scenario.getPopulation();
 
         SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();

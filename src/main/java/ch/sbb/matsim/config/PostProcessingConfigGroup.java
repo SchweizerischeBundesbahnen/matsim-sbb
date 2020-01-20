@@ -31,6 +31,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private int writeOutputsInterval = 10;
     private Boolean writeAgentsCSV = false;
     private Boolean writePlanElementsCSV = false;
+    private Boolean finalDailyVolumes = false;
     private String linkCountDataFile = null;
     private String stopCountDataFile = null;
     private Boolean writeVisumPuTSurvey = false;
@@ -113,6 +114,16 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     @StringSetter("writePlanElementsCSV")
     public void setWritePlanElementsCSV(Boolean value) {
         this.writePlanElementsCSV = value;
+    }
+
+    @StringGetter("writeFinalDailyVolumes")
+    public Boolean getFinalDailyVolumes() {
+        return finalDailyVolumes;
+    }
+
+    @StringSetter("writeFinalDailyVolumes")
+    public void setFinalDailyVolumes(Boolean finalDailyVolumes) {
+        this.finalDailyVolumes = finalDailyVolumes;
     }
 
     @StringGetter("personAttributes")
