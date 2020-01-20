@@ -117,7 +117,13 @@ public class VisumStreetNetworkExporter {
                         Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
                         Integer.parseInt(anAttarraylink[6]));
                 if (link != null) {
-                    link.getAttributes().putAttribute("accessControlled", Integer.parseInt(anAttarraylink[9]));
+                    int ac = 0;
+                    try {
+                        ac = Integer.parseInt(anAttarraylink[9]);
+                    } catch (NumberFormatException e) {
+                        log.warn("Access Control not defined for link " + link.getId() + ". Assuming = 0");
+                    }
+                    link.getAttributes().putAttribute("accessControlled", ac);
                     network.addLink(link);
                 }
                 this.wktLineStringPerVisumLink.put(id, anAttarraylink[10]);
