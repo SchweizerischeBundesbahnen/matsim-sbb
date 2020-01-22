@@ -18,8 +18,8 @@ import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
-import ch.sbb.matsim.routing.pt.raptor.IntermodalRaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
+import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
@@ -148,7 +148,7 @@ public class RunSBB {
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
-                this.bind(RaptorStopFinder.class).to(IntermodalRaptorStopFinder.class);
+                this.bind(RaptorStopFinder.class).to(SBBIntermodalRaptorStopFinder.class);
             }
         });
 
