@@ -179,15 +179,16 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 }
                 break;
             case RandomSelectOneModePerRoutingRequestAndDirection:
+                List<IntermodalAccessEgressParameterSet> paramsets = srrCfg.getIntermodalAccessEgressParameterSets();
                 int counter = 0;
                 do {
-                    int rndSelector = random.nextInt(srrCfg.getIntermodalAccessEgressParameterSets().size());
+                    int rndSelector = random.nextInt(paramsets.size());
                     log.debug("findIntermodalStops: rndSelector=" + rndSelector);
                     addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y,
-                            initialStops, srrCfg.getIntermodalAccessEgressParameterSets().get(rndSelector));
+                            initialStops, paramsets.get(rndSelector));
                     counter++;
                     // try again if no initial stop was found for the parameterset. Avoid infinite loop by limiting number of tries.
-                } while (initialStops.isEmpty() && counter < 2 * srrCfg.getIntermodalAccessEgressParameterSets().size());
+                } while (initialStops.isEmpty() && counter < 2 * paramsets.size());
                 break;
             default:
                 throw new RuntimeException(srrCfg.getIntermodalAccessEgressModeSelection() + " : not implemented!");
