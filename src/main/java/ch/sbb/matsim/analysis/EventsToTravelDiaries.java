@@ -71,12 +71,15 @@ public class EventsToTravelDiaries implements
 
     private String filename;
 
+    private static final String FILENAME_ACTIVITIES = "matsim_activities.csv.gz";
+    private static final String FILENAME_TRIPS = "matsim_trips.csv.gz";
+    private static final String FILENAME_LEGS = "matsim_legs.csv.gz";
+
     private Map<Id<Person>, TravellerChain> chains = new HashMap<>();
     private Map<Id<Vehicle>, PTVehicle> ptVehicles = new HashMap<>();
     private HashMap<Id<Vehicle>, Id<Person>> driverIdFromVehicleId = new HashMap<>();
     private int stuck = 0;
     private TransitSchedule transitSchedule;
-    private final boolean isTransitScenario;
     private boolean writeVisumPuTSurvey = false;
     private Zones zones = null;
     private String zoneAttribute = null;
@@ -89,9 +92,8 @@ public class EventsToTravelDiaries implements
         this.scenario = scenario;
 
         this.network = scenario.getNetwork();
-        this.isTransitScenario = scenario.getConfig().transit().isUseTransit();
 
-        if (this.isTransitScenario) {
+        if (scenario.getConfig().transit().isUseTransit()) {
             this.transitSchedule = scenario.getTransitSchedule();
             readVehiclesFromSchedule();
         }
@@ -234,7 +236,7 @@ public class EventsToTravelDiaries implements
                 TravellerChain chain = chains.get(event.getPersonId());
                 setStuck(getStuck() + 1);
                 chain.setStuck();
-                if (chain.getTrips().size() > 0)
+                if (!chain.getTrips().isEmpty())
                     chain.removeLastTrip();
             }
         } catch (Exception e) {
@@ -361,8 +363,8 @@ public class EventsToTravelDiaries implements
     @Override
     public void handleEvent(VehicleDepartsAtFacilityEvent event) {
         try {
-            PTVehicle pt_vehicle = ptVehicles.get(event.getVehicleId());
-            for (Id passenger_id : pt_vehicle.getPassengersId()) {
+            PTVehicle ptVehicle = ptVehicles.get(event.getVehicleId());
+            for (Id passenger_id : ptVehicle.getPassengersId()) {
                 TravellerChain chain = chains.get(passenger_id);
                 TravelledLeg leg = chain.getLastTrip().getLastLeg();
                 leg.setPtDepartureTime(event.getTime());
@@ -392,52 +394,36 @@ public class EventsToTravelDiaries implements
         driverIdFromVehicleId = new HashMap<>();
     }
 
-    public void setMapActToZone(Zones zones, String attribute) {
+    private void setMapActToZone(Zones zones, String attribute) {
         this.zones = new ZonesQueryCache(zones);
         this.zoneAttribute = attribute;
     }
 
-    public void writeSimulationResultsToCsv(String appendage) throws IOException {
-        String actTableName;
-        String tripsTableName;
-        String legsTableName;
+    private void writeSimulationResultsToCsv() throws IOException {
+        String[] actsData = new String[] {"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "zone"};
+        CSVWriter activityWriter = new CSVWriter(null, actsData, this.filename + FILENAME_ACTIVITIES);
 
-        if (appendage.matches("[a-zA-Z0-9]*[_]*")) {
-            actTableName = appendage + "matsim_activities.csv.gz";
-            tripsTableName = appendage + "matsim_trips.csv.gz";
-            legsTableName = appendage + "matsim_legs.csv.gz";
-        } else {
-            if (appendage.matches("[a-zA-Z0-9]*"))
-                appendage = "_" + appendage;
-            actTableName = "matsim_activities" + appendage + ".csv.gz";
-            tripsTableName = "matsim_trips" + appendage + ".csv.gz";
-            legsTableName = "matsim_legs" + appendage + ".csv.gz";
-        }
-
-        String[] actsData = new String[]{"activity_id", "person_id", "facility_id", "type", "start_time", "end_time", "x", "y", "zone"};
-        CSVWriter activityWriter = new CSVWriter(null, actsData, this.filename + actTableName);
-
-        String[] tripsData = new String[]{"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode",
+        String[] tripsData = new String[] {"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode",
                 "from_act", "to_act", "to_act_type", "in_vehicle_distance", "in_vehicle_time", "first_rail_boarding_stop",
                 "last_rail_alighting_stop", "got_stuck", "access_mode", "egress_mode", "access_dist", "egress_dist"};
-        CSVWriter tripsWriter = new CSVWriter(null, tripsData, this.filename + tripsTableName);
+        CSVWriter tripsWriter = new CSVWriter(null, tripsData, this.filename + FILENAME_TRIPS);
 
-        String[] legsData = new String[]{"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
+        String[] legsData = new String[] {"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
                 "boarding_stop", "alighting_stop", "departure_time", "departure_delay", "from_x", "from_y",
                 "to_x", "to_y", "previous_leg_id", "next_leg_id", "is_access", "is_egress"};
-        CSVWriter legsWriter = new CSVWriter(null, legsData, this.filename + legsTableName);
+        CSVWriter legsWriter = new CSVWriter(null, legsData, this.filename + FILENAME_LEGS);
 
         // read a static field that increments with every inheriting object constructed
         Counter counter = new Counter("Output lines written: ");
         for (Entry<Id<Person>, TravellerChain> entry : chains.entrySet()) {
-            String pax_id = entry.getKey().toString();
+            String paxId = entry.getKey().toString();
             TravellerChain chain = entry.getValue();
             for (Activity act : chain.getActs()) {
                 try {
                     Zone z = (this.zones == null) ? null : this.zones.findZone(act.getCoord().getX(), act.getCoord().getY());
                     Object attrVal = (z == null) ? null : z.getAttribute(this.zoneAttribute);
                     activityWriter.set("activity_id", Integer.toString(act.getElementId()));
-                    activityWriter.set("person_id", pax_id);
+                    activityWriter.set("person_id", paxId);
                     activityWriter.set("facility_id", id2string(act.getFacility()));
                     activityWriter.set("type", act.getType());
                     activityWriter.set("start_time", Integer.toString((int) act.getStartTime()));
@@ -462,7 +448,7 @@ public class EventsToTravelDiaries implements
             for (Trip trip : chain.getTrips()) {
                 try {
                     tripsWriter.set("trip_id", Integer.toString(trip.getElementId()));
-                    tripsWriter.set("person_id", pax_id);
+                    tripsWriter.set("person_id", paxId);
                     tripsWriter.set("start_time", Integer.toString((int) trip.getStartTime()));
                     tripsWriter.set("end_time", Integer.toString((int) trip.getEndTime()));
                     tripsWriter.set("distance", Double.toString(trip.getDistance()));
@@ -520,12 +506,12 @@ public class EventsToTravelDiaries implements
                     int size = trip.getLegs().size() - 1;
                     for (TravelledLeg leg : trip.getLegs()) {
 
-                        String previous_leg_id = null;
-                        String next_leg_id = null;
+                        String previousLegId = null;
+                        String nextLegId = null;
                         if (ind > 0)
-                            previous_leg_id = Integer.toString(trip.getLegs().get(ind - 1).getElementId());
+                            previousLegId = Integer.toString(trip.getLegs().get(ind - 1).getElementId());
                         if (ind < size)
-                            next_leg_id = Integer.toString(trip.getLegs().get(ind + 1).getElementId());
+                            nextLegId = Integer.toString(trip.getLegs().get(ind + 1).getElementId());
                         ind++;
 
                         legsWriter.set("leg_id", Integer.toString(leg.getElementId()));
@@ -544,8 +530,8 @@ public class EventsToTravelDiaries implements
                         legsWriter.set("from_y", Double.toString(leg.getOrig().getY()));
                         legsWriter.set("to_x", Double.toString(leg.getDest().getX()));
                         legsWriter.set("to_y", Double.toString(leg.getDest().getY()));
-                        legsWriter.set("previous_leg_id", (previous_leg_id == null) ? "" : previous_leg_id);
-                        legsWriter.set("next_leg_id", (next_leg_id == null) ? "" : next_leg_id);
+                        legsWriter.set("previous_leg_id", (previousLegId == null) ? "" : previousLegId);
+                        legsWriter.set("next_leg_id", (nextLegId == null) ? "" : nextLegId);
                         legsWriter.set("is_access", (leg.isAccessLeg()) ? "1" : "0");
                         legsWriter.set("is_egress", (leg.isEgressLeg()) ? "1" : "0");
                         legsWriter.writeRow();
@@ -590,11 +576,16 @@ public class EventsToTravelDiaries implements
     }
 
     @Override
-    public void writeResults() {
+    public void writeResults(boolean lastIteration) {
         try {
-            this.writeSimulationResultsToCsv("");
+            this.writeSimulationResultsToCsv();
         } catch (IOException e) {
             log.error("Could not write data.", e);
+        }
+        if (lastIteration) {
+            EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_ACTIVITIES);
+            EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_TRIPS);
+            EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_LEGS);
         }
     }
 

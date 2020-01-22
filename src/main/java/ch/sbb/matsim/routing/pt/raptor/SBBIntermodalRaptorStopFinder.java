@@ -25,6 +25,7 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.population.PopulationUtils;
@@ -168,22 +169,45 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         double x = facility.getCoord().getX();
         double y = facility.getCoord().getY();
         List<InitialStop> initialStops = new ArrayList<>();
-        for (IntermodalAccessEgressParameterSet paramset : srrCfg.getIntermodalAccessEgressParameterSets()) {
-            double radius = paramset.getMaxRadius();
-            String mode = paramset.getMode();
 
-            if (personMatches(person, paramset)) {
-                Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, radius);
-                boolean isNetworkMode = this.networkModes.contains(mode);
-                if (isNetworkMode) {
-                    calculateNetworkRoutesToStops(stopFacilities, paramset, parameters, person, direction, mode, facility, departureTime, initialStops);
-                } else {
-                    calculateIndividualRoutesToStops(stopFacilities, paramset, parameters, person, direction, mode, facility, departureTime, initialStops);
+        switch (srrCfg.getIntermodalAccessEgressModeSelection()) {
+            case CalcLeastCostModePerStop:
+                for (IntermodalAccessEgressParameterSet parameterSet : srrCfg.getIntermodalAccessEgressParameterSets()) {
+                    addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y, initialStops, parameterSet);
                 }
-            }
+                break;
+            case RandomSelectOneModePerRoutingRequestAndDirection:
+                int counter = 0;
+                do {
+                    int rndSelector = (int) (MatsimRandom.getRandom().nextDouble() * srrCfg.getIntermodalAccessEgressParameterSets().size());
+                    log.debug("findIntermodalStops: rndSelector=" + rndSelector);
+                    addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y,
+                            initialStops, srrCfg.getIntermodalAccessEgressParameterSets().get(rndSelector));
+                    counter++;
+                    // try again if no initial stop was found for the parameterset. Avoid infinite loop by limiting number of tries.
+                } while (initialStops.isEmpty() && counter < 2 * srrCfg.getIntermodalAccessEgressParameterSets().size());
+                break;
+            default:
+                throw new RuntimeException(srrCfg.getIntermodalAccessEgressModeSelection() + " : not implemented!");
         }
 
         return initialStops;
+    }
+
+    private void addInitialStopsForParamSet(Facility facility, Person person, double departureTime, Direction direction, RaptorParameters parameters, SwissRailRaptorData data, double x, double y, List<InitialStop> initialStops, IntermodalAccessEgressParameterSet paramset) {
+        double radius = paramset.getMaxRadius();
+        String mode = paramset.getMode();
+
+        if (personMatches(person, paramset)) {
+            Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, radius);
+            boolean isNetworkMode = this.networkModes.contains(mode);
+            if (isNetworkMode) {
+                calculateNetworkRoutesToStops(stopFacilities, paramset, parameters, person, direction, mode, facility, departureTime, initialStops);
+            } else {
+                calculateIndividualRoutesToStops(stopFacilities, paramset, parameters, person, direction, mode, facility, departureTime, initialStops);
+            }
+        }
+
     }
 
     private void calculateNetworkRoutesToStops(Collection<TransitStopFacility> stopFacilities, IntermodalAccessEgressParameterSet paramset, RaptorParameters parameters,

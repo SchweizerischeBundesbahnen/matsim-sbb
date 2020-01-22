@@ -7,6 +7,7 @@ package ch.sbb.matsim.mavi.pt;
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
+import ch.sbb.matsim.preparation.MobiTransitScheduleVerifiyer;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -85,6 +86,7 @@ public class RunVisumPtExporter {
         createOutputPath(exporterConfig.getOutputPath());
         tpe.writeLinkSequence(exporterConfig.getOutputPath());
         writeFiles(scenario, exporterConfig.getOutputPath());
+        MobiTransitScheduleVerifiyer.verifyTransitSchedule(scenario.getTransitSchedule());
 
         // write polyline file
         new PolylinesCreator().runPt(scenario.getNetwork(), visum, tpe.linkToVisumSequence, exporterConfig.getOutputPath());

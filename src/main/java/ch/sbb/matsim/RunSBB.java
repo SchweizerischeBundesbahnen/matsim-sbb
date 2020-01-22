@@ -13,6 +13,8 @@ import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
+import ch.sbb.matsim.replanning.SimpleAnnealer;
+import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
@@ -45,10 +47,11 @@ import org.matsim.core.scoring.ScoringFunctionFactory;
  */
 public class RunSBB {
 
-    private final static Logger log = Logger.getLogger(RunSBB.class);
-    public final static ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+    private static final Logger log = Logger.getLogger(RunSBB.class);
+    public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
             new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(), new SBBNetworkRoutingConfigGroup()};
+            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(),
+            new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup()};
 
 
     public static void main(String[] args) {
@@ -122,6 +125,12 @@ public class RunSBB {
                 if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
                     addEventHandlerBinding().to(RideParkingCostTracker.class);
                 }
+
+                SimpleAnnealerConfigGroup annealerConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
+                if (annealerConfig.isActivateAnnealingModule()) {
+                    addControlerListenerBinding().to(SimpleAnnealer.class);
+                }
+
             }
 
             @Provides
