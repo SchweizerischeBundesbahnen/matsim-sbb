@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,6 +73,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     private final Set<String> networkModes;
     private final SingleModeNetworksCache singleModeNetworksCache;
     private final Map<String, AccessEgressRouting> accessEgressRouting = new HashMap<>();
+    private final Random random = MatsimRandom.getLocalInstance();
 
     @Inject
     public SBBIntermodalRaptorStopFinder(Scenario scenario, RaptorIntermodalAccessEgress intermodalAE,
@@ -179,7 +181,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             case RandomSelectOneModePerRoutingRequestAndDirection:
                 int counter = 0;
                 do {
-                    int rndSelector = (int) (MatsimRandom.getRandom().nextDouble() * srrCfg.getIntermodalAccessEgressParameterSets().size());
+                    int rndSelector = random.nextInt(srrCfg.getIntermodalAccessEgressParameterSets().size());
                     log.debug("findIntermodalStops: rndSelector=" + rndSelector);
                     addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y,
                             initialStops, srrCfg.getIntermodalAccessEgressParameterSets().get(rndSelector));
