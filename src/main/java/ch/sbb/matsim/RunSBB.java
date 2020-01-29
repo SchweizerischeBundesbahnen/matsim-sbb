@@ -4,15 +4,7 @@
 
 package ch.sbb.matsim;
 
-
-import ch.ethz.matsim.utils.CommandLine;
-import ch.ethz.matsim.utils.CommandLine.ConfigurationException;
-import ch.ethz.matsim.discrete_mode_choice.modules.ConstraintModule;
-import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceConfigurator;
 import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceModule;
-import ch.ethz.matsim.discrete_mode_choice.modules.EstimatorModule;
-import ch.ethz.matsim.discrete_mode_choice.modules.SBBEstimatorModule;
-import ch.ethz.matsim.discrete_mode_choice.modules.SelectorModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.ModeChainFilterRandomThresholdConfigGroup;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
@@ -39,7 +31,6 @@ import com.google.inject.Provides;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
@@ -65,7 +56,7 @@ public class RunSBB {
 
     public final static ConfigGroup[] ivtConfigGroups = {new DiscreteModeChoiceConfigGroup(),new ModeChainFilterRandomThresholdConfigGroup()};
 
-    public static void main(String[] args) throws ConfigurationException {
+    public static void main(String[] args) {
     	
         System.setProperty("matsim.preferLocalDtds", "true");
 

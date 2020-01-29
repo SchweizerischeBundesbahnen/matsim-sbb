@@ -35,6 +35,11 @@
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
+		<repository>
+			<id>osgeo</id>
+			<name>Geotools repository</name>
+			<url>http://download.osgeo.org/webdav/geotools</url>
+		</repository>
 	</repositories>
 
 	<properties>
@@ -89,15 +94,10 @@
 			<version>1.0.5-benchmark</version>
 		</dependency> 
 		
-		<!-- .. <dependency>
-			<groupId>ch.ethz.matsim</groupId>
-			<artifactId>baseline_scenario</artifactId>
-			<version>0.3.2</version>
-		</dependency> -->
         <dependency>
 			<groupId>com.graphhopper</groupId>
 			<artifactId>graphhopper-isochrone</artifactId>
-			<version>0.13-SNAPSHOT</version>
+			<version>0.13.0</version>
 		</dependency>
 
 

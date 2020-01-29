@@ -3,7 +3,6 @@ package ch.ethz.matsim.discrete_mode_choice;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.TripStructureUtils;
 
 import java.util.Iterator;
@@ -11,11 +10,10 @@ import java.util.Iterator;
 public class LongPlanFilter {
     final private Logger logger = Logger.getLogger(LongPlanFilter.class);
     final private long maximumNumberOfTrips;
-    final private StageActivityTypes stageActivityTypes;
+    
 
-    public LongPlanFilter(long maximumNumberOfTrips, StageActivityTypes stageActivityTypes) {
+    public LongPlanFilter(long maximumNumberOfTrips) {
         this.maximumNumberOfTrips = maximumNumberOfTrips;
-        this.stageActivityTypes = stageActivityTypes;
     }
 
     public void run(Population population) {
@@ -30,8 +28,7 @@ public class LongPlanFilter {
 
             int numberOfRelevantTrips = 0;
 
-            for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(person.getSelectedPlan(),
-                    stageActivityTypes)) {
+            for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(person.getSelectedPlan())) {
                 if (!trip.getOriginActivity().getType().equals("outside")
                         && !trip.getDestinationActivity().getType().equals("outside")) {
                     numberOfRelevantTrips++;
@@ -40,7 +37,7 @@ public class LongPlanFilter {
 
             if (numberOfRelevantTrips > maximumNumberOfTrips) {
                 iterator.remove();
-                population.getPersonAttributes().removeAllAttributes(person.getId().toString());
+                population.getAttributes().removeAttribute(person.getId().toString());
                 numberOfRemovedPersons++;
             }
         }

@@ -13,8 +13,6 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
-import org.matsim.core.router.StageActivityTypes;
-import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.Tuple;
 
@@ -46,7 +44,6 @@ public class OutputAnalysis {
 
     private static String outputPath;
     private static String analysisPath;
-    private static StageActivityTypes stageActivityTypes;
     
     private static final List<String> analysisIdList = Arrays.asList(new String[]{"CDF","IRTS"});
     
@@ -296,24 +293,6 @@ public class OutputAnalysis {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private static StageActivityTypes getStageActivityTypes(Collection<? extends Person> persons) {
-
-        Set<String> interactionTypes = new HashSet<>();
-        for (Person person : persons) {
-            for (Plan plan : person.getPlans()) {
-                for (PlanElement element : plan.getPlanElements()) {
-                    if (element instanceof Activity) {
-                        Activity activity = (Activity) element;
-                        if (activity.getType().contains("interaction")) {
-                            interactionTypes.add(activity.getType());
-                        }
-                    }
-                }
-            }
-        }
-        return new StageActivityTypesImpl(new ArrayList<>(interactionTypes));
     }
     
     private static boolean compAnalysis(List<String> inputPaths, List<String> analysis, String outputPath, String ouputAnalysisId) {
