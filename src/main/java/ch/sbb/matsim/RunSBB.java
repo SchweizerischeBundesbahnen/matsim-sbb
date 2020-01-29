@@ -5,6 +5,7 @@
 package ch.sbb.matsim;
 
 import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceModule;
+import ch.ethz.matsim.discrete_mode_choice.modules.SBBEstimatorModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.ModeChainFilterRandomThresholdConfigGroup;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
@@ -157,6 +158,7 @@ public class RunSBB {
             @Override
             public void install() {
             	install(new DiscreteModeChoiceModule());
+            	install(new SBBEstimatorModule());
             	}
          });
     }
