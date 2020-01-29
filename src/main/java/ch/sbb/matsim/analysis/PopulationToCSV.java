@@ -8,12 +8,7 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
@@ -35,7 +30,7 @@ public class PopulationToCSV {
     }
 
     public void write(String filename) {
-        this.write(filename + "agents.csv", filename + "plan_elements.csv");
+        this.write(filename + "agents.csv.gz", filename + "plan_elements.csv.gz");
     }
 
     public void write(String agentsFilename, String planElementsFilename) {
@@ -51,16 +46,13 @@ public class PopulationToCSV {
                         Object attribute;
                         attribute = person.getAttributes().getAttribute(attribute_name);
 
-                        if (attribute == null)
-                            attribute = population.getPersonAttributes().getAttribute(person.getId().toString(), attribute_name);
-
                         if (attribute != null)
                             agentsWriter.set(attribute_name, attribute.toString());
                     }
                     agentsWriter.writeRow();
                 }
             } catch (IOException e) {
-                log.error("Could not write agents.csv. " + e.getMessage(), e);
+                log.error("Could not write agents.csv.gz " + e.getMessage(), e);
             }
         }
 
@@ -112,7 +104,7 @@ public class PopulationToCSV {
                     }
                 }
             } catch (IOException e) {
-                log.error("Could not write agents.csv. " + e.getMessage(), e);
+                log.error("Could not write agents.csv.gz " + e.getMessage(), e);
             }
         }
     }
@@ -133,9 +125,6 @@ public class PopulationToCSV {
 
         new PopulationReader(scenario).readFile(config.plans().getInputFile());
 
-        if (config.plans().getInputPersonAttributeFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(config.plans().getInputPersonAttributeFile());
-        }
         if (config.households().getInputFile() != null) {
             new HouseholdsReaderV10(scenario.getHouseholds()).readFile(config.households().getInputFile());
         }
@@ -143,7 +132,7 @@ public class PopulationToCSV {
             new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes()).readFile(config.households().getInputHouseholdAttributesFile());
         }
 
-        new PopulationToCSV(scenario).write("agents.csv", "planelements.csv");
+        new PopulationToCSV(scenario).write("agents.csv.gz", "planelements.csv.gz");
     }
 
 }

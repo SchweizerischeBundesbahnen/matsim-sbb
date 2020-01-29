@@ -1,7 +1,9 @@
 package ch.sbb.matsim.routing.network.AccessTime;
 
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
+import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgress;
+import ch.sbb.matsim.zones.ZonesModule;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -139,33 +141,30 @@ public class TestFixture {
         params3.setScoringThisActivityAtAll(false);
         scenario.getConfig().planCalcScore().addActivityParams(params3);
 
-        accessParams = config.planCalcScore().getOrCreateModeParams(TransportMode.access_walk);
+        accessParams = config.planCalcScore().getOrCreateModeParams(TransportMode.non_network_walk);
         accessParams.setConstant(constant);
 
-        egressParams = config.planCalcScore().getOrCreateModeParams(TransportMode.egress_walk);
+        egressParams = config.planCalcScore().getOrCreateModeParams(TransportMode.non_network_walk);
         egressParams.setConstant(constant);
 
         StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
-        settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator.toString());
+        settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);
         settings.setWeight(1.0);
         scenario.getConfig().strategy().addStrategySettings(settings);
 
+        ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
+        zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, null));
 
         SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
-
-        accessTimeConfigGroup.setShapefile(shapefile);
         accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
         accessTimeConfigGroup.setModesWithAccessTime(modesWithAccess);
+        accessTimeConfigGroup.setZonesId("zones");
 
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
         config.controler().setLastIteration(0);
         config.controler().setWriteEventsUntilIteration(1);
         config.controler().setWritePlansInterval(1);
         config.qsim().setEndTime(10 * 60 * 60);
-
-
-
-
     }
 
     public void run() {
@@ -179,6 +178,7 @@ public class TestFixture {
             }
         });
 
+        controler.addOverridingModule(new ZonesModule());
         controler.addOverridingModule(new AccessEgress(scenario));
 
         EventsCollector collector = new EventsCollector();

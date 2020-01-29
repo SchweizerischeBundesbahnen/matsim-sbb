@@ -7,7 +7,9 @@ package ch.sbb.matsim.config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
 
@@ -18,7 +20,6 @@ public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
     private static final String PARAM_OUTPUT = "outputFolder";
 
     private String inputPlansFiles;
-    private String inputAttributesFiles;
     private String outputFolder;
 
     private final Map<String, PopulationTypeParameterSet> subpopulations = new HashMap<>();
@@ -69,16 +70,6 @@ public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
     @StringSetter(PARAM_BASE_PLANS)
     public void setInputPlansFiles(String inputPlansFiles) {
         this.inputPlansFiles = inputPlansFiles;
-    }
-
-    @StringGetter(PARAM_BASE_ATTRIBUTES)
-    public String getInputAttributesFiles() {
-        return inputAttributesFiles;
-    }
-
-    @StringSetter(PARAM_BASE_ATTRIBUTES)
-    public void setInputAttributesFiles(String inputAttributesFiles) {
-        this.inputAttributesFiles = inputAttributesFiles;
     }
 
     @StringGetter(PARAM_OUTPUT)

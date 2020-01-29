@@ -7,9 +7,11 @@ package ch.sbb.matsim.mavi.pt;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
-import org.matsim.core.utils.collections.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author pmanser / SBB
@@ -27,17 +29,15 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
     static private final String PARAM_PATHTOATTRIBUTES = "PathToVisumAttributeFile";
     static private final String PARAM_OUTPUT_PATH = "OutputPath";
     static private final String PARAM_NETWORK_MODE = "NetworkMode";
-    static private final String PARAM_VEHICLE_MODE = "VehicleMode";
     static private final String PARAM_TRANSFERTIMES = "ExportTransferTimes";
-    static private final String PARAM_LINESTOROUTE = "LinesToRoute";
+    static private final String PARAM_ANGEBOT = "AngebotName";
 
     private String pathToVisum = null;
     private String pathToVisumAttributeFile = null;
     private String outputPath = null;
     private String networkMode = null;
-    private String vehicleMode = null;
     private boolean exportTransferTimes = false;
-    private HashSet<String> linesToRoute = new HashSet<>();
+    private String angebot = null;
 
     public VisumPtExporterConfigGroup() {
         super(GROUP_NAME);
@@ -63,16 +63,6 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
         this.networkMode = value;
     }
 
-    @StringGetter(PARAM_VEHICLE_MODE)
-    public String getVehicleMode() {
-        return this.vehicleMode;
-    }
-
-    @StringSetter(PARAM_VEHICLE_MODE)
-    public void setVehicleMode(String value) {
-        this.vehicleMode = value;
-    }
-
     @StringGetter(PARAM_TRANSFERTIMES)
     public Boolean isExportMTT() {
         return exportTransferTimes;
@@ -93,23 +83,14 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
         this.pathToVisumAttributeFile = value;
     }
 
-    @StringGetter(PARAM_LINESTOROUTE)
-    private String getLinesToRouteAsString() {
-        return CollectionUtils.setToString(this.linesToRoute);
+    @StringGetter(PARAM_ANGEBOT)
+    public String getAngebotName() {
+        return this.angebot;
     }
 
-    public Set<String> getLinesToRoute() {
-        return this.linesToRoute;
-    }
-
-    @StringSetter(PARAM_LINESTOROUTE)
-    private void setLinesToRoute(String lines) {
-        setLinesToRoute(CollectionUtils.stringToSet(lines));
-    }
-
-    public void setLinesToRoute(Set<String> lines) {
-        this.linesToRoute.clear();
-        this.linesToRoute.addAll(lines);
+    @StringSetter(PARAM_ANGEBOT)
+    public void setAngebotName(String name) {
+        this.angebot = name;
     }
 
     @StringGetter(PARAM_OUTPUT_PATH)
@@ -127,7 +108,7 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
         Map<String, String> comments = super.getComments();
         comments.put(PARAM_PATHTOVISUM, "Path to the visum version.");
         comments.put(PARAM_PATHTOATTRIBUTES, "Provide an additional visum attribute file. IMPORTANT: the script can change EXISTING attributes only, but not load new ones. It is recommended to this manually.");
-        comments.put(PARAM_LINESTOROUTE, "All the lines from the specific Datenherkunft will be routed (Visum link = MATSim link).");
+        comments.put(PARAM_ANGEBOT, "Line attribute for the angebot which needs to be exported");
         comments.put(PARAM_OUTPUT_PATH, "Set the path of the output directory.");
         return comments;
     }

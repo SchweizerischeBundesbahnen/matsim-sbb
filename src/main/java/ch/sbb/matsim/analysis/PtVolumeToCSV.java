@@ -17,11 +17,9 @@ import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
 import org.matsim.core.api.experimental.events.VehicleDepartsAtFacilityEvent;
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
-import org.matsim.core.events.algorithms.EventWriter;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.vehicles.Vehicle;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,13 +31,12 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         PersonEntersVehicleEventHandler,
         PersonLeavesVehicleEventHandler,
         VehicleDepartsAtFacilityEventHandler,
-        EventWriter {
-    private BufferedWriter out = null;
+        EventsAnalysis {
 
     private final static Logger log = Logger.getLogger(PtVolumeToCSV.class);
 
-    static final String FILENAME_STOPS =  "matsim_stops.csv";
-    private static final String FILENAME_VEHJOURNEYS = "matsim_vehjourneys.csv";
+    static final String FILENAME_STOPS =  "matsim_stops.csv.gz";
+    private static final String FILENAME_VEHJOURNEYS = "matsim_vehjourneys.csv.gz";
 
     static final String COL_STOP_ID = "stop_id";
     private static final String COL_FROM_STOP_ID = "from_stop_id";
@@ -134,7 +131,7 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     }
 
     @Override
-    public void closeFile() {
+    public void writeResults() {
         this.closeAll();
     }
 

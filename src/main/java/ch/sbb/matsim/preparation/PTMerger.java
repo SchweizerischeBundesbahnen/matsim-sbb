@@ -17,16 +17,10 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.pt.transitSchedule.api.Departure;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
+import org.matsim.vehicles.MatsimVehicleReader;
+import org.matsim.vehicles.MatsimVehicleWriter;
 import org.matsim.vehicles.Vehicle;
-import org.matsim.vehicles.VehicleReaderV1;
-import org.matsim.vehicles.VehicleWriterV1;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -52,7 +46,7 @@ public class PTMerger {
         this.scenario = ScenarioUtils.createScenario(config);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
         new TransitScheduleReader(this.scenario).readFile(config.transit().getTransitScheduleFile());
-        new VehicleReaderV1(this.scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
+        new MatsimVehicleReader(this.scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
 
         final PtMergerConfigGroup mergerConfig = ConfigUtils.addOrGetModule(config, PtMergerConfigGroup.class);
         Config config2 = ConfigUtils.createConfig();
@@ -62,7 +56,7 @@ public class PTMerger {
 
         new MatsimNetworkReader(scenario2.getNetwork()).readFile(mergerConfig.getNetworkFile());
         new TransitScheduleReader(scenario2).readFile(config2.transit().getTransitScheduleFile());
-        new VehicleReaderV1(scenario2.getTransitVehicles()).readFile(config2.transit().getVehiclesFile());
+        new MatsimVehicleReader(scenario2.getTransitVehicles()).readFile(config2.transit().getVehiclesFile());
 
         removePt("pt", mergerConfig.getLineToDeleteFile());
         addPt(scenario2);
@@ -72,8 +66,8 @@ public class PTMerger {
      private void removeUnusedNodes(){
         HashSet<Id<Node>> usedNodesId = new HashSet<>();
         for(Link link: this.scenario.getNetwork().getLinks().values()){
-            if(!usedNodesId.contains(link.getFromNode().getId())) usedNodesId.add(link.getFromNode().getId());
-            if(!usedNodesId.contains(link.getToNode().getId())) usedNodesId.add(link.getToNode().getId());
+            usedNodesId.add(link.getFromNode().getId());
+            usedNodesId.add(link.getToNode().getId());
         }
 
         HashSet<Id<Node>> toDelete = new HashSet<>();
@@ -88,10 +82,10 @@ public class PTMerger {
         }
     }
 
-    private void write(String outFolder){
+    private void write(String outFolder) throws UncheckedIOException {
         new NetworkWriter(this.scenario.getNetwork()).write(outFolder+"/network.xml.gz");
         new TransitScheduleWriter(this.scenario.getTransitSchedule()).writeFile(outFolder+"/transitSchedule.xml.gz");
-        new VehicleWriterV1(this.scenario.getTransitVehicles()).writeFile(outFolder+"/transitVehicle.xml.gz");
+        new MatsimVehicleWriter(this.scenario.getTransitVehicles()).writeFile(outFolder + "/transitVehicle.xml.gz");
     }
 
     private void removeUnusedStopFacilities(){
@@ -99,7 +93,7 @@ public class PTMerger {
         for(TransitLine tl: this.scenario.getTransitSchedule().getTransitLines().values()){
             for(TransitRoute route: tl.getRoutes().values()){
                 for(TransitRouteStop stop: route.getStops()){
-                    if(!usedStopId.contains(stop.getStopFacility().getId())) usedStopId.add(stop.getStopFacility().getId());
+                    usedStopId.add(stop.getStopFacility().getId());
                 }
             }
         }
@@ -119,14 +113,12 @@ public class PTMerger {
         HashSet<Id<Link>> usedLinkId = new HashSet<>();
         for(TransitLine tl: this.scenario.getTransitSchedule().getTransitLines().values()){
             for(TransitRoute route: tl.getRoutes().values()){
-                for(Id<Link> linkId: route.getRoute().getLinkIds()){
-                    if(!usedLinkId.contains(linkId)) usedLinkId.add(linkId);
-                }
+                usedLinkId.addAll(route.getRoute().getLinkIds());
             }
         }
 
         for(TransitStopFacility stop: this.scenario.getTransitSchedule().getFacilities().values()){
-            if(!usedLinkId.contains(stop.getLinkId())) usedLinkId.add(stop.getLinkId());
+            usedLinkId.add(stop.getLinkId());
         }
 
         HashSet<Id<Link>> toDelete = new HashSet<>();

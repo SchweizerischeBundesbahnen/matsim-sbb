@@ -18,9 +18,6 @@
  * *********************************************************************** */
 package ch.sbb.matsim.utils;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
@@ -30,7 +27,9 @@ import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.vehicles.VehicleReaderV1;
+import org.matsim.vehicles.MatsimVehicleReader;
+
+import java.io.IOException;
 
 /**
  * @author jlie
@@ -70,7 +69,7 @@ public class RunEventsToEventsPerPersonTable {
         if (config.transit().isUseTransit() ) {
             new TransitScheduleReader(scenario)
                     .readFile(config.transit().getTransitScheduleFile());
-            new VehicleReaderV1(scenario.getTransitVehicles())
+            new MatsimVehicleReader(scenario.getTransitVehicles())
                     .readFile(config.transit().getVehiclesFile());
         }
         EventsToEventsPerPersonTable handler;

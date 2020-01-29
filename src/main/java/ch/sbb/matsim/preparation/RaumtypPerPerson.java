@@ -1,27 +1,22 @@
 package ch.sbb.matsim.preparation;
 
-import ch.sbb.matsim.analysis.LocateAct;
-import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesLoader;
+import ch.sbb.matsim.zones.ZonesQueryCache;
 import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.SimpleLayout;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.utils.objectattributes.ObjectAttributes;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -40,11 +35,13 @@ public class RaumtypPerPerson {
     public static String DEFAULT_RAUMTYP = "4";
 
     public static void main(final String[] args) {
+        if (args.length != 4) {
+            System.err.println("Wrong number of arguments.");
+        }
         final String planFile = args[0];
-        final String attributeFile = args[1];
-        final String shapeFile = args[2];
-        final String outputLog = args[3];
-        final String outputAttributes = args[4];
+        final String shapeFile = args[1];
+        final String outputLog = args[2];
+        final String outputPopulation = args[3];
 
         Logger log = Logger.getLogger(RaumtypPerPerson.class);
         int nbUndefined = 0;
@@ -59,9 +56,8 @@ public class RaumtypPerPerson {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(planFile);
-        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(attributeFile);
 
-        LocateAct locAct = new LocateAct(shapeFile, "SL3");
+        Zones zones = new ZonesQueryCache(ZonesLoader.loadZones("zones", shapeFile, null));
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
             Plan firstPlan = person.getPlans().get(0);
@@ -76,8 +72,10 @@ public class RaumtypPerPerson {
                     nbNotHomeType += 1;
                 } else {
                     Coord coord = ((Activity) firstPlanElement).getCoord();
-                    String raumTyp9 = locAct.getNearestZoneAttribute(coord, 200.0);
-                    if (raumTyp9.equals(LocateAct.UNDEFINED)) {
+                    Zone z = zones.findNearestZone(coord.getX(), coord.getY(), 200.0);
+                    Object attrVal = z == null ? null : z.getAttribute("SL3");
+                    String raumTyp9 = attrVal == null ? null : attrVal.toString();
+                    if (raumTyp9 == null) {
                         log.info("no zone defined for person " + person.getId().toString());
                         List<String> l = Arrays.asList(person.getId().toString(), String.valueOf(coord.getX()), String.valueOf(coord.getY()));
                         notDefinedLog += String.join(";", l) + "\n";
@@ -87,12 +85,12 @@ public class RaumtypPerPerson {
                         raumTyp = raumTyp9.substring(0, 1);
                     }
                 }
-                scenario.getPopulation().getPersonAttributes().putAttribute(person.getId().toString(), RAUMTYP, raumTyp);
+                person.getAttributes().putAttribute(RAUMTYP, raumTyp);
             } else
                 throw new IllegalStateException("first planelement of person " +
-                        person.getId().toString() + " cannot be not an activity");
+                        person.getId().toString() + " must be an activity");
         }
-        new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes()).writeFile(outputAttributes);
+        new PopulationWriter(scenario.getPopulation()).write(outputPopulation);
         log.info(notDefinedLog);
         log.info("nb persons with first activity not of type home " + nbNotHomeType);
         log.info("nb persons with undefined zone " + nbUndefined);

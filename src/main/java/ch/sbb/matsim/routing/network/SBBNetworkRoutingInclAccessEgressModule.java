@@ -1,9 +1,7 @@
 package ch.sbb.matsim.routing.network;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
+import ch.sbb.matsim.routing.access.AccessEgressRouting;
+import ch.sbb.matsim.zones.Zones;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
@@ -17,18 +15,16 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
-import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.facilities.Facility;
 
-import ch.sbb.matsim.analysis.LocateAct;
-import ch.sbb.matsim.routing.access.AccessEgressRouting;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
  */
 public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingModule {
-    private static final Logger log = Logger.getLogger(SBBNetworkRoutingInclAccessEgressModule.class);
 
     private final String mode;
     private final PopulationFactory populationFactory;
@@ -42,11 +38,11 @@ public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingMod
             final PopulationFactory populationFactory,
             final Network network,
             final LeastCostPathCalculator routeAlgo,
-            PlansCalcRouteConfigGroup calcRouteConfig, LocateAct actLocator) {
+            PlansCalcRouteConfigGroup calcRouteConfig, Zones zones) {
 
         //log.info("Using SBB Routing for mode: " + mode);
 
-        this.accessEgress = new AccessEgressRouting(actLocator, populationFactory, mode, network);
+        this.accessEgress = new AccessEgressRouting(zones, populationFactory, mode, network);
         this.network = network;
         this.routeAlgo = routeAlgo;
         this.mode = mode;
@@ -86,15 +82,9 @@ public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingMod
             // log.warn( newLeg );
         }
 
-        now = accessEgress.addEgress(toFacility, egressActLink, now, result, person);
+        accessEgress.addEgress(toFacility, egressActLink, now, result, person);
 
         return result;
-    }
-
-
-    @Override
-    public StageActivityTypes getStageActivityTypes() {
-        return this.accessEgress.getStageActivityTypes();
     }
 
     @Override
@@ -103,8 +93,8 @@ public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingMod
     }
 
 
-    /* package (Tests) */ double routeLeg(Person person, Leg leg, Link fromLink, Link toLink, double depTime) {
-        double travTime = 0;
+    private double routeLeg(Person person, Leg leg, Link fromLink, Link toLink, double depTime) {
+        double travTime;
 
         Node startNode = fromLink.getToNode(); // start at the end of the "current" link
         Node endNode = toLink.getFromNode(); // the target is the start of the link

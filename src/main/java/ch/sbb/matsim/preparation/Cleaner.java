@@ -4,21 +4,15 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +50,7 @@ public class Cleaner {
             log.info("Cleaner cleans routes for subpop: " + subpop);
 
         for(Person p: population.getPersons().values()){
-            if(!subpopulationsToClean.contains(population.getPersonAttributes().getAttribute(p.getId().toString(), "subpopulation")) &&
+            if (!subpopulationsToClean.contains(p.getAttributes().getAttribute("subpopulation")) &&
                     !subpopulationsToClean.contains("all"))
                 continue;
 
@@ -84,8 +78,8 @@ public class Cleaner {
                             leg.setMode(mode);
                             leg.setRoute(null);
                         }
-                        if(leg.getMode().equals(TransportMode.transit_walk) && modesToClean.contains(TransportMode.pt)) {
-                            leg.setMode(TransportMode.pt);
+                        if (leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) && modesToClean.contains(SBBModes.PT)) {
+                            leg.setMode(SBBModes.PT);
                             leg.setRoute(null);
                         }
                         if(modesToClean.contains(leg.getMode())) {
@@ -112,7 +106,6 @@ public class Cleaner {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(planFile);
-        new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).readFile(attributeFile);
 
         Cleaner cleaner = new Cleaner(scenario.getPopulation());
         cleaner.removeNonSelectedPlans();

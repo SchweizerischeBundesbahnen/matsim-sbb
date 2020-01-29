@@ -11,6 +11,7 @@ import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.ControlerConfigGroup;
+import org.matsim.core.config.groups.ControlerConfigGroup.CompressionType;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.BeforeMobsimEvent;
@@ -47,7 +48,8 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
@@ -79,7 +81,8 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
@@ -113,7 +116,8 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
@@ -147,7 +151,8 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
@@ -181,14 +186,15 @@ public class SBBPostProcessingOutputHandlerTest {
                 scenario,
                 controlerIO,
                 configGroup,
-                ppConfig
+                ppConfig,
+                null
         );
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(10, eventsManager.getEventHandlers().size());
+        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
     }
 
     private PostProcessingConfigGroup getPostProcessingConfigGroup(int writeOutputsInterval, boolean eventPerPerson, boolean linkVolumes, boolean ptVolumes, boolean travelDiaries, boolean writePlansCSV, boolean visumNetFile) {
@@ -208,7 +214,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
     private OutputDirectoryHierarchy getOutputDirectoryHierarchy() {
         String outputPath = this.utils.getOutputDirectory();
-        OutputDirectoryHierarchy outputDirectoryHierarchy = new OutputDirectoryHierarchy(outputPath, OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
+        OutputDirectoryHierarchy outputDirectoryHierarchy = new OutputDirectoryHierarchy(outputPath, OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, CompressionType.gzip);
 
         return outputDirectoryHierarchy;
     }

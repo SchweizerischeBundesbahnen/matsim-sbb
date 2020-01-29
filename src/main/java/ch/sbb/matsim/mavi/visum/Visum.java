@@ -39,6 +39,19 @@ public class Visum {
         Assert.isTrue(length > 255, "Set the ConcatMaxLen manually in Visum: Network-> Network Settings -> Attributes -> Maximum text length");
     }
 
+    public void filterForAngebot(String name)    {
+        Visum.ComObject filters = getComObject("Filters");
+        Visum.ComObject filter = callComObject(filters, "LineGroupFilter");
+        Visum.ComObject tpFilter = callComObject(filter, "TimeProfileFilter");
+        initFilter(tpFilter);
+
+        Dispatch.call(tpFilter.dispatch, "AddCondition", "OP_NONE", false,
+                "LineRoute\\Line\\" + name, 9, 1, 0);
+        Dispatch.put(filter.dispatch, "UseFilterForTimeProfiles", true);
+        Dispatch.put(filter.dispatch, "UseFilterForTimeProfileItems", true);
+        Dispatch.put(filter.dispatch, "UseFilterForVehJourneys", true);
+    }
+
     public void setTimeProfilFilter(List<FilterCondition> condition)    {
         Visum.ComObject filters = getComObject("Filters");
         Visum.ComObject filter = callComObject(filters, "LineGroupFilter");

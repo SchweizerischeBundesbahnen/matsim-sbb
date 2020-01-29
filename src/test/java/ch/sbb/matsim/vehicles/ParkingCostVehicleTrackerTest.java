@@ -17,7 +17,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -183,8 +183,7 @@ public class ParkingCostVehicleTrackerTest {
         }
 
         private void loadZones() {
-            ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);
-            ZonesLoader.loadAllZones(zonesConfig, this.zones);
+            ZonesLoader.loadAllZones(config, this.zones);
         }
 
         private void prepareEvents() {

@@ -8,11 +8,12 @@ import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.misc.Time;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.function.BiPredicate;
 
 /**
  * @author mrieser / SBB
@@ -31,10 +32,13 @@ public class CalculateIndicatorMatrices {
         String outputDirectory = args[6];
         int numberOfPointsPerZone = Integer.valueOf(args[7]);
         int numberOfThreads = Integer.valueOf(args[8]);
+        String trainLinePredStr = args[9].equals("-") ? null : args[9]; // list of ; separated "or" conditions
+        BiPredicate<TransitLine, TransitRoute> trainLinePredictor = buildTrainLinePredictor(trainLinePredStr);
+
         Map<String, double[]> timesCar = new LinkedHashMap<>();
         Map<String, double[]> timesPt = new LinkedHashMap<>();
 
-        for (int argIdx = 9; argIdx < args.length; argIdx++) {
+        for (int argIdx = 10; argIdx < args.length; argIdx++) {
             String arg = args[argIdx];
             String mode = null;
             String data = null;
@@ -84,10 +88,68 @@ public class CalculateIndicatorMatrices {
         for (Map.Entry<String, double[]> e : timesPt.entrySet()) {
             String prefix = e.getKey();
             double[] times = e.getValue();
-            skims.calculatePTMatrices(networkFilename, transitScheduleFilename, times[0], times[1], config, prefix, (line, route) -> "SBB_Simba.CH_2016".equals(route.getAttributes().getAttribute("01_Datenherkunft")));
+            skims.calculatePTMatrices(networkFilename, transitScheduleFilename, times[0], times[1], config, prefix, trainLinePredictor);
         }
 
         skims.calculateBeelineMatrix();
     }
 
+    public static BiPredicate<TransitLine, TransitRoute> buildTrainLinePredictor(String str) {
+        if (str == null) {
+            return (line, route) -> false;
+        }
+
+        String[] conditionStrings = str.split(";");
+        Condition[] conditions = new Condition[conditionStrings.length];
+        for (int i = 0; i < conditionStrings.length; i++) {
+            String[] parts = conditionStrings[i].split(",");
+            String attribute = parts[0];
+            String method = parts[1];
+            String value = parts[2];
+            ConditionType type;
+            if (method.equals("equals")) {
+                type = ConditionType.EQUALS;
+            } else if (method.equals("contains")) {
+                type = ConditionType.CONTAINS;
+            } else {
+                throw new UnsupportedOperationException("Unsupported condition type: " + method);
+            }
+            conditions[i] = new Condition(attribute, type, value);
+        }
+
+        return (line, route) -> {
+           for (Condition c : conditions) {
+               if (c.testCondition(route)) {
+                   return true;
+               }
+           }
+           return false;
+        };
+    }
+
+    private enum ConditionType { EQUALS, CONTAINS }
+
+    private static class Condition {
+        final String attribute;
+        final ConditionType type;
+        final String value;
+
+        Condition(String attribute, ConditionType type, String value) {
+            this.attribute = attribute;
+            this.type = type;
+            this.value = value;
+        }
+
+        boolean testCondition(TransitRoute route) {
+            Object attributeValueObj = route.getAttributes().getAttribute(this.attribute);
+            String attributeValue = attributeValueObj == null ? "" : attributeValueObj.toString();
+            switch (this.type) {
+                case EQUALS:
+                    return attributeValue.equals(this.value);
+                case CONTAINS:
+                    return attributeValue.contains(this.value);
+            }
+            throw new RuntimeException("Unsupported condition type " + this.type);
+        }
+    }
 }

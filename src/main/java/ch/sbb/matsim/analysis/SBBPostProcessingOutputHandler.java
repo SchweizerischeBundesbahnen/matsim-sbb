@@ -8,6 +8,7 @@ import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
+import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -20,7 +21,6 @@ import org.matsim.core.controler.events.StartupEvent;
 import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.controler.listener.StartupListener;
-import org.matsim.core.events.algorithms.EventWriter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,9 +32,10 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     private final Scenario scenario;
     private OutputDirectoryHierarchy controlerIO;
     private final EventsManager eventsManager;
-    private List<EventWriter> eventWriters = new LinkedList<>();
+    private List<EventsAnalysis> analyses = new LinkedList<>();
     private ControlerConfigGroup config;
     private PostProcessingConfigGroup ppConfig;
+    private ZonesCollection zones;
 
     @Inject
     public SBBPostProcessingOutputHandler(
@@ -42,12 +43,14 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
             final Scenario scenario,
             final OutputDirectoryHierarchy controlerIO,
             final ControlerConfigGroup config,
-            final PostProcessingConfigGroup ppConfig) {
+            final PostProcessingConfigGroup ppConfig,
+            final ZonesCollection zones) {
         this.eventsManager = eventsManager;
         this.scenario = scenario;
         this.controlerIO = controlerIO;
         this.config = config;
         this.ppConfig = ppConfig;
+        this.zones = zones;
     }
 
     @Override
@@ -60,65 +63,69 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
     @Override
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
-        if ((this.ppConfig.getWriteOutputsInterval() > 0) && (event.getIteration() % this.ppConfig.getWriteOutputsInterval() == 0)) {
-            this.eventWriters = this.buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""));
+        int iteration = event.getIteration();
+        int lastIteration = this.config.getLastIteration();
+        int interval = this.ppConfig.getWriteOutputsInterval();
+
+        if ((interval > 0) && (iteration % interval == 0) && (iteration != lastIteration)) {
+            this.analyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""), this.zones);
         }
 
-        if (event.getIteration() == this.config.getLastIteration()) {
-            List<EventWriter> finalEventWriters = this.buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""));
-            this.eventWriters.addAll(finalEventWriters);
+        if (iteration == lastIteration) {
+            List<EventsAnalysis> finalAnalyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""), this.zones);
+            this.analyses.addAll(finalAnalyses);
         }
 
-        for (EventWriter eventWriter : this.eventWriters) {
-            eventsManager.addHandler(eventWriter);
+        for (EventsAnalysis analysis : this.analyses) {
+            eventsManager.addHandler(analysis);
         }
     }
 
     @Override
     public void notifyIterationEnds(IterationEndsEvent event) {
-        for (EventWriter eventWriter : this.eventWriters) {
-            eventWriter.closeFile();
-            this.eventsManager.removeHandler(eventWriter);
+        for (EventsAnalysis analysis : this.analyses) {
+            analysis.writeResults();
+            this.eventsManager.removeHandler(analysis);
         }
 
-        this.eventWriters.clear();
+        this.analyses.clear();
     }
 
-    public static List<EventWriter> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
+    public static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
         Double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
-        List<EventWriter> eventWriters = new LinkedList<>();
+        List<EventsAnalysis> analyses = new LinkedList<>();
 
         if (ppConfig.getPtVolumes()) {
             PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(filename);
-            eventWriters.add(ptVolumeWriter);
+            analyses.add(ptVolumeWriter);
         }
 
         if (ppConfig.getTravelDiaries()) {
-            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename);
-            eventWriters.add(diariesWriter);
+            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename, zones);
+            analyses.add(diariesWriter);
         }
 
         if (ppConfig.getEventsPerPerson()) {
             EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(scenario, filename);
-            eventWriters.add(eventsPerPersonWriter);
+            analyses.add(eventsPerPersonWriter);
         }
 
         if (ppConfig.getLinkVolumes()) {
             LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(scenario, filename);
-            eventWriters.add(linkVolumeWriter);
+            analyses.add(linkVolumeWriter);
         }
 
         if (ppConfig.getVisumNetFile()) {
             VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkMode(), filename);
-            eventWriters.add(visumNetworkEventWriter);
+            analyses.add(visumNetworkEventWriter);
         }
 
         if (ppConfig.getAnalyseScreenline()) {
 
             ScreenLineEventWriter screenLineEventWriter = new ScreenLineEventWriter(scenario, scaleFactor, ppConfig.getShapefileScreenline(), filename);
-            eventWriters.add(screenLineEventWriter);
+            analyses.add(screenLineEventWriter);
         }
 
-        return eventWriters;
+        return analyses;
     }
 }

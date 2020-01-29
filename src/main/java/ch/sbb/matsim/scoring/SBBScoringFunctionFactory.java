@@ -1,8 +1,10 @@
 package ch.sbb.matsim.scoring;
 
+import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.scoring.SumScoringFunction;
@@ -10,6 +12,7 @@ import org.matsim.core.scoring.functions.CharyparNagelAgentStuckScoring;
 import org.matsim.core.scoring.functions.CharyparNagelMoneyScoring;
 import org.matsim.core.scoring.functions.ScoringParameters;
 
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -33,6 +36,13 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
     @Override
     public ScoringFunction createNewScoringFunction(Person person) {
         Set<String> ptModes = this.scenario.getConfig().transit().getTransitModes();
+        SBBIntermodalConfigGroup config = ConfigUtils.addOrGetModule(this.scenario.getConfig(), SBBIntermodalConfigGroup.class);
+        Set<String> ptFeederModes = new HashSet<String>();
+        for (ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet modeParams : config.getModeParameterSets()) {
+            if (modeParams.doUseMinimalTransferTimes()) {
+                ptFeederModes.add(modeParams.getMode());
+            }
+        }
         final SBBScoringParameters sbbParams = this.paramsForPerson.getSBBScoringParameters(person);
         final ScoringParameters params = sbbParams.getMatsimScoringParameters();
         SumScoringFunction sumScoringFunction = new SumScoringFunction();
@@ -41,7 +51,7 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
         sumScoringFunction.addScoringFunction(new CharyparNagelMoneyScoring(params));
         sumScoringFunction.addScoringFunction(new CharyparNagelAgentStuckScoring(params));
         sumScoringFunction.addScoringFunction(new SBBParkingCostScoring(sbbParams.getMarginalUtilityOfParkingPrice()));
-        sumScoringFunction.addScoringFunction(new SBBTransferScoring(sbbParams, ptModes));
+        sumScoringFunction.addScoringFunction(new SBBTransferScoring(sbbParams, ptModes, ptFeederModes));
         return sumScoringFunction;
     }
 }

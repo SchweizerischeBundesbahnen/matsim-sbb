@@ -4,137 +4,205 @@
 
 package ch.sbb.matsim.analysis.travelcomponents;
 
-import org.matsim.api.core.v01.Coord;
+import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 
-public 	 class Trip extends TravelComponent {
-	Journey journey;
-	private String mode;
-	private Id line;
-	private Id route;
-	private Coord orig;
-	private Coord dest;
-	private Id boardingStop;
-	private Id alightingStop;
-	private Id vehicleId;
-	private double distance;
-	private double PtDepartureTime;
-	private double PtDepartureDelay;
-	private boolean departureTimeIsSet = false;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
-	Trip(Config config){
-		super(config);
-	}
+public class Trip extends TravelComponent {
 
-	public String toString() {
-		return String
-				.format("\tTRIP: mode: %s start: %6.0f end: %6.0f distance: %6.0f \n",
-						getMode(), getStartTime(), getEndTime(), getDistance());
-	}
+    private double walkSpeed;
+    private Activity fromAct;
+    private Activity toAct;
+    private TravelledLeg firstRailLeg;
+    private TravelledLeg lastRailLeg;
+    private List<TravelledLeg> legs = new ArrayList<>();
+    private final Config config;
 
-	public Id getVehicleId() {
-		return vehicleId;
-	}
+    Trip(Config config) {
+        super(config);
+        this.config = config;
+        this.walkSpeed = config.plansCalcRoute().getModeRoutingParams().get( TransportMode.walk ).getTeleportedModeSpeed();
+    }
 
-	public void setVehicleId(Id vehicleId) {
-		this.vehicleId = vehicleId;
-	}
+    public TravelledLeg addLeg() {
+        TravelledLeg leg = new TravelledLeg(this.config);
+        this.legs.add(leg);
+        return leg;
+    }
 
+    public List<TravelledLeg> getLegs() {
+        return this.legs;
+    }
 
-	public Id getLine() {
-		return line;
-	}
+    public TravelledLeg getFirstLeg() {
+        return this.legs.get(0);
+    }
 
-	public void setLine(Id line) {
-		this.line = line;
-	}
+    public TravelledLeg getLastLeg() {
+        return this.legs.get(this.legs.size() - 1);
+    }
 
-	public Id getRoute() {
-		return route;
-	}
+    public String toString() {
+        return String.format("TRIP: start: %6.0f end: %6.0f dur: %6.0f invehDist: %6.0f walkDist: %6.0f \n %s",
+                getStartTime(), getEndTime(), getDuration(), getInVehDistance(), getWalkDistance(),
+                legs.toString());
+    }
 
-	public void setRoute(Id route) {
-		this.route = route;
-	}
+    public double getInVehDistance() {
+        if (getMainMode().equals(SBBModes.WALK))
+            return 0;
+        return this.legs.stream().mapToDouble(TravelledLeg::getDistance).sum();
+    }
 
-	public Id getBoardingStop() {
-		return boardingStop;
-	}
+    private double getWalkDistance() {
+        if (getMainMode().equals(SBBModes.WALK))
+            return walkSpeed * getDuration();
+        return 0;
+    }
 
-	public void setBoardingStop(Id boardingStop) {
-		this.boardingStop = boardingStop;
-	}
+    public double getDistance() {
+        return getInVehDistance() + getWalkDistance();
+    }
 
-	public String getMode() {
-		return mode;
-	}
+    public double getInVehTime() {
+        if (getMainMode().equals(SBBModes.WALK))
+            return 0;
+        return this.legs.stream().mapToDouble(TravelledLeg::getDuration).sum();
+    }
 
-	public void setMode(String mode) {
-		this.mode = mode.trim();
-	}
+    public String getMainMode() {
+        // get main mode according to hierarchical order
+        TravelledLeg leg = Collections.min(this.legs, Comparator.comparing(TravelledLeg::getModeHierarchy));
+        if (leg.getModeHierarchy() != SBBModes.DEFAULT_MODE_HIERARCHY) {
+            if (leg.isPtLeg()) {
+                return SBBModes.PT;
+            }
+            String mainMode = leg.getMode();
+            if (mainMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                return SBBModes.WALK;
+            }
+            return mainMode;
+        }
+        else    {
+            // fallback solution -> get main mode according to longest distance
+            return Collections.max(this.legs, Comparator.comparing(TravelledLeg::getDistance)).getMode();
+        }
+    }
 
-	public double getDistance() {
-		return distance;
-	}
+    public void setFromAct(Activity fromAct) {
+        this.fromAct = fromAct;
+    }
 
-	public void setDistance(double distance) {
-		this.distance = distance;
-	}
+    public Activity getFromAct() {
+        return fromAct;
+    }
 
-	public Id getAlightingStop() {
-		return alightingStop;
-	}
+    public void setToAct(Activity toAct) {
+        this.toAct = toAct;
+    }
 
-	public void setAlightingStop(Id alightingStop) {
-		this.alightingStop = alightingStop;
-	}
+    public Activity getToAct() {
+        return toAct;
+    }
 
-	public Coord getDest() {
-		return dest;
-	}
+    public String getToActType() {
+        String typeLong = this.toAct.getType();
+        String type = typeLong.split("_")[0];
+        return SBBActivities.matsimActs2abmActs.get(type);
+    }
 
-	public void setDest(Coord dest) {
-		this.dest = dest;
-	}
+    public List<TravelledLeg> getAccessLegs() {
+        List<TravelledLeg> accessLegs = new ArrayList<>();
+        if(!isRailJourney())    {
+            return accessLegs;
+        }
+        for (TravelledLeg leg : this.legs) {
+            if (leg.isRailLeg()) {
+                this.firstRailLeg = leg;
+                break;
+            }
+            if (leg.getDistance() > 0) {
+                accessLegs.add(leg);
+            }
+        }
+        return accessLegs;
+    }
 
-	public Coord getOrig() {
-		return orig;
-	}
+    public List<TravelledLeg> getEgressLegs() {
+        List<TravelledLeg> egressLegs = new ArrayList<>();
+        TravelledLeg leg;
+        if(!isRailJourney())    {
+            return egressLegs;
+        }
+        for (int i = this.legs.size() - 1; i >= 0; i--) {
+            leg = this.legs.get(i);
+            if (leg.isRailLeg()) {
+                this.lastRailLeg = leg;
+                break;
+            }
+            if (leg.getDistance() > 0) {
+                egressLegs.add(0, leg);
+            }
+        }
+        return egressLegs;
+    }
 
-	public void setOrig(Coord orig) {
-		this.orig = orig;
-	}
+    public boolean isRailJourney() {
+        return this.legs.stream().anyMatch(TravelledLeg::isRailLeg);
+    }
 
-	public void setPtDepartureTime(double time){
-		if (!this.departureTimeIsSet){
-			this.PtDepartureTime = time;
-			this.departureTimeIsSet = true;
-		}
-	}
+    public String getAccessToRailMode(List<TravelledLeg> accessLegs) {
+        if (accessLegs == null || accessLegs.isEmpty()) {
+            return "";
+        } else if (accessLegs.size() > 1) {
+            return accessLegs.get(1).getMode();
+        } else {
+            return accessLegs.get(0).getMode();
+        }
+    }
 
-	public void setDepartureDelay(double delay){
-		if (!this.departureTimeIsSet){
-			this.PtDepartureDelay = delay;
-			this.departureTimeIsSet = true;
-		}
-	}
+    public String getEgressFromRailMode(List<TravelledLeg> egressLegs) {
+        if (egressLegs == null || egressLegs.isEmpty()) {
+            return "";
+        } else if (egressLegs.size() > 1) {
+            return egressLegs.get(egressLegs.size() - 2).getMode();
+        } else {
+            return egressLegs.get(egressLegs.size() - 1).getMode();
+        }
+    }
 
-	public double getDepartureDelay(){
-		return this.PtDepartureDelay;
-	}
+    public double getAccessToRailDist(List<TravelledLeg> accessLegs) {
+        if (accessLegs == null) {
+            return 0;
+        }
+        return accessLegs.stream().mapToDouble(TravelledLeg::getDistance).sum();
+    }
 
-	public double getPtDepartureTime(){
-		return this.PtDepartureTime;
-	}
+    public double getEgressFromRailDist(List<TravelledLeg> egressLegs) {
+        if (egressLegs == null) {
+            return 0;
+        }
+        return egressLegs.stream().mapToDouble(TravelledLeg::getDistance).sum();
+    }
 
-	public void incrementDistance(double linkLength) {
-		this.distance += linkLength;
-		
-	}
+    public Id getFirstRailBoardingStop() {
+        if (this.firstRailLeg == null) {
+            return null;
+        }
+        return this.firstRailLeg.getBoardingStop();
+    }
 
-	public void incrementTime(double linkTime) {
-		this.setEndTime(this.getEndTime()+linkTime);
-		
-	}
+    public Id getLastRailAlightingStop() {
+        if (this.lastRailLeg == null) {
+            return null;
+        }
+        return this.lastRailLeg.getAlightingStop();
+    }
 }

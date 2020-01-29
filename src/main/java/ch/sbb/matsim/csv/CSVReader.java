@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,9 +29,17 @@ public class CSVReader implements AutoCloseable {
         this.br = IOUtils.getBufferedReader(csvFile);
     }
 
+    public CSVReader(final URL csvFileURL, final String splitBy) throws UncheckedIOException, IOException {
+        this(splitBy, IOUtils.getBufferedReader(csvFileURL));
+    }
+
     public CSVReader(final String csvFile, final String splitBy) throws UncheckedIOException, IOException {
+        this(splitBy, IOUtils.getBufferedReader(csvFile));
+    }
+
+    public CSVReader(final String splitBy, BufferedReader br) throws UncheckedIOException, IOException {
         this.splitBy = splitBy;
-        this.br = IOUtils.getBufferedReader(csvFile);
+        this.br = br;
 
         String line = this.br.readLine();
         this.columns = line.split(this.splitBy);
@@ -69,7 +78,7 @@ public class CSVReader implements AutoCloseable {
         String[] parts = line.split(this.splitBy, -1);
         for (int i = 0; i < this.columns.length; i++) {
             String column = this.columns[i];
-            String value = parts[i];
+            String value = (i < parts.length) ? parts[i] : null;
             currentRow.put(column, value);
         }
         return currentRow;
