@@ -37,7 +37,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
     private static final Logger log = Logger.getLogger(SimpleAnnealer.class);
     private final Config config;
     private final SimpleAnnealerConfigGroup saConfig;
-    private static final String ANNEAL_FILENAME = "annealingRates.csv";
+    private static final String ANNEAL_FILENAME = "annealingRates.txt";
     private static final String COL_IT = "it";
     private final int innovationStop;
     private CSVWriter writer;
@@ -63,15 +63,18 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                 header.add(av.getAnnealParameter().name());
                 if (av.getAnnealParameter().equals(annealParameterOption.globalInnovationRate)) {
                     header.addAll(this.config.strategy().getStrategySettings().stream()
+                            .filter(s -> Objects.equals(av.getDefaultSubpopulation(), s.getSubpopulation()))
                             .map(StrategyConfigGroup.StrategySettings::getStrategyName)
                             .collect(Collectors.toList()));
                 }
+            } else { // if disabled, better remove it
+                this.saConfig.removeParameterSet(av);
             }
         }
         // prepare output file
         try {
             this.writer = new CSVWriter("", header.toArray(new String[0]),
-                    event.getServices().getControlerIO().getOutputFilename(ANNEAL_FILENAME));
+                    event.getServices().getControlerIO().getOutputFilename(ANNEAL_FILENAME), "\t");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -132,7 +135,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
             this.writer.set(av.getAnnealParameter().name(), String.format("%.4f", annealValue));
             anneal(event, av, annealValue);
         }
-        this.writer.writeRow();
+        this.writer.writeRow(true);
     }
 
     private void anneal(IterationStartsEvent event, AnnealingVariable av, double annealValue) {
@@ -156,8 +159,10 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                         event.getServices().getStrategyManager(), av.getDefaultSubpopulation());
                 int i = 0;
                 for (StrategyConfigGroup.StrategySettings ss : this.config.strategy().getStrategySettings()) {
-                    this.writer.set(ss.getStrategyName(), String.format("%.4f", annealValues.get(i)));
-                    i++;
+                    if (Objects.equals(ss.getSubpopulation(), av.getDefaultSubpopulation())) {
+                        this.writer.set(ss.getStrategyName(), String.format("%.4f", annealValues.get(i)));
+                        i++;
+                    }
                 }
                 this.writer.set(av.getAnnealParameter().name(), String.format("%.4f", // update value in case of switchoff
                         getGlobalInnovationRate(event.getServices().getStrategyManager(), av.getDefaultSubpopulation())));

@@ -25,7 +25,7 @@ public class SimpleAnnealerTest {
     private Config config;
     private SimpleAnnealerConfigGroup saConfig;
     private SimpleAnnealerConfigGroup.AnnealingVariable saConfigVar;
-    private static final String FILENAME_ANNEAL = "annealingRates.csv";
+    private static final String FILENAME_ANNEAL = "annealingRates.txt";
 
     @Rule
     public MatsimTestUtils utils = new MatsimTestUtils();
@@ -240,6 +240,33 @@ public class SimpleAnnealerTest {
         Assert.assertEquals(0.6, weights.stream().mapToDouble(Double::doubleValue).sum(), 1e-4);
     }
 
+    @Test
+    public void testSubpopulationAnneal() throws IOException {
+        String targetSubpop = "subpop";
+        this.saConfigVar.setAnnealType("linear");
+        this.saConfigVar.setEndValue(0.0);
+        this.saConfigVar.setDefaultSubpopulation(targetSubpop);
+        this.config.strategy().getStrategySettings().forEach(s -> s.setSubpopulation(targetSubpop));
+        StrategyConfigGroup.StrategySettings s = new StrategyConfigGroup.StrategySettings();
+        s.setStrategyName("TimeAllocationMutator");
+        s.setWeight(0.25);
+        s.setSubpopulation("noAnneal");
+        this.config.strategy().addStrategySettings(s);
+
+        Controler controler = new Controler(this.scenario);
+        controler.addOverridingModule(new AbstractModule() {
+            @Override
+            public void install() {addControlerListenerBinding().to(SimpleAnnealer.class);}});
+        controler.run();
+
+        Assert.assertEquals(expectedLinearAnneal, readResult(controler.getControlerIO().getOutputFilename(FILENAME_ANNEAL)));
+
+        StrategyManager sm = controler.getInjector().getInstance(StrategyManager.class);
+        List<Double> weights = sm.getWeights(targetSubpop);
+
+        Assert.assertEquals(0.5, weights.stream().mapToDouble(Double::doubleValue).sum(), 1e-4);
+    }
+
     private static String readResult(String filePath) throws IOException {
         BufferedReader br = IOUtils.getBufferedReader(filePath);
         StringBuilder sb = new StringBuilder();
@@ -255,129 +282,129 @@ public class SimpleAnnealerTest {
     }
 
     private String expectedLinearAnneal =
-            "it;globalInnovationRate;ReRoute;SubtourModeChoice;ChangeExpBeta\n" +
-                    "0;0.5000;0.2500;0.2500;0.5000\n" +
-                    "1;0.4500;0.2250;0.2250;0.5000\n" +
-                    "2;0.4000;0.2000;0.2000;0.5000\n" +
-                    "3;0.3500;0.1750;0.1750;0.5000\n" +
-                    "4;0.3000;0.1500;0.1500;0.5000\n" +
-                    "5;0.2500;0.1250;0.1250;0.5000\n" +
-                    "6;0.2000;0.1000;0.1000;0.5000\n" +
-                    "7;0.1500;0.0750;0.0750;0.5000\n" +
-                    "8;0.1000;0.0500;0.0500;0.5000\n" +
-                    "9;0.0500;0.0250;0.0250;0.5000\n" +
-                    "10;0.0000;0.0000;0.0000;0.5000\n";
+            "it\tglobalInnovationRate\tReRoute\tSubtourModeChoice\tChangeExpBeta\n" +
+                    "0\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "1\t0.4500\t0.2250\t0.2250\t0.5000\n" +
+                    "2\t0.4000\t0.2000\t0.2000\t0.5000\n" +
+                    "3\t0.3500\t0.1750\t0.1750\t0.5000\n" +
+                    "4\t0.3000\t0.1500\t0.1500\t0.5000\n" +
+                    "5\t0.2500\t0.1250\t0.1250\t0.5000\n" +
+                    "6\t0.2000\t0.1000\t0.1000\t0.5000\n" +
+                    "7\t0.1500\t0.0750\t0.0750\t0.5000\n" +
+                    "8\t0.1000\t0.0500\t0.0500\t0.5000\n" +
+                    "9\t0.0500\t0.0250\t0.0250\t0.5000\n" +
+                    "10\t0.0000\t0.0000\t0.0000\t0.5000\n";
 
     private String expectedMsaAnneal =
-            "it;globalInnovationRate;ReRoute;SubtourModeChoice;ChangeExpBeta\n" +
-                    "0;0.5000;0.2500;0.2500;0.5000\n" +
-                    "1;0.5000;0.2500;0.2500;0.5000\n" +
-                    "2;0.2500;0.1250;0.1250;0.5000\n" +
-                    "3;0.1667;0.0833;0.0833;0.5000\n" +
-                    "4;0.1250;0.0625;0.0625;0.5000\n" +
-                    "5;0.1000;0.0500;0.0500;0.5000\n" +
-                    "6;0.0833;0.0417;0.0417;0.5000\n" +
-                    "7;0.0714;0.0357;0.0357;0.5000\n" +
-                    "8;0.0625;0.0313;0.0313;0.5000\n" +
-                    "9;0.0556;0.0278;0.0278;0.5000\n" +
-                    "10;0.0500;0.0250;0.0250;0.5000\n";
+            "it\tglobalInnovationRate\tReRoute\tSubtourModeChoice\tChangeExpBeta\n" +
+                    "0\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "1\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "2\t0.2500\t0.1250\t0.1250\t0.5000\n" +
+                    "3\t0.1667\t0.0833\t0.0833\t0.5000\n" +
+                    "4\t0.1250\t0.0625\t0.0625\t0.5000\n" +
+                    "5\t0.1000\t0.0500\t0.0500\t0.5000\n" +
+                    "6\t0.0833\t0.0417\t0.0417\t0.5000\n" +
+                    "7\t0.0714\t0.0357\t0.0357\t0.5000\n" +
+                    "8\t0.0625\t0.0313\t0.0313\t0.5000\n" +
+                    "9\t0.0556\t0.0278\t0.0278\t0.5000\n" +
+                    "10\t0.0500\t0.0250\t0.0250\t0.5000\n";
 
     private String expectedGeometricAnneal =
-            "it;globalInnovationRate;ReRoute;SubtourModeChoice;ChangeExpBeta\n" +
-                    "0;0.5000;0.2500;0.2500;0.5000\n" +
-                    "1;0.4500;0.2250;0.2250;0.5000\n" +
-                    "2;0.4050;0.2025;0.2025;0.5000\n" +
-                    "3;0.3645;0.1823;0.1823;0.5000\n" +
-                    "4;0.3281;0.1640;0.1640;0.5000\n" +
-                    "5;0.2952;0.1476;0.1476;0.5000\n" +
-                    "6;0.2657;0.1329;0.1329;0.5000\n" +
-                    "7;0.2391;0.1196;0.1196;0.5000\n" +
-                    "8;0.2152;0.1076;0.1076;0.5000\n" +
-                    "9;0.1937;0.0969;0.0969;0.5000\n" +
-                    "10;0.1743;0.0872;0.0872;0.5000\n";
+            "it\tglobalInnovationRate\tReRoute\tSubtourModeChoice\tChangeExpBeta\n" +
+                    "0\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "1\t0.4500\t0.2250\t0.2250\t0.5000\n" +
+                    "2\t0.4050\t0.2025\t0.2025\t0.5000\n" +
+                    "3\t0.3645\t0.1823\t0.1823\t0.5000\n" +
+                    "4\t0.3281\t0.1640\t0.1640\t0.5000\n" +
+                    "5\t0.2952\t0.1476\t0.1476\t0.5000\n" +
+                    "6\t0.2657\t0.1329\t0.1329\t0.5000\n" +
+                    "7\t0.2391\t0.1196\t0.1196\t0.5000\n" +
+                    "8\t0.2152\t0.1076\t0.1076\t0.5000\n" +
+                    "9\t0.1937\t0.0969\t0.0969\t0.5000\n" +
+                    "10\t0.1743\t0.0872\t0.0872\t0.5000\n";
 
     private String expectedExponentialAnneal =
-            "it;globalInnovationRate;ReRoute;SubtourModeChoice;ChangeExpBeta\n" +
-                    "0;0.5000;0.2500;0.2500;0.5000\n" +
-                    "1;0.4094;0.2047;0.2047;0.5000\n" +
-                    "2;0.3352;0.1676;0.1676;0.5000\n" +
-                    "3;0.2744;0.1372;0.1372;0.5000\n" +
-                    "4;0.2247;0.1123;0.1123;0.5000\n" +
-                    "5;0.1839;0.0920;0.0920;0.5000\n" +
-                    "6;0.1506;0.0753;0.0753;0.5000\n" +
-                    "7;0.1233;0.0616;0.0616;0.5000\n" +
-                    "8;0.1009;0.0505;0.0505;0.5000\n" +
-                    "9;0.0826;0.0413;0.0413;0.5000\n" +
-                    "10;0.0677;0.0338;0.0338;0.5000\n";
+            "it\tglobalInnovationRate\tReRoute\tSubtourModeChoice\tChangeExpBeta\n" +
+                    "0\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "1\t0.4094\t0.2047\t0.2047\t0.5000\n" +
+                    "2\t0.3352\t0.1676\t0.1676\t0.5000\n" +
+                    "3\t0.2744\t0.1372\t0.1372\t0.5000\n" +
+                    "4\t0.2247\t0.1123\t0.1123\t0.5000\n" +
+                    "5\t0.1839\t0.0920\t0.0920\t0.5000\n" +
+                    "6\t0.1506\t0.0753\t0.0753\t0.5000\n" +
+                    "7\t0.1233\t0.0616\t0.0616\t0.5000\n" +
+                    "8\t0.1009\t0.0505\t0.0505\t0.5000\n" +
+                    "9\t0.0826\t0.0413\t0.0413\t0.5000\n" +
+                    "10\t0.0677\t0.0338\t0.0338\t0.5000\n";
 
     private String expectedSigmoidAnneal =
-            "it;globalInnovationRate;ReRoute;SubtourModeChoice;ChangeExpBeta\n" +
-                    "0;0.5000;0.2500;0.2500;0.5000\n" +
-                    "1;0.4910;0.2455;0.2455;0.5000\n" +
-                    "2;0.4763;0.2381;0.2381;0.5000\n" +
-                    "3;0.4404;0.2202;0.2202;0.5000\n" +
-                    "4;0.3656;0.1828;0.1828;0.5000\n" +
-                    "5;0.2501;0.1250;0.1250;0.5000\n" +
-                    "6;0.1345;0.0673;0.0673;0.5000\n" +
-                    "7;0.0597;0.0298;0.0298;0.5000\n" +
-                    "8;0.0238;0.0119;0.0119;0.5000\n" +
-                    "9;0.0091;0.0045;0.0045;0.5000\n" +
-                    "10;0.0034;0.0017;0.0017;0.5000\n";
+            "it\tglobalInnovationRate\tReRoute\tSubtourModeChoice\tChangeExpBeta\n" +
+                    "0\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "1\t0.4910\t0.2455\t0.2455\t0.5000\n" +
+                    "2\t0.4763\t0.2381\t0.2381\t0.5000\n" +
+                    "3\t0.4404\t0.2202\t0.2202\t0.5000\n" +
+                    "4\t0.3656\t0.1828\t0.1828\t0.5000\n" +
+                    "5\t0.2501\t0.1250\t0.1250\t0.5000\n" +
+                    "6\t0.1345\t0.0673\t0.0673\t0.5000\n" +
+                    "7\t0.0597\t0.0298\t0.0298\t0.5000\n" +
+                    "8\t0.0238\t0.0119\t0.0119\t0.5000\n" +
+                    "9\t0.0091\t0.0045\t0.0045\t0.5000\n" +
+                    "10\t0.0034\t0.0017\t0.0017\t0.5000\n";
 
     private String expectedParameterAnneal =
-            "it;BrainExpBeta\n" +
-                    "0;1.0000\n" +
-                    "1;0.9000\n" +
-                    "2;0.8000\n" +
-                    "3;0.7000\n" +
-                    "4;0.6000\n" +
-                    "5;0.5000\n" +
-                    "6;0.4000\n" +
-                    "7;0.3000\n" +
-                    "8;0.2000\n" +
-                    "9;0.1000\n" +
-                    "10;0.0000\n";
+            "it\tBrainExpBeta\n" +
+                    "0\t1.0000\n" +
+                    "1\t0.9000\n" +
+                    "2\t0.8000\n" +
+                    "3\t0.7000\n" +
+                    "4\t0.6000\n" +
+                    "5\t0.5000\n" +
+                    "6\t0.4000\n" +
+                    "7\t0.3000\n" +
+                    "8\t0.2000\n" +
+                    "9\t0.1000\n" +
+                    "10\t0.0000\n";
 
     private String expectedTwoParameterAnneal =
-            "it;globalInnovationRate;ReRoute;SubtourModeChoice;ChangeExpBeta;BrainExpBeta\n"+
-                    "0;0.5000;0.2500;0.2500;0.5000;1.0000\n"+
-                    "1;0.5000;0.2500;0.2500;0.5000;0.9000\n"+
-                    "2;0.2500;0.1250;0.1250;0.5000;0.8000\n"+
-                    "3;0.1667;0.0833;0.0833;0.5000;0.7000\n"+
-                    "4;0.1250;0.0625;0.0625;0.5000;0.6000\n"+
-                    "5;0.1000;0.0500;0.0500;0.5000;0.5000\n"+
-                    "6;0.0833;0.0417;0.0417;0.5000;0.4000\n"+
-                    "7;0.0714;0.0357;0.0357;0.5000;0.3000\n"+
-                    "8;0.0625;0.0313;0.0313;0.5000;0.2000\n"+
-                    "9;0.0556;0.0278;0.0278;0.5000;0.1000\n"+
-                    "10;0.0500;0.0250;0.0250;0.5000;0.0000\n";
+            "it\tglobalInnovationRate\tReRoute\tSubtourModeChoice\tChangeExpBeta\tBrainExpBeta\n"+
+                    "0\t0.5000\t0.2500\t0.2500\t0.5000\t1.0000\n"+
+                    "1\t0.5000\t0.2500\t0.2500\t0.5000\t0.9000\n"+
+                    "2\t0.2500\t0.1250\t0.1250\t0.5000\t0.8000\n"+
+                    "3\t0.1667\t0.0833\t0.0833\t0.5000\t0.7000\n"+
+                    "4\t0.1250\t0.0625\t0.0625\t0.5000\t0.6000\n"+
+                    "5\t0.1000\t0.0500\t0.0500\t0.5000\t0.5000\n"+
+                    "6\t0.0833\t0.0417\t0.0417\t0.5000\t0.4000\n"+
+                    "7\t0.0714\t0.0357\t0.0357\t0.5000\t0.3000\n"+
+                    "8\t0.0625\t0.0313\t0.0313\t0.5000\t0.2000\n"+
+                    "9\t0.0556\t0.0278\t0.0278\t0.5000\t0.1000\n"+
+                    "10\t0.0500\t0.0250\t0.0250\t0.5000\t0.0000\n";
 
     private String expectedFreezeEarlyAnneal =
-            "it;globalInnovationRate;ReRoute;SubtourModeChoice;ChangeExpBeta\n" +
-                    "0;0.5000;0.2500;0.2500;0.5000\n" +
-                    "1;0.5000;0.2500;0.2500;0.5000\n" +
-                    "2;0.2500;0.1250;0.1250;0.5000\n" +
-                    "3;0.1667;0.0833;0.0833;0.5000\n" +
-                    "4;0.1250;0.0625;0.0625;0.5000\n" +
-                    "5;0.1000;0.0500;0.0500;0.5000\n" +
-                    "6;0.1000;0.0500;0.0500;0.5000\n" +
-                    "7;0.1000;0.0500;0.0500;0.5000\n" +
-                    "8;0.1000;0.0500;0.0500;0.5000\n" +
-                    "9;0.1000;0.0500;0.0500;0.5000\n" +
-                    "10;0.1000;0.0500;0.0500;0.5000\n";
+            "it\tglobalInnovationRate\tReRoute\tSubtourModeChoice\tChangeExpBeta\n" +
+                    "0\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "1\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "2\t0.2500\t0.1250\t0.1250\t0.5000\n" +
+                    "3\t0.1667\t0.0833\t0.0833\t0.5000\n" +
+                    "4\t0.1250\t0.0625\t0.0625\t0.5000\n" +
+                    "5\t0.1000\t0.0500\t0.0500\t0.5000\n" +
+                    "6\t0.1000\t0.0500\t0.0500\t0.5000\n" +
+                    "7\t0.1000\t0.0500\t0.0500\t0.5000\n" +
+                    "8\t0.1000\t0.0500\t0.0500\t0.5000\n" +
+                    "9\t0.1000\t0.0500\t0.0500\t0.5000\n" +
+                    "10\t0.1000\t0.0500\t0.0500\t0.5000\n";
 
     private String expectedInnovationSwitchoffAnneal =
-            "it;globalInnovationRate;ReRoute;SubtourModeChoice;ChangeExpBeta\n" +
-                    "0;0.5000;0.2500;0.2500;0.5000\n" +
-                    "1;0.5000;0.2500;0.2500;0.5000\n" +
-                    "2;0.2500;0.1250;0.1250;0.5000\n" +
-                    "3;0.1667;0.0833;0.0833;0.5000\n" +
-                    "4;0.1250;0.0625;0.0625;0.5000\n" +
-                    "5;0.1000;0.0500;0.0500;0.5000\n" +
-                    "6;0.0000;0.0000;0.0000;0.5000\n" +
-                    "7;0.0000;0.0000;0.0000;0.5000\n" +
-                    "8;0.0000;0.0000;0.0000;0.5000\n" +
-                    "9;0.0000;0.0000;0.0000;0.5000\n" +
-                    "10;0.0000;0.0000;0.0000;0.5000\n";
+            "it\tglobalInnovationRate\tReRoute\tSubtourModeChoice\tChangeExpBeta\n" +
+                    "0\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "1\t0.5000\t0.2500\t0.2500\t0.5000\n" +
+                    "2\t0.2500\t0.1250\t0.1250\t0.5000\n" +
+                    "3\t0.1667\t0.0833\t0.0833\t0.5000\n" +
+                    "4\t0.1250\t0.0625\t0.0625\t0.5000\n" +
+                    "5\t0.1000\t0.0500\t0.0500\t0.5000\n" +
+                    "6\t0.0000\t0.0000\t0.0000\t0.5000\n" +
+                    "7\t0.0000\t0.0000\t0.0000\t0.5000\n" +
+                    "8\t0.0000\t0.0000\t0.0000\t0.5000\n" +
+                    "9\t0.0000\t0.0000\t0.0000\t0.5000\n" +
+                    "10\t0.0000\t0.0000\t0.0000\t0.5000\n";
 
 }

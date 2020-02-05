@@ -54,10 +54,10 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
 
     @Override
     public void addParameterSet(final ConfigGroup set) {
-        if (AnnealingVariable.GROUP_NAME.equals(set.getName())) {
-            addAnnealingVariable((AnnealingVariable) set);
+        if (!AnnealingVariable.GROUP_NAME.equals(set.getName())) {
+            throw new IllegalArgumentException(set.getName());
         }
-        throw new IllegalArgumentException(set.getName());
+        addAnnealingVariable((AnnealingVariable) set);
     }
 
     public Map<annealParameterOption, AnnealingVariable> getAnnealingVariables() {
