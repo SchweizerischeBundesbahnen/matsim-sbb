@@ -88,8 +88,8 @@ public class PtVolumeToCSVTest {
 
     static String expectedStopsDaily =
             "it;A;B;C;D;E\n" +
-            "0;0.0;1.0;0.0;1.0;0.0\n" +
-            "1;0.0;1.0;0.0;1.0;0.0\n" +
-            "2;0.0;1.0;0.0;1.0;0.0\n";
+            "0;0;1;0;1;0\n" +
+            "1;0;1;0;1;0\n" +
+            "2;0;1;0;1;0\n";
 
 }
