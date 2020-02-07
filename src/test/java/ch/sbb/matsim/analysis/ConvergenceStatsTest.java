@@ -42,10 +42,14 @@ public class ConvergenceStatsTest {
     @Test
     public void test_StationarityTests() throws IOException {
         ConvergenceStats cs = new ConvergenceStats(10, 30);
-        double[] scores = ConvergenceStats.loadGlobalStats( utils.getPackageInputDirectory() + "convergence/scorestats.txt");
+        double[] scores = ConvergenceStats.loadGlobalStats( utils.getPackageInputDirectory() + "convergence/traveldistancestats.txt");
+        System.out.println("Test: statistic=p-value");
         for (ConvergenceStats.Test test : ConvergenceStats.Test.values()) {
-            Map.Entry res = cs.runTest(test, scores);
+            Map.Entry<Double, Double> res = cs.runTest(test, scores);
+            System.out.print(test.name() + ": ");
             System.out.println(res);
+            Assert.assertTrue(Double.isFinite(res.getKey()));
+            Assert.assertTrue(Double.isFinite(res.getValue()));
         }
     }
 
