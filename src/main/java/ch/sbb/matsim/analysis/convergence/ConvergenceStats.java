@@ -13,6 +13,7 @@ import smile.stat.distribution.BetaDistribution;
 import smile.stat.distribution.GaussianDistribution;
 import smile.stat.hypothesis.CorTest;
 import smile.stat.hypothesis.KSTest;
+import static ch.sbb.matsim.analysis.convergence.ConvergenceStatsConfig.Test;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -41,6 +42,7 @@ public class ConvergenceStats implements IterationStartsListener {
     private Map<Test, CSVWriter> writers;
     private final int windowSize;
     private final int numWindows;
+    private final Test[] testsToRun;
     private List<String> columns;
     private static final String SCORESTATS_FILENAME = "scorestats.txt";
     private static final String TRAVELDISTANCESTATS_FILENAME = "traveldistancestats.txt";
@@ -50,17 +52,18 @@ public class ConvergenceStats implements IterationStartsListener {
     private static final String COL_TRAVELDISTANCE = "traveldistances";
     private static final String COL_SCORES = "scores";
 
-    public enum Test {KENDALL, PEARSON, SPEARMAN, KS_NORMAL, KS_UNIFORM}
-
     @Inject
     public ConvergenceStats(Config config) {
-        this(   ConfigUtils.addOrGetModule(config, ConvergenceStatsConfig.class).getWindowSize(),
-                ConfigUtils.addOrGetModule(config, ConvergenceStatsConfig.class).getNumWindows());
+        ConvergenceStatsConfig csConfig = ConfigUtils.addOrGetModule(config, ConvergenceStatsConfig.class);
+        this.numWindows = csConfig.getNumWindows();
+        this.windowSize = csConfig.getWindowSize();
+        this.testsToRun = csConfig.getTestsToRun();
     }
 
-    public ConvergenceStats(int windowSize, int numWindows) {
+    public ConvergenceStats(int windowSize, int numWindows, Test[] testsToRun) {
         this.numWindows = numWindows;
         this.windowSize = windowSize;
+        this.testsToRun = testsToRun;
     }
 
     @Override
@@ -89,7 +92,7 @@ public class ConvergenceStats implements IterationStartsListener {
                 header.add(m + COL_PVALUE);
             }
             Path dir = Files.createDirectory(Paths.get(controlerIO.getOutputPath(), "convergence"));
-            for (Test t : Test.values()) {
+            for (Test t : this.testsToRun) {
                 this.writers.put(t, new CSVWriter("", header.toArray(new String[0]),
                         Paths.get(dir.toString(), t.name().toLowerCase() + ".txt").toString(), "\t"));
             }
@@ -106,7 +109,7 @@ public class ConvergenceStats implements IterationStartsListener {
             String[] modes = this.columns.subList(2, this.columns.size()).toArray(new String[0]);
             Map<String, List<Double>> modestats = loadGlobalStats(controlerIO.getOutputFilename(MODESTATS_FILENAME), modes);
 
-            for (Test test : Test.values()) {
+            for (Test test : this.testsToRun) {
                 res = runTest(test, scores);
                 this.writers.get(test).set(COL_SCORES + COL_STATISTIC, String.format("%.4f", res.getKey()));
                 this.writers.get(test).set(COL_SCORES + COL_PVALUE, String.format("%.4f", res.getValue()));

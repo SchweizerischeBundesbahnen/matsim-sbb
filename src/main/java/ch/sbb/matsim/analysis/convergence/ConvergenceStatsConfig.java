@@ -1,7 +1,12 @@
 package ch.sbb.matsim.analysis.convergence;
 
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
+import org.matsim.core.utils.misc.ArgumentParser;
+import org.matsim.core.utils.misc.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
@@ -10,6 +15,9 @@ public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
     private boolean activateConvergenceStats = false;
     private int numWindows = 30;
     private int windowSize = 10;
+    private Test[] testsToRun = new Test[] {Test.KENDALL, Test.KS_NORMAL, Test.KS_UNIFORM};
+
+    public enum Test {KENDALL, PEARSON, SPEARMAN, KS_NORMAL, KS_UNIFORM}
 
     public ConvergenceStatsConfig()  {
         super(GROUP_NAME);
@@ -23,6 +31,24 @@ public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
     @StringSetter("activateConvergenceStats")
     public void setActivateConvergenceStats(boolean activateConvergenceStats) {
         this.activateConvergenceStats = activateConvergenceStats;
+    }
+
+    @StringGetter("testsToRun")
+    public Test[] getTestsToRun() {
+        return testsToRun;
+    }
+
+    @StringSetter("testsToRun")
+    public void setTestsToRun(String testsToRun) {
+        List<Test> tests = new ArrayList<>();
+        for (String test : StringUtils.explode(testsToRun, ',')) {
+            tests.add(Test.valueOf(test));
+        }
+        setTestsToRun(tests);
+    }
+
+    public void setTestsToRun(List<Test> testsToRun) {
+        this.testsToRun = testsToRun.toArray(new Test[0]);
     }
 
     @StringGetter("windowSize")
