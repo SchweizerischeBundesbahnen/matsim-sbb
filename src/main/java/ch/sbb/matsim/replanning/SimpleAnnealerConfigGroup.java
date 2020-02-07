@@ -88,7 +88,7 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
         private Double startValue = null;
         private double endValue = 0.0001;
         private double shapeFactor = 0.9;
-        private int halfLife = 100;
+        private double halfLife = 100.0;
         private annealOption annealType = annealOption.disabled;
         private annealParameterOption annealParameter = annealParameterOption.globalInnovationRate;
 
@@ -161,12 +161,12 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
 
         private static final String HALFLIFE = "halfLife";
         @StringGetter(HALFLIFE)
-        public int getHalfLife() {
+        public double getHalfLife() {
             return this.halfLife;
         }
 
         @StringSetter(HALFLIFE)
-        public void setHalfLife(int halfLife) {
+        public void setHalfLife(double halfLife) {
             this.halfLife = halfLife;
         }
 
@@ -184,7 +184,7 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
         @Override
         public Map<String, String> getComments() {
             Map<String, String> map = super.getComments();
-            map.put(HALFLIFE, "exponential: startValue / exp(it/halfLife)");
+            map.put(HALFLIFE, "this parameter enters the exponential and sigmoid formulas. May be an iteration or a share, i.e. 0.5 for halfLife at 50% of iterations. Exponential: startValue / exp(it/halfLife)");
             map.put(SHAPE_FACTOR, "sigmoid: 1/(1+e^(shapeFactor*(it - halfLife))); geometric: startValue * shapeFactor^it; msa: startValue / it^shapeFactor");
             map.put(ANNEAL_TYPE, "options: linear, exponential, geometric, msa, sigmoid and disabled (no annealing).");
             map.put(ANNEAL_PARAM, "list of config parameters that shall be annealed. Currently supported: globalInnovationRate, BrainExpBeta, PathSizeLogitBeta, learningRate. Default is globalInnovationRate");

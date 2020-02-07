@@ -101,17 +101,21 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                                 v * av.getShapeFactor());
                         break;
                     case exponential:
+                        int halfLifeIter = av.getHalfLife() <= 1.0 ?
+                                (int) av.getHalfLife()*this.innovationStop : (int) av.getHalfLife();
                         this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
-                                av.getStartValue() / Math.exp((double) this.currentIter / av.getHalfLife()));
+                                av.getStartValue() / Math.exp((double) this.currentIter / halfLifeIter));
                         break;
                     case msa:
                         this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
                                 av.getStartValue() / Math.pow(this.currentIter, av.getShapeFactor()));
                         break;
                     case sigmoid:
+                        halfLifeIter = av.getHalfLife() <= 1.0 ?
+                                (int) av.getHalfLife()*this.innovationStop : (int) av.getHalfLife();
                         this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
                                 av.getEndValue() + (av.getStartValue() - av.getEndValue()) /
-                                        (1 + Math.exp(av.getShapeFactor()*(this.currentIter - av.getHalfLife()))));
+                                        (1 + Math.exp(av.getShapeFactor()*(this.currentIter - halfLifeIter))));
                         break;
                     case linear:
                         double slope = (av.getStartValue() - av.getEndValue())
