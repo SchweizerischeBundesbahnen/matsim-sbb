@@ -66,6 +66,10 @@ public class RunSBB {
         if (args.length > 1)
             config.controler().setOutputDirectory(args[1]);
 
+        run(config);
+    }
+
+    public static void run(Config config) {
         new S3Downloader(config);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);

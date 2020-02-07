@@ -172,7 +172,7 @@ public class ConvergenceStats implements IterationStartsListener {
             if (columns == null) {
                 columns = Arrays.copyOfRange(csv.getColumns(), 1, 2);
             }
-            Map<String, String> data = csv.readLine(); // header
+            Map<String, String> data;
             while ((data = csv.readLine()) != null) {
                 for (String c : columns) {
                     values.putIfAbsent(c, new ArrayList<>());
