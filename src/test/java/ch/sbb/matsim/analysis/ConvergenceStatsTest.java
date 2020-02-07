@@ -34,8 +34,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Map;
 
 public class ConvergenceStatsTest {
@@ -45,10 +45,10 @@ public class ConvergenceStatsTest {
 
     @Test
     public void test_StationarityTests() throws IOException {
-        ConvergenceStats cs = new ConvergenceStats(10, 30);
+        ConvergenceStats cs = new ConvergenceStats(10, 30, ConvergenceStatsConfig.Test.values());
         double[] scores = ConvergenceStats.loadGlobalStats( utils.getPackageInputDirectory() + "convergence/traveldistancestats.txt");
         System.out.println("Test: statistic=p-value");
-        for (ConvergenceStats.Test test : ConvergenceStats.Test.values()) {
+        for (ConvergenceStatsConfig.Test test : ConvergenceStatsConfig.Test.values()) {
             Map.Entry<Double, Double> res = cs.runTest(test, scores);
             System.out.print(test.name() + ": ");
             System.out.println(res);
@@ -60,11 +60,11 @@ public class ConvergenceStatsTest {
     @Test
     public void test_StationarityTestsOutput() throws IOException {
         FileUtils.copyDirectory(new File(utils.getPackageInputDirectory() + "convergence"), new File(utils.getOutputDirectory()));
-        ConvergenceStats cs = new ConvergenceStats(10, 30);
+        ConvergenceStats cs = new ConvergenceStats(10, 30, ConvergenceStatsConfig.Test.values());
         IterationStartsEvent event = new IterationStartsEvent(new StubControler(), 301);
         cs.notifyIterationStarts(event);
         cs.close();
-        for (ConvergenceStats.Test test : ConvergenceStats.Test.values()) {
+        for (ConvergenceStatsConfig.Test test : ConvergenceStatsConfig.Test.values()) {
             File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
             Assert.assertTrue(file.exists());
             BufferedReader br = new BufferedReader(new FileReader(file));
@@ -82,6 +82,7 @@ public class ConvergenceStatsTest {
         csConfig.setActivateConvergenceStats(true);
         csConfig.setNumWindows(2);
         csConfig.setWindowSize(1);
+        csConfig.setTestsToRun(Arrays.asList(ConvergenceStatsConfig.Test.values()));
         // shut-off outputs
         config.controler().setLastIteration(4);
         config.controler().setOutputDirectory(utils.getOutputDirectory());
@@ -97,7 +98,7 @@ public class ConvergenceStatsTest {
         config.qsim().setTimeStepSize(600.0);
         RunSBB.run(config);
         // tests
-        for (ConvergenceStats.Test test : ConvergenceStats.Test.values()) {
+        for (ConvergenceStatsConfig.Test test : ConvergenceStatsConfig.Test.values()) {
             File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
             Assert.assertTrue(file.exists());
             BufferedReader br = new BufferedReader(new FileReader(file));
