@@ -5,7 +5,10 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.*;
+import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
@@ -38,24 +41,18 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     private final Map<String, RoutingModule> routingModules;
     private final TransitSchedule transitSchedule;
     private final Random random = MatsimRandom.getLocalInstance();
-    private final Map<String, Map<Id<Link>, Map<Id<Link>, RouteCharacteristics>>> intermodalAccessCache;
+    private final AccessEgressRouteCache accessEgressRouteCache;
 
     @Inject
     public SBBIntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE,
                                          Map<String, Provider<RoutingModule>> routingModuleProviders,
-                                         TransitSchedule transitSchedule) {
+                                         TransitSchedule transitSchedule, AccessEgressRouteCache accessEgressRouteCache) {
         this.intermodalAE = intermodalAE;
         this.transitSchedule = transitSchedule;
+        this.accessEgressRouteCache = accessEgressRouteCache;
 
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
         this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(set -> set.getMode(), set -> set));
-        this.intermodalAccessCache = new HashMap<>();
-        this.intermodalModeParams.values()
-                .stream()
-                .filter(m -> (m.isRoutedOnNetwork() && (!m.isSimulatedOnNetwork())))
-                .forEach(p ->
-                        intermodalAccessCache.put(p.getMode(), new IdMap<Link, Map<Id<Link>, RouteCharacteristics>>(Link.class, 2000)));
-        //FIXME: replace size by actual expected station cache size
         SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
         this.routingModules = new HashMap<>();
         if (srrConfig.isUseIntermodalAccessEgress()) {
@@ -262,14 +259,15 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     }
 
     private List<? extends PlanElement> getCachedTravelTime(Facility stopFacility, Facility actFacility, double departureTime, Person person, String mode, RoutingModule module, boolean backwards) {
-        Map<Id<Link>, Map<Id<Link>, RouteCharacteristics>> modeCache = intermodalAccessCache.get(mode);
-        Map<Id<Link>, RouteCharacteristics> facilityCache = modeCache.computeIfAbsent(stopFacility.getLinkId(), a -> new IdMap<>(Link.class, 100));
-        RouteCharacteristics characteristics = facilityCache.computeIfAbsent(actFacility.getLinkId(), k -> calcRouteCharacteristics(stopFacility, actFacility, departureTime, person, module, mode));
+        AccessEgressRouteCache.RouteCharacteristics characteristics = this.accessEgressRouteCache.getCachedRouteCharacteristics(mode, stopFacility.getLinkId(), actFacility.getLinkId());
+        if (characteristics == null) {
+            characteristics = calcRouteCharacteristics(stopFacility, actFacility, departureTime, person, module, mode);
+        }
         Id<Link> startLink = backwards ? actFacility.getLinkId() : stopFacility.getLinkId();
         Id<Link> endLink = backwards ? stopFacility.getLinkId() : actFacility.getLinkId();
         List<PlanElement> travel = new ArrayList<>();
-        double accessTime = backwards ? characteristics.egressTime : characteristics.accessTime;
-        double egressTime = backwards ? characteristics.accessTime : characteristics.egressTime;
+        double accessTime = backwards ? characteristics.getEgressTime() : characteristics.getAccessTime();
+        double egressTime = backwards ? characteristics.getAccessTime() : characteristics.getEgressTime();
         if (!Double.isNaN(accessTime)) {
             Leg leg = createAccessEgressLeg(accessTime, startLink);
             travel.add(leg);
@@ -310,7 +308,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         return leg;
     }
 
-    private RouteCharacteristics calcRouteCharacteristics(Facility stopFacility, Facility actFacility, double departureTime, Person person, RoutingModule module, String mode) {
+    private AccessEgressRouteCache.RouteCharacteristics calcRouteCharacteristics(Facility stopFacility, Facility actFacility, double departureTime, Person person, RoutingModule module, String mode) {
         List<? extends PlanElement> elements = module.calcRoute(stopFacility, actFacility, departureTime, person);
         double accessTime = Double.NaN;
         double egressTime = Double.NaN;
@@ -332,7 +330,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 }
             }
         }
-        return new RouteCharacteristics(distance, accessTime, egressTime, travelTime);
+        return new AccessEgressRouteCache.RouteCharacteristics(distance, accessTime, egressTime, travelTime);
     }
 
     private boolean doUseMinimalTransferTimes(String mode) {
@@ -401,33 +399,5 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         }
     }
 
-    private static class RouteCharacteristics {
-        private final double distance;
-        private final double accessTime;
-        private final double egressTime;
-        private final double travelTime;
 
-        public RouteCharacteristics(double distance, double accessTime, double egressTime, double travelTime) {
-            this.distance = distance;
-            this.accessTime = accessTime;
-            this.egressTime = egressTime;
-            this.travelTime = travelTime;
-        }
-
-        public double getDistance() {
-            return distance;
-        }
-
-        public double getAccessTime() {
-            return accessTime;
-        }
-
-        public double getEgressTime() {
-            return egressTime;
-        }
-
-        public double getTravelTime() {
-            return travelTime;
-        }
-    }
 }
