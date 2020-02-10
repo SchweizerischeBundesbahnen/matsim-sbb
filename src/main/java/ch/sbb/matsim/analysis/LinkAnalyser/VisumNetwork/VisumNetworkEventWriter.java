@@ -2,27 +2,28 @@ package ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork;
 
 import ch.sbb.matsim.analysis.EventsAnalysis;
 import ch.sbb.matsim.analysis.LinkAnalyser.LinkAnalyser;
-import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnalysis {
 
     private static final String FILENAME_VISUMVOLUMES = "visum_volumes.csv.gz";
     private static final String FILENAME_FINALDAILYLINKVOLUMES =  "visum_volumes_daily.csv.gz";
     private static final String COL_ITERATION = "it";
+    private static final String CSV_SEP = ";";
     private final double scale;
     private final String mode;
     private String filename;
     private boolean writeFinalDailyVolumes;
-    private CSVWriter linkVolumesPerIterationWriter = null;
+    private BufferedWriter linkVolumesPerIterationWriter = null;
 
     public VisumNetworkEventWriter(Scenario scenario, double scale, String mode, String filename, boolean writeFinalDailyVolumes) {
         super(scenario);
@@ -32,10 +33,14 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnaly
         this.writeFinalDailyVolumes = writeFinalDailyVolumes;
         if (writeFinalDailyVolumes) {
             try {
-                List<String> columns = this.linkVolumes.keySet().stream().map(Id::toString)
-                        .sorted(String::compareTo).collect(Collectors.toList());
-                columns.add(0, COL_ITERATION);
-                this.linkVolumesPerIterationWriter = new CSVWriter("", columns.toArray(new String[0]), this.filename + FILENAME_FINALDAILYLINKVOLUMES);
+                this.linkVolumesPerIterationWriter = IOUtils.getBufferedWriter(this.filename + FILENAME_FINALDAILYLINKVOLUMES);
+                this.linkVolumesPerIterationWriter.write(COL_ITERATION);
+                for (Id id : this.linkVolumes.keySet()) {
+                    this.linkVolumesPerIterationWriter.write(CSV_SEP);
+                    this.linkVolumesPerIterationWriter.write(id.toString());
+                }
+                this.linkVolumesPerIterationWriter.write(IOUtils.NATIVE_NEWLINE);
+                this.linkVolumesPerIterationWriter.flush();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -78,12 +83,18 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnaly
     @Override
     public void reset(int iteration) {
         if (this.linkVolumesPerIterationWriter != null) {
-            this.linkVolumesPerIterationWriter.set(COL_ITERATION, String.valueOf(iteration));
-            for (Map.Entry<Id, Integer> e : this.linkVolumes.entrySet()) {
-                this.linkVolumesPerIterationWriter.set(e.getKey().toString(), String.valueOf(e.getValue()));
+            try {
+                this.linkVolumesPerIterationWriter.write(String.valueOf(iteration));
+                for (int vol : this.linkVolumes.values()) {
+                    this.linkVolumesPerIterationWriter.write(CSV_SEP);
+                    this.linkVolumesPerIterationWriter.write(String.valueOf(vol));
+                }
+                this.linkVolumesPerIterationWriter.write(IOUtils.NATIVE_NEWLINE);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-            this.linkVolumesPerIterationWriter.writeRow();
             this.linkVolumes.replaceAll((k, v) -> 0);
         }
     }
+
 }
