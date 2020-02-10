@@ -114,22 +114,12 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
                     this.stopsVolumesPerIterationWriter.write(String.valueOf(vol));
                 }
                 this.stopsVolumesPerIterationWriter.write(IOUtils.NATIVE_NEWLINE);
+                this.stopsVolumesPerIterationWriter.flush();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
             this.dailyStopVolumes.replaceAll((k, v) -> 0);
         }
-    }
-
-    private void closeAll() {
-        try {
-            this.stopsWriter.close();
-            this.vehJourneyWriter.close();
-        } catch (IOException e) {
-            log.error("Could not close files.", e);
-        }
-        this.stopsWriter = null;
-        this.vehJourneyWriter = null;
     }
 
     @Override
@@ -186,7 +176,12 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
                 log.error("Could not close volumes per iteration file.", e);
             }
         } else {
-            this.closeAll();
+            try {
+                this.stopsWriter.close();
+                this.vehJourneyWriter.close();
+            } catch (IOException e) {
+                log.error("Could not close files.", e);
+            }
             if (lastIteration) {
                 EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_STOPS);
                 EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_VEHJOURNEYS);

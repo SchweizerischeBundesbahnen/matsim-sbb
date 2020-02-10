@@ -40,6 +40,7 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnaly
                     this.linkVolumesPerIterationWriter.write(id.toString());
                 }
                 this.linkVolumesPerIterationWriter.write(IOUtils.NATIVE_NEWLINE);
+                this.linkVolumesPerIterationWriter.flush();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
