@@ -51,6 +51,7 @@ public class ConvergenceStats implements IterationStartsListener {
     private static final String COL_PVALUE = " p-value";
     private static final String COL_TRAVELDISTANCE = "traveldistances";
     private static final String COL_SCORES = "scores";
+    private static final String COL_ITERATION = "ITERATION";
 
     @Inject
     public ConvergenceStats(Config config) {
@@ -72,7 +73,7 @@ public class ConvergenceStats implements IterationStartsListener {
             if (this.writers == null) {
                 setup(event.getServices().getControlerIO());
             }
-            calcIteration(event.getServices().getControlerIO());
+            calcIteration(event.getServices().getControlerIO(), event.getIteration());
             for (CSVWriter writer : this.writers.values()) {
                 writer.writeRow(true);
             }
@@ -82,7 +83,7 @@ public class ConvergenceStats implements IterationStartsListener {
     private void setup(OutputDirectoryHierarchy controlerIO) {
         this.columns = new ArrayList<>(Arrays.asList(COL_SCORES, COL_TRAVELDISTANCE));
         this.writers = new EnumMap<>(Test.class);
-        List<String> header = new ArrayList<>(Collections.singletonList("ITERATION"));
+        List<String> header = new ArrayList<>(Collections.singletonList(COL_ITERATION));
 
         try {
             String msHeader = IOUtils.getBufferedReader(controlerIO.getOutputFilename(MODESTATS_FILENAME)).readLine();
@@ -101,7 +102,7 @@ public class ConvergenceStats implements IterationStartsListener {
         }
     }
 
-    private void calcIteration(OutputDirectoryHierarchy controlerIO) {
+    private void calcIteration(OutputDirectoryHierarchy controlerIO, int iteration) {
         Map.Entry<Double, Double> res;
         try {
             double[] scores = loadGlobalStats(controlerIO.getOutputFilename(SCORESTATS_FILENAME));
@@ -110,6 +111,7 @@ public class ConvergenceStats implements IterationStartsListener {
             Map<String, List<Double>> modestats = loadGlobalStats(controlerIO.getOutputFilename(MODESTATS_FILENAME), modes);
 
             for (Test test : this.testsToRun) {
+                this.writers.get(test).set(COL_ITERATION, String.valueOf(iteration));
                 res = runTest(test, scores);
                 this.writers.get(test).set(COL_SCORES + COL_STATISTIC, String.format("%.4f", res.getKey()));
                 this.writers.get(test).set(COL_SCORES + COL_PVALUE, String.format("%.4f", res.getValue()));
