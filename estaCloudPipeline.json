@@ -23,15 +23,15 @@
       "isBuildEnabled": true,
       "sonarScanEnabled": true,
       "triggerBuildOnCommitEnabled": true,
-      "junitTestReportPath": "**/target/surefire-reports/*.xml",
-      "additionalBuildParams":"-DignoreSnapshots=true"
+      "junitTestReportPath": "**/target/surefire-reports/*.xml"
     },
     {
       "stepType": "release",
       "isBuildEnabled": true,
       "sonarScanEnabled": false,
       "triggerBuildOnCommitEnabled": false,
-      "hotfixCreationEnabled": false
+      "hotfixCreationEnabled": false,
+      "additionalBuildParams":"-DignoreSnapshots=true"
     },
     {
       "stepType": "hotfix",
