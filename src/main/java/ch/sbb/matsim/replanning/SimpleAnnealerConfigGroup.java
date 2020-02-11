@@ -1,5 +1,6 @@
 package ch.sbb.matsim.replanning;
 
+import com.sun.org.apache.bcel.internal.generic.FALOAD;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
@@ -53,10 +54,10 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
 
     @Override
     public void addParameterSet(final ConfigGroup set) {
-        if (AnnealingVariable.GROUP_NAME.equals(set.getName())) {
-            addAnnealingVariable((AnnealingVariable) set);
+        if (!AnnealingVariable.GROUP_NAME.equals(set.getName())) {
+            throw new IllegalArgumentException(set.getName());
         }
-        throw new IllegalArgumentException(set.getName());
+        addAnnealingVariable((AnnealingVariable) set);
     }
 
     public Map<annealParameterOption, AnnealingVariable> getAnnealingVariables() {
@@ -87,8 +88,7 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
         private Double startValue = null;
         private double endValue = 0.0001;
         private double shapeFactor = 0.9;
-        private int halfLife = 100;
-        private int iterationToFreezeAnnealingRates = Integer.MAX_VALUE;
+        private double halfLife = 100.0;
         private annealOption annealType = annealOption.disabled;
         private annealParameterOption annealParameter = annealParameterOption.globalInnovationRate;
 
@@ -96,95 +96,101 @@ public class SimpleAnnealerConfigGroup extends ReflectiveConfigGroup {
             super(GROUP_NAME);
         }
 
-        @StringGetter("startValue")
+        private static final String START_VALUE = "startValue";
+        @StringGetter(START_VALUE)
         public Double getStartValue() {
             return this.startValue;
         }
 
-        @StringSetter("startValue")
-        void setStartValue(Double startValue) {
+        @StringSetter(START_VALUE)
+        public void setStartValue(Double startValue) {
             this.startValue = startValue;
         }
 
-        @StringGetter("endValue")
+        private static final String END_VALUE = "endValue";
+        @StringGetter(END_VALUE)
         public double getEndValue() {
             return this.endValue;
         }
 
-        @StringSetter("endValue")
-        void setEndValue(double endValue) {
+        @StringSetter(END_VALUE)
+        public void setEndValue(double endValue) {
             this.endValue = endValue;
         }
 
-        @StringGetter("annealType")
+        private static final String ANNEAL_TYPE = "annealType";
+        @StringGetter(ANNEAL_TYPE)
         public annealOption getAnnealType() {
             return this.annealType;
         }
 
-        @StringSetter("annealType")
-        void setAnnealType(String annealType) {
+        @StringSetter(ANNEAL_TYPE)
+        public void setAnnealType(String annealType) {
             this.annealType = annealOption.valueOf(annealType);
         }
 
-        @StringGetter("defaultSubpopulation")
+        public void setAnnealType(annealOption annealType) {
+            this.annealType = annealType;
+        }
+
+        private static final String DEFAULT_SUBPOP = "defaultSubpopulation";
+        @StringGetter(DEFAULT_SUBPOP)
         public String getDefaultSubpopulation() {
             return this.defaultSubpop;
         }
 
-        @StringSetter("defaultSubpopulation")
-        void setDefaultSubpopulation(String defaultSubpop) {
+        @StringSetter(DEFAULT_SUBPOP)
+        public void setDefaultSubpopulation(String defaultSubpop) {
             this.defaultSubpop = defaultSubpop;
         }
 
-        @StringGetter("annealParameter")
+        private static final String ANNEAL_PARAM = "annealParameter";
+        @StringGetter(ANNEAL_PARAM)
         public annealParameterOption getAnnealParameter() {
             return this.annealParameter;
         }
 
-        @StringSetter("annealParameter")
-        void setAnnealParameter(String annealParameter) {
+        @StringSetter(ANNEAL_PARAM)
+        public void setAnnealParameter(String annealParameter) {
             this.annealParameter = annealParameterOption.valueOf(annealParameter);
         }
 
-        @StringGetter("halfLife")
-        public int getHalfLife() {
+        public void setAnnealParameter(annealParameterOption annealParameter) {
+            this.annealParameter = annealParameter;
+        }
+
+        private static final String HALFLIFE = "halfLife";
+        @StringGetter(HALFLIFE)
+        public double getHalfLife() {
             return this.halfLife;
         }
 
-        @StringSetter("halfLife")
-        void setHalfLife(int halfLife) {
+        @StringSetter(HALFLIFE)
+        public void setHalfLife(double halfLife) {
             this.halfLife = halfLife;
         }
 
-        @StringGetter("shapeFactor")
+        private static final String SHAPE_FACTOR = "shapeFactor";
+        @StringGetter(SHAPE_FACTOR)
         public double getShapeFactor() {
             return this.shapeFactor;
         }
 
-        @StringSetter("shapeFactor")
-        void setShapeFactor(double shapeFactor) {
+        @StringSetter(SHAPE_FACTOR)
+        public void setShapeFactor(double shapeFactor) {
             this.shapeFactor = shapeFactor;
-        }
-
-        @StringGetter("iterationToFreezeAnnealingRates")
-        public int getIterationToFreezeAnnealingRates() {
-            return this.iterationToFreezeAnnealingRates;
-        }
-
-        @StringSetter("iterationToFreezeAnnealingRates")
-        void setIterationToFreezeAnnealingRates(int iterationToFreezeAnnealingRates) {
-            this.iterationToFreezeAnnealingRates = iterationToFreezeAnnealingRates;
         }
 
         @Override
         public Map<String, String> getComments() {
             Map<String, String> map = super.getComments();
-            map.put("iterationToFreezeAnnealingRates", "if using this, make sure to change other config parameters accordingly to avoid conflicts (e.g. innovationSwitchOff).");
-            map.put("halfLife", "exponential: startValue / exp(it/halfLife)");
-            map.put("shapeFactor", "sigmoid: 1/(1+e^(shapeFactor*(it - halfLife))); geometric: startValue * shapeFactor^it; msa: startValue / it^shapeFactor");
-            map.put("annealType", "options: linear, exponential, geometric, msa, sigmoid and disabled (no annealing).");
-            map.put("annealParameter", "list of config parameters that shall be annealed. Currently supported: globalInnovationRate, BrainExpBeta, PathSizeLogitBeta, learningRate. Default is globalInnovationRate");
-            map.put("defaultSubpopulation", "subpopulation to have the global innovation rate adjusted. Not applicable when annealing with other parameters.");
+            map.put(HALFLIFE, "this parameter enters the exponential and sigmoid formulas. May be an iteration or a share, i.e. 0.5 for halfLife at 50% of iterations. Exponential: startValue / exp(it/halfLife)");
+            map.put(SHAPE_FACTOR, "sigmoid: 1/(1+e^(shapeFactor*(it - halfLife))); geometric: startValue * shapeFactor^it; msa: startValue / it^shapeFactor");
+            map.put(ANNEAL_TYPE, "options: linear, exponential, geometric, msa, sigmoid and disabled (no annealing).");
+            map.put(ANNEAL_PARAM, "list of config parameters that shall be annealed. Currently supported: globalInnovationRate, BrainExpBeta, PathSizeLogitBeta, learningRate. Default is globalInnovationRate");
+            map.put(DEFAULT_SUBPOP, "subpopulation to have the global innovation rate adjusted. Not applicable when annealing with other parameters.");
+            map.put(START_VALUE, "start value for annealing.");
+            map.put(END_VALUE, "final annealing value. When the annealing function reaches this value, further results remain constant.");
             return map;
         }
     }
