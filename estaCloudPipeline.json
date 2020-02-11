@@ -1,0 +1,40 @@
+{
+  "$schema": "https://code.sbb.ch/projects/KD_ESTA/repos/esta-cloud-pipeline/raw/resources/estaCloudPipelineSchema.json?at=refs%2Ftags%2Frelease",
+  "mainBranch": "master",
+  "hotfixBranch": "hotfix",
+  "jdkLabel": "OpenJDK 1.8 64-Bit",
+  "mvn": {
+    "parentPom": "pom.xml",
+    "deployableArtifactsPom": "pom.xml",
+    "artifactoryMavenRepo": "simba.mvn"
+  },
+  "stages": [],
+  "steps": [
+    {
+      "stepType": "continuous",
+      "isBuildEnabled": true,
+      "branchNamePrefixes": [
+        "feature"
+      ],
+      "junitTestReportPath": "**/target/surefire-reports/*.xml"
+    },
+    {
+      "stepType": "integrationBuild",
+      "isBuildEnabled": true,
+      "sonarScanEnabled": true,
+      "triggerBuildOnCommitEnabled": true,
+      "junitTestReportPath": "**/target/surefire-reports/*.xml"
+    },
+    {
+      "stepType": "release",
+      "isBuildEnabled": true,
+      "sonarScanEnabled": false,
+      "triggerBuildOnCommitEnabled": false,
+      "hotfixCreationEnabled": false
+    },
+    {
+      "stepType": "hotfix",
+      "isBuildEnabled": false
+    }
+  ]
+}
