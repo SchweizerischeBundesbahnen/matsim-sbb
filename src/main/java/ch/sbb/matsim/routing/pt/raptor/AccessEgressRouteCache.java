@@ -17,10 +17,12 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
+import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.SingleModeNetworksCache;
 import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
+import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
-import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
 import javax.inject.Inject;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
 public class AccessEgressRouteCache {
 
     private final static Logger LOGGER = Logger.getLogger(AccessEgressRouteCache.class);
+    public static final double FREESPEED_FACTOR = 0.8;
     private final Map<String, SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
     private final Map<String, SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet> raptorIntermodalModeParams;
     private final TransitSchedule transitSchedule;
@@ -43,6 +46,7 @@ public class AccessEgressRouteCache {
     private final Scenario scenario;
     private Map<String, Map<Id<Link>, Integer>> accessTimes = new HashMap<>();
     private Map<String, Map<Id<Link>, Map<Id<Link>, int[]>>> travelTimesDistances = new HashMap<>();
+    private Map<String, LeastCostPathCalculator> leastCostPathCalculators = new HashMap<>();
     private SingleModeNetworksCache singleModeNetworksCache;
 
 
@@ -71,20 +75,17 @@ public class AccessEgressRouteCache {
                         .collect(Collectors.toSet());
                 LOGGER.info("Found " + stopLinkIds.size() + " stops with intermodal access option for this mode.");
                 Network network = getRoutingNetwork(paramset.getMode());
+                final FreeSpeedTravelTime freeSpeedTravelTime = new FreeSpeedTravelTime();
+                final FreespeedTravelTimeAndDisutility travelTimeAndDisutility = new FreespeedTravelTimeAndDisutility(config.planCalcScore());
+                this.leastCostPathCalculators.put(paramset.getMode(), new DijkstraFactory(false).createPathCalculator(network, travelTimeAndDisutility, freeSpeedTravelTime));
                 Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeZoneId(), network);
                 accessTimes.put(paramset.getMode(), modeAccessTimes);
-                final double maxRadius = raptorParams.getMaxRadius() + 2000;
+                final double maxRadius = raptorParams.getMaxRadius();
                 Map<Id<Link>, Map<Id<Node>, SBBLeastCostPathTree.NodeData>> travelTimes = stopLinkIds.parallelStream()
                         .collect(Collectors.toMap(l -> l, l -> {
-                            SBBLeastCostPathTree leastCostPathTree = new SBBLeastCostPathTree(new FreeSpeedTravelTime(), new FreespeedTravelTimeAndDisutility(config.planCalcScore()));
+                            SBBLeastCostPathTree leastCostPathTree = new SBBLeastCostPathTree(freeSpeedTravelTime, travelTimeAndDisutility);
                             Node fromNode = network.getLinks().get(l).getToNode();
-//                            return leastCostPathTree.calculate(network, fromNode, 0, new SBBLeastCostPathTree.TravelDistanceStopCriterion(maxRadius));
-                            return leastCostPathTree.calculate(network, fromNode, 0, new SBBLeastCostPathTree.StopCriterion() {
-                                @Override
-                                public boolean stop(Node node, SBBLeastCostPathTree.NodeData data, double departureTime) {
-                                    return (CoordUtils.calcEuclideanDistance(node.getCoord(), fromNode.getCoord()) > maxRadius);
-                                }
-                            });
+                            return leastCostPathTree.calculate(network, fromNode, 0, new SBBLeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
 
                         }));
                 Map<Id<Link>, Map<Id<Link>, int[]>> travelTimeLinks = new HashMap<>();
@@ -161,16 +162,26 @@ public class AccessEgressRouteCache {
     public RouteCharacteristics getCachedRouteCharacteristics(String mode, Id<Link> stopFacilityLinkId, Id<Link> endLinkFacility) {
         Map<Id<Link>, Map<Id<Link>, int[]>> modalStats = this.travelTimesDistances.get(mode);
         Map<Id<Link>, int[]> facStats = modalStats.get(stopFacilityLinkId);
-
-//        int[] value = this.travelTimesDistances.get(mode).get(stopFacilityLinkId).get(endLinkFacility);
         int[] value = facStats.get(endLinkFacility);
-        if (value != null) {
-            int accessTime = accessTimes.get(mode).get(stopFacilityLinkId);
-            return new RouteCharacteristics(value[0], accessTime, value[2], value[1]);
-        } else return
-                null;
-
-        //TODO: sync, update route here and store into cache
+        int accessTime = accessTimes.get(mode).get(stopFacilityLinkId);
+        if (facStats == null) {
+            throw new RuntimeException("Stop at linkId " + stopFacilityLinkId + " is not a listed stop for intermodal access egress.");
+        }
+        if (value == null) {
+            //we are (slightly) outside pre-cached radius
+            final Network routingNetwork = getRoutingNetwork(mode);
+            Node fromNode = routingNetwork.getLinks().get(stopFacilityLinkId).getToNode();
+            Node toNode = routingNetwork.getLinks().get(endLinkFacility).getToNode();
+            LeastCostPathCalculator.Path path = this.leastCostPathCalculators.get(mode).calcLeastCostPath(fromNode, toNode, 0, null, null);
+            int distance = (int) RouteUtils.calcDistance(path);
+            int traveltime = (int) path.travelTime;
+            int egressTime = getAccessTime(this.intermodalModeParams.get(mode).getAccessTimeZoneId(), toNode.getCoord());
+            synchronized (facStats) {
+                value = new int[]{distance, traveltime, egressTime};
+                facStats.put(endLinkFacility, value);
+            }
+        }
+        return new RouteCharacteristics(value[0], accessTime, value[2], value[1] * FREESPEED_FACTOR);
     }
 
 

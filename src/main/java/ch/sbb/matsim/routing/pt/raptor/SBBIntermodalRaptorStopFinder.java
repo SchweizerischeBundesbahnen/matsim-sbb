@@ -260,9 +260,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 
     private List<? extends PlanElement> getCachedTravelTime(Facility stopFacility, Facility actFacility, double departureTime, Person person, String mode, RoutingModule module, boolean backwards) {
         AccessEgressRouteCache.RouteCharacteristics characteristics = this.accessEgressRouteCache.getCachedRouteCharacteristics(mode, stopFacility.getLinkId(), actFacility.getLinkId());
-        if (characteristics == null) {
-            characteristics = calcRouteCharacteristics(stopFacility, actFacility, departureTime, person, module, mode);
-        }
+
         Id<Link> startLink = backwards ? actFacility.getLinkId() : stopFacility.getLinkId();
         Id<Link> endLink = backwards ? stopFacility.getLinkId() : actFacility.getLinkId();
         List<PlanElement> travel = new ArrayList<>();
@@ -308,30 +306,6 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         return leg;
     }
 
-    private AccessEgressRouteCache.RouteCharacteristics calcRouteCharacteristics(Facility stopFacility, Facility actFacility, double departureTime, Person person, RoutingModule module, String mode) {
-        List<? extends PlanElement> elements = module.calcRoute(stopFacility, actFacility, departureTime, person);
-        double accessTime = Double.NaN;
-        double egressTime = Double.NaN;
-        double distance = 0.;
-        double travelTime = 0.;
-        for (PlanElement pe : elements) {
-            if (pe instanceof Leg) {
-                Leg leg = (Leg) pe;
-                if (leg.getMode().equals(SBBModes.NON_NETWORK_WALK)) {
-                    if (Double.isNaN(accessTime)) {
-                        accessTime = leg.getTravelTime();
-                    } else {
-                        egressTime = leg.getTravelTime();
-                    }
-                }
-                if (leg.getMode().equals(mode)) {
-                    distance = leg.getRoute().getDistance();
-                    travelTime = leg.getTravelTime();
-                }
-            }
-        }
-        return new AccessEgressRouteCache.RouteCharacteristics(distance, accessTime, egressTime, travelTime);
-    }
 
     private boolean doUseMinimalTransferTimes(String mode) {
         for (SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet modeParams : this.intermodalModeParams.values()) {
