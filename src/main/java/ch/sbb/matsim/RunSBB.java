@@ -6,6 +6,8 @@ package ch.sbb.matsim;
 
 
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
+import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
+import ch.sbb.matsim.analysis.convergence.ConvergenceStatsConfig;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
@@ -51,7 +53,7 @@ public class RunSBB {
     public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
             new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
             new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(),
-            new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup()};
+            new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceStatsConfig()};
 
 
     public static void main(String[] args) {
@@ -64,6 +66,10 @@ public class RunSBB {
         if (args.length > 1)
             config.controler().setOutputDirectory(args[1]);
 
+        run(config);
+    }
+
+    public static void run(Config config) {
         new S3Downloader(config);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
@@ -129,6 +135,10 @@ public class RunSBB {
                 SimpleAnnealerConfigGroup annealerConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
                 if (annealerConfig.isActivateAnnealingModule()) {
                     addControlerListenerBinding().to(SimpleAnnealer.class);
+                }
+                ConvergenceStatsConfig convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceStatsConfig.class);
+                if (convergenceStatsConfig.isActivateConvergenceStats()) {
+                    addControlerListenerBinding().to(ConvergenceStats.class);
                 }
 
             }

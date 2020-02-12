@@ -43,7 +43,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private Integer visumNetworkThreshold = 5000;
     private String visumNetworkMode = TransportMode.car;
 
-
     @StringGetter(PARAM_SHAPEFILE_SCREENLINE)
     public String getShapefileScreenline() {
         return shapefileScreenline;
@@ -256,6 +255,20 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
         comments.put(PARAM_SHAPEFILE_SCREENLINE, "Shapefile for screenline. Contains polylines");
         comments.put(PARAM_MODE_VISUM_NETWORK, "Mode to consider to export Network with volume to Visum (*.net File");
         return comments;
+    }
+
+    public void setAllPostProcessingOff() {
+        this.travelDiaries = false;
+        this.ptVolumes = false;
+        this.linkVolumes = false;
+        this.eventsPerPerson = false;
+        this.writeAgentsCSV = false;
+        this.writePlanElementsCSV = false;
+        this.finalDailyVolumes = false;
+        this.writeVisumPuTSurvey = false;
+        this.analyseScreenline = false;
+        this.visumNetFile = false;
+        this.writeOutputsInterval = 0;
     }
 
 }
