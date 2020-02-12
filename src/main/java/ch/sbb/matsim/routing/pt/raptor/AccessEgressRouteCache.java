@@ -23,6 +23,7 @@ import org.matsim.core.router.SingleModeNetworksCache;
 import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
+import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
 import javax.inject.Inject;
@@ -172,9 +173,17 @@ public class AccessEgressRouteCache {
             final Network routingNetwork = getRoutingNetwork(mode);
             Node fromNode = routingNetwork.getLinks().get(stopFacilityLinkId).getToNode();
             Node toNode = routingNetwork.getLinks().get(endLinkFacility).getToNode();
-            LeastCostPathCalculator.Path path = this.leastCostPathCalculators.get(mode).calcLeastCostPath(fromNode, toNode, 0, null, null);
-            int distance = (int) RouteUtils.calcDistance(path);
-            int traveltime = (int) path.travelTime;
+            int distance;
+            int traveltime;
+            try {
+                LeastCostPathCalculator.Path path = this.leastCostPathCalculators.get(mode).calcLeastCostPath(fromNode, toNode, 0, null, null);
+                distance = (int) RouteUtils.calcDistance(path);
+                traveltime = (int) path.travelTime;
+            } catch (NullPointerException e) {
+                LOGGER.warn("Estimating access route: could not find route between nodes " + fromNode + " and " + toNode);
+                distance = (int) (CoordUtils.calcEuclideanDistance(fromNode.getCoord(), toNode.getCoord()) * 1.5);
+                traveltime = (int) (distance / 8.0);
+            }
             int egressTime = getAccessTime(this.intermodalModeParams.get(mode).getAccessTimeZoneId(), toNode.getCoord());
             synchronized (facStats) {
                 value = new int[]{distance, traveltime, egressTime};
