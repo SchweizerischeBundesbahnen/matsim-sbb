@@ -160,7 +160,6 @@
 						</goals>
 						<configuration>
 							<allowSnapshots>true</allowSnapshots>
-							<includes>org.matsim</includes>
 						</configuration>
 					</execution>
 				</executions>
