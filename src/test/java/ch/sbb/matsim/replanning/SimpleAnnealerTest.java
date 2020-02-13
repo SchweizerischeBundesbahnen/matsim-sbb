@@ -40,11 +40,11 @@ public class SimpleAnnealerTest {
 
         StrategyConfigGroup.StrategySettings s1 = new StrategyConfigGroup.StrategySettings();
         s1.setStrategyName("ReRoute");
-        s1.setWeight(0.25);
+        s1.setWeight(0.2);
         this.config.strategy().addStrategySettings(s1);
         StrategyConfigGroup.StrategySettings s2 = new StrategyConfigGroup.StrategySettings();
         s2.setStrategyName("SubtourModeChoice");
-        s2.setWeight(0.25);
+        s2.setWeight(0.2);
         this.config.strategy().addStrategySettings(s2);
         StrategyConfigGroup.StrategySettings s3 = new StrategyConfigGroup.StrategySettings();
         s3.setStrategyName("ChangeExpBeta"); // shouldn't be affected
@@ -66,6 +66,7 @@ public class SimpleAnnealerTest {
     public void testLinearAnneal() throws IOException {
         this.saConfigVar.setAnnealType("linear");
         this.saConfigVar.setEndValue(0.0);
+        this.saConfigVar.setStartValue(0.5);
 
         Controler controler = new Controler(this.scenario);
         controler.addOverridingModule(new AbstractModule() {
@@ -85,6 +86,7 @@ public class SimpleAnnealerTest {
     public void testMsaAnneal() throws IOException {
         this.saConfigVar.setAnnealType("msa");
         this.saConfigVar.setShapeFactor(1.0);
+        this.saConfigVar.setStartValue(0.5);
 
         Controler controler = new Controler(this.scenario);
         controler.addOverridingModule(new AbstractModule() {
@@ -104,6 +106,7 @@ public class SimpleAnnealerTest {
     public void testGeometricAnneal() throws IOException {
         this.saConfigVar.setAnnealType("geometric");
         this.saConfigVar.setShapeFactor(0.9);
+        this.saConfigVar.setStartValue(0.5);
 
         Controler controler = new Controler(this.scenario);
         controler.addOverridingModule(new AbstractModule() {
@@ -122,7 +125,8 @@ public class SimpleAnnealerTest {
     @Test
     public void testExponentialAnneal() throws IOException {
         this.saConfigVar.setAnnealType("exponential");
-        this.saConfigVar.setHalfLife(5);
+        this.saConfigVar.setHalfLife(0.5);
+        this.saConfigVar.setStartValue(0.5);
 
         Controler controler = new Controler(this.scenario);
         controler.addOverridingModule(new AbstractModule() {
@@ -141,8 +145,9 @@ public class SimpleAnnealerTest {
     @Test
     public void testSigmoidAnneal() throws IOException {
         this.saConfigVar.setAnnealType("sigmoid");
-        this.saConfigVar.setHalfLife(5);
+        this.saConfigVar.setHalfLife(0.5);
         this.saConfigVar.setShapeFactor(1.0);
+        this.saConfigVar.setStartValue(0.5);
 
         Controler controler = new Controler(this.scenario);
         controler.addOverridingModule(new AbstractModule() {
@@ -163,6 +168,7 @@ public class SimpleAnnealerTest {
         this.saConfigVar.setAnnealType("linear");
         this.saConfigVar.setAnnealParameter("BrainExpBeta");
         this.saConfigVar.setEndValue(0.0);
+        this.saConfigVar.setStartValue(10.0);
 
         Controler controler = new Controler(this.scenario);
         controler.addOverridingModule(new AbstractModule() {
@@ -178,11 +184,13 @@ public class SimpleAnnealerTest {
     public void testTwoParameterAnneal() throws IOException {
         this.saConfigVar.setAnnealType("msa");
         this.saConfigVar.setShapeFactor(1.0);
+        this.saConfigVar.setStartValue(0.5);
 
         SimpleAnnealerConfigGroup.AnnealingVariable otherAv = new SimpleAnnealerConfigGroup.AnnealingVariable();
         otherAv.setAnnealType("linear");
         otherAv.setEndValue(0.0);
         otherAv.setAnnealParameter("BrainExpBeta");
+        otherAv.setStartValue(10.0);
         this.saConfig.addAnnealingVariable(otherAv);
 
         Controler controler = new Controler(this.scenario);
@@ -205,6 +213,7 @@ public class SimpleAnnealerTest {
         this.config.strategy().setFractionOfIterationsToDisableInnovation(0.5);
         this.saConfigVar.setAnnealType("msa");
         this.saConfigVar.setShapeFactor(1.0);
+        this.saConfigVar.setStartValue(0.5);
 
         Controler controler = new Controler(this.scenario);
         controler.addOverridingModule(new AbstractModule() {
@@ -225,6 +234,7 @@ public class SimpleAnnealerTest {
         this.saConfigVar.setAnnealType("msa");
         this.saConfigVar.setShapeFactor(1.0);
         this.saConfigVar.setEndValue(0.1);
+        this.saConfigVar.setStartValue(0.5);
 
         Controler controler = new Controler(this.scenario);
         controler.addOverridingModule(new AbstractModule() {
@@ -245,6 +255,7 @@ public class SimpleAnnealerTest {
         String targetSubpop = "subpop";
         this.saConfigVar.setAnnealType("linear");
         this.saConfigVar.setEndValue(0.0);
+        this.saConfigVar.setStartValue(0.5);
         this.saConfigVar.setDefaultSubpopulation(targetSubpop);
         this.config.strategy().getStrategySettings().forEach(s -> s.setSubpopulation(targetSubpop));
         StrategyConfigGroup.StrategySettings s = new StrategyConfigGroup.StrategySettings();
@@ -353,30 +364,30 @@ public class SimpleAnnealerTest {
 
     private String expectedParameterAnneal =
             "it\tBrainExpBeta\n" +
-                    "0\t1.0000\n" +
-                    "1\t0.9000\n" +
-                    "2\t0.8000\n" +
-                    "3\t0.7000\n" +
-                    "4\t0.6000\n" +
-                    "5\t0.5000\n" +
-                    "6\t0.4000\n" +
-                    "7\t0.3000\n" +
-                    "8\t0.2000\n" +
-                    "9\t0.1000\n" +
+                    "0\t10.0000\n" +
+                    "1\t9.0000\n" +
+                    "2\t8.0000\n" +
+                    "3\t7.0000\n" +
+                    "4\t6.0000\n" +
+                    "5\t5.0000\n" +
+                    "6\t4.0000\n" +
+                    "7\t3.0000\n" +
+                    "8\t2.0000\n" +
+                    "9\t1.0000\n" +
                     "10\t0.0000\n";
 
     private String expectedTwoParameterAnneal =
             "it\tglobalInnovationRate\tReRoute\tSubtourModeChoice\tChangeExpBeta\tBrainExpBeta\n"+
-                    "0\t0.5000\t0.2500\t0.2500\t0.5000\t1.0000\n"+
-                    "1\t0.5000\t0.2500\t0.2500\t0.5000\t0.9000\n"+
-                    "2\t0.2500\t0.1250\t0.1250\t0.5000\t0.8000\n"+
-                    "3\t0.1667\t0.0833\t0.0833\t0.5000\t0.7000\n"+
-                    "4\t0.1250\t0.0625\t0.0625\t0.5000\t0.6000\n"+
-                    "5\t0.1000\t0.0500\t0.0500\t0.5000\t0.5000\n"+
-                    "6\t0.0833\t0.0417\t0.0417\t0.5000\t0.4000\n"+
-                    "7\t0.0714\t0.0357\t0.0357\t0.5000\t0.3000\n"+
-                    "8\t0.0625\t0.0313\t0.0313\t0.5000\t0.2000\n"+
-                    "9\t0.0556\t0.0278\t0.0278\t0.5000\t0.1000\n"+
+                    "0\t0.5000\t0.2500\t0.2500\t0.5000\t10.0000\n"+
+                    "1\t0.5000\t0.2500\t0.2500\t0.5000\t9.0000\n"+
+                    "2\t0.2500\t0.1250\t0.1250\t0.5000\t8.0000\n"+
+                    "3\t0.1667\t0.0833\t0.0833\t0.5000\t7.0000\n"+
+                    "4\t0.1250\t0.0625\t0.0625\t0.5000\t6.0000\n"+
+                    "5\t0.1000\t0.0500\t0.0500\t0.5000\t5.0000\n"+
+                    "6\t0.0833\t0.0417\t0.0417\t0.5000\t4.0000\n"+
+                    "7\t0.0714\t0.0357\t0.0357\t0.5000\t3.0000\n"+
+                    "8\t0.0625\t0.0313\t0.0313\t0.5000\t2.0000\n"+
+                    "9\t0.0556\t0.0278\t0.0278\t0.5000\t1.0000\n"+
                     "10\t0.0500\t0.0250\t0.0250\t0.5000\t0.0000\n";
 
     private String expectedFreezeEarlyAnneal =
