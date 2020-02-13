@@ -259,7 +259,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     }
 
     private List<? extends PlanElement> getCachedTravelTime(Facility stopFacility, Facility actFacility, double departureTime, Person person, String mode, RoutingModule module, boolean backwards) {
-        AccessEgressRouteCache.RouteCharacteristics characteristics = this.accessEgressRouteCache.getCachedRouteCharacteristics(mode, stopFacility, actFacility, module);
+        AccessEgressRouteCache.RouteCharacteristics characteristics = this.accessEgressRouteCache.getCachedRouteCharacteristics(mode, stopFacility, actFacility, module, person);
 
         Id<Link> startLink = backwards ? actFacility.getLinkId() : stopFacility.getLinkId();
         Id<Link> endLink = backwards ? stopFacility.getLinkId() : actFacility.getLinkId();
