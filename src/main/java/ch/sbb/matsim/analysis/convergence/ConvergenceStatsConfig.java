@@ -2,12 +2,12 @@ package ch.sbb.matsim.analysis.convergence;
 
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
+import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.misc.ArgumentParser;
 import org.matsim.core.utils.misc.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
 
@@ -34,21 +34,21 @@ public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
     }
 
     @StringGetter("testsToRun")
+    public String getTestsToRunString() {
+        return CollectionUtils.setToString(Arrays.stream(this.testsToRun).map(t -> t.name().toLowerCase()).collect(Collectors.toSet()));
+    }
+
     public Test[] getTestsToRun() {
         return testsToRun;
     }
 
     @StringSetter("testsToRun")
     public void setTestsToRun(String testsToRun) {
-        List<Test> tests = new ArrayList<>();
-        for (String test : StringUtils.explode(testsToRun, ',')) {
-            tests.add(Test.valueOf(test));
-        }
-        setTestsToRun(tests);
+        this.testsToRun = CollectionUtils.stringToSet(testsToRun).stream().map(t -> Test.valueOf(t.toUpperCase())).toArray(Test[]::new);
     }
 
-    public void setTestsToRun(List<Test> testsToRun) {
-        this.testsToRun = testsToRun.toArray(new Test[0]);
+    public void setTestsToRun(Test[] testsToRun) {
+        this.testsToRun = testsToRun;
     }
 
     @StringGetter("windowSize")
@@ -74,6 +74,7 @@ public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
     @Override
     public Map<String, String> getComments() {
         Map<String, String> map = super.getComments();
+        map.put("testsToRun", "Possibilities are: " + CollectionUtils.setToString(Arrays.stream(Test.values()).map(t -> t.name().toLowerCase()).collect(Collectors.toSet())));
         map.put("windowSize", "number of iterations to be averaged in the windows used for the convergence statistics");
         map.put("numWindows", "minimum number of windows for running the convergence tests. Outputs start at iteration numWindows*windowSize.");
         return map;
