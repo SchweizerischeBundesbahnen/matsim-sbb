@@ -82,7 +82,7 @@ public class ConvergenceStatsTest {
         csConfig.setActivateConvergenceStats(true);
         csConfig.setNumWindows(2);
         csConfig.setWindowSize(1);
-        csConfig.setTestsToRun(Arrays.asList(ConvergenceStatsConfig.Test.values()));
+        csConfig.setTestsToRun(ConvergenceStatsConfig.Test.values());
         // shut-off outputs
         config.controler().setLastIteration(4);
         config.controler().setOutputDirectory(utils.getOutputDirectory());
