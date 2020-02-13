@@ -2,6 +2,7 @@ package ch.sbb.matsim.analysis.convergence;
 
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
+import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.misc.ArgumentParser;
 import org.matsim.core.utils.misc.StringUtils;
 
@@ -34,6 +35,20 @@ public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
     }
 
     @StringGetter("testsToRun")
+    public String getTestsToRunString() {
+        return testsAsString(this.testsToRun);
+    }
+
+    private static String testsAsString(Test[] tests) {
+        StringBuilder testsToRunString = new StringBuilder();
+        for (Test test : tests) {
+            testsToRunString.append(test.name().toLowerCase());
+            testsToRunString.append(",");
+        }
+        testsToRunString.deleteCharAt(testsToRunString.length() - 1);
+        return testsToRunString.toString();
+    }
+
     public Test[] getTestsToRun() {
         return testsToRun;
     }
@@ -42,7 +57,7 @@ public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
     public void setTestsToRun(String testsToRun) {
         List<Test> tests = new ArrayList<>();
         for (String test : StringUtils.explode(testsToRun, ',')) {
-            tests.add(Test.valueOf(test));
+            tests.add(Test.valueOf(test.toUpperCase()));
         }
         setTestsToRun(tests);
     }
@@ -74,6 +89,7 @@ public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
     @Override
     public Map<String, String> getComments() {
         Map<String, String> map = super.getComments();
+        map.put("testsToRun", "Possibilities are: " + testsAsString(Test.values()));
         map.put("windowSize", "number of iterations to be averaged in the windows used for the convergence statistics");
         map.put("numWindows", "minimum number of windows for running the convergence tests. Outputs start at iteration numWindows*windowSize.");
         return map;
