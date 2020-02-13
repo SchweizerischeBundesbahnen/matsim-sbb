@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 public class AccessEgressRouteCache {
 
     private final static Logger LOGGER = Logger.getLogger(AccessEgressRouteCache.class);
-    public static final double FREESPEED_FACTOR = 0.8;
+    public static final double FREESPEED_TRAVELTIME_FACTOR = 1.25;
     private final Map<String, SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
     private final Map<String, SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet> raptorIntermodalModeParams;
     private final TransitSchedule transitSchedule;
@@ -179,7 +179,7 @@ public class AccessEgressRouteCache {
                 facStats.put(actFacilityLinkId, value);
             }
         }
-        return new RouteCharacteristics(value[0], accessTime, value[2], value[1] * FREESPEED_FACTOR);
+        return new RouteCharacteristics(value[0], accessTime, value[2], value[1] * FREESPEED_TRAVELTIME_FACTOR);
     }
 
 
