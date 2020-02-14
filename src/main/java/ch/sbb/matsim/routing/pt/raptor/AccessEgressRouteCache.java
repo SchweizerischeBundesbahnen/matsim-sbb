@@ -163,7 +163,7 @@ public class AccessEgressRouteCache {
         Map<Id<Link>, Map<Id<Link>, int[]>> modalStats = this.travelTimesDistances.get(mode);
         Map<Id<Link>, int[]> facStats = modalStats.get(stopFacilityLinkId);
         int[] value = facStats.get(actFacilityLinkId);
-        int accessTime = accessTimes.get(mode).get(stopFacilityLinkId);
+        int accessTime = accessTimes.getOrDefault(mode, new HashMap<>()).getOrDefault(stopFacilityLinkId, 0);
         if (facStats == null) {
             throw new RuntimeException("Stop at linkId " + stopFacilityLinkId + " is not a listed stop for intermodal access egress.");
         }
