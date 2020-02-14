@@ -117,6 +117,7 @@ public class VisumStreetNetworkExporter {
                         Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
                         Integer.parseInt(anAttarraylink[6]));
                 if (link != null) {
+                    link.getAttributes().putAttribute("type", Integer.parseInt(anAttarraylink[5]));
                     int ac = 0;
                     try {
                         ac = Integer.parseInt(anAttarraylink[9]);
