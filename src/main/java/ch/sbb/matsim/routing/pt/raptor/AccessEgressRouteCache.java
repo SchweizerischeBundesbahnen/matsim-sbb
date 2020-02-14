@@ -132,8 +132,8 @@ public class AccessEgressRouteCache {
         }
         Zone zone = zonesCollection.findZone(coord);
         if (zone != null) {
-            Integer at = (Integer) zone.getAttribute(accessTimeZoneId);
-            return at != null ? at : 0;
+            Object at = zone.getAttribute(accessTimeZoneId);
+            return at != null ? (int) Double.parseDouble(at.toString()) : 0;
         } else return 0;
     }
 
