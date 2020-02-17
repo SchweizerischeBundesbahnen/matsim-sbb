@@ -43,8 +43,11 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysi
 
     // Methods
     @Override
-    public void writeResults() {
+    public void writeResults(boolean lastIteration) {
         this.write(this.filename);
+        if (lastIteration) {
+            EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_VOLUMES);
+        }
     }
 
     public void write(String filename) {
@@ -58,7 +61,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysi
                             linkVolumesWriter.set(COL_LINK_ID, linkId.toString());
                             linkVolumesWriter.set(COL_MODE, aMode);
                             linkVolumesWriter.set(COL_BIN, Integer.toString(i + 1));
-                            linkVolumesWriter.set(COL_VOLUME, Integer.toString(volumes[i]));
+                            linkVolumesWriter.set(COL_VOLUME, Double.toString(volumes[i]));
                             linkVolumesWriter.writeRow();
                         }
                     }

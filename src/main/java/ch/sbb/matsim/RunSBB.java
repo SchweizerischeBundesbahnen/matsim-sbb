@@ -6,6 +6,8 @@ package ch.sbb.matsim;
 
 
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
+import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
+import ch.sbb.matsim.analysis.convergence.ConvergenceStatsConfig;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
@@ -13,11 +15,13 @@ import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
+import ch.sbb.matsim.replanning.SimpleAnnealer;
+import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
-import ch.sbb.matsim.routing.pt.raptor.IntermodalRaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
+import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
@@ -45,10 +49,11 @@ import org.matsim.core.scoring.ScoringFunctionFactory;
  */
 public class RunSBB {
 
-    private final static Logger log = Logger.getLogger(RunSBB.class);
-    public final static ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+    private static final Logger log = Logger.getLogger(RunSBB.class);
+    public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
             new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(), new SBBNetworkRoutingConfigGroup()};
+            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(),
+            new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceStatsConfig()};
 
 
     public static void main(String[] args) {
@@ -61,6 +66,10 @@ public class RunSBB {
         if (args.length > 1)
             config.controler().setOutputDirectory(args[1]);
 
+        run(config);
+    }
+
+    public static void run(Config config) {
         new S3Downloader(config);
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
@@ -75,11 +84,11 @@ public class RunSBB {
 
     public static void addSBBDefaultScenarioModules(Scenario scenario) {
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
-
+        SBBNetworkRoutingModule.prepareScenario(scenario);
         IntermodalModule.prepareIntermodalScenario(scenario);
         // vehicle types
         new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
-                scenario.getConfig().qsim().getMainModes()).createVehicles();
+                scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
         scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
         SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
@@ -122,6 +131,16 @@ public class RunSBB {
                 if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
                     addEventHandlerBinding().to(RideParkingCostTracker.class);
                 }
+
+                SimpleAnnealerConfigGroup annealerConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
+                if (annealerConfig.isActivateAnnealingModule()) {
+                    addControlerListenerBinding().to(SimpleAnnealer.class);
+                }
+                ConvergenceStatsConfig convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceStatsConfig.class);
+                if (convergenceStatsConfig.isActivateConvergenceStats()) {
+                    addControlerListenerBinding().to(ConvergenceStats.class);
+                }
+
             }
 
             @Provides
@@ -133,13 +152,13 @@ public class RunSBB {
             }
         });
 
-        controler.addOverridingModule(new SBBNetworkRoutingModule(scenario));
+        controler.addOverridingModule(new SBBNetworkRoutingModule());
         controler.addOverridingModule(new AccessEgress(scenario));
         controler.addOverridingModule(new IntermodalModule());
         controler.addOverridingModule(new AbstractModule() {
             @Override
             public void install() {
-                this.bind(RaptorStopFinder.class).to(IntermodalRaptorStopFinder.class);
+                this.bind(RaptorStopFinder.class).to(SBBIntermodalRaptorStopFinder.class);
             }
         });
 

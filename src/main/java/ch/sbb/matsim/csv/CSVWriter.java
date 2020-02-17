@@ -13,6 +13,7 @@ import java.nio.charset.Charset;
 
 public class CSVWriter implements AutoCloseable {
 
+    private final String separator;
     private final String[] columns;
     private final int columnCount;
     private final BufferedWriter writer;
@@ -20,23 +21,32 @@ public class CSVWriter implements AutoCloseable {
     private final Counter counter;
 
     public CSVWriter(final String header, final String[] columns, final String filename) throws IOException {
-        this(header, columns, IOUtils.getBufferedWriter(filename));
+        this(header, columns, IOUtils.getBufferedWriter(filename), ";");
+    }
+
+    public CSVWriter(final String header, final String[] columns, final String filename, final String separator) throws IOException {
+        this(header, columns, IOUtils.getBufferedWriter(filename), separator);
     }
 
     public CSVWriter(final String header, final String[] columns, final String filename, final Charset encoding) throws IOException {
-        this(header, columns, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), encoding)));
+        this(header, columns, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), encoding)), ";");
     }
 
-    public CSVWriter(final String header, final String[] columns, final OutputStream stream) throws IOException {
-        this(header, columns, new BufferedWriter(new OutputStreamWriter(stream)));
+    public CSVWriter(final String header, final String[] columns, final String filename, final Charset encoding, final String separator) throws IOException {
+        this(header, columns, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), encoding)), separator);
     }
 
-    private CSVWriter(final String header, final String[] columns, final BufferedWriter writer) throws IOException {
+    public CSVWriter(final String header, final String[] columns, final OutputStream stream, final String separator) throws IOException {
+        this(header, columns, new BufferedWriter(new OutputStreamWriter(stream)), separator);
+    }
+
+    private CSVWriter(final String header, final String[] columns, final BufferedWriter writer, final String separator) throws IOException {
         this.columns = columns;
         this.columnCount = this.columns.length;
         this.currentRow = new String[this.columnCount];
         this.writer = writer;
         this.counter = new Counter("Output lines written: ");
+        this.separator = separator;
 
         // write header data
         if (header != null) {
@@ -46,7 +56,7 @@ public class CSVWriter implements AutoCloseable {
         // write column names
         for (int i = 0; i < this.columnCount; i++) {
             if (i > 0) {
-                this.writer.write(";");
+                this.writer.write(this.separator);
             }
             String col = columns[i];
             this.writer.write(col);
@@ -77,14 +87,21 @@ public class CSVWriter implements AutoCloseable {
      * @throws UncheckedIOException
      */
     public void writeRow() throws UncheckedIOException {
+        writeRow(false);
+    }
+
+    public void writeRow(boolean flush) throws UncheckedIOException {
         try {
             for (int i = 0; i < this.columnCount; i++) {
                 if (i > 0) {
-                    this.writer.write(";");
+                    this.writer.write(this.separator);
                 }
                 this.writer.write(this.currentRow[i]);
             }
             this.writer.write("\n");
+            if (flush) {
+                this.writer.flush();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

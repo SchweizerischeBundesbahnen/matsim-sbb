@@ -6,11 +6,11 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 
 public class ScreenLineEventWriter extends LinkAnalyser implements EventsAnalysis {
-    private final static Logger log = Logger.getLogger(ScreenLineEventWriter.class);
+    private static final Logger log = Logger.getLogger(ScreenLineEventWriter.class);
 
-    double scale;
-    String shapefilee;
-    String folder;
+    private double scale;
+    private String shapefilee;
+    private String folder;
 
     public ScreenLineEventWriter(Scenario scenario, double scale, String shapefile, String folder) {
         super(scenario);
@@ -21,8 +21,11 @@ public class ScreenLineEventWriter extends LinkAnalyser implements EventsAnalysi
 
 
     @Override
-    public void writeResults() {
+    public void writeResults(boolean lastIteration) {
         this.writeScreenLines(this.shapefilee, this.folder, this.scale);
+        if (lastIteration) {
+            this.writeScreenLines(this.shapefilee, EventsAnalysis.getOutputFolderName(this.folder), this.scale);
+        }
     }
 
 

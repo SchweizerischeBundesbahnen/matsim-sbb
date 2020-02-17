@@ -1,5 +1,6 @@
 package ch.sbb.matsim.analysis.LinkAnalyser;
 
+import com.google.common.base.Functions;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -20,8 +21,11 @@ import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 
 
 public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler, TransitDriverStartsEventHandler {
@@ -29,16 +33,17 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
 
 
     protected Scenario scenario;
-    protected HashMap<Id, Integer> linkVolumes;
+    protected LinkedHashMap<Id, Integer> linkVolumes;
     protected HashMap<Id<Vehicle>, Integer> passengers;
     HashSet<Id> transitDrivers;
 
     public LinkAnalyser(Scenario scenario) {
         this.scenario = scenario;
-        this.linkVolumes = new HashMap<>();
         this.passengers = new HashMap<>();
         this.transitDrivers = new HashSet<>();
-
+        this.linkVolumes = new LinkedHashMap<>();
+        this.linkVolumes.putAll(scenario.getNetwork().getLinks().keySet()
+                .stream().collect(Collectors.toMap(Functions.identity(), i -> 0)));
     }
 
 
@@ -74,12 +79,8 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
         if (passengers == null) {
             passengers = 0;
         }
-        if (!linkVolumes.containsKey(linkid)) {
-            linkVolumes.put(linkid, passengers);
-        } else {
-            Integer vol = linkVolumes.get(linkid);
-            linkVolumes.put(linkid, vol + passengers);
-        }
+        Integer vol = linkVolumes.get(linkid);
+        linkVolumes.put(linkid, vol + passengers);
     }
 
 

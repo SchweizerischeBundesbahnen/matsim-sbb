@@ -2,7 +2,7 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package ch.sbb.matsim.analysis.VisumPuTSurvey;
+package ch.sbb.matsim.analysis.TestFixtures;
 
 import org.matsim.core.config.Config;
 import org.matsim.core.mobsim.qsim.AbstractQSimModule;

@@ -18,6 +18,7 @@
  * *********************************************************************** */
 package ch.sbb.matsim.utils;
 
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
@@ -29,8 +30,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.vehicles.MatsimVehicleReader;
 
-import java.io.IOException;
-
 /**
  * @author jlie
  *         <p>
@@ -40,14 +39,12 @@ import java.io.IOException;
  */
 public class RunEventsToEventsPerPersonTable {
 
-    /**
-     * @param args
-     */
+    private static final Logger log = Logger.getLogger(RunEventsToEventsPerPersonTable.class);
+
     public static void main(String[] args) {
 
         String eventsFileName = null;
         Config config = null;
-        String appendage = "";
         String outputDirectory = null;
         String personIdString = null;
         printHelp();
@@ -57,7 +54,6 @@ public class RunEventsToEventsPerPersonTable {
             eventsFileName = args[1];
             if (args.length == 3) {
                 personIdString = args[2];
-                appendage = personIdString;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             System.exit(1);
@@ -87,21 +83,13 @@ public class RunEventsToEventsPerPersonTable {
 
         new MatsimEventsReader(events).readFile(eventsFileName);
 
-        try {
-            handler.writeSimulationResultsToTabSeparated(appendage);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        handler.writeResults(true);
 
-        System.out.println("Number of stuck vehicles/passengers: "
-                + handler.getStuck());
-
+        log.info("Number of stuck vehicles/passengers: " + handler.getStuck());
     }
 
     private static void printHelp() {
-        System.out.println(
-                "Just for internal use at SBB\n"
-        );
+        log.info("Just for internal use at SBB\n");
     }
 }
 
