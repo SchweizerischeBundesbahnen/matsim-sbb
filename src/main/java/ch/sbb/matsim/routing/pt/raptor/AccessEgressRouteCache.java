@@ -94,7 +94,7 @@ public class AccessEgressRouteCache {
                         int travelTime = (int) Math.round(nodeDataEntry.getValue().getTime());
                         int travelDistance = (int) Math.round(nodeDataEntry.getValue().getDistance());
                         int egressTime = getAccessTime(paramset.getAccessTimeZoneId(), node.getCoord());
-                        int[] data = new int[]{travelTime, travelDistance, egressTime};
+                        int[] data = new int[]{travelDistance, travelTime, egressTime};
                         for (Id<Link> inlink : node.getInLinks().keySet()) {
                             travelTimesToLink.put(inlink, data);
                         }
