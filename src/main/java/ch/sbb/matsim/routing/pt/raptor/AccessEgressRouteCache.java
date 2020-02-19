@@ -30,6 +30,7 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
 import javax.inject.Inject;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -88,7 +89,7 @@ public class AccessEgressRouteCache {
                         }));
                 Map<Id<Link>, Map<Id<Link>, int[]>> travelTimeLinks = new HashMap<>();
                 for (Map.Entry<Id<Link>, Map<Id<Node>, SBBLeastCostPathTree.NodeData>> entry : travelTimes.entrySet()) {
-                    Map<Id<Link>, int[]> travelTimesToLink = new HashMap<>();
+                    Map<Id<Link>, int[]> travelTimesToLink = new ConcurrentHashMap<>();
                     for (Map.Entry<Id<Node>, SBBLeastCostPathTree.NodeData> nodeDataEntry : entry.getValue().entrySet()) {
                         Node node = network.getNodes().get(nodeDataEntry.getKey());
                         int travelTime = (int) Math.round(nodeDataEntry.getValue().getTime());
@@ -114,7 +115,7 @@ public class AccessEgressRouteCache {
     private Map<Id<Link>, Integer> calcModeAccessTimes(Set<Id<Link>> stopLinkIds, String accessTimeZoneId, Network network) {
         Map<Id<Link>, Integer> accessTimes = new HashMap<>();
         if (accessTimeZoneId == null) {
-            stopLinkIds.stream().forEach(i -> accessTimes.put(i, 0));
+            stopLinkIds.forEach(i -> accessTimes.put(i, 0));
         } else {
             stopLinkIds.parallelStream().forEach(l -> {
                 Coord coord = network.getLinks().get(l).getCoord();
@@ -162,22 +163,21 @@ public class AccessEgressRouteCache {
         Id<Link> actFacilityLinkId = actFacility.getLinkId();
         Map<Id<Link>, Map<Id<Link>, int[]>> modalStats = this.travelTimesDistances.get(mode);
         Map<Id<Link>, int[]> facStats = modalStats.get(stopFacilityLinkId);
-        int[] value = facStats.get(actFacilityLinkId);
-        int accessTime = accessTimes.getOrDefault(mode, new HashMap<>()).getOrDefault(stopFacilityLinkId, 0);
         if (facStats == null) {
             throw new RuntimeException("Stop at linkId " + stopFacilityLinkId + " is not a listed stop for intermodal access egress.");
         }
+        int[] value = facStats.get(actFacilityLinkId);
+        int accessTime = accessTimes.getOrDefault(mode, Collections.emptyMap()).getOrDefault(stopFacilityLinkId, 0);
         if (value == null) {
             //we are slightly outside the cached radius
             List<? extends PlanElement> routeParts = module.calcRoute(stopFacility, actFacility, 3 * 3600, person);
-            Leg routedLeg = TripStructureUtils.getLegs(routeParts).stream().filter(leg -> leg.getMode().equals(mode)).findFirst().get();
+            Leg routedLeg = TripStructureUtils.getLegs(routeParts).stream().filter(leg -> leg.getMode().equals(mode)).findFirst().orElseThrow(RuntimeException::new);
             int egressTime = getAccessTime(this.intermodalModeParams.get(mode).getAccessTimeZoneId(), scenario.getNetwork().getLinks().get(routedLeg.getRoute().getEndLinkId()).getToNode().getCoord());
             int distance = (int) routedLeg.getRoute().getDistance();
             int traveltime = (int) routedLeg.getRoute().getTravelTime();
-            synchronized (facStats) {
-                value = new int[]{distance, traveltime, egressTime};
-                facStats.put(actFacilityLinkId, value);
-            }
+            value = new int[]{distance, traveltime, egressTime};
+            facStats.put(actFacilityLinkId, value);
+
         }
         return new RouteCharacteristics(value[0], accessTime, value[2], value[1] * FREESPEED_TRAVELTIME_FACTOR);
     }
