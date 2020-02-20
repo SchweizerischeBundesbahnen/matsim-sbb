@@ -146,11 +146,12 @@ public class VisumStreetNetworkExporter {
         if (length == 0.0) {
             length = 0.0001;
         }
+        length *= 1000.;
         double beelineDistance = CoordUtils.calcEuclideanDistance(fnode.getCoord(), tnode.getCoord());
         if (length < beelineDistance) {
             length = beelineDistance;
         }
-        link.setLength(1000 * length);
+        link.setLength(length);
         link.setCapacity(cap);
         link.setFreespeed(v / 3.6);
         link.setNumberOfLanes(numlanes);
