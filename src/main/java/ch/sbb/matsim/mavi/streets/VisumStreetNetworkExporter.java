@@ -13,6 +13,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -144,6 +145,10 @@ public class VisumStreetNetworkExporter {
         Link link = nf.createLink(id, fnode, tnode);
         if (length == 0.0) {
             length = 0.0001;
+        }
+        double beelineDistance = CoordUtils.calcEuclideanDistance(fnode.getCoord(), tnode.getCoord());
+        if (length < beelineDistance) {
+            length = beelineDistance;
         }
         link.setLength(1000 * length);
         link.setCapacity(cap);
