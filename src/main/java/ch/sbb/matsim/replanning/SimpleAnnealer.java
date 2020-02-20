@@ -102,7 +102,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                         break;
                     case exponential:
                         int halfLifeIter = av.getHalfLife() <= 1.0 ?
-                                (int) av.getHalfLife()*this.innovationStop : (int) av.getHalfLife();
+                                (int) (av.getHalfLife()*this.innovationStop) : (int) av.getHalfLife();
                         this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
                                 av.getStartValue() / Math.exp((double) this.currentIter / halfLifeIter));
                         break;
@@ -112,7 +112,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                         break;
                     case sigmoid:
                         halfLifeIter = av.getHalfLife() <= 1.0 ?
-                                (int) av.getHalfLife()*this.innovationStop : (int) av.getHalfLife();
+                                (int) (av.getHalfLife()*this.innovationStop) : (int) av.getHalfLife();
                         this.currentValues.compute(av.getAnnealParameter(), (k,v) ->
                                 av.getEndValue() + (av.getStartValue() - av.getEndValue()) /
                                         (1 + Math.exp(av.getShapeFactor()*(this.currentIter - halfLifeIter))));
@@ -274,8 +274,8 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
             default:
                 throw new IllegalArgumentException();
         }
-        if (!configValue.equals(av.getStartValue())) {
-            log.warn("Anneal start value doesn't match config value. Resetting startValue to config value " + av.getAnnealParameter() + " of " + configValue);
+        if (av.getStartValue() == null) {
+            log.warn("Anneal start value not set. Config value will be used.");
             av.setStartValue(configValue);
         }
     }
