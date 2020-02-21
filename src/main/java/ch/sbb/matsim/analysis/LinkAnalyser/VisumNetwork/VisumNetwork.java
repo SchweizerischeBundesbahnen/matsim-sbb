@@ -123,8 +123,10 @@ public class VisumNetwork {
                 double volume = entry.getValue();
                 String id = link.getId().toString();
                 writer.set("LINK_ID_SIM", id);
-                writer.set("FROMNODENO", link.getFromNode().getId().toString().substring(2));
-                writer.set("TONODENO", link.getToNode().getId().toString().substring(2));
+                final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
+                writer.set("FROMNODENO", fromNode);
+                final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+                writer.set("TONODENO", toNode);
                 writer.set("VOLUME_SIM", Double.toString(volume));
                 writer.writeRow();
             }
@@ -154,8 +156,10 @@ public class VisumNetwork {
                 double volume = entry.getValue();
                 String id = link.getId().toString();
                 writer.set("$LINK:NO", id);
-                writer.set("FROMNODENO", link.getFromNode().getId().toString().substring(2));
-                writer.set("TONODENO", link.getToNode().getId().toString().substring(2));
+                final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
+                writer.set("FROMNODENO", fromNode);
+                final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+                writer.set("TONODENO", toNode);
                 writer.set("NBVEHICLES", Double.toString(volume));
                 writer.writeRow();
             }
