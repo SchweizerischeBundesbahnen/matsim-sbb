@@ -142,6 +142,7 @@ public class RunVisumPtExporter {
         for (Link l : network.getLinks().values()) {
             double beelineLength = CoordUtils.calcEuclideanDistance(l.getFromNode().getCoord(), l.getToNode().getCoord());
             if (l.getLength() < beelineLength) {
+                log.warn(l.getId() + " has a length (" + l.getLength() + ") shorter than its beeline distance (" + beelineLength + "). Correcting this.");
                 l.setLength(beelineLength);
             }
             if (l.getLength() <= 0.0) {
