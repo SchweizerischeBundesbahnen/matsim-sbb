@@ -27,6 +27,7 @@ public class VisumStreetNetworkExporter {
     private Scenario scenario;
     private NetworkFactory nf;
     private Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
+    private String toNode;
 
     public static void main(String[] args) throws IOException {
         String inputvisum = args[0];
@@ -54,7 +55,7 @@ public class VisumStreetNetworkExporter {
 
         String[][] nodes = importNodes(net, "No", "XCoord", "YCoord");
         String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
-                "NumLanes", "TSysSet", "ID_SIM", "accessControlled", "WKTPoly");
+                "NumLanes", "TSysSet", "accessControlled", "WKTPoly");
         createNetwork(nodes, links);
         writeNetwork(outputPath);
 
@@ -113,24 +114,35 @@ public class VisumStreetNetworkExporter {
 
         for (String[] anAttarraylink : attarraylink) {
             if (anAttarraylink[7].contains("P")) {
-                Id<Link> id = Id.createLinkId(anAttarraylink[8]);
-                Link link = createLink(id, anAttarraylink[0], anAttarraylink[1], Double.parseDouble(anAttarraylink[2]),
+                final String fromNode = anAttarraylink[0];
+                toNode = anAttarraylink[1];
+                Id<Link> id = createLinkId(fromNode, toNode, network);
+                Link link = createLink(id, fromNode, toNode, Double.parseDouble(anAttarraylink[2]),
                         Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
                         Integer.parseInt(anAttarraylink[6]));
                 if (link != null) {
                     link.getAttributes().putAttribute("type", Integer.parseInt(anAttarraylink[5]));
                     int ac = 0;
                     try {
-                        ac = Integer.parseInt(anAttarraylink[9]);
+                        ac = Integer.parseInt(anAttarraylink[8]);
                     } catch (NumberFormatException e) {
                         log.warn("Access Control not defined for link " + link.getId() + ". Assuming = 0");
                     }
                     link.getAttributes().putAttribute("accessControlled", ac);
                     network.addLink(link);
                 }
-                this.wktLineStringPerVisumLink.put(id, anAttarraylink[10]);
+                this.wktLineStringPerVisumLink.put(id, anAttarraylink[9]);
             }
         }
+    }
+
+    private Id<Link> createLinkId(String fromNode, String toNode, Network network) {
+        Id<Link> id = Id.createLinkId(fromNode + "_" + toNode);
+        while (network.getLinks().containsKey(id)) {
+            //in rare cases, two nodes are connected by more than one link
+            id = Id.createLinkId(id.toString() + "a");
+        }
+        return id;
     }
 
 
