@@ -159,9 +159,8 @@ public class VisumStreetNetworkExporter {
         double beelineDistance = CoordUtils.calcEuclideanDistance(fnode.getCoord(), tnode.getCoord());
         if (length < beelineDistance) {
             if (beelineDistance - length > 1.0) {
-                log.warn(link.getId() + " has a length (" + length + ") shorter than its beeline distance (" + beelineDistance + "). Correcting this.");
+                log.warn(link.getId() + " has a length (" + length + ") shorter than its beeline distance (" + beelineDistance + "). Will not correct this.");
             }
-            length = beelineDistance;
         }
         link.setLength(length);
         link.setCapacity(cap);
