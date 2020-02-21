@@ -116,7 +116,7 @@ public class VisumStreetNetworkExporter {
             if (anAttarraylink[7].contains("P")) {
                 final String fromNode = anAttarraylink[0];
                 final String toNode = anAttarraylink[1];
-                final String visumLinkNo = anAttarraylink[11];
+                final String visumLinkNo = anAttarraylink[10];
                 Id<Link> id = createLinkId(fromNode, visumLinkNo);
                 Link link = createLink(id, fromNode, toNode, Double.parseDouble(anAttarraylink[2]),
                         Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
