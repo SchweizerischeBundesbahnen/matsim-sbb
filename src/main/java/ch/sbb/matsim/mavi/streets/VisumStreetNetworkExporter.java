@@ -12,6 +12,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.*;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 
@@ -121,7 +122,7 @@ public class VisumStreetNetworkExporter {
                         Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
                         Integer.parseInt(anAttarraylink[6]));
                 if (link != null) {
-                    link.getAttributes().putAttribute("type", Integer.parseInt(anAttarraylink[5]));
+                    NetworkUtils.setType(link, anAttarraylink[5]);
                     int ac = 0;
                     try {
                         ac = Integer.parseInt(anAttarraylink[8]);
