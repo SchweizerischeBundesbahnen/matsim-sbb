@@ -137,7 +137,7 @@ public class VisumStreetNetworkExporter {
         }
     }
 
-    private Id<Link> createLinkId(String fromNode, String visumLinkId) {
+    public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
         Id<Link> id = Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
         return id;
     }
