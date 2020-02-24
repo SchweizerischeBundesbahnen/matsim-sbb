@@ -8,21 +8,11 @@
 	<name>MATSim SBB Project</name>
 	<description>MATSim for project MEMO-P: Multimodale Erweiterung der Modell-Landschaft P</description>
 
-    	<repositories>
+    <repositories>
 		<repository>
 			<!-- MATSim is not on Maven central -->
 			<id>matsim</id>
 			<url>https://dl.bintray.com/matsim/matsim</url>
-		</repository>
-		
-		<repository>
-			<id>matsim-eth</id>
-			<url>http://dl.bintray.com/matsim-eth/matsim</url>
-		</repository>
-
-        <repository>
-			<id>matsim-snapshot</id>
-			<url>http://oss.jfrog.org/libs-snapshot</url>
 		</repository>
 
 		<repository>
@@ -35,12 +25,13 @@
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
+		
 		<repository>
 			<id>osgeo</id>
 			<name>Geotools repository</name>
 			<url>http://download.osgeo.org/webdav/geotools</url>
 		</repository>
-	</repositories>
+	</repositories>	
 
 	<properties>
 		<matsim.version>12.0-2019w45-SNAPSHOT</matsim.version>
@@ -92,6 +83,12 @@
 			<groupId>ch.ethz.matsim</groupId>
 			<artifactId>discrete_mode_choice</artifactId>
 			<version>1.0.5-benchmark</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.github.simunto</groupId>
+					<artifactId>matsim-sbb-extensions</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency> 
 		
         <dependency>
@@ -100,9 +97,8 @@
 			<version>0.13.0</version>
 		</dependency>
 
-
 		<dependency>
-			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
+			<groupId>ch.sbb</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
 			<version>12.1</version>
 		</dependency>
@@ -119,7 +115,7 @@
 			<groupId>kml</groupId>
 			<artifactId>kml</artifactId>
 			<version>2.2.0</version>
-			<type>pom</type>
+			
 		</dependency>
 
 		<!-- Include the jacobs library to use the COM interface -->
@@ -147,12 +143,28 @@
 			<artifactId>aws-java-sdk-s3</artifactId>
 			<version>1.11.265</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-main</artifactId>
+			<version>21.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-referencing</artifactId>
+			<version>21.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-shapefile</artifactId>
+			<version>21.1</version>
+		</dependency>
 
 	</dependencies>
 
 	<build>
 		<plugins>
-			<plugin>
+			 <plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
 				<version>2.1.13</version>
@@ -171,7 +183,7 @@
 				</configuration>
 
 
-			</plugin>
+			</plugin> 
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
