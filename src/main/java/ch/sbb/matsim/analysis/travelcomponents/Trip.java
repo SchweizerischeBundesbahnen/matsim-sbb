@@ -162,7 +162,22 @@ public class Trip extends TravelComponent {
         if (accessLegs == null || accessLegs.isEmpty()) {
             return "";
         } else if (accessLegs.size() > 1) {
-            return accessLegs.get(1).getMode();
+            Set<String> modes = new HashSet<>();
+            for(TravelledLeg leg : accessLegs) {
+                modes.add(leg.getMode());
+            }
+            if (modes.contains("non_network_walk")){
+                if (modes.size()>1){
+                    modes.remove("non_network_walk");
+                }
+            }
+            if (modes.size()==0) {
+                return "";
+            } else if (modes.size()==1){
+                return new ArrayList<>(modes).get(0);
+            } else {
+                return String.join(",", new ArrayList<>(modes));
+            }
         } else {
             return accessLegs.get(0).getMode();
         }
@@ -172,12 +187,26 @@ public class Trip extends TravelComponent {
         if (egressLegs == null || egressLegs.isEmpty()) {
             return "";
         } else if (egressLegs.size() > 1) {
-            return egressLegs.get(egressLegs.size() - 2).getMode();
+            Set<String> modes = new HashSet<>();
+            for(TravelledLeg leg : egressLegs) {
+                modes.add(leg.getMode());
+            }
+            if (modes.contains("non_network_walk")){
+                if (modes.size()>1){
+                    modes.remove("non_network_walk");
+                }
+            }
+            if (modes.size()==0) {
+                return "";
+            } else if (modes.size()==1){
+                return new ArrayList<>(modes).get(0);
+            } else {
+                return String.join(",", new ArrayList<>(modes));
+            }
         } else {
-            return egressLegs.get(egressLegs.size() - 1).getMode();
+            return egressLegs.get(0).getMode();
         }
     }
-
     public double getAccessToRailDist(List<TravelledLeg> accessLegs) {
         if (accessLegs == null) {
             return 0;
