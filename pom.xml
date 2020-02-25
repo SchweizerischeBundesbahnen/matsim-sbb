@@ -92,7 +92,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>ch.sbb</groupId>
+			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
 			<version>12.1</version>
 		</dependency>
