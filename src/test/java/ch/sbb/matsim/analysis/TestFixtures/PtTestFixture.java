@@ -1,4 +1,4 @@
-package ch.sbb.matsim.analysis.VisumPuTSurvey;
+package ch.sbb.matsim.analysis.TestFixtures;
 
 
 import ch.sbb.matsim.analysis.EventsToTravelDiaries;
@@ -34,10 +34,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class TestFixture {
+public class PtTestFixture {
 
-    Scenario scenario;
-    Config config;
+    public Scenario scenario;
+    public Config config;
     EventsToTravelDiaries eventsToTravelDiaries;
 
     TransitStopFacility stopA;
@@ -49,23 +49,21 @@ public class TestFixture {
     TransitLine line1;
     TransitRoute route1;
 
-    EventsManager eventsManager;
+    public EventsManager eventsManager;
 
-    TestFixture() {
+    public PtTestFixture() {
         this.config = ConfigUtils.createConfig(new PostProcessingConfigGroup());
         this.config.transit().setUseTransit(true);
         SBBTransitConfigGroup sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBTransitConfigGroup.class);
         sbbConfig.setDeterministicServiceModes(Collections.singleton("train"));
         this.scenario = ScenarioUtils.createScenario(config);
 
-        createNetwork();
+        this.eventsManager = EventsUtils.createEventsManager(config);
 
-        eventsToTravelDiaries = new EventsToTravelDiaries(scenario, "", null);
-        eventsManager = EventsUtils.createEventsManager();
-        eventsManager.addHandler(eventsToTravelDiaries);
+        createNetwork();
     }
 
-    void addSingleTransitDemand() {
+    public void addSingleTransitDemand() {
         Population population = this.scenario.getPopulation();
         PopulationFactory pf = population.getFactory();
         Person person = pf.createPerson(Id.create(1, Person.class));

@@ -31,6 +31,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private int writeOutputsInterval = 10;
     private Boolean writeAgentsCSV = false;
     private Boolean writePlanElementsCSV = false;
+    private Boolean finalDailyVolumes = false;
     private String linkCountDataFile = null;
     private String stopCountDataFile = null;
     private Boolean writeVisumPuTSurvey = false;
@@ -41,7 +42,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private Boolean visumNetFile = false;
     private Integer visumNetworkThreshold = 5000;
     private String visumNetworkMode = TransportMode.car;
-
 
     @StringGetter(PARAM_SHAPEFILE_SCREENLINE)
     public String getShapefileScreenline() {
@@ -113,6 +113,16 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     @StringSetter("writePlanElementsCSV")
     public void setWritePlanElementsCSV(Boolean value) {
         this.writePlanElementsCSV = value;
+    }
+
+    @StringGetter("writeFinalDailyVolumes")
+    public Boolean getFinalDailyVolumes() {
+        return finalDailyVolumes;
+    }
+
+    @StringSetter("writeFinalDailyVolumes")
+    public void setFinalDailyVolumes(Boolean finalDailyVolumes) {
+        this.finalDailyVolumes = finalDailyVolumes;
     }
 
     @StringGetter("personAttributes")
@@ -245,6 +255,20 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
         comments.put(PARAM_SHAPEFILE_SCREENLINE, "Shapefile for screenline. Contains polylines");
         comments.put(PARAM_MODE_VISUM_NETWORK, "Mode to consider to export Network with volume to Visum (*.net File");
         return comments;
+    }
+
+    public void setAllPostProcessingOff() {
+        this.travelDiaries = false;
+        this.ptVolumes = false;
+        this.linkVolumes = false;
+        this.eventsPerPerson = false;
+        this.writeAgentsCSV = false;
+        this.writePlanElementsCSV = false;
+        this.finalDailyVolumes = false;
+        this.writeVisumPuTSurvey = false;
+        this.analyseScreenline = false;
+        this.visumNetFile = false;
+        this.writeOutputsInterval = 0;
     }
 
 }

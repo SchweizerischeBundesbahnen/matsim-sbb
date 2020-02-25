@@ -46,6 +46,9 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
             if (pe instanceof Activity) {
                 Activity act = (Activity)pe;
 
+                // skip outside activities
+                if ("outside".equals(act.getType())) { continue; }
+
                 // handle first activity
                 if (i == 0) {
                     // set start to midnight

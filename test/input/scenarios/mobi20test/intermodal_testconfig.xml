@@ -3116,6 +3116,8 @@
         <param name="useIntermodalAccessEgress" value="true"/>
         <param name="useModeMappingForPassengers" value="false"/>
         <param name="useRangeQuery" value="false"/>
+        <!-- Possible values: CalcLeastCostModePerStop, RandomSelectOneModePerRoutingRequestAndDirection -->
+        <param name="intermodalAccessEgressModeSelection" value="RandomSelectOneModePerRoutingRequestAndDirection"/>
 
         <parameterset type="intermodalAccessEgress">
             <param name="mode" value="bike"/>
