@@ -18,6 +18,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.vehicles.MatsimVehicleWriter;
 
@@ -138,6 +139,18 @@ public class RunVisumPtExporter {
                 collect(Collectors.toSet());
         nodesToRemove.forEach(network::removeNode);
         log.info("removed " + nodesToRemove.size() + " unused nodes.");
+        for (Link l : network.getLinks().values()) {
+            double beelineLength = CoordUtils.calcEuclideanDistance(l.getFromNode().getCoord(), l.getToNode().getCoord());
+            if (l.getLength() < beelineLength) {
+                if (beelineLength - l.getLength() > 1.0) {
+                    log.warn(l.getId() + " has a length (" + l.getLength() + ") shorter than its beeline distance (" + beelineLength + "). Correcting this.");
+                }
+                l.setLength(beelineLength);
+            }
+            if (l.getLength() <= 0.0) {
+                l.setLength(0.01);
+            }
+        }
     }
 
     private static void createOutputPath(String path)    {
