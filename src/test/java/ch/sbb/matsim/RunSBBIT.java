@@ -1,5 +1,6 @@
 package ch.sbb.matsim;
 
+import ch.ethz.matsim.discrete_mode_choice.model.DiscreteModeChoiceModel;
 import ch.ethz.matsim.discrete_mode_choice.model.tour_based.TourEstimator;
 import ch.ethz.matsim.discrete_mode_choice.modules.*;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
@@ -38,6 +39,7 @@ public class RunSBBIT {
 
         Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
         config.strategy().setFractionOfIterationsToDisableInnovation(1.0);
+        config.controler().setLastIteration(10);
 
         StrategyConfigGroup.StrategySettings dmcSS = new StrategyConfigGroup.StrategySettings();
         dmcSS.setDisableAfter(-1);
@@ -57,6 +59,7 @@ public class RunSBBIT {
         dmcConfig.setTourFinder(TourFinderModule.ACTIVITY_BASED);
         dmcConfig.setTourEstimator("SBBScoring");
         dmcConfig.setCachedModes(Arrays.asList(TransportMode.car, TransportMode.pt, TransportMode.ride, TransportMode.walk, TransportMode.bike));
+        dmcConfig.setFallbackBehaviour(DiscreteModeChoiceModel.FallbackBehaviour.IGNORE_AGENT);
 
         ConfigGroup parSet = dmcConfig.createParameterSet("tourFinder:"+TourFinderModule.ACTIVITY_BASED);
         parSet.addParam("activityType", "home");
