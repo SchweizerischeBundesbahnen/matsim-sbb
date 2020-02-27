@@ -1,10 +1,10 @@
 package ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import org.matsim.core.utils.collections.Tuple;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.io.UncheckedIOException;
 
 import java.io.IOException;
@@ -35,6 +35,8 @@ public class VisumNetwork {
 
     private static final String[] VOLUMES_COLUMNS = new String[]{
             "LINK_ID_SIM",
+            "FROMNODENO",
+            "TONODENO",
             "VOLUME_SIM"
     };
 
@@ -121,6 +123,10 @@ public class VisumNetwork {
                 double volume = entry.getValue();
                 String id = link.getId().toString();
                 writer.set("LINK_ID_SIM", id);
+                final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
+                writer.set("FROMNODENO", fromNode);
+                final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+                writer.set("TONODENO", toNode);
                 writer.set("VOLUME_SIM", Double.toString(volume));
                 writer.writeRow();
             }
@@ -150,8 +156,10 @@ public class VisumNetwork {
                 double volume = entry.getValue();
                 String id = link.getId().toString();
                 writer.set("$LINK:NO", id);
-                //writer.set("FROMNODENO", ids[1]);
-                //writer.set("TONODENO", ids[2]);
+                final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
+                writer.set("FROMNODENO", fromNode);
+                final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+                writer.set("TONODENO", toNode);
                 writer.set("NBVEHICLES", Double.toString(volume));
                 writer.writeRow();
             }

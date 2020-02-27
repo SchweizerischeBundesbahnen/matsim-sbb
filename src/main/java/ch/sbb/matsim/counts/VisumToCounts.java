@@ -6,6 +6,7 @@ package ch.sbb.matsim.counts;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter;
 import com.google.common.collect.ObjectArrays;
 import com.jacob.com.Dispatch;
 import org.matsim.api.core.v01.Id;
@@ -19,7 +20,7 @@ import java.util.Map;
 
 public class VisumToCounts {
 
-    private static String[] visumColumns = {"NAME", "ZW_DWV_FZG", "ID_SIM", "ADDVAL1"};
+    private static String[] visumColumns = {"NAME", "ZW_DWV_FZG", "FROMNODENO", "LINKNO", "ADDVAL1"};
 
     private static String[] csvColumns = {"link_id", "mode", "bin", "volume", "zaehlstellen_bezeichnung", "road_type"};
 
@@ -49,8 +50,9 @@ public class VisumToCounts {
             try (CSVReader reader = new CSVReader(ObjectArrays.concat("$COUNTLOCATION:NO", visumColumns), fis, ";")) {
                 Map<String, String> map;
                 while ((map = reader.readLine()) != null) {
-                    String link_id = map.get("ID_SIM");
-                    Id<Link> linkId = Id.create(link_id, Link.class);
+                    String visumLinkId = map.get("LINKNO");
+                    String fromNode = map.get("FROMNODENO");
+                    Id<Link> linkId = VisumStreetNetworkExporter.createLinkId(fromNode, visumLinkId);
                     String stationName = map.get("NAME") + "_" + map.get("ADDVAL1");
                     if (!counts.getCounts().containsKey(linkId) && !map.get("ZW_DWV_FZG").isEmpty()) {
                         Count<Link> count = counts.createAndAddCount(linkId, stationName);
@@ -59,7 +61,7 @@ public class VisumToCounts {
                             count.createVolume(i, Double.parseDouble("0"));
                     }
 
-                    writer.set("link_id", link_id);
+                    writer.set("link_id", linkId.toString());
                     writer.set("mode", "car");
                     writer.set("bin", "");
                     writer.set("volume", map.get("ZW_DWV_FZG"));

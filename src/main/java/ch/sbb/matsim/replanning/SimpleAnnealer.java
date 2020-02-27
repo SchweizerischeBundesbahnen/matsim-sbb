@@ -57,7 +57,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
         for (AnnealingVariable av : this.saConfig.getAnnealingVariables().values()) {
             if (!av.getAnnealType().equals(annealOption.disabled)) {
                 // check and fix initial value if needed
-                checkAndFixStartValue(av);
+                checkAndFixStartValue(av, event);
 
                 this.currentValues.put(av.getAnnealParameter(), av.getStartValue());
                 header.add(av.getAnnealParameter().name());
@@ -159,6 +159,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                         .collect(Collectors.toList()).get(0).setWeight(annealValue);
                 break;
             case globalInnovationRate:
+                if (this.currentIter > this.innovationStop) { annealValue = 0.0; }
                 List<Double> annealValues = annealReplanning(annealValue,
                         event.getServices().getStrategyManager(), av.getDefaultSubpopulation());
                 int i = 0;
@@ -169,24 +170,28 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                     }
                 }
                 this.writer.set(av.getAnnealParameter().name(), String.format("%.4f", // update value in case of switchoff
-                        getGlobalInnovationRate(event.getServices().getStrategyManager(), av.getDefaultSubpopulation())));
+                        getStrategyWeights(event.getServices().getStrategyManager(), av.getDefaultSubpopulation(), StratType.allInnovation)));
                 break;
             default:
                 throw new IllegalArgumentException();
         }
     }
 
-    private List<Double> annealReplanning(double globalValue, StrategyManager stratMan, String subpopulation) {
+    private List<Double> annealReplanning(double globalInnovationValue, StrategyManager stratMan, String subpopulation) {
         List<Double> annealValues = new ArrayList<>();
-        double totalInnovationWeights = getGlobalInnovationRate(stratMan, subpopulation);
+        double totalInnovationWeights = getStrategyWeights(stratMan, subpopulation, StratType.allInnovation);
+        double totalSelectorWeights = getStrategyWeights(stratMan, subpopulation, StratType.allSelectors);
         List<GenericPlanStrategy<Plan, Person>> strategies = stratMan.getStrategies(subpopulation);
         for (GenericPlanStrategy<Plan, Person> strategy : strategies) {
             double weight = stratMan.getWeights(subpopulation).get(strategies.indexOf(strategy));
             if (isInnovationStrategy(strategy.toString())) {
                 weight = totalInnovationWeights > 0 ?
-                        globalValue * weight/totalInnovationWeights : 0.0;
-                stratMan.changeWeightOfStrategy(strategy, subpopulation, weight);
+                        globalInnovationValue * weight/totalInnovationWeights : 0.0;
+            } else {
+                weight = totalSelectorWeights > 0 ?
+                        (1 - globalInnovationValue) * weight/totalSelectorWeights : 0.0000001;
             }
+            stratMan.changeWeightOfStrategy(strategy, subpopulation, weight);
             annealValues.add(weight);
         }
         return annealValues;
@@ -200,31 +205,56 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                 ((strategyName.toLowerCase().contains("selector") || strategyName.toLowerCase().contains("expbeta")) && !strategyName.contains("_")));
     }
 
-    private double getGlobalInnovationRate(StrategyManager stratMan, String subpopulation) {
-        if (this.currentIter == this.innovationStop + 1) { return 0.0; }
+    private enum StratType {allInnovation, allSelectors, allStrategies}
+
+    private double getStrategyWeights(StrategyManager stratMan, String subpopulation, StratType stratType) {
+        if (this.currentIter == this.innovationStop + 1 && stratType.equals(StratType.allInnovation)) { return 0.0; }
         List<GenericPlanStrategy<Plan, Person>> strategies = stratMan.getStrategies(subpopulation);
-        double totalInnovationWeights = 0.0;
+        double totalWeights = 0.0;
         for (GenericPlanStrategy<Plan, Person> strategy : strategies) {
-            if (isInnovationStrategy(strategy.toString())) {
-                totalInnovationWeights += stratMan.getWeights(subpopulation).get(strategies.indexOf(strategy));
+            double weight = stratMan.getWeights(subpopulation).get(strategies.indexOf(strategy));
+            switch (stratType) {
+                case allSelectors:
+                    if (!isInnovationStrategy(strategy.toString())) { totalWeights += weight; }
+                    break;
+                case allInnovation:
+                    if (isInnovationStrategy(strategy.toString())) { totalWeights += weight; }
+                    break;
+                case allStrategies:
+                    totalWeights += weight;
+                    break;
+                default:
+                    break;
             }
         }
-        return totalInnovationWeights;
+        return totalWeights;
     }
 
-    private double getGlobalInnovationRate(Config config, String subpopulation) {
-        if (this.currentIter == this.innovationStop + 1) { return 0.0; }
+    private double getStrategyWeights(Config config, String subpopulation, StratType stratType) {
+        if (this.currentIter == this.innovationStop + 1 && stratType.equals(StratType.allInnovation)) { return 0.0; }
         Collection<StrategyConfigGroup.StrategySettings> strategies = config.strategy().getStrategySettings();
-        double totalInnovationWeights = 0.0;
+        double totalWeights = 0.0;
         for (StrategyConfigGroup.StrategySettings strategy : strategies) {
-            if (isInnovationStrategy(strategy.getStrategyName()) && Objects.equals(strategy.getSubpopulation(), subpopulation)) {
-                totalInnovationWeights += strategy.getWeight();
+            if (Objects.equals(strategy.getSubpopulation(), subpopulation)) {
+                switch (stratType) {
+                    case allSelectors:
+                        if (!isInnovationStrategy(strategy.toString())) { totalWeights += strategy.getWeight(); }
+                        break;
+                    case allInnovation:
+                        if (isInnovationStrategy(strategy.toString())) { totalWeights += strategy.getWeight(); }
+                        break;
+                    case allStrategies:
+                        totalWeights += strategy.getWeight();
+                        break;
+                    default:
+                        break;
+                }
             }
         }
-        return totalInnovationWeights;
+        return totalWeights;
     }
 
-   private int getInnovationStop(Config config){
+    private int getInnovationStop(Config config){
         int globalInnovationDisableAfter = (int) ((config.controler().getLastIteration() - config.controler().getFirstIteration())
                 * config.strategy().getFractionOfIterationsToDisableInnovation() + config.controler().getFirstIteration());
 
@@ -251,7 +281,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
         return Math.min(innoStop, config.controler().getLastIteration());
     }
 
-    private void checkAndFixStartValue(SimpleAnnealerConfigGroup.AnnealingVariable av) {
+    private void checkAndFixStartValue(SimpleAnnealerConfigGroup.AnnealingVariable av, StartupEvent event) {
         Double configValue;
         switch (av.getAnnealParameter()) {
             case BrainExpBeta:
@@ -269,7 +299,14 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
                         .collect(Collectors.toList()).get(0).getWeight();
                 break;
             case globalInnovationRate:
-                configValue = getGlobalInnovationRate(this.config, av.getDefaultSubpopulation());
+                double innovationWeights = getStrategyWeights(this.config, av.getDefaultSubpopulation(), StratType.allInnovation);
+                double selectorWeights = getStrategyWeights(this.config, av.getDefaultSubpopulation(), StratType.allSelectors);
+                if (innovationWeights + selectorWeights != 1.0) {
+                    log.warn("Initial sum of strategy weights different from 1.0. Rescaling.");
+                    double innovationStartValue = av.getStartValue() == null ? innovationWeights : av.getStartValue();
+                    rescaleStartupWeights(innovationStartValue, this.config, event.getServices().getStrategyManager(), av.getDefaultSubpopulation());
+                }
+                configValue = getStrategyWeights(this.config, av.getDefaultSubpopulation(), StratType.allInnovation);
                 break;
             default:
                 throw new IllegalArgumentException();
@@ -277,6 +314,38 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
         if (av.getStartValue() == null) {
             log.warn("Anneal start value not set. Config value will be used.");
             av.setStartValue(configValue);
+        }
+    }
+
+    private void rescaleStartupWeights(double innovationStartValue, Config config, StrategyManager stratMan, String subpopulation) {
+        double selectorStartValue = 1 - innovationStartValue;
+        // adapt simulation weights
+        List<GenericPlanStrategy<Plan, Person>> strategies = stratMan.getStrategies(subpopulation);
+        for (GenericPlanStrategy<Plan, Person> strategy : strategies) {
+            double weight = stratMan.getWeights(subpopulation).get(strategies.indexOf(strategy));
+            if (isInnovationStrategy(strategy.toString())) {
+                weight = innovationStartValue > 0 ?
+                        weight/innovationStartValue : 0.0;
+            } else {
+                weight = selectorStartValue > 0 ?
+                        weight/selectorStartValue : 0.0;
+            }
+            stratMan.changeWeightOfStrategy(strategy, subpopulation, weight);
+        }
+        // adapt also in config for the record
+        Collection<StrategyConfigGroup.StrategySettings> strategiesConfig = config.strategy().getStrategySettings();
+        for (StrategyConfigGroup.StrategySettings strategy : strategiesConfig) {
+            if (Objects.equals(strategy.getSubpopulation(), subpopulation)) {
+                double weight = strategy.getWeight();
+                if (isInnovationStrategy(strategy.toString())) {
+                    weight = innovationStartValue > 0 ?
+                            weight/innovationStartValue : 0.0;
+                } else {
+                    weight = selectorStartValue > 0 ?
+                            weight/selectorStartValue : 0.0;
+                }
+                strategy.setWeight(weight);
+            }
         }
     }
 }
