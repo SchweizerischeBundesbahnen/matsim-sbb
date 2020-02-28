@@ -63,7 +63,7 @@ public class AnalyzeSkimDifferences {
                     .collect(Collectors.toMap(
                             z -> z.getKey(),
                             z ->
-                                    z.getValue().values().stream().mapToDouble(s -> s.diffs[i.intValue()]).sum())
+                                    z.getValue().values().stream().mapToDouble(s -> Double.isNaN(s.diffs[i.intValue()]) ? 0 : Math.abs(s.diffs[i.intValue()])).sum())
 
                     );
             zoneDiffs.add(zoneDiff);
@@ -123,7 +123,7 @@ public class AnalyzeSkimDifferences {
         String[] columns = new String[compareFiles.size() + 1];
         columns[0] = FROM_1;
         for (int i = 0; i < compareFiles.size(); i++) {
-            columns[3 + i] = DIFF + i;
+            columns[1 + i] = DIFF + i;
         }
         return columns;
     }
@@ -145,6 +145,7 @@ public class AnalyzeSkimDifferences {
                     System.out.println("Line " + i);
                 }
                 i++;
+                line = reader.readLine();
             }
 
         } catch (IOException e) {
