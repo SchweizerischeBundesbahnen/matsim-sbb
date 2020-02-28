@@ -87,7 +87,7 @@ public class AnalyzeSkimDifferences {
 
     private void writeDifferences() {
         String[] columns = getColumns();
-        try (CSVWriter writer = new CSVWriter(null, columns, outputFile + "absolutediffs.csv")) {
+        try (CSVWriter writer = new CSVWriter(null, columns, outputFile + "absolutediffs.csv.gz")) {
             for (Map.Entry<Integer, Map<Integer, SkimsValue>> fromMap : this.skimsCache.entrySet()) {
                 String from = Integer.toString(fromMap.getKey());
                 for (Map.Entry<Integer, SkimsValue> skimsValueEntry : fromMap.getValue().entrySet()) {
