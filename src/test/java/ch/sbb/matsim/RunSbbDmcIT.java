@@ -1,4 +1,4 @@
-package ch.sbb.matsim.zones;
+package ch.sbb.matsim;
 
 import ch.ethz.matsim.discrete_mode_choice.model.DiscreteModeChoiceModel;
 import ch.ethz.matsim.discrete_mode_choice.modules.*;
@@ -24,7 +24,7 @@ public class RunSbbDmcIT {
         Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
         config.strategy().setFractionOfIterationsToDisableInnovation(1.0);
         config.controler().setLastIteration(10);
-        config.controler().setOutputDirectory("test/output/RunSbbDmcIT_smcIT");
+        config.controler().setOutputDirectory("test/output/RunSbbDmcIT/smcIT");
 
         RunSBB.run(config);
 
@@ -36,7 +36,7 @@ public class RunSbbDmcIT {
         Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
         config.strategy().setFractionOfIterationsToDisableInnovation(1.0);
         config.controler().setLastIteration(10);
-        config.controler().setOutputDirectory("test/output/RunSbbDmcIT_dmcIT");
+        config.controler().setOutputDirectory("test/output/RunSbbDmcIT/dmcIT");
 
         // remove SubtourModeChoice
         StrategyConfigGroup.StrategySettings smc = null;
@@ -90,7 +90,7 @@ public class RunSbbDmcIT {
         Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
         config.strategy().setFractionOfIterationsToDisableInnovation(1.0);
         config.controler().setLastIteration(10);
-        config.controler().setOutputDirectory("test/output/RunSbbDmcIT_nomcIT");
+        config.controler().setOutputDirectory("test/output/RunSbbDmcIT/nomcIT");
 
         // remove SubtourModeChoice
         StrategyConfigGroup.StrategySettings smc = null;
