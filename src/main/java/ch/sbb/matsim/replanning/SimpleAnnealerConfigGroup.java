@@ -1,6 +1,5 @@
 package ch.sbb.matsim.replanning;
 
-import com.sun.org.apache.bcel.internal.generic.FALOAD;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 

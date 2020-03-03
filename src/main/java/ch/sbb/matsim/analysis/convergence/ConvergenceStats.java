@@ -158,7 +158,7 @@ public class ConvergenceStats implements IterationStartsListener {
         }
 
         double stat = results instanceof CorTest ?
-                ((CorTest) results).t : ((KSTest) results).d;
+                ((CorTest) results).cor : ((KSTest) results).d;
         double pvalue = results instanceof CorTest ?
                 ((CorTest) results).pvalue : ((KSTest) results).pvalue;
 
