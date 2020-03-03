@@ -1,10 +1,7 @@
 package ch.sbb.matsim.analysis.convergence;
 
-import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
 import org.matsim.core.utils.collections.CollectionUtils;
-import org.matsim.core.utils.misc.ArgumentParser;
-import org.matsim.core.utils.misc.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,7 +12,7 @@ public class ConvergenceStatsConfig extends ReflectiveConfigGroup {
     private boolean activateConvergenceStats = false;
     private int numWindows = 30;
     private int windowSize = 10;
-    private Test[] testsToRun = new Test[] {Test.KENDALL, Test.KS_NORMAL, Test.KS_UNIFORM};
+    private Test[] testsToRun = new Test[] {Test.KENDALL, Test.KS_NORMAL};
 
     public enum Test {KENDALL, PEARSON, SPEARMAN, KS_NORMAL, KS_UNIFORM}
 
