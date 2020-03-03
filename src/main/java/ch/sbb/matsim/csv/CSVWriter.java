@@ -13,6 +13,7 @@ import java.nio.charset.Charset;
 
 public class CSVWriter implements AutoCloseable {
 
+    public static final String DEFAULT_SEPARATOR = ";";
     private final String separator;
     private final String[] columns;
     private final int columnCount;
@@ -21,7 +22,7 @@ public class CSVWriter implements AutoCloseable {
     private final Counter counter;
 
     public CSVWriter(final String header, final String[] columns, final String filename) throws IOException {
-        this(header, columns, IOUtils.getBufferedWriter(filename), ";");
+        this(header, columns, IOUtils.getBufferedWriter(filename), DEFAULT_SEPARATOR);
     }
 
     public CSVWriter(final String header, final String[] columns, final String filename, final String separator) throws IOException {
@@ -29,7 +30,7 @@ public class CSVWriter implements AutoCloseable {
     }
 
     public CSVWriter(final String header, final String[] columns, final String filename, final Charset encoding) throws IOException {
-        this(header, columns, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), encoding)), ";");
+        this(header, columns, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), encoding)), DEFAULT_SEPARATOR);
     }
 
     public CSVWriter(final String header, final String[] columns, final String filename, final Charset encoding, final String separator) throws IOException {
