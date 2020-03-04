@@ -125,8 +125,8 @@ public class Accessibility {
         this.transitNetworkFilename = transitNetworkFilename;
         this.config = ConfigUtils.createConfig();
         this.attractions = attractions;
-        this.carAMDepTimes = eventsFilename == null ? new double[] { 8*3600 } : carAMDepTimes;
-        this.carPMDepTimes = eventsFilename == null ? new double[0] : carPMDepTimes;
+        this.carAMDepTimes = carAMDepTimes; // eventsFilename == null ? new double[] { 8*3600 } : carAMDepTimes;
+        this.carPMDepTimes = carPMDepTimes; // eventsFilename == null ? new double[0] : carPMDepTimes;
         this.ptMinDepartureTime = ptMinDepartureTime;
         this.ptMaxDepartureTime = ptMaxDepartureTime;
         this.trainDetector = trainDetector;
@@ -741,7 +741,7 @@ public class Accessibility {
                 int ptConnectionCount = 0;
 
                 if (hasPT) {
-                    connections = sortAndFilterConnections(connections);
+                    connections = sortAndFilterConnections(connections, ptMaxDepartureTime);
                     ptConnectionCount = connections.size();
 
                     double avgAdaptionTime = calcAverageAdaptionTime(connections, ptMinDepartureTime, ptMaxDepartureTime);
@@ -752,7 +752,7 @@ public class Accessibility {
                         for (ODConnection conn : connections) {
                             System.out.println(" ");
                             System.out.println(" > share = " + connectionShares.get(conn));
-                            System.out.println(" > " + Time.writeTime(conn.departureTime) + "  " + accessTimes.get(conn.travelInfo.departureStop).floatValue() + "  " + conn.egressTime);
+                            System.out.println(" > " + Time.writeTime(conn.departureTime) + "  " + accessTimes.get(conn.travelInfo.departureStop).floatValue() + "  " + conn.egressTime + "   tt=" + Time.writeTime(conn.travelTime));
                             RaptorRoute rr = conn.travelInfo.getRaptorRoute();
                             for (RoutePart rp : rr.getParts()) {
                                 System.out.println(" >> " + Time.writeTime(rp.boardingTime) + " " + Time.writeTime(rp.depTime) + " " + (rp.line == null ? "-" : rp.line.getId()) + " " + (rp.route == null ? "-" : rp.route.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getName()) + " " + (rp.toStop == null ? "-" : rp.toStop.getId()) + " " + (rp.toStop == null ? "-" : rp.toStop.getName()) + " " + Time.writeTime(rp.arrivalTime));
@@ -769,6 +769,7 @@ public class Accessibility {
                     double totalInVehTime = 0;
                     double trainInVehTime = 0;
 
+                    System.out.println("------------------------");
                     for (Entry<ODConnection, Double> cs : connectionShares.entrySet()) {
                         ODConnection connection = cs.getKey();
                         double share = cs.getValue();
@@ -781,14 +782,18 @@ public class Accessibility {
                         double connTotalDistance = 0;
                         double connTotalInVehTime = 0;
                         double connTrainInVehTime = 0;
+                        boolean isFirstLeg = true;
 
+                        System.out.println();
+                        System.out.println("share = " + share);
                         RaptorRoute route = connection.travelInfo.getRaptorRoute();
                         for (RoutePart part : route.getParts()) {
                             if (part.line != null) {
                                 // it's a non-transfer part, an actual pt stage
 
                                 boolean isTrain = this.trainDetector.test(part.line, part.route);
-                                double inVehicleTime = part.arrivalTime - part.boardingTime;
+                                double inVehicleTime = isFirstLeg ? (part.arrivalTime - part.boardingTime) : (part.arrivalTime - part.boardingTime);
+                                isFirstLeg = false;
 
                                 connTotalDistance += part.distance;
                                 connTotalInVehTime += inVehicleTime;
@@ -796,6 +801,10 @@ public class Accessibility {
                                 if (isTrain) {
                                     connTrainInVehTime += inVehicleTime;
                                 }
+
+                                RoutePart rp = part;
+                                System.out.println(" >> " + Time.writeTime(rp.boardingTime) + " " + Time.writeTime(rp.depTime) + " " + (rp.line == null ? "-" : rp.line.getId()) + " " + (rp.route == null ? "-" : rp.route.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getName()) + " " + (rp.toStop == null ? "-" : rp.toStop.getId()) + " " + (rp.toStop == null ? "-" : rp.toStop.getName()) + " " + Time.writeTime(rp.arrivalTime));
+                                System.out.println(" train=" + isTrain + "  inV: " + inVehicleTime + "  tinv: " + connTotalInVehTime + "  tDist: " + connTotalDistance + "  dist " + part.distance);
                             }
                         }
                         ptDistance += share * connTotalDistance;
@@ -1004,7 +1013,7 @@ public class Accessibility {
                                 }
                             }
 
-                            connections = sortAndFilterConnections(connections);
+                            connections = sortAndFilterConnections(connections, ptMaxDepartureTime);
                             connectionsPerStop.put(toStop.getId(), connections);
                         }
                         this.cache.put(fromStop.getId(), connectionsPerStop);
@@ -1105,7 +1114,7 @@ public class Accessibility {
                     hasPT = !connections.isEmpty();
                     if (hasPT) {
 
-                        connections = sortAndFilterConnections(connections);
+                        connections = sortAndFilterConnections(connections, ptMaxDepartureTime);
 
                         double avgAdaptionTime = calcAverageAdaptionTime(connections, ptMinDepartureTime, ptMaxDepartureTime);
 
@@ -1133,6 +1142,7 @@ public class Accessibility {
                         double totalInVehTime = 0;
                         double trainInVehTime = 0;
 
+                        System.out.println("------------------------------------");
                         for (Entry<ODConnection, Double> cs : connectionShares.entrySet()) {
                             ODConnection connection = cs.getKey();
                             double share = cs.getValue();
@@ -1145,14 +1155,18 @@ public class Accessibility {
                             double connTotalDistance = 0;
                             double connTotalInVehTime = 0;
                             double connTrainInVehTime = 0;
+                            boolean isFirstLeg = true;
 
+                            System.out.println();
+                            System.out.println("share=" + share);
                             RaptorRoute route = connection.travelInfo.getRaptorRoute();
                             for (RoutePart part : route.getParts()) {
                                 if (part.line != null) {
                                     // it's a non-transfer part, an actual pt stage
 
                                     boolean isTrain = this.trainDetector.test(part.line, part.route);
-                                    double inVehicleTime = part.arrivalTime - part.boardingTime;
+                                    double inVehicleTime = isFirstLeg ? (part.arrivalTime - part.boardingTime) : (part.arrivalTime - part.boardingTime);
+                                    isFirstLeg = false;
 
                                     connTotalDistance += part.distance;
                                     connTotalInVehTime += inVehicleTime;
@@ -1160,6 +1174,10 @@ public class Accessibility {
                                     if (isTrain) {
                                         connTrainInVehTime += inVehicleTime;
                                     }
+
+                                    RoutePart rp = part;
+                                    System.out.println(" >> " + Time.writeTime(rp.boardingTime) + " " + Time.writeTime(rp.depTime) + " " + (rp.line == null ? "-" : rp.line.getId()) + " " + (rp.route == null ? "-" : rp.route.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getName()) + " " + (rp.toStop == null ? "-" : rp.toStop.getId()) + " " + (rp.toStop == null ? "-" : rp.toStop.getName()) + " " + Time.writeTime(rp.arrivalTime));
+                                    System.out.println(" train=" + isTrain + "  inV: " + inVehicleTime + "  tinv: " + connTotalInVehTime + "  tDist: " + connTotalDistance + "  dist " + part.distance);
                                 }
                             }
                             ptDistance += share * connTotalDistance;
@@ -1294,7 +1312,7 @@ public class Accessibility {
                     }
                 }
 
-                connections = sortAndFilterConnections(connections);
+                connections = sortAndFilterConnections(connections, ptMaxDepartureTime);
                 connectionsPerStop.put(toStop.getId(), connections);
             }
             this.cache.put(fromStop.getId(), connectionsPerStop);
@@ -1360,6 +1378,69 @@ public class Accessibility {
     }
 
     static double calcAverageAdaptionTime(List<ODConnection> connections, double minDepartureTime, double maxDepartureTime) {
+        ODConnection prevConnection = null;
+        double sum = 0;
+//        System.out.println("calcAvgAdaption: " + Time.writeTime(minDepartureTime) + " - " + Time.writeTime(maxDepartureTime));
+        for (ODConnection connection : connections) {
+//            System.out.println(connection);
+            if (prevConnection != null) {
+                double depTime1 = prevConnection.departureTime - prevConnection.accessTime;
+                double depTime2 = connection.departureTime - connection.accessTime;
+                if (depTime2 > minDepartureTime && depTime1 < maxDepartureTime) {
+                    double travelTime1 = prevConnection.totalTravelTime();
+                    double travelTime2 = connection.totalTravelTime();
+                    if (depTime1 < minDepartureTime) {
+                        // shift connection1 to minDepartureTime
+                        double delta = minDepartureTime - depTime1;
+                        depTime1 = minDepartureTime;
+                        travelTime1 += delta;
+                    }
+                    if (depTime2 > maxDepartureTime) {
+                        // shift connection2 to maxDepartureTime;
+                        double delta = depTime2 - maxDepartureTime;
+                        depTime2 = maxDepartureTime;
+                        travelTime2 += delta;
+                    }
+                    double deltaTravelTime = travelTime2 - travelTime1;
+                    double zenith = ((depTime1 + deltaTravelTime) + depTime2) / 2;
+
+                    if (zenith < minDepartureTime) {
+                        sum += (depTime2 - minDepartureTime) * (depTime2 - minDepartureTime) / 2;
+                    } else if (zenith > maxDepartureTime) {
+                        sum += (maxDepartureTime - depTime1) * (maxDepartureTime - depTime1) / 2;
+                    } else {
+                        sum += (zenith - depTime1) * (zenith - depTime1) / 2;
+                        sum += (depTime2 - zenith) * (depTime2 - zenith) / 2;
+                    }
+                }
+            }
+//            System.out.println(sum);
+            prevConnection = connection;
+        }
+        if (connections.size() == 1) {
+            // in this case, the above loop did nothing except setting prevConnection
+            double depTime = prevConnection.departureTime - prevConnection.accessTime;
+            if (depTime < minDepartureTime) {
+                double delta = minDepartureTime - depTime;
+                sum = (3600 + delta) * (3600 + delta) / 2 - (delta * delta / 2);
+            } else if (depTime > maxDepartureTime) {
+                double delta = depTime - maxDepartureTime;
+                sum = (3600 + delta) * (3600 + delta) / 2 - (delta * delta / 2);
+            } else {
+                sum += (depTime - minDepartureTime) * (depTime - minDepartureTime) / 2;
+                sum += (maxDepartureTime - depTime) * (maxDepartureTime - depTime) / 2;
+            }
+        } else if (prevConnection != null) {
+            double depTime = prevConnection.departureTime - prevConnection.accessTime;
+            if (depTime < maxDepartureTime) {
+                // there is no departure after maxDepartureTime, so we're missing the final part
+                sum += (maxDepartureTime - depTime) * (maxDepartureTime - depTime) / 2;
+            }
+        }
+        return sum / (maxDepartureTime - minDepartureTime);
+    }
+
+    static double calcAverageAdaptionTimeX(List<ODConnection> connections, double minDepartureTime, double maxDepartureTime) {
         double prevDepartureTime = Double.NaN;
         double nextDepartureTime = Double.NaN;
         ODConnection prevConnection = null;
@@ -1414,6 +1495,68 @@ public class Accessibility {
     /** calculates the share each connection covers based on minimizing (travelTime + adaptionTime)
      */
     static Map<ODConnection, Double> calcConnectionShares(List<ODConnection> connections, double minDepartureTime, double maxDepartureTime) {
+        Map<ODConnection, Double> shares = new HashMap<>();
+
+        ODConnection prevConnection = null;
+        for (ODConnection connection : connections) {
+            if (prevConnection != null) {
+                double depTime1 = prevConnection.departureTime - prevConnection.accessTime;
+                double depTime2 = connection.departureTime - connection.accessTime;
+                if (depTime2 > minDepartureTime && depTime1 < maxDepartureTime) {
+                    double travelTime1 = prevConnection.totalTravelTime();
+                    double travelTime2 = connection.totalTravelTime();
+                    if (depTime1 < minDepartureTime) {
+                        // shift connection1 to minDepartureTime
+                        double delta = minDepartureTime - depTime1;
+                        depTime1 = minDepartureTime;
+                        travelTime1 += delta;
+                    }
+                    if (depTime2 > maxDepartureTime) {
+                        // shift connection2 to maxDepartureTime;
+                        double delta = depTime2 - maxDepartureTime;
+                        depTime2 = maxDepartureTime;
+                        travelTime2 += delta;
+                    }
+                    double deltaTravelTime = travelTime2 - travelTime1;
+                    double zenith = ((depTime1 + deltaTravelTime) + depTime2) / 2;
+
+                    double share1 = (zenith - depTime1) /  3600;
+                    double share2 = (depTime2 - zenith) /  3600;
+
+                    if (share1 < 0) {
+                        // this can happen if zenith if before minDepTime
+                        share2 += share1;
+                        share1 = 0;
+                    }
+                    if (share2 < 0) {
+                        // this can happen if zenith is after maxDepTime
+                        share1 += share2;
+                        share2 = 0;
+                    }
+
+                    final double fShare1 = share1; // variables must be final to be used in lambda expression below
+                    final double fShare2 = share2;
+
+                    shares.compute(prevConnection, (c, oldVal) -> (oldVal == null ? fShare1 : (oldVal + fShare1)));
+                    shares.compute(connection, (c, oldVal) -> (oldVal == null ? fShare2 : (oldVal + fShare2)));
+                }
+            }
+            prevConnection = connection;
+        }
+        if (connections.size() == 1) {
+            shares.put(prevConnection, 1.0);
+        } else if (prevConnection != null) {
+            double depTime = prevConnection.departureTime - prevConnection.accessTime;
+            if (depTime < maxDepartureTime) {
+                // there is no departure after maxDepartureTime, so we're still missing the final part
+                double share = (maxDepartureTime - depTime) /  3600;
+                shares.compute(prevConnection, (c, oldVal) -> (oldVal == null ? share : (oldVal + share)));
+            }
+        }
+        return shares;
+    }
+
+    static Map<ODConnection, Double> calcConnectionSharesX(List<ODConnection> connections, double minDepartureTime, double maxDepartureTime) {
         double prevDepartureTime = Double.NaN;
         double nextDepartureTime = Double.NaN;
 
@@ -1469,7 +1612,7 @@ public class Accessibility {
     }
 
 
-    static List<ODConnection> sortAndFilterConnections(List<ODConnection> connections) {
+    static List<ODConnection> sortAndFilterConnections(List<ODConnection> connections, double maxDepartureTime) {
         connections.sort((c1, c2) -> Double.compare((c1.departureTime - c1.accessTime), (c2.departureTime - c2.accessTime)));
 
         // step forward through all connections and figure out which can be ignore because the earlier one is better
@@ -1481,7 +1624,7 @@ public class Accessibility {
                 earlierConnection = connection;
             } else {
                 double timeDiff = (connection.departureTime - connection.accessTime) - (earlierConnection.departureTime - earlierConnection.accessTime);
-                if (earlierConnection.totalTravelTime() + timeDiff > connection.totalTravelTime()) {
+                if (earlierConnection.totalTravelTime() + timeDiff > connection.totalTravelTime() + 0.5) { // +0.5 to catch numerical instabilities in double calculations
                     // connection is better to earlierConnection, use it
                     filteredConnections1.add(connection);
                     earlierConnection = connection;
@@ -1500,9 +1643,14 @@ public class Accessibility {
                 laterConnection = connection;
             } else {
                 double timeDiff = (laterConnection.departureTime - laterConnection.accessTime) - (connection.departureTime - connection.accessTime);
-                if (laterConnection.totalTravelTime() + timeDiff > connection.totalTravelTime()) {
+                if (laterConnection.totalTravelTime() + timeDiff > connection.totalTravelTime() + 0.5) { // +0.5 to catch numerical instabilities in double calculations
                     // connection is better to laterConnection, use it
-                    filteredConnections.add(connection);
+                    if (connection.departureTime - connection.accessTime > maxDepartureTime) {
+                        // there should only be one connection after maxDepartureTime
+                        filteredConnections.set(0, connection);
+                    } else {
+                        filteredConnections.add(connection);
+                    }
                     laterConnection = connection;
                 }
             }
@@ -1510,6 +1658,8 @@ public class Accessibility {
 
         Collections.reverse(filteredConnections);
         // now the filtered connections are in ascending departure time order
+
+
         return filteredConnections;
     }
 
@@ -1532,6 +1682,11 @@ public class Accessibility {
 
         double totalTravelTime() {
             return this.accessTime + this.travelTime + this.egressTime;
+        }
+
+        @Override
+        public String toString() {
+            return Time.writeTime(departureTime) + "  " + Time.writeTime(totalTravelTime()) + "  " + Time.writeTime(accessTime) + "  " + transferCount;
         }
     }
 
