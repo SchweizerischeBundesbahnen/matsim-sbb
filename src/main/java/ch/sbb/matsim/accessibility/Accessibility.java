@@ -54,11 +54,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -125,8 +123,8 @@ public class Accessibility {
         this.transitNetworkFilename = transitNetworkFilename;
         this.config = ConfigUtils.createConfig();
         this.attractions = attractions;
-        this.carAMDepTimes = carAMDepTimes; // eventsFilename == null ? new double[] { 8*3600 } : carAMDepTimes;
-        this.carPMDepTimes = carPMDepTimes; // eventsFilename == null ? new double[0] : carPMDepTimes;
+        this.carAMDepTimes = eventsFilename == null ? new double[] { 8*3600 } : carAMDepTimes;
+        this.carPMDepTimes = eventsFilename == null ? new double[0] : carPMDepTimes;
         this.ptMinDepartureTime = ptMinDepartureTime;
         this.ptMaxDepartureTime = ptMaxDepartureTime;
         this.trainDetector = trainDetector;
@@ -206,20 +204,15 @@ public class Accessibility {
                 BlockData block = e.getValue();
                 blockCnt++;
                 log.info("Block " + blockCnt + "/" + blocks.size() + ": " + block.toString(key, blockSize));
-//                int coordCount = block.coords.size();
-//                int stopCount = block.stops.size();
+                int coordCount = block.coords.size();
+                int stopCount = block.stops.size();
                 Collection<Tuple<Coord, double[]>> results;
-//                if ((int) (coordCount * 1.3) > stopCount) {
-                    // SWITCH
-                    log.info("> using optimized calculation");
+                if ((int) (coordCount * 1.3) > stopCount) {
                     results = doOptimizedCalculation(block, carGraph, xy2linksNetwork, zoneData, raptors, modes);
-                    log.info("> using basic calculation");
+                } else {
                     results = doBasicCalculation(block, carGraph, xy2linksNetwork, zoneData, raptors, modes);
-//                } else {
-//                    results = doBasicCalculation(block, carGraph, xy2linksNetwork, zoneData, raptors, modes);
-//                }
+                }
 
-                log.info("> write block results...");
                 for (Tuple<Coord, double[]> result : results) {
                     Coord coord = result.getFirst();
                     double[] accessibilities = result.getSecond();
@@ -233,9 +226,6 @@ public class Accessibility {
                     writer.write(IOUtils.NATIVE_NEWLINE);
                 }
                 writer.flush();
-//                if (true) {
-//                    break;
-//                }
             }
         }
         catch (IOException e) {
@@ -653,11 +643,8 @@ public class Accessibility {
 
             // CALCULATION
 
-            int zoneCount = 0;
             double[] accessibility = new double[this.modes.length];
             for (Entry<Coord, ZoneData> e : this.zoneData.entrySet()) {
-                zoneCount++;
-                boolean printDebug = zoneCount < 100;
                 Coord toCoord = e.getKey();
                 ZoneData zData = e.getValue();
                 Node toNode = zData.node;
@@ -738,28 +725,11 @@ public class Accessibility {
                 double ptTransfers = 0;
                 double ptDistance = 0;
 
-                int ptConnectionCount = 0;
-
                 if (hasPT) {
                     connections = sortAndFilterConnections(connections, ptMaxDepartureTime);
-                    ptConnectionCount = connections.size();
-
                     double avgAdaptionTime = calcAverageAdaptionTime(connections, ptMinDepartureTime, ptMaxDepartureTime);
 
                     Map<ODConnection, Double> connectionShares = calcConnectionShares(connections, ptMinDepartureTime, ptMaxDepartureTime);
-                    if (printDebug) {
-                        System.out.println("  avAdaptionTime: " + avgAdaptionTime);
-                        for (ODConnection conn : connections) {
-                            System.out.println(" ");
-                            System.out.println(" > share = " + connectionShares.get(conn));
-                            System.out.println(" > " + Time.writeTime(conn.departureTime) + "  " + accessTimes.get(conn.travelInfo.departureStop).floatValue() + "  " + conn.egressTime + "   tt=" + Time.writeTime(conn.travelTime));
-                            RaptorRoute rr = conn.travelInfo.getRaptorRoute();
-                            for (RoutePart rp : rr.getParts()) {
-                                System.out.println(" >> " + Time.writeTime(rp.boardingTime) + " " + Time.writeTime(rp.depTime) + " " + (rp.line == null ? "-" : rp.line.getId()) + " " + (rp.route == null ? "-" : rp.route.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getName()) + " " + (rp.toStop == null ? "-" : rp.toStop.getId()) + " " + (rp.toStop == null ? "-" : rp.toStop.getName()) + " " + Time.writeTime(rp.arrivalTime));
-                            }
-                        }
-                    }
-
 
                     float accessTime = 0;
                     float egressTime = 0;
@@ -769,7 +739,6 @@ public class Accessibility {
                     double totalInVehTime = 0;
                     double trainInVehTime = 0;
 
-                    System.out.println("------------------------");
                     for (Entry<ODConnection, Double> cs : connectionShares.entrySet()) {
                         ODConnection connection = cs.getKey();
                         double share = cs.getValue();
@@ -784,8 +753,6 @@ public class Accessibility {
                         double connTrainInVehTime = 0;
                         boolean isFirstLeg = true;
 
-                        System.out.println();
-                        System.out.println("share = " + share);
                         RaptorRoute route = connection.travelInfo.getRaptorRoute();
                         for (RoutePart part : route.getParts()) {
                             if (part.line != null) {
@@ -803,8 +770,6 @@ public class Accessibility {
                                 }
 
                                 RoutePart rp = part;
-                                System.out.println(" >> " + Time.writeTime(rp.boardingTime) + " " + Time.writeTime(rp.depTime) + " " + (rp.line == null ? "-" : rp.line.getId()) + " " + (rp.route == null ? "-" : rp.route.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getName()) + " " + (rp.toStop == null ? "-" : rp.toStop.getId()) + " " + (rp.toStop == null ? "-" : rp.toStop.getName()) + " " + Time.writeTime(rp.arrivalTime));
-                                System.out.println(" train=" + isTrain + "  inV: " + inVehicleTime + "  tinv: " + connTotalInVehTime + "  tDist: " + connTotalDistance + "  dist " + part.distance);
                             }
                         }
                         ptDistance += share * connTotalDistance;
@@ -851,17 +816,12 @@ public class Accessibility {
                     double uPt = (modes.pt && hasPT) ? (+0.75 + (-0.042)*ttBus + (-0.0378)*ttTrain + (-0.015)*distPt0015 + (-0.015)*distPt1550 + 0.005*distPt5099 + 0.025*distPt100x + (-0.050)*(ptAccessTime+ptEgressTime) + (-0.014)*(60/ptFrequency) + (-0.227)*ptTransfers) : modes.missingModeUtility;
                     double uWalk = (modes.walk && hasShortestDistance) ? (+2.30 + (-0.100) * distShortest / 0.078336) : modes.missingModeUtility;
 
-                    if (printDebug) {
-                        System.out.println(">>> " + fromCoord.getX() + " / " + fromCoord.getY() +  "  " + toCoord.getX() + " / " + toCoord.getY() +  "  " + uPt + "  --  " + ttBus + " " + ttTrain + " " + ptDistance + " " + ptAccessTime + " " + ptEgressTime + " " + ptFrequency + " " + ptTransfers + " " + ptConnectionCount);
-                    }
-
                     double theta = modes.theta;
                     double destinationUtility = Math.exp(uCar / theta) + Math.exp(uPt / theta) + Math.exp(uWalk / theta) + Math.exp(uBike / theta);
 
                     accessibility[m] += attraction * Math.exp(theta * Math.log(destinationUtility));
                 }
             }
-            System.out.println("> accessibility = " + Arrays.toString(accessibility) + "   " + fromCoord.toString());
             return accessibility;
         }
     }
@@ -1024,11 +984,8 @@ public class Accessibility {
 
             // CALCULATION
 
-            int zoneCount = 0;
             double[] accessibility = new double[this.modes.length];
             for (Entry<Coord, ZoneData> e : this.zoneData.entrySet()) {
-                zoneCount++;
-                boolean printDebug = zoneCount < 100;
                 Coord toCoord = e.getKey();
                 ZoneData zData = e.getValue();
                 Node toNode = zData.node;
@@ -1120,20 +1077,6 @@ public class Accessibility {
 
                         Map<ODConnection, Double> connectionShares = calcConnectionShares(connections, ptMinDepartureTime, ptMaxDepartureTime);
 
-                        if (printDebug) {
-                            System.out.println("  avAdaptionTime: " + avgAdaptionTime);
-                            for (ODConnection conn : connections) {
-                                System.out.println(" ");
-                                System.out.println(" > share = " + connectionShares.get(conn));
-                                System.out.println(" > " + Time.writeTime(conn.departureTime) + "  " + accessTimes.get(conn.travelInfo.departureStop).floatValue() + "  " + conn.egressTime + "   tt=" + Time.writeTime(conn.travelTime));
-                                RaptorRoute rr = conn.travelInfo.getRaptorRoute();
-                                for (RoutePart rp : rr.getParts()) {
-                                    System.out.println(" >> " + Time.writeTime(rp.boardingTime) + " " + Time.writeTime(rp.depTime) + " " + (rp.line == null ? "-" : rp.line.getId()) + " " + (rp.route == null ? "-" : rp.route.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getName()) + " " + (rp.toStop == null ? "-" : rp.toStop.getId()) + " " + (rp.toStop == null ? "-" : rp.toStop.getName()) + " " + Time.writeTime(rp.arrivalTime));
-                                }
-                            }
-                        }
-
-
                         float accessTime = 0;
                         float egressTime = 0;
                         float transferCount = 0;
@@ -1142,7 +1085,6 @@ public class Accessibility {
                         double totalInVehTime = 0;
                         double trainInVehTime = 0;
 
-                        System.out.println("------------------------------------");
                         for (Entry<ODConnection, Double> cs : connectionShares.entrySet()) {
                             ODConnection connection = cs.getKey();
                             double share = cs.getValue();
@@ -1157,8 +1099,6 @@ public class Accessibility {
                             double connTrainInVehTime = 0;
                             boolean isFirstLeg = true;
 
-                            System.out.println();
-                            System.out.println("share=" + share);
                             RaptorRoute route = connection.travelInfo.getRaptorRoute();
                             for (RoutePart part : route.getParts()) {
                                 if (part.line != null) {
@@ -1174,10 +1114,6 @@ public class Accessibility {
                                     if (isTrain) {
                                         connTrainInVehTime += inVehicleTime;
                                     }
-
-                                    RoutePart rp = part;
-                                    System.out.println(" >> " + Time.writeTime(rp.boardingTime) + " " + Time.writeTime(rp.depTime) + " " + (rp.line == null ? "-" : rp.line.getId()) + " " + (rp.route == null ? "-" : rp.route.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getId()) + " " + (rp.fromStop == null ? "-" : rp.fromStop.getName()) + " " + (rp.toStop == null ? "-" : rp.toStop.getId()) + " " + (rp.toStop == null ? "-" : rp.toStop.getName()) + " " + Time.writeTime(rp.arrivalTime));
-                                    System.out.println(" train=" + isTrain + "  inV: " + inVehicleTime + "  tinv: " + connTotalInVehTime + "  tDist: " + connTotalDistance + "  dist " + part.distance);
                                 }
                             }
                             ptDistance += share * connTotalDistance;
@@ -1228,14 +1164,9 @@ public class Accessibility {
                     double theta = modes.theta;
                     double destinationUtility = Math.exp(uCar / theta) + Math.exp(uPt / theta) + Math.exp(uWalk / theta) + Math.exp(uBike / theta);
 
-                    if (printDebug) {
-                        System.out.println(">>> " + fromCoord.getX() + " / " + fromCoord.getY() +  "  " + toCoord.getX() + " / " + toCoord.getY() +  "  " + uPt + "  --  " + ttBus + " " + ttTrain + " " + ptDistance + " " + ptAccessTime + " " + ptEgressTime + " " + ptFrequency + " " + ptTransfers/* + " " + ptConnectionCount*/);
-                    }
-
                     accessibility[m] += attraction * Math.exp(theta * Math.log(destinationUtility));
                 }
             }
-            System.out.println("> accessibility = " + Arrays.toString(accessibility) + "   " + fromCoord.toString());
             return accessibility;
         }
     }
@@ -1380,9 +1311,7 @@ public class Accessibility {
     static double calcAverageAdaptionTime(List<ODConnection> connections, double minDepartureTime, double maxDepartureTime) {
         ODConnection prevConnection = null;
         double sum = 0;
-//        System.out.println("calcAvgAdaption: " + Time.writeTime(minDepartureTime) + " - " + Time.writeTime(maxDepartureTime));
         for (ODConnection connection : connections) {
-//            System.out.println(connection);
             if (prevConnection != null) {
                 double depTime1 = prevConnection.departureTime - prevConnection.accessTime;
                 double depTime2 = connection.departureTime - connection.accessTime;
@@ -1414,7 +1343,6 @@ public class Accessibility {
                     }
                 }
             }
-//            System.out.println(sum);
             prevConnection = connection;
         }
         if (connections.size() == 1) {
@@ -1438,58 +1366,6 @@ public class Accessibility {
             }
         }
         return sum / (maxDepartureTime - minDepartureTime);
-    }
-
-    static double calcAverageAdaptionTimeX(List<ODConnection> connections, double minDepartureTime, double maxDepartureTime) {
-        double prevDepartureTime = Double.NaN;
-        double nextDepartureTime = Double.NaN;
-        ODConnection prevConnection = null;
-        ODConnection nextConnection = null;
-
-        Iterator<ODConnection> connectionIterator = connections.iterator();
-        if (connectionIterator.hasNext()) {
-            nextConnection = connectionIterator.next();
-            nextDepartureTime = nextConnection.departureTime - nextConnection.accessTime;
-        }
-
-        double sum = 0.0;
-        int count = 0;
-        for (double time = minDepartureTime; time < maxDepartureTime; time += 60.0) {
-            double adaptionTime;
-
-            while (time >= nextDepartureTime) {
-                prevDepartureTime = nextDepartureTime;
-                prevConnection = nextConnection;
-                if (connectionIterator.hasNext()) {
-                    nextConnection = connectionIterator.next();
-                    nextDepartureTime = nextConnection.departureTime - nextConnection.accessTime;
-                } else {
-                    nextDepartureTime = Double.NaN;
-                    nextConnection = null;
-                }
-            }
-
-            if (prevConnection == null) {
-                adaptionTime = nextDepartureTime - time;
-            } else if (nextConnection == null) {
-                adaptionTime = time - prevDepartureTime;
-            } else {
-                double prevAdaptionTime = time - prevDepartureTime;
-                double nextAdaptionTime = nextDepartureTime - time;
-                double prevTotalTime = prevConnection.travelTime + prevAdaptionTime;
-                double nextTotalTime = nextConnection.travelTime + nextAdaptionTime;
-
-                if (prevTotalTime < nextTotalTime) {
-                    adaptionTime = prevAdaptionTime;
-                } else {
-                    adaptionTime = nextAdaptionTime;
-                }
-            }
-
-            sum += adaptionTime;
-            count++;
-        }
-        return sum / count;
     }
 
     /** calculates the share each connection covers based on minimizing (travelTime + adaptionTime)
@@ -1555,62 +1431,6 @@ public class Accessibility {
         }
         return shares;
     }
-
-    static Map<ODConnection, Double> calcConnectionSharesX(List<ODConnection> connections, double minDepartureTime, double maxDepartureTime) {
-        double prevDepartureTime = Double.NaN;
-        double nextDepartureTime = Double.NaN;
-
-        ODConnection prevConnection = null;
-        ODConnection nextConnection = null;
-
-        Map<ODConnection, Double> shares = new HashMap<>();
-
-        Iterator<ODConnection> connectionIterator = connections.iterator();
-        if (connectionIterator.hasNext()) {
-            nextConnection = connectionIterator.next();
-            nextDepartureTime = nextConnection.departureTime - nextConnection.accessTime;
-        }
-
-        for (double time = minDepartureTime; time < maxDepartureTime; time += 60.0) {
-            if (time >= nextDepartureTime) {
-                prevDepartureTime = nextDepartureTime;
-                prevConnection = nextConnection;
-                if (connectionIterator.hasNext()) {
-                    nextConnection = connectionIterator.next();
-                    nextDepartureTime = nextConnection.departureTime - nextConnection.accessTime;
-                } else {
-                    nextDepartureTime = Double.NaN;
-                    nextConnection = null;
-                }
-            }
-
-            if (prevConnection == null) {
-                shares.compute(nextConnection, (c, oldVal) -> (oldVal == null ? 1 : (oldVal+1)));
-            } else if (nextConnection == null) {
-                shares.compute(prevConnection, (c, oldVal) -> (oldVal == null ? 1 : (oldVal+1)));
-            } else {
-                double prevAdaptionTime = time - prevDepartureTime;
-                double nextAdaptionTime = nextDepartureTime - time;
-                double prevTotalTime = prevConnection.travelTime + prevAdaptionTime;
-                double nextTotalTime = nextConnection.travelTime + nextAdaptionTime;
-
-                if (prevTotalTime < nextTotalTime) {
-                    shares.compute(prevConnection, (c, oldVal) -> (oldVal == null ? 1 : (oldVal+1)));
-                } else {
-                    shares.compute(nextConnection, (c, oldVal) -> (oldVal == null ? 1 : (oldVal+1)));
-                }
-            }
-        }
-
-        double sum = (maxDepartureTime - minDepartureTime) / 60;
-        for (Map.Entry<ODConnection, Double> e : shares.entrySet()) {
-            ODConnection c = e.getKey();
-            shares.put(c, e.getValue() / sum);
-        }
-
-        return shares;
-    }
-
 
     static List<ODConnection> sortAndFilterConnections(List<ODConnection> connections, double maxDepartureTime) {
         connections.sort((c1, c2) -> Double.compare((c1.departureTime - c1.accessTime), (c2.departureTime - c2.accessTime)));
@@ -1692,16 +1512,12 @@ public class Accessibility {
 
     public static class Modes {
         private String id;
-        private boolean car = true;
-        private boolean pt = true;
-        private boolean walk = true;
-        private boolean bike = true;
+        private boolean car;
+        private boolean pt;
+        private boolean walk;
+        private boolean bike;
         private double missingModeUtility = -9999;
         private double theta = 1;
-
-        public Modes(String id) {
-            this.id = id;
-        }
 
         public Modes(String id, boolean car, boolean pt, boolean walk, boolean bike) {
             this.id = id;

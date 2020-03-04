@@ -132,27 +132,6 @@ public class CalculateAccessibility {
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
 
-        args = new String[] {
-                "startCoordsTest.csv",
-//                "startCoordsCH_300.csv",
-                "mobi_zones.shp",
-                "facilities.xml.gz",
-                "plans.xml.gz",
-                "10",
-                "network.xml.gz",
-                "transitSchedule.xml.gz",
-                "transitNetwork.xml.gz",
-                "-",
-                "hiresaccessibility4d",
-                "300",
-                "1",
-                "01_Datenherkunft,contains,Simba;01_Datenherkunft,contains,NBL",
-                "pt",
-                "07:00:00;08:00:00",
-                "06:30:00;06:50:00;07:10:00;07:30:00",
-                "16:50:00;17:10:00;17:30:00;17:50:00",
-        };
-
         Thread memObs = new Thread(() -> {
             while (true) {
                 Gbl.printMemoryUsage();
