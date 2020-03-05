@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class VisumPuTSurvey {
 
-    private static final String FILENAME = "matsim_put_survey.att";
+    public static final String FILENAME = "matsim_put_survey.att";
 
     private static final String GEM_SHAPE_ATTR = "munid";
 
