@@ -77,9 +77,11 @@ public class ScenarioCutter {
      * @param parseEvents         whether Events file of run should be parsed to generate more accurate network travel times
      * @param extent              Inner Cut Extent
      * @param extended            Outer Cut extend
+     * @param networkExtent       Network Extent
+     * @param cutNetworkAndPlans  cuts Network and plans or uses full schedule, network and leaves plans of inside persons untouched
      * @throws IOException
      */
-    public static void run(String runDirectory, String runId, String outputDirectoryname, double scenarioSampleSize, boolean parseEvents, CutExtent extent, CutExtent extended, CutExtent networkExtent) throws IOException {
+    public static void run(String runDirectory, String runId, String outputDirectoryname, double scenarioSampleSize, boolean parseEvents, CutExtent extent, CutExtent extended, CutExtent networkExtent, boolean cutNetworkAndPlans) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
         String outputPrefix = runDirectory + "/" + runId + ".";
 
@@ -131,7 +133,7 @@ public class ScenarioCutter {
         }
 
         log.info("Analyzing scenario...");
-        Scenario analysisScenario = new ScenarioCutter(scenario).analyzeCut(extent, travelTime);
+        Scenario analysisScenario = new ScenarioCutter(scenario).analyzeCut(extent, travelTime, cutNetworkAndPlans);
 
         log.info("Writing relevant activity locations...");
         List<Coord> relevantActLocations = (List<Coord>) analysisScenario.getScenarioElement(RELEVANT_ACT_LOCATIONS);
@@ -139,7 +141,7 @@ public class ScenarioCutter {
         relevantActLocations.clear(); // free the memory
 
         log.info("Cutting scenario...");
-        Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, networkExtent, travelTime, scenarioSampleSize);
+        Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, networkExtent, travelTime, scenarioSampleSize, cutNetworkAndPlans);
 
         log.info("Writing cut scenario...");
 
@@ -221,7 +223,7 @@ public class ScenarioCutter {
         }
 
         log.info("Analyzing scenario...");
-        Scenario analysisScenario = new ScenarioCutter(scenario).analyzeCut(extent, travelTime);
+        Scenario analysisScenario = new ScenarioCutter(scenario).analyzeCut(extent, travelTime, true);
 
         log.info("Writing relevant activity locations...");
         List<Coord> relevantActLocations = (List<Coord>) analysisScenario.getScenarioElement(RELEVANT_ACT_LOCATIONS);
@@ -229,7 +231,8 @@ public class ScenarioCutter {
         relevantActLocations.clear(); // free the memory
 
         log.info("Cutting scenario...");
-        Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, networkExtent, travelTime, scenarioSampleSize);
+        boolean cutNetworkAndPlans = true;
+        Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, networkExtent, travelTime, scenarioSampleSize, cutNetworkAndPlans);
 
         log.info("Writing cut scenario...");
 
@@ -387,8 +390,8 @@ public class ScenarioCutter {
         return ctx.extendedInsideNodes.computeIfAbsent(node.getId(), id -> ctx.extendedExtent.isInside(node.getCoord()));
     }
 
-    public Scenario analyzeCut(CutExtent extent, TravelTime travelTime) {
-        CutContext ctx = new CutContext(this.source, travelTime, extent, extent, extent);
+    public Scenario analyzeCut(CutExtent extent, TravelTime travelTime, boolean cutPlansAndNetwork) {
+        CutContext ctx = new CutContext(this.source, travelTime, extent, extent, extent, cutPlansAndNetwork);
         filterPersons(ctx);
         printStats(ctx);
         return ctx.dest;
@@ -470,17 +473,19 @@ public class ScenarioCutter {
         state.hasInside = tmpState.hasInside;
     }
 
-    public Scenario performCut(CutExtent extent, CutExtent extendedExtent, CutExtent networkExtent, TravelTime travelTime, double populationSample) {
-        CutContext ctx = new CutContext(this.source, travelTime, extent, extendedExtent, networkExtent);
+    public Scenario performCut(CutExtent extent, CutExtent extendedExtent, CutExtent networkExtent, TravelTime travelTime, double populationSample, boolean cutNetworkAndPlans) {
+        CutContext ctx = new CutContext(this.source, travelTime, extent, extendedExtent, networkExtent, cutNetworkAndPlans);
         double demandFactor = 1 / populationSample;
 
         filterPersons(ctx);
-        cutNetwork(ctx);
-        cutTransit(ctx);
-        cutPersons(ctx);
+        if (cutNetworkAndPlans) {
+            cutNetwork(ctx);
+            cutTransit(ctx);
+            filterFacilities(ctx);
 
+        }
+        cutPersons(ctx);
         calcNetworkCapacityChanges(ctx, demandFactor);
-        filterFacilities(ctx);
         copyVehicleTypes(ctx);
         printStats(ctx);
 
@@ -909,6 +914,9 @@ public class ScenarioCutter {
                     plan.addActivity(fromAct);
                 }
                 plan.addLeg(newLeg1);
+                if (routeStart == null || routeEnd == null) {
+                    return;
+                }
                 double delay = calcDelay(ctx, route, routeEnd, fromAct.getEndTime(), plan.getPerson());
                 Activity outsideAct1 = createOutsideActivity(ctx, routeStart.getEndLinkId(), fromAct.getEndTime()); // time does not much matter here, better early than late
                 Activity outsideAct2 = createOutsideActivity(ctx, routeEnd.getStartLinkId(), fromAct.getEndTime() + delay);
@@ -980,7 +988,7 @@ public class ScenarioCutter {
         }
         // ignore startLink, we look for the route end and know that the route does not start inside
         Collections.reverse(linkIds);
-
+        if (linkIds.size() == 0) return null;
         return RouteUtils.createNetworkRoute(linkIds, network);
     }
 
@@ -999,6 +1007,8 @@ public class ScenarioCutter {
             }
         }
         // ignore endLink, we look for the route start and know that the route does not end inside
+        if (linkIds.size() == 0) return null;
+
         return RouteUtils.createNetworkRoute(linkIds, network);
     }
 
@@ -1020,8 +1030,8 @@ public class ScenarioCutter {
         if (network.getLinks().containsKey(route.getEndLinkId())) {
             linkIds.add(route.getEndLinkId());
         }
-
-        return RouteUtils.createNetworkRoute(linkIds, network);
+        if (linkIds.size() == 0) return null;
+        else return RouteUtils.createNetworkRoute(linkIds, network);
     }
 
     private void addTransitLegToPlan(CutContext ctx, Plan plan, Activity fromAct, boolean fromActInside, Leg leg, ExperimentalTransitRoute route, Activity toAct, boolean toActInside) {
@@ -1412,6 +1422,28 @@ public class ScenarioCutter {
         }
     }
 
+    private void usePerson(CutContext ctx, Person srcP) {
+        Thread.currentThread().setName("Person " + srcP.getId());
+        Person destP = ctx.dest.getPopulation().getFactory().createPerson(srcP.getId());
+        AttributesUtils.copyAttributesFromTo(srcP, destP);
+        if (ctx.cutPlans) {
+            Plan plan = cutPlan(ctx, destP, srcP.getSelectedPlan());
+            if (planWasCut(plan)) {
+                ctx.cutPersons.put(destP.getId(), destP);
+                destP.getAttributes().putAttribute(CUT_ATTRIBUTE, true);
+                destP.getAttributes().putAttribute("subpopulation", OUTSIDE_AGENT_SUBPOP);
+            }
+        }
+        ctx.dest.getPopulation().addPerson(destP);
+    }
+
+    private Activity createOutsideActivity(CutContext ctx, Id<Link> linkId, double endTime) {
+        Link link = ctx.dest.getNetwork().getLinks().get(linkId);
+        Activity newAct = PopulationUtils.createActivityFromCoordAndLinkId(OUTSIDE_ACT_TYPE, link.getCoord(), linkId);
+        newAct.setEndTime(endTime);
+        return newAct;
+    }
+
     private static class CutContext {
         private final Scenario source;
         private final Scenario dest;
@@ -1428,8 +1460,9 @@ public class ScenarioCutter {
         private final Map<Id<Node>, Boolean> networkInsideNodes = new HashMap<>();
         private final Map<Id<Link>, int[]> missingHourlyDemand = new HashMap<>();
         private final List<Coord> relevantActivityCoords = new ArrayList<>();
+        boolean cutPlans;
 
-        CutContext(Scenario source, TravelTime travelTime, CutExtent extent, CutExtent extendedExtent, CutExtent networkExtent) {
+        CutContext(Scenario source, TravelTime travelTime, CutExtent extent, CutExtent extendedExtent, CutExtent networkExtent, boolean cutPlans) {
             this.source = source;
             this.travelTime = travelTime;
             this.dest = ScenarioUtils.createScenario(source.getConfig());
@@ -1437,27 +1470,8 @@ public class ScenarioCutter {
             this.extendedExtent = extendedExtent;
             this.networkExtent = networkExtent;
             this.dest.addScenarioElement(RELEVANT_ACT_LOCATIONS, this.relevantActivityCoords);
+            this.cutPlans = cutPlans;
         }
-    }
-
-    private Activity createOutsideActivity(CutContext ctx, Id<Link> linkId, double endTime) {
-        Link link = ctx.dest.getNetwork().getLinks().get(linkId);
-        Activity newAct = PopulationUtils.createActivityFromCoordAndLinkId(OUTSIDE_ACT_TYPE, link.getCoord(), linkId);
-        newAct.setEndTime(endTime);
-        return newAct;
-    }
-
-    private void usePerson(CutContext ctx, Person srcP) {
-        Thread.currentThread().setName("Person " + srcP.getId());
-        Person destP = ctx.dest.getPopulation().getFactory().createPerson(srcP.getId());
-        AttributesUtils.copyAttributesFromTo(srcP, destP);
-        Plan plan = cutPlan(ctx, destP, srcP.getSelectedPlan());
-        if (planWasCut(plan)) {
-            ctx.cutPersons.put(destP.getId(), destP);
-            destP.getAttributes().putAttribute(CUT_ATTRIBUTE, true);
-            destP.getAttributes().putAttribute("subpopulation", OUTSIDE_AGENT_SUBPOP);
-        }
-        ctx.dest.getPopulation().addPerson(destP);
     }
     private static void simpleCleanNetwork(Network network) {
         List<Node> emptyNodes = new ArrayList<>();
