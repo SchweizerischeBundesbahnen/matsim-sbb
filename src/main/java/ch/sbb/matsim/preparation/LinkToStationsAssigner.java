@@ -1,6 +1,7 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.variables.Variables;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
@@ -40,7 +41,7 @@ public class LinkToStationsAssigner {
 
     private void assignLinkToFacility(Network network) {
         this.scenario.getTransitSchedule().getFacilities().values().
-                forEach(f -> f.getAttributes().putAttribute("accessLinkId", NetworkUtils.getNearestLink(network,
+                forEach(f -> f.getAttributes().putAttribute(Variables.INTERMODAL_ACCESS_LINK_ID, NetworkUtils.getNearestLink(network,
                         f.getCoord()).getId().toString()));
     }
 
