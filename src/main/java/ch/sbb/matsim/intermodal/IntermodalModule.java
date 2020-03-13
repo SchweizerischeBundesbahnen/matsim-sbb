@@ -36,9 +36,10 @@ public class IntermodalModule extends AbstractModule {
 
             Map<String, String> map;
             while ((map = reader.readLine()) != null) {
-                Id<Person> personId = Id.createPersonId(map.get("personId"));
+                final String personIdString = map.get("personId");
+                if (personIdString != null) {
+                    Id<Person> personId = Id.createPersonId(personIdString);
                 Person person = population.getPersons().get(personId);
-                if (person != null) {
                     for (String attribute : attributes) {
                         if (person.getAttributes().getAsMap().containsKey(attribute)) {
                             throw new RuntimeException("Attribute " + attribute + " already exists. Overwriting by CSV should not be intended.");
