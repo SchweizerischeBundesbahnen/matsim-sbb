@@ -38,11 +38,13 @@ public class IntermodalModule extends AbstractModule {
             while ((map = reader.readLine()) != null) {
                 Id<Person> personId = Id.createPersonId(map.get("personId"));
                 Person person = population.getPersons().get(personId);
-                for (String attribute : attributes) {
-                    if (person.getAttributes().getAsMap().containsKey(attribute)) {
-                        throw new RuntimeException("Attribute " + attribute + " already exists. Overwriting by CSV should not be intended.");
+                if (person != null) {
+                    for (String attribute : attributes) {
+                        if (person.getAttributes().getAsMap().containsKey(attribute)) {
+                            throw new RuntimeException("Attribute " + attribute + " already exists. Overwriting by CSV should not be intended.");
+                        }
+                        person.getAttributes().putAttribute(attribute, map.get(attribute));
                     }
-                    person.getAttributes().putAttribute(attribute, map.get(attribute));
                 }
             }
         } catch (IOException e) {
