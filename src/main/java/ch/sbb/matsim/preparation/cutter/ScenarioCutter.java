@@ -1433,6 +1433,8 @@ public class ScenarioCutter {
                 destP.getAttributes().putAttribute(CUT_ATTRIBUTE, true);
                 destP.getAttributes().putAttribute("subpopulation", OUTSIDE_AGENT_SUBPOP);
             }
+        } else {
+            destP.addPlan(srcP.getSelectedPlan());
         }
         ctx.dest.getPopulation().addPerson(destP);
     }
