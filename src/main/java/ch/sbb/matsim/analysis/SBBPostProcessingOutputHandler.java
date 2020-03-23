@@ -17,15 +17,17 @@ import org.matsim.core.config.groups.ControlerConfigGroup;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.BeforeMobsimEvent;
 import org.matsim.core.controler.events.IterationEndsEvent;
+import org.matsim.core.controler.events.ShutdownEvent;
 import org.matsim.core.controler.events.StartupEvent;
 import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.IterationEndsListener;
+import org.matsim.core.controler.listener.ShutdownListener;
 import org.matsim.core.controler.listener.StartupListener;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, IterationEndsListener, StartupListener {
+public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, IterationEndsListener, StartupListener, ShutdownListener {
 
     private static final Logger log = Logger.getLogger(SBBPostProcessingOutputHandler.class);
 
@@ -33,6 +35,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     private OutputDirectoryHierarchy controlerIO;
     private final EventsManager eventsManager;
     private List<EventsAnalysis> analyses = new LinkedList<>();
+    private List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
     private ControlerConfigGroup config;
     private PostProcessingConfigGroup ppConfig;
     private ZonesCollection zones;
@@ -57,23 +60,24 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     public void notifyStartup(StartupEvent event) {
         String outputDirectory = this.controlerIO.getOutputFilename("");
 
-        if (this.ppConfig.getWriteAgentsCSV() || this.ppConfig.getWritePlanElementsCSV())
+        if (this.ppConfig.getWriteAgentsCSV() || this.ppConfig.getWritePlanElementsCSV()) {
             new PopulationToCSV(scenario).write(outputDirectory);
+        }
+        if (this.ppConfig.getFinalDailyVolumes()) {
+            this.persistentAnalyses = buildPersistentEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""));
+            for (EventsAnalysis analysis : this.persistentAnalyses) {
+                eventsManager.addHandler(analysis);
+            }
+        }
     }
 
     @Override
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
         int iteration = event.getIteration();
-        int lastIteration = this.config.getLastIteration();
         int interval = this.ppConfig.getWriteOutputsInterval();
 
-        if ((interval > 0) && (iteration % interval == 0) && (iteration != lastIteration)) {
+        if (((interval > 0) && (iteration % interval == 0)) || iteration == this.config.getLastIteration()) {
             this.analyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""), this.zones);
-        }
-
-        if (iteration == lastIteration) {
-            List<EventsAnalysis> finalAnalyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""), this.zones);
-            this.analyses.addAll(finalAnalyses);
         }
 
         for (EventsAnalysis analysis : this.analyses) {
@@ -84,19 +88,26 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     @Override
     public void notifyIterationEnds(IterationEndsEvent event) {
         for (EventsAnalysis analysis : this.analyses) {
-            analysis.writeResults();
+            analysis.writeResults(event.getIteration() == this.config.getLastIteration());
             this.eventsManager.removeHandler(analysis);
         }
 
         this.analyses.clear();
     }
 
-    public static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
+    @Override
+    public void notifyShutdown(ShutdownEvent event) {
+        for (EventsAnalysis analysis : this.persistentAnalyses) {
+            analysis.writeResults(true);
+        }
+    }
+
+    static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
         Double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
         List<EventsAnalysis> analyses = new LinkedList<>();
 
         if (ppConfig.getPtVolumes()) {
-            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(filename);
+            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, false);
             analyses.add(ptVolumeWriter);
         }
 
@@ -116,16 +127,28 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         }
 
         if (ppConfig.getVisumNetFile()) {
-            VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkMode(), filename);
+            VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkMode(), filename, false);
             analyses.add(visumNetworkEventWriter);
         }
 
         if (ppConfig.getAnalyseScreenline()) {
-
             ScreenLineEventWriter screenLineEventWriter = new ScreenLineEventWriter(scenario, scaleFactor, ppConfig.getShapefileScreenline(), filename);
             analyses.add(screenLineEventWriter);
         }
 
         return analyses;
+    }
+
+    static List<EventsAnalysis> buildPersistentEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
+        List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
+
+        PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, true);
+        persistentAnalyses.add(ptVolumeWriter);
+
+        VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, 1.0,
+                ppConfig.getVisumNetworkMode(), filename, true);
+        persistentAnalyses.add(visumNetworkEventWriter);
+
+        return persistentAnalyses;
     }
 }

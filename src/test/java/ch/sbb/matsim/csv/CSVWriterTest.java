@@ -20,7 +20,7 @@ public class CSVWriterTest {
         String header = "This is a\nrandom file header\n\n";
         String[] columns = new String[] {"Id", "ATTR1", "ATTR2"};
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        CSVWriter writer = new CSVWriter(header, columns, stream);
+        CSVWriter writer = new CSVWriter(header, columns, stream, ";");
         writer.set("Id", "1");
         writer.set("ATTR1", "eins");
         writer.set("ATTR2", "zwei");

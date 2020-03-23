@@ -32,8 +32,9 @@ public class SBBScenarioCutter {
         String originalRunId;
         double newScenarioSampleSize;
         boolean parseEvents;
+        boolean cutNetworkAndPlans;
 
-        if (args.length == 11) {
+        if (args.length == 12) {
             Logger.getLogger(SBBScenarioCutter.class).info("Will use input files defined by args!");
             inputConfig = args[0];
             newConfig = args[1];
@@ -49,6 +50,7 @@ public class SBBScenarioCutter {
             newRunId = args[8];
             newScenarioSampleSize = Double.parseDouble(args[9]);
             parseEvents = Boolean.parseBoolean(args[10]);
+            cutNetworkAndPlans = Boolean.parseBoolean(args[11]);
 
         } else {
             // define your cut from code, see below:
@@ -67,6 +69,7 @@ public class SBBScenarioCutter {
             newRunId = "";
             newScenarioSampleSize = 1.0;
             parseEvents = false;
+            cutNetworkAndPlans = false;
         }
 
 
@@ -86,7 +89,7 @@ public class SBBScenarioCutter {
         String cutterOutputDirectory = ConfigGroup.getInputFileURL(config.getContext(), newInputRelativeToNewConfig.replace("/", "")).getFile();
         Logger.getLogger(SBBScenarioCutter.class).info("Will write new scenario to " + cutterOutputDirectory);
 
-        ScenarioCutter.run(originalRunDirectory, originalRunId, cutterOutputDirectory, newScenarioSampleSize, parseEvents, inside, outside, network);
+        ScenarioCutter.run(originalRunDirectory, originalRunId, cutterOutputDirectory, newScenarioSampleSize, parseEvents, inside, outside, network, cutNetworkAndPlans);
 
 
         config.controler().setRunId(newRunId);

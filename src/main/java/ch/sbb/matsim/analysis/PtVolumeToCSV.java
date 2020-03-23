@@ -5,8 +5,10 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.csv.CSVWriter;
+import com.google.common.base.Functions;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
@@ -17,13 +19,17 @@ import org.matsim.core.api.experimental.events.VehicleArrivesAtFacilityEvent;
 import org.matsim.core.api.experimental.events.VehicleDepartsAtFacilityEvent;
 import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityEventHandler;
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
+import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.vehicles.Vehicle;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
@@ -33,17 +39,20 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         VehicleDepartsAtFacilityEventHandler,
         EventsAnalysis {
 
-    private final static Logger log = Logger.getLogger(PtVolumeToCSV.class);
+    private static final Logger log = Logger.getLogger(PtVolumeToCSV.class);
 
-    static final String FILENAME_STOPS =  "matsim_stops.csv.gz";
+    private static final String FILENAME_STOPS =  "matsim_stops.csv.gz";
     private static final String FILENAME_VEHJOURNEYS = "matsim_vehjourneys.csv.gz";
+    private static final String FILENAME_FINALDAILYSTOPVOLUMES =  "matsim_stops_daily.csv.gz";
 
-    static final String COL_STOP_ID = "stop_id";
+    private static final String CSV_SEP = ";";
+    private static final String COL_ITERATION = "it";
+    private static final String COL_STOP_ID = "stop_id";
     private static final String COL_FROM_STOP_ID = "from_stop_id";
     private static final String COL_TO_STOP_ID = "to_stop_id";
     private static final String COL_INDEX = "index";
-    static final String COL_BOARDING = "boarding";
-    static final String COL_ALIGHTING = "alighting";
+    private static final String COL_BOARDING = "boarding";
+    private static final String COL_ALIGHTING = "alighting";
     private static final String COL_LINE = "line";
     private static final String COL_LINEROUTE = "lineroute";
     private static final String COL_DEPARTURE_ID = "departure_id";
@@ -52,20 +61,43 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     private static final String COL_DEPARTURE = "departure";
     private static final String COL_PASSENGERS = "passengers";
 
-    static final String[] COLS_STOPS = new String[]{COL_INDEX, COL_STOP_ID, COL_BOARDING, COL_ALIGHTING, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
+    private static final String[] COLS_STOPS = new String[]{COL_INDEX, COL_STOP_ID, COL_BOARDING, COL_ALIGHTING, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
     private static final String[] COLS_VEHJOURNEYS = new String[]{COL_INDEX, COL_FROM_STOP_ID, COL_TO_STOP_ID, COL_PASSENGERS, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
 
     private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
     private HashSet<Id> ptAgents = new HashSet<>();
-    private CSVWriter stopsWriter;
-    private CSVWriter vehJourneyWriter;
+    private CSVWriter stopsWriter = null;
+    private CSVWriter vehJourneyWriter = null;
+    private BufferedWriter stopsVolumesPerIterationWriter = null;
 
-    public PtVolumeToCSV(String filename) throws UncheckedIOException {
-        try {
-            this.stopsWriter = new CSVWriter("", COLS_STOPS, filename + FILENAME_STOPS);
-            this.vehJourneyWriter = new CSVWriter("", COLS_VEHJOURNEYS, filename + FILENAME_VEHJOURNEYS);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    private String filename;
+    private boolean writeFinalDailyVolumes;
+    private Map<Id<TransitStopFacility>, Integer> dailyStopVolumes = new LinkedHashMap<>();
+
+    public PtVolumeToCSV(Scenario scenario, String filename, boolean writeFinalDailyVolumes) {
+        this.filename = filename;
+        this.writeFinalDailyVolumes = writeFinalDailyVolumes;
+        if (!writeFinalDailyVolumes) {
+            try {
+                this.stopsWriter = new CSVWriter("", COLS_STOPS, this.filename + FILENAME_STOPS);
+                this.vehJourneyWriter = new CSVWriter("", COLS_VEHJOURNEYS, this.filename + FILENAME_VEHJOURNEYS);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        } else {
+            try {
+                this.dailyStopVolumes = scenario.getTransitSchedule().getFacilities().keySet()
+                        .stream().collect(Collectors.toMap(Functions.identity(), i -> 0));
+                this.stopsVolumesPerIterationWriter = IOUtils.getBufferedWriter(this.filename + FILENAME_FINALDAILYSTOPVOLUMES);
+                this.stopsVolumesPerIterationWriter.write(COL_ITERATION);
+                for (Id id : this.dailyStopVolumes.keySet()) {
+                    this.stopsVolumesPerIterationWriter.write(CSV_SEP);
+                    this.stopsVolumesPerIterationWriter.write(id.toString());
+                }
+                this.stopsVolumesPerIterationWriter.write(IOUtils.NATIVE_NEWLINE);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 
@@ -74,14 +106,19 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     public void reset(int iteration) {
         this.ptAgents.clear();
         this.ptVehicles.clear();
-    }
-
-    private void closeAll() {
-        try {
-            this.stopsWriter.close();
-            this.vehJourneyWriter.close();
-        } catch (IOException e) {
-            log.error("Could not close files.", e);
+        if (this.stopsVolumesPerIterationWriter != null) {
+            try {
+                this.stopsVolumesPerIterationWriter.write(String.valueOf(iteration));
+                for (int vol : this.dailyStopVolumes.values()) {
+                    this.stopsVolumesPerIterationWriter.write(CSV_SEP);
+                    this.stopsVolumesPerIterationWriter.write(String.valueOf(vol));
+                }
+                this.stopsVolumesPerIterationWriter.write(IOUtils.NATIVE_NEWLINE);
+                this.stopsVolumesPerIterationWriter.flush();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            this.dailyStopVolumes.replaceAll((k, v) -> 0);
         }
     }
 
@@ -131,10 +168,27 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
     }
 
     @Override
-    public void writeResults() {
-        this.closeAll();
-    }
+    public void writeResults(boolean lastIteration) {
+        if (this.writeFinalDailyVolumes) {
+            try {
+                this.stopsVolumesPerIterationWriter.close();
+            } catch (IOException e) {
+                log.error("Could not close volumes per iteration file.", e);
+            }
+        } else {
+            try {
+                this.stopsWriter.close();
+                this.vehJourneyWriter.close();
+            } catch (IOException e) {
+                log.error("Could not close files.", e);
+            }
+            if (lastIteration) {
+                EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_STOPS);
+                EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_VEHJOURNEYS);
+            }
+        }
 
+    }
 
     // Private classes
     private class PTVehicle {
@@ -144,13 +198,13 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
         private final Id transitRouteId;
         private final Id departureId;
         private final Id vehicleId;
-        private double passengers = 0;
-        private double boardings = 0;
-        private double alightings = 0;
+        private int passengers = 0;
+        private int boardings = 0;
+        private int alightings = 0;
 
         private double departure = 0;
         private double arrival = 0;
-        private Id last_stop = null;
+        private Id lastStop = null;
         private int indexVehJourney = 0;
         private int indexStops = 0;
 
@@ -171,35 +225,40 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
             this.passengers -= 1;
         }
 
-        void setDeparture(double departure, Id stop) {
+        void setDeparture(double departure, Id<TransitStopFacility> stop) {
             this.departure = departure;
 
-            CSVWriter writer = PtVolumeToCSV.this.stopsWriter;
-            writer.set(COL_INDEX, Integer.toString(this.indexStops));
-            writer.set(COL_STOP_ID, stop.toString());
-            writer.set(COL_BOARDING, Double.toString(this.boardings));
-            writer.set(COL_ALIGHTING, Double.toString(this.alightings));
-            writer.set(COL_LINE, this.transitLineId.toString());
-            writer.set(COL_LINEROUTE, this.transitRouteId.toString());
-            writer.set(COL_DEPARTURE_ID, this.departureId.toString());
-            writer.set(COL_VEHICLE_ID, this.vehicleId.toString());
-            writer.set(COL_DEPARTURE, Double.toString(this.departure));
-            writer.set(COL_ARRIVAL, Double.toString(this.arrival));
+            if (PtVolumeToCSV.this.stopsWriter != null) {
+                CSVWriter writer = PtVolumeToCSV.this.stopsWriter;
+                writer.set(COL_INDEX, Integer.toString(this.indexStops));
+                writer.set(COL_STOP_ID, stop.toString());
+                writer.set(COL_BOARDING, Double.toString(this.boardings));
+                writer.set(COL_ALIGHTING, Double.toString(this.alightings));
+                writer.set(COL_LINE, this.transitLineId.toString());
+                writer.set(COL_LINEROUTE, this.transitRouteId.toString());
+                writer.set(COL_DEPARTURE_ID, this.departureId.toString());
+                writer.set(COL_VEHICLE_ID, this.vehicleId.toString());
+                writer.set(COL_DEPARTURE, Double.toString(this.departure));
+                writer.set(COL_ARRIVAL, Double.toString(this.arrival));
 
-            writer.writeRow();
-
-            this.alightings = 0.0;
-            this.boardings = 0.0;
+                writer.writeRow();
+            }
+            if (PtVolumeToCSV.this.writeFinalDailyVolumes) {
+                Integer currentItVol = PtVolumeToCSV.this.dailyStopVolumes.get(stop);
+                PtVolumeToCSV.this.dailyStopVolumes.put(stop, currentItVol + this.alightings + this.boardings);
+            }
+            this.alightings = 0;
+            this.boardings = 0;
             this.indexStops += 1;
         }
 
         void setArrival(double arrival, Id stop) {
 
-            if(this.last_stop != null) {
+            if(this.lastStop != null && PtVolumeToCSV.this.vehJourneyWriter != null) {
                 CSVWriter writer = PtVolumeToCSV.this.vehJourneyWriter;
 
                 writer.set(COL_INDEX, Integer.toString(this.indexVehJourney));
-                writer.set(COL_FROM_STOP_ID, this.last_stop.toString());
+                writer.set(COL_FROM_STOP_ID, this.lastStop.toString());
                 writer.set(COL_TO_STOP_ID, stop.toString());
                 writer.set(COL_PASSENGERS, Double.toString(this.passengers));
                 writer.set(COL_LINE, this.transitLineId.toString());
@@ -211,7 +270,7 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
 
                 writer.writeRow();
             }
-            this.last_stop = stop;
+            this.lastStop = stop;
             this.arrival = arrival;
             this.indexVehJourney += 1;
         }

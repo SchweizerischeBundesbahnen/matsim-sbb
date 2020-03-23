@@ -12,7 +12,9 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.*;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +55,7 @@ public class VisumStreetNetworkExporter {
 
         String[][] nodes = importNodes(net, "No", "XCoord", "YCoord");
         String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
-                "NumLanes", "TSysSet", "ID_SIM", "accessControlled", "WKTPoly");
+                "NumLanes", "TSysSet", "accessControlled", "WKTPoly", "No");
         createNetwork(nodes, links);
         writeNetwork(outputPath);
 
@@ -112,17 +114,32 @@ public class VisumStreetNetworkExporter {
 
         for (String[] anAttarraylink : attarraylink) {
             if (anAttarraylink[7].contains("P")) {
-                Id<Link> id = Id.createLinkId(anAttarraylink[8]);
-                Link link = createLink(id, anAttarraylink[0], anAttarraylink[1], Double.parseDouble(anAttarraylink[2]),
+                final String fromNode = anAttarraylink[0];
+                final String toNode = anAttarraylink[1];
+                final String visumLinkNo = anAttarraylink[10];
+                Id<Link> id = createLinkId(fromNode, visumLinkNo);
+                Link link = createLink(id, fromNode, toNode, Double.parseDouble(anAttarraylink[2]),
                         Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
                         Integer.parseInt(anAttarraylink[6]));
                 if (link != null) {
-                    link.getAttributes().putAttribute("accessControlled", Integer.parseInt(anAttarraylink[9]));
+                    NetworkUtils.setType(link, anAttarraylink[5]);
+                    int ac = 0;
+                    try {
+                        ac = Integer.parseInt(anAttarraylink[8]);
+                    } catch (NumberFormatException e) {
+                        log.warn("Access Control not defined for link " + link.getId() + ". Assuming = 0");
+                    }
+                    link.getAttributes().putAttribute("accessControlled", ac);
                     network.addLink(link);
                 }
-                this.wktLineStringPerVisumLink.put(id, anAttarraylink[10]);
+                this.wktLineStringPerVisumLink.put(id, anAttarraylink[9]);
             }
         }
+    }
+
+    public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
+        Id<Link> id = Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
+        return id;
     }
 
 
@@ -138,7 +155,14 @@ public class VisumStreetNetworkExporter {
         if (length == 0.0) {
             length = 0.0001;
         }
-        link.setLength(1000 * length);
+        length *= 1000.;
+        double beelineDistance = CoordUtils.calcEuclideanDistance(fnode.getCoord(), tnode.getCoord());
+        if (length < beelineDistance) {
+            if (beelineDistance - length > 1.0) {
+                log.warn(link.getId() + " has a length (" + length + ") shorter than its beeline distance (" + beelineDistance + "). Will not correct this.");
+            }
+        }
+        link.setLength(length);
         link.setCapacity(cap);
         link.setFreespeed(v / 3.6);
         link.setNumberOfLanes(numlanes);

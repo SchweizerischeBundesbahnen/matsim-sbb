@@ -46,7 +46,7 @@ public class RunSBBPostProcessing {
         new MatsimEventsReader(eventsManager).readFile(eventsFileName);
 
         for (EventsAnalysis eventWriter : eventWriters) {
-            eventWriter.writeResults();
+            eventWriter.writeResults(true);
         }
 
         if (ppConfig.getWriteAgentsCSV() || ppConfig.getWritePlanElementsCSV()) {

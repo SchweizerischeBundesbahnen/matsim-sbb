@@ -7,6 +7,7 @@ package ch.sbb.matsim.mavi.pt;
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
+import ch.sbb.matsim.preparation.MobiTransitScheduleVerifiyer;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -17,6 +18,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.vehicles.MatsimVehicleWriter;
 
@@ -85,6 +87,7 @@ public class RunVisumPtExporter {
         createOutputPath(exporterConfig.getOutputPath());
         tpe.writeLinkSequence(exporterConfig.getOutputPath());
         writeFiles(scenario, exporterConfig.getOutputPath());
+        MobiTransitScheduleVerifiyer.verifyTransitSchedule(scenario.getTransitSchedule());
 
         // write polyline file
         new PolylinesCreator().runPt(scenario.getNetwork(), visum, tpe.linkToVisumSequence, exporterConfig.getOutputPath());
@@ -136,6 +139,18 @@ public class RunVisumPtExporter {
                 collect(Collectors.toSet());
         nodesToRemove.forEach(network::removeNode);
         log.info("removed " + nodesToRemove.size() + " unused nodes.");
+        for (Link l : network.getLinks().values()) {
+            double beelineLength = CoordUtils.calcEuclideanDistance(l.getFromNode().getCoord(), l.getToNode().getCoord());
+            if (l.getLength() < beelineLength) {
+                if (beelineLength - l.getLength() > 1.0) {
+                    log.warn(l.getId() + " has a length (" + l.getLength() + ") shorter than its beeline distance (" + beelineLength + "). Correcting this.");
+                }
+                l.setLength(beelineLength);
+            }
+            if (l.getLength() <= 0.0) {
+                l.setLength(0.01);
+            }
+        }
     }
 
     private static void createOutputPath(String path)    {
