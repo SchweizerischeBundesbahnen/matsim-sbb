@@ -1,11 +1,15 @@
 package ch.sbb.matsim;
 
+import ch.ethz.matsim.discrete_mode_choice.estimators.SBBTourEstimator;
 import ch.ethz.matsim.discrete_mode_choice.model.DiscreteModeChoiceModel;
+import ch.ethz.matsim.discrete_mode_choice.model.tour_based.TourBasedModel;
 import ch.ethz.matsim.discrete_mode_choice.modules.*;
 import ch.ethz.matsim.discrete_mode_choice.modules.ModelModule.ModelType;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.ModeChainFilterRandomThresholdConfigGroup;
 import ch.sbb.matsim.RunSBB;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
@@ -119,7 +123,7 @@ public class RunSbbDmcIT {
     	Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
         config.strategy().setFractionOfIterationsToDisableInnovation(1.0);
         config.controler().setLastIteration(10);
-        config.controler().setOutputDirectory("test/output/RunSbbDmcIT/dmcIT");
+        config.controler().setOutputDirectory("test/output/RunSbbDmcIT/dmcITETH");
         
         for (StrategySettings strategy : config.strategy().getStrategySettings()) {
 			if (strategy.getStrategyName().equals(DefaultStrategy.SubtourModeChoice)) {
@@ -151,12 +155,13 @@ public class RunSbbDmcIT {
 				smcConfig.getBehavior().equals(SubtourModeChoice.Behavior.fromSpecifiedModesToSpecifiedModes));
 		dmcConfig.setCachedModes(Arrays.asList(smcConfig.getModes()));
 		dmcConfig.setModelType(ModelType.Tour);
-		dmcConfig.setSelector(SelectorModule.RANDOM);
+		dmcConfig.setSelector(SelectorModule.MULTINOMIAL_LOGIT);
 		dmcConfig.setTourConstraints(tourConstraints);
-		dmcConfig.setTourEstimator(EstimatorModule.UNIFORM);
+		dmcConfig.setTourEstimator(SBBEstimatorModule.SBB_SCORING);
 		dmcConfig.setTourFinder(TourFinderModule.PLAN_BASED);
 		dmcConfig.getVehicleTourConstraintConfig().setRestrictedModes(Arrays.asList(smcConfig.getChainBasedModes()));
 		dmcConfig.setFallbackBehaviour(DiscreteModeChoiceModel.FallbackBehaviour.IGNORE_AGENT);
+        Logger.getLogger(TourBasedModel.class).setLevel(Level.ERROR);
 		
 		if (smcConfig.considerCarAvailability()) {
 			dmcConfig.setModeAvailability(ModeAvailabilityModule.CAR);

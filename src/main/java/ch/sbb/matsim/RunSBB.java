@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim;
 
+import ch.ethz.matsim.discrete_mode_choice.model.tour_based.TourBasedModel;
 import ch.ethz.matsim.discrete_mode_choice.modules.DiscreteModeChoiceModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.SBBEstimatorModule;
 import ch.ethz.matsim.discrete_mode_choice.modules.config.DiscreteModeChoiceConfigGroup;
@@ -36,6 +37,7 @@ import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
@@ -183,6 +185,7 @@ public class RunSBB {
             	install(new SBBEstimatorModule());
             	}
          });
+        Logger.getLogger(TourBasedModel.class).setLevel(Level.ERROR);
     }
 
     public static Config buildConfig(String filepath) {
