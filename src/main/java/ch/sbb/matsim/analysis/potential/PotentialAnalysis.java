@@ -1,12 +1,13 @@
 package ch.sbb.matsim.analysis.potential;
 
 
-import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
-import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
 import ch.sbb.matsim.analysis.skims.StreamingFacilities;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.plans.facilities.FacilitiesReader;
-import ch.sbb.matsim.routing.pt.raptor.*;
+import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
+import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
@@ -17,12 +18,10 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
-import org.matsim.core.api.internal.MatsimWriter;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
-import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Counter;

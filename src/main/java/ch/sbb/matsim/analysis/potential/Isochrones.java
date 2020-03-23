@@ -1,7 +1,8 @@
 package ch.sbb.matsim.analysis.potential;
 
-import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
 import ch.sbb.matsim.preparation.FilteredNetwork;
+import ch.sbb.matsim.routing.graph.Graph;
+import ch.sbb.matsim.routing.graph.LeastCostPathTree;
 import com.graphhopper.isochrone.algorithm.DelaunayTriangulationIsolineBuilder;
 import org.apache.log4j.Logger;
 import org.geotools.feature.SchemaException;
@@ -13,6 +14,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -21,6 +23,7 @@ import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
@@ -29,22 +32,33 @@ import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.gis.PolygonFeatureFactory;
 import org.matsim.core.utils.gis.ShapeFileWriter;
+import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleUtils;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 
 public class Isochrones {
 
     private static final Logger log = Logger.getLogger(Isochrones.class);
+
+    private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
+    private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
+
     private Scenario scenario;
     private String eventsFilename;
     private Config config;
     private Network network;
     private Network filteredNetwork;
+    private Graph graph;
     private Collection<SimpleFeature> collection = new ArrayList<SimpleFeature>();
     private TravelTime travelTime;
     private TravelTime travelTimeWithLoad;
@@ -77,6 +91,7 @@ public class Isochrones {
 
         this.network = NetworkUtils.createNetwork();
         new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.network, Collections.singleton(TransportMode.car));
+        this.graph = new Graph(this.network);
         this.filteredNetwork = new FilteredNetwork().filterNetwork(this.network);
 
         this.travelTime = getTravelTime();
@@ -141,21 +156,21 @@ public class Isochrones {
         }
 
         Node node = NetworkUtils.getNearestNode(this.filteredNetwork, coord);
-        LeastCostPathTree leastCostPathTree = new LeastCostPathTree(tt, this.travelDisutility);
+        LeastCostPathTree leastCostPathTree = new LeastCostPathTree(this.graph, tt, this.travelDisutility);
 
         int startTime = 7 * 60 * 60;
-        leastCostPathTree.calculate(this.scenario.getNetwork(), node, startTime);
-
-        Map<Id<Node>, LeastCostPathTree.NodeData> tree = leastCostPathTree.getTree();
+        leastCostPathTree.calculate(node.getId().index(), startTime, PERSON, VEHICLE);
 
         final int bucketCount = 2;
         final double bucketSize = threshold / bucketCount;
         List<List<Coordinate>> buckets = this.createBuckets(bucketCount);
 
-        for (Map.Entry<Id<Node>, LeastCostPathTree.NodeData> e : tree.entrySet()) {
-            Id<Node> id = e.getKey();
-            LeastCostPathTree.NodeData d = e.getValue();
-            double time1 = d.getTime();
+        for (Node n : this.network.getNodes().values()) {
+            Id<Node> id = n.getId();
+            double time1 = leastCostPathTree.getTime(id.index());
+            if (Time.isUndefinedTime(time1)) {
+                continue;
+            }
             double time2 = time1 - startTime;
 
             int bucketIndex = (int) (time2 / bucketSize);
@@ -228,7 +243,6 @@ public class Isochrones {
         isochrones.computeall(15 * 60);
         isochrones.computeall(10 * 60);
         isochrones.write(outputShapefile);
-
 
     }
 

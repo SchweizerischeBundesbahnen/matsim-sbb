@@ -79,9 +79,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
+			<!--<groupId>com.github.SchweizerischeBundesbahnen</groupId>-->
+			<groupId>ch.sbb</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
-			<version>12.1</version>
+			<version>12.2-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->
