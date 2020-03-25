@@ -4,11 +4,11 @@ import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -25,7 +25,6 @@ import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
-import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.collections.CollectionUtils;
@@ -140,7 +139,6 @@ public class RunTravelTimeValidation {
                             writer.set(column, map.get(column));
                         }
 
-                        log.info(leg);
                         writer.set("Dist_MATSim", Double.toString(leg.getRoute().getDistance()));
                         writer.set("Time_MATSim", Double.toString(leg.getRoute().getTravelTime()));
                         writer.writeRow();
@@ -159,8 +157,6 @@ public class RunTravelTimeValidation {
     }
 
     public Leg fetch(float fromX, float fromY, float toX, float toY) {
-        Scenario onePlan = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        Person person = PopulationUtils.getFactory().createPerson(Id.create(1, Person.class));
 
         Activity fromAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(fromX, fromY)));
         Facility fromFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, fromAct.getCoord()));
@@ -169,14 +165,8 @@ public class RunTravelTimeValidation {
         Facility toFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, toAct.getCoord()));
 
         List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility,
-                this.startTime * 60 * 60, person);
+                this.startTime * 60 * 60, null);
         Leg leg = (Leg) pes.get(0);
-
-        Plan plan = PopulationUtils.createPlan(person);
-        plan.addLeg(leg);
-
-        person.addPlan(plan);
-        onePlan.getPopulation().addPerson(person);
         return leg;
     }
 }
