@@ -3,6 +3,7 @@ package ch.sbb.matsim.intermodal;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.intermodal.analysis.IntermodalControlerListener;
 import ch.sbb.matsim.intermodal.analysis.IntermodalTransferTimeAnalyser;
@@ -33,13 +34,15 @@ public class IntermodalModule extends AbstractModule {
             log.info(csvPath);
 
             Set<String> attributes = new HashSet<>(Arrays.asList(reader.getColumns()));
-
+            if (!attributes.contains(Variables.PERSONID)) {
+                throw new RuntimeException("CSV file does not contain a " + Variables.PERSONID + " field in header.");
+            }
             Map<String, String> map;
             while ((map = reader.readLine()) != null) {
-                final String personIdString = map.get("personId");
-                if (personIdString != null) {
-                    Id<Person> personId = Id.createPersonId(personIdString);
+                final String personIdString = map.get(Variables.PERSONID);
+                Id<Person> personId = Id.createPersonId(personIdString);
                 Person person = population.getPersons().get(personId);
+                if (person != null) {
                     for (String attribute : attributes) {
                         if (person.getAttributes().getAsMap().containsKey(attribute)) {
                             throw new RuntimeException("Attribute " + attribute + " already exists. Overwriting by CSV should not be intended.");
