@@ -1,10 +1,12 @@
 package ch.sbb.matsim.zones;
 
+import org.apache.log4j.Logger;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.matsim.api.core.v01.Id;
 import org.opengis.feature.simple.SimpleFeature;
+
 
 public class SimpleFeatureZone implements Zone {
 
@@ -23,6 +25,10 @@ public class SimpleFeatureZone implements Zone {
 
     @Override
     public Object getAttribute(String name) {
+        Object o = this.feature.getAttribute(name);
+        if (o == null) {
+            Logger.getLogger(getClass()).warn("Attribute " + name + " not found in zones. Will return null");
+        }
         return this.feature.getAttribute(name);
     }
 
