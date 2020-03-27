@@ -122,7 +122,7 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
                     }
                     JFreeChart chart = countsLoadCurveGraph.createChart();
                     String chartfilename = link.getId().toString() + "_" + count.getCsLabel().replace(",", "").replace("\\", "-").replace("/", "-").toLowerCase();
-                    ChartUtils.writeChartAsPNG(Files.newOutputStream(Paths.get(outputFolder + "/" + chartfilename + ".png")), chart, 800, 600);
+                    ChartUtils.writeChartAsPNG(Files.newOutputStream(Paths.get(outputFolder + "/" + chartfilename + ".png")), chart, 1200, 750);
                 } else {
                     Logger.getLogger(getClass()).warn(count.getId() + " , " + count.getCsLabel() + " was not found in network, but is in counts. Skipping.");
                 }
