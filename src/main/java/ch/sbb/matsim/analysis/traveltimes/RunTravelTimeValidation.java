@@ -118,10 +118,25 @@ public class RunTravelTimeValidation {
                 routeAlgo);
     }
 
-    public void run(String csvPath, String outputPath) {
+    public RunTravelTimeValidation(Network network, TravelTime tt, double startTime) {
+        this.network = network;
+        this.startTime = startTime;
+        DijkstraFactory factory = new DijkstraFactory();
+        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
+
+        LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
+        this.router = new NetworkRoutingModule(
+                TransportMode.car,
+                PopulationUtils.getFactory(),
+                network,
+                routeAlgo);
+    }
+
+
+    public void run(String relationsCsvPath, String outputPath) {
         String[] columns = {"Dist_MATSim", "Time_MATSim"};
 
-        try (CSVReader reader = new CSVReader(csvPath, ";")) {
+        try (CSVReader reader = new CSVReader(relationsCsvPath, ";")) {
             String[] allColumns = Stream.concat(Arrays.stream(reader.getColumns()), Arrays.stream(columns)).toArray(String[]::new);
 
             try (CSVWriter writer = new CSVWriter("", allColumns, new File(outputPath).toString())) {
