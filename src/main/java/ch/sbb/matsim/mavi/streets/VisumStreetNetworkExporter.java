@@ -66,7 +66,7 @@ public class VisumStreetNetworkExporter {
     private void exportCountStations(Dispatch net, String outputFolder) throws IOException {
         VisumToCounts visumToCounts = new VisumToCounts();
 
-        File file = new File(outputFolder, "counts.xml.gz");
+        File file = new File(outputFolder, "counts");
         File csv = new File(outputFolder, "counts.csv");
         visumToCounts.exportCountStations(net, file.getAbsolutePath(), csv.getAbsolutePath());
     }
