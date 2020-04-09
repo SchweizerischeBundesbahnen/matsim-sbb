@@ -17,6 +17,7 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
+import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
@@ -114,20 +115,23 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
         double x = facility.getCoord().getX();
         double y = facility.getCoord().getY();
+        List<String> activityFilteredAllowableModes = filterModesbyActivity(facility, person, srrCfg);
         List<InitialStop> initialStops = new ArrayList<>();
         switch (srrCfg.getIntermodalAccessEgressModeSelection()) {
             case CalcLeastCostModePerStop:
                 for (IntermodalAccessEgressParameterSet parameterSet : srrCfg.getIntermodalAccessEgressParameterSets()) {
-                    addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y, initialStops, parameterSet);
+                    if (activityFilteredAllowableModes.contains(parameterSet.getMode())) {
+                        addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y, initialStops, parameterSet);
+                    }
                 }
                 break;
             case RandomSelectOneModePerRoutingRequestAndDirection:
                 int counter = 0;
                 do {
-                    int rndSelector = random.nextInt(srrCfg.getIntermodalAccessEgressParameterSets().size());
-                    log.debug("findIntermodalStops: rndSelector=" + rndSelector);
+                    int rndSelector = random.nextInt(activityFilteredAllowableModes.size());
+                    String mode = activityFilteredAllowableModes.get(rndSelector);
                     addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y,
-                            initialStops, srrCfg.getIntermodalAccessEgressParameterSets().get(rndSelector));
+                            initialStops, srrCfg.getIntermodalAccessEgressParameterSets().stream().filter(s -> s.getMode().equals(mode)).findAny().get());
                     counter++;
                     // try again if no initial stop was found for the parameterset. Avoid infinite loop by limiting number of tries.
                 } while (initialStops.isEmpty() && counter < 2 * srrCfg.getIntermodalAccessEgressParameterSets().size());
@@ -137,6 +141,18 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         }
 
         return initialStops;
+    }
+
+    private List<String> filterModesbyActivity(Facility facility, Person person, SwissRailRaptorConfigGroup srrCfg) {
+        Optional<String> actType = TripStructureUtils.getActivities(person.getSelectedPlan(), TripStructureUtils.StageActivityHandling.ExcludeStageActivities).stream()
+                .filter(activity -> activity.getCoord().equals(facility.getCoord())).map(a -> a.getType()).findAny();
+        if (actType.isPresent()) {
+            final String activityType = actType.get();
+            List<String> modes = intermodalModeParams.values().stream()
+                    .filter(a -> a.getActivityFilters().stream().anyMatch(at -> activityType.startsWith(at)))
+                    .map(a -> a.getMode()).collect(Collectors.toList());
+            return modes;
+        } else return new ArrayList<>(this.intermodalModeParams.keySet());
     }
 
     private void addInitialStopsForParamSet(Facility facility, Person person, double departureTime, Direction direction, RaptorParameters parameters, SwissRailRaptorData data, double x, double y, List<InitialStop> initialStops, IntermodalAccessEgressParameterSet paramset) {

@@ -11,12 +11,10 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
+import org.matsim.core.utils.collections.CollectionUtils;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
@@ -149,7 +147,8 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         static private final String PARAM_CONSTANT = "constant";
         static private final String PARAM_CONSTANT_DESC = "ASC for feeder mode";
 
-
+        static private final String PARAM_ACTIVITY_FILTER = "activityFilter";
+        static private final String PARAM_ACTIVITY_FILTER_DESC = "Activities where access mode may be used (startsWith filter), comma-separated ";
 
         private String mode = "ride_feeder";
         private Integer waitingTime = 0;
@@ -162,6 +161,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         private String egressTimeZoneId = null;
         private String detourFactorZoneId = null;
         private boolean useMinimalTransferTimes = false;
+        private Set<String> activityFilters = Collections.emptySet();
 
         public SBBIntermodalModeParameterSet() {
             super(TYPE);
@@ -290,6 +290,23 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             this.detourFactorZoneId = detourFactorZoneId;
         }
 
+        public Set<String> getActivityFilters() {
+            return activityFilters;
+        }
+
+        @StringSetter(PARAM_ACTIVITY_FILTER)
+        public void setActivityFilters(String activityFilterString) {
+            this.activityFilters = CollectionUtils.stringToSet(activityFilterString);
+        }
+
+        @StringGetter(PARAM_ACTIVITY_FILTER)
+        public String getActivityFiltersAsString() {
+            return CollectionUtils.setToString(activityFilters);
+        }
+
+
+
+
         @Override
         public Map<String, String> getComments() {
             Map<String, String> comments = super.getComments();
@@ -304,6 +321,7 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             comments.put(PARAM_EGRESSTIME_ZONEATT, PARAM_EGRESSTIME_ZONEATT_DESC);
             comments.put(PARAM_ACCESSTIME_ZONEATT, PARAM_ACCESSTIME_ZONEATT_DESC);
             comments.put(PARAM_USEMINIMALTRANSFERTIMES, PARAM_USEMINIMALTRANSFERTIMES_DESC);
+            comments.put(PARAM_ACTIVITY_FILTER, PARAM_ACTIVITY_FILTER_DESC);
             return comments;
         }
 
