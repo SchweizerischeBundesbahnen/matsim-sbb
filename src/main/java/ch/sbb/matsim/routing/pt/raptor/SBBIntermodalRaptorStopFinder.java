@@ -117,27 +117,29 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         double y = facility.getCoord().getY();
         List<String> activityFilteredAllowableModes = filterModesbyActivity(facility, person, srrCfg);
         List<InitialStop> initialStops = new ArrayList<>();
-        switch (srrCfg.getIntermodalAccessEgressModeSelection()) {
-            case CalcLeastCostModePerStop:
-                for (IntermodalAccessEgressParameterSet parameterSet : srrCfg.getIntermodalAccessEgressParameterSets()) {
-                    if (activityFilteredAllowableModes.contains(parameterSet.getMode())) {
-                        addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y, initialStops, parameterSet);
+        if (activityFilteredAllowableModes.size() > 0) {
+            switch (srrCfg.getIntermodalAccessEgressModeSelection()) {
+                case CalcLeastCostModePerStop:
+                    for (IntermodalAccessEgressParameterSet parameterSet : srrCfg.getIntermodalAccessEgressParameterSets()) {
+                        if (activityFilteredAllowableModes.contains(parameterSet.getMode())) {
+                            addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y, initialStops, parameterSet);
+                        }
                     }
-                }
-                break;
-            case RandomSelectOneModePerRoutingRequestAndDirection:
-                int counter = 0;
-                do {
-                    int rndSelector = random.nextInt(activityFilteredAllowableModes.size());
-                    String mode = activityFilteredAllowableModes.get(rndSelector);
-                    addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y,
-                            initialStops, srrCfg.getIntermodalAccessEgressParameterSets().stream().filter(s -> s.getMode().equals(mode)).findAny().get());
-                    counter++;
-                    // try again if no initial stop was found for the parameterset. Avoid infinite loop by limiting number of tries.
-                } while (initialStops.isEmpty() && counter < 2 * srrCfg.getIntermodalAccessEgressParameterSets().size());
-                break;
-            default:
-                throw new RuntimeException(srrCfg.getIntermodalAccessEgressModeSelection() + " : not implemented!");
+                    break;
+                case RandomSelectOneModePerRoutingRequestAndDirection:
+                    int counter = 0;
+                    do {
+                        int rndSelector = random.nextInt(activityFilteredAllowableModes.size());
+                        String mode = activityFilteredAllowableModes.get(rndSelector);
+                        addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y,
+                                initialStops, srrCfg.getIntermodalAccessEgressParameterSets().stream().filter(s -> s.getMode().equals(mode)).findAny().get());
+                        counter++;
+                        // try again if no initial stop was found for the parameterset. Avoid infinite loop by limiting number of tries.
+                    } while (initialStops.isEmpty() && counter < 2 * srrCfg.getIntermodalAccessEgressParameterSets().size());
+                    break;
+                default:
+                    throw new RuntimeException(srrCfg.getIntermodalAccessEgressModeSelection() + " : not implemented!");
+            }
         }
 
         return initialStops;
@@ -149,7 +151,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         if (actType.isPresent()) {
             final String activityType = actType.get();
             List<String> modes = intermodalModeParams.values().stream()
-                    .filter(a -> a.getActivityFilters().stream().anyMatch(at -> activityType.startsWith(at)))
+                    .filter(a -> a.getActivityFilters().isEmpty() || a.getActivityFilters().stream().anyMatch(at -> activityType.startsWith(at)))
                     .map(a -> a.getMode()).collect(Collectors.toList());
             return modes;
         } else return new ArrayList<>(this.intermodalModeParams.keySet());
