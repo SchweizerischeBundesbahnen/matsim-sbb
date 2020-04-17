@@ -31,19 +31,16 @@ import ch.sbb.matsim.zones.ZonesQueryCache;
 
 public class SBBTourEstimator implements TourEstimator{
 	
-	 private final static Logger log = Logger.getLogger(SBBTourEstimator.class);
+	private final static Logger log = Logger.getLogger(SBBTourEstimator.class);
 	
 	private final TourEstimator delegate;
-	private final ScoringParametersForPerson scoringParametersForPerson;
 	private final ZonesQueryCache zonesQuery;
 	private final String parkingCostAttributeName;
 	private final Scenario scenario;
 	private final SBBCharyparNagelScoringParametersForPerson paramsForPerson;
 
-	public SBBTourEstimator(TripEstimator tripEstimator,
-			ScoringParametersForPerson scoringParametersForPerson,ParkingCostConfigGroup parkCostConfig,ZonesCollection zones,Scenario scenario) {
+	public SBBTourEstimator(TripEstimator tripEstimator,ParkingCostConfigGroup parkCostConfig,ZonesCollection zones,Scenario scenario) {
 		this.delegate = new CumulativeTourEstimator(tripEstimator);
-		this.scoringParametersForPerson = scoringParametersForPerson;
 		this.zonesQuery = new ZonesQueryCache(zones.getZones(parkCostConfig.getZonesId()));
 		this.parkingCostAttributeName = parkCostConfig.getZonesParkingCostAttributeName();
 		this.scenario = scenario;
@@ -84,7 +81,7 @@ public class SBBTourEstimator implements TourEstimator{
 		double utility = 0.0;
 		
 		if(modes.get(0).compareTo("car")==0) {
-			List<DiscreteModeChoiceTrip> carTrips = new ArrayList();
+			List<DiscreteModeChoiceTrip> carTrips = new ArrayList<DiscreteModeChoiceTrip>();
 			for (int i = 0; i < modes.size(); i++) {
 				if(modes.get(i).compareTo("car") == 0) { 
 					carTrips.add(trips.get(i));
