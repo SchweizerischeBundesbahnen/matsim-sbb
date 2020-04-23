@@ -213,7 +213,9 @@
                         <include>**/*Tests.java</include>
                         <include>**/*TestCase.java</include>
 					</includes>
-                </configuration>
+					<forkedProcessExitTimeoutInSeconds>1000</forkedProcessExitTimeoutInSeconds>
+
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
