@@ -1,8 +1,13 @@
 package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.mavi.visum.Visum;
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -15,10 +20,6 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class VisumStopExporter {
 
@@ -113,16 +114,16 @@ public class VisumStopExporter {
     private static void addAttribute(Attributes attributes, String name, String value, String dataType) {
         if (!value.isEmpty() && !value.equals("null")) {
             switch (dataType) {
-                case Type.STRING_CLASS:
+                case "java.lang.String":
                     attributes.putAttribute(name, value);
                     break;
-                case Type.DOUBLE_CLASS:
+                case "java.lang.Double":
                     attributes.putAttribute(name, Double.parseDouble(value));
                     break;
-                case Type.INTEGER_CLASS:
+                case "java.lang.Integer":
                     attributes.putAttribute(name, (int) Double.parseDouble(value));
                     break;
-                case Type.BOOLEAN_CLASS:
+                case "java.lang.Boolean":
                     attributes.putAttribute(name, value);
                     break;
 

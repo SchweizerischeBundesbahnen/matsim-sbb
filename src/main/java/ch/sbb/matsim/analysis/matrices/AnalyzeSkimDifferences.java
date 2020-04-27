@@ -2,12 +2,14 @@ package ch.sbb.matsim.analysis.matrices;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
-import com.sun.org.apache.xpath.internal.functions.WrongNumberArgsException;
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 /**
  * @author jbischoff / SBB
@@ -28,7 +30,7 @@ public class AnalyzeSkimDifferences {
         this.compareFiles = compareFiles;
     }
 
-    public static void main(String[] args) throws WrongNumberArgsException {
+    public static void main(String[] args) throws RuntimeException {
 
         if (args.length >= 3) {
             String inputfile1 = args[0];
@@ -37,7 +39,7 @@ public class AnalyzeSkimDifferences {
 
             new AnalyzeSkimDifferences(inputfile1, outputfile, comparefiles).run();
         } else {
-            throw new WrongNumberArgsException("Expected at least three arguments: inputSkims, outputFile, [files to compare with]");
+            throw new RuntimeException("Expected at least three arguments: inputSkims, outputFile, [files to compare with]");
         }
 
 
