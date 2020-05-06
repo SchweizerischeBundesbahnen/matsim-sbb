@@ -2,15 +2,6 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.visum.Visum;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.IntStream;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -30,9 +21,22 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleCapacity;
 import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleType.DoorOperationMode;
+import org.matsim.vehicles.VehicleUtils;
 import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 public class TimeProfileExporter {
 
@@ -82,7 +86,7 @@ public class TimeProfileExporter {
         Visum.ComObject vehJourneys = visum.getNetObject("VehicleJourneys");
         int nrOfVehJourneys = vehJourneys.countActive();
         String[][] vehJourneyAttributes = Visum.getArrayFromAttributeList(nrOfVehJourneys, vehJourneys,
-                "TimeProfile\\ID", "No", "FromTProfItemIndex", "ToTProfItemIndex", "Dep");
+                "TimeProfile\\ID", "No", "FromTProfItemIndex", "ToTProfItemIndex", "Dep", "Gefaessgroesse");
         for (int vj = 0; vj < nrOfVehJourneys; vj++) {
             TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(vehJourneyAttributes[vj][0]));
             if (tp == null)
@@ -90,7 +94,8 @@ public class TimeProfileExporter {
             tp.addVehicleJourney(new VehicleJourney((int) Double.parseDouble(vehJourneyAttributes[vj][1]),
                     (int) Double.parseDouble(vehJourneyAttributes[vj][2]),
                     (int) Double.parseDouble(vehJourneyAttributes[vj][3]),
-                    Double.parseDouble(vehJourneyAttributes[vj][4])));
+                    Double.parseDouble(vehJourneyAttributes[vj][4]),
+                    (int) Double.parseDouble(vehJourneyAttributes[vj][5])));
         }
 
         // time profile items
@@ -281,13 +286,33 @@ public class TimeProfileExporter {
                 IntStream.range(0, values.length).forEach(j -> addAttribute(route.getAttributes(), custAttNames.get(j).getAttributeName(),
                         values[j], custAttNames.get(j).getDataType()));
 
-                String vehicleType = tp.tSysCode;
-                Id<VehicleType> vehicleTypeId = Id.create(vehicleType, VehicleType.class);
-                Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, this.vehicles.getVehicleTypes().get(vehicleTypeId));
+                VehicleType vehType = getVehicleType(tp.tSysCode, vj.vehCapacity);
+                Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, vehType);
                 this.vehicles.addVehicle(vehicle);
             });
         }
         log.info("Loading transit routes finished");
+    }
+
+    private VehicleType getVehicleType(String tSysCode, int capacity) {
+        Id<VehicleType> vehicleTypeId = Id.create(tSysCode + "_" + capacity, VehicleType.class);
+        VehicleType vehType = this.vehicles.getVehicleTypes().get(vehicleTypeId);
+        if (vehType == null) {
+            vehType = this.vehicleBuilder.createVehicleType(vehicleTypeId);
+            vehType.setDescription(tSysCode);
+            VehicleUtils.setDoorOperationMode(vehType, DoorOperationMode.serial);
+            VehicleCapacity vehicleCapacity = vehType.getCapacity();
+            vehicleCapacity.setSeats(capacity);
+            vehicleCapacity.setStandingRoom((int) (capacity * 0.2));
+
+            // the following parameters do not have any influence in a deterministic simulation engine
+            vehType.setLength(10);
+            vehType.setWidth(2);
+            vehType.setPcuEquivalents(1);
+            vehType.setMaximumVelocity(10000);
+            this.vehicles.addVehicleType(vehType);
+        }
+        return vehType;
     }
 
     private static void addAttribute(Attributes attributes, String name, String value, String dataType)  {
@@ -341,12 +366,14 @@ public class TimeProfileExporter {
         final int fromTProfItemIndex;
         final int toTProfItemIndex;
         final double dep;
+        final int vehCapacity;
 
-        public VehicleJourney(int no, int fromTProfItemIndex, int toTProfItemIndex, double dep) {
+        public VehicleJourney(int no, int fromTProfItemIndex, int toTProfItemIndex, double dep, int vehCapacity) {
             this.no = no;
             this.fromTProfItemIndex = fromTProfItemIndex;
             this.toTProfItemIndex = toTProfItemIndex;
             this.dep = dep;
+            this.vehCapacity = vehCapacity;
         }
     }
 
