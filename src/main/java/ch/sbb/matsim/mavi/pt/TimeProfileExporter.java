@@ -2,7 +2,15 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.visum.Visum;
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.IntStream;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -13,16 +21,18 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.utils.misc.Time;
-import org.matsim.pt.transitSchedule.api.*;
+import org.matsim.pt.transitSchedule.api.Departure;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.IntStream;
 
 public class TimeProfileExporter {
 
@@ -283,13 +293,13 @@ public class TimeProfileExporter {
     private static void addAttribute(Attributes attributes, String name, String value, String dataType)  {
         if(!value.isEmpty() && !value.equals("null"))    {
             switch ( dataType ) {
-                case Type.STRING_CLASS:
+                case "java.lang.String":
                     attributes.putAttribute(name, value);
                     break;
-                case Type.DOUBLE_CLASS:
+                case "java.lang.Double":
                     attributes.putAttribute(name, Double.parseDouble(value));
                     break;
-                case Type.INTEGER_CLASS:
+                case "java.lang.Integer":
                     attributes.putAttribute(name, (int) Double.parseDouble(value));
                     break;
                 default:
