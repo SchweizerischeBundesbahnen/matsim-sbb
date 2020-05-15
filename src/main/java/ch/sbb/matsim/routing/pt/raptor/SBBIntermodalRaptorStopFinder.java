@@ -152,22 +152,35 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     private boolean personMatches (Facility facility, Person person, IntermodalAccessEgressParameterSet paramset){
         String personFilterAttribute = paramset.getPersonFilterAttribute();
         String personFilterValue = paramset.getPersonFilterValue();
-
-        Object attr = person.getAttributes().getAttribute(personFilterAttribute);
-        String attrValue = attr == null ? null : attr.toString();
-        boolean personDoesMatch = personFilterValue.equals(attrValue);
-
+        Object attr = null;
+        String attrValue = null;
+        boolean personDoesMatch = true;
+        if (personFilterAttribute!=null) {
+            attr = person.getAttributes().getAttribute(personFilterAttribute);
+            attrValue = attr == null ? null : attr.toString();
+            personDoesMatch = personFilterValue.equals(attrValue);
+        }
         if (personDoesMatch) {
             Optional<String> actType = TripStructureUtils.getActivities(person.getSelectedPlan(), TripStructureUtils.StageActivityHandling.ExcludeStageActivities).stream()
                     .filter(activity -> activity.getCoord().equals(facility.getCoord())).map(a -> a.getType()).findAny();
             if ( actType.isPresent()) {
                 final String activityType = actType.get();
-                List<SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> filtered = intermodalModeParams.values().stream().filter(a -> a.getName() == paramset.getName()).collect(Collectors.toList());
+                List<SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> filtered = intermodalModeParams.values().stream().filter(a -> a.getMode().equals(paramset.getMode())).collect(Collectors.toList());
                 if (filtered.size() == 1) {
                     String personActivityFilterAttribute = filtered.get(0).getParamPersonActivityFilterAttribute();
-                    attr = person.getAttributes().getAttribute(personActivityFilterAttribute);
-                    attrValue = attr == null ? null : attr.toString();
-                    personDoesMatch = (attrValue.indexOf(activityType) > -1);
+                    if (personActivityFilterAttribute != null ) {
+                        attr = person.getAttributes().getAttribute(personActivityFilterAttribute);
+                        if (attr != null) {
+                            personDoesMatch=false;
+                            attrValue = attr.toString();
+                            for (String at : attrValue.split(",")){
+                                if (activityType.startsWith(at) && !at.equals("")) {
+                                    personDoesMatch = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
