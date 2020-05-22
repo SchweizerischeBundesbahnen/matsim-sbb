@@ -2,7 +2,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
-import ch.sbb.matsim.analysis.convergence.ConvergenceStatsConfig;
+import ch.sbb.matsim.analysis.convergence.ConvergenceConfig;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import com.google.inject.Provider;
 import org.apache.commons.io.FileUtils;
@@ -35,8 +35,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ConvergenceStatsTest {
 
@@ -44,11 +46,11 @@ public class ConvergenceStatsTest {
     public MatsimTestUtils utils = new MatsimTestUtils();
 
     @Test
-    public void test_StationarityTests() throws IOException {
-        ConvergenceStats cs = new ConvergenceStats(10, 30, ConvergenceStatsConfig.Test.values());
+    public void test_ConvergenceTests() throws IOException {
+        ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfig.Test.values(), ConfigUtils.createConfig());
         double[] scores = ConvergenceStats.loadGlobalStats( utils.getPackageInputDirectory() + "convergence/traveldistancestats.txt");
         System.out.println("Test: statistic=p-value");
-        for (ConvergenceStatsConfig.Test test : ConvergenceStatsConfig.Test.values()) {
+        for (ConvergenceConfig.Test test : ConvergenceConfig.Test.values()) {
             Map.Entry<Double, Double> res = cs.runTest(test, scores);
             System.out.print(test.name() + ": ");
             System.out.println(res);
@@ -58,13 +60,13 @@ public class ConvergenceStatsTest {
     }
 
     @Test
-    public void test_StationarityTestsOutput() throws IOException {
+    public void test_ConvergenceTestsOutput() throws IOException {
         FileUtils.copyDirectory(new File(utils.getPackageInputDirectory() + "convergence"), new File(utils.getOutputDirectory()));
-        ConvergenceStats cs = new ConvergenceStats(10, 30, ConvergenceStatsConfig.Test.values());
+        ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfig.Test.values(), ConfigUtils.createConfig());
         IterationStartsEvent event = new IterationStartsEvent(new StubControler(), 301);
         cs.notifyIterationStarts(event);
         cs.close();
-        for (ConvergenceStatsConfig.Test test : ConvergenceStatsConfig.Test.values()) {
+        for (ConvergenceConfig.Test test : ConvergenceConfig.Test.values()) {
             File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
             Assert.assertTrue(file.exists());
             BufferedReader br = new BufferedReader(new FileReader(file));
@@ -74,17 +76,25 @@ public class ConvergenceStatsTest {
     }
 
     @Test
-    public void test_convergenceIT() throws IOException {
+    public void test_convergenceCriterion() throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
         Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
+
         // integrate config
-        ConvergenceStatsConfig csConfig = ConfigUtils.addOrGetModule(config, ConvergenceStatsConfig.class);
+        ConvergenceConfig csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfig.class);
         csConfig.setActivateConvergenceStats(true);
-        csConfig.setNumWindows(2);
-        csConfig.setWindowSize(1);
-        csConfig.setTestsToRun(ConvergenceStatsConfig.Test.values());
+        csConfig.setIterationWindowSize(2);
+        csConfig.setTestsToRun(ConvergenceConfig.Test.values());
+
+        // setup convergence criterion weights and target (weight equally but only consider CV)
+        csConfig.addConvergenceFunctionWeight(ConvergenceConfig.Test.CV.name(), "all", 0.1);
+        csConfig.addConvergenceFunctionWeight(ConvergenceConfig.Test.KS_NORMAL.name(), "all", 0.0);
+        csConfig.addConvergenceFunctionWeight(ConvergenceConfig.Test.KENDALL.name(), "all", 0.0);
+        csConfig.setConvergenceCriterionFunctionTarget(0.07); // should stop after a couple of iterations
+
         // shut-off outputs
-        config.controler().setLastIteration(4);
+        int absoluteLastIteration = 10;
+        config.controler().setLastIteration(absoluteLastIteration);
         config.controler().setOutputDirectory(utils.getOutputDirectory());
         config.controler().setWriteEventsInterval(0);
         config.controler().setWritePlansInterval(0);
@@ -92,19 +102,23 @@ public class ConvergenceStatsTest {
         config.controler().setDumpDataAtEnd(false);
         config.controler().setCreateGraphs(false);
         ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).setAllPostProcessingOff();
+
         // quick simulation is enough
         config.qsim().setStartTime(3600*10.0);
         config.qsim().setEndTime(3600*11.0);
         config.qsim().setTimeStepSize(600.0);
         RunSBB.run(config);
+
         // tests
-        for (ConvergenceStatsConfig.Test test : ConvergenceStatsConfig.Test.values()) {
+        int iterationsRun = 0;
+        for (ConvergenceConfig.Test test : ConvergenceConfig.Test.values()) {
             File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
             Assert.assertTrue(file.exists());
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            br.readLine(); // skip header
-            Assert.assertNotNull(br.readLine());
+            List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());
+            iterationsRun = lines.size();
+            Assert.assertNotNull(lines.get(1));
         }
+        Assert.assertTrue(iterationsRun < absoluteLastIteration);
     }
 
     private class StubControler implements MatsimServices {
