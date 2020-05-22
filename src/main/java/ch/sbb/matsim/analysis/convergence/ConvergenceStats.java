@@ -78,10 +78,13 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
 
     @Override
     public boolean continueIterations(int iteration) {
+        boolean beforeLastIt = iteration <= this.absoluteLastIteration;
+        boolean convergenceCriterionUnreached = true;
         if (this.currentConvergenceFunctionResults > 0.0 && this.csConfig.getConvergenceCriterionFunctionTarget() > 0.0) {
-            return this.currentConvergenceFunctionResults > this.csConfig.getConvergenceCriterionFunctionTarget();
+            convergenceCriterionUnreached =
+                    this.currentConvergenceFunctionResults > this.csConfig.getConvergenceCriterionFunctionTarget();
         }
-        return (iteration <= this.absoluteLastIteration);
+        return beforeLastIt && convergenceCriterionUnreached;
     }
 
     @Override

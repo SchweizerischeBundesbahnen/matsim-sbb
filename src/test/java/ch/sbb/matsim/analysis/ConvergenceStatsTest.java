@@ -86,11 +86,11 @@ public class ConvergenceStatsTest {
         csConfig.setIterationWindowSize(2);
         csConfig.setTestsToRun(ConvergenceConfig.Test.values());
 
-        // setup convergence criterion weights and target (weight equally but only consider CV)
+        // setup convergence criterion weights and target (weight stats equally but only consider CV)
         csConfig.addConvergenceFunctionWeight(ConvergenceConfig.Test.CV.name(), "all", 0.1);
         csConfig.addConvergenceFunctionWeight(ConvergenceConfig.Test.KS_NORMAL.name(), "all", 0.0);
         csConfig.addConvergenceFunctionWeight(ConvergenceConfig.Test.KENDALL.name(), "all", 0.0);
-        csConfig.setConvergenceCriterionFunctionTarget(0.07); // should stop after a couple of iterations
+        csConfig.setConvergenceCriterionFunctionTarget(0.07); // should stop at 3 or 4 iterations
 
         // shut-off outputs
         int absoluteLastIteration = 10;
@@ -118,7 +118,7 @@ public class ConvergenceStatsTest {
             iterationsRun = lines.size();
             Assert.assertNotNull(lines.get(1));
         }
-        Assert.assertTrue(iterationsRun < absoluteLastIteration);
+        Assert.assertTrue(iterationsRun-1 < absoluteLastIteration - csConfig.getIterationWindowSize());
     }
 
     private class StubControler implements MatsimServices {
