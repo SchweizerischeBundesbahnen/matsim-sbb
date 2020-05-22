@@ -173,8 +173,8 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
     }
 
     private static boolean functionTermMatches(String configTest, String actualTest, String configStat, String actualStat) {
-        boolean testMatches = "all".equals(configTest) || actualTest.equals(configTest);
-        boolean statMatches = "all".equals(configStat) || actualStat.equals(configStat);
+        boolean testMatches = "all".equalsIgnoreCase(configTest) || actualTest.equalsIgnoreCase(configTest);
+        boolean statMatches = "all".equalsIgnoreCase(configStat) || actualStat.equalsIgnoreCase(configStat);
         return testMatches && statMatches;
     }
 
