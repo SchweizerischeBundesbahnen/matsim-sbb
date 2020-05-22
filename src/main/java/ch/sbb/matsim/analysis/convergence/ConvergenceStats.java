@@ -60,7 +60,11 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
 
     @Inject
     public ConvergenceStats(Config config) {
-        this(ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getIterationWindowSize(),
+        this((int) // if using a share of the total iterations is configured, calculate it. Finally cast to int.
+                (ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getIterationWindowSize() < 1.0 ?
+                config.controler().getLastIteration() *
+                     ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getIterationWindowSize() :
+                ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getIterationWindowSize()),
              ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getTestsToRun(),
              config);
     }

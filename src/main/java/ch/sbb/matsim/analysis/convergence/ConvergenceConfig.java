@@ -14,7 +14,7 @@ public class ConvergenceConfig extends ReflectiveConfigGroup {
     private static final String CONVERGENCE_CRITERION_FUNCTION_TARGET_PARAM = "convergenceCriterionFunctionTarget";
 
     private boolean activateConvergenceStats = false;
-    private int iterationWindowSize = 60;
+    private double iterationWindowSize = 60.0;
     private Test[] testsToRun = new Test[] {Test.KENDALL, Test.KS_NORMAL, Test.CV};
     private double convergenceCriterionFunctionTarget = 0.0;
 
@@ -52,12 +52,12 @@ public class ConvergenceConfig extends ReflectiveConfigGroup {
     }
 
     @StringGetter(ITERATION_WINDOW_SIZE_PARAM)
-    public int getIterationWindowSize() {
+    public double getIterationWindowSize() {
         return iterationWindowSize;
     }
 
     @StringSetter(ITERATION_WINDOW_SIZE_PARAM)
-    public void setIterationWindowSize(int iterationWindowSize) {
+    public void setIterationWindowSize(double iterationWindowSize) {
         this.iterationWindowSize = iterationWindowSize;
     }
 
@@ -75,7 +75,7 @@ public class ConvergenceConfig extends ReflectiveConfigGroup {
     public Map<String, String> getComments() {
         Map<String, String> map = super.getComments();
         map.put(TESTS_TO_RUN_PARAM, "Possibilities are: " + CollectionUtils.setToString(Arrays.stream(Test.values()).map(t -> t.name().toLowerCase()).collect(Collectors.toSet())));
-        map.put(ITERATION_WINDOW_SIZE_PARAM, "number of iterations to be used for calculating the convergence statistics");
+        map.put(ITERATION_WINDOW_SIZE_PARAM, "number of iterations to be used for calculating the convergence statistics. If between 0.0 and 1.0 the window is sized as a share of the total number of iterations from the controler.");
         map.put(CONVERGENCE_CRITERION_FUNCTION_TARGET_PARAM, "When the convergence criterion function reaches this value the simulation is terminated. 0.0 is the default and disables the convergence criterion termination. Make sure to set a big enough lastIteration param in the controler, since that value is also used as a termination criterion.");
         return map;
     }
