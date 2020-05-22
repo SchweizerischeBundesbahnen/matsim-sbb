@@ -5,15 +5,15 @@ import ch.sbb.matsim.csv.CSVWriter;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
+import org.matsim.core.controler.TerminationCriterion;
 import org.matsim.core.controler.events.IterationStartsEvent;
 import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
-import smile.stat.distribution.BetaDistribution;
 import smile.stat.distribution.GaussianDistribution;
 import smile.stat.hypothesis.CorTest;
 import smile.stat.hypothesis.KSTest;
-import static ch.sbb.matsim.analysis.convergence.ConvergenceStatsConfig.Test;
+import static ch.sbb.matsim.analysis.convergence.ConvergenceConfig.Test;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.IntStream;
 
-public class ConvergenceStats implements IterationStartsListener {
+public class ConvergenceStats implements IterationStartsListener, TerminationCriterion {
 
     /**
      *
@@ -39,37 +39,51 @@ public class ConvergenceStats implements IterationStartsListener {
      * @author davig
      */
 
-    private Map<Test, CSVWriter> writers;
-    private final int windowSize;
-    private final int numWindows;
-    private final Test[] testsToRun;
-    private List<String> columns;
     private static final String SCORESTATS_FILENAME = "scorestats.txt";
     private static final String TRAVELDISTANCESTATS_FILENAME = "traveldistancestats.txt";
     private static final String MODESTATS_FILENAME = "modestats.txt";
-    private static final String COL_STATISTIC = " stat";
-    private static final String COL_PVALUE = " p-value";
+    private static final String COL_STATISTIC = "_stat";
+    private static final String COL_PVALUE = "_p-value";
     private static final String COL_TRAVELDISTANCE = "traveldistances";
     private static final String COL_SCORES = "scores";
     private static final String COL_ITERATION = "ITERATION";
+    private static final String COL_CONVERGENCE_FUNCTION_RESULT = "convergenceFunctionResult";
+
+    private Map<Test, CSVWriter> writers;
+    private final int iterationWindowSize;
+    private final Test[] testsToRun;
+    private List<String> columns;
+    private ConvergenceConfig csConfig;
+    private int absoluteLastIteration;
+    private double currentConvergenceFunctionResults = 0.0;
+    private CSVWriter convergenceFunctionWriter;
 
     @Inject
     public ConvergenceStats(Config config) {
-        ConvergenceStatsConfig csConfig = ConfigUtils.addOrGetModule(config, ConvergenceStatsConfig.class);
-        this.numWindows = csConfig.getNumWindows();
-        this.windowSize = csConfig.getWindowSize();
-        this.testsToRun = csConfig.getTestsToRun();
+        this(ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getIterationWindowSize(),
+             ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getTestsToRun(),
+             config);
     }
 
-    public ConvergenceStats(int windowSize, int numWindows, Test[] testsToRun) {
-        this.numWindows = numWindows;
-        this.windowSize = windowSize;
+    public ConvergenceStats(int iterationWindowSize, Test[] testsToRun, Config config) {
+        this.csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfig.class);
+        this.iterationWindowSize = iterationWindowSize;
         this.testsToRun = testsToRun;
+        this.absoluteLastIteration = config.controler().getLastIteration();
+    }
+
+    @Override
+    public boolean continueIterations(int iteration) {
+        if (this.currentConvergenceFunctionResults > 0.0 && this.csConfig.getConvergenceCriterionFunctionTarget() > 0.0) {
+            return this.currentConvergenceFunctionResults > this.csConfig.getConvergenceCriterionFunctionTarget();
+        }
+        return (iteration <= this.absoluteLastIteration);
     }
 
     @Override
     public void notifyIterationStarts(IterationStartsEvent event) {
-        if (event.getIteration() >= windowSize * numWindows) {
+        this.currentConvergenceFunctionResults = 0.0; // reset value for next iteration
+        if (event.getIteration() >= iterationWindowSize) {
             if (this.writers == null) {
                 setup(event.getServices().getControlerIO());
             }
@@ -77,6 +91,7 @@ public class ConvergenceStats implements IterationStartsListener {
             for (CSVWriter writer : this.writers.values()) {
                 writer.writeRow(true);
             }
+            this.convergenceFunctionWriter.writeRow(true);
         }
     }
 
@@ -97,6 +112,8 @@ public class ConvergenceStats implements IterationStartsListener {
                 this.writers.put(t, new CSVWriter("", header.toArray(new String[0]),
                         Paths.get(dir.toString(), t.name().toLowerCase() + ".txt").toString(), "\t"));
             }
+            this.convergenceFunctionWriter =  new CSVWriter("", new String[] {COL_ITERATION, COL_CONVERGENCE_FUNCTION_RESULT},
+                    Paths.get(dir.toString(), COL_CONVERGENCE_FUNCTION_RESULT + ".txt").toString(), "\t");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -115,52 +132,68 @@ public class ConvergenceStats implements IterationStartsListener {
                 res = runTest(test, scores);
                 this.writers.get(test).set(COL_SCORES + COL_STATISTIC, String.format("%.4f", res.getKey()));
                 this.writers.get(test).set(COL_SCORES + COL_PVALUE, String.format("%.4f", res.getValue()));
+                this.currentConvergenceFunctionResults += calcConvergenceFuntionTerm(test, "scores", res.getKey());
 
                 res = runTest(test, traveldistances);
                 this.writers.get(test).set(COL_TRAVELDISTANCE + COL_STATISTIC, String.format("%.4f", res.getKey()));
                 this.writers.get(test).set(COL_TRAVELDISTANCE + COL_PVALUE, String.format("%.4f", res.getValue()));
+                this.currentConvergenceFunctionResults += calcConvergenceFuntionTerm(test, "traveldistances", res.getKey());
 
                 for (String mode : modes) {
                     res = runTest(test, modestats.get(mode).stream().mapToDouble(Double::doubleValue).toArray());
                     this.writers.get(test).set(mode + COL_STATISTIC, String.format("%.4f", res.getKey()));
                     this.writers.get(test).set(mode + COL_PVALUE, String.format("%.4f", res.getValue()));
+                    this.currentConvergenceFunctionResults += calcConvergenceFuntionTerm(test, mode, res.getKey());
                 }
             }
+            this.convergenceFunctionWriter.set(COL_ITERATION, String.valueOf(iteration));
+            this.convergenceFunctionWriter.set(COL_CONVERGENCE_FUNCTION_RESULT, String.valueOf(this.currentConvergenceFunctionResults));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public Map.Entry<Double, Double> runTest(Test test, double[] timeseries) {
-        double[] filteredTs = Arrays.copyOfRange(timeseries, timeseries.length-windowSize*numWindows, timeseries.length); // filter iterations
-        double[] windowedTs = calcWindows(filteredTs, numWindows);
-        double[] tsIndex = IntStream.range(0, numWindows).mapToDouble(i -> i).toArray();
+    private double calcConvergenceFuntionTerm(Test test, String globalStat, double testRes) {
+        if (Double.isNaN(testRes)) {
+            return 0.0; // NaN results don't add to the function (this might bias the results downwards)
+        }
+        for (ConvergenceConfig.ConvergenceCriterionFunctionWeight weightParam : this.csConfig.getFunctionWeights()) {
+            if (functionTermMatches(weightParam.getConvergenceTest(), test.name(), weightParam.getGlobalStatistic(), globalStat)) {
+                return Math.abs(testRes * weightParam.getFunctionWeight());
+            }
+        }
+        return Math.abs(testRes); // default weight is 1.0
+    }
 
-        Object results;
+    private static boolean functionTermMatches(String configTest, String actualTest, String configStat, String actualStat) {
+        boolean testMatches = "all".equals(configTest) || actualTest.equals(configTest);
+        boolean statMatches = "all".equals(configStat) || actualStat.equals(configStat);
+        return testMatches && statMatches;
+    }
+
+    public Map.Entry<Double, Double> runTest(Test test, double[] timeseries) {
+        double[] filteredTs = Arrays.copyOfRange(timeseries, timeseries.length-iterationWindowSize, timeseries.length); // filter iterations
+        double[] tsIndex = IntStream.range(0, iterationWindowSize).mapToDouble(i -> i).toArray();
+
+        double stat;
+        double pvalue = 0.0;
         switch (test) {
             case KENDALL:
-                results = CorTest.kendall(tsIndex, windowedTs);
-                break;
-            case PEARSON:
-                results = CorTest.pearson(tsIndex, windowedTs);
-                break;
-            case SPEARMAN:
-                results = CorTest.spearman(tsIndex, windowedTs);
+                CorTest corrRes = CorTest.kendall(tsIndex, filteredTs);
+                stat = corrRes.cor;
+                pvalue = corrRes.pvalue;
                 break;
             case KS_NORMAL:
-                results = KSTest.test(standardizeTs(windowedTs), new GaussianDistribution(0, 1));
+                KSTest ksRes = KSTest.test(standardizeTs(filteredTs), new GaussianDistribution(0, 1));
+                stat = ksRes.d;
+                pvalue = ksRes.pvalue;
                 break;
-            case KS_UNIFORM:
-                results = KSTest.test(normalizeTs(windowedTs), new BetaDistribution(1, 1));
+            case CV:
+                stat = calcStdev(filteredTs) / calcMean(filteredTs); // pvalue kept at 0.0 (not a statistical test)
                 break;
             default:
                 throw new IllegalStateException();
         }
-
-        double stat = results instanceof CorTest ?
-                ((CorTest) results).cor : ((KSTest) results).d;
-        double pvalue = results instanceof CorTest ?
-                ((CorTest) results).pvalue : ((KSTest) results).pvalue;
 
         return new AbstractMap.SimpleEntry<>(stat, pvalue);
     }
@@ -198,14 +231,23 @@ public class ConvergenceStats implements IterationStartsListener {
         }
     }
 
-    private double[] standardizeTs(double[] timeseries) {
-        double average = Arrays.stream(timeseries).average().orElseThrow(IllegalStateException::new);
+    private double calcMean(double[] array) {
+        return Arrays.stream(array).average().orElseThrow(IllegalStateException::new);
+    }
+
+    private double calcStdev(double[] array) {
+        double mean = calcMean(array);
         double temp = 0;
-        for (double a : timeseries) {
-            temp += Math.pow(a - average, 2);
+        for (double a : array) {
+            temp += Math.pow(a - mean, 2);
         }
-        double std = Math.sqrt(temp/(timeseries.length-1));
-        return IntStream.range(0, timeseries.length).mapToDouble(i -> (timeseries[i]-average)/std).toArray();
+        return Math.sqrt(temp/(array.length-1));
+    }
+
+    private double[] standardizeTs(double[] timeseries) {
+        double mean = calcMean(timeseries);
+        double stdev = calcStdev(timeseries);
+        return IntStream.range(0, timeseries.length).mapToDouble(i -> (timeseries[i]-mean)/stdev).toArray();
     }
 
     private double[] normalizeTs(double[] timeseries) {
