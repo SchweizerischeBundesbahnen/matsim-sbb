@@ -1,5 +1,6 @@
 package ch.sbb.matsim.analysis.convergence;
 
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 import org.matsim.core.utils.collections.CollectionUtils;
 
@@ -95,6 +96,32 @@ public class ConvergenceConfig extends ReflectiveConfigGroup {
 
     public void addFunctionWeight(final ConvergenceCriterionFunctionWeight params) {
         super.addParameterSet(params);
+    }
+
+    @Override
+    public ConfigGroup createParameterSet(final String type) {
+        if (ConvergenceCriterionFunctionWeight.GROUP_NAME.equals(type)) {
+            return new ConvergenceCriterionFunctionWeight();
+        }
+        throw new IllegalArgumentException(type);
+    }
+
+    @Override
+    protected void checkParameterSet(final ConfigGroup module) {
+        if (!ConvergenceCriterionFunctionWeight.GROUP_NAME.equals(module.getName())) {
+            throw new IllegalArgumentException(module.getName());
+        }
+        if (!(module instanceof ConvergenceCriterionFunctionWeight)) {
+            throw new RuntimeException("unexpected class for module " + module);
+        }
+    }
+
+    @Override
+    public void addParameterSet(final ConfigGroup set) {
+        if (!ConvergenceCriterionFunctionWeight.GROUP_NAME.equals(set.getName())) {
+            throw new IllegalArgumentException(set.getName());
+        }
+        addFunctionWeight((ConvergenceCriterionFunctionWeight) set);
     }
 
     public static class ConvergenceCriterionFunctionWeight extends ReflectiveConfigGroup {
