@@ -95,7 +95,7 @@ public class TimeProfileExporter {
                     (int) Double.parseDouble(vehJourneyAttributes[vj][2]),
                     (int) Double.parseDouble(vehJourneyAttributes[vj][3]),
                     Double.parseDouble(vehJourneyAttributes[vj][4]),
-                    (int) Double.parseDouble(vehJourneyAttributes[vj][5])));
+                    (int) Double.parseDouble(vehJourneyAttributes[vj][5].isEmpty() ? "-1" : vehJourneyAttributes[vj][5])));
         }
 
         // time profile items
@@ -302,8 +302,13 @@ public class TimeProfileExporter {
             vehType.setDescription(tSysCode);
             VehicleUtils.setDoorOperationMode(vehType, DoorOperationMode.serial);
             VehicleCapacity vehicleCapacity = vehType.getCapacity();
-            vehicleCapacity.setSeats(capacity);
-            vehicleCapacity.setStandingRoom((int) (capacity * 0.2));
+            if (capacity <= 0) {
+                vehicleCapacity.setSeats(150);
+                vehicleCapacity.setStandingRoom(50);
+            } else {
+                vehicleCapacity.setSeats(capacity);
+                vehicleCapacity.setStandingRoom((int) (capacity * 0.2));
+            }
 
             // the following parameters do not have any influence in a deterministic simulation engine
             vehType.setLength(10);
