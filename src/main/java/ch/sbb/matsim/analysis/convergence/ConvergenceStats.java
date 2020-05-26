@@ -183,7 +183,7 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
         double[] tsIndex = IntStream.range(0, iterationWindowSize).mapToDouble(i -> i).toArray();
 
         double stat;
-        double pvalue = 0.0;
+        double pvalue = Double.NaN;
         switch (test) {
             case KENDALL:
                 CorTest corrRes = CorTest.kendall(tsIndex, filteredTs);
@@ -199,7 +199,7 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
                 stat = calcStdev(filteredTs) / calcMean(filteredTs); // pvalue kept at 0.0 (not a statistical test)
                 break;
             default:
-                throw new IllegalStateException();
+                throw new IllegalArgumentException("Unrecognized option " + test.name());
         }
 
         return new AbstractMap.SimpleEntry<>(stat, pvalue);
