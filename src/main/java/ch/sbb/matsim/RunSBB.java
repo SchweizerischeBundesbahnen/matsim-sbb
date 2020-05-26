@@ -7,7 +7,7 @@ package ch.sbb.matsim;
 
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
-import ch.sbb.matsim.analysis.convergence.ConvergenceConfig;
+import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
@@ -55,7 +55,7 @@ public class RunSBB {
     public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
             new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
             new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(),
-            new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfig()};
+            new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup()};
 
 
     public static void main(String[] args) {
@@ -138,7 +138,7 @@ public class RunSBB {
                 if (annealerConfig.isActivateAnnealingModule()) {
                     addControlerListenerBinding().to(SimpleAnnealer.class);
                 }
-                ConvergenceConfig convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfig.class);
+                ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
                 if (convergenceStatsConfig.isActivateConvergenceStats()) {
                     ConvergenceStats convergenceStats = new ConvergenceStats(this.getConfig());
                     addControlerListenerBinding().toInstance(convergenceStats);

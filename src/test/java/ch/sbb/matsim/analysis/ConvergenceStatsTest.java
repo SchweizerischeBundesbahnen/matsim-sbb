@@ -2,7 +2,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
-import ch.sbb.matsim.analysis.convergence.ConvergenceConfig;
+import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import com.google.inject.Provider;
 import org.apache.commons.io.FileUtils;
@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ConvergenceStatsTest {
@@ -47,10 +46,10 @@ public class ConvergenceStatsTest {
 
     @Test
     public void test_ConvergenceTests() throws IOException {
-        ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfig.Test.values(), ConfigUtils.createConfig());
+        ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfigGroup.Test.values(), ConfigUtils.createConfig());
         double[] scores = ConvergenceStats.loadGlobalStats( utils.getPackageInputDirectory() + "convergence/traveldistancestats.txt");
         System.out.println("Test: statistic=p-value");
-        for (ConvergenceConfig.Test test : ConvergenceConfig.Test.values()) {
+        for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
             Map.Entry<Double, Double> res = cs.runTest(test, scores);
             System.out.print(test.name() + ": ");
             System.out.println(res);
@@ -62,11 +61,11 @@ public class ConvergenceStatsTest {
     @Test
     public void test_ConvergenceTestsOutput() throws IOException {
         FileUtils.copyDirectory(new File(utils.getPackageInputDirectory() + "convergence"), new File(utils.getOutputDirectory()));
-        ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfig.Test.values(), ConfigUtils.createConfig());
+        ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfigGroup.Test.values(), ConfigUtils.createConfig());
         IterationStartsEvent event = new IterationStartsEvent(new StubControler(), 301);
         cs.notifyIterationStarts(event);
         cs.close();
-        for (ConvergenceConfig.Test test : ConvergenceConfig.Test.values()) {
+        for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
             File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
             Assert.assertTrue(file.exists());
             BufferedReader br = new BufferedReader(new FileReader(file));
@@ -81,15 +80,15 @@ public class ConvergenceStatsTest {
         Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
 
         // integrate config
-        ConvergenceConfig csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfig.class);
+        ConvergenceConfigGroup csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
         csConfig.setActivateConvergenceStats(true);
         csConfig.setIterationWindowSize(2);
-        csConfig.setTestsToRun(ConvergenceConfig.Test.values());
+        csConfig.setTestsToRun(ConvergenceConfigGroup.Test.values());
 
         // setup convergence criterion weights and target (weight stats equally but only consider CV)
-        csConfig.addConvergenceFunctionWeight(ConvergenceConfig.Test.CV.name(), "all", 0.1);
-        csConfig.addConvergenceFunctionWeight(ConvergenceConfig.Test.KS_NORMAL.name(), "all", 0.0);
-        csConfig.addConvergenceFunctionWeight(ConvergenceConfig.Test.KENDALL.name(), "all", 0.0);
+        csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.CV.name(), "all", 0.1);
+        csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KS_NORMAL.name(), "all", 0.0);
+        csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KENDALL.name(), "all", 0.0);
         csConfig.setConvergenceCriterionFunctionTarget(0.07); // should stop at 3 or 4 iterations
 
         // shut-off outputs
@@ -111,7 +110,7 @@ public class ConvergenceStatsTest {
 
         // tests
         int iterationsRun = 0;
-        for (ConvergenceConfig.Test test : ConvergenceConfig.Test.values()) {
+        for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
             File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
             Assert.assertTrue(file.exists());
             List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());

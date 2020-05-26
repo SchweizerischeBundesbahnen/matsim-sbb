@@ -13,7 +13,7 @@ import org.matsim.core.utils.io.UncheckedIOException;
 import smile.stat.distribution.GaussianDistribution;
 import smile.stat.hypothesis.CorTest;
 import smile.stat.hypothesis.KSTest;
-import static ch.sbb.matsim.analysis.convergence.ConvergenceConfig.Test;
+import static ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup.Test;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -53,7 +53,7 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
     private final int iterationWindowSize;
     private final Test[] testsToRun;
     private List<String> columns;
-    private ConvergenceConfig csConfig;
+    private ConvergenceConfigGroup csConfig;
     private int absoluteLastIteration;
     private double currentConvergenceFunctionResults = 0.0;
     private CSVWriter convergenceFunctionWriter;
@@ -61,16 +61,16 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
     @Inject
     public ConvergenceStats(Config config) {
         this((int) // if using a share of the total iterations is configured, calculate it. Finally cast to int.
-                (ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getIterationWindowSize() < 1.0 ?
+                (ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class).getIterationWindowSize() < 1.0 ?
                 config.controler().getLastIteration() *
-                     ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getIterationWindowSize() :
-                ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getIterationWindowSize()),
-             ConfigUtils.addOrGetModule(config, ConvergenceConfig.class).getTestsToRun(),
+                     ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class).getIterationWindowSize() :
+                ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class).getIterationWindowSize()),
+             ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class).getTestsToRun(),
              config);
     }
 
     public ConvergenceStats(int iterationWindowSize, Test[] testsToRun, Config config) {
-        this.csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfig.class);
+        this.csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
         this.iterationWindowSize = iterationWindowSize;
         this.testsToRun = testsToRun;
         this.absoluteLastIteration = config.controler().getLastIteration();
@@ -164,7 +164,7 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
         if (Double.isNaN(testRes)) {
             return 0.0; // NaN results don't add to the function (this might bias the results downwards)
         }
-        for (ConvergenceConfig.ConvergenceCriterionFunctionWeight weightParam : this.csConfig.getFunctionWeights()) {
+        for (ConvergenceConfigGroup.ConvergenceCriterionFunctionWeight weightParam : this.csConfig.getFunctionWeights()) {
             if (functionTermMatches(weightParam.getConvergenceTest(), test.name(), weightParam.getGlobalStatistic(), globalStat)) {
                 return Math.abs(testRes * weightParam.getFunctionWeight());
             }

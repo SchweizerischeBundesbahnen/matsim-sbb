@@ -7,7 +7,7 @@ import org.matsim.core.utils.collections.CollectionUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ConvergenceConfig extends ReflectiveConfigGroup {
+public class ConvergenceConfigGroup extends ReflectiveConfigGroup {
 
     public static final String GROUP_NAME = "ConvergenceStats";
     private static final String ITERATION_WINDOW_SIZE_PARAM = "iterationWindowSize";
@@ -21,7 +21,7 @@ public class ConvergenceConfig extends ReflectiveConfigGroup {
 
     public enum Test {KENDALL, KS_NORMAL, CV}
 
-    public ConvergenceConfig()  {
+    public ConvergenceConfigGroup()  {
         super(GROUP_NAME);
     }
 
