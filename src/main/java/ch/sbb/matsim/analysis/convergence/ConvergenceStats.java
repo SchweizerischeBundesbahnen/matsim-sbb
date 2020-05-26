@@ -2,6 +2,7 @@ package ch.sbb.matsim.analysis.convergence;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
@@ -196,7 +197,8 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
                 pvalue = ksRes.pvalue;
                 break;
             case CV:
-                stat = calcStdev(filteredTs) / calcMean(filteredTs); // pvalue kept at 0.0 (not a statistical test)
+                DescriptiveStatistics ds = new DescriptiveStatistics(filteredTs);
+                stat = ds.getStandardDeviation() / ds.getMean();
                 break;
             default:
                 throw new IllegalArgumentException("Unrecognized option " + test.name());
@@ -238,43 +240,11 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
         }
     }
 
-    private double calcMean(double[] array) {
-        return Arrays.stream(array).average().orElseThrow(IllegalStateException::new);
-    }
-
-    private double calcStdev(double[] array) {
-        double mean = calcMean(array);
-        double temp = 0;
-        for (double a : array) {
-            temp += Math.pow(a - mean, 2);
-        }
-        return Math.sqrt(temp/(array.length-1));
-    }
-
     private double[] standardizeTs(double[] timeseries) {
-        double mean = calcMean(timeseries);
-        double stdev = calcStdev(timeseries);
-        return IntStream.range(0, timeseries.length).mapToDouble(i -> (timeseries[i]-mean)/stdev).toArray();
+        DescriptiveStatistics ds = new DescriptiveStatistics(timeseries);
+        return IntStream.range(0, timeseries.length).
+                mapToDouble(i -> (timeseries[i]-ds.getMean())/ds.getStandardDeviation()).toArray();
     }
 
-    private double[] normalizeTs(double[] timeseries) {
-        double min = Arrays.stream(timeseries).min().orElseThrow(IllegalStateException::new);
-        double max = Arrays.stream(timeseries).max().orElseThrow(IllegalStateException::new);
-        double[] normalizedTs = new double[timeseries.length];
-        for (int i = 0; i < normalizedTs.length; i++) {
-            normalizedTs[i] = (timeseries[i] - min) / (max - min) == 0 ? 0.0 : (max - min);
-        }
-        return normalizedTs;
-    }
-
-    private double[] calcWindows(double[] timeseries, int nWindows) {
-        List<Double> windowedTs = new ArrayList<>();
-        int wSize = timeseries.length / nWindows;
-        for (int i = 0; i < timeseries.length; i = i + wSize) {
-            windowedTs.add(IntStream.range(i, i + wSize)
-                    .mapToDouble(j -> timeseries[j]).average().orElseThrow(IllegalStateException::new));
-        }
-        return windowedTs.stream().mapToDouble(d -> d).toArray();
-    }
 }
 
