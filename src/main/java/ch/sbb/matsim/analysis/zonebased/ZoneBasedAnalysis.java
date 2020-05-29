@@ -3,6 +3,13 @@ package ch.sbb.matsim.analysis.zonebased;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesImpl;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.log4j.Logger;
@@ -22,13 +29,10 @@ import org.matsim.core.router.MainModeIdentifier;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.MatsimFacilitiesReader;
-import org.matsim.pt.routes.ExperimentalTransitRoute;
+import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author jbischoff / SBB
@@ -166,7 +170,7 @@ public class ZoneBasedAnalysis {
                 if (startZone != null) {
                     //Id<Zone> endZone = zones.findZone(trip.getDestinationActivity().getCoord()).getId();
                     String mainMode = identifier.identifyMainMode(trip.getTripElements());
-                    Double travelTime = trip.getLegsOnly().stream().map(Leg::getRoute).map(Route::getTravelTime).reduce(0., Double::sum);
+                    Double travelTime = trip.getLegsOnly().stream().map(Leg::getRoute).map(Route::getTravelTime).map(t -> t.orElse(0)).reduce(0., Double::sum);
                     Double distance = trip.getLegsOnly().stream().map(Leg::getRoute).map(Route::getDistance).reduce(0., Double::sum);
                     ZoneStats zoneStats = zoneStatsMap.get(startZone.getId());
                     zoneStats.travelDistance.computeIfAbsent(mainMode, a -> new DescriptiveStatistics()).addValue(distance);
@@ -186,8 +190,9 @@ public class ZoneBasedAnalysis {
                     .filter(l -> l.getMode().equals(TransportMode.pt))
                     .collect(Collectors.toList());
             for (Leg ptleg : ptLegs) {
-                if (ptleg.getRoute() instanceof ExperimentalTransitRoute) {
-                    ExperimentalTransitRoute route = (ExperimentalTransitRoute) ptleg.getRoute();
+                if (ptleg.getRoute() instanceof TransitPassengerRoute) {
+                    TransitPassengerRoute route = (TransitPassengerRoute) ptleg.getRoute();
+
                     String mode = modePerRoute.get(route.getRouteId());
                     Id<Zone> boardingZone = (Id<Zone>) scenario.getTransitSchedule().getFacilities().get(route.getAccessStopId()).getAttributes().getAttribute(ZONE_ID);
                     Id<Zone> deboardingZone = (Id<Zone>) scenario.getTransitSchedule().getFacilities().get(route.getEgressStopId()).getAttributes().getAttribute(ZONE_ID);

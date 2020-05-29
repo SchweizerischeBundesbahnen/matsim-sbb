@@ -2,6 +2,12 @@ package ch.sbb.matsim.analysis.traveltimes;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.TransportMode;
@@ -30,13 +36,6 @@ import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.geometry.transformations.WGS84toCH1903LV03Plus;
 import org.matsim.facilities.Facility;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 public class RunTravelTimeValidation {
 
@@ -155,7 +154,7 @@ public class RunTravelTimeValidation {
                         }
 
                         writer.set("Dist_MATSim", Double.toString(leg.getRoute().getDistance()));
-                        writer.set("Time_MATSim", Double.toString(leg.getRoute().getTravelTime()));
+                        writer.set("Time_MATSim", Double.toString(leg.getRoute().getTravelTime().seconds()));
                         writer.writeRow();
                     }
                 }

@@ -2,6 +2,11 @@ package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.variables.SBBActivities;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
@@ -15,12 +20,6 @@ import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.scoring.functions.ModeUtilityParameters;
 import org.matsim.core.scoring.functions.ScoringParameters;
 import org.matsim.core.scoring.functions.ScoringParametersForPerson;
-
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author jlie/pmanser/mrieser / SBB
@@ -196,12 +195,12 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
             return t.getType().equals(o.getType())
                     && t.isScoreAtAll() == o.isScoreAtAll()
-                    && Double.compare(t.getMinimalDuration(), o.getMinimalDuration()) == 0
+                    && Double.compare(t.getMinimalDuration().seconds(), o.getMinimalDuration().seconds()) == 0
                     && Double.compare(t.getTypicalDuration(), o.getTypicalDuration()) == 0
-                    && Double.compare(t.getEarliestEndTime(), o.getEarliestEndTime()) == 0
-                    && Double.compare(t.getLatestStartTime(), o.getLatestStartTime()) == 0
-                    && Double.compare(t.getOpeningTime(), o.getOpeningTime()) == 0
-                    && Double.compare(t.getClosingTime(), o.getClosingTime()) == 0;
+                    && Double.compare(t.getEarliestEndTime().seconds(), o.getEarliestEndTime().seconds()) == 0
+                    && Double.compare(t.getLatestStartTime().seconds(), o.getLatestStartTime().seconds()) == 0
+                    && Double.compare(t.getOpeningTime().seconds(), o.getOpeningTime().seconds()) == 0
+                    && Double.compare(t.getClosingTime().seconds(), o.getClosingTime().seconds()) == 0;
         }
 
         @Override
@@ -209,17 +208,17 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
             ActivityUtilityParameters p = this.params;
             int hashCode = p.getType().hashCode();
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getMinimalDuration());
+            hashCode += Double.hashCode(p.getMinimalDuration().seconds());
             hashCode *= 31;
             hashCode += Double.hashCode(p.getTypicalDuration());
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getEarliestEndTime());
+            hashCode += Double.hashCode(p.getEarliestEndTime().seconds());
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getLatestStartTime());
+            hashCode += Double.hashCode(p.getLatestStartTime().seconds());
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getOpeningTime());
+            hashCode += Double.hashCode(p.getOpeningTime().seconds());
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getClosingTime());
+            hashCode += Double.hashCode(p.getClosingTime().seconds());
 
             return hashCode;
         }
