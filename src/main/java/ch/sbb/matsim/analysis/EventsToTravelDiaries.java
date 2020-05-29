@@ -586,6 +586,9 @@ public class EventsToTravelDiaries implements
             EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_ACTIVITIES);
             EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_TRIPS);
             EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_LEGS);
+            if (this.writeVisumPuTSurvey) {
+                EventsAnalysis.copyToOutputFolder(this.filename, VisumPuTSurvey.FILENAME);
+            }
         }
     }
 
