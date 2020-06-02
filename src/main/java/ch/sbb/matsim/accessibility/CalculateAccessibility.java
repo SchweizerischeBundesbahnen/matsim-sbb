@@ -1,8 +1,8 @@
 package ch.sbb.matsim.accessibility;
 
 import ch.sbb.matsim.accessibility.Accessibility.Modes;
-import ch.sbb.matsim.analysis.matrices.CalculateIndicatorMatrices;
 import ch.sbb.matsim.analysis.skims.StreamingFacilities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zones;
@@ -28,12 +28,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.ToDoubleFunction;
@@ -223,7 +218,7 @@ public class CalculateAccessibility {
             writeAttractions(attractionsFile, attractions);
         }
 
-        BiPredicate<TransitLine, TransitRoute> trainDetector = CalculateIndicatorMatrices.buildTrainLinePredictor(trainFilter);
+        BiPredicate<TransitLine, TransitRoute> trainDetector = (line, route) -> route.getTransportMode().equals(SBBModes.PTSubModes.RAIL);
 
         Zones zones = new ZonesQueryCache(ZonesLoader.loadZones("mobi", zonesFilename, "ID"));
 
