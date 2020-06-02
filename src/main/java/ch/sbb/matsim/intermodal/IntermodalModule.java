@@ -29,7 +29,7 @@ import java.util.Set;
 public class IntermodalModule extends AbstractModule {
     private final static Logger log = Logger.getLogger(IntermodalModule.class);
 
-    private static void preparePopulation(Population population, URL csvPath) {
+    public static void preparePopulation(Population population, URL csvPath) {
         try (CSVReader reader = new CSVReader(csvPath, ";")) {
             log.info(csvPath);
 
