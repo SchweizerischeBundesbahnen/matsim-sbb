@@ -43,6 +43,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     private final TransitSchedule transitSchedule;
     private final Random random = MatsimRandom.getLocalInstance();
     private final AccessEgressRouteCache accessEgressRouteCache;
+    private final IntermodalAccessEgressParameterSet walkParameterset;
 
     @Inject
     public SBBIntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE,
@@ -55,6 +56,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
         this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(set -> set.getMode(), set -> set));
         SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
+        walkParameterset = srrConfig.getIntermodalAccessEgressParameterSets().stream().filter(l -> l.getMode().equals(TransportMode.walk)).findFirst().orElseThrow(RuntimeException::new);
         this.routingModules = new HashMap<>();
         if (srrConfig.isUseIntermodalAccessEgress()) {
             for (IntermodalAccessEgressParameterSet params : srrConfig.getIntermodalAccessEgressParameterSets()) {
@@ -135,8 +137,15 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                     do {
                         int rndSelector = random.nextInt(filteredParameterSet.size());
                         IntermodalAccessEgressParameterSet parameterSet = filteredParameterSet.get(rndSelector);
-                        addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y,
-                                initialStops, parameterSet);
+                        List<IntermodalAccessEgressParameterSet> params = new ArrayList<>();
+                        params.add(walkParameterset);
+                        if (!parameterSet.getMode().equals(TransportMode.walk)) {
+                            params.add(parameterSet);
+                        }
+                        for (IntermodalAccessEgressParameterSet set : params) {
+                            addInitialStopsForParamSet(facility, person, departureTime, direction, parameters, data, x, y,
+                                    initialStops, set);
+                        }
                         counter++;
                         // try again if no initial stop was found for the parameterset. Avoid infinite loop by limiting number of tries.
                     } while (initialStops.isEmpty() && counter < 2 * srrCfg.getIntermodalAccessEgressParameterSets().size());
