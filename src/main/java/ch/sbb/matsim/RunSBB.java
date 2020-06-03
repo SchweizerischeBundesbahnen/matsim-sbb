@@ -7,7 +7,7 @@ package ch.sbb.matsim;
 
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
-import ch.sbb.matsim.analysis.convergence.ConvergenceStatsConfig;
+import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
@@ -40,6 +40,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.controler.TerminationCriterion;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -54,7 +55,7 @@ public class RunSBB {
     public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
             new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
             new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(),
-            new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceStatsConfig()};
+            new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup()};
 
 
     public static void main(String[] args) {
@@ -137,9 +138,11 @@ public class RunSBB {
                 if (annealerConfig.isActivateAnnealingModule()) {
                     addControlerListenerBinding().to(SimpleAnnealer.class);
                 }
-                ConvergenceStatsConfig convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceStatsConfig.class);
+                ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
                 if (convergenceStatsConfig.isActivateConvergenceStats()) {
-                    addControlerListenerBinding().to(ConvergenceStats.class);
+                    ConvergenceStats convergenceStats = new ConvergenceStats(this.getConfig());
+                    addControlerListenerBinding().toInstance(convergenceStats);
+                    bind(TerminationCriterion.class).toInstance(convergenceStats);
                 }
 
             }

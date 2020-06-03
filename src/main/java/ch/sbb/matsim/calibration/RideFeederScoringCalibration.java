@@ -5,24 +5,27 @@ import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.preparation.XLSXScoringParser;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.population.routes.LinkNetworkRouteFactory;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunction;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 public class RideFeederScoringCalibration {
 
@@ -50,12 +53,11 @@ public class RideFeederScoringCalibration {
         config.network().setInputFile(null);
         config.vehicles().setVehiclesFile(null);
 
-
         try (FileInputStream inputStream = new FileInputStream(xlsx)) {
             Workbook workbook = WorkbookFactory.create(inputStream);
 
             XLSXScoringParser.parseXLSXWorkbook(workbook, config);
-        } catch (IOException | InvalidFormatException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
