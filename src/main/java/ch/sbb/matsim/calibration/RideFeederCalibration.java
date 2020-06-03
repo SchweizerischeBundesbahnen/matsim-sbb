@@ -1,6 +1,5 @@
 package ch.sbb.matsim.calibration;
 
-
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.csv.CSVReader;
@@ -8,10 +7,26 @@ import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.intermodal.SBBRaptorIntermodalAccessEgress;
 import ch.sbb.matsim.preparation.FilteredNetwork;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingInclAccessEgressModule;
-import ch.sbb.matsim.routing.pt.raptor.*;
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorParametersForPerson;
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorStopFinder;
+import ch.sbb.matsim.routing.pt.raptor.LeastCostRaptorRouteSelector;
+import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
+import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.IntStream;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -35,11 +50,6 @@ import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.router.TransitRouter;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.*;
-import java.util.stream.IntStream;
 
 public class RideFeederCalibration {
 
@@ -208,7 +218,7 @@ public class RideFeederCalibration {
         DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(scenario.getPopulation(), intermodalAE, routingModules);
         return new SwissRailRaptor(this.data, new DefaultRaptorParametersForPerson(this.config),
                 new LeastCostRaptorRouteSelector(),
-                stopFinder, "subpopulation");
+                stopFinder);
     }
 
 
