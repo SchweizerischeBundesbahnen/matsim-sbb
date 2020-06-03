@@ -1,11 +1,15 @@
 package ch.sbb.matsim.vehicles;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.vehicles.*;
-
-import java.util.Collection;
+import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleUtils;
+import org.matsim.vehicles.Vehicles;
+import org.matsim.vehicles.VehiclesFactory;
 
 /**
  * Creates vehicles for each agent, based on the vehicle type in an agent attribute.
@@ -54,9 +58,8 @@ public class CreateVehiclesFromType {
             }
             Vehicle vehicle = vf.createVehicle(vehicleId, vehicleType);
             this.vehicles.addVehicle(vehicle);
-            for (String mode : this.mainModes) {
-                VehicleUtils.insertVehicleIdIntoAttributes(person, mode, vehicleId);
-            }
+            VehicleUtils.insertVehicleIdsIntoAttributes(person, this.mainModes.stream().collect(Collectors.toMap(s -> s, t -> vehicleId)));
+
         }
     }
 }
