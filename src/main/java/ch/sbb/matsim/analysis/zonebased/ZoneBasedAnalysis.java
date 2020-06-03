@@ -146,12 +146,14 @@ public class ZoneBasedAnalysis {
         public static final String TRIPS = "_trips";
         public static final String AVERAGE_TRAVEL_TIME = "_averageTravelTime";
         public static final String AVERAGE_TRAVEL_DISTANCE = "_averageTravelDistance";
+        public static final String TRANSFERS = "_averagePtTransfers";
         public static List<String> basicHeader = Arrays.asList(DEPARTURES, BOARDINGS, DEBOARDINGS, TRIPS, AVERAGE_TRAVEL_TIME, AVERAGE_TRAVEL_DISTANCE);
         Map<String, Integer> modalPtDepartures;
         Map<String, MutableInt> ptBoardings;
         Map<String, MutableInt> ptdeBoardings;
         Map<String, DescriptiveStatistics> travelTimes;
         Map<String, DescriptiveStatistics> travelDistance;
+        DescriptiveStatistics transfers = new DescriptiveStatistics();
 
 
     }
@@ -171,6 +173,10 @@ public class ZoneBasedAnalysis {
                     ZoneStats zoneStats = zoneStatsMap.get(startZone.getId());
                     zoneStats.travelDistance.computeIfAbsent(mainMode, a -> new DescriptiveStatistics()).addValue(distance);
                     zoneStats.travelTimes.computeIfAbsent(mainMode, a -> new DescriptiveStatistics()).addValue(travelTime);
+                    if (mainMode.equals(TransportMode.pt)) {
+                        long transfers = trip.getLegsOnly().stream().filter(t -> t.getMode().equals(TransportMode.pt)).count() - 1;
+                        zoneStats.transfers.addValue(transfers);
+                    }
                 }
             }
         }

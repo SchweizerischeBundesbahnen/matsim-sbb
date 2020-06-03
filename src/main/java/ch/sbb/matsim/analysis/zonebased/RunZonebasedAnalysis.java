@@ -10,6 +10,7 @@ import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.Controler;
@@ -118,6 +119,8 @@ public class RunZonebasedAnalysis {
                         String column = run + "_" + tt.getKey() + ZoneBasedAnalysis.ZoneStats.AVERAGE_TRAVEL_DISTANCE;
                         writer.set(column, Double.toString(tt.getValue().getMean()));
                     }
+                    String column = run + ZoneBasedAnalysis.ZoneStats.TRANSFERS;
+                    writer.set(column, Double.toString(zoneStats.transfers.getMean()));
 
                 }
                 writer.writeRow();
@@ -143,6 +146,9 @@ public class RunZonebasedAnalysis {
                 header.add(run + "_" + sm + ZoneBasedAnalysis.ZoneStats.TRIPS);
                 header.add(run + "_" + sm + ZoneBasedAnalysis.ZoneStats.AVERAGE_TRAVEL_TIME);
                 header.add(run + "_" + sm + ZoneBasedAnalysis.ZoneStats.AVERAGE_TRAVEL_DISTANCE);
+                if (sm.equals(TransportMode.pt)) {
+                    header.add(run + ZoneBasedAnalysis.ZoneStats.TRANSFERS);
+                }
             }
 
         }
