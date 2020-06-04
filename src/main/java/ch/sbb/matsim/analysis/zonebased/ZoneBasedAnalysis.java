@@ -175,7 +175,9 @@ public class ZoneBasedAnalysis {
                     zoneStats.travelTimes.computeIfAbsent(mainMode, a -> new DescriptiveStatistics()).addValue(travelTime);
                     if (mainMode.equals(TransportMode.pt)) {
                         long transfers = trip.getLegsOnly().stream().filter(t -> t.getMode().equals(TransportMode.pt)).count() - 1;
-                        zoneStats.transfers.addValue(transfers);
+                        if (transfers >= 0) {
+                            zoneStats.transfers.addValue(transfers);
+                        }
                     }
                 }
             }
