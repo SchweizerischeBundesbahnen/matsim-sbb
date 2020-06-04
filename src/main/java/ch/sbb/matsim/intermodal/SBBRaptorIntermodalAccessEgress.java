@@ -10,10 +10,13 @@ import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterS
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder.Direction;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesQueryCache;
+import java.util.List;
+import javax.inject.Inject;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
@@ -24,9 +27,6 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.misc.Time;
-
-import javax.inject.Inject;
-import java.util.List;
 
 
 
@@ -232,9 +232,8 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
     }
 
-
     @Override
-    public RIntermodalAccessEgress calcIntermodalAccessEgress(final List<? extends PlanElement> legs, RaptorParameters params, Person person) {
+    public RIntermodalAccessEgress calcIntermodalAccessEgress(final List<? extends PlanElement> legs, RaptorParameters params, Person person, Direction direction) {
         String intermodalTripMode = this.getIntermodalTripMode(legs);
         boolean isIntermodal = intermodalTripMode != null;
         double disutility;
@@ -247,6 +246,6 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
             disutility = this.computeDisutility(legs, params);
         }
 
-        return new RIntermodalAccessEgress(legs, disutility, this.getTotalTravelTime(legs));
+        return new RIntermodalAccessEgress(legs, disutility, this.getTotalTravelTime(legs), direction);
     }
 }
