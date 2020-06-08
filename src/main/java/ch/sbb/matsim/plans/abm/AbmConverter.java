@@ -5,12 +5,25 @@ import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.utils.SBBPersonUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.PopulationWriter;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
@@ -18,12 +31,9 @@ import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 public class AbmConverter {
 
@@ -204,23 +214,30 @@ public class AbmConverter {
     }
 
     public void createInitialEndTimeAttribute(Population population) {
-        for(Person p: population.getPersons().values())   {
-            if(p.getAttributes().getAttribute( Variables.INIT_END_TIMES) != null )    continue;
+        for(Person p: population.getPersons().values()) {
+            if (p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null) {
+                continue;
+            }
 
-            if(p.getPlans().size() > 1) log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
+            if (p.getPlans().size() > 1) {
+                log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
+            }
 
             Plan plan = p.getSelectedPlan();
             List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
-            List<String> endTimeList = new ArrayList<>();
+            List<OptionalTime> endTimeList = new ArrayList<>();
             int i = 0;
 
-            for(Activity act: activities)   {
-                if(i == activities.size() - 1)  break;
-                endTimeList.add(Double.toString(act.getEndTime()));
+            for (Activity act : activities) {
+                if (i == activities.size() - 1) {
+                    break;
+                }
+                endTimeList.add(act.getEndTime());
                 i += 1;
             }
 
-            p.getAttributes().putAttribute( Variables.INIT_END_TIMES, String.join("_", endTimeList) );
+            p.getAttributes()
+                    .putAttribute(Variables.INIT_END_TIMES, endTimeList.stream().map(e -> e.isDefined() ? Double.toString(e.seconds()) : Variables.NO_INIT_END_TIME).collect(Collectors.joining("_")));
         }
     }
 
