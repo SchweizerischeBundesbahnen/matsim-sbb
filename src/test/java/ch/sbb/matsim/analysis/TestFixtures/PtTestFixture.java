@@ -1,10 +1,12 @@
 package ch.sbb.matsim.analysis.TestFixtures;
 
-
 import ch.sbb.matsim.analysis.EventsToTravelDiaries;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -12,7 +14,13 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.PopulationFactory;
+import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -24,15 +32,21 @@ import org.matsim.core.mobsim.qsim.QSimBuilder;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.routes.ExperimentalTransitRoute;
-import org.matsim.pt.transitSchedule.api.*;
+import org.matsim.pt.transitSchedule.api.Departure;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.testcases.utils.EventsCollector;
-import org.matsim.vehicles.*;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleCapacity;
+import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleUtils;
+import org.matsim.vehicles.Vehicles;
+import org.matsim.vehicles.VehiclesFactory;
 
 public class PtTestFixture {
 
@@ -152,11 +166,11 @@ public class PtTestFixture {
         NetworkRoute networkRoute = RouteUtils.createLinkNetworkRouteImpl(link1.getId(), linkIdList, link4.getId());
 
         List<TransitRouteStop> stops = new ArrayList<>(5);
-        stops.add(f.createTransitRouteStop(this.stopA, Time.getUndefinedTime(), 0.0));
+        stops.add(f.createTransitRouteStopBuilder(this.stopA).departureOffset(0.0).build());
         stops.add(f.createTransitRouteStop(this.stopB, 100, 120.0));
-        stops.add(f.createTransitRouteStop(this.stopC, Time.getUndefinedTime(), 300.0));
+        stops.add(f.createTransitRouteStopBuilder(this.stopC).departureOffset(300.).build());
         stops.add(f.createTransitRouteStop(this.stopD, 570, 600.0));
-        stops.add(f.createTransitRouteStop(this.stopE, 720, Time.getUndefinedTime()));
+        stops.add(f.createTransitRouteStopBuilder(this.stopE).arrivalOffset(720.).build());
 
         this.route1 = f.createTransitRoute(Id.create("A2E", TransitRoute.class), networkRoute, stops, "train");
 
