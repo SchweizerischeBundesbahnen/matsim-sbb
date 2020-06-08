@@ -3,6 +3,16 @@ package ch.sbb.matsim.intermodal.analysis;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
+import java.awt.Font;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
@@ -25,14 +35,7 @@ import org.matsim.contrib.util.chart.ChartSaveUtils;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.utils.misc.Time;
-
-import javax.inject.Inject;
-import java.awt.*;
-import java.io.IOException;
-import java.util.List;
-import java.util.*;
-import java.util.stream.Collectors;
+import org.matsim.core.utils.misc.OptionalTime;
 
 /**
  * @author jbischoff / SBB
@@ -105,7 +108,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
 
     private void finishTransfer(Id<Person> personId) {
         IntermodalTransfer transfer = openTransfers.remove(personId);
-        double transferTime = (Time.isUndefinedTime(transfer.boardingTime) ? transfer.departureTime : transfer.boardingTime) - transfer.arrivalTime;
+        double transferTime = (transfer.boardingTime.isUndefined() ? transfer.departureTime.seconds() : transfer.boardingTime.seconds()) - transfer.arrivalTime;
         if (monitoredModes.contains(transfer.departureMode) && monitoredModes.contains(transfer.arrivalMode)) {
             transferStats.get(transfer.arrivalMode).get(transfer.departureMode).addValue(transferTime);
         }
@@ -117,7 +120,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
         if (openTransfers.containsKey(event.getPersonId())) {
             IntermodalTransfer transfer = openTransfers.get(event.getPersonId());
             transfer.departureMode = event.getLegMode();
-            transfer.departureTime = event.getTime();
+            transfer.departureTime = OptionalTime.defined(event.getTime());
 
         }
     }
@@ -125,7 +128,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
         if (openTransfers.containsKey(event.getPersonId())) {
-            openTransfers.get(event.getPersonId()).boardingTime = event.getTime();
+            openTransfers.get(event.getPersonId()).boardingTime = OptionalTime.defined(event.getTime());
             finishTransfer(event.getPersonId());
 
         }
@@ -214,11 +217,12 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     }
 
     private static class IntermodalTransfer {
+
         private final Id<Person> personId;
         private final double arrivalTime;
         private final String arrivalMode;
-        double departureTime = Time.getUndefinedTime();
-        double boardingTime = Time.getUndefinedTime();
+        OptionalTime departureTime = OptionalTime.undefined();
+        OptionalTime boardingTime = OptionalTime.undefined();
         String departureMode = null;
 
         public IntermodalTransfer(Id<Person> personId, double arrivalTime, String arrivalMode) {

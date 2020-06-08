@@ -1,11 +1,10 @@
 package ch.sbb.matsim.scoring;
 
+import java.util.Set;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scoring.SumScoringFunction;
-import org.matsim.core.utils.misc.Time;
-
-import java.util.Set;
+import org.matsim.core.utils.misc.OptionalTime;
 
 /**
  * @author mrieser
@@ -25,7 +24,7 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 
     @Override
     public void handleTrip(TripStructureUtils.Trip trip) {
-        double departureTime = Time.getUndefinedTime();
+        OptionalTime departureTime = OptionalTime.undefined();
         double arrivalTime = 0;
         int transitLegsCount = 0;
 
@@ -34,15 +33,15 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
             boolean isTransit = this.ptModes.contains(legMode) || this.ptFeederModes.contains(legMode);
             if (isTransit) {
                 transitLegsCount++;
-                if (Time.isUndefinedTime(departureTime)) {
+                if (departureTime.isUndefined()) {
                     departureTime = leg.getDepartureTime();
                 }
-                arrivalTime = leg.getDepartureTime() + leg.getTravelTime();
+                arrivalTime = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
             }
         }
         if (transitLegsCount > 1) {
             int transferCount = transitLegsCount - 1;
-            double travelTime = arrivalTime - departureTime;
+            double travelTime = arrivalTime - departureTime.seconds();
             this.scoreTransitTrip(travelTime, transferCount);
         }
     }

@@ -26,7 +26,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.utils.misc.Time;
+import org.matsim.core.utils.misc.OptionalTime;
 
 
 
@@ -67,8 +67,8 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         for (PlanElement pe : legs) {
             if (pe instanceof Leg) {
                 String mode = ((Leg) pe).getMode();
-                double travelTime = ((Leg) pe).getTravelTime();
-                if (travelTime != Time.getUndefinedTime()) {
+                OptionalTime travelTime = ((Leg) pe).getTravelTime();
+                if (travelTime.isDefined()) {
                     if (this.isIntermodalMode(mode)) {
                         return mode;
                     }
@@ -104,7 +104,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
                     egressLeg = leg;
                 }
                 if (this.isIntermodalMode(mode)) {
-                    double travelTime = leg.getTravelTime();
+                    double travelTime = leg.getTravelTime().seconds();
                     travelTime *= getDetourFactor(leg.getRoute().getStartLinkId(), mode);
                     final double accessTime = getAccessTime(leg.getRoute().getStartLinkId(), mode);
                     if (accessLeg != null) {
@@ -126,7 +126,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
             egressLeg.setTravelTime(egressTime);
             egressLeg.getRoute().setTravelTime(egressTime);
         } else if (egressTime > 0.0) {
-            double mainLegTravelTime = mainAccessModeLeg.getTravelTime() + egressTime;
+            double mainLegTravelTime = mainAccessModeLeg.getTravelTime().seconds() + egressTime;
             mainAccessModeLeg.setTravelTime(mainLegTravelTime);
             mainAccessModeLeg.getRoute().setTravelTime(mainLegTravelTime);
         }
@@ -183,14 +183,12 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     private double getTotalTravelTime(final List<? extends PlanElement> legs) {
         double tTime = 0.0;
         for (PlanElement pe : legs) {
-            double time = 0.0;
+            OptionalTime time = OptionalTime.undefined();
             if (pe instanceof Leg) {
-
                 time = ((Leg) pe).getTravelTime();
             }
-
-            if (!Time.isUndefinedTime(time)) {
-                tTime += time;
+            if (time.isDefined()) {
+                tTime += time.seconds();
             }
 
         }
@@ -201,12 +199,11 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     private double computeDisutility(final List<? extends PlanElement> legs, RaptorParameters params) {
         double disutility = 0.0;
         for (PlanElement pe : legs) {
-            double time;
             if (pe instanceof Leg) {
                 String mode = ((Leg) pe).getMode();
-                time = ((Leg) pe).getTravelTime();
-                if (!Time.isUndefinedTime(time)) {
-                    disutility += time * -params.getMarginalUtilityOfTravelTime_utl_s(mode);
+                OptionalTime time = ((Leg) pe).getTravelTime();
+                if (time.isDefined()) {
+                    disutility += time.seconds() * -params.getMarginalUtilityOfTravelTime_utl_s(mode);
                 }
             }
         }
@@ -218,11 +215,11 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
     private double computeIntermodalDisutility(final List<? extends PlanElement> legs, RaptorParameters params, SBBIntermodalModeParameterSet modeParams) {
         double utility = 0.0;
         for (PlanElement pe : legs) {
-            double time;
+
             if (pe instanceof Leg) {
-                time = ((Leg) pe).getTravelTime();
-                if (!Time.isUndefinedTime(time)) {
-                    utility += time * modeParams.getMUTT_perSecond();
+                OptionalTime time = ((Leg) pe).getTravelTime();
+                if (time.isDefined()) {
+                    utility += time.seconds() * modeParams.getMUTT_perSecond();
                 }
             }
         }

@@ -1,6 +1,9 @@
 package ch.sbb.matsim.routing.pt.raptor;
 
 import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
@@ -20,10 +23,6 @@ import org.matsim.core.utils.collections.PseudoRemovePriorityQueue;
 import org.matsim.core.utils.collections.RouterPriorityQueue;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleUtils;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Calculates a least-cost-path tree using Dijkstra's algorithm  for calculating a shortest-path
@@ -215,7 +214,8 @@ public final class SBBLeastCostPathTree {
         ttcb.setTimeslice(60);
         ttcb.setMaxTime(30 * 3600);
         TravelTimeCalculator ttc = ttcb.build();
-        LeastCostPathTree st = new LeastCostPathTree(ttc.getLinkTravelTimes(), new RandomizingTimeDistanceTravelDisutilityFactory( TransportMode.car, scenario.getConfig().planCalcScore() ).createTravelDisutility(ttc.getLinkTravelTimes()));
+        LeastCostPathTree st = new LeastCostPathTree(ttc.getLinkTravelTimes(),
+                new RandomizingTimeDistanceTravelDisutilityFactory(TransportMode.car, scenario.getConfig()).createTravelDisutility(ttc.getLinkTravelTimes()));
         Node origin = network.getNodes().get(Id.create(1, Node.class));
         st.calculate(network, origin, 8*3600);
         Map<Id<Node>, LeastCostPathTree.NodeData> tree = st.getTree();
