@@ -1,14 +1,16 @@
 package ch.sbb.matsim.replanning;
 
 import ch.sbb.matsim.config.variables.Variables;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.population.algorithms.PlanAlgorithm;
-import org.matsim.core.utils.misc.Time;
-
-import java.util.Random;
+import org.matsim.core.utils.misc.OptionalTime;
 
 /**
  * SBB version of the default TripPlanMutateTimeAllocation.
@@ -34,7 +36,10 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
     }
 
     private void mutatePlan(final Plan plan) {
-        String[] initialEndTimes = plan.getPerson().getAttributes().getAttribute(Variables.INIT_END_TIMES).toString().split("_");
+        List<OptionalTime> initialEndTimes = Stream
+                .of(((String) plan.getPerson().getAttributes().getAttribute(Variables.INIT_END_TIMES)).split("_"))
+                .map(s -> s.equals(Variables.NO_INIT_END_TIME) ? OptionalTime.undefined() : OptionalTime.defined(Double.parseDouble(s)))
+                .collect(Collectors.toList());
 
         double now = 0;
         int i = 0;
@@ -44,7 +49,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
         for (PlanElement pe : plan.getPlanElements()) {
 
             if (pe instanceof Activity) {
-                Activity act = (Activity)pe;
+                Activity act = (Activity) pe;
 
                 // skip outside activities
                 if ("outside".equals(act.getType())) { continue; }
@@ -54,24 +59,23 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
                     // set start to midnight
                     act.setStartTime(now);
                     // mutate the end time of the first activity
-                    double initialEndTime = Double.parseDouble(initialEndTimes[i]);
+                    OptionalTime initialEndTime = initialEndTimes.get(i);
                     act.setEndTime(mutateTime(initialEndTime, mutationRange));
                     // calculate resulting duration
-                    act.setMaximumDuration(act.getEndTime() - act.getStartTime());
+                    act.setMaximumDuration(act.getEndTime().seconds() - act.getStartTime().seconds());
                     // move now pointer
-                    now += act.getEndTime();
+                    now += act.getEndTime().seconds();
                     i++;
                 }
-
                 // handle middle activities
                 else if (act != lastAct) {
                     // assume that there will be no delay between arrival time and activity start time
                     act.setStartTime(now);
                     if (!act.getType().endsWith("interaction")) {
-                        if (act.getEndTime() == Time.getUndefinedTime()) {
+                        if (act.getEndTime().isUndefined()) {
                             throw new IllegalStateException("Can not mutate activity end time because it is not set for Person: " + plan.getPerson().getId());
                         }
-                        double initialEndTime = Double.parseDouble(initialEndTimes[i]);
+                        OptionalTime initialEndTime = initialEndTimes.get(i);
                         double newEndTime = mutateTime(initialEndTime, mutationRange);
                         if (newEndTime < now) {
                             newEndTime = now;
@@ -87,8 +91,8 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
                     // assume that there will be no delay between arrival time and activity start time
                     act.setStartTime(now);
                     // invalidate duration and end time because the plan will be interpreted 24 hour wrap-around
-                    act.setMaximumDuration(Time.getUndefinedTime());
-                    act.setEndTime(Time.getUndefinedTime());
+                    act.setMaximumDurationUndefined();
+                    act.setEndTimeUndefined();
                 }
 
             } else {
@@ -96,26 +100,29 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
                 // assume that there will be no delay between end time of previous activity and departure time
                 leg.setDepartureTime(now);
                 // let duration untouched. if defined add it to now
-                if (leg.getTravelTime() != Time.getUndefinedTime()) {
-                    now += leg.getTravelTime();
+                if (leg.getTravelTime().isDefined()) {
+                    now += leg.getTravelTime().seconds();
                 }
                 final double arrTime = now;
                 // set planned arrival time accordingly
-                leg.setTravelTime( arrTime - leg.getDepartureTime() );
+                leg.setTravelTime(arrTime - leg.getDepartureTime().seconds());
             }
         }
     }
 
-    private double mutateTime(final double time, final double mutationRange) {
-        double t = time;
-        if (t != Time.getUndefinedTime()) {
-            t = t + (int)((this.random.nextDouble() * 2.0 - 1.0) * mutationRange);
-            if (t < 0) t = 0;
-            if (t > 24*3600) t = 24.0 * 3600;
+    private double mutateTime(final OptionalTime t, final double mutationRange) {
+        double newTime;
+        if (t.isDefined()) {
+            newTime = t.seconds() + (int) ((this.random.nextDouble() * 2.0 - 1.0) * mutationRange);
+            if (t.seconds() < 0) {
+                newTime = 0;
+            }
+            if (t.seconds() > 24 * 3600) {
+                newTime = 24.0 * 3600;
+            }
+        } else {
+            newTime = this.random.nextInt(24 * 3600);
         }
-        else {
-            t = this.random.nextInt(24*3600);
-        }
-        return t;
+        return newTime;
     }
 }
