@@ -4,15 +4,46 @@
 
 package ch.sbb.matsim.preparation;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.events.*;
-import org.matsim.api.core.v01.events.handler.*;
+import org.matsim.api.core.v01.events.ActivityEndEvent;
+import org.matsim.api.core.v01.events.ActivityStartEvent;
+import org.matsim.api.core.v01.events.LinkEnterEvent;
+import org.matsim.api.core.v01.events.PersonArrivalEvent;
+import org.matsim.api.core.v01.events.PersonDepartureEvent;
+import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
+import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
+import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
+import org.matsim.api.core.v01.events.VehicleEntersTrafficEvent;
+import org.matsim.api.core.v01.events.VehicleLeavesTrafficEvent;
+import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
+import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
+import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonArrivalEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonDepartureEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonLeavesVehicleEventHandler;
+import org.matsim.api.core.v01.events.handler.TransitDriverStartsEventHandler;
+import org.matsim.api.core.v01.events.handler.VehicleEntersTrafficEventHandler;
+import org.matsim.api.core.v01.events.handler.VehicleLeavesTrafficEventHandler;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -25,8 +56,10 @@ import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
 
-import java.util.*;
-
+@Deprecated
+/**
+ * use Experienced Plans instead
+ */
 public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartureEventHandler,
         ActivityStartEventHandler, ActivityEndEventHandler, TransitDriverStartsEventHandler,
         PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler,
@@ -204,7 +237,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
                 if (!(personsInVehicle.remove(person))) throw new IllegalStateException("Person must be in vehicle " + person.getId());
             }
             Leg leg = getLastLeg(person.getSelectedPlan());
-            leg.setTravelTime(event.getTime() - leg.getDepartureTime());
+            leg.setTravelTime(event.getTime() - leg.getDepartureTime().seconds());
             if (leg.getMode().equals(TransportMode.car)) {
                 // at the moment only for car-routes
                 List<Id<Link>> actLinks = actLinkIdsPerPerson.get(person);
@@ -214,7 +247,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
                     Id<Link> lastLinkId = actLinks.remove(actLinks.size() - 1);
                     Route route = RouteUtils.createLinkNetworkRouteImpl(firstLinkId, actLinks, lastLinkId);
                     route.setDistance(actDistancePerPerson.get(person));
-                    route.setTravelTime(leg.getTravelTime());
+                    route.setTravelTime(leg.getTravelTime().seconds());
                     leg.setRoute(route);
                 }
                 else log.info("Mode of leg is car, but there are no proper links defined for person " + person.getId());
