@@ -2,6 +2,8 @@ package ch.sbb.matsim.routing.pt.raptor;
 
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.routing.graph.Graph;
+import ch.sbb.matsim.routing.graph.LeastCostPathTree;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
@@ -29,13 +31,17 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.SingleModeNetworksCache;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
+import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleUtils;
 
 /**
  * @author jbischoff / SBB
@@ -43,7 +49,12 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 public class AccessEgressRouteCache {
 
     private final static Logger LOGGER = Logger.getLogger(AccessEgressRouteCache.class);
+
+    private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
+    private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
+
     public static final double FREESPEED_TRAVELTIME_FACTOR = 1.25;
+
     private final Map<String, SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
     private final Map<String, SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet> raptorIntermodalModeParams;
     private final TransitSchedule transitSchedule;
@@ -52,7 +63,6 @@ public class AccessEgressRouteCache {
     private Map<String, Map<Id<Link>, Integer>> accessTimes = new HashMap<>();
     private Map<String, Map<Id<Link>, Map<Id<Link>, int[]>>> travelTimesDistances = new HashMap<>();
     private SingleModeNetworksCache singleModeNetworksCache;
-
 
     @Inject
     public AccessEgressRouteCache(ZonesCollection allZones, SingleModeNetworksCache singleModeNetworksCache, Config config, Scenario scenario) {
@@ -79,25 +89,32 @@ public class AccessEgressRouteCache {
                         .collect(Collectors.toSet());
                 LOGGER.info("Found " + stopLinkIds.size() + " stops with intermodal access option for this mode.");
                 Network network = getRoutingNetwork(paramset.getMode());
+                Graph graph = new Graph(network);
                 final FreeSpeedTravelTime freeSpeedTravelTime = new FreeSpeedTravelTime();
                 final FreespeedTravelTimeAndDisutility travelTimeAndDisutility = new FreespeedTravelTimeAndDisutility(config.planCalcScore());
                 Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeZoneId(), network);
                 accessTimes.put(paramset.getMode(), modeAccessTimes);
                 final double maxRadius = raptorParams.getMaxRadius();
-                Map<Id<Link>, Map<Id<Node>, SBBLeastCostPathTree.NodeData>> travelTimes = stopLinkIds.parallelStream()
+                Map<Id<Link>, LeastCostPathTree> travelTimes = stopLinkIds.parallelStream()
                         .collect(Collectors.toMap(l -> l, l -> {
-                            SBBLeastCostPathTree leastCostPathTree = new SBBLeastCostPathTree(freeSpeedTravelTime, travelTimeAndDisutility);
+                            LeastCostPathTree leastCostPathTree = new LeastCostPathTree(graph, freeSpeedTravelTime, travelTimeAndDisutility);
                             Node fromNode = network.getLinks().get(l).getToNode();
-                            return leastCostPathTree.calculate(network, fromNode, 0, new SBBLeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
+                            leastCostPathTree.calculate(fromNode.getId().index(), 0, PERSON, VEHICLE, new LeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
+                            return leastCostPathTree;
 
                         }));
                 Map<Id<Link>, Map<Id<Link>, int[]>> travelTimeLinks = new HashMap<>();
-                for (Map.Entry<Id<Link>, Map<Id<Node>, SBBLeastCostPathTree.NodeData>> entry : travelTimes.entrySet()) {
+                for (Map.Entry<Id<Link>, LeastCostPathTree> entry : travelTimes.entrySet()) {
                     Map<Id<Link>, int[]> travelTimesToLink = new ConcurrentHashMap<>();
-                    for (Map.Entry<Id<Node>, SBBLeastCostPathTree.NodeData> nodeDataEntry : entry.getValue().entrySet()) {
-                        Node node = network.getNodes().get(nodeDataEntry.getKey());
-                        int travelTime = (int) Math.round(nodeDataEntry.getValue().getTime());
-                        int travelDistance = (int) Math.round(nodeDataEntry.getValue().getDistance());
+                    LeastCostPathTree tree = entry.getValue();
+                    for (Node node : network.getNodes().values()) {
+                        int nodeIndex = node.getId().index();
+                        OptionalTime arrivalTime = tree.getTime(nodeIndex);
+                        if (arrivalTime.isUndefined()) {
+                            continue; // node was not reached, skip to next node.
+                        }
+                        int travelTime = (int) Math.round(arrivalTime.seconds());
+                        int travelDistance = (int) Math.round(tree.getDistance(nodeIndex));
                         int egressTime = getAccessTime(paramset.getAccessTimeZoneId(), node.getCoord());
                         int[] data = new int[]{travelDistance, travelTime, egressTime};
                         for (Id<Link> inlink : node.getInLinks().keySet()) {

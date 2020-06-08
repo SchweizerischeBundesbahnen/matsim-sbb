@@ -4,6 +4,14 @@
 
 package ch.sbb.matsim.analysis;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -21,19 +29,10 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.pt.PtConstants;
-import org.matsim.pt.routes.ExperimentalTransitRoute;
+import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * @author mrieser / SBB
@@ -67,7 +66,7 @@ public class AccessEgressDistanceAnalysis {
     private void analyzePerson(Person person, Writer out) {
         Plan plan = person.getSelectedPlan();
         Activity prevAct = null;
-        ExperimentalTransitRoute prevPtRoute = null;
+        DefaultTransitPassengerRoute prevPtRoute = null;
         try {
             for (PlanElement pe : plan.getPlanElements()) {
                 if (pe instanceof Activity) {
@@ -90,7 +89,7 @@ public class AccessEgressDistanceAnalysis {
                 if (pe instanceof Leg) {
                     Leg leg = (Leg) pe;
                     if (TransportMode.pt.equals(leg.getMode())) {
-                        ExperimentalTransitRoute ptRoute = (ExperimentalTransitRoute) leg.getRoute();
+                        DefaultTransitPassengerRoute ptRoute = (DefaultTransitPassengerRoute) leg.getRoute();
 
                         if (prevAct != null) {
                             // access leg
