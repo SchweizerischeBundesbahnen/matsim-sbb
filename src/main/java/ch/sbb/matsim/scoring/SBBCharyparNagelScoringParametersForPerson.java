@@ -195,12 +195,12 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
             return t.getType().equals(o.getType())
                     && t.isScoreAtAll() == o.isScoreAtAll()
-                    && Double.compare(t.getMinimalDuration().seconds(), o.getMinimalDuration().seconds()) == 0
+                    && t.getMinimalDuration().equals(o.getMinimalDuration())
                     && Double.compare(t.getTypicalDuration(), o.getTypicalDuration()) == 0
-                    && Double.compare(t.getEarliestEndTime().seconds(), o.getEarliestEndTime().seconds()) == 0
-                    && Double.compare(t.getLatestStartTime().seconds(), o.getLatestStartTime().seconds()) == 0
-                    && Double.compare(t.getOpeningTime().seconds(), o.getOpeningTime().seconds()) == 0
-                    && Double.compare(t.getClosingTime().seconds(), o.getClosingTime().seconds()) == 0;
+                    && t.getEarliestEndTime().equals(o.getEarliestEndTime())
+                    && t.getLatestStartTime().equals(o.getLatestStartTime())
+                    && t.getOpeningTime().equals(o.getOpeningTime())
+                    && t.getClosingTime().equals(o.getClosingTime());
         }
 
         @Override
@@ -208,17 +208,17 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
             ActivityUtilityParameters p = this.params;
             int hashCode = p.getType().hashCode();
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getMinimalDuration().seconds());
+            hashCode += p.getMinimalDuration().hashCode();
             hashCode *= 31;
             hashCode += Double.hashCode(p.getTypicalDuration());
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getEarliestEndTime().seconds());
+            hashCode += p.getMinimalDuration().hashCode();
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getLatestStartTime().seconds());
+            hashCode += p.getMinimalDuration().hashCode();
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getOpeningTime().seconds());
+            hashCode += p.getMinimalDuration().hashCode();
             hashCode *= 31;
-            hashCode += Double.hashCode(p.getClosingTime().seconds());
+            hashCode += p.getMinimalDuration().hashCode();
 
             return hashCode;
         }
