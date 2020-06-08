@@ -32,7 +32,7 @@ import org.matsim.core.mobsim.qsim.QSimBuilder;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.pt.routes.ExperimentalTransitRoute;
+import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -86,7 +86,7 @@ public class PtTestFixture {
         Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
         act1.setEndTime(29500);
         Leg leg = pf.createLeg("pt");
-        Route route = new ExperimentalTransitRoute(this.stopB, this.line1, this.route1, this.stopD);
+        Route route = new DefaultTransitPassengerRoute(this.stopB, this.line1, this.route1, this.stopD);
         leg.setRoute(route);
         Activity act2 = pf.createActivityFromLinkId("work", Id.create(3, Link.class));
 
