@@ -53,8 +53,8 @@ public class RideParkingCostTrackerTest {
         double hourlyParkingCostWork = 20; // this is the value of ACCCAR in zone Bern
         double hourlyParkingCostShop = 3; // this is the value of ACCCAR in zone Thun
 
-        f.events.processEvent(new PersonArrivalEvent(7.25*3600, personId, linkWork, "ride"));
-        f.events.processEvent(new ActivityStartEvent(7.25*3600, personId, linkWork, null, "work"));
+        f.events.processEvent(new PersonArrivalEvent(7.25 * 3600, personId, linkWork, "ride"));
+        f.events.processEvent(new ActivityStartEvent(7.25 * 3600, personId, linkWork, null, "work", null));
         Assert.assertEquals(2, collector.getEvents().size());
 
         f.events.processEvent(new ActivityEndEvent(12.00*3600, personId, linkWork, null, "work"));
@@ -67,8 +67,8 @@ public class RideParkingCostTrackerTest {
         Assert.assertEquals(12.00*3600, parkingEvent1.getTime(), 1e-8);
         Assert.assertEquals((12-7.25) * hourlyParkingCostWork, parkingEvent1.getMonetaryAmount(), 1e-8);
 
-        f.events.processEvent(new PersonArrivalEvent(12.25*3600, personId, linkShop, "ride"));
-        f.events.processEvent(new ActivityStartEvent(12.25*3600, personId, linkShop, null, "shop"));
+        f.events.processEvent(new PersonArrivalEvent(12.25 * 3600, personId, linkShop, "ride"));
+        f.events.processEvent(new ActivityStartEvent(12.25 * 3600, personId, linkShop, null, "shop", null));
         Assert.assertEquals(6, collector.getEvents().size());
 
         f.events.processEvent(new ActivityEndEvent(13.00*3600, personId, linkShop, null, "shop"));
@@ -81,15 +81,15 @@ public class RideParkingCostTrackerTest {
         Assert.assertEquals(13.00*3600, parkingEvent2.getTime(), 1e-8);
         Assert.assertEquals((13-12.25) * hourlyParkingCostShop, parkingEvent2.getMonetaryAmount(), 1e-8);
 
-        f.events.processEvent(new PersonArrivalEvent(13.25*3600, personId, linkHome, "ride"));
-        f.events.processEvent(new ActivityStartEvent(13.25*3600, personId, linkHome, null, "home"));
+        f.events.processEvent(new PersonArrivalEvent(13.25 * 3600, personId, linkHome, "ride"));
+        f.events.processEvent(new ActivityStartEvent(13.25 * 3600, personId, linkHome, null, "home", null));
         Assert.assertEquals(10, collector.getEvents().size());
 
         f.events.processEvent(new ActivityEndEvent(15.00*3600, personId, linkShop, null, "home"));
         Assert.assertEquals(11, collector.getEvents().size()); // there should be no parking cost event at home
 
-        f.events.processEvent(new PersonArrivalEvent(15.25*3600, personId, linkWork, "ride"));
-        f.events.processEvent(new ActivityStartEvent(13.25*3600, personId, linkWork, null, "shop"));
+        f.events.processEvent(new PersonArrivalEvent(15.25 * 3600, personId, linkWork, "ride"));
+        f.events.processEvent(new ActivityStartEvent(13.25 * 3600, personId, linkWork, null, "shop", null));
         Assert.assertEquals(13, collector.getEvents().size());
 
         f.events.processEvent(new ActivityEndEvent(18.00*3600, personId, linkWork, null, "shop"));
@@ -102,8 +102,8 @@ public class RideParkingCostTrackerTest {
         Assert.assertEquals(18.00*3600, parkingEvent3.getTime(), 1e-8);
         Assert.assertEquals((18-15.25) * hourlyParkingCostWork, parkingEvent3.getMonetaryAmount(), 1e-8);
 
-        f.events.processEvent(new PersonArrivalEvent(18.50*3600, personId, linkHome, "ride"));
-        f.events.processEvent(new ActivityStartEvent(18.00*3600, personId, linkHome, null, "shop"));
+        f.events.processEvent(new PersonArrivalEvent(18.50 * 3600, personId, linkHome, "ride"));
+        f.events.processEvent(new ActivityStartEvent(18.00 * 3600, personId, linkHome, null, "shop", null));
         Assert.assertEquals(17, collector.getEvents().size());
     }
 
