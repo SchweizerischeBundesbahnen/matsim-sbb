@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -155,7 +154,7 @@ public class ScenarioCutter {
         if (eventsFilename != null) {
             log.info("Extracting link travel times from Events file " + eventsFilename);
             TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(scenario.getNetwork());
-            ttBuilder.setAnalyzedModes(Collections.singleton(TransportMode.car));
+            ttBuilder.setAnalyzedModes(Collections.singleton(SBBModes.CAR));
             ttBuilder.setCalculateLinkTravelTimes(true);
             TravelTimeCalculator ttCalculator = ttBuilder.build();
             EventsManager eventsManager = EventsUtils.createEventsManager(scenario.getConfig());
@@ -245,7 +244,7 @@ public class ScenarioCutter {
         if (eventsFilename != null) {
             log.info("Extracting link travel times from Events file " + eventsFilename);
             TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(scenario.getNetwork());
-            ttBuilder.setAnalyzedModes(Collections.singleton(TransportMode.car));
+            ttBuilder.setAnalyzedModes(Collections.singleton(SBBModes.CAR));
             ttBuilder.setCalculateLinkTravelTimes(true);
             TravelTimeCalculator ttCalculator = ttBuilder.build();
             EventsManager eventsManager = EventsUtils.createEventsManager(scenario.getConfig());
@@ -849,7 +848,7 @@ public class ScenarioCutter {
                 if (previousAct != null) {
                     if (!previousAct.getType().endsWith("interaction") && !current.getType().endsWith("interaction")) {
                         if (previousLeg.getMode().equals(SBBModes.ACCESS_EGRESS_WALK)) {
-                            previousLeg.setMode(TransportMode.walk);
+                            previousLeg.setMode(SBBModes.WALK);
                         }
                     }
 

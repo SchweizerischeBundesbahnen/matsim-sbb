@@ -2,6 +2,7 @@ package ch.sbb.matsim.accessibility;
 
 import ch.sbb.matsim.analysis.skims.RooftopUtils;
 import ch.sbb.matsim.analysis.skims.RooftopUtils.ODConnection;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.graph.Graph;
 import ch.sbb.matsim.routing.graph.LeastCostPathTree;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
@@ -36,7 +37,6 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -491,7 +491,7 @@ public class Accessibility {
         }
         log.info("extracting car-only network"); // this is used in any case, not only when car is needed.
         this.carNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.carNetwork, Collections.singleton(TransportMode.car));
+        new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.carNetwork, Collections.singleton(SBBModes.CAR));
 
         log.info("loading schedule from " + this.scheduleFilename);
         Scenario ptScenario;

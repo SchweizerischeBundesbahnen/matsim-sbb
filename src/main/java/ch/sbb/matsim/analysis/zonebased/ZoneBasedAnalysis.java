@@ -1,5 +1,6 @@
 package ch.sbb.matsim.analysis.zonebased;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesImpl;
@@ -16,7 +17,6 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
@@ -187,7 +187,7 @@ public class ZoneBasedAnalysis {
         public void run(Person person) {
             List<Leg> ptLegs = TripStructureUtils.getLegs(person.getSelectedPlan())
                     .stream()
-                    .filter(l -> l.getMode().equals(TransportMode.pt))
+                    .filter(l -> l.getMode().equals(SBBModes.PT))
                     .collect(Collectors.toList());
             for (Leg ptleg : ptLegs) {
                 if (ptleg.getRoute() instanceof TransitPassengerRoute) {

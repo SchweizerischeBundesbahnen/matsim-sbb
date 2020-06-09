@@ -1,5 +1,6 @@
 package ch.sbb.matsim.analysis.potential;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.preparation.FilteredNetwork;
 import ch.sbb.matsim.routing.graph.Graph;
 import ch.sbb.matsim.routing.graph.LeastCostPathTree;
@@ -16,7 +17,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.Person;
@@ -88,7 +88,7 @@ public class Isochrones {
         new TransitScheduleReader(this.scenario).readFile(this.config.transit().getTransitScheduleFile());
 
         this.network = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.network, Collections.singleton(TransportMode.car));
+        new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.network, Collections.singleton(SBBModes.CAR));
         this.graph = new Graph(this.network);
         this.filteredNetwork = new FilteredNetwork().filterNetwork(this.network);
 

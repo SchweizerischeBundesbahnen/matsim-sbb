@@ -5,9 +5,9 @@
 package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
@@ -36,12 +36,12 @@ public class ScoringFixture {
     private final static String ATTRIBUTEGROUP3 = "alter";
     private final static String VALUEGROUP3 = "25";
 
-    ScoringFixture()    {
+    ScoringFixture() {
         this.config = ConfigUtils.createConfig();
-        this.config.planCalcScore().getModes().get(TransportMode.pt).setConstant(-1.0);
-        this.config.planCalcScore().getModes().get(TransportMode.pt).setMarginalUtilityOfTraveling(1.14);
-        this.config.planCalcScore().getModes().get(TransportMode.pt).setMarginalUtilityOfDistance(0.0);
-        this.config.planCalcScore().getModes().get(TransportMode.pt).setMonetaryDistanceRate(-0.000300);
+        this.config.planCalcScore().getModes().get(SBBModes.PT).setConstant(-1.0);
+        this.config.planCalcScore().getModes().get(SBBModes.PT).setMarginalUtilityOfTraveling(1.14);
+        this.config.planCalcScore().getModes().get(SBBModes.PT).setMarginalUtilityOfDistance(0.0);
+        this.config.planCalcScore().getModes().get(SBBModes.PT).setMonetaryDistanceRate(-0.000300);
         this.scenario = ScenarioUtils.createScenario(this.config);
         this.sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
         addRideInteractionScoring(this.config);
@@ -64,7 +64,7 @@ public class ScoringFixture {
         bgp.addPersonGroupByAttribute(pgt);
 
         SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
-        modeCorrection.setMode(TransportMode.pt);
+        modeCorrection.setMode(SBBModes.PT);
         modeCorrection.setConstant(1.0);
         modeCorrection.setMargUtilOfTime(0.26);
         modeCorrection.setDistanceRate(0.000300);
@@ -82,7 +82,7 @@ public class ScoringFixture {
         bgp.addPersonGroupByAttribute(pgt);
 
         modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
-        modeCorrection.setMode(TransportMode.pt);
+        modeCorrection.setMode(SBBModes.PT);
         modeCorrection.setConstant(-0.3);
         pgt.addModeCorrection(modeCorrection);
 
@@ -98,7 +98,7 @@ public class ScoringFixture {
         bgp.addPersonGroupByAttribute(pgt);
 
         modeCorrection = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
-        modeCorrection.setMode(TransportMode.pt);
+        modeCorrection.setMode(SBBModes.PT);
         modeCorrection.setConstant(0.5);
         bgp.getPersonGroupByAttribute(VALUEGROUP3).addModeCorrection(modeCorrection);
 

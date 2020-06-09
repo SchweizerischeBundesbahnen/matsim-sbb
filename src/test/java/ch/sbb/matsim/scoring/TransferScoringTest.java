@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -284,11 +283,11 @@ public class TransferScoringTest {
             accessLeg.getRoute().setTravelTime(300);
             plan.addLeg(accessLeg);
             plan.addActivity(ptAct1);
-            Leg pt1Leg = pf.createLeg(TransportMode.pt);
+            Leg pt1Leg = pf.createLeg(SBBModes.PT);
             pt1Leg.setRoute(new DefaultTransitPassengerRoute(stop1, blueLine, blueRoute, stop2));
             plan.addLeg(pt1Leg);
             plan.addActivity(transferAct);
-            Leg pt2Leg = pf.createLeg(TransportMode.pt);
+            Leg pt2Leg = pf.createLeg(SBBModes.PT);
             pt2Leg.setRoute(new DefaultTransitPassengerRoute(stop2, redLine, redRoute, stop3));
             plan.addLeg(pt2Leg);
             plan.addActivity(ptAct2);
@@ -298,7 +297,7 @@ public class TransferScoringTest {
             egressLeg.getRoute().setTravelTime(300);
             plan.addLeg(egressLeg);
             plan.addActivity(home2);
-            TripStructureUtils.getLegs(plan).stream().forEach(leg -> TripStructureUtils.setRoutingMode(leg, TransportMode.pt));
+            TripStructureUtils.getLegs(plan).stream().forEach(leg -> TripStructureUtils.setRoutingMode(leg, SBBModes.PT));
             pop.addPerson(person);
         }
 

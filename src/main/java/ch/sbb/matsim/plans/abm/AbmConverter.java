@@ -2,6 +2,7 @@ package ch.sbb.matsim.plans.abm;
 
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.utils.SBBPersonUtils;
@@ -200,8 +201,9 @@ public class AbmConverter {
     public void adjustModeIfNoLicense(Population population) {
         for (final Person person : population.getPersons().values()) {
             for (Leg leg: TripStructureUtils.getLegs(person.getSelectedPlan()))  {
-                if(!PersonUtils.hasLicense(person) && leg.getMode().equals(TransportMode.car))
+                if (!PersonUtils.hasLicense(person) && leg.getMode().equals(SBBModes.CAR)) {
                     leg.setMode(TransportMode.ride);
+                }
             }
         }
     }

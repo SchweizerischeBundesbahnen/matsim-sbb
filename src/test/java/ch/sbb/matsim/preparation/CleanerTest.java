@@ -18,7 +18,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
@@ -39,9 +38,9 @@ public class CleanerTest {
     public MatsimTestUtils utils = new MatsimTestUtils();
 
     private static final Logger log = Logger.getLogger(CleanerTest.class);
-    
-    private final static List<String> MODES_PT = Collections.singletonList(TransportMode.pt);
-    private final static List<String> MODES_CAR = Collections.singletonList(TransportMode.car);
+
+    private final static List<String> MODES_PT = Collections.singletonList(SBBModes.PT);
+    private final static List<String> MODES_CAR = Collections.singletonList(SBBModes.CAR);
     private final static List<String> SUBPOP_REGULAR = Collections.singletonList("regular");
     private final static List<String> SUBPOP_ALL = Collections.singletonList("all");
     private final static List<String> SUBPOP_CB = Collections.singletonList("cb");
@@ -64,19 +63,19 @@ public class CleanerTest {
 
         Leg carLeg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("1")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(carLeg.getMode(), TransportMode.car);
+        assertEquals(carLeg.getMode(), SBBModes.CAR);
         assertEquals(carLeg.getRoute().getStartLinkId().toString(), "2");
 
         cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
-        assertEquals(carLeg.getMode(), TransportMode.car);
+        assertEquals(carLeg.getMode(), SBBModes.CAR);
         assertNotNull(carLeg.getRoute());
 
         cleaner.clean(MODES_PT, SUBPOP_ALL);
-        assertEquals(carLeg.getMode(), TransportMode.car);
+        assertEquals(carLeg.getMode(), SBBModes.CAR);
         assertNotNull(carLeg.getRoute());
 
-        cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.car), SUBPOP_ALL);
-        assertEquals(carLeg.getMode(), TransportMode.car);
+        cleaner.clean(Arrays.asList(SBBModes.PT, SBBModes.CAR), SUBPOP_ALL);
+        assertEquals(carLeg.getMode(), SBBModes.CAR);
         assertNull(carLeg.getRoute());
     }
 
@@ -99,7 +98,7 @@ public class CleanerTest {
 
         cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
         assertEquals(3, pe.size(), 0);
-        assertEquals(TransportMode.car, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.CAR, ((Leg) pe.get(1)).getMode());
     }
 
     @Test
@@ -109,19 +108,19 @@ public class CleanerTest {
 
         Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("3")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(leg.getMode(), TransportMode.bike);
+        assertEquals(leg.getMode(), SBBModes.BIKE);
         assertEquals(leg.getRoute().getStartLinkId().toString(), "2");
 
-        cleaner.clean(Arrays.asList(TransportMode.bike), SUBPOP_CB);
-        assertEquals(leg.getMode(), TransportMode.bike);
+        cleaner.clean(Arrays.asList(SBBModes.BIKE), SUBPOP_CB);
+        assertEquals(leg.getMode(), SBBModes.BIKE);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(MODES_PT, SUBPOP_ALL);
-        assertEquals(leg.getMode(), TransportMode.bike);
+        assertEquals(leg.getMode(), SBBModes.BIKE);
         assertNotNull(leg.getRoute());
 
-        cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.bike), SUBPOP_ALL);
-        assertEquals(leg.getMode(), TransportMode.bike);
+        cleaner.clean(Arrays.asList(SBBModes.PT, SBBModes.BIKE), SUBPOP_ALL);
+        assertEquals(leg.getMode(), SBBModes.BIKE);
         assertNull(leg.getRoute());
     }
 
@@ -142,9 +141,9 @@ public class CleanerTest {
         assertEquals(7, pe.size(), 0);
         assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-        cleaner.clean(Arrays.asList(TransportMode.bike), SUBPOP_REGULAR);
+        cleaner.clean(Arrays.asList(SBBModes.BIKE), SUBPOP_REGULAR);
         assertEquals(3, pe.size(), 0);
-        assertEquals(TransportMode.bike, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.BIKE, ((Leg) pe.get(1)).getMode());
     }
 
     @Test
@@ -166,8 +165,8 @@ public class CleanerTest {
         assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
-        cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.bike), SUBPOP_ALL);
-        assertEquals(leg.getMode(), TransportMode.pt);
+        cleaner.clean(Arrays.asList(SBBModes.PT, SBBModes.BIKE), SUBPOP_ALL);
+        assertEquals(leg.getMode(), SBBModes.PT);
         assertEquals(3, f.scenario.getPopulation().getPersons().get(Id.createPersonId("5")).getPlans().get(0).getPlanElements().size(), 0);
         assertNull(leg.getRoute());
     }
@@ -191,7 +190,7 @@ public class CleanerTest {
 
         cleaner.clean(MODES_PT, SUBPOP_REGULAR);
         assertEquals(3, pe.size(), 0);
-        assertEquals(TransportMode.pt, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.PT, ((Leg) pe.get(1)).getMode());
     }
 
     @Test
@@ -213,8 +212,8 @@ public class CleanerTest {
         assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
         assertNotNull(leg.getRoute());
 
-        cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.bike), SUBPOP_FREIGHT);
-        assertEquals(leg.getMode(), TransportMode.pt);
+        cleaner.clean(Arrays.asList(SBBModes.PT, SBBModes.BIKE), SUBPOP_FREIGHT);
+        assertEquals(leg.getMode(), SBBModes.PT);
         assertEquals(3, f.scenario.getPopulation().getPersons().get(Id.createPersonId("7")).getPlans().get(0).getPlanElements().size(), 0);
         assertNull(leg.getRoute());
     }
@@ -231,18 +230,18 @@ public class CleanerTest {
         assertEquals(oldLeg.getRoute().getStartLinkId().toString(), "2");
 
         Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(3);
-        assertEquals(leg.getMode(), TransportMode.pt);
+        assertEquals(leg.getMode(), SBBModes.PT);
 
         cleaner.clean(MODES_PT, SUBPOP_CB);
-        assertEquals(leg.getMode(), TransportMode.pt);
+        assertEquals(leg.getMode(), SBBModes.PT);
         assertNotNull(leg.getRoute());
 
         cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
-        assertEquals(leg.getMode(), TransportMode.pt);
+        assertEquals(leg.getMode(), SBBModes.PT);
         assertNotNull(leg.getRoute());
 
-        cleaner.clean(Arrays.asList(TransportMode.pt, TransportMode.bike), SUBPOP_REGULAR);
-        assertEquals(leg.getMode(), TransportMode.pt);
+        cleaner.clean(Arrays.asList(SBBModes.PT, SBBModes.BIKE), SUBPOP_REGULAR);
+        assertEquals(leg.getMode(), SBBModes.PT);
         log.info(f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(1));
 
         assertEquals(3, f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().size(), 0);

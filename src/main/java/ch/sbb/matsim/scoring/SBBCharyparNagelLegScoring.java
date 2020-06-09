@@ -7,7 +7,6 @@ package ch.sbb.matsim.scoring;
 import ch.sbb.matsim.config.variables.SBBModes;
 import java.util.Set;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
@@ -22,16 +21,13 @@ import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.pt.PtConstants;
 
 /**
- * THIS IS A COPY of the default CharyparNagelLegScoring with the following modifications:
- * - replace hard-coded <code>TransportMode.pt</code> with the set of pt modes configured in the
- *   transit config group.
- * - don't apply lineSwitch-utility, as this will be handled in {@link SBBTransferScoring}.
+ * THIS IS A COPY of the default CharyparNagelLegScoring with the following modifications: - replace hard-coded <code>SBBModes.PT</code> with the set of pt modes configured in the transit config
+ * group. - don't apply lineSwitch-utility, as this will be handled in {@link SBBTransferScoring}.
  *
  * @author mrieser / SBB
- *
- *
- * This is a re-implementation of the original CharyparNagel function, based on a
- * modular approach.
+ *         <p>
+ *         <p>
+ *         This is a re-implementation of the original CharyparNagel function, based on a modular approach.
  * @author rashid_waraich
  */
 public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumScoringFunction.LegScoring, org.matsim.core.scoring.SumScoringFunction.ArbitraryEventScoring {
@@ -72,7 +68,7 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		ModeUtilityParameters modeParams = this.params.modeParams.get(leg.getMode());
 		if (modeParams == null) {
             if (leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) || leg.getMode().equals(SBBModes.ACCESS_EGRESS_WALK)) {
-				modeParams = this.params.modeParams.get(TransportMode.walk);
+				modeParams = this.params.modeParams.get(SBBModes.WALK);
 			} else {
 				//				modeParams = this.params.modeParams.get(TransportMode.other);
 				throw new RuntimeException("just encountered mode for which no scoring parameters are defined: " + leg.getMode());
@@ -116,7 +112,7 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		if ( event instanceof PersonEntersVehicleEvent && currentLegIsPtLeg ) {
 			// add score of waiting, _minus_ score of travelling (since it is added in the legscoring above):
 			this.score +=
-					(event.getTime() - this.lastActivityEndTime.seconds()) * (this.params.marginalUtilityOfWaitingPt_s - this.params.modeParams.get(TransportMode.pt).marginalUtilityOfTraveling_s);
+					(event.getTime() - this.lastActivityEndTime.seconds()) * (this.params.marginalUtilityOfWaitingPt_s - this.params.modeParams.get(SBBModes.PT).marginalUtilityOfTraveling_s);
 		}
 
 		if ( event instanceof PersonDepartureEvent ) {

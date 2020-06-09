@@ -2,6 +2,7 @@ package ch.sbb.matsim.calibration;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.intermodal.SBBRaptorIntermodalAccessEgress;
@@ -30,7 +31,6 @@ import java.util.stream.IntStream;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
@@ -92,10 +92,11 @@ public class RideFeederCalibration {
         this.scenario = ScenarioUtils.loadScenario(config);
 
         for (Link link : scenario.getNetwork().getLinks().values()) {
-            if (link.getAllowedModes().contains(TransportMode.car)) {
+            if (link.getAllowedModes().contains(SBBModes.CAR)) {
                 Set<String> allowedModes = new HashSet<>();
-                for (String mode : link.getAllowedModes())
+                for (String mode : link.getAllowedModes()) {
                     allowedModes.add(mode);
+                }
                 allowedModes.add("ride_feeder");
                 link.setAllowedModes(allowedModes);
             }
@@ -205,15 +206,13 @@ public class RideFeederCalibration {
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
 
-
         PlansCalcRouteConfigGroup plansCalcRouteConfigGroup = scenario.getConfig().plansCalcRoute();
         plansCalcRouteConfigGroup.setInsertingAccessEgressWalk(true);
 
         routingModules.put("ride_feeder", new SBBNetworkRoutingInclAccessEgressModule("car", scenario.getPopulation().getFactory(), scenario.getNetwork(),
                 routeAlgo, plansCalcRouteConfigGroup, zones));
-        routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, scenario, 1.1, 1.3));
-
+        routingModules.put(SBBModes.WALK,
+                new TeleportationRoutingModule(SBBModes.WALK, scenario, 1.1, 1.3));
 
         DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(scenario.getPopulation(), intermodalAE, routingModules);
         return new SwissRailRaptor(this.data, new DefaultRaptorParametersForPerson(this.config),

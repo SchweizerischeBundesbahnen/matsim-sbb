@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -16,7 +17,6 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
@@ -88,7 +88,7 @@ public class AccessEgressDistanceAnalysis {
                 }
                 if (pe instanceof Leg) {
                     Leg leg = (Leg) pe;
-                    if (TransportMode.pt.equals(leg.getMode())) {
+                    if (SBBModes.PT.equals(leg.getMode())) {
                         DefaultTransitPassengerRoute ptRoute = (DefaultTransitPassengerRoute) leg.getRoute();
 
                         if (prevAct != null) {
