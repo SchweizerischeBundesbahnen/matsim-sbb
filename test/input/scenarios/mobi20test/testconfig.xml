@@ -2829,6 +2829,15 @@
                 <param name="dailyUtilityConstant" value="0.0"/>
                 <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
                 <param name="marginalUtilityOfTraveling_util_hr" value="0.0"/>
+                <param name="mode" value="non_network_walk"/>
+                <param name="monetaryDistanceRate" value="0.0"/>
+            </parameterset>
+            <parameterset type="modeParams">
+                <param name="constant" value="0.0"/>
+                <param name="dailyMonetaryConstant" value="0.0"/>
+                <param name="dailyUtilityConstant" value="0.0"/>
+                <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
+                <param name="marginalUtilityOfTraveling_util_hr" value="0.0"/>
                 <param name="mode" value="bike"/>
                 <param name="monetaryDistanceRate" value="0.0"/>
             </parameterset>
@@ -2854,7 +2863,6 @@
         <!-- (not tested) will remove plan attributes that are presumably not used, such as activityStartTime. default=false. Use with Caution! -->
         <param name="removingUnnecessaryPlanAttributes" value="false"/>
         <!-- Name of the (Object)Attribute defining the subpopulation to which pertains a Person (as freight, through traffic, etc.). The attribute must be of String type.  Change away from default only in desperate situations. -->
-        <param name="subpopulationAttributeName" value="subpopulation"/>
     </module>
     <module name="planscalcroute">
         <!-- All the modes for which the router is supposed to generate network routes (like car) -->
@@ -2870,6 +2878,12 @@
         <parameterset type="teleportedModeParameters">
             <param name="beelineDistanceFactor" value="1.3"/>
             <param name="mode" value="walk"/>
+            <param name="teleportedModeFreespeedFactor" value="null"/>
+            <param name="teleportedModeSpeed" value="1.3055555556"/>
+        </parameterset>
+        <parameterset type="teleportedModeParameters">
+            <param name="beelineDistanceFactor" value="1.3"/>
+            <param name="mode" value="non_network_walk"/>
             <param name="teleportedModeFreespeedFactor" value="null"/>
             <param name="teleportedModeSpeed" value="1.3055555556"/>
         </parameterset>
