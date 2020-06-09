@@ -17,13 +17,14 @@ public class TravelComponent {
 	private static AtomicInteger id = new AtomicInteger(0); // for enumeration
 
 	private double startTime;
-	private double endTime = 30 * 3600;
+	private double endTime;
 
 	private int elementId;
 
 	public TravelComponent(Config config) {
 		elementId = id.incrementAndGet();
-		endTime = config.qsim().getEndTime().seconds();
+		endTime = config.qsim().getEndTime().orElse(30 * 3600);
+
 	}
 
 	public int getElementId() {
