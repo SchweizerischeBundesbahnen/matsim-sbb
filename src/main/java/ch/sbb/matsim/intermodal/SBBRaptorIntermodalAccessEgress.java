@@ -97,10 +97,10 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
             if (pe instanceof Leg) {
                 Leg leg = (Leg) pe;
                 String mode = leg.getMode();
-                if ((i == 0) && mode.equals(SBBModes.NON_NETWORK_WALK)) {
+                if ((i == 0) && mode.equals(SBBModes.ACCESS_EGRESS_WALK)) {
                     accessLeg = leg;
                 }
-                if ((i == legs.size() - 1) && mode.equals(SBBModes.NON_NETWORK_WALK)) {
+                if ((i == legs.size() - 1) && mode.equals(SBBModes.ACCESS_EGRESS_WALK)) {
                     egressLeg = leg;
                 }
                 if (this.isIntermodalMode(mode)) {

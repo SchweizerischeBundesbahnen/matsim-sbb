@@ -89,7 +89,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     }
 
     private boolean isIgnoredMode(String mode) {
-        return mode.equals(SBBModes.NON_NETWORK_WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE);
+        return mode.equals(SBBModes.ACCESS_EGRESS_WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE);
 
     }
 

@@ -145,10 +145,10 @@ public class TestFixture {
         params3.setScoringThisActivityAtAll(false);
         scenario.getConfig().planCalcScore().addActivityParams(params3);
 
-        accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.NON_NETWORK_WALK);
+        accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
         accessParams.setConstant(constant);
 
-        egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.NON_NETWORK_WALK);
+        egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
         egressParams.setConstant(constant);
 
         StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();

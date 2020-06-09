@@ -32,7 +32,7 @@ public class SBBScoringFunctionTest {
 
     @Test
     public void testTransferScoring() {
-        testTransferScoring(SBBModes.NON_NETWORK_WALK, SBBModes.NON_NETWORK_WALK);
+        testTransferScoring(SBBModes.ACCESS_EGRESS_WALK, SBBModes.ACCESS_EGRESS_WALK);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class SBBScoringFunctionTest {
         Activity ptInteraction1 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.1 * 3600), OptionalTime.defined(8.1 * 3600));
         Leg ptLeg1 = createLeg(pf, "pt", 8.1 * 3600, 8.5 * 3600 - 60);
         Activity ptInteraction2 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
-        Leg transferLeg = createLeg(pf, SBBModes.NON_NETWORK_WALK, 8.5 * 3600 - 60, 8.5 * 3600 + 60);
+        Leg transferLeg = createLeg(pf, SBBModes.ACCESS_EGRESS_WALK, 8.5 * 3600 - 60, 8.5 * 3600 + 60);
         Activity ptInteraction3 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
         Leg ptLeg2 = createLeg(pf, "pt", 8.5 * 3600 + 60, 8.9 * 3600);
         Activity ptInteraction4 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.9 * 3600), OptionalTime.defined(8.9 * 3600));

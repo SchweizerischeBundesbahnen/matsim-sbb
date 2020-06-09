@@ -95,8 +95,8 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             return stops.stream().map(stop -> {
                 double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
                 double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(SBBModes.NON_NETWORK_WALK);
-                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, SBBModes.NON_NETWORK_WALK);
+                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(SBBModes.ACCESS_EGRESS_WALK);
+                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, SBBModes.ACCESS_EGRESS_WALK);
             }).collect(Collectors.toList());
         }
     }
@@ -111,8 +111,8 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             return stops.stream().map(stop -> {
                 double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
                 double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(SBBModes.NON_NETWORK_WALK);
-                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, SBBModes.NON_NETWORK_WALK);
+                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(SBBModes.ACCESS_EGRESS_WALK);
+                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, SBBModes.ACCESS_EGRESS_WALK);
             }).collect(Collectors.toList());
         }
     }
@@ -157,7 +157,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         }
         String overrideMode = null;
         if (mode.equals(SBBModes.WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE)) {
-            overrideMode = SBBModes.NON_NETWORK_WALK;
+            overrideMode = SBBModes.ACCESS_EGRESS_WALK;
         }
         String linkIdAttribute = paramset.getLinkIdAttribute();
         String personFilterAttribute = paramset.getPersonFilterAttribute();
@@ -223,7 +223,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                     }
                     if (stopFacility != stop) {
                         if (direction == Direction.ACCESS) {
-                            Leg transferLeg = PopulationUtils.createLeg(SBBModes.NON_NETWORK_WALK);
+                            Leg transferLeg = PopulationUtils.createLeg(SBBModes.ACCESS_EGRESS_WALK);
                             Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
                             double transferTime = 0.0;
                             if (useMinimalTransferTimes) {
@@ -239,7 +239,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                             tmp.add(transferLeg);
                             routeParts = tmp;
                         } else {
-                            Leg transferLeg = PopulationUtils.createLeg(SBBModes.NON_NETWORK_WALK);
+                            Leg transferLeg = PopulationUtils.createLeg(SBBModes.ACCESS_EGRESS_WALK);
                             Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
                             double transferTime = 0.0;
                             if (useMinimalTransferTimes) {
@@ -304,7 +304,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     }
 
     private Leg createAccessEgressLeg(double traveltime, Id<Link> link) {
-        Leg leg = PopulationUtils.createLeg(SBBModes.NON_NETWORK_WALK);
+        Leg leg = PopulationUtils.createLeg(SBBModes.ACCESS_EGRESS_WALK);
         Route route = RouteUtils.createGenericRouteImpl(link, link);
         route.setTravelTime(traveltime);
         route.setDistance(0.0);

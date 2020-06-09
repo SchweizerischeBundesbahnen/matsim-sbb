@@ -46,7 +46,7 @@ public class AccessEgressRouting {
 
     public double addAccess(final Facility fromFacility, final Link accessActLink, double now, final List<PlanElement> result, final Person person) {
 
-        final Leg accessLeg = this.populationFactory.createLeg(SBBModes.NON_NETWORK_WALK);
+        final Leg accessLeg = this.populationFactory.createLeg(SBBModes.ACCESS_EGRESS_WALK);
         accessLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, accessLeg, fromFacility.getCoord(), now, accessActLink.getId(), accessActLink.getId());
 
@@ -62,7 +62,7 @@ public class AccessEgressRouting {
         final Activity interactionActivity = createInteractionActivity(egressActLink);
         result.add(interactionActivity);
 
-        final Leg egressLeg = this.populationFactory.createLeg(SBBModes.NON_NETWORK_WALK);
+        final Leg egressLeg = this.populationFactory.createLeg(SBBModes.ACCESS_EGRESS_WALK);
         egressLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, egressLeg, toFacility.getCoord(), now, egressActLink.getId(), egressActLink.getId());
         result.add(egressLeg);

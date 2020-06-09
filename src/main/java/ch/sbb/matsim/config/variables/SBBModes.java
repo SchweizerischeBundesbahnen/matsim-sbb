@@ -1,8 +1,11 @@
 package ch.sbb.matsim.config.variables;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.matsim.api.core.v01.TransportMode;
-
-import java.util.*;
 
 public class SBBModes {
     private SBBModes() {}
@@ -16,7 +19,7 @@ public class SBBModes {
     public static final String AVFEEDER = "avfeeder";
     public static final String DRT = TransportMode.drt;
     public static final String PT_FALLBACK_MODE = TransportMode.transit_walk;
-    public static final String NON_NETWORK_WALK = TransportMode.non_network_walk;
+    public static final String ACCESS_EGRESS_WALK = TransportMode.non_network_walk;
 
     public static final int DEFAULT_MODE_HIERARCHY = 99;
     public final static Map<String, Integer> mode2HierarchalNumber;
@@ -32,7 +35,7 @@ public class SBBModes {
         mode2HierarchalNumber.put(BIKE, 30);
         mode2HierarchalNumber.put(WALK, 40);
         mode2HierarchalNumber.put(PT_FALLBACK_MODE, 41);
-        mode2HierarchalNumber.put(NON_NETWORK_WALK, 50);
+        mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 50);
     }
 
     public static class PTSubModes {

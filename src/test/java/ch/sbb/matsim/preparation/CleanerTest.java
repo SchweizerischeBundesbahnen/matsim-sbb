@@ -87,15 +87,15 @@ public class CleanerTest {
 
         List<PlanElement> pe =  f.scenario.getPopulation().getPersons().get(Id.createPersonId("2")).getPlans().get(0).getPlanElements();
         assertEquals(7, pe.size(), 0);
-        assertEquals(SBBModes.NON_NETWORK_WALK, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_PT, SUBPOP_REGULAR);
         assertEquals(7, pe.size(), 0);
-        assertEquals(SBBModes.NON_NETWORK_WALK, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_CAR, SUBPOP_CB);
         assertEquals(7, pe.size(), 0);
-        assertEquals(SBBModes.NON_NETWORK_WALK, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
         assertEquals(3, pe.size(), 0);
@@ -132,15 +132,15 @@ public class CleanerTest {
 
         List<PlanElement> pe =  f.scenario.getPopulation().getPersons().get(Id.createPersonId("4")).getPlans().get(0).getPlanElements();
         assertEquals(7, pe.size(), 0);
-        assertEquals(SBBModes.NON_NETWORK_WALK, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_PT, SUBPOP_REGULAR);
         assertEquals(7, pe.size(), 0);
-        assertEquals(SBBModes.NON_NETWORK_WALK, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_CAR, SUBPOP_CB);
         assertEquals(7, pe.size(), 0);
-        assertEquals(SBBModes.NON_NETWORK_WALK, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(Arrays.asList(TransportMode.bike), SUBPOP_REGULAR);
         assertEquals(3, pe.size(), 0);
@@ -179,15 +179,15 @@ public class CleanerTest {
 
         List<PlanElement> pe =  f.scenario.getPopulation().getPersons().get(Id.createPersonId("6")).getPlans().get(0).getPlanElements();
         assertEquals(7, pe.size(), 0);
-        assertEquals(SBBModes.NON_NETWORK_WALK, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
         assertEquals(7, pe.size(), 0);
-        assertEquals(SBBModes.NON_NETWORK_WALK, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_PT, SUBPOP_CB);
         assertEquals(7, pe.size(), 0);
-        assertEquals(SBBModes.NON_NETWORK_WALK, ((Leg) pe.get(1)).getMode());
+        assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
         cleaner.clean(MODES_PT, SUBPOP_REGULAR);
         assertEquals(3, pe.size(), 0);
@@ -226,7 +226,7 @@ public class CleanerTest {
 
         Leg oldLeg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(oldLeg.getMode(), SBBModes.NON_NETWORK_WALK);
+        assertEquals(oldLeg.getMode(), SBBModes.ACCESS_EGRESS_WALK);
         assertEquals(13, f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().size(), 0);
         assertEquals(oldLeg.getRoute().getStartLinkId().toString(), "2");
 
