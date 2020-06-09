@@ -1,6 +1,7 @@
 package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Logger;
@@ -277,7 +278,7 @@ public class TransferScoringTest {
             ptAct2.setMaximumDuration(0.0);
 
             plan.addActivity(home1);
-            Leg accessLeg = pf.createLeg(TransportMode.non_network_walk);
+            Leg accessLeg = pf.createLeg(SBBModes.NON_NETWORK_WALK);
             accessLeg.setRoute(RouteUtils.createGenericRouteImpl(Id.create("1", Link.class), Id.create("1", Link.class)));
             accessLeg.getRoute().setDistance(200);
             accessLeg.getRoute().setTravelTime(300);
@@ -291,7 +292,7 @@ public class TransferScoringTest {
             pt2Leg.setRoute(new DefaultTransitPassengerRoute(stop2, redLine, redRoute, stop3));
             plan.addLeg(pt2Leg);
             plan.addActivity(ptAct2);
-            Leg egressLeg = pf.createLeg(TransportMode.non_network_walk);
+            Leg egressLeg = pf.createLeg(SBBModes.NON_NETWORK_WALK);
             egressLeg.setRoute(RouteUtils.createGenericRouteImpl(Id.create("3", Link.class), Id.create("4", Link.class)));
             egressLeg.getRoute().setDistance(200);
             egressLeg.getRoute().setTravelTime(300);

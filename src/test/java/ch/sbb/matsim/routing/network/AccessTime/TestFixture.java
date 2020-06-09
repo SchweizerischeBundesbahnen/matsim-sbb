@@ -2,17 +2,25 @@ package ch.sbb.matsim.routing.network.AccessTime;
 
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.zones.ZonesModule;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
@@ -23,10 +31,6 @@ import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.testcases.utils.EventsCollector;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class TestFixture {
     private String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP";
@@ -141,10 +145,10 @@ public class TestFixture {
         params3.setScoringThisActivityAtAll(false);
         scenario.getConfig().planCalcScore().addActivityParams(params3);
 
-        accessParams = config.planCalcScore().getOrCreateModeParams(TransportMode.non_network_walk);
+        accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.NON_NETWORK_WALK);
         accessParams.setConstant(constant);
 
-        egressParams = config.planCalcScore().getOrCreateModeParams(TransportMode.non_network_walk);
+        egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.NON_NETWORK_WALK);
         egressParams.setConstant(constant);
 
         StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();

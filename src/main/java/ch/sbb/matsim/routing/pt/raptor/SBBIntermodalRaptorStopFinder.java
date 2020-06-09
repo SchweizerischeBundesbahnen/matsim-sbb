@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
@@ -96,8 +95,8 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             return stops.stream().map(stop -> {
                 double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
                 double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
-                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
+                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(SBBModes.NON_NETWORK_WALK);
+                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, SBBModes.NON_NETWORK_WALK);
             }).collect(Collectors.toList());
         }
     }
@@ -112,8 +111,8 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             return stops.stream().map(stop -> {
                 double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
                 double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
-                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
+                double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(SBBModes.NON_NETWORK_WALK);
+                return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, SBBModes.NON_NETWORK_WALK);
             }).collect(Collectors.toList());
         }
     }
