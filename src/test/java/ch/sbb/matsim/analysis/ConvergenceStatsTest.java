@@ -1,10 +1,18 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.RunSBB;
-import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
+import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import com.google.inject.Provider;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -18,7 +26,8 @@ import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.ControlerConfigGroup;
-import org.matsim.core.controler.*;
+import org.matsim.core.controler.MatsimServices;
+import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationStartsEvent;
 import org.matsim.core.controler.listener.ControlerListener;
 import org.matsim.core.replanning.StrategyManager;
@@ -29,15 +38,6 @@ import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.testcases.MatsimTestUtils;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ConvergenceStatsTest {
 
@@ -104,8 +104,8 @@ public class ConvergenceStatsTest {
 
         // quick simulation is enough
         config.qsim().setStartTime(3600*10.0);
-        config.qsim().setEndTime(3600*11.0);
-        config.qsim().setTimeStepSize(600.0);
+        config.qsim().setEndTime(3600 * 11.0);
+        config.qsim().setTimeStepSize(1.0);
         RunSBB.run(config);
 
         // tests
