@@ -27,6 +27,7 @@ import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.pt.PtConstants;
@@ -296,7 +297,7 @@ public class TransferScoringTest {
             egressLeg.getRoute().setTravelTime(300);
             plan.addLeg(egressLeg);
             plan.addActivity(home2);
-
+            TripStructureUtils.getLegs(plan).stream().forEach(leg -> TripStructureUtils.setRoutingMode(leg, TransportMode.pt));
             pop.addPerson(person);
         }
 
