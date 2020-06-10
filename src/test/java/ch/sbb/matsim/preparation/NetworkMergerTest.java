@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -45,7 +44,7 @@ public class NetworkMergerTest {
         Link link2 = nf.createLink(Id.createLinkId("2"), node2, node3);
         link2.setAllowedModes(CollectionUtils.stringToSet(SBBModes.CAR));
         Link link3 = nf.createLink(Id.createLinkId("3"), node3, node4);
-        link3.setAllowedModes(CollectionUtils.stringToSet(TransportMode.ride));
+        link3.setAllowedModes(CollectionUtils.stringToSet(SBBModes.RIDE));
         Link link4 = nf.createLink(Id.createLinkId("4"), node4, node5);
         link4.setAllowedModes(CollectionUtils.stringToSet(SBBModes.PT + "," + SBBModes.CAR));
 

@@ -17,7 +17,6 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
@@ -91,7 +90,7 @@ public class ZoneBasedSpinne {
             if(subpop.equals("regular") || subpop.equals("cb_road") || subpop.equals("airport_road"))    {
                 Plan selectedPlan = person.getSelectedPlan();
                 TripStructureUtils.getLegs(selectedPlan).parallelStream().
-                        filter(leg -> (leg.getMode().equals(SBBModes.CAR) || leg.getMode().equals(TransportMode.ride))).
+                        filter(leg -> (leg.getMode().equals(SBBModes.CAR) || leg.getMode().equals(SBBModes.RIDE))).
                         forEach(leg -> {
                             NetworkRoute route = (NetworkRoute) leg.getRoute();
                             if (linksInZone.contains(route.getStartLinkId()) || linksInZone.contains(route.getEndLinkId())) {

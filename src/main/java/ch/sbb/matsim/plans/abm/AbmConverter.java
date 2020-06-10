@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
@@ -202,7 +201,7 @@ public class AbmConverter {
         for (final Person person : population.getPersons().values()) {
             for (Leg leg: TripStructureUtils.getLegs(person.getSelectedPlan()))  {
                 if (!PersonUtils.hasLicense(person) && leg.getMode().equals(SBBModes.CAR)) {
-                    leg.setMode(TransportMode.ride);
+                    leg.setMode(SBBModes.RIDE);
                 }
             }
         }
