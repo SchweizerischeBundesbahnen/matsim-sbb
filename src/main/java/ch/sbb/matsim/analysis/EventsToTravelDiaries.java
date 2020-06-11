@@ -501,11 +501,11 @@ public class EventsToTravelDiaries implements
                         egressDist = String.valueOf(trip.getEgressFromRailDist(egressLegs));
 
                         if (accessMode.equals(SBBModes.ACCESS_EGRESS_WALK) || accessMode.equals(SBBModes.PT_FALLBACK_MODE)) {
-                            accessMode = SBBModes.WALK;
+                            accessMode = SBBModes.WALK_FOR_ANALYSIS;
                         }
 
                         if (egressMode.equals(SBBModes.ACCESS_EGRESS_WALK) || egressMode.equals(SBBModes.PT_FALLBACK_MODE)) {
-                            egressMode = SBBModes.WALK;
+                            egressMode = SBBModes.WALK_FOR_ANALYSIS;
                         }
                     }
 

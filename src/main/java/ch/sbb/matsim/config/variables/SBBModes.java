@@ -13,13 +13,16 @@ public class SBBModes {
     public static final String CAR = TransportMode.car;
     public static final String RIDE = TransportMode.ride;
     public static final String PT = TransportMode.pt;
-    public static final String WALK = TransportMode.walk;
     public static final String BIKE = TransportMode.bike;
     public static final String AVTAXI = "avtaxi";
     public static final String AVFEEDER = "avfeeder";
     public static final String DRT = TransportMode.drt;
+
     public static final String PT_FALLBACK_MODE = TransportMode.transit_walk;
-    public static final String ACCESS_EGRESS_WALK = TransportMode.non_network_walk;
+    public static final String ACCESS_EGRESS_WALK = TransportMode.walk;
+    public static final String WALK_MAIN_MAINMODE = "walk_main";
+    //in analysis code, all walk mode are set to this mode
+    public static final String WALK_FOR_ANALYSIS = TransportMode.walk;
 
     public static final int DEFAULT_MODE_HIERARCHY = 99;
     public final static Map<String, Integer> mode2HierarchalNumber;
@@ -33,7 +36,7 @@ public class SBBModes {
         mode2HierarchalNumber.put(DRT, 12);
         mode2HierarchalNumber.put(RIDE, 20);
         mode2HierarchalNumber.put(BIKE, 30);
-        mode2HierarchalNumber.put(WALK, 40);
+        mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 40);
         mode2HierarchalNumber.put(PT_FALLBACK_MODE, 41);
         mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 50);
     }

@@ -156,7 +156,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             useMinimalTransferTimes = true;
         }
         String overrideMode = null;
-        if (mode.equals(SBBModes.WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE)) {
+        if (mode.equals(SBBModes.WALK_FOR_ANALYSIS) || mode.equals(SBBModes.PT_FALLBACK_MODE)) {
             overrideMode = SBBModes.ACCESS_EGRESS_WALK;
         }
         String linkIdAttribute = paramset.getLinkIdAttribute();

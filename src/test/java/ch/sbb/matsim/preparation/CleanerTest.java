@@ -270,87 +270,67 @@ public class CleanerTest {
                     "  </plan>" +
                     "  <plan selected=\"no\">" +
                     "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\" max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"car\" dep_time=\"07:23:01\" trav_time=\"00:02:44\"> " +
-                    "       <route type=\"links\" start_link=\"2\" end_link=\"3\" trav_time=\"00:01:02\" distance=\"598.249397023311\">2 3</route>" +
-                    "     </leg>" +
-                    "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"06:00\" end_time=\"12:00\" />" +
-                    "  </plan>" +
-                    "</person>" +
+                            "     <leg mode=\"car\" dep_time=\"07:23:01\" trav_time=\"00:02:44\"> " +
+                            "       <route type=\"links\" start_link=\"2\" end_link=\"3\" trav_time=\"00:01:02\" distance=\"598.249397023311\">2 3</route>" +
+                            "     </leg>" +
+                            "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"06:00\" end_time=\"12:00\" />" +
+                            "  </plan>" +
+                            "</person>" +
 
-                    "<person id=\"2\">" +
-                    "  <plan>" +
-                    "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
-                    "     </leg>" +
-                    "        <activity type=\"car interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                    "     <leg mode=\"car\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
-                    "        <route type=\"links\" start_link=\"2\" end_link=\"3\">2 3</route>" +
-                    "     </leg>" +
-                    "        <activity type=\"car interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
-                    "     </leg>" +
-                    "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
-                    "  </plan>" +
-                    "</person>" +
+                            "<person id=\"2\">" +
+                            "  <plan>" +
+                            "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
+                            "     <leg mode=\"walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>" +
+                            "     </leg>" +
+                            "        <activity type=\"car interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"car\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
+                            "        <route type=\"links\" start_link=\"2\" end_link=\"3\">2 3</route>" +
+                            "     </leg>" +
+                            "        <activity type=\"car interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>" +
+                            "     </leg>" +
+                            "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
+                            "  </plan>" +
+                            "</person>" +
 
-                    "<person id=\"3\">" +
-                    "  <plan selected=\"yes\">" +
-                    "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\" max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"bike\" dep_time=\"07:23:01\" trav_time=\"00:02:44\"> " +
-                    "       <route type=\"generic\" start_link=\"2\" end_link=\"3\" trav_time=\"00:08:49\" distance=\"1910.9354410863807\"></route>" +
-                    "     </leg>" +
-                    "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"06:00\" end_time=\"12:00\" />" +
-                    "  </plan>" +
-                    "</person>" +
+                            "<person id=\"3\">" +
+                            "  <plan selected=\"yes\">" +
+                            "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\" max_dur=\"05:45\" end_time=\"05:45\" />" +
+                            "     <leg mode=\"bike\" dep_time=\"07:23:01\" trav_time=\"00:02:44\"> " +
+                            "       <route type=\"generic\" start_link=\"2\" end_link=\"3\" trav_time=\"00:08:49\" distance=\"1910.9354410863807\"></route>" +
+                            "     </leg>" +
+                            "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"06:00\" end_time=\"12:00\" />" +
+                            "  </plan>" +
+                            "</person>" +
 
-                    "<person id=\"4\">" +
-                    "  <plan>" +
-                    "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
-                    "     </leg>" +
-                    "        <activity type=\"bike interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                    "     <leg mode=\"bike\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
-                    "        <route start_link=\"2\" end_link=\"3\">2 3</route>" +
-                    "     </leg>" +
-                    "        <activity type=\"bike interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
-                    "     </leg>" +
-                    "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
-                    "  </plan>" +
-                    "</person>" +
+                            "<person id=\"4\">" +
+                            "  <plan>" +
+                            "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
+                            "     <leg mode=\"walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>" +
+                            "     </leg>" +
+                            "        <activity type=\"bike interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"bike\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
+                            "        <route start_link=\"2\" end_link=\"3\">2 3</route>" +
+                            "     </leg>" +
+                            "        <activity type=\"bike interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>" +
+                            "     </leg>" +
+                            "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
+                            "  </plan>" +
+                            "</person>" +
 
-                    "<person id=\"5\">" +
-                    "  <plan>" +
-                    "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"transit_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
-                    "     </leg>" +
-                    "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                    "     <leg mode=\"pt\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
-                    "        <route type=\"experimentalPt1\" start_link=\"pt_485797221\" end_link=\"pt_485718011\" trav_time=\"00:28:01\" distance=\"8308.056653632644\">PT1===485797221===360_000792===24086_1_15===485718011</route>" +
-                    "     </leg>" +
-                    "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                    "     <leg mode=\"transit_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
-                    "     </leg>" +
-                    "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
-                    "  </plan>" +
-                    "</person>" +
-
-                    "<person id=\"6\">" +
-                    "  <plan>" +
-                    "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "<person id=\"5\">" +
+                            "  <plan>" +
+                            "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
+                            "     <leg mode=\"transit_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
@@ -360,59 +340,83 @@ public class CleanerTest {
                     "     </leg>" +
                     "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
                     "        </activity>" +
-                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
-                    "     </leg>" +
-                    "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
-                    "  </plan>" +
-                    "</person>" +
+                            "     <leg mode=\"transit_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>" +
+                            "     </leg>" +
+                            "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
+                            "  </plan>" +
+                            "</person>" +
 
-                    "<person id=\"7\">" +
-                    "  <plan>" +
-                    "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                    "     <leg mode=\"transit_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "<person id=\"6\">" +
+                            "  <plan>" +
+                            "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
+                            "     <leg mode=\"walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>" +
+                            "     </leg>" +
+                            "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"pt\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
+                            "        <route type=\"experimentalPt1\" start_link=\"pt_485797221\" end_link=\"pt_485718011\" trav_time=\"00:28:01\" distance=\"8308.056653632644\">PT1===485797221===360_000792===24086_1_15===485718011</route>"
+                            +
+                            "     </leg>" +
+                            "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>" +
+                            "     </leg>" +
+                            "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
+                            "  </plan>" +
+                            "</person>" +
+
+                            "<person id=\"7\">" +
+                            "  <plan>" +
+                            "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
+                            "     <leg mode=\"transit_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"2\" end_link=\"3\"></route>" +
+                            "     </leg>" +
+                            "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
+                            "  </plan>" +
+                            "</person>" +
+
+                            "<person id=\"8\">" +
+                            "  <plan>" +
+                            "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
+                            "     <leg mode=\"walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>" +
+                            "     </leg>" +
+                            "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"pt\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
+                            "        <route type=\"experimentalPt1\" start_link=\"pt_485797221\" end_link=\"pt_485718011\" trav_time=\"00:28:01\" distance=\"8308.056653632644\">PT1===485797221===360_000792===24086_1_15===485718011</route>"
+                            +
+                            "     </leg>" +
+                            "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"transit_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
                     "        <route type=\"generic\" start_link=\"2\" end_link=\"3\"></route>"+
                     "     </leg>" +
-                    "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
-                    "  </plan>" +
-                    "</person>" +
+                    "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                    "        </activity>" +
+                            "     <leg mode=\"pt\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
+                            "        <route type=\"experimentalPt1\" start_link=\"pt_485797221\" end_link=\"pt_485718011\" trav_time=\"00:28:01\" distance=\"8308.056653632644\">PT1===485797221===360_000792===24086_1_15===485718011</route>"
+                            +
+                            "     </leg>" +
+                            "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"pt\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
+                            "        <route type=\"experimentalPt1\" start_link=\"pt_485797221\" end_link=\"pt_485718011\" trav_time=\"00:28:01\" distance=\"8308.056653632644\">PT1===485797221===360_000792===24086_1_15===485718011</route>"
+                            +
+                            "     </leg>" +
+                            "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
+                            "        </activity>" +
+                            "     <leg mode=\"walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
+                            "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>" +
+                            "     </leg>" +
+                            "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
+                            "  </plan>" +
+                            "</person>" +
 
-                    "<person id=\"8\">" +
-                    "  <plan>" +
-                    "     <activity type=\"h\" x=\"1000\" y=\"1000\" link=\"2\"  max_dur=\"05:45\" end_time=\"05:45\" />" +
-                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"2\" end_link=\"2\"></route>"+
-                    "     </leg>" +
-                    "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                    "     <leg mode=\"pt\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
-                    "        <route type=\"experimentalPt1\" start_link=\"pt_485797221\" end_link=\"pt_485718011\" trav_time=\"00:28:01\" distance=\"8308.056653632644\">PT1===485797221===360_000792===24086_1_15===485718011</route>" +
-                    "     </leg>" +
-                    "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                    "     <leg mode=\"transit_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"2\" end_link=\"3\"></route>"+
-                    "     </leg>" +
-                    "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                    "     <leg mode=\"pt\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
-                    "        <route type=\"experimentalPt1\" start_link=\"pt_485797221\" end_link=\"pt_485718011\" trav_time=\"00:28:01\" distance=\"8308.056653632644\">PT1===485797221===360_000792===24086_1_15===485718011</route>" +
-                    "     </leg>" +
-                    "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                    "     <leg mode=\"pt\" dep_time=\"07:23:01\" trav_time=\"00:02:44\">" +
-                    "        <route type=\"experimentalPt1\" start_link=\"pt_485797221\" end_link=\"pt_485718011\" trav_time=\"00:28:01\" distance=\"8308.056653632644\">PT1===485797221===360_000792===24086_1_15===485718011</route>" +
-                    "     </leg>" +
-                    "        <activity type=\"pt interaction\" link=\"2\" x=\"572118.1840014302\" y=\"225206.70029124807\" max_dur=\"00:00:00\" >" +
-                    "        </activity>" +
-                            "     <leg mode=\"non_network_walk\" dep_time=\"07:22:31\" trav_time=\"00:00:30\">" +
-                    "        <route type=\"generic\" start_link=\"3\" end_link=\"3\"></route>"+
-                    "     </leg>" +
-                    "     <activity type=\"w\" x=\"10000\" y=\"0\" link=\"3\" start_time=\"05:45\" end_time=\"12:00\" />" +
-                    "  </plan>" +
-                    "</person>" +
-
-                    "</population>";
+                            "</population>";
 
             new PopulationReader(scenario).parse(new ByteArrayInputStream(plansXml.getBytes()));
 

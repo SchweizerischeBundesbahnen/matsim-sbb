@@ -68,7 +68,7 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		ModeUtilityParameters modeParams = this.params.modeParams.get(leg.getMode());
 		if (modeParams == null) {
             if (leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) || leg.getMode().equals(SBBModes.ACCESS_EGRESS_WALK)) {
-				modeParams = this.params.modeParams.get(SBBModes.WALK);
+				modeParams = this.params.modeParams.get(SBBModes.WALK_FOR_ANALYSIS);
 			} else {
 				//				modeParams = this.params.modeParams.get(TransportMode.other);
 				throw new RuntimeException("just encountered mode for which no scoring parameters are defined: " + leg.getMode());

@@ -28,7 +28,7 @@ public class Trip extends TravelComponent {
     Trip(Config config) {
         super(config);
         this.config = config;
-        this.walkSpeed = config.plansCalcRoute().getModeRoutingParams().get(SBBModes.WALK).getTeleportedModeSpeed();
+        this.walkSpeed = config.plansCalcRoute().getModeRoutingParams().get(SBBModes.WALK_FOR_ANALYSIS).getTeleportedModeSpeed();
     }
 
     public TravelledLeg addLeg() {
@@ -56,14 +56,16 @@ public class Trip extends TravelComponent {
     }
 
     public double getInVehDistance() {
-        if (getMainMode().equals(SBBModes.WALK))
+        if (getMainMode().equals(SBBModes.WALK_FOR_ANALYSIS)) {
             return 0;
+        }
         return this.legs.stream().mapToDouble(TravelledLeg::getDistance).sum();
     }
 
     private double getWalkDistance() {
-        if (getMainMode().equals(SBBModes.WALK))
+        if (getMainMode().equals(SBBModes.WALK_FOR_ANALYSIS)) {
             return walkSpeed * getDuration();
+        }
         return 0;
     }
 
@@ -72,8 +74,9 @@ public class Trip extends TravelComponent {
     }
 
     public double getInVehTime() {
-        if (getMainMode().equals(SBBModes.WALK))
+        if (getMainMode().equals(SBBModes.WALK_FOR_ANALYSIS)) {
             return 0;
+        }
         return this.legs.stream().mapToDouble(TravelledLeg::getDuration).sum();
     }
 
@@ -85,8 +88,8 @@ public class Trip extends TravelComponent {
                 return SBBModes.PT;
             }
             String mainMode = leg.getMode();
-            if (mainMode.equals(SBBModes.PT_FALLBACK_MODE)) {
-                return SBBModes.WALK;
+            if (mainMode.equals(SBBModes.PT_FALLBACK_MODE) || mainMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+                return SBBModes.WALK_FOR_ANALYSIS;
             }
             return mainMode;
         }

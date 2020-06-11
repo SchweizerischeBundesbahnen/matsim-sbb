@@ -848,7 +848,7 @@ public class ScenarioCutter {
                 if (previousAct != null) {
                     if (!previousAct.getType().endsWith("interaction") && !current.getType().endsWith("interaction")) {
                         if (previousLeg.getMode().equals(SBBModes.ACCESS_EGRESS_WALK)) {
-                            previousLeg.setMode(SBBModes.WALK);
+                            previousLeg.setMode(SBBModes.WALK_FOR_ANALYSIS);
                         }
                     }
 

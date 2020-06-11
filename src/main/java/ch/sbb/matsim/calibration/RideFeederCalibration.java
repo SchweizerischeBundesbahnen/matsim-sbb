@@ -211,8 +211,8 @@ public class RideFeederCalibration {
 
         routingModules.put("ride_feeder", new SBBNetworkRoutingInclAccessEgressModule("car", scenario.getPopulation().getFactory(), scenario.getNetwork(),
                 routeAlgo, plansCalcRouteConfigGroup, zones));
-        routingModules.put(SBBModes.WALK,
-                new TeleportationRoutingModule(SBBModes.WALK, scenario, 1.1, 1.3));
+        routingModules.put(SBBModes.WALK_FOR_ANALYSIS,
+                new TeleportationRoutingModule(SBBModes.WALK_FOR_ANALYSIS, scenario, 1.1, 1.3));
 
         DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(scenario.getPopulation(), intermodalAE, routingModules);
         return new SwissRailRaptor(this.data, new DefaultRaptorParametersForPerson(this.config),
