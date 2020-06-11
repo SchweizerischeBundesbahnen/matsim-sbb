@@ -141,6 +141,10 @@ public class AnalyzeSkimDifferences {
                 double value = Double.parseDouble(line.get("VALUE"));
                 SkimsValue skimsvalue = skimsCache.get(from).get(to);
                 double diff = value - skimsvalue.origValue;
+                if (Double.isInfinite(value) && Double.isInfinite(skimsvalue.origValue)) {
+                    diff = 0;
+                    //mathematically incorrect, but for the purpose of this analysis appropriate
+                }
                 skimsvalue.compareValues[count] = value;
                 skimsvalue.diffs[count] = diff;
                 if (i % 1000000 == 0) {
