@@ -213,6 +213,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
 
     @Override
     public void reset(int iteration) {
+        this.openTransfers.clear();
         initializeTransferStats();
     }
 
