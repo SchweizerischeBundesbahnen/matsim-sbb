@@ -1,20 +1,24 @@
 package ch.sbb.matsim.routing.access;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
+import java.util.List;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.PopulationFactory;
+import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.facilities.Facility;
-
-import java.util.List;
 
 /**
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
@@ -42,7 +46,7 @@ public class AccessEgressRouting {
 
     public double addAccess(final Facility fromFacility, final Link accessActLink, double now, final List<PlanElement> result, final Person person) {
 
-        final Leg accessLeg = this.populationFactory.createLeg(TransportMode.non_network_walk);
+        final Leg accessLeg = this.populationFactory.createLeg(SBBModes.ACCESS_EGRESS_WALK);
         accessLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, accessLeg, fromFacility.getCoord(), now, accessActLink.getId(), accessActLink.getId());
 
@@ -58,7 +62,7 @@ public class AccessEgressRouting {
         final Activity interactionActivity = createInteractionActivity(egressActLink);
         result.add(interactionActivity);
 
-        final Leg egressLeg = this.populationFactory.createLeg(TransportMode.non_network_walk);
+        final Leg egressLeg = this.populationFactory.createLeg(SBBModes.ACCESS_EGRESS_WALK);
         egressLeg.setDepartureTime(now);
         now += routeBushwhackingLeg(person, egressLeg, toFacility.getCoord(), now, egressActLink.getId(), egressActLink.getId());
         result.add(egressLeg);

@@ -2,6 +2,8 @@ package ch.sbb.matsim.routing.teleportation;
 
 import ch.sbb.matsim.routing.access.AccessEgressRouting;
 import ch.sbb.matsim.zones.Zones;
+import java.util.ArrayList;
+import java.util.List;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -11,9 +13,6 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.router.TeleportationRoutingModule;
 import org.matsim.facilities.Facility;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
@@ -46,7 +45,7 @@ public class SBBTeleportationRoutingInclAccessEgressModule extends Teleportation
         Leg leg = (Leg) planElements.get(0);
         result.add(leg);
 
-        now = leg.getDepartureTime() + leg.getTravelTime();
+        now = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
         now = accessEgress.addEgress(toFacility, egressActLink, now, result, person);
 
         return result;

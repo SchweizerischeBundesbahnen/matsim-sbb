@@ -54,8 +54,8 @@ public class ParkingCostVehicleTrackerTest {
         double hourlyParkingCostShop = 3; // this is the value of ACCCAR in zone Thun
 
         f.events.processEvent(new VehicleEntersTrafficEvent(7.00*3600, personId, linkHome, vehicleId, "car", 1.0));
-        f.events.processEvent(new VehicleLeavesTrafficEvent(7.25*3600, personId, linkWork, vehicleId, "car", 1.0));
-        f.events.processEvent(new ActivityStartEvent(7.25*3600, personId, linkWork, null, "work"));
+        f.events.processEvent(new VehicleLeavesTrafficEvent(7.25 * 3600, personId, linkWork, vehicleId, "car", 1.0));
+        f.events.processEvent(new ActivityStartEvent(7.25 * 3600, personId, linkWork, null, "work", null));
         Assert.assertEquals(3, collector.getEvents().size());
 
         f.events.processEvent(new VehicleEntersTrafficEvent(12.00*3600, personId, linkWork, vehicleId, "car", 1.0));
@@ -68,8 +68,8 @@ public class ParkingCostVehicleTrackerTest {
         Assert.assertEquals(12.00*3600, parkingEvent1.getTime(), 1e-8);
         Assert.assertEquals((12-7.25) * hourlyParkingCostWork, parkingEvent1.getMonetaryAmount(), 1e-8);
 
-        f.events.processEvent(new VehicleLeavesTrafficEvent(12.25*3600, personId, linkShop, vehicleId, "car", 1.0));
-        f.events.processEvent(new ActivityStartEvent(12.25*3600, personId, linkShop, null, "shop"));
+        f.events.processEvent(new VehicleLeavesTrafficEvent(12.25 * 3600, personId, linkShop, vehicleId, "car", 1.0));
+        f.events.processEvent(new ActivityStartEvent(12.25 * 3600, personId, linkShop, null, "shop", null));
         Assert.assertEquals(7, collector.getEvents().size());
 
         f.events.processEvent(new VehicleEntersTrafficEvent(13.00*3600, personId, linkShop, vehicleId, "car", 1.0));
@@ -82,15 +82,15 @@ public class ParkingCostVehicleTrackerTest {
         Assert.assertEquals(13.00*3600, parkingEvent2.getTime(), 1e-8);
         Assert.assertEquals((13-12.25) * hourlyParkingCostShop, parkingEvent2.getMonetaryAmount(), 1e-8);
 
-        f.events.processEvent(new VehicleLeavesTrafficEvent(13.25*3600, personId, linkHome, vehicleId, "car", 1.0));
-        f.events.processEvent(new ActivityStartEvent(13.25*3600, personId, linkHome, null, "home"));
+        f.events.processEvent(new VehicleLeavesTrafficEvent(13.25 * 3600, personId, linkHome, vehicleId, "car", 1.0));
+        f.events.processEvent(new ActivityStartEvent(13.25 * 3600, personId, linkHome, null, "home", null));
         Assert.assertEquals(11, collector.getEvents().size());
 
         f.events.processEvent(new VehicleEntersTrafficEvent(15.00*3600, personId, linkShop, vehicleId, "car", 1.0));
         Assert.assertEquals(12, collector.getEvents().size()); // there should be no parking cost event at home
 
-        f.events.processEvent(new VehicleLeavesTrafficEvent(15.25*3600, personId, linkWork, vehicleId, "car", 1.0));
-        f.events.processEvent(new ActivityStartEvent(13.25*3600, personId, linkWork, null, "shop"));
+        f.events.processEvent(new VehicleLeavesTrafficEvent(15.25 * 3600, personId, linkWork, vehicleId, "car", 1.0));
+        f.events.processEvent(new ActivityStartEvent(13.25 * 3600, personId, linkWork, null, "shop", null));
         Assert.assertEquals(14, collector.getEvents().size());
 
         f.events.processEvent(new VehicleEntersTrafficEvent(18.00*3600, personId, linkWork, vehicleId, "car", 1.0));
@@ -103,8 +103,8 @@ public class ParkingCostVehicleTrackerTest {
         Assert.assertEquals(18.00*3600, parkingEvent3.getTime(), 1e-8);
         Assert.assertEquals((18-15.25) * hourlyParkingCostWork, parkingEvent3.getMonetaryAmount(), 1e-8);
 
-        f.events.processEvent(new VehicleLeavesTrafficEvent(18.50*3600, personId, linkHome, vehicleId, "car", 1.0));
-        f.events.processEvent(new ActivityStartEvent(18.00*3600, personId, linkHome, null, "shop"));
+        f.events.processEvent(new VehicleLeavesTrafficEvent(18.50 * 3600, personId, linkHome, vehicleId, "car", 1.0));
+        f.events.processEvent(new ActivityStartEvent(18.00 * 3600, personId, linkHome, null, "shop", null));
         Assert.assertEquals(18, collector.getEvents().size());
     }
 

@@ -4,15 +4,46 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.variables.SBBModes;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.events.*;
-import org.matsim.api.core.v01.events.handler.*;
+import org.matsim.api.core.v01.events.ActivityEndEvent;
+import org.matsim.api.core.v01.events.ActivityStartEvent;
+import org.matsim.api.core.v01.events.LinkEnterEvent;
+import org.matsim.api.core.v01.events.PersonArrivalEvent;
+import org.matsim.api.core.v01.events.PersonDepartureEvent;
+import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
+import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
+import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
+import org.matsim.api.core.v01.events.VehicleEntersTrafficEvent;
+import org.matsim.api.core.v01.events.VehicleLeavesTrafficEvent;
+import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
+import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
+import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonArrivalEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonDepartureEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonLeavesVehicleEventHandler;
+import org.matsim.api.core.v01.events.handler.TransitDriverStartsEventHandler;
+import org.matsim.api.core.v01.events.handler.VehicleEntersTrafficEventHandler;
+import org.matsim.api.core.v01.events.handler.VehicleLeavesTrafficEventHandler;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -25,8 +56,10 @@ import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
 
-import java.util.*;
-
+@Deprecated
+/**
+ * use Experienced Plans instead
+ */
 public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartureEventHandler,
         ActivityStartEventHandler, ActivityEndEventHandler, TransitDriverStartsEventHandler,
         PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler,
@@ -192,70 +225,6 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
         }
     }
 
-    @Override
-    public void handleEvent(PersonLeavesVehicleEvent event) {
-        Person person = createPersonIfNecessary(event.getPersonId());
-        if (person != null) {
-            List<Person> personsInVehicle = personsPerVehicleIds.get(event.getVehicleId());
-            if (personsInVehicle == null) {
-                throw new IllegalStateException("there must be at least one person in the vehicle");
-            }
-            else {
-                if (!(personsInVehicle.remove(person))) throw new IllegalStateException("Person must be in vehicle " + person.getId());
-            }
-            Leg leg = getLastLeg(person.getSelectedPlan());
-            leg.setTravelTime(event.getTime() - leg.getDepartureTime());
-            if (leg.getMode().equals(TransportMode.car)) {
-                // at the moment only for car-routes
-                List<Id<Link>> actLinks = actLinkIdsPerPerson.get(person);
-                if (actLinks.size() > 2) {
-                    // there should be at least one proper link in the route
-                    Id<Link> firstLinkId = actLinks.remove(0);
-                    Id<Link> lastLinkId = actLinks.remove(actLinks.size() - 1);
-                    Route route = RouteUtils.createLinkNetworkRouteImpl(firstLinkId, actLinks, lastLinkId);
-                    route.setDistance(actDistancePerPerson.get(person));
-                    route.setTravelTime(leg.getTravelTime());
-                    leg.setRoute(route);
-                }
-                else log.info("Mode of leg is car, but there are no proper links defined for person " + person.getId());
-            }
-            if (actLinkIdsPerPerson.remove(person) == null) throw new IllegalStateException("Person must be in vehicle " + person.getId());
-            if (actDistancePerPerson.remove(person) == null) throw new IllegalStateException("Distance for person must be defined " + person.getId());
-        }
-    }
-
-    @Override
-    public void handleEvent(VehicleEntersTrafficEvent event) {
-        handleNewLink(event.getVehicleId(), event.getLinkId(), event.getRelativePositionOnLink());
-    }
-
-    @Override
-    public void handleEvent(VehicleLeavesTrafficEvent event) {
-        // link was already added with full distance as LinkEnterEvent, just adjust distance
-        for (Person person: personsPerVehicleIds.get(event.getVehicleId())) {
-            Double actDistance = actDistancePerPerson.get(person);
-            actDistance -= event.getRelativePositionOnLink() * network.getLinks().get(event.getLinkId()).getLength();
-            actDistancePerPerson.put(person, actDistance);
-        }
-    }
-
-    @Override
-    public void handleEvent(LinkEnterEvent event) {
-        handleNewLink(event.getVehicleId(), event.getLinkId(), 0.0);
-    }
-
-    private void handleNewLink(Id<Vehicle> vehicleId, Id<Link> linkId, double relPos) {
-        for (Person person: personsPerVehicleIds.get(vehicleId)) {
-            List<Id<Link>> actLinks = actLinkIdsPerPerson.get(person);
-            if (actLinks == null) throw new IllegalStateException("link-list for person " + person.getId() + " must be defined");
-            actLinks.add(linkId);
-            Double actDistance = actDistancePerPerson.get(person);
-            if (actDistance == null) throw new IllegalStateException("distance por person " + person.getId() + " must be defined");
-            actDistance += (1.0 - relPos) * network.getLinks().get(linkId).getLength();
-            actDistancePerPerson.put(person, actDistance);
-        }
-    }
-
     public static void main(String[] args) {
         String eventsFileName = args[0];
         String networkFile = args[1];
@@ -272,7 +241,74 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
         events.addHandler(plansHandler);
         new MatsimEventsReader(events).readFile(eventsFileName);
         Cleaner cleaner = new Cleaner(plansHandler.population);
-        cleaner.clean(Arrays.asList(TransportMode.pt), Arrays.asList("all"));
+        cleaner.clean(Arrays.asList(SBBModes.PT), Arrays.asList("all"));
         new PopulationWriter(plansHandler.population).write(planFile);
+    }
+
+    @Override
+    public void handleEvent(VehicleEntersTrafficEvent event) {
+        handleNewLink(event.getVehicleId(), event.getLinkId(), event.getRelativePositionOnLink());
+    }
+
+    @Override
+    public void handleEvent(VehicleLeavesTrafficEvent event) {
+        // link was already added with full distance as LinkEnterEvent, just adjust distance
+        for (Person person : personsPerVehicleIds.get(event.getVehicleId())) {
+            Double actDistance = actDistancePerPerson.get(person);
+            actDistance -= event.getRelativePositionOnLink() * network.getLinks().get(event.getLinkId()).getLength();
+            actDistancePerPerson.put(person, actDistance);
+        }
+    }
+
+    @Override
+    public void handleEvent(LinkEnterEvent event) {
+        handleNewLink(event.getVehicleId(), event.getLinkId(), 0.0);
+    }
+
+    private void handleNewLink(Id<Vehicle> vehicleId, Id<Link> linkId, double relPos) {
+        for (Person person : personsPerVehicleIds.get(vehicleId)) {
+            List<Id<Link>> actLinks = actLinkIdsPerPerson.get(person);
+            if (actLinks == null) {
+                throw new IllegalStateException("link-list for person " + person.getId() + " must be defined");
+            }
+            actLinks.add(linkId);
+            Double actDistance = actDistancePerPerson.get(person);
+            if (actDistance == null) {
+                throw new IllegalStateException("distance por person " + person.getId() + " must be defined");
+            }
+            actDistance += (1.0 - relPos) * network.getLinks().get(linkId).getLength();
+            actDistancePerPerson.put(person, actDistance);
+        }
+    }
+
+    @Override
+    public void handleEvent(PersonLeavesVehicleEvent event) {
+        Person person = createPersonIfNecessary(event.getPersonId());
+        if (person != null) {
+            List<Person> personsInVehicle = personsPerVehicleIds.get(event.getVehicleId());
+            if (personsInVehicle == null) {
+                throw new IllegalStateException("there must be at least one person in the vehicle");
+            } else {
+                if (!(personsInVehicle.remove(person))) throw new IllegalStateException("Person must be in vehicle " + person.getId());
+            }
+            Leg leg = getLastLeg(person.getSelectedPlan());
+            leg.setTravelTime(event.getTime() - leg.getDepartureTime().seconds());
+            if (leg.getMode().equals(SBBModes.CAR)) {
+                // at the moment only for car-routes
+                List<Id<Link>> actLinks = actLinkIdsPerPerson.get(person);
+                if (actLinks.size() > 2) {
+                    // there should be at least one proper link in the route
+                    Id<Link> firstLinkId = actLinks.remove(0);
+                    Id<Link> lastLinkId = actLinks.remove(actLinks.size() - 1);
+                    Route route = RouteUtils.createLinkNetworkRouteImpl(firstLinkId, actLinks, lastLinkId);
+                    route.setDistance(actDistancePerPerson.get(person));
+                    route.setTravelTime(leg.getTravelTime().seconds());
+                    leg.setRoute(route);
+                }
+                else log.info("Mode of leg is car, but there are no proper links defined for person " + person.getId());
+            }
+            if (actLinkIdsPerPerson.remove(person) == null) throw new IllegalStateException("Person must be in vehicle " + person.getId());
+            if (actDistancePerPerson.remove(person) == null) throw new IllegalStateException("Distance for person must be defined " + person.getId());
+        }
     }
 }

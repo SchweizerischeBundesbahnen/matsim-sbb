@@ -13,6 +13,8 @@ public class Variables {
     public static final String T_ZONE = "tZone";
 
     public static final String INIT_END_TIMES = "initialActivityEndTimes";
+    public static final String NO_INIT_END_TIME = "NONE";
+
     public static final String DEFAULT_ZONE = "999999999";
 
     public static final String INTERMODAL_ACCESS_LINK_ID = "accessLinkId";

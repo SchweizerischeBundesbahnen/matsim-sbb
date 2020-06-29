@@ -5,8 +5,8 @@
 package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.variables.SBBModes;
+import java.util.Set;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
@@ -17,22 +17,17 @@ import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.scoring.functions.ModeUtilityParameters;
 import org.matsim.core.scoring.functions.ScoringParameters;
-import org.matsim.core.utils.misc.Time;
+import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.pt.PtConstants;
 
-import java.util.Set;
-
 /**
- * THIS IS A COPY of the default CharyparNagelLegScoring with the following modifications:
- * - replace hard-coded <code>TransportMode.pt</code> with the set of pt modes configured in the
- *   transit config group.
- * - don't apply lineSwitch-utility, as this will be handled in {@link SBBTransferScoring}.
+ * THIS IS A COPY of the default CharyparNagelLegScoring with the following modifications: - replace hard-coded <code>SBBModes.PT</code> with the set of pt modes configured in the transit config
+ * group. - don't apply lineSwitch-utility, as this will be handled in {@link SBBTransferScoring}.
  *
  * @author mrieser / SBB
- *
- *
- * This is a re-implementation of the original CharyparNagel function, based on a
- * modular approach.
+ *         <p>
+ *         <p>
+ *         This is a re-implementation of the original CharyparNagel function, based on a modular approach.
  * @author rashid_waraich
  */
 public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumScoringFunction.LegScoring, org.matsim.core.scoring.SumScoringFunction.ArbitraryEventScoring {
@@ -42,15 +37,15 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 	/** The parameters used for scoring */
 	protected final ScoringParameters params;
 	protected Network network;
-	private boolean nextStartPtLegIsFirstOfTrip = true ;
+	private boolean nextStartPtLegIsFirstOfTrip = true;
 	private boolean currentLegIsPtLeg = false;
-	private double lastActivityEndTime = Time.getUndefinedTime();
+	private OptionalTime lastActivityEndTime = OptionalTime.undefined();
 	private final Set<String> ptModes;
 
 	public SBBCharyparNagelLegScoring(final ScoringParameters params, Network network, Set<String> ptModes) {
 		this.params = params;
 		this.network = network;
-		this.nextStartPtLegIsFirstOfTrip = true ;
+		this.nextStartPtLegIsFirstOfTrip = true;
 		this.currentLegIsPtLeg = false;
 		this.ptModes = ptModes;
 	}
@@ -72,11 +67,11 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		double travelTime = arrivalTime - departureTime; // travel time in seconds
 		ModeUtilityParameters modeParams = this.params.modeParams.get(leg.getMode());
 		if (modeParams == null) {
-            if (leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) || leg.getMode().equals(SBBModes.NON_NETWORK_WALK)) {
-				modeParams = this.params.modeParams.get(TransportMode.walk);
+            if (leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) || leg.getMode().equals(SBBModes.ACCESS_EGRESS_WALK)) {
+				modeParams = this.params.modeParams.get(SBBModes.WALK_FOR_ANALYSIS);
 			} else {
-//				modeParams = this.params.modeParams.get(TransportMode.other);
-                throw new RuntimeException("just encountered mode for which no scoring parameters are defined: " + leg.getMode());
+				//				modeParams = this.params.modeParams.get(TransportMode.other);
+				throw new RuntimeException("just encountered mode for which no scoring parameters are defined: " + leg.getMode());
 			}
 		}
 		tmpScore += travelTime * modeParams.marginalUtilityOfTraveling_s;
@@ -108,15 +103,16 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 	public void handleEvent(Event event) {
 		if ( event instanceof ActivityEndEvent ) {
 			// When there is a "real" activity, flags are reset:
-			if ( !PtConstants.TRANSIT_ACTIVITY_TYPE.equals( ((ActivityEndEvent)event).getActType()) ) {
-				this.nextStartPtLegIsFirstOfTrip = true ;
+			if (!PtConstants.TRANSIT_ACTIVITY_TYPE.equals(((ActivityEndEvent) event).getActType())) {
+				this.nextStartPtLegIsFirstOfTrip = true;
 			}
-			this.lastActivityEndTime = event.getTime() ;
+			this.lastActivityEndTime = OptionalTime.defined(event.getTime());
 		}
 
 		if ( event instanceof PersonEntersVehicleEvent && currentLegIsPtLeg ) {
 			// add score of waiting, _minus_ score of travelling (since it is added in the legscoring above):
-			this.score += (event.getTime() - this.lastActivityEndTime) * (this.params.marginalUtilityOfWaitingPt_s - this.params.modeParams.get(TransportMode.pt).marginalUtilityOfTraveling_s) ;
+			this.score +=
+					(event.getTime() - this.lastActivityEndTime.seconds()) * (this.params.marginalUtilityOfWaitingPt_s - this.params.modeParams.get(SBBModes.PT).marginalUtilityOfTraveling_s);
 		}
 
 		if ( event instanceof PersonDepartureEvent ) {
@@ -135,7 +131,7 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 
 	@Override
 	public void handleLeg(Leg leg) {
-		double legScore = calcLegScore(leg.getDepartureTime(), leg.getDepartureTime() + leg.getTravelTime(), leg);
+		double legScore = calcLegScore(leg.getDepartureTime().seconds(), leg.getDepartureTime().seconds() + leg.getTravelTime().seconds(), leg);
 		this.score += legScore;
 	}
 

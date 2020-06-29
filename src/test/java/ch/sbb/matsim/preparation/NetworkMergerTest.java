@@ -1,12 +1,12 @@
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -40,13 +40,13 @@ public class NetworkMergerTest {
         network.addNode(node5);
 
         Link link1 = nf.createLink(Id.createLinkId("1"), node1, node2);
-        link1.setAllowedModes(CollectionUtils.stringToSet(TransportMode.pt));
+        link1.setAllowedModes(CollectionUtils.stringToSet(SBBModes.PT));
         Link link2 = nf.createLink(Id.createLinkId("2"), node2, node3);
-        link2.setAllowedModes(CollectionUtils.stringToSet(TransportMode.car));
+        link2.setAllowedModes(CollectionUtils.stringToSet(SBBModes.CAR));
         Link link3 = nf.createLink(Id.createLinkId("3"), node3, node4);
-        link3.setAllowedModes(CollectionUtils.stringToSet(TransportMode.ride));
+        link3.setAllowedModes(CollectionUtils.stringToSet(SBBModes.RIDE));
         Link link4 = nf.createLink(Id.createLinkId("4"), node4, node5);
-        link4.setAllowedModes(CollectionUtils.stringToSet(TransportMode.pt + "," + TransportMode.car));
+        link4.setAllowedModes(CollectionUtils.stringToSet(SBBModes.PT + "," + SBBModes.CAR));
 
         network.addLink(link1);
         network.addLink(link2);

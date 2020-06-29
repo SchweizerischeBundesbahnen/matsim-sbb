@@ -27,8 +27,8 @@ public class AccessTimeIntegrationTest {
         Leg accessLeg = (Leg) person.getSelectedPlan().getPlanElements().get(1);
         Leg egressLeg = (Leg) person.getSelectedPlan().getPlanElements().get(5);
 
-        Assert.assertEquals(20.0, accessLeg.getTravelTime(), 1e-10);
-        Assert.assertEquals(2.0, egressLeg.getTravelTime(), 1e-10);
+        Assert.assertEquals(20.0, accessLeg.getTravelTime().seconds(), 1e-10);
+        Assert.assertEquals(2.0, egressLeg.getTravelTime().seconds(), 1e-10);
 
         assertEqualEvent(PersonDepartureEvent.class, 21600, fixture.allEvents.get(1));
         assertEqualEvent(TeleportationArrivalEvent.class, 21620, fixture.allEvents.get(2));

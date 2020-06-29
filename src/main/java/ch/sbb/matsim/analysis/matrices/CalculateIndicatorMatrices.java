@@ -23,22 +23,19 @@ public class CalculateIndicatorMatrices {
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");
 
-        String zonesShapeFilename = args[0];
-        String zonesIdAttributeName = args[1];
-        String facilitiesFilename = args[2];
-        String networkFilename = args[3];
-        String transitScheduleFilename = args[4];
-        String eventsFilename = args[5].equals("-") ? null : args[5];
-        String outputDirectory = args[6];
-        int numberOfPointsPerZone = Integer.valueOf(args[7]);
-        int numberOfThreads = Integer.valueOf(args[8]);
-        String trainLinePredStr = args[9].equals("-") ? null : args[9]; // list of ; separated "or" conditions
+        String coordinatesFilename = args[0];
+        String networkFilename = args[1];
+        String transitScheduleFilename = args[2];
+        String eventsFilename = args[3].equals("-") ? null : args[3];
+        String outputDirectory = args[4];
+        int numberOfThreads = Integer.valueOf(args[5]);
+        String trainLinePredStr = args[6].equals("-") ? null : args[6]; // list of ; separated "or" conditions
         BiPredicate<TransitLine, TransitRoute> trainLinePredictor = buildTrainLinePredictor(trainLinePredStr);
 
         Map<String, double[]> timesCar = new LinkedHashMap<>();
         Map<String, double[]> timesPt = new LinkedHashMap<>();
 
-        for (int argIdx = 10; argIdx < args.length; argIdx++) {
+        for (int argIdx = 7; argIdx < args.length; argIdx++) {
             String arg = args[argIdx];
             String mode = null;
             String data = null;
@@ -67,17 +64,9 @@ public class CalculateIndicatorMatrices {
         }
 
         Config config = ConfigUtils.createConfig();
-        Random r = new Random(20180404L);
 
-        CalculateSkimMatrices skims = new CalculateSkimMatrices(zonesShapeFilename, zonesIdAttributeName, outputDirectory, numberOfThreads);
-        skims.calculateSamplingPointsPerZoneFromFacilities(facilitiesFilename, numberOfPointsPerZone, r, f -> {
-            double weight = 2; // default for households
-            String fte = (String) f.getAttributes().getAttribute("fte");
-            if (fte != null) {
-                weight = Double.parseDouble(fte);
-            }
-            return weight;
-        });
+        CalculateSkimMatrices skims = new CalculateSkimMatrices(outputDirectory, numberOfThreads);
+        skims.loadSamplingPointsFromFile(coordinatesFilename);
 
         for (Map.Entry<String, double[]> e : timesCar.entrySet()) {
             String prefix = e.getKey();

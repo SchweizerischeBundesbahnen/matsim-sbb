@@ -1,10 +1,16 @@
 package ch.sbb.matsim.analysis.traveltimes;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
@@ -31,13 +37,6 @@ import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.geometry.transformations.WGS84toCH1903LV03Plus;
 import org.matsim.facilities.Facility;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 public class RunTravelTimeValidation {
 
     private static final Logger log = Logger.getLogger(RunTravelTimeValidation.class);
@@ -45,33 +44,6 @@ public class RunTravelTimeValidation {
     private Network network;
     private final double startTime;
     private NetworkRoutingModule router;
-
-    public static void main(String[] args) {
-        String runOutputFolder = args[0];
-        String runPrefix = args[1];
-        boolean calcCongestedTravelTimes = Boolean.parseBoolean(args[2]);
-        double startTime = Double.parseDouble(args[3]); // start time in hours (e.g. 7am)
-        String relationFile = args[4];
-        String outputFile = args[5];
-
-        // read network file
-        Network network = NetworkUtils.createNetwork();
-        new MatsimNetworkReader(network).readFile(runOutputFolder + "\\" + runPrefix + ".output_network.xml.gz");
-        Network reducedNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(network).filter(reducedNetwork,
-                CollectionUtils.stringToSet( TransportMode.car ));
-
-        RunTravelTimeValidation validation;
-        if(calcCongestedTravelTimes) {
-            String config = runOutputFolder + "\\" + runPrefix + ".output_config.xml";
-            String events = runOutputFolder + "\\" + runPrefix + ".output_events.xml.gz";
-            validation = new RunTravelTimeValidation(reducedNetwork, config, events, startTime);
-        }
-        else {
-            validation = new RunTravelTimeValidation(reducedNetwork, startTime);
-        }
-        validation.run(relationFile, outputFile);
-    }
 
     //use this method for free flow travel time evaluation
     public RunTravelTimeValidation(Network network, double startTime) {
@@ -84,7 +56,7 @@ public class RunTravelTimeValidation {
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
         this.router = new NetworkRoutingModule(
-                TransportMode.car,
+                SBBModes.CAR,
                 PopulationUtils.getFactory(),
                 network,
                 routeAlgo);
@@ -112,7 +84,7 @@ public class RunTravelTimeValidation {
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
         this.router = new NetworkRoutingModule(
-                TransportMode.car,
+                SBBModes.CAR,
                 PopulationUtils.getFactory(),
                 network,
                 routeAlgo);
@@ -126,12 +98,37 @@ public class RunTravelTimeValidation {
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
         this.router = new NetworkRoutingModule(
-                TransportMode.car,
+                SBBModes.CAR,
                 PopulationUtils.getFactory(),
                 network,
                 routeAlgo);
     }
 
+    public static void main(String[] args) {
+        String runOutputFolder = args[0];
+        String runPrefix = args[1];
+        boolean calcCongestedTravelTimes = Boolean.parseBoolean(args[2]);
+        double startTime = Double.parseDouble(args[3]); // start time in hours (e.g. 7am)
+        String relationFile = args[4];
+        String outputFile = args[5];
+
+        // read network file
+        Network network = NetworkUtils.createNetwork();
+        new MatsimNetworkReader(network).readFile(runOutputFolder + "\\" + runPrefix + ".output_network.xml.gz");
+        Network reducedNetwork = NetworkUtils.createNetwork();
+        new TransportModeNetworkFilter(network).filter(reducedNetwork,
+                CollectionUtils.stringToSet(SBBModes.CAR));
+
+        RunTravelTimeValidation validation;
+        if (calcCongestedTravelTimes) {
+            String config = runOutputFolder + "\\" + runPrefix + ".output_config.xml";
+            String events = runOutputFolder + "\\" + runPrefix + ".output_events.xml.gz";
+            validation = new RunTravelTimeValidation(reducedNetwork, config, events, startTime);
+        } else {
+            validation = new RunTravelTimeValidation(reducedNetwork, startTime);
+        }
+        validation.run(relationFile, outputFile);
+    }
 
     public void run(String relationsCsvPath, String outputPath) {
         String[] columns = {"Dist_MATSim", "Time_MATSim"};
@@ -155,7 +152,7 @@ public class RunTravelTimeValidation {
                         }
 
                         writer.set("Dist_MATSim", Double.toString(leg.getRoute().getDistance()));
-                        writer.set("Time_MATSim", Double.toString(leg.getRoute().getTravelTime()));
+                        writer.set("Time_MATSim", Double.toString(leg.getRoute().getTravelTime().seconds()));
                         writer.writeRow();
                     }
                 }

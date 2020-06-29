@@ -11,7 +11,6 @@ import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
-import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -206,11 +205,11 @@ public class TimeProfileExporter {
                         double depTime = tpi.dep;
                         TransitRouteStop rst;
                         if(isFirstRouteStop) {
-                            rst = this.scheduleBuilder.createTransitRouteStop(stop, Time.getUndefinedTime(), depTime - delta);
+                            rst = this.scheduleBuilder.createTransitRouteStopBuilder(stop).departureOffset(depTime - delta).build();
                             isFirstRouteStop = false;
                         }
                         else {
-                            rst = this.scheduleBuilder.createTransitRouteStop(stop, arrTime - delta, depTime - delta);
+                            rst = this.scheduleBuilder.createTransitRouteStopBuilder(stop).arrivalOffset(arrTime - delta).departureOffset(depTime - delta).build();
                         }
                         rst.setAwaitDepartureTime(true);
                         transitRouteStops.add(rst);
