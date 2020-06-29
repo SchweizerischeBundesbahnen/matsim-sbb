@@ -5,15 +5,15 @@ import ch.sbb.matsim.routing.network.SBBNetworkRouting;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.teleportation.SBBTeleportation;
 import ch.sbb.matsim.zones.Zones;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressWalkType;
 import org.matsim.core.controler.AbstractModule;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 public class AccessEgress extends AbstractModule {
 
@@ -28,7 +28,7 @@ public class AccessEgress extends AbstractModule {
         Id<Zones> zonesId = accessTimeConfigGroup.getZonesId();
 
         if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
-            config.plansCalcRoute().setInsertingAccessEgressWalk(true);
+            config.plansCalcRoute().setInsertingAccessEgressWalk(AccessEgressWalkType.walkToLink);
 
             Collection<String> modes = accessTimeConfigGroup.getModesWithAccessTime();
             final Set<String> routedModes = new HashSet<>(ConfigUtils.addOrGetModule(config, SBBNetworkRoutingConfigGroup.class).getNetworkRoutingModes());
