@@ -72,9 +72,6 @@ public class RunVisumPtExporter {
         // load minimal transfer times into scenario
         new MTTExporter(scenario).integrateMinTransferTimes(visum, stops.getStopAreasToStopPoints());
 
-        // load vehicles into scenario
-        new VehicleTypeExporter(scenario).createVehicleTypes(visum);
-
         // load transit lines
         TimeProfileExporter tpe = new TimeProfileExporter(scenario);
         tpe.createTransitLines(visum, exporterConfig);
