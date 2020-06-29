@@ -37,6 +37,7 @@ import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressWalkType;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.RoutingModule;
@@ -207,7 +208,7 @@ public class RideFeederCalibration {
         Map<String, RoutingModule> routingModules = new HashMap<>();
 
         PlansCalcRouteConfigGroup plansCalcRouteConfigGroup = scenario.getConfig().plansCalcRoute();
-        plansCalcRouteConfigGroup.setInsertingAccessEgressWalk(true);
+        plansCalcRouteConfigGroup.setInsertingAccessEgressWalk(AccessEgressWalkType.walkToLink);
 
         routingModules.put("ride_feeder", new SBBNetworkRoutingInclAccessEgressModule("car", scenario.getPopulation().getFactory(), scenario.getNetwork(),
                 routeAlgo, plansCalcRouteConfigGroup, zones));

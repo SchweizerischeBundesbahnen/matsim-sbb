@@ -2,6 +2,8 @@ package ch.sbb.matsim.routing.network;
 
 import ch.sbb.matsim.routing.access.AccessEgressRouting;
 import ch.sbb.matsim.zones.Zones;
+import java.util.ArrayList;
+import java.util.List;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
@@ -10,6 +12,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressWalkType;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.routes.NetworkRoute;
@@ -17,9 +20,6 @@ import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.facilities.Facility;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Based on org.matsim.core.router.NetworkRoutingInclAccessEgressModule
@@ -47,7 +47,7 @@ public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingMod
         this.routeAlgo = routeAlgo;
         this.mode = mode;
         this.populationFactory = populationFactory;
-        if (!calcRouteConfig.isInsertingAccessEgressWalk()) {
+        if (calcRouteConfig.getAccessEgressWalkType().equals(AccessEgressWalkType.none)) {
             throw new RuntimeException("trying to use access/egress but not switched on in config.  "
                     + "currently not supported; there are too many other problems");
         }

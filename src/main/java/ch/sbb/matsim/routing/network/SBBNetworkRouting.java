@@ -25,10 +25,14 @@ import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressWalkType;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.router.RoutingModule;
@@ -37,10 +41,6 @@ import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.LeastCostPathCalculatorFactory;
 import org.matsim.core.router.util.TravelTime;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Based on org.matsim.core.router.NetworkRouting
@@ -115,13 +115,13 @@ public class SBBNetworkRouting implements Provider<RoutingModule>
                 travelDisutilityFactory.createTravelDisutility(travelTime),
                 travelTime);
 
-        if (plansCalcRouteConfigGroup.isInsertingAccessEgressWalk()) {
-            return new SBBNetworkRoutingInclAccessEgressModule(mode, populationFactory, filteredNetwork, routeAlgo,
-                    plansCalcRouteConfigGroup, zones);
-        } else {
-            // return DefaultRoutingModules.createPureNetworkRouter(mode, populationFactory, filteredNetwork, routeAlgo);
-            throw new RuntimeException("You should not use this router or activate isInsertingAccessEgressWalk");
-        }
+		if (!plansCalcRouteConfigGroup.getAccessEgressWalkType().equals(AccessEgressWalkType.none)) {
+			return new SBBNetworkRoutingInclAccessEgressModule(mode, populationFactory, filteredNetwork, routeAlgo,
+					plansCalcRouteConfigGroup, zones);
+		} else {
+			// return DefaultRoutingModules.createPureNetworkRouter(mode, populationFactory, filteredNetwork, routeAlgo);
+			throw new RuntimeException("You should not use this router or activate isInsertingAccessEgressWalk");
+		}
     }
 }
 
