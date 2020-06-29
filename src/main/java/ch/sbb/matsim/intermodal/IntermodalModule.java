@@ -9,21 +9,19 @@ import ch.sbb.matsim.intermodal.analysis.IntermodalControlerListener;
 import ch.sbb.matsim.intermodal.analysis.IntermodalTransferTimeAnalyser;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
-import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Population;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.controler.AbstractModule;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.controler.AbstractModule;
 
 
 public class IntermodalModule extends AbstractModule {
@@ -85,10 +83,10 @@ public class IntermodalModule extends AbstractModule {
         SBBIntermodalConfigGroup configGroup = ConfigUtils.addOrGetModule(this.getConfig(), SBBIntermodalConfigGroup.class);
 
         for (SBBIntermodalModeParameterSet mode : configGroup.getModeParameterSets()) {
-            if (mode.isRoutedOnNetwork() && !mode.getMode().equals(TransportMode.car)) {
-                addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
-                addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
-            }
+			if (mode.isRoutedOnNetwork() && !mode.getMode().equals(SBBModes.CAR)) {
+				addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
+				addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
+			}
         }
         bind(IntermodalTransferTimeAnalyser.class).asEagerSingleton();
         addControlerListenerBinding().to(IntermodalControlerListener.class).asEagerSingleton();

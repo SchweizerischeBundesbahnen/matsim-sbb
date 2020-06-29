@@ -1,16 +1,22 @@
 package ch.sbb.matsim.analysis.miv;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import ch.sbb.matsim.zones.ZonesQueryCache;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
@@ -20,13 +26,6 @@ import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ZoneBasedSpinne {
 
@@ -46,9 +45,9 @@ public class ZoneBasedSpinne {
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
         HashSet<Id<Link>> linksInZone = new HashSet<>();
-        scenario.getNetwork().getLinks().values().stream().
-                filter(link -> link.getAllowedModes().contains(TransportMode.car)).
-                forEach(link -> {
+		scenario.getNetwork().getLinks().values().stream().
+				filter(link -> link.getAllowedModes().contains(SBBModes.CAR)).
+				forEach(link -> {
                     Coord fromCoord = link.getFromNode().getCoord();
                     Coord toCoord = link.getToNode().getCoord();
                     double x = (fromCoord.getX() + toCoord.getX()) / 2.0;
@@ -90,9 +89,9 @@ public class ZoneBasedSpinne {
             // take agent if it is not a freight agent
             if(subpop.equals("regular") || subpop.equals("cb_road") || subpop.equals("airport_road"))    {
                 Plan selectedPlan = person.getSelectedPlan();
-                TripStructureUtils.getLegs(selectedPlan).parallelStream().
-                        filter(leg -> (leg.getMode().equals(TransportMode.car) || leg.getMode().equals(TransportMode.ride))).
-                        forEach(leg -> {
+				TripStructureUtils.getLegs(selectedPlan).parallelStream().
+						filter(leg -> (leg.getMode().equals(SBBModes.CAR) || leg.getMode().equals(SBBModes.RIDE))).
+						forEach(leg -> {
                             NetworkRoute route = (NetworkRoute) leg.getRoute();
                             if (linksInZone.contains(route.getStartLinkId()) || linksInZone.contains(route.getEndLinkId())) {
                                 addRouteToOrigDestVolumes(route);

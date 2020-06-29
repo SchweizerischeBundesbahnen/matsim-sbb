@@ -4,13 +4,28 @@ import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Provider;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
@@ -19,16 +34,10 @@ import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
-import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-
-import javax.inject.Inject;
-import javax.inject.Provider;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author mrieser / Simunto GmbH
@@ -206,8 +215,8 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             useMinimalTransferTimes = true;
         }
         String overrideMode = null;
-        if (mode.equals(SBBModes.WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE)) {
-            overrideMode = SBBModes.NON_NETWORK_WALK;
+        if (mode.equals(SBBModes.WALK_MAIN_MAINMODE) || mode.equals(SBBModes.PT_FALLBACK_MODE)) {
+            overrideMode = SBBModes.ACCESS_EGRESS_WALK;
         }
         String linkIdAttribute = paramset.getLinkIdAttribute();
         String stopFilterAttribute = paramset.getStopFilterAttribute();
@@ -250,7 +259,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                     // clear the (wrong) departureTime so users don't get confused
                     for (PlanElement pe : routeParts) {
                         if (pe instanceof Leg) {
-                            ((Leg) pe).setDepartureTime(Time.getUndefinedTime());
+                            ((Leg) pe).setDepartureTimeUndefined();
                         }
                     }
                 }
@@ -263,7 +272,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                 }
                 if (stopFacility != stop) {
                     if (direction == Direction.ACCESS) {
-                        Leg transferLeg = PopulationUtils.createLeg(SBBModes.NON_NETWORK_WALK);
+                        Leg transferLeg = PopulationUtils.createLeg(SBBModes.ACCESS_EGRESS_WALK);
                         Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
                         double transferTime = 0.0;
                         if (useMinimalTransferTimes) {
@@ -279,7 +288,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                         tmp.add(transferLeg);
                         routeParts = tmp;
                     } else {
-                        Leg transferLeg = PopulationUtils.createLeg(SBBModes.NON_NETWORK_WALK);
+                        Leg transferLeg = PopulationUtils.createLeg(SBBModes.ACCESS_EGRESS_WALK);
                         Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
                         double transferTime = 0.0;
                         if (useMinimalTransferTimes) {
@@ -296,7 +305,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
                         routeParts = tmp;
                     }
                 }
-                RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
+                RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person, direction);
                 InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
                 initialStops.add(iStop);
             }
@@ -342,7 +351,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
     }
 
     private Leg createAccessEgressLeg(double traveltime, Id<Link> link) {
-        Leg leg = PopulationUtils.createLeg(SBBModes.NON_NETWORK_WALK);
+        Leg leg = PopulationUtils.createLeg(SBBModes.ACCESS_EGRESS_WALK);
         Route route = RouteUtils.createGenericRouteImpl(link, link);
         route.setTravelTime(traveltime);
         route.setDistance(0.0);

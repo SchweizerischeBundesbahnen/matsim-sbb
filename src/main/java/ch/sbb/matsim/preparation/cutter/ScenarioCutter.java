@@ -3,13 +3,33 @@ package ch.sbb.matsim.preparation.cutter;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.network.*;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.NetworkFactory;
+import org.matsim.api.core.v01.network.NetworkWriter;
+import org.matsim.api.core.v01.network.Node;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.PopulationWriter;
+import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -31,20 +51,31 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.geometry.CoordUtils;
-import org.matsim.core.utils.misc.Time;
+import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
-import org.matsim.pt.routes.ExperimentalTransitRoute;
-import org.matsim.pt.transitSchedule.api.*;
+import org.matsim.pt.routes.DefaultTransitPassengerRoute;
+import org.matsim.pt.routes.TransitPassengerRoute;
+import org.matsim.pt.transitSchedule.api.Departure;
+import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.AttributesUtils;
-import org.matsim.vehicles.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import org.matsim.vehicles.MatsimVehicleReader;
+import org.matsim.vehicles.MatsimVehicleWriter;
+import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleCapacity;
+import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleUtils;
+import org.matsim.vehicles.Vehicles;
+import org.matsim.vehicles.VehiclesFactory;
 
 /**
  * Code to cut out a smaller area from a bigger area in a scenario.
@@ -123,7 +154,7 @@ public class ScenarioCutter {
         if (eventsFilename != null) {
             log.info("Extracting link travel times from Events file " + eventsFilename);
             TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(scenario.getNetwork());
-            ttBuilder.setAnalyzedModes(Collections.singleton(TransportMode.car));
+            ttBuilder.setAnalyzedModes(Collections.singleton(SBBModes.CAR));
             ttBuilder.setCalculateLinkTravelTimes(true);
             TravelTimeCalculator ttCalculator = ttBuilder.build();
             EventsManager eventsManager = EventsUtils.createEventsManager(scenario.getConfig());
@@ -213,7 +244,7 @@ public class ScenarioCutter {
         if (eventsFilename != null) {
             log.info("Extracting link travel times from Events file " + eventsFilename);
             TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(scenario.getNetwork());
-            ttBuilder.setAnalyzedModes(Collections.singleton(TransportMode.car));
+            ttBuilder.setAnalyzedModes(Collections.singleton(SBBModes.CAR));
             ttBuilder.setCalculateLinkTravelTimes(true);
             TravelTimeCalculator ttCalculator = ttBuilder.build();
             EventsManager eventsManager = EventsUtils.createEventsManager(scenario.getConfig());
@@ -299,14 +330,14 @@ public class ScenarioCutter {
         }
     }
 
-    private void calcStateByRoute(CutContext ctx, AgentState state, Route route) {
-        if (route instanceof NetworkRoute) {
-            NetworkRoute netRoute = (NetworkRoute) route;
-            calcStateByNetworkRoute(ctx, state, netRoute);
-        }
-        if (route instanceof ExperimentalTransitRoute) {
-            ExperimentalTransitRoute ptRoute = (ExperimentalTransitRoute) route;
-            calcStateByTransitRoute(ctx, state, ptRoute);
+    private static void writeRelevantLocations(File file, List<Coord> coords) throws IOException {
+        String[] columns = new String[]{"X", "Y"};
+        try (CSVWriter out = new CSVWriter(null, columns, file.getAbsolutePath())) {
+            for (Coord c : coords) {
+                out.set("X", Double.toString(c.getX()));
+                out.set("Y", Double.toString(c.getY()));
+                out.writeRow();
+            }
         }
     }
 
@@ -348,14 +379,14 @@ public class ScenarioCutter {
         }
     }
 
-    private void calcStateExtendedByRoute(CutContext ctx, AgentState state, Route route) {
+    private void calcStateByRoute(CutContext ctx, AgentState state, Route route) {
         if (route instanceof NetworkRoute) {
             NetworkRoute netRoute = (NetworkRoute) route;
-            calcStateExtendedByNetworkRoute(ctx, state, netRoute);
+            calcStateByNetworkRoute(ctx, state, netRoute);
         }
-        if (route instanceof ExperimentalTransitRoute) {
-            ExperimentalTransitRoute ptRoute = (ExperimentalTransitRoute) route;
-            calcStateExtendedByTransitRoute(ctx, state, ptRoute);
+        if (route instanceof TransitPassengerRoute) {
+            TransitPassengerRoute ptRoute = (TransitPassengerRoute) route;
+            calcStateByTransitRoute(ctx, state, ptRoute);
         }
     }
 
@@ -397,7 +428,18 @@ public class ScenarioCutter {
         return ctx.dest;
     }
 
-    private void calcStateByTransitRoute(CutContext ctx, AgentState state, ExperimentalTransitRoute ptRoute) {
+    private void calcStateExtendedByRoute(CutContext ctx, AgentState state, Route route) {
+        if (route instanceof NetworkRoute) {
+            NetworkRoute netRoute = (NetworkRoute) route;
+            calcStateExtendedByNetworkRoute(ctx, state, netRoute);
+        }
+        if (route instanceof TransitPassengerRoute) {
+            TransitPassengerRoute ptRoute = (TransitPassengerRoute) route;
+            calcStateExtendedByTransitRoute(ctx, state, ptRoute);
+        }
+    }
+
+    private void calcStateByTransitRoute(CutContext ctx, AgentState state, TransitPassengerRoute ptRoute) {
         AgentState tmpState = new AgentState();
         Network network = ctx.source.getNetwork();
         TransitSchedule schedule = ctx.source.getTransitSchedule();
@@ -430,44 +472,6 @@ public class ScenarioCutter {
         if (isPassenger) {
             link = network.getLinks().get(netRoute.getEndLinkId());
             calcStateByNode(ctx, tmpState, link.getToNode());
-        }
-        state.hasOutside = tmpState.hasOutside;
-        state.hasInside = tmpState.hasInside;
-    }
-
-    private void calcStateExtendedByTransitRoute(CutContext ctx, AgentState state, ExperimentalTransitRoute ptRoute) {
-        AgentState tmpState = new AgentState();
-        Network network = ctx.source.getNetwork();
-        TransitSchedule schedule = ctx.source.getTransitSchedule();
-
-        Id<Link> startLinkId = ptRoute.getStartLinkId();
-        Id<Link> endLinkId = ptRoute.getEndLinkId();
-        TransitRoute route = schedule.getTransitLines().get(ptRoute.getLineId()).getRoutes().get(ptRoute.getRouteId());
-        NetworkRoute netRoute = route.getRoute();
-        boolean isPassenger = startLinkId.equals(netRoute.getStartLinkId());
-        Link link;
-        if (isPassenger) {
-            link = network.getLinks().get(startLinkId);
-            calcStateExtendedByNode(ctx, tmpState, link.getFromNode());
-            calcStateExtendedByNode(ctx, tmpState, link.getToNode());
-        }
-        for (Id<Link> linkId : netRoute.getLinkIds()) {
-            if (startLinkId.equals(linkId)) {
-                tmpState.reset(); // reset, looks like the agent can enter at a later time, so ignore what happened before
-                isPassenger = true;
-            }
-            if (isPassenger) {
-                link = network.getLinks().get(startLinkId);
-                calcStateExtendedByNode(ctx, tmpState, link.getToNode());
-            }
-            if (endLinkId.equals(linkId)) {
-                isPassenger = false;
-                break;
-            }
-        }
-        if (isPassenger) {
-            link = network.getLinks().get(netRoute.getEndLinkId());
-            calcStateExtendedByNode(ctx, tmpState, link.getToNode());
         }
         state.hasOutside = tmpState.hasOutside;
         state.hasInside = tmpState.hasInside;
@@ -783,12 +787,50 @@ public class ScenarioCutter {
         }
         if (route instanceof NetworkRoute) {
             for (Id<Link> link : ((NetworkRoute) route).getLinkIds()) {
-            if (!network.getLinks().containsKey(link)) {
-                return false;
-            }
+                if (!network.getLinks().containsKey(link)) {
+                    return false;
+                }
             }
         }
         return true;
+    }
+
+    private void calcStateExtendedByTransitRoute(CutContext ctx, AgentState state, TransitPassengerRoute ptRoute) {
+        AgentState tmpState = new AgentState();
+        Network network = ctx.source.getNetwork();
+        TransitSchedule schedule = ctx.source.getTransitSchedule();
+
+        Id<Link> startLinkId = ptRoute.getStartLinkId();
+        Id<Link> endLinkId = ptRoute.getEndLinkId();
+        TransitRoute route = schedule.getTransitLines().get(ptRoute.getLineId()).getRoutes().get(ptRoute.getRouteId());
+        NetworkRoute netRoute = route.getRoute();
+        boolean isPassenger = startLinkId.equals(netRoute.getStartLinkId());
+        Link link;
+        if (isPassenger) {
+            link = network.getLinks().get(startLinkId);
+            calcStateExtendedByNode(ctx, tmpState, link.getFromNode());
+            calcStateExtendedByNode(ctx, tmpState, link.getToNode());
+        }
+        for (Id<Link> linkId : netRoute.getLinkIds()) {
+            if (startLinkId.equals(linkId)) {
+                tmpState.reset(); // reset, looks like the agent can enter at a later time, so ignore what happened before
+                isPassenger = true;
+            }
+            if (isPassenger) {
+                link = network.getLinks().get(startLinkId);
+                calcStateExtendedByNode(ctx, tmpState, link.getToNode());
+            }
+            if (endLinkId.equals(linkId)) {
+                isPassenger = false;
+                break;
+            }
+        }
+        if (isPassenger) {
+            link = network.getLinks().get(netRoute.getEndLinkId());
+            calcStateExtendedByNode(ctx, tmpState, link.getToNode());
+        }
+        state.hasOutside = tmpState.hasOutside;
+        state.hasInside = tmpState.hasInside;
     }
 
     private void removeDurationWhenBothAreSet(Plan plan) {
@@ -796,10 +838,24 @@ public class ScenarioCutter {
                 .filter(Activity.class::isInstance)
                 .forEach(a -> {
                     Activity activity = (Activity) a;
-                    if (!Time.isUndefinedTime(activity.getEndTime()) && !Time.isUndefinedTime(activity.getMaximumDuration())) {
-                        activity.setMaximumDuration(Time.getUndefinedTime());
+                    if (activity.getEndTime().isDefined() && activity.getMaximumDuration().isDefined()) {
+                        activity.setMaximumDurationUndefined();
                     }
                 });
+    }
+
+    private void renameInitialOrFinalInteractions(Plan plan) {
+        Activity first = (Activity) plan.getPlanElements().get(0);
+        Activity last = (Activity) plan.getPlanElements().get(plan.getPlanElements().size() - 1);
+        renameInteractionActivity(first);
+        renameInteractionActivity(last);
+
+    }
+
+    private void renameInteractionActivity(Activity act) {
+        if (SBBActivities.stageActivityTypeList.contains(act.getType())) {
+            act.setType(OUTSIDE_ACT_TYPE);
+        }
     }
 
     /**
@@ -816,8 +872,8 @@ public class ScenarioCutter {
                 Activity current = (Activity) planElement;
                 if (previousAct != null) {
                     if (!previousAct.getType().endsWith("interaction") && !current.getType().endsWith("interaction")) {
-                        if (previousLeg.getMode().equals(TransportMode.non_network_walk)) {
-                            previousLeg.setMode(TransportMode.walk);
+                        if (previousLeg.getMode().equals(SBBModes.ACCESS_EGRESS_WALK)) {
+                            previousLeg.setMode(SBBModes.WALK_FOR_ANALYSIS);
                         }
                     }
 
@@ -829,31 +885,20 @@ public class ScenarioCutter {
         }
     }
 
-
-    private void renameInitialOrFinalInteractions(Plan plan) {
-        Activity first = (Activity) plan.getPlanElements().get(0);
-        Activity last = (Activity) plan.getPlanElements().get(plan.getPlanElements().size() - 1);
-        renameInteractionActivity(first);
-        renameInteractionActivity(last);
-
-    }
-
-    private void renameInteractionActivity(Activity act) {
-        if (SBBActivities.stageActivityTypeList.contains(act.getType())) {
-            act.setType(OUTSIDE_ACT_TYPE);
-        }
-    }
-
-
     private void addLegToPlan(CutContext ctx, Plan plan, Activity fromAct, boolean fromActInside, Leg leg, Activity toAct, boolean toActInside) {
         Route route = leg.getRoute();
         if (route instanceof NetworkRoute) {
             addNetworkLegToPlan(ctx, plan, fromAct, fromActInside, leg, (NetworkRoute) route, toAct, toActInside);
-        } else if (route instanceof ExperimentalTransitRoute) {
-            addTransitLegToPlan(ctx, plan, fromAct, fromActInside, leg, (ExperimentalTransitRoute) route, toAct, toActInside);
+        } else if (route instanceof TransitPassengerRoute) {
+            addTransitLegToPlan(ctx, plan, fromAct, fromActInside, leg, (TransitPassengerRoute) route, toAct, toActInside);
         } else {
             addTeleportationLegToPlan(ctx, plan, fromAct, fromActInside, leg, toAct, toActInside);
         }
+    }
+
+    private Activity getLastActivity(CutContext ctx, Plan plan) {
+        List<PlanElement> elements = plan.getPlanElements();
+        return (Activity) elements.get(elements.size() - 1);
     }
 
     private void addNetworkLegToPlan(CutContext ctx, Plan plan, Activity fromAct, boolean fromActInside, Leg leg, NetworkRoute route, Activity toAct, boolean toActInside) {
@@ -874,7 +919,7 @@ public class ScenarioCutter {
                     plan.addLeg(teleportLeg);
                 }
                 double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
-                Activity outsideAct = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime() + delay);
+                Activity outsideAct = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime().seconds() + delay);
                 plan.addActivity(outsideAct);
                 plan.addLeg(newLeg);
                 plan.addActivity(toAct);
@@ -886,7 +931,7 @@ public class ScenarioCutter {
                     plan.addActivity(fromAct);
                 }
                 plan.addLeg(newLeg);
-                Activity outsideAct = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime());
+                Activity outsideAct = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime().seconds());
                 plan.addActivity(outsideAct);
             } else if (throughTraffic) {
                 NetworkRoute newRoute = findAvailableRoutePart(ctx, route);
@@ -898,10 +943,10 @@ public class ScenarioCutter {
                     plan.addLeg(teleportLeg);
                 }
                 double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
-                Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime() + delay);
+                Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime().seconds() + delay);
                 plan.addActivity(outsideAct1);
                 plan.addLeg(newLeg);
-                Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime());
+                Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime().seconds());
                 plan.addActivity(outsideAct2);
             } else { // start and end inside, but going outside
                 NetworkRoute routeStart = findAvailableRouteStart(ctx, route);
@@ -918,8 +963,8 @@ public class ScenarioCutter {
                     return;
                 }
                 double delay = calcDelay(ctx, route, routeEnd, fromAct.getEndTime(), plan.getPerson());
-                Activity outsideAct1 = createOutsideActivity(ctx, routeStart.getEndLinkId(), fromAct.getEndTime()); // time does not much matter here, better early than late
-                Activity outsideAct2 = createOutsideActivity(ctx, routeEnd.getStartLinkId(), fromAct.getEndTime() + delay);
+                Activity outsideAct1 = createOutsideActivity(ctx, routeStart.getEndLinkId(), fromAct.getEndTime().seconds()); // time does not much matter here, better early than late
+                Activity outsideAct2 = createOutsideActivity(ctx, routeEnd.getStartLinkId(), fromAct.getEndTime().seconds() + delay);
 
                 plan.addActivity(outsideAct1);
                 Leg teleportLeg = createOutsideLeg(ctx, routeStart.getEndLinkId(), routeEnd.getStartLinkId());
@@ -934,28 +979,6 @@ public class ScenarioCutter {
             }
             plan.addLeg(leg);
             plan.addActivity(toAct);
-        }
-    }
-
-    private Activity getLastActivity(CutContext ctx, Plan plan) {
-        List<PlanElement> elements = plan.getPlanElements();
-        return (Activity) elements.get(elements.size() - 1);
-    }
-
-    private void approximateEndtimesForInteractionActivities(Plan srcPlan) {
-        double lastKnownActivityEndTime = Double.NaN;
-        double timePassed = 0.0;
-        for (PlanElement planElement : srcPlan.getPlanElements()) {
-            if (planElement instanceof Activity) {
-                Activity activity = (Activity) planElement;
-                if (Time.isUndefinedTime(activity.getEndTime())) {
-                    activity.setEndTime(lastKnownActivityEndTime + timePassed + activity.getMaximumDuration());
-                }
-                lastKnownActivityEndTime = activity.getEndTime();
-                timePassed = 0.0;
-            } else if (planElement instanceof Leg) {
-                timePassed += ((Leg) planElement).getTravelTime();
-            }
         }
     }
 
@@ -1030,11 +1053,31 @@ public class ScenarioCutter {
         if (network.getLinks().containsKey(route.getEndLinkId())) {
             linkIds.add(route.getEndLinkId());
         }
-        if (linkIds.size() == 0) return null;
-        else return RouteUtils.createNetworkRoute(linkIds, network);
+        if (linkIds.size() == 0) {
+            return null;
+        } else {
+            return RouteUtils.createNetworkRoute(linkIds, network);
+        }
     }
 
-    private void addTransitLegToPlan(CutContext ctx, Plan plan, Activity fromAct, boolean fromActInside, Leg leg, ExperimentalTransitRoute route, Activity toAct, boolean toActInside) {
+    private void approximateEndtimesForInteractionActivities(Plan srcPlan) {
+        double lastKnownActivityEndTime = Double.NaN;
+        double timePassed = 0.0;
+        for (PlanElement planElement : srcPlan.getPlanElements()) {
+            if (planElement instanceof Activity) {
+                Activity activity = (Activity) planElement;
+                if (activity.getEndTime().isUndefined()) {
+                    activity.setEndTime(lastKnownActivityEndTime + timePassed + activity.getMaximumDuration().seconds());
+                }
+                lastKnownActivityEndTime = activity.getEndTime().seconds();
+                timePassed = 0.0;
+            } else if (planElement instanceof Leg) {
+                timePassed += ((Leg) planElement).getTravelTime().seconds();
+            }
+        }
+    }
+
+    private void addTransitLegToPlan(CutContext ctx, Plan plan, Activity fromAct, boolean fromActInside, Leg leg, TransitPassengerRoute route, Activity toAct, boolean toActInside) {
         boolean isEmptyPlan = plan.getPlanElements().isEmpty();
         boolean comingInside = !fromActInside && toActInside;
         boolean goingOutside = fromActInside && !toActInside;
@@ -1043,7 +1086,7 @@ public class ScenarioCutter {
 
         if (hasOutsideLinks) {
             if (comingInside) {
-                ExperimentalTransitRoute newRoute = findAvailableRouteStart(ctx, route);
+                TransitPassengerRoute newRoute = findAvailableRouteStart(ctx, route);
                 Leg newLeg = PopulationUtils.createLeg(leg);
                 newLeg.setRoute(newRoute);
                 if (!isEmptyPlan) {
@@ -1052,12 +1095,12 @@ public class ScenarioCutter {
                     plan.addLeg(teleportLeg);
                 }
                 double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
-                Activity outsideAct = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime() + delay);
+                Activity outsideAct = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime().seconds() + delay);
                 plan.addActivity(outsideAct);
                 plan.addLeg(newLeg);
                 plan.addActivity(toAct);
             } else if (goingOutside) {
-                ExperimentalTransitRoute newRoute = findAvailableRouteEnd(ctx, route);
+                TransitPassengerRoute newRoute = findAvailableRouteEnd(ctx, route);
                 Leg newLeg = PopulationUtils.createLeg(leg);
                 newLeg.setRoute(newRoute);
                 if (isEmptyPlan) {
@@ -1067,10 +1110,10 @@ public class ScenarioCutter {
                 if (!ctx.dest.getNetwork().getLinks().containsKey(newRoute.getEndLinkId())){
                     throw new RuntimeException(newRoute.getEndLinkId() + "  is not part of the cut network, but part of transit route:\n " + newRoute.toString());
                 }
-                Activity outsideAct = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime());
+                Activity outsideAct = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime().seconds());
                 plan.addActivity(outsideAct);
             } else if (throughTraffic) {
-                ExperimentalTransitRoute newRoute = findAvailableRoutePart(ctx, route);
+                TransitPassengerRoute newRoute = findAvailableRoutePart(ctx, route);
                 Leg newLeg = PopulationUtils.createLeg(leg);
                 newLeg.setRoute(newRoute);
                 if (!isEmptyPlan) {
@@ -1079,14 +1122,14 @@ public class ScenarioCutter {
                     plan.addLeg(teleportLeg);
                 }
                 double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
-                Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime() + delay);
+                Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime().seconds() + delay);
                 plan.addActivity(outsideAct1);
                 plan.addLeg(newLeg);
-                Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime());
+                Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime().seconds());
                 plan.addActivity(outsideAct2);
             } else { // start and end inside, but going outside
-                ExperimentalTransitRoute routeStart = findAvailableRouteStart(ctx, route);
-                ExperimentalTransitRoute routeEnd = findAvailableRouteEnd(ctx, route);
+                TransitPassengerRoute routeStart = findAvailableRouteStart(ctx, route);
+                TransitPassengerRoute routeEnd = findAvailableRouteEnd(ctx, route);
                 Leg newLeg1 = PopulationUtils.createLeg(leg);
                 newLeg1.setRoute(routeStart);
                 Leg newLeg2 = PopulationUtils.createLeg(leg);
@@ -1096,8 +1139,8 @@ public class ScenarioCutter {
                 }
                 plan.addLeg(newLeg1);
                 double delay = calcDelay(ctx, route, routeEnd, fromAct.getEndTime(), plan.getPerson());
-                Activity outsideAct1 = createOutsideActivity(ctx, routeStart.getEndLinkId(), fromAct.getEndTime());
-                Activity outsideAct2 = createOutsideActivity(ctx, routeEnd.getStartLinkId(), fromAct.getEndTime() + delay);
+                Activity outsideAct1 = createOutsideActivity(ctx, routeStart.getEndLinkId(), fromAct.getEndTime().seconds());
+                Activity outsideAct2 = createOutsideActivity(ctx, routeEnd.getStartLinkId(), fromAct.getEndTime().seconds() + delay);
 
                 plan.addActivity(outsideAct1);
                 Leg teleportLeg = createOutsideLeg(ctx, routeStart.getEndLinkId(), routeEnd.getStartLinkId());
@@ -1115,7 +1158,7 @@ public class ScenarioCutter {
         }
     }
 
-    private ExperimentalTransitRoute findAvailableRouteEnd(CutContext ctx, ExperimentalTransitRoute ptRoute) {
+    private TransitPassengerRoute findAvailableRouteEnd(CutContext ctx, TransitPassengerRoute ptRoute) {
         TransitSchedule srcSchedule = ctx.source.getTransitSchedule();
         TransitLine srcLine = srcSchedule.getTransitLines().get(ptRoute.getLineId());
         TransitRoute srcRoute = srcLine.getRoutes().get(ptRoute.getRouteId());
@@ -1155,13 +1198,13 @@ public class ScenarioCutter {
         }
 
         if (destEgressStop != null) {
-            return new ExperimentalTransitRoute(destAccessStop.getStopFacility(), destEgressStop.getStopFacility(), destLine.getId(), destRoute.getId());
+            return new DefaultTransitPassengerRoute(destAccessStop.getStopFacility(), destLine, destRoute, destEgressStop.getStopFacility());
         }
 
         return null;
     }
 
-    private ExperimentalTransitRoute findAvailableRouteStart(CutContext ctx, ExperimentalTransitRoute ptRoute) {
+    private TransitPassengerRoute findAvailableRouteStart(CutContext ctx, TransitPassengerRoute ptRoute) {
         TransitSchedule srcSchedule = ctx.source.getTransitSchedule();
         TransitLine srcLine = srcSchedule.getTransitLines().get(ptRoute.getLineId());
         TransitRoute srcRoute = srcLine.getRoutes().get(ptRoute.getRouteId());
@@ -1197,13 +1240,13 @@ public class ScenarioCutter {
         }
 
         if (destAccessStop != null) {
-            return new ExperimentalTransitRoute(destAccessStop.getStopFacility(), destEgressStop.getStopFacility(), destLine.getId(), destRoute.getId());
+            return new DefaultTransitPassengerRoute(destAccessStop.getStopFacility(), destLine, destRoute, destEgressStop.getStopFacility());
         }
 
         return null;
     }
 
-    private ExperimentalTransitRoute findAvailableRoutePart(CutContext ctx, ExperimentalTransitRoute route) {
+    private TransitPassengerRoute findAvailableRoutePart(CutContext ctx, TransitPassengerRoute route) {
         // just take the first part we find, `findAvailableRouteStart` is flexible enough to handle even non-start cases.
         return findAvailableRouteStart(ctx, route);
     }
@@ -1212,36 +1255,7 @@ public class ScenarioCutter {
         plan.getPlanElements().stream()
                 .filter(Activity.class::isInstance)
                 .filter(a -> SBBActivities.stageActivityTypeList.contains(((Activity) a).getType()))
-                .forEach(a -> ((Activity) a).setEndTime(Time.getUndefinedTime()));
-    }
-
-    private double calcDelay(CutContext ctx, ExperimentalTransitRoute fullRoute, ExperimentalTransitRoute shortenedRoute, double departureTime, Person p) {
-        Id<TransitStopFacility> fullAccessId = fullRoute.getAccessStopId();
-        Id<TransitStopFacility> shortenedAccessId = shortenedRoute.getAccessStopId();
-
-        TransitRouteStop fullAccessStop = null;
-        TransitRouteStop shortenedAccessStop = null;
-
-        TransitLine line = ctx.source.getTransitSchedule().getTransitLines().get(fullRoute.getLineId());
-        TransitRoute ptRoute = line.getRoutes().get(fullRoute.getRouteId());
-
-        for (TransitRouteStop stop : ptRoute.getStops()) {
-            Id<TransitStopFacility> stopId = stop.getStopFacility().getId();
-            if (stopId.equals(fullAccessId)) {
-                fullAccessStop = stop;
-            }
-            if (stopId.equals(shortenedAccessId)) {
-                shortenedAccessStop = stop;
-                break;
-            }
-        }
-
-        if (fullAccessStop != null && shortenedAccessStop != null) {
-            double shortenedDepartureOffset = Time.isUndefinedTime(shortenedAccessStop.getDepartureOffset()) ? shortenedAccessStop.getArrivalOffset() : shortenedAccessStop.getDepartureOffset();
-            double fullDepartureOffset = Time.isUndefinedTime(fullAccessStop.getDepartureOffset()) ? fullAccessStop.getArrivalOffset() : fullAccessStop.getDepartureOffset();
-            return shortenedDepartureOffset - fullDepartureOffset;
-        }
-        return 0;
+                .forEach(a -> ((Activity) a).setEndTimeUndefined());
     }
 
     private void addTeleportationLegToPlan(CutContext ctx, Plan plan, Activity fromAct, boolean fromActInside, Leg leg, Activity toAct, boolean toActInside) {
@@ -1302,10 +1316,34 @@ public class ScenarioCutter {
         return false;
     }
 
-    private boolean hasOutsideLinks(CutContext ctx, ExperimentalTransitRoute route) {
-        AgentState state = new AgentState();
-        calcStateExtendedByTransitRoute(ctx, state, route);
-        return state.hasOutside;
+    private double calcDelay(CutContext ctx, TransitPassengerRoute fullRoute, TransitPassengerRoute shortenedRoute, OptionalTime departureTime, Person p) {
+        Id<TransitStopFacility> fullAccessId = fullRoute.getAccessStopId();
+        Id<TransitStopFacility> shortenedAccessId = shortenedRoute.getAccessStopId();
+
+        TransitRouteStop fullAccessStop = null;
+        TransitRouteStop shortenedAccessStop = null;
+
+        TransitLine line = ctx.source.getTransitSchedule().getTransitLines().get(fullRoute.getLineId());
+        TransitRoute ptRoute = line.getRoutes().get(fullRoute.getRouteId());
+
+        for (TransitRouteStop stop : ptRoute.getStops()) {
+            Id<TransitStopFacility> stopId = stop.getStopFacility().getId();
+            if (stopId.equals(fullAccessId)) {
+                fullAccessStop = stop;
+            }
+            if (stopId.equals(shortenedAccessId)) {
+                shortenedAccessStop = stop;
+                break;
+            }
+        }
+
+        if (fullAccessStop != null && shortenedAccessStop != null) {
+            double shortenedDepartureOffset =
+                    shortenedAccessStop.getDepartureOffset().isUndefined() ? shortenedAccessStop.getArrivalOffset().seconds() : shortenedAccessStop.getDepartureOffset().seconds();
+            double fullDepartureOffset = fullAccessStop.getDepartureOffset().isUndefined() ? fullAccessStop.getArrivalOffset().seconds() : fullAccessStop.getDepartureOffset().seconds();
+            return shortenedDepartureOffset - fullDepartureOffset;
+        }
+        return 0;
     }
 
     private void calcNetworkCapacityChanges(CutContext ctx, double demandFactor) {
@@ -1315,48 +1353,10 @@ public class ScenarioCutter {
         ctx.dest.addScenarioElement(CHANGE_EVENTS, changeEvents);
     }
 
-    private Map<Id<Link>, int[]> calcMissingHourlyDemand(CutContext ctx) {
-        Network srcNetwork = ctx.source.getNetwork();
-        Set<Id<Link>> destLinks = ctx.dest.getNetwork().getLinks().keySet();
-        Map<Id<Link>, int[]> missingHourlyDemand = ctx.missingHourlyDemand;
-        for (Person p : ctx.source.getPopulation().getPersons().values()) {
-            boolean isIncluded = ctx.relevantPersons.containsKey(p.getId());
-            if (!isIncluded) {
-                Activity lastAct = null;
-                for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
-                    if (pe instanceof Activity) {
-                        lastAct = (Activity) pe;
-                    }
-                    if (pe instanceof Leg) {
-                        Leg leg = (Leg) pe;
-                        if (leg.getRoute() instanceof NetworkRoute) {
-                            NetworkRoute route = (NetworkRoute) leg.getRoute();
-                            double time = lastAct.getEndTime();
-                            if (Time.isUndefinedTime(time)) {
-                                time = leg.getDepartureTime();
-                            }
-                            int hour = (int) (time / 3600);
-                            double travelTime = 2;// assume 2 seconds travel time on the start link, as agents basically only have to pass the to-node
-                            if (hour >= 0 && hour < 24 && destLinks.contains(route.getStartLinkId())) {
-                                missingHourlyDemand.computeIfAbsent(route.getStartLinkId(), k -> new int[24])[hour]++;
-                            }
-                            time += travelTime;
-                            for (Id<Link> linkId : route.getLinkIds()) {
-                                hour = (int) (time / 3600);
-                                Link link = srcNetwork.getLinks().get(linkId);
-                                travelTime = ctx.travelTime.getLinkTravelTime(link, time, p, null);
-                                if (hour >= 0 && hour < 24 && destLinks.contains(link.getId())) {
-                                    missingHourlyDemand.computeIfAbsent(link.getId(), k -> new int[24])[hour]++;
-                                }
-                                time += travelTime;
-                            }
-                            // ignore the end link, as a vehicle does not consume any flow-capacity on the last link of a leg
-                        }
-                    }
-                }
-            }
-        }
-        return missingHourlyDemand;
+    private boolean hasOutsideLinks(CutContext ctx, TransitPassengerRoute route) {
+        AgentState state = new AgentState();
+        calcStateExtendedByTransitRoute(ctx, state, route);
+        return state.hasOutside;
     }
 
     private List<NetworkChangeEvent> createNetworkChangeEvents(CutContext ctx, Map<Id<Link>, int[]> missingHourlyDemand, double missingDemandFactor) {
@@ -1506,19 +1506,51 @@ public class ScenarioCutter {
         }
     }
 
-    private static void writeRelevantLocations(File file, List<Coord> coords) throws IOException {
-        String[] columns = new String[] { "X", "Y"};
-        try (CSVWriter out = new CSVWriter(null, columns, file.getAbsolutePath())) {
-            for (Coord c : coords) {
-                out.set("X", Double.toString(c.getX()));
-                out.set("Y", Double.toString(c.getY()));
-                out.writeRow();
+    private Map<Id<Link>, int[]> calcMissingHourlyDemand(CutContext ctx) {
+        Network srcNetwork = ctx.source.getNetwork();
+        Set<Id<Link>> destLinks = ctx.dest.getNetwork().getLinks().keySet();
+        Map<Id<Link>, int[]> missingHourlyDemand = ctx.missingHourlyDemand;
+        for (Person p : ctx.source.getPopulation().getPersons().values()) {
+            boolean isIncluded = ctx.relevantPersons.containsKey(p.getId());
+            if (!isIncluded) {
+                Activity lastAct = null;
+                for (PlanElement pe : p.getSelectedPlan().getPlanElements()) {
+                    if (pe instanceof Activity) {
+                        lastAct = (Activity) pe;
+                    }
+                    if (pe instanceof Leg) {
+                        Leg leg = (Leg) pe;
+                        if (leg.getRoute() instanceof NetworkRoute) {
+                            NetworkRoute route = (NetworkRoute) leg.getRoute();
+
+                            double time = lastAct.getEndTime().orElse(leg.getDepartureTime().seconds());
+
+                            int hour = (int) (time / 3600);
+                            double travelTime = 2;// assume 2 seconds travel time on the start link, as agents basically only have to pass the to-node
+                            if (hour >= 0 && hour < 24 && destLinks.contains(route.getStartLinkId())) {
+                                missingHourlyDemand.computeIfAbsent(route.getStartLinkId(), k -> new int[24])[hour]++;
+                            }
+                            time += travelTime;
+                            for (Id<Link> linkId : route.getLinkIds()) {
+                                hour = (int) (time / 3600);
+                                Link link = srcNetwork.getLinks().get(linkId);
+                                travelTime = ctx.travelTime.getLinkTravelTime(link, time, p, null);
+                                if (hour >= 0 && hour < 24 && destLinks.contains(link.getId())) {
+                                    missingHourlyDemand.computeIfAbsent(link.getId(), k -> new int[24])[hour]++;
+                                }
+                                time += travelTime;
+                            }
+                            // ignore the end link, as a vehicle does not consume any flow-capacity on the last link of a leg
+                        }
+                    }
+                }
             }
         }
+        return missingHourlyDemand;
     }
 
-    private double calcDelay(CutContext ctx, NetworkRoute fullRoute, NetworkRoute shortenedRoute, double departureTime, Person p) {
-        if (Time.isUndefinedTime(departureTime)) {
+    private double calcDelay(CutContext ctx, NetworkRoute fullRoute, NetworkRoute shortenedRoute, OptionalTime departureTime, Person p) {
+        if (departureTime.isUndefined()) {
             throw new RuntimeException("Departure Time is not provided / undefined, but required for travel time calculations");
         }
         double delay = 0;
@@ -1533,7 +1565,7 @@ public class ScenarioCutter {
                 return delay;
             }
             Link link = sourceNetwork.getLinks().get(linkId);
-            delay += ctx.travelTime.getLinkTravelTime(link, departureTime + delay, p, null);
+            delay += ctx.travelTime.getLinkTravelTime(link, departureTime.seconds() + delay, p, null);
         }
         return delay;
     }

@@ -4,20 +4,19 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import ch.sbb.matsim.zones.ZonesQueryCache;
-import org.apache.log4j.Appender;
-import org.apache.log4j.FileAppender;
+import java.util.Arrays;
+import java.util.List;
 import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.PopulationWriter;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author jlie/pmanser / SBB
@@ -47,12 +46,6 @@ public class RaumtypPerPerson {
         int nbUndefined = 0;
         int nbNotHomeType = 0;
         String notDefinedLog = "\n";
-        try {
-            Appender fileAppender = new FileAppender(new SimpleLayout(), outputLog);
-            log.addAppender(fileAppender);
-        } catch (IOException e) {
-            log.info("no logging to file " + e.toString());
-        }
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(planFile);

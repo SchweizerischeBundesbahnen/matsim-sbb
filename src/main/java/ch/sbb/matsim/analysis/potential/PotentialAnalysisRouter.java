@@ -1,43 +1,28 @@
 package ch.sbb.matsim.analysis.potential;
 
-import ch.sbb.matsim.analysis.traveltimes.RunTravelTimeValidation;
-import ch.sbb.matsim.csv.CSVReader;
-import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.config.variables.SBBModes;
+import java.util.List;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
-import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
-import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.router.DijkstraFactory;
-import org.matsim.core.router.LinkWrapperFacility;
 import org.matsim.core.router.NetworkRoutingModule;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
-import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
-import org.matsim.core.utils.geometry.transformations.WGS84toCH1903LV03;
 import org.matsim.facilities.Facility;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 public class PotentialAnalysisRouter {
 
@@ -61,10 +46,10 @@ public class PotentialAnalysisRouter {
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
         this.router = new NetworkRoutingModule(
-                TransportMode.car,
-                PopulationUtils.getFactory(),
-                network,
-                routeAlgo);
+				SBBModes.CAR,
+				PopulationUtils.getFactory(),
+				network,
+				routeAlgo);
     }
 
     //use this method for travel time evaluation in congested network
@@ -90,10 +75,10 @@ public class PotentialAnalysisRouter {
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
         this.router = new NetworkRoutingModule(
-                TransportMode.car,
-                PopulationUtils.getFactory(),
-                network,
-                routeAlgo);
+				SBBModes.CAR,
+				PopulationUtils.getFactory(),
+				network,
+				routeAlgo);
     }
 
 

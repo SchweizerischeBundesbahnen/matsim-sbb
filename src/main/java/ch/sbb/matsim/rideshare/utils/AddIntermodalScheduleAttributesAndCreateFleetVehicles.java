@@ -1,10 +1,15 @@
 package ch.sbb.matsim.rideshare.utils;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
@@ -19,8 +24,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-
-import java.util.*;
 
 public class AddIntermodalScheduleAttributesAndCreateFleetVehicles {
 
@@ -57,7 +60,7 @@ public class AddIntermodalScheduleAttributesAndCreateFleetVehicles {
         new TransitScheduleReader(scenario).readFile(INPUT_SCHEDULE);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(INPUT_NETWORK);
         NetworkFilterManager networkFilterManager = new NetworkFilterManager(scenario.getNetwork());
-        networkFilterManager.addLinkFilter(f -> f.getAllowedModes().contains(TransportMode.car));
+		networkFilterManager.addLinkFilter(f -> f.getAllowedModes().contains(SBBModes.CAR));
         Network filteredNet = networkFilterManager.applyFilters();
         Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
         final int[] i = {0};

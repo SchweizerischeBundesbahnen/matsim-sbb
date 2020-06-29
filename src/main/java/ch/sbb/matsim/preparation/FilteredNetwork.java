@@ -1,7 +1,8 @@
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.variables.SBBModes;
+import java.util.Collections;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
@@ -11,8 +12,6 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
-
-import java.util.Collections;
 
 public class FilteredNetwork {
     private Network filteredNetwork;
@@ -24,7 +23,7 @@ public class FilteredNetwork {
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
         final Network carNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(TransportMode.car));
+		new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(SBBModes.CAR));
 
         this.filteredNetwork = NetworkUtils.createNetwork();
         this.networkFactory = this.filteredNetwork.getFactory();
@@ -40,7 +39,7 @@ public class FilteredNetwork {
 
 
         final Network carNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(TransportMode.car));
+		new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(SBBModes.CAR));
 
         this.filteredNetwork = NetworkUtils.createNetwork();
         this.networkFactory = this.filteredNetwork.getFactory();
