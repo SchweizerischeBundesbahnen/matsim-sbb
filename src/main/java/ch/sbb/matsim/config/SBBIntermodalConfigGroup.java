@@ -139,22 +139,14 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         static private final String PARAM_EGRESSTIME_ZONEATT = "egressTimeZonesAttributeName";
         static private final String PARAM_USEMINIMALTRANSFERTIMES_DESC = "use minimal transfer times";
         static private final String PARAM_USEMINIMALTRANSFERTIMES = "useMinimalTransferTimes";
-
-        static private final String PARAM_MUTT = "mutt";
-        public static final String PARAM_MUTT_DESC = "Marginal Utility of travel time (per hour)";
-
         static private final String PARAM_WAITINGTIME = "waitingTime";
         static private final String PARAM_WAITINGTIME_DESC = "Additional waiting time in seconds.";
 
-        static private final String PARAM_CONSTANT = "constant";
-        static private final String PARAM_CONSTANT_DESC = "ASC for feeder mode";
+        static private final String PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE = "personActivityFilterAttribute";
+        static private final String PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE_DESC = "activities from/to which feeder mode is available";
 
-
-
-        private String mode = "ride_feeder";
+        private String mode = null;
         private Integer waitingTime = 0;
-        private double constant = -1.5;
-        private double mutt = -10.8;
         private Double detourFactor = 1.0;
         private boolean routedOnNetwork = false;
         private boolean simulatedOnNetwork = false;
@@ -162,17 +154,16 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         private String egressTimeZoneId = null;
         private String detourFactorZoneId = null;
         private boolean useMinimalTransferTimes = false;
+        private String personActivityFilterAttribute = null;
 
         public SBBIntermodalModeParameterSet() {
             super(TYPE);
         }
 
-        public SBBIntermodalModeParameterSet(String mode, int waitingTime, double constanst, double mutt, double detourFactor) {
+        public SBBIntermodalModeParameterSet(String mode, int waitingTime, double detourFactor) {
             super(TYPE);
             this.mode = mode;
             this.waitingTime = waitingTime;
-            this.constant = constanst;
-            this.mutt = mutt;
             this.detourFactor = detourFactor;
         }
 
@@ -196,16 +187,6 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             this.waitingTime = waitingTime;
         }
 
-        @StringGetter(PARAM_CONSTANT)
-        public double getConstant() {
-            return this.constant;
-        }
-
-        @StringSetter(PARAM_CONSTANT)
-        public void setConstant(double constant) {
-            this.constant = constant;
-        }
-
         @StringGetter(PARAM_DETOUR_FACTOR)
         public Double getDetourFactor() {
             return this.detourFactor;
@@ -214,20 +195,6 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         @StringSetter(PARAM_DETOUR_FACTOR)
         public void setDetourFactor(double detourFactor) {
             this.detourFactor = detourFactor;
-        }
-
-        @StringGetter(PARAM_MUTT)
-        public double getMUTT() {
-            return this.mutt;
-        }
-
-        public double getMUTT_perSecond() {
-            return (mutt / 3600.0);
-        }
-
-        @StringSetter(PARAM_MUTT)
-        public void setMUTT(double mutt) {
-            this.mutt = mutt;
         }
 
         @StringGetter(PARAM_SIMULATION_NETWORKMODE)
@@ -290,20 +257,29 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
             this.detourFactorZoneId = detourFactorZoneId;
         }
 
+        @StringSetter(PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE)
+        public void setParamPersonActivityFilterAttribute(String personActivityFilterAttribute) {
+            this.personActivityFilterAttribute = personActivityFilterAttribute;
+        }
+
+        @StringGetter(PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE)
+        public String getParamPersonActivityFilterAttribute() {
+            return personActivityFilterAttribute;
+        }
+
         @Override
         public Map<String, String> getComments() {
             Map<String, String> comments = super.getComments();
             comments.put(PARAM_MODE, PARAM_MODE_DESC);
-            comments.put(PARAM_MUTT, PARAM_MUTT_DESC);
             comments.put(PARAM_DETOUR_FACTOR, PARAM_DETOUR_FACTOR_DESC);
             comments.put(PARAM_SIMULATION_NETWORKMODE, PARAM_SIMULATION_NETWORKMODE_DESC);
             comments.put(PARAM_ROUTING_NETWORKMODE, PARAM_ROUTING_NETWORKMODE_DESC);
-            comments.put(PARAM_CONSTANT, PARAM_CONSTANT_DESC);
             comments.put(PARAM_WAITINGTIME, PARAM_WAITINGTIME_DESC);
             comments.put(PARAM_DETOUR_FACTOR_ZONEATT, PARAM_DETOUR_FACTOR_ZONEATT_DESC);
             comments.put(PARAM_EGRESSTIME_ZONEATT, PARAM_EGRESSTIME_ZONEATT_DESC);
             comments.put(PARAM_ACCESSTIME_ZONEATT, PARAM_ACCESSTIME_ZONEATT_DESC);
             comments.put(PARAM_USEMINIMALTRANSFERTIMES, PARAM_USEMINIMALTRANSFERTIMES_DESC);
+            comments.put(PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE, PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE_DESC);
             return comments;
         }
 
@@ -311,16 +287,6 @@ public class SBBIntermodalConfigGroup extends ReflectiveConfigGroup {
         protected void checkConsistency(Config config) {
             super.checkConsistency(config);
             SwissRailRaptorConfigGroup railRaptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
-            SBBIntermodalConfigGroup sbbIntermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
-            if (constant > 0) {
-                logger.warn("Constant for intermodal mode " + getMode() + "is > 0. This might be an unwanted utility!");
-            }
-            if (getMUTT() > 0) {
-                logger.warn("Marginal Utility of Travel time (per hour) for intermodal " + getMode() + "is > 0. This might be an unwanted utility!");
-            }
-            if (getMUTT() < 0 && getMUTT() > -0.1) {
-                logger.warn("Marginal Utility of Travel time (per hour) for intermodal " + getMode() + "is very small (" + mutt + " Make sure you use the right units.");
-            }
             if (detourFactor != 1.0 && detourFactorZoneId != null) {
                 throw new RuntimeException("Both Zone based and network wide detour factor are set for mode " + mode + " . Please set only one of them.");
             }

@@ -199,11 +199,11 @@ public class AbmConverter {
 
     public void adjustModeIfNoLicense(Population population) {
         for (final Person person : population.getPersons().values()) {
-            for (Leg leg: TripStructureUtils.getLegs(person.getSelectedPlan()))  {
-                if (!PersonUtils.hasLicense(person) && leg.getMode().equals(SBBModes.CAR)) {
-                    leg.setMode(SBBModes.RIDE);
-                }
-            }
+            for (Leg leg: TripStructureUtils.getLegs(person.getSelectedPlan())) {
+				if (!PersonUtils.hasLicense(person) && leg.getMode().equals(SBBModes.CAR)) {
+					leg.setMode(SBBModes.RIDE);
+				}
+			}
         }
     }
 
@@ -215,31 +215,31 @@ public class AbmConverter {
     }
 
     public void createInitialEndTimeAttribute(Population population) {
-        for(Person p: population.getPersons().values()) {
-            if (p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null) {
-                continue;
-            }
+		for (Person p : population.getPersons().values()) {
+			if (p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null) {
+				continue;
+			}
 
-            if (p.getPlans().size() > 1) {
-                log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
-            }
+			if (p.getPlans().size() > 1) {
+				log.info("Person " + p.getId().toString() + " has more than one plan. Taking selected plan...");
+			}
 
-            Plan plan = p.getSelectedPlan();
-            List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
-            List<OptionalTime> endTimeList = new ArrayList<>();
-            int i = 0;
+			Plan plan = p.getSelectedPlan();
+			List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
+			List<OptionalTime> endTimeList = new ArrayList<>();
+			int i = 0;
 
-            for (Activity act : activities) {
-                if (i == activities.size() - 1) {
-                    break;
-                }
-                endTimeList.add(act.getEndTime());
-                i += 1;
-            }
+			for (Activity act : activities) {
+				if (i == activities.size() - 1) {
+					break;
+				}
+				endTimeList.add(act.getEndTime());
+				i += 1;
+			}
 
-            p.getAttributes()
-                    .putAttribute(Variables.INIT_END_TIMES, endTimeList.stream().map(e -> e.isDefined() ? Double.toString(e.seconds()) : Variables.NO_INIT_END_TIME).collect(Collectors.joining("_")));
-        }
+			p.getAttributes()
+					.putAttribute(Variables.INIT_END_TIMES, endTimeList.stream().map(e -> e.isDefined() ? Double.toString(e.seconds()) : Variables.NO_INIT_END_TIME).collect(Collectors.joining("_")));
+		}
     }
 
     public void writeOutputs(Population population, final String folder) {

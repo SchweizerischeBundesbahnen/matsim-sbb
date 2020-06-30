@@ -75,12 +75,12 @@ public class TravelledLeg extends TravelComponent {
     }
 
     public void setMode(String mode) {
-        this.mode = mode.trim();
-        if (this.mode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
-            this.mode = SBBModes.WALK_FOR_ANALYSIS;
-        }
-        setModeHierarchy(mode);
-    }
+		this.mode = mode.trim();
+		if (this.mode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+			this.mode = SBBModes.WALK_FOR_ANALYSIS;
+		}
+		setModeHierarchy(mode);
+	}
 
     public int getModeHierarchy()   {
         return this.modeHierarchy;

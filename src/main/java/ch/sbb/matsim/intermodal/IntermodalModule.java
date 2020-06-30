@@ -2,13 +2,17 @@ package ch.sbb.matsim.intermodal;
 
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.intermodal.analysis.IntermodalControlerListener;
 import ch.sbb.matsim.intermodal.analysis.IntermodalTransferTimeAnalyser;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
+import ch.sbb.matsim.routing.pt.raptor.AccessEgressRouteCache;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
+import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -27,7 +31,7 @@ import org.matsim.core.controler.AbstractModule;
 public class IntermodalModule extends AbstractModule {
     private final static Logger log = Logger.getLogger(IntermodalModule.class);
 
-    private static void preparePopulation(Population population, URL csvPath) {
+    public static void preparePopulation(Population population, URL csvPath) {
         try (CSVReader reader = new CSVReader(csvPath, ";")) {
             log.info(csvPath);
 
@@ -81,16 +85,20 @@ public class IntermodalModule extends AbstractModule {
     @Override
     public void install() {
         SBBIntermodalConfigGroup configGroup = ConfigUtils.addOrGetModule(this.getConfig(), SBBIntermodalConfigGroup.class);
-
-        for (SBBIntermodalModeParameterSet mode : configGroup.getModeParameterSets()) {
-            if (mode.isRoutedOnNetwork() && !mode.getMode().equals(SBBModes.CAR)) {
-                addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
-                addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
+        SwissRailRaptorConfigGroup swissRailRaptorConfigGroup = ConfigUtils.addOrGetModule(this.getConfig(), SwissRailRaptorConfigGroup.class);
+        if (swissRailRaptorConfigGroup.isUseIntermodalAccessEgress()) {
+            for (SBBIntermodalModeParameterSet mode : configGroup.getModeParameterSets()) {
+                if (mode.isRoutedOnNetwork() && !mode.getMode().equals(SBBModes.CAR)) {
+                    addTravelTimeBinding(mode.getMode()).to(networkTravelTime());
+                    addTravelDisutilityFactoryBinding(mode.getMode()).to(carTravelDisutilityFactoryKey());
+                }
             }
+            bind(RaptorIntermodalAccessEgress.class).to(SBBRaptorIntermodalAccessEgress.class).asEagerSingleton();
+            bind(AccessEgressRouteCache.class).asEagerSingleton();
+            bind(RaptorStopFinder.class).to(SBBIntermodalRaptorStopFinder.class);
         }
         bind(IntermodalTransferTimeAnalyser.class).asEagerSingleton();
         addControlerListenerBinding().to(IntermodalControlerListener.class).asEagerSingleton();
-        bind(RaptorIntermodalAccessEgress.class).to(SBBRaptorIntermodalAccessEgress.class).asEagerSingleton();
     }
 
 }

@@ -145,11 +145,11 @@ public class TestFixture {
         params3.setScoringThisActivityAtAll(false);
         scenario.getConfig().planCalcScore().addActivityParams(params3);
 
-        accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-        accessParams.setConstant(constant);
+		accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
+		accessParams.setConstant(constant);
 
-        egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-        egressParams.setConstant(constant);
+		egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
+		egressParams.setConstant(constant);
 
         StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
         settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);

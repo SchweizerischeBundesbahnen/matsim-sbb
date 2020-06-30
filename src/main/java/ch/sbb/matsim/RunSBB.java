@@ -29,9 +29,6 @@ import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
-import ch.sbb.matsim.routing.pt.raptor.AccessEgressRouteCache;
-import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
-import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
@@ -168,23 +165,16 @@ public class RunSBB {
         controler.addOverridingModule(new AccessEgress(scenario));
         controler.addOverridingModule(new IntermodalModule());
 
-        controler.addOverridingModule(new AbstractModule() {
-            @Override
-            public void install() {
-                bind(AccessEgressRouteCache.class).asEagerSingleton();
-                bind(RaptorStopFinder.class).to(SBBIntermodalRaptorStopFinder.class);
-            }
-        });
 
     }
 
     public static Config buildConfig(String filepath) {
         Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
 
-        if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
-            // MATSim defines ride by default as teleported, which conflicts with the network mode
-            config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
-        }
+		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
+			// MATSim defines ride by default as teleported, which conflicts with the network mode
+			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
+		}
 
         config.checkConsistency();
         return config;

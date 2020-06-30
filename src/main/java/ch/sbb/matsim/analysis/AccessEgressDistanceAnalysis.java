@@ -65,8 +65,8 @@ public class AccessEgressDistanceAnalysis {
 
     private void analyzePerson(Person person, Writer out) {
         Plan plan = person.getSelectedPlan();
-        Activity prevAct = null;
-        DefaultTransitPassengerRoute prevPtRoute = null;
+		Activity prevAct = null;
+		DefaultTransitPassengerRoute prevPtRoute = null;
         try {
             for (PlanElement pe : plan.getPlanElements()) {
                 if (pe instanceof Activity) {
@@ -87,19 +87,19 @@ public class AccessEgressDistanceAnalysis {
                     }
                 }
                 if (pe instanceof Leg) {
-                    Leg leg = (Leg) pe;
-                    if (SBBModes.PT.equals(leg.getMode())) {
-                        DefaultTransitPassengerRoute ptRoute = (DefaultTransitPassengerRoute) leg.getRoute();
+					Leg leg = (Leg) pe;
+					if (SBBModes.PT.equals(leg.getMode())) {
+						DefaultTransitPassengerRoute ptRoute = (DefaultTransitPassengerRoute) leg.getRoute();
 
-                        if (prevAct != null) {
-                            // access leg
-                            Id<TransitStopFacility> toStopId = ptRoute.getAccessStopId();
-                            TransitStopFacility toStop = this.schedule.getFacilities().get(toStopId);
-                            double distance = CoordUtils.calcEuclideanDistance(prevAct.getCoord(), toStop.getCoord());
-                            this.legData.computeIfAbsent(toStopId, k -> new ArrayList<>()).add(
-                                    new LegData(person.getId(), LegDataType.ACCESS, prevAct.getCoord(), toStop, distance));
-                            out.write(person.getId() + "\t" + LegDataType.ACCESS + "\t" + prevAct.getCoord().getX() + "\t" + prevAct.getCoord().getY() + "\t" +
-                                      toStop.getCoord().getX() + "\t" + toStop.getCoord().getY() + "\t" + toStopId + "\t" + toStop.getName() + "\t" + distance + "\n");
+						if (prevAct != null) {
+							// access leg
+							Id<TransitStopFacility> toStopId = ptRoute.getAccessStopId();
+							TransitStopFacility toStop = this.schedule.getFacilities().get(toStopId);
+							double distance = CoordUtils.calcEuclideanDistance(prevAct.getCoord(), toStop.getCoord());
+							this.legData.computeIfAbsent(toStopId, k -> new ArrayList<>()).add(
+									new LegData(person.getId(), LegDataType.ACCESS, prevAct.getCoord(), toStop, distance));
+							out.write(person.getId() + "\t" + LegDataType.ACCESS + "\t" + prevAct.getCoord().getX() + "\t" + prevAct.getCoord().getY() + "\t" +
+									toStop.getCoord().getX() + "\t" + toStop.getCoord().getY() + "\t" + toStopId + "\t" + toStop.getName() + "\t" + distance + "\n");
 
                             prevAct = null;
                         }

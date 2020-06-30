@@ -24,8 +24,8 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 
     @Override
     public void handleTrip(TripStructureUtils.Trip trip) {
-        OptionalTime departureTime = OptionalTime.undefined();
-        double arrivalTime = 0;
+		OptionalTime departureTime = OptionalTime.undefined();
+		double arrivalTime = 0;
         int transitLegsCount = 0;
 
         for (Leg leg : trip.getLegsOnly()) {
@@ -33,15 +33,15 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
             boolean isTransit = this.ptModes.contains(legMode) || this.ptFeederModes.contains(legMode);
             if (isTransit) {
                 transitLegsCount++;
-                if (departureTime.isUndefined()) {
-                    departureTime = leg.getDepartureTime();
-                }
-                arrivalTime = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
+				if (departureTime.isUndefined()) {
+					departureTime = leg.getDepartureTime();
+				}
+				arrivalTime = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
             }
         }
         if (transitLegsCount > 1) {
-            int transferCount = transitLegsCount - 1;
-            double travelTime = arrivalTime - departureTime.seconds();
+			int transferCount = transitLegsCount - 1;
+			double travelTime = arrivalTime - departureTime.seconds();
             this.scoreTransitTrip(travelTime, transferCount);
         }
     }

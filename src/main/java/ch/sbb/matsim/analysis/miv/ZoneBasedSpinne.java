@@ -45,9 +45,9 @@ public class ZoneBasedSpinne {
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
         HashSet<Id<Link>> linksInZone = new HashSet<>();
-        scenario.getNetwork().getLinks().values().stream().
-                filter(link -> link.getAllowedModes().contains(SBBModes.CAR)).
-                forEach(link -> {
+		scenario.getNetwork().getLinks().values().stream().
+				filter(link -> link.getAllowedModes().contains(SBBModes.CAR)).
+				forEach(link -> {
                     Coord fromCoord = link.getFromNode().getCoord();
                     Coord toCoord = link.getToNode().getCoord();
                     double x = (fromCoord.getX() + toCoord.getX()) / 2.0;
@@ -89,9 +89,9 @@ public class ZoneBasedSpinne {
             // take agent if it is not a freight agent
             if(subpop.equals("regular") || subpop.equals("cb_road") || subpop.equals("airport_road"))    {
                 Plan selectedPlan = person.getSelectedPlan();
-                TripStructureUtils.getLegs(selectedPlan).parallelStream().
-                        filter(leg -> (leg.getMode().equals(SBBModes.CAR) || leg.getMode().equals(SBBModes.RIDE))).
-                        forEach(leg -> {
+				TripStructureUtils.getLegs(selectedPlan).parallelStream().
+						filter(leg -> (leg.getMode().equals(SBBModes.CAR) || leg.getMode().equals(SBBModes.RIDE))).
+						forEach(leg -> {
                             NetworkRoute route = (NetworkRoute) leg.getRoute();
                             if (linksInZone.contains(route.getStartLinkId()) || linksInZone.contains(route.getEndLinkId())) {
                                 addRouteToOrigDestVolumes(route);

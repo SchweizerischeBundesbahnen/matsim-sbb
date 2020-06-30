@@ -23,7 +23,7 @@ public class FilteredNetwork {
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
         final Network carNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(SBBModes.CAR));
+		new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(SBBModes.CAR));
 
         this.filteredNetwork = NetworkUtils.createNetwork();
         this.networkFactory = this.filteredNetwork.getFactory();
@@ -39,7 +39,7 @@ public class FilteredNetwork {
 
 
         final Network carNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(SBBModes.CAR));
+		new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(SBBModes.CAR));
 
         this.filteredNetwork = NetworkUtils.createNetwork();
         this.networkFactory = this.filteredNetwork.getFactory();

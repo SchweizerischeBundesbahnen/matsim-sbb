@@ -45,8 +45,8 @@ public class SBBTeleportationRoutingInclAccessEgressModule extends Teleportation
         Leg leg = (Leg) planElements.get(0);
         result.add(leg);
 
-        now = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
-        now = accessEgress.addEgress(toFacility, egressActLink, now, result, person);
+		now = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
+		now = accessEgress.addEgress(toFacility, egressActLink, now, result, person);
 
         return result;
     }

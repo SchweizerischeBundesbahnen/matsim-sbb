@@ -94,28 +94,28 @@ public class ConvergenceStatsTest {
         // shut-off outputs
         int absoluteLastIteration = 10;
         config.controler().setLastIteration(absoluteLastIteration);
-        config.controler().setOutputDirectory(utils.getOutputDirectory());
-        config.controler().setWriteEventsInterval(0);
-        config.controler().setWritePlansInterval(0);
-        config.controler().setWriteSnapshotsInterval(0);
-        config.controler().setDumpDataAtEnd(false);
-        config.controler().setCreateGraphs(false);
-        ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).setAllPostProcessingOff();
+		config.controler().setOutputDirectory(utils.getOutputDirectory());
+		config.controler().setWriteEventsInterval(0);
+		config.controler().setWritePlansInterval(0);
+		config.controler().setWriteSnapshotsInterval(0);
+		config.controler().setDumpDataAtEnd(false);
+		config.controler().setCreateGraphs(false);
+		ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).setAllPostProcessingOff();
 
-        // quick simulation is enough
-        config.qsim().setStartTime(3600*10.0);
-        config.qsim().setEndTime(3600 * 11.0);
-        config.qsim().setTimeStepSize(1.0);
-        RunSBB.run(config);
+		// quick simulation is enough
+		config.qsim().setStartTime(3600 * 10.0);
+		config.qsim().setEndTime(3600 * 11.0);
+		config.qsim().setTimeStepSize(1.0);
+		RunSBB.run(config);
 
-        // tests
-        int iterationsRun = 0;
-        for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
-            File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
-            Assert.assertTrue(file.exists());
-            List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());
-            iterationsRun = lines.size();
-            Assert.assertNotNull(lines.get(1));
+		// tests
+		int iterationsRun = 0;
+		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
+			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
+			Assert.assertTrue(file.exists());
+			List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());
+			iterationsRun = lines.size();
+			Assert.assertNotNull(lines.get(1));
         }
         Assert.assertTrue(iterationsRun-1 < absoluteLastIteration - csConfig.getIterationWindowSize());
     }

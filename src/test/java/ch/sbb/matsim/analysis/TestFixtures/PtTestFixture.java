@@ -85,8 +85,8 @@ public class PtTestFixture {
         Plan plan = pf.createPlan();
         Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
         act1.setEndTime(29500);
-        Leg leg = pf.createLeg("pt");
-        Route route = new DefaultTransitPassengerRoute(this.stopB, this.line1, this.route1, this.stopD);
+		Leg leg = pf.createLeg("pt");
+		Route route = new DefaultTransitPassengerRoute(this.stopB, this.line1, this.route1, this.stopD);
         leg.setRoute(route);
         Activity act2 = pf.createActivityFromLinkId("work", Id.create(3, Link.class));
 
@@ -166,11 +166,11 @@ public class PtTestFixture {
         NetworkRoute networkRoute = RouteUtils.createLinkNetworkRouteImpl(link1.getId(), linkIdList, link4.getId());
 
         List<TransitRouteStop> stops = new ArrayList<>(5);
-        stops.add(f.createTransitRouteStopBuilder(this.stopA).departureOffset(0.0).build());
-        stops.add(f.createTransitRouteStop(this.stopB, 100, 120.0));
-        stops.add(f.createTransitRouteStopBuilder(this.stopC).departureOffset(300.).build());
-        stops.add(f.createTransitRouteStop(this.stopD, 570, 600.0));
-        stops.add(f.createTransitRouteStopBuilder(this.stopE).arrivalOffset(720.).build());
+		stops.add(f.createTransitRouteStopBuilder(this.stopA).departureOffset(0.0).build());
+		stops.add(f.createTransitRouteStop(this.stopB, 100, 120.0));
+		stops.add(f.createTransitRouteStopBuilder(this.stopC).departureOffset(300.).build());
+		stops.add(f.createTransitRouteStop(this.stopD, 570, 600.0));
+		stops.add(f.createTransitRouteStopBuilder(this.stopE).arrivalOffset(720.).build());
 
         this.route1 = f.createTransitRoute(Id.create("A2E", TransitRoute.class), networkRoute, stops, "train");
 

@@ -48,20 +48,20 @@ import org.matsim.vehicles.VehicleUtils;
  */
 public class AccessEgressRouteCache {
 
-    private final static Logger LOGGER = Logger.getLogger(AccessEgressRouteCache.class);
+	private final static Logger LOGGER = Logger.getLogger(AccessEgressRouteCache.class);
 
-    private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
-    private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
+	private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
+	private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
 
-    public static final double FREESPEED_TRAVELTIME_FACTOR = 1.25;
+	public static final double FREESPEED_TRAVELTIME_FACTOR = 1.25;
 
-    private final Map<String, SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
-    private final Map<String, SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet> raptorIntermodalModeParams;
-    private final TransitSchedule transitSchedule;
-    private final Zones zonesCollection;
-    private final Scenario scenario;
-    private Map<String, Map<Id<Link>, Integer>> accessTimes = new HashMap<>();
-    private Map<String, Map<Id<Link>, Map<Id<Link>, int[]>>> travelTimesDistances = new HashMap<>();
+	private final Map<String, SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
+	private final Map<String, SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet> raptorIntermodalModeParams;
+	private final TransitSchedule transitSchedule;
+	private final Zones zonesCollection;
+	private final Scenario scenario;
+	private Map<String, Map<Id<Link>, Integer>> accessTimes = new HashMap<>();
+	private Map<String, Map<Id<Link>, Map<Id<Link>, int[]>>> travelTimesDistances = new HashMap<>();
     private SingleModeNetworksCache singleModeNetworksCache;
 
     @Inject
@@ -88,42 +88,42 @@ public class AccessEgressRouteCache {
                         .map(f -> Id.createLinkId(String.valueOf(f.getAttributes().getAttribute(linkIdAttribute))))
                         .collect(Collectors.toSet());
                 LOGGER.info("Found " + stopLinkIds.size() + " stops with intermodal access option for this mode.");
-                Network network = getRoutingNetwork(paramset.getMode());
-                Graph graph = new Graph(network);
-                final FreeSpeedTravelTime freeSpeedTravelTime = new FreeSpeedTravelTime();
+				Network network = getRoutingNetwork(paramset.getMode());
+				Graph graph = new Graph(network);
+				final FreeSpeedTravelTime freeSpeedTravelTime = new FreeSpeedTravelTime();
                 final FreespeedTravelTimeAndDisutility travelTimeAndDisutility = new FreespeedTravelTimeAndDisutility(config.planCalcScore());
                 Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeZoneId(), network);
                 accessTimes.put(paramset.getMode(), modeAccessTimes);
-                final double maxRadius = raptorParams.getMaxRadius();
-                Map<Id<Link>, LeastCostPathTree> travelTimes = stopLinkIds.parallelStream()
-                        .collect(Collectors.toMap(l -> l, l -> {
-                            LeastCostPathTree leastCostPathTree = new LeastCostPathTree(graph, freeSpeedTravelTime, travelTimeAndDisutility);
-                            Node fromNode = network.getLinks().get(l).getToNode();
-                            leastCostPathTree.calculate(fromNode.getId().index(), 0, PERSON, VEHICLE, new LeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
-                            return leastCostPathTree;
+				final double maxRadius = raptorParams.getMaxRadius();
+				Map<Id<Link>, LeastCostPathTree> travelTimes = stopLinkIds.parallelStream()
+						.collect(Collectors.toMap(l -> l, l -> {
+							LeastCostPathTree leastCostPathTree = new LeastCostPathTree(graph, freeSpeedTravelTime, travelTimeAndDisutility);
+							Node fromNode = network.getLinks().get(l).getToNode();
+							leastCostPathTree.calculate(fromNode.getId().index(), 0, PERSON, VEHICLE, new LeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
+							return leastCostPathTree;
 
-                        }));
-                Map<Id<Link>, Map<Id<Link>, int[]>> travelTimeLinks = new HashMap<>();
-                for (Map.Entry<Id<Link>, LeastCostPathTree> entry : travelTimes.entrySet()) {
-                    Map<Id<Link>, int[]> travelTimesToLink = new ConcurrentHashMap<>();
-                    LeastCostPathTree tree = entry.getValue();
-                    for (Node node : network.getNodes().values()) {
-                        int nodeIndex = node.getId().index();
-                        OptionalTime arrivalTime = tree.getTime(nodeIndex);
-                        if (arrivalTime.isUndefined()) {
-                            continue; // node was not reached, skip to next node.
-                        }
-                        int travelTime = (int) Math.round(arrivalTime.seconds());
-                        int travelDistance = (int) Math.round(tree.getDistance(nodeIndex));
-                        int egressTime = getAccessTime(paramset.getAccessTimeZoneId(), node.getCoord());
-                        int[] data = new int[]{travelDistance, travelTime, egressTime};
-                        for (Id<Link> inlink : node.getInLinks().keySet()) {
-                            travelTimesToLink.put(inlink, data);
-                        }
-                    }
+						}));
+				Map<Id<Link>, Map<Id<Link>, int[]>> travelTimeLinks = new HashMap<>();
+				for (Map.Entry<Id<Link>, LeastCostPathTree> entry : travelTimes.entrySet()) {
+					Map<Id<Link>, int[]> travelTimesToLink = new ConcurrentHashMap<>();
+					LeastCostPathTree tree = entry.getValue();
+					for (Node node : network.getNodes().values()) {
+						int nodeIndex = node.getId().index();
+						OptionalTime arrivalTime = tree.getTime(nodeIndex);
+						if (arrivalTime.isUndefined()) {
+							continue; // node was not reached, skip to next node.
+						}
+						int travelTime = (int) Math.round(arrivalTime.seconds());
+						int travelDistance = (int) Math.round(tree.getDistance(nodeIndex));
+						int egressTime = getAccessTime(paramset.getAccessTimeZoneId(), node.getCoord());
+						int[] data = new int[]{travelDistance, travelTime, egressTime};
+						for (Id<Link> inlink : node.getInLinks().keySet()) {
+							travelTimesToLink.put(inlink, data);
+						}
+					}
 
-                    travelTimeLinks.put(entry.getKey(), travelTimesToLink);
-                }
+					travelTimeLinks.put(entry.getKey(), travelTimesToLink);
+				}
                 this.travelTimesDistances.put(paramset.getMode(), travelTimeLinks);
                 Gbl.printMemoryUsage();
                 LOGGER.info("...done.");
@@ -194,8 +194,8 @@ public class AccessEgressRouteCache {
             List<? extends PlanElement> routeParts = module.calcRoute(stopFacility, actFacility, 3 * 3600, person);
             Leg routedLeg = TripStructureUtils.getLegs(routeParts).stream().filter(leg -> leg.getMode().equals(mode)).findFirst().orElseThrow(RuntimeException::new);
             int egressTime = getAccessTime(this.intermodalModeParams.get(mode).getAccessTimeZoneId(), scenario.getNetwork().getLinks().get(routedLeg.getRoute().getEndLinkId()).getToNode().getCoord());
-            int distance = (int) routedLeg.getRoute().getDistance();
-            int traveltime = (int) routedLeg.getRoute().getTravelTime().seconds();
+			int distance = (int) routedLeg.getRoute().getDistance();
+			int traveltime = (int) routedLeg.getRoute().getTravelTime().seconds();
             value = new int[]{distance, traveltime, egressTime};
             facStats.put(actFacilityLinkId, value);
 

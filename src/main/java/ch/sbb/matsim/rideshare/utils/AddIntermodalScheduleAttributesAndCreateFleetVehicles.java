@@ -60,7 +60,7 @@ public class AddIntermodalScheduleAttributesAndCreateFleetVehicles {
         new TransitScheduleReader(scenario).readFile(INPUT_SCHEDULE);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(INPUT_NETWORK);
         NetworkFilterManager networkFilterManager = new NetworkFilterManager(scenario.getNetwork());
-        networkFilterManager.addLinkFilter(f -> f.getAllowedModes().contains(SBBModes.CAR));
+		networkFilterManager.addLinkFilter(f -> f.getAllowedModes().contains(SBBModes.CAR));
         Network filteredNet = networkFilterManager.applyFilters();
         Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
         final int[] i = {0};

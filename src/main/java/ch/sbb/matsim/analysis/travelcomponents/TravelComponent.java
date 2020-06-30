@@ -7,7 +7,6 @@ package ch.sbb.matsim.analysis.travelcomponents;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.matsim.core.config.Config;
 
-
 public class TravelComponent {
 
 	public double getDuration() {

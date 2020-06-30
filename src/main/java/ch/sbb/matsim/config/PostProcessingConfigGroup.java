@@ -38,8 +38,8 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private String shapefileScreenline = null;
 
     private Boolean visumNetFile = false;
-    private Integer visumNetworkThreshold = 5000;
-    private String visumNetworkMode = SBBModes.CAR;
+	private Integer visumNetworkThreshold = 5000;
+	private String visumNetworkMode = SBBModes.CAR;
 
     @StringGetter(PARAM_SHAPEFILE_SCREENLINE)
     public String getShapefileScreenline() {

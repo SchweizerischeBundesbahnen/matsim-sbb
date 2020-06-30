@@ -21,18 +21,18 @@ public class AbmTrip {
 
 
     public AbmTrip(Id<ActivityFacility> origFacilityId, Id<ActivityFacility> destFacilityId, String oAct, String dAct, String mode, int deptime, int arrtime, Coord coordOrig, Coord coordDest) {
-        this.oAct = oAct;
-        this.dAct = dAct;
-        this.mode = mode.equals(SBBModes.WALK_FOR_ANALYSIS) ? SBBModes.WALK_MAIN_MAINMODE : mode;
+		this.oAct = oAct;
+		this.dAct = dAct;
+		this.mode = mode.equals(SBBModes.WALK_FOR_ANALYSIS) ? SBBModes.WALK_MAIN_MAINMODE : mode;
 
-        this.deptime = deptime;
-        this.arrtime = arrtime;
+		this.deptime = deptime;
+		this.arrtime = arrtime;
 
-        this.origFacilityId = origFacilityId;
-        this.destFacilityId = destFacilityId;
+		this.origFacilityId = origFacilityId;
+		this.destFacilityId = destFacilityId;
 
-        this.coordDest = coordDest;
-        this.coordOrig = coordOrig;
+		this.coordDest = coordDest;
+		this.coordOrig = coordOrig;
 
     }
 

@@ -89,7 +89,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     }
 
     private boolean isIgnoredMode(String mode) {
-        return mode.equals(SBBModes.ACCESS_EGRESS_WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE);
+		return mode.equals(SBBModes.ACCESS_EGRESS_WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE);
 
     }
 
@@ -107,8 +107,8 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     }
 
     private void finishTransfer(Id<Person> personId) {
-        IntermodalTransfer transfer = openTransfers.remove(personId);
-        double transferTime = (transfer.boardingTime.isUndefined() ? transfer.departureTime.seconds() : transfer.boardingTime.seconds()) - transfer.arrivalTime;
+		IntermodalTransfer transfer = openTransfers.remove(personId);
+		double transferTime = (transfer.boardingTime.isUndefined() ? transfer.departureTime.seconds() : transfer.boardingTime.seconds()) - transfer.arrivalTime;
         if (monitoredModes.contains(transfer.departureMode) && monitoredModes.contains(transfer.arrivalMode)) {
             transferStats.get(transfer.arrivalMode).get(transfer.departureMode).addValue(transferTime);
         }
@@ -119,8 +119,8 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
         if (isIgnoredMode(event.getLegMode())) return;
         if (openTransfers.containsKey(event.getPersonId())) {
             IntermodalTransfer transfer = openTransfers.get(event.getPersonId());
-            transfer.departureMode = event.getLegMode();
-            transfer.departureTime = OptionalTime.defined(event.getTime());
+			transfer.departureMode = event.getLegMode();
+			transfer.departureTime = OptionalTime.defined(event.getTime());
 
         }
     }
@@ -128,8 +128,8 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
         if (openTransfers.containsKey(event.getPersonId())) {
-            openTransfers.get(event.getPersonId()).boardingTime = OptionalTime.defined(event.getTime());
-            finishTransfer(event.getPersonId());
+			openTransfers.get(event.getPersonId()).boardingTime = OptionalTime.defined(event.getTime());
+			finishTransfer(event.getPersonId());
 
         }
     }
@@ -213,25 +213,25 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
 
     @Override
     public void reset(int iteration) {
-        this.openTransfers.clear();
-        initializeTransferStats();
+		this.openTransfers.clear();
+		initializeTransferStats();
     }
 
-    private static class IntermodalTransfer {
+	private static class IntermodalTransfer {
 
-        private final Id<Person> personId;
-        private final double arrivalTime;
-        private final String arrivalMode;
-        OptionalTime departureTime = OptionalTime.undefined();
-        OptionalTime boardingTime = OptionalTime.undefined();
-        String departureMode = null;
+		private final Id<Person> personId;
+		private final double arrivalTime;
+		private final String arrivalMode;
+		OptionalTime departureTime = OptionalTime.undefined();
+		OptionalTime boardingTime = OptionalTime.undefined();
+		String departureMode = null;
 
-        public IntermodalTransfer(Id<Person> personId, double arrivalTime, String arrivalMode) {
-            this.personId = personId;
-            this.arrivalTime = arrivalTime;
-            this.arrivalMode = arrivalMode;
+		public IntermodalTransfer(Id<Person> personId, double arrivalTime, String arrivalMode) {
+			this.personId = personId;
+			this.arrivalTime = arrivalTime;
+			this.arrivalMode = arrivalMode;
 
-        }
+		}
 
-    }
+	}
 }

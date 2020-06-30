@@ -48,18 +48,18 @@ public class CreateVehiclesFromType {
             Id<Person> personId = person.getId();
             Id<Vehicle> vehicleId = Id.create(personId.toString(), Vehicle.class);
             String vehicleTypeName = (String) person.getAttributes().getAttribute(this.vehicleTypeAttributeName);
-            if (vehicleTypeName == null) {
-                vehicleTypeName = this.defaultVehicleType;
-            }
-            Id<VehicleType> vehicleTypeId = Id.create(vehicleTypeName, VehicleType.class);
-            VehicleType vehicleType = this.vehicles.getVehicleTypes().get(vehicleTypeId);
-            if (vehicleType == null) {
-                throw new RuntimeException("VehicleType not found: " + vehicleTypeName);
-            }
-            Vehicle vehicle = vf.createVehicle(vehicleId, vehicleType);
-            this.vehicles.addVehicle(vehicle);
-            VehicleUtils.insertVehicleIdsIntoAttributes(person, this.mainModes.stream().collect(Collectors.toMap(s -> s, t -> vehicleId)));
+			if (vehicleTypeName == null) {
+				vehicleTypeName = this.defaultVehicleType;
+			}
+			Id<VehicleType> vehicleTypeId = Id.create(vehicleTypeName, VehicleType.class);
+			VehicleType vehicleType = this.vehicles.getVehicleTypes().get(vehicleTypeId);
+			if (vehicleType == null) {
+				throw new RuntimeException("VehicleType not found: " + vehicleTypeName);
+			}
+			Vehicle vehicle = vf.createVehicle(vehicleId, vehicleType);
+			this.vehicles.addVehicle(vehicle);
+			VehicleUtils.insertVehicleIdsIntoAttributes(person, this.mainModes.stream().collect(Collectors.toMap(s -> s, t -> vehicleId)));
 
-        }
+		}
     }
 }

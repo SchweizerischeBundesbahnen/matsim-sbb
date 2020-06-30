@@ -46,10 +46,10 @@ public class PotentialAnalysisRouter {
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
         this.router = new NetworkRoutingModule(
-                SBBModes.CAR,
-                PopulationUtils.getFactory(),
-                network,
-                routeAlgo);
+				SBBModes.CAR,
+				PopulationUtils.getFactory(),
+				network,
+				routeAlgo);
     }
 
     //use this method for travel time evaluation in congested network
@@ -75,10 +75,10 @@ public class PotentialAnalysisRouter {
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
         this.router = new NetworkRoutingModule(
-                SBBModes.CAR,
-                PopulationUtils.getFactory(),
-                network,
-                routeAlgo);
+				SBBModes.CAR,
+				PopulationUtils.getFactory(),
+				network,
+				routeAlgo);
     }
 
 
