@@ -3,12 +3,18 @@ package ch.sbb.matsim.scoring;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
@@ -16,10 +22,8 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
-import org.matsim.core.utils.misc.Time;
+import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.pt.PtConstants;
-
-import java.util.List;
 
 /**
  * @author mrieser
@@ -28,7 +32,7 @@ public class SBBScoringFunctionTest {
 
     @Test
     public void testTransferScoring() {
-        testTransferScoring(SBBModes.NON_NETWORK_WALK, SBBModes.NON_NETWORK_WALK);
+		testTransferScoring(SBBModes.ACCESS_EGRESS_WALK, SBBModes.ACCESS_EGRESS_WALK);
     }
 
     @Test
@@ -37,29 +41,29 @@ public class SBBScoringFunctionTest {
     }
 
     private void testTransferScoring(String accessMode, String egressMode) {
-        Config config = ConfigUtils.createConfig();
-        ScoringFixture.addRideInteractionScoring(config);
-        Scenario scenario = ScenarioUtils.createScenario(config);
+		Config config = ConfigUtils.createConfig();
+		ScoringFixture.addRideInteractionScoring(config);
+		Scenario scenario = ScenarioUtils.createScenario(config);
 
-        PopulationFactory pf = scenario.getPopulation().getFactory();
-        Person person1 = pf.createPerson(Id.create("1", Person.class));
-        Activity homeAct1 = createActivity(pf, "home", 100, 100, Time.getUndefinedTime(), 8 * 3600);
-        Leg accessLeg = createLeg(pf, accessMode, 8 * 3600, 8.1 * 3600);
-        Activity ptInteraction1 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, 8.1 * 3600, 8.1 * 3600);
-        Leg ptLeg1 = createLeg(pf, "pt", 8.1 * 3600, 8.5 * 3600-60);
-        Activity ptInteraction2 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, 8.5 * 3600, 8.5 * 3600);
-        Leg transferLeg = createLeg(pf, SBBModes.NON_NETWORK_WALK, 8.5 * 3600 - 60, 8.5 * 3600 + 60);
-        Activity ptInteraction3 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, 8.5 * 3600, 8.5 * 3600);
-        Leg ptLeg2 = createLeg(pf, "pt", 8.5 * 3600 + 60, 8.9 * 3600);
-        Activity ptInteraction4 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, 8.9 * 3600, 8.9 * 3600);
-        Leg egressLeg = createLeg(pf, egressMode, 8.9 * 3600, 9 * 3600);
-        Activity homeAct2 = createActivity(pf, "home", 100, 100, 9 * 3600, Time.getUndefinedTime());
+		PopulationFactory pf = scenario.getPopulation().getFactory();
+		Person person1 = pf.createPerson(Id.create("1", Person.class));
+		Activity homeAct1 = createActivity(pf, "home", 100, 100, OptionalTime.undefined(), OptionalTime.defined(8 * 3600));
+		Leg accessLeg = createLeg(pf, accessMode, 8 * 3600, 8.1 * 3600);
+		Activity ptInteraction1 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.1 * 3600), OptionalTime.defined(8.1 * 3600));
+		Leg ptLeg1 = createLeg(pf, "pt", 8.1 * 3600, 8.5 * 3600 - 60);
+		Activity ptInteraction2 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
+		Leg transferLeg = createLeg(pf, SBBModes.ACCESS_EGRESS_WALK, 8.5 * 3600 - 60, 8.5 * 3600 + 60);
+		Activity ptInteraction3 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
+		Leg ptLeg2 = createLeg(pf, "pt", 8.5 * 3600 + 60, 8.9 * 3600);
+		Activity ptInteraction4 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.9 * 3600), OptionalTime.defined(8.9 * 3600));
+		Leg egressLeg = createLeg(pf, egressMode, 8.9 * 3600, 9 * 3600);
+		Activity homeAct2 = createActivity(pf, "home", 100, 100, OptionalTime.defined(9 * 3600), OptionalTime.undefined());
 
-        Plan plan = pf.createPlan();
-        plan.addActivity(homeAct1);
-        plan.addLeg(accessLeg);
-        plan.addActivity(ptInteraction1);
-        plan.addLeg(ptLeg1);
+		Plan plan = pf.createPlan();
+		plan.addActivity(homeAct1);
+		plan.addLeg(accessLeg);
+		plan.addActivity(ptInteraction1);
+		plan.addLeg(ptLeg1);
         plan.addActivity(ptInteraction2);
         plan.addLeg(transferLeg);
         plan.addActivity(ptInteraction3);
@@ -123,12 +127,20 @@ public class SBBScoringFunctionTest {
         Assert.assertEquals(expectedScore, score, 1e-6);
     }
 
-    private Activity createActivity(PopulationFactory pf, String type, double x, double y, double startTime, double endTime) {
-        Activity act = pf.createActivityFromCoord(type, new Coord(x, y));
-        act.setStartTime(startTime);
-        act.setEndTime(endTime);
-        return act;
-    }
+	private Activity createActivity(PopulationFactory pf, String type, double x, double y, OptionalTime startTime, OptionalTime endTime) {
+		Activity act = pf.createActivityFromCoord(type, new Coord(x, y));
+		if (startTime.isDefined()) {
+			act.setStartTime(startTime.seconds());
+		}
+		if (endTime.isDefined()) {
+			act.setEndTime(endTime.seconds());
+		} else {
+			act.setEndTimeUndefined();
+
+		}
+
+		return act;
+	}
 
     private Leg createLeg(PopulationFactory pf, String mode, double departureTime, double arrivalTime) {
         Leg leg = pf.createLeg(mode);

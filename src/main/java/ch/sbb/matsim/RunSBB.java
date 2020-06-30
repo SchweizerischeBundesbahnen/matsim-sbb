@@ -4,11 +4,20 @@
 
 package ch.sbb.matsim;
 
-
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
-import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
-import ch.sbb.matsim.config.*;
+import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
+import ch.sbb.matsim.config.ParkingCostConfigGroup;
+import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
+import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
+import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
+import ch.sbb.matsim.config.SBBS3ConfigGroup;
+import ch.sbb.matsim.config.SBBTransitConfigGroup;
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
@@ -20,9 +29,6 @@ import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgress;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
-import ch.sbb.matsim.routing.pt.raptor.AccessEgressRouteCache;
-import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
-import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
@@ -33,7 +39,6 @@ import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
@@ -160,23 +165,16 @@ public class RunSBB {
         controler.addOverridingModule(new AccessEgress(scenario));
         controler.addOverridingModule(new IntermodalModule());
 
-        controler.addOverridingModule(new AbstractModule() {
-            @Override
-            public void install() {
-                bind(AccessEgressRouteCache.class).asEagerSingleton();
-                bind(RaptorStopFinder.class).to(SBBIntermodalRaptorStopFinder.class);
-            }
-        });
 
     }
 
     public static Config buildConfig(String filepath) {
         Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
 
-        if (config.plansCalcRoute().getNetworkModes().contains(TransportMode.ride)) {
-            // MATSim defines ride by default as teleported, which conflicts with the network mode
-            config.plansCalcRoute().removeModeRoutingParams(TransportMode.ride);
-        }
+		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
+			// MATSim defines ride by default as teleported, which conflicts with the network mode
+			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
+		}
 
         config.checkConsistency();
         return config;

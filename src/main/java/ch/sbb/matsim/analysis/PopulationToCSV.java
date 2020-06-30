@@ -6,17 +6,21 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.csv.CSVWriter;
+import java.io.IOException;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.households.HouseholdsReaderV10;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
-
-import java.io.IOException;
 
 public class PopulationToCSV {
     private final static Logger log = Logger.getLogger(PopulationToCSV.class);
@@ -82,22 +86,22 @@ public class PopulationToCSV {
                             planelementsWriter.set("planelement_id", Integer.toString(i));
 
                             if (planelement instanceof Leg) {
-                                Leg leg = ((Leg) planelement);
-                                planelementsWriter.set("mode", leg.getMode());
-                                planelementsWriter.set("start_time", Double.toString(leg.getDepartureTime()));
-                                planelementsWriter.set("end_time", Double.toString(leg.getDepartureTime() + leg.getTravelTime()));
-                                planelementsWriter.set("type", "leg");
+								Leg leg = ((Leg) planelement);
+								planelementsWriter.set("mode", leg.getMode());
+								planelementsWriter.set("start_time", Double.toString(leg.getDepartureTime().seconds()));
+								planelementsWriter.set("end_time", Double.toString(leg.getDepartureTime().seconds() + leg.getTravelTime().seconds()));
+								planelementsWriter.set("type", "leg");
 
-                            }
+							}
                             if (planelement instanceof Activity) {
-                                Activity activity = ((Activity) planelement);
-                                planelementsWriter.set("activity_type", activity.getType());
-                                planelementsWriter.set("start_time", Double.toString(activity.getStartTime()));
-                                planelementsWriter.set("end_time", Double.toString(activity.getEndTime()));
-                                planelementsWriter.set("type", "activity");
-                                planelementsWriter.set("x", Double.toString(activity.getCoord().getX()));
-                                planelementsWriter.set("y", Double.toString(activity.getCoord().getY()));
-                            }
+								Activity activity = ((Activity) planelement);
+								planelementsWriter.set("activity_type", activity.getType());
+								planelementsWriter.set("start_time", Double.toString(activity.getStartTime().seconds()));
+								planelementsWriter.set("end_time", Double.toString(activity.getEndTime().seconds()));
+								planelementsWriter.set("type", "activity");
+								planelementsWriter.set("x", Double.toString(activity.getCoord().getX()));
+								planelementsWriter.set("y", Double.toString(activity.getCoord().getY()));
+							}
 
                             planelementsWriter.writeRow();
                         }

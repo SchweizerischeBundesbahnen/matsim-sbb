@@ -189,13 +189,13 @@ public class RideFeederScoringCalibration {
                 Leg leg = (Leg) pe;
                 mode = leg.getMode();
                 distance = leg.getRoute().getDistance();
-                end_time = leg.getDepartureTime() + leg.getTravelTime();
+                end_time = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
             } else {
 
                 sf.handleActivity((Activity) pe);
                 mode = ((Activity) pe).getType();
                 distance = 0;
-                end_time = ((Activity) pe).getEndTime();
+                end_time = ((Activity) pe).getEndTime().seconds();
             }
             System.out.println(sf.getScore() + " " + pe.toString());
 

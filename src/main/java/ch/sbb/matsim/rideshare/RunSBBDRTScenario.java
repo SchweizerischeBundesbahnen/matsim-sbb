@@ -1,11 +1,14 @@
 package ch.sbb.matsim.rideshare;
 
 import ch.sbb.matsim.RunSBB;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.rideshare.analysis.SBBDRTAnalysisModule;
 import ch.sbb.matsim.rideshare.utils.RideshareAwareIntermodalMainModeIdentifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.contrib.av.robotaxi.fares.drt.DrtFaresConfigGroup;
 import org.matsim.contrib.drt.run.DrtConfigs;
 import org.matsim.contrib.drt.run.DrtControlerCreator;
@@ -21,10 +24,6 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.router.MainModeIdentifier;
 import org.matsim.core.scenario.ScenarioUtils;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class RunSBBDRTScenario {
 
@@ -60,10 +59,10 @@ public class RunSBBDRTScenario {
     public static void prepareDrtConfig(Config config) {
         DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore(), config.plansCalcRoute());
 
-        if (config.plansCalcRoute().getNetworkModes().contains(TransportMode.ride)) {
-            // MATSim defines ride by default as teleported, which conflicts with the network mode
-            config.plansCalcRoute().removeModeRoutingParams(TransportMode.ride);
-        }
+		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
+			// MATSim defines ride by default as teleported, which conflicts with the network mode
+			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
+		}
 
         config.checkConsistency();
     }

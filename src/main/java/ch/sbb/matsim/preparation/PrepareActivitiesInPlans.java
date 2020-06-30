@@ -2,6 +2,7 @@ package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.variables.SBBActivities;
+import java.util.List;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
@@ -15,9 +16,6 @@ import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.misc.Time;
-
-import java.util.List;
 
 public class PrepareActivitiesInPlans {
 
@@ -47,27 +45,26 @@ public class PrepareActivitiesInPlans {
 
 
                 for (Activity act : activities) {
-                    if (act == firstAct) continue;
-                    if (act == lastAct) {
-                        processOvernightAct(firstAct, lastAct);
-                        break;
-                    }
+					if (act == firstAct) {
+						continue;
+					}
+					if (act == lastAct) {
+						processOvernightAct(firstAct, lastAct);
+						break;
+					}
 
-                    double endTime = act.getEndTime();
-                    if (Time.isUndefinedTime(endTime)) endTime = 36.0 * 3600;
+					double endTime = act.getEndTime().orElse(36.0 * 3600);
+					double startTime = act.getStartTime().orElse(0.0);
 
-                    double startTime = act.getStartTime();
-                    if (Time.isUndefinedTime(startTime)) startTime = 0.0;
+					double duration = endTime - startTime;
 
-                    double duration = endTime - startTime;
+					if (act.getType().equals(SBBActivities.home)) {
+						if (startTime >= (16.0 * 3600) && startTime < (19.0 * 3600)) {
+							long ii = roundSecondsToMinInterval(duration, 60);
 
-                    if (act.getType().equals(SBBActivities.home)) {
-                        if (startTime >= (16.0 * 3600) && startTime < (19.0 * 3600)) {
-                            long ii = roundSecondsToMinInterval(duration, 60);
-
-                            double hours = startTime / 3600 * 1;
-                            double yy = ((int) (hours + 0.25)) / 1.0;
-                            String type = SBBActivities.home + "_" + ii + "_" + yy;
+							double hours = startTime / 3600 * 1;
+							double yy = ((int) (hours + 0.25)) / 1.0;
+							String type = SBBActivities.home + "_" + ii + "_" + yy;
                             act.setType(type);
                         } else {
                             long ii = roundSecondsToMinInterval(duration, 60);
@@ -139,19 +136,21 @@ public class PrepareActivitiesInPlans {
     }
 
     private static void processOvernightAct(Activity firstAct, Activity lastAct) {
-        double lastActStartTime = lastAct.getStartTime();
-        double totDuration = (firstAct.getEndTime() + 24 * 3600.0) - lastAct.getStartTime();
-        if (totDuration <= 0) totDuration = 1;
+		double lastActStartTime = lastAct.getStartTime().seconds();
+		double totDuration = (firstAct.getEndTime().seconds() + 24 * 3600.0) - lastAct.getStartTime().seconds();
+		if (totDuration <= 0) {
+			totDuration = 1;
+		}
 
-        if (lastActStartTime >= (16.0 * 3600) && lastActStartTime < (19.0 * 3600)) {
-            long ii = roundSecondsToMinInterval(totDuration, 60);
+		if (lastActStartTime >= (16.0 * 3600) && lastActStartTime < (19.0 * 3600)) {
+			long ii = roundSecondsToMinInterval(totDuration, 60);
 
-            double hours = lastActStartTime / 3600 * 1;
-            double yy = ((int) hours) / 1.0 + 1.0;
+			double hours = lastActStartTime / 3600 * 1;
+			double yy = ((int) hours) / 1.0 + 1.0;
 
-            String type = SBBActivities.home + "_" + ii + "_" + yy;
-            firstAct.setType(type);
-            lastAct.setType(type);
+			String type = SBBActivities.home + "_" + ii + "_" + yy;
+			firstAct.setType(type);
+			lastAct.setType(type);
         } else {
             long ii = roundSecondsToMinInterval(totDuration, 60);
             String type = SBBActivities.home + "_" + ii;

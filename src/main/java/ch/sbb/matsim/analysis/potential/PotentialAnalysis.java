@@ -1,36 +1,40 @@
 package ch.sbb.matsim.analysis.potential;
 
-
-import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
-import ch.sbb.matsim.analysis.skims.LeastCostPathTree;
 import ch.sbb.matsim.analysis.skims.StreamingFacilities;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.plans.facilities.FacilitiesReader;
-import ch.sbb.matsim.routing.pt.raptor.*;
+import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
+import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import ch.sbb.matsim.zones.ZonesQueryCache;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
-import org.matsim.core.api.internal.MatsimWriter;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
-import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Counter;
-import org.matsim.facilities.*;
-import org.matsim.pt.transitSchedule.api.*;
-
-import java.io.IOException;
-import java.util.*;
+import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.MatsimFacilitiesReader;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class PotentialAnalysis {
     private static final Logger log = Logger.getLogger(PotentialAnalysis.class);
@@ -190,10 +194,10 @@ public class PotentialAnalysis {
             for (TransitStopFacility stopFacility : findStopCandidates(facility.getCoord(), raptor, raptorParameters)) {
 
                 Leg leg = potentialAnalysisRouter.fetch(facility, stopFacility);
-                if (leg.getTravelTime() < minimumTime || closestFacility == null) {
-                    closestFacility = stopFacility;
-                    minimumTime = leg.getTravelTime();
-                }
+				if (leg.getTravelTime().seconds() < minimumTime || closestFacility == null) {
+					closestFacility = stopFacility;
+					minimumTime = leg.getTravelTime().seconds();
+				}
 
             }
             facility.getAttributes().putAttribute("time_to_closest_station", minimumTime);

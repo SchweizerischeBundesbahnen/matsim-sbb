@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.abm;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.facilities.ActivityFacility;
@@ -20,17 +21,18 @@ public class AbmTrip {
 
 
     public AbmTrip(Id<ActivityFacility> origFacilityId, Id<ActivityFacility> destFacilityId, String oAct, String dAct, String mode, int deptime, int arrtime, Coord coordOrig, Coord coordDest) {
-        this.oAct = oAct;
-        this.dAct = dAct;
-        this.mode = mode;
-        this.deptime = deptime;
-        this.arrtime = arrtime;
+		this.oAct = oAct;
+		this.dAct = dAct;
+		this.mode = mode.equals(SBBModes.WALK_FOR_ANALYSIS) ? SBBModes.WALK_MAIN_MAINMODE : mode;
 
-        this.origFacilityId = origFacilityId;
-        this.destFacilityId = destFacilityId;
+		this.deptime = deptime;
+		this.arrtime = arrtime;
 
-        this.coordDest = coordDest;
-        this.coordOrig = coordOrig;
+		this.origFacilityId = origFacilityId;
+		this.destFacilityId = destFacilityId;
+
+		this.coordDest = coordDest;
+		this.coordOrig = coordOrig;
 
     }
 

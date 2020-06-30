@@ -4,13 +4,11 @@
 
 package ch.sbb.matsim.config;
 
-
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.zones.Zones;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.TransportMode;
-import org.matsim.core.config.ReflectiveConfigGroup;
-
 import java.util.Map;
+import org.matsim.api.core.v01.Id;
+import org.matsim.core.config.ReflectiveConfigGroup;
 
 public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
@@ -40,8 +38,8 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private String shapefileScreenline = null;
 
     private Boolean visumNetFile = false;
-    private Integer visumNetworkThreshold = 5000;
-    private String visumNetworkMode = TransportMode.car;
+	private Integer visumNetworkThreshold = 5000;
+	private String visumNetworkMode = SBBModes.CAR;
 
     @StringGetter(PARAM_SHAPEFILE_SCREENLINE)
     public String getShapefileScreenline() {

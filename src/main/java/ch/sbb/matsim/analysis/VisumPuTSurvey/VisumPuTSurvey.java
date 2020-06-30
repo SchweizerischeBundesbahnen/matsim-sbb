@@ -8,6 +8,11 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -20,12 +25,6 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.matsim.vehicles.Vehicle;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class VisumPuTSurvey {
 
@@ -130,12 +129,12 @@ public class VisumPuTSurvey {
                         egressMode = trip.getEgressFromRailMode(egressLegs);
                         accessDist = trip.getAccessToRailDist(accessLegs);
                         egressDist = trip.getEgressFromRailDist(egressLegs);
-                        if (accessMode.equals(SBBModes.NON_NETWORK_WALK) || accessMode.equals(SBBModes.PT_FALLBACK_MODE)) {
-                            accessMode = SBBModes.WALK;
+                        if (accessMode.equals(SBBModes.ACCESS_EGRESS_WALK) || accessMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                            accessMode = SBBModes.WALK_FOR_ANALYSIS;
                         }
 
-                        if (egressMode.equals(SBBModes.NON_NETWORK_WALK) || egressMode.equals(SBBModes.PT_FALLBACK_MODE)) {
-                            egressMode = SBBModes.WALK;
+                        if (egressMode.equals(SBBModes.ACCESS_EGRESS_WALK) || egressMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                            egressMode = SBBModes.WALK_FOR_ANALYSIS;
                         }
                     }
                     Integer i = 1;

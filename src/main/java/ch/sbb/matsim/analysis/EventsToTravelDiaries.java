@@ -16,11 +16,35 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesQueryCache;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.events.*;
-import org.matsim.api.core.v01.events.handler.*;
+import org.matsim.api.core.v01.events.ActivityEndEvent;
+import org.matsim.api.core.v01.events.ActivityStartEvent;
+import org.matsim.api.core.v01.events.LinkEnterEvent;
+import org.matsim.api.core.v01.events.LinkLeaveEvent;
+import org.matsim.api.core.v01.events.PersonArrivalEvent;
+import org.matsim.api.core.v01.events.PersonDepartureEvent;
+import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
+import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
+import org.matsim.api.core.v01.events.PersonStuckEvent;
+import org.matsim.api.core.v01.events.TransitDriverStartsEvent;
+import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
+import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
+import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
+import org.matsim.api.core.v01.events.handler.LinkLeaveEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonArrivalEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonDepartureEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonLeavesVehicleEventHandler;
+import org.matsim.api.core.v01.events.handler.PersonStuckEventHandler;
+import org.matsim.api.core.v01.events.handler.TransitDriverStartsEventHandler;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.TeleportationArrivalEvent;
@@ -38,13 +62,6 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.vehicles.Vehicle;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author pieterfourie, sergioo
@@ -483,12 +500,12 @@ public class EventsToTravelDiaries implements
                         accessDist = String.valueOf(trip.getAccessToRailDist(accessLegs));
                         egressDist = String.valueOf(trip.getEgressFromRailDist(egressLegs));
 
-                        if (accessMode.equals(SBBModes.NON_NETWORK_WALK) || accessMode.equals(SBBModes.PT_FALLBACK_MODE)) {
-                            accessMode = SBBModes.WALK;
+                        if (accessMode.equals(SBBModes.ACCESS_EGRESS_WALK) || accessMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                            accessMode = SBBModes.WALK_FOR_ANALYSIS;
                         }
 
-                        if (egressMode.equals(SBBModes.NON_NETWORK_WALK) || egressMode.equals(SBBModes.PT_FALLBACK_MODE)) {
-                            egressMode = SBBModes.WALK;
+                        if (egressMode.equals(SBBModes.ACCESS_EGRESS_WALK) || egressMode.equals(SBBModes.PT_FALLBACK_MODE)) {
+                            egressMode = SBBModes.WALK_FOR_ANALYSIS;
                         }
                     }
 
