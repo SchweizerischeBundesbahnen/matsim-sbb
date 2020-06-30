@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.sbb</groupId>
     <artifactId>matsim-sbb</artifactId>
-    <version>0.12.3-SNAPSHOT</version>
+    <version>0.12.3</version>
     <name>MATSim SBB Project</name>
     <description>MATSim for SIMBA MOBi</description>
 
@@ -176,8 +174,7 @@
                             </outputFile>
                             <transformers>
                                 <!-- This bit sets the main class for the executable jar as you otherwise would with the assembly plugin -->
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
                                         <Main-Class>ch.sbb.matsim.RunSBB</Main-Class>
                                         <Specification-Vendor>ch.sbb.matsim</Specification-Vendor>
@@ -188,8 +185,7 @@
                                     </manifestEntries>
                                 </transformer>
                                 <!-- This bit merges the various GeoTools META-INF/services files         -->
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                             </transformers>
                         </configuration>
                     </execution>
