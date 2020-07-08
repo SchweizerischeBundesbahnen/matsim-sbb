@@ -324,7 +324,8 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
         double egressTime = backwards ? characteristics.getAccessTime() : characteristics.getEgressTime();
         if (!Double.isNaN(accessTime)) {
             Leg leg = createAccessEgressLeg(accessTime, startLink);
-            travel.add(leg);
+            leg.setDepartureTime(departureTime);
+			travel.add(leg);
             Activity stage = createStageAct(startLink);
             travel.add(stage);
         }
