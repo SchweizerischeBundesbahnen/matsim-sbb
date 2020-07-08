@@ -12,7 +12,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressWalkType;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressType;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.routes.NetworkRoute;
@@ -47,7 +47,7 @@ public final class SBBNetworkRoutingInclAccessEgressModule implements RoutingMod
         this.routeAlgo = routeAlgo;
         this.mode = mode;
         this.populationFactory = populationFactory;
-        if (calcRouteConfig.getAccessEgressWalkType().equals(AccessEgressWalkType.none)) {
+        if (calcRouteConfig.getAccessEgressType().equals(AccessEgressType.none)) {
             throw new RuntimeException("trying to use access/egress but not switched on in config.  "
                     + "currently not supported; there are too many other problems");
         }

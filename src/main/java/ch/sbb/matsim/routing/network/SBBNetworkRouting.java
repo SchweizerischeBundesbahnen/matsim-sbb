@@ -32,7 +32,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressWalkType;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressType;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.router.RoutingModule;
@@ -115,13 +115,13 @@ public class SBBNetworkRouting implements Provider<RoutingModule>
                 travelDisutilityFactory.createTravelDisutility(travelTime),
                 travelTime);
 
-		if (!plansCalcRouteConfigGroup.getAccessEgressWalkType().equals(AccessEgressWalkType.none)) {
-			return new SBBNetworkRoutingInclAccessEgressModule(mode, populationFactory, filteredNetwork, routeAlgo,
-					plansCalcRouteConfigGroup, zones);
-		} else {
-			// return DefaultRoutingModules.createPureNetworkRouter(mode, populationFactory, filteredNetwork, routeAlgo);
-			throw new RuntimeException("You should not use this router or activate isInsertingAccessEgressWalk");
-		}
+        if (!plansCalcRouteConfigGroup.getAccessEgressType().equals(AccessEgressType.none)) {
+            return new SBBNetworkRoutingInclAccessEgressModule(mode, populationFactory, filteredNetwork, routeAlgo,
+                    plansCalcRouteConfigGroup, zones);
+        } else {
+            // return DefaultRoutingModules.createPureNetworkRouter(mode, populationFactory, filteredNetwork, routeAlgo);
+            throw new RuntimeException("You should not use this router or activate isInsertingAccessEgressWalk");
+        }
     }
 }
 
