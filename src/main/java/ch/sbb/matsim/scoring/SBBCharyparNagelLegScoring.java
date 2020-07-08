@@ -25,9 +25,9 @@ import org.matsim.pt.PtConstants;
  * group. - don't apply lineSwitch-utility, as this will be handled in {@link SBBTransferScoring}.
  *
  * @author mrieser / SBB
- *         <p>
- *         <p>
- *         This is a re-implementation of the original CharyparNagel function, based on a modular approach.
+ * 		<p>
+ * 		<p>
+ * 		This is a re-implementation of the original CharyparNagel function, based on a modular approach.
  * @author rashid_waraich
  */
 public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumScoringFunction.LegScoring, org.matsim.core.scoring.SumScoringFunction.ArbitraryEventScoring {
@@ -101,7 +101,7 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 	
 	@Override
 	public void handleEvent(Event event) {
-		if ( event instanceof ActivityEndEvent ) {
+		if (event instanceof ActivityEndEvent) {
 			// When there is a "real" activity, flags are reset:
 			if (!PtConstants.TRANSIT_ACTIVITY_TYPE.equals(((ActivityEndEvent) event).getActType())) {
 				this.nextStartPtLegIsFirstOfTrip = true;
@@ -109,22 +109,22 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 			this.lastActivityEndTime = OptionalTime.defined(event.getTime());
 		}
 
-		if ( event instanceof PersonEntersVehicleEvent && currentLegIsPtLeg ) {
+		if (event instanceof PersonEntersVehicleEvent && currentLegIsPtLeg) {
 			// add score of waiting, _minus_ score of travelling (since it is added in the legscoring above):
 			this.score +=
 					(event.getTime() - this.lastActivityEndTime.seconds()) * (this.params.marginalUtilityOfWaitingPt_s - this.params.modeParams.get(SBBModes.PT).marginalUtilityOfTraveling_s);
 		}
 
-		if ( event instanceof PersonDepartureEvent ) {
+		if (event instanceof PersonDepartureEvent) {
 			String mode = ((PersonDepartureEvent) event).getLegMode();
 			this.currentLegIsPtLeg = this.ptModes.contains(mode);
-			if ( currentLegIsPtLeg ) {
-				if ( !this.nextStartPtLegIsFirstOfTrip ) {
+			if (currentLegIsPtLeg) {
+				if (!this.nextStartPtLegIsFirstOfTrip) {
 					this.score -= params.modeParams.get(mode).constant;
 					// (yyyy deducting this again, since is it wrongly added above.  should be consolidated; this is so the code
 					// modification is minimally invasive.  kai, dec'12)
 				}
-				this.nextStartPtLegIsFirstOfTrip = false ;
+				this.nextStartPtLegIsFirstOfTrip = false;
 			}
 		}
 	}
@@ -134,6 +134,5 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		double legScore = calcLegScore(leg.getDepartureTime().seconds(), leg.getDepartureTime().seconds() + leg.getTravelTime().seconds(), leg);
 		this.score += legScore;
 	}
-
 
 }

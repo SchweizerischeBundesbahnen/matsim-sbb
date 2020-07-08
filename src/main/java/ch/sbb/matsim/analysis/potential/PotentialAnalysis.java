@@ -193,13 +193,13 @@ public class PotentialAnalysis {
 
             for (TransitStopFacility stopFacility : findStopCandidates(facility.getCoord(), raptor, raptorParameters)) {
 
-                Leg leg = potentialAnalysisRouter.fetch(facility, stopFacility);
-                if (leg.getTravelTime().seconds() < minimumTime || closestFacility == null) {
-                    closestFacility = stopFacility;
-                    minimumTime = leg.getTravelTime().seconds();
-                }
+				Leg leg = potentialAnalysisRouter.fetch(facility, stopFacility);
+				if (leg.getTravelTime().seconds() < minimumTime || closestFacility == null) {
+					closestFacility = stopFacility;
+					minimumTime = leg.getTravelTime().seconds();
+				}
 
-            }
+			}
             facility.getAttributes().putAttribute("time_to_closest_station", minimumTime);
 
         }

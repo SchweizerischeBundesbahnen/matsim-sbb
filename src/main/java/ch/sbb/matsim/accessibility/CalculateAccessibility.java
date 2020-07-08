@@ -1,13 +1,26 @@
 package ch.sbb.matsim.accessibility;
 
 import ch.sbb.matsim.accessibility.Accessibility.Modes;
-import ch.sbb.matsim.analysis.matrices.CalculateIndicatorMatrices;
 import ch.sbb.matsim.analysis.skims.StreamingFacilities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import ch.sbb.matsim.zones.ZonesQueryCache;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.ToDoubleFunction;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.population.Activity;
@@ -23,20 +36,6 @@ import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.ToDoubleFunction;
 
 public class CalculateAccessibility {
 
@@ -223,7 +222,7 @@ public class CalculateAccessibility {
             writeAttractions(attractionsFile, attractions);
         }
 
-        BiPredicate<TransitLine, TransitRoute> trainDetector = CalculateIndicatorMatrices.buildTrainLinePredictor(trainFilter);
+		BiPredicate<TransitLine, TransitRoute> trainDetector = (line, route) -> route.getTransportMode().equals(SBBModes.PTSubModes.RAIL);
 
         Zones zones = new ZonesQueryCache(ZonesLoader.loadZones("mobi", zonesFilename, "ID"));
 

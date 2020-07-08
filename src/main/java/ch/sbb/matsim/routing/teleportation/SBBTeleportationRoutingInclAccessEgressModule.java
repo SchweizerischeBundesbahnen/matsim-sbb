@@ -36,19 +36,19 @@ public class SBBTeleportationRoutingInclAccessEgressModule extends Teleportation
         Link accessActLink = accessEgress.decideOnLink(fromFacility);
         Link egressActLink = accessEgress.decideOnLink(toFacility);
 
-        double now = departureTime;
+		double now = departureTime;
 
-        List<PlanElement> result = new ArrayList<>();
+		List<PlanElement> result = new ArrayList<>();
 
-        now = accessEgress.addAccess(fromFacility, accessActLink, now, result, person);
-        List<? extends PlanElement> planElements = super.calcRoute(fromFacility, toFacility, now, person);
-        Leg leg = (Leg) planElements.get(0);
-        result.add(leg);
+		now = accessEgress.addAccess(fromFacility, accessActLink, now, result, person);
+		List<? extends PlanElement> planElements = super.calcRoute(fromFacility, toFacility, now, person);
+		Leg leg = (Leg) planElements.get(0);
+		result.add(leg);
 
-        now = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
-        now = accessEgress.addEgress(toFacility, egressActLink, now, result, person);
+		now = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
+		now = accessEgress.addEgress(toFacility, egressActLink, now, result, person);
 
-        return result;
-    }
+		return result;
+	}
 
 }

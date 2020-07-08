@@ -5,15 +5,16 @@
 package ch.sbb.matsim.analysis.matrices;
 
 import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
+import ch.sbb.matsim.config.variables.SBBModes;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.BiPredicate;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.function.BiPredicate;
 
 /**
  * @author mrieser / SBB
@@ -21,26 +22,27 @@ import java.util.function.BiPredicate;
 public class CalculateIndicatorMatrices {
 
     public static void main(String[] args) throws IOException {
-        System.setProperty("matsim.preferLocalDtds", "true");
+		System.setProperty("matsim.preferLocalDtds", "true");
+		String coordinatesFilename = args[0];
+		String networkFilename = args[1];
+		String transitScheduleFilename = args[2];
+		String eventsFilename = args[3].equals("-") ? null : args[3];
+		String outputDirectory = args[4];
+		int numberOfThreads = Integer.valueOf(args[5]);
+		boolean detectTrainLines = Boolean.parseBoolean(args[6]);
+		BiPredicate<TransitLine, TransitRoute> trainLinePredictor = detectTrainLines ?
+				(line, route) -> route.getTransportMode().equals(SBBModes.PTSubModes.RAIL) :
+				(line, route) -> false;
 
-        String coordinatesFilename = args[0];
-        String networkFilename = args[1];
-        String transitScheduleFilename = args[2];
-        String eventsFilename = args[3].equals("-") ? null : args[3];
-        String outputDirectory = args[4];
-        int numberOfThreads = Integer.valueOf(args[5]);
-        String trainLinePredStr = args[6].equals("-") ? null : args[6]; // list of ; separated "or" conditions
-        BiPredicate<TransitLine, TransitRoute> trainLinePredictor = buildTrainLinePredictor(trainLinePredStr);
+		Map<String, double[]> timesCar = new LinkedHashMap<>();
+		Map<String, double[]> timesPt = new LinkedHashMap<>();
 
-        Map<String, double[]> timesCar = new LinkedHashMap<>();
-        Map<String, double[]> timesPt = new LinkedHashMap<>();
-
-        for (int argIdx = 7; argIdx < args.length; argIdx++) {
-            String arg = args[argIdx];
-            String mode = null;
-            String data = null;
-            if (arg.startsWith("car=")) {
-                mode = "car";
+		for (int argIdx = 7; argIdx < args.length; argIdx++) {
+			String arg = args[argIdx];
+			String mode = null;
+			String data = null;
+			if (arg.startsWith("car=")) {
+				mode = "car";
                 data = arg.substring(4);
             }
             if (arg.startsWith("pt=")) {
@@ -83,62 +85,4 @@ public class CalculateIndicatorMatrices {
         skims.calculateBeelineMatrix();
     }
 
-    public static BiPredicate<TransitLine, TransitRoute> buildTrainLinePredictor(String str) {
-        if (str == null) {
-            return (line, route) -> false;
-        }
-
-        String[] conditionStrings = str.split(";");
-        Condition[] conditions = new Condition[conditionStrings.length];
-        for (int i = 0; i < conditionStrings.length; i++) {
-            String[] parts = conditionStrings[i].split(",");
-            String attribute = parts[0];
-            String method = parts[1];
-            String value = parts[2];
-            ConditionType type;
-            if (method.equals("equals")) {
-                type = ConditionType.EQUALS;
-            } else if (method.equals("contains")) {
-                type = ConditionType.CONTAINS;
-            } else {
-                throw new UnsupportedOperationException("Unsupported condition type: " + method);
-            }
-            conditions[i] = new Condition(attribute, type, value);
-        }
-
-        return (line, route) -> {
-           for (Condition c : conditions) {
-               if (c.testCondition(route)) {
-                   return true;
-               }
-           }
-           return false;
-        };
-    }
-
-    private enum ConditionType { EQUALS, CONTAINS }
-
-    private static class Condition {
-        final String attribute;
-        final ConditionType type;
-        final String value;
-
-        Condition(String attribute, ConditionType type, String value) {
-            this.attribute = attribute;
-            this.type = type;
-            this.value = value;
-        }
-
-        boolean testCondition(TransitRoute route) {
-            Object attributeValueObj = route.getAttributes().getAttribute(this.attribute);
-            String attributeValue = attributeValueObj == null ? "" : attributeValueObj.toString();
-            switch (this.type) {
-                case EQUALS:
-                    return attributeValue.equals(this.value);
-                case CONTAINS:
-                    return attributeValue.contains(this.value);
-            }
-            throw new RuntimeException("Unsupported condition type " + this.type);
-        }
-    }
 }

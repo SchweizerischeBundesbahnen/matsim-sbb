@@ -32,8 +32,8 @@ public class SBBScoringFunctionTest {
 
     @Test
     public void testTransferScoring() {
-        testTransferScoring(SBBModes.ACCESS_EGRESS_WALK, SBBModes.ACCESS_EGRESS_WALK);
-    }
+		testTransferScoring(SBBModes.ACCESS_EGRESS_WALK, SBBModes.ACCESS_EGRESS_WALK);
+	}
 
     @Test
     public void testTransferScoring_accessEgressJustTransit() {
@@ -41,39 +41,39 @@ public class SBBScoringFunctionTest {
     }
 
     private void testTransferScoring(String accessMode, String egressMode) {
-        Config config = ConfigUtils.createConfig();
-        ScoringFixture.addRideInteractionScoring(config);
-        Scenario scenario = ScenarioUtils.createScenario(config);
+		Config config = ConfigUtils.createConfig();
+		ScoringFixture.addRideInteractionScoring(config);
+		Scenario scenario = ScenarioUtils.createScenario(config);
 
-        PopulationFactory pf = scenario.getPopulation().getFactory();
-        Person person1 = pf.createPerson(Id.create("1", Person.class));
-        Activity homeAct1 = createActivity(pf, "home", 100, 100, OptionalTime.undefined(), OptionalTime.defined(8 * 3600));
-        Leg accessLeg = createLeg(pf, accessMode, 8 * 3600, 8.1 * 3600);
-        Activity ptInteraction1 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.1 * 3600), OptionalTime.defined(8.1 * 3600));
-        Leg ptLeg1 = createLeg(pf, "pt", 8.1 * 3600, 8.5 * 3600 - 60);
-        Activity ptInteraction2 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
-        Leg transferLeg = createLeg(pf, SBBModes.ACCESS_EGRESS_WALK, 8.5 * 3600 - 60, 8.5 * 3600 + 60);
-        Activity ptInteraction3 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
-        Leg ptLeg2 = createLeg(pf, "pt", 8.5 * 3600 + 60, 8.9 * 3600);
-        Activity ptInteraction4 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.9 * 3600), OptionalTime.defined(8.9 * 3600));
-        Leg egressLeg = createLeg(pf, egressMode, 8.9 * 3600, 9 * 3600);
-        Activity homeAct2 = createActivity(pf, "home", 100, 100, OptionalTime.defined(9 * 3600), OptionalTime.undefined());
+		PopulationFactory pf = scenario.getPopulation().getFactory();
+		Person person1 = pf.createPerson(Id.create("1", Person.class));
+		Activity homeAct1 = createActivity(pf, "home", 100, 100, OptionalTime.undefined(), OptionalTime.defined(8 * 3600));
+		Leg accessLeg = createLeg(pf, accessMode, 8 * 3600, 8.1 * 3600);
+		Activity ptInteraction1 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.1 * 3600), OptionalTime.defined(8.1 * 3600));
+		Leg ptLeg1 = createLeg(pf, "pt", 8.1 * 3600, 8.5 * 3600 - 60);
+		Activity ptInteraction2 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
+		Leg transferLeg = createLeg(pf, SBBModes.ACCESS_EGRESS_WALK, 8.5 * 3600 - 60, 8.5 * 3600 + 60);
+		Activity ptInteraction3 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
+		Leg ptLeg2 = createLeg(pf, "pt", 8.5 * 3600 + 60, 8.9 * 3600);
+		Activity ptInteraction4 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.9 * 3600), OptionalTime.defined(8.9 * 3600));
+		Leg egressLeg = createLeg(pf, egressMode, 8.9 * 3600, 9 * 3600);
+		Activity homeAct2 = createActivity(pf, "home", 100, 100, OptionalTime.defined(9 * 3600), OptionalTime.undefined());
 
-        Plan plan = pf.createPlan();
-        plan.addActivity(homeAct1);
-        plan.addLeg(accessLeg);
-        plan.addActivity(ptInteraction1);
-        plan.addLeg(ptLeg1);
-        plan.addActivity(ptInteraction2);
-        plan.addLeg(transferLeg);
-        plan.addActivity(ptInteraction3);
-        plan.addLeg(ptLeg2);
-        plan.addActivity(ptInteraction4);
-        plan.addLeg(egressLeg);
-        plan.addActivity(homeAct2);
-        person1.addPlan(plan);
+		Plan plan = pf.createPlan();
+		plan.addActivity(homeAct1);
+		plan.addLeg(accessLeg);
+		plan.addActivity(ptInteraction1);
+		plan.addLeg(ptLeg1);
+		plan.addActivity(ptInteraction2);
+		plan.addLeg(transferLeg);
+		plan.addActivity(ptInteraction3);
+		plan.addLeg(ptLeg2);
+		plan.addActivity(ptInteraction4);
+		plan.addLeg(egressLeg);
+		plan.addActivity(homeAct2);
+		person1.addPlan(plan);
 
-        List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan);
+		List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan);
 
         PlanCalcScoreConfigGroup.ActivityParams homeParams = new PlanCalcScoreConfigGroup.ActivityParams("home");
         homeParams.setTypicalDuration(12*3600);
@@ -118,34 +118,34 @@ public class SBBScoringFunctionTest {
         double score = sf.getScore();
         System.out.println(score);
 
-        int numberOfTransfers = 1;
-        double minTransferUtility = Math.min(sbbParams.getMinimumTransferUtility(), sbbParams.getMaximumTransferUtility());
-        double maxTransferUtility = Math.max(sbbParams.getMinimumTransferUtility(), sbbParams.getMaximumTransferUtility());
-        double singleTransferScore = Math.max(minTransferUtility, Math.min(maxTransferUtility, sbbParams.getBaseTransferUtility() + sbbParams.getTransferUtilityPerTravelTime_utils_hr() * 0.8));
-        double expectedScore = numberOfTransfers * singleTransferScore;
+		int numberOfTransfers = 1;
+		double minTransferUtility = Math.min(sbbParams.getMinimumTransferUtility(), sbbParams.getMaximumTransferUtility());
+		double maxTransferUtility = Math.max(sbbParams.getMinimumTransferUtility(), sbbParams.getMaximumTransferUtility());
+		double singleTransferScore = Math.max(minTransferUtility, Math.min(maxTransferUtility, sbbParams.getBaseTransferUtility() + sbbParams.getTransferUtilityPerTravelTime_utils_hr() * 0.8));
+		double expectedScore = numberOfTransfers * singleTransferScore;
 
-        Assert.assertEquals(expectedScore, score, 1e-6);
-    }
+		Assert.assertEquals(expectedScore, score, 1e-6);
+	}
 
-    private Activity createActivity(PopulationFactory pf, String type, double x, double y, OptionalTime startTime, OptionalTime endTime) {
-        Activity act = pf.createActivityFromCoord(type, new Coord(x, y));
-        if (startTime.isDefined()) {
-            act.setStartTime(startTime.seconds());
-        }
-        if (endTime.isDefined()) {
-            act.setEndTime(endTime.seconds());
-        } else {
-            act.setEndTimeUndefined();
+	private Activity createActivity(PopulationFactory pf, String type, double x, double y, OptionalTime startTime, OptionalTime endTime) {
+		Activity act = pf.createActivityFromCoord(type, new Coord(x, y));
+		if (startTime.isDefined()) {
+			act.setStartTime(startTime.seconds());
+		}
+		if (endTime.isDefined()) {
+			act.setEndTime(endTime.seconds());
+		} else {
+			act.setEndTimeUndefined();
 
-        }
+		}
 
-        return act;
-    }
+		return act;
+	}
 
-    private Leg createLeg(PopulationFactory pf, String mode, double departureTime, double arrivalTime) {
-        Leg leg = pf.createLeg(mode);
-        leg.setDepartureTime(departureTime);
-        leg.setTravelTime(arrivalTime - departureTime);
+	private Leg createLeg(PopulationFactory pf, String mode, double departureTime, double arrivalTime) {
+		Leg leg = pf.createLeg(mode);
+		leg.setDepartureTime(departureTime);
+		leg.setTravelTime(arrivalTime - departureTime);
         return leg;
     }
 

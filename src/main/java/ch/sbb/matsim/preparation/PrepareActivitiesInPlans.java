@@ -45,32 +45,32 @@ public class PrepareActivitiesInPlans {
 
 
                 for (Activity act : activities) {
-                    if (act == firstAct) {
-                        continue;
-                    }
-                    if (act == lastAct) {
-                        processOvernightAct(firstAct, lastAct);
-                        break;
-                    }
+					if (act == firstAct) {
+						continue;
+					}
+					if (act == lastAct) {
+						processOvernightAct(firstAct, lastAct);
+						break;
+					}
 
-                    double endTime = act.getEndTime().orElse(36.0 * 3600);
-                    double startTime = act.getStartTime().orElse(0.0);
+					double endTime = act.getEndTime().orElse(36.0 * 3600);
+					double startTime = act.getStartTime().orElse(0.0);
 
-                    double duration = endTime - startTime;
+					double duration = endTime - startTime;
 
-                    if (act.getType().equals(SBBActivities.home)) {
-                        if (startTime >= (16.0 * 3600) && startTime < (19.0 * 3600)) {
-                            long ii = roundSecondsToMinInterval(duration, 60);
+					if (act.getType().equals(SBBActivities.home)) {
+						if (startTime >= (16.0 * 3600) && startTime < (19.0 * 3600)) {
+							long ii = roundSecondsToMinInterval(duration, 60);
 
-                            double hours = startTime / 3600 * 1;
-                            double yy = ((int) (hours + 0.25)) / 1.0;
-                            String type = SBBActivities.home + "_" + ii + "_" + yy;
-                            act.setType(type);
-                        } else {
-                            long ii = roundSecondsToMinInterval(duration, 60);
-                            String type = SBBActivities.home + "_" + ii;
-                            act.setType(type);
-                        }
+							double hours = startTime / 3600 * 1;
+							double yy = ((int) (hours + 0.25)) / 1.0;
+							String type = SBBActivities.home + "_" + ii + "_" + yy;
+							act.setType(type);
+						} else {
+							long ii = roundSecondsToMinInterval(duration, 60);
+							String type = SBBActivities.home + "_" + ii;
+							act.setType(type);
+						}
                     } else if (act.getType().equals(SBBActivities.work)) {
                         // process morning peak (between 6.5am and 8.5am)
                         if (startTime >= (6.25 * 3600) && startTime <= (8.25 * 3600)) {
@@ -136,24 +136,24 @@ public class PrepareActivitiesInPlans {
     }
 
     private static void processOvernightAct(Activity firstAct, Activity lastAct) {
-        double lastActStartTime = lastAct.getStartTime().seconds();
-        double totDuration = (firstAct.getEndTime().seconds() + 24 * 3600.0) - lastAct.getStartTime().seconds();
-        if (totDuration <= 0) {
-            totDuration = 1;
-        }
+		double lastActStartTime = lastAct.getStartTime().seconds();
+		double totDuration = (firstAct.getEndTime().seconds() + 24 * 3600.0) - lastAct.getStartTime().seconds();
+		if (totDuration <= 0) {
+			totDuration = 1;
+		}
 
-        if (lastActStartTime >= (16.0 * 3600) && lastActStartTime < (19.0 * 3600)) {
-            long ii = roundSecondsToMinInterval(totDuration, 60);
+		if (lastActStartTime >= (16.0 * 3600) && lastActStartTime < (19.0 * 3600)) {
+			long ii = roundSecondsToMinInterval(totDuration, 60);
 
-            double hours = lastActStartTime / 3600 * 1;
-            double yy = ((int) hours) / 1.0 + 1.0;
+			double hours = lastActStartTime / 3600 * 1;
+			double yy = ((int) hours) / 1.0 + 1.0;
 
-            String type = SBBActivities.home + "_" + ii + "_" + yy;
-            firstAct.setType(type);
-            lastAct.setType(type);
-        } else {
-            long ii = roundSecondsToMinInterval(totDuration, 60);
-            String type = SBBActivities.home + "_" + ii;
+			String type = SBBActivities.home + "_" + ii + "_" + yy;
+			firstAct.setType(type);
+			lastAct.setType(type);
+		} else {
+			long ii = roundSecondsToMinInterval(totDuration, 60);
+			String type = SBBActivities.home + "_" + ii;
             firstAct.setType(type);
             lastAct.setType(type);
         }

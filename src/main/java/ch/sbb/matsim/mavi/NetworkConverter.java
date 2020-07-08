@@ -28,15 +28,15 @@ public class NetworkConverter {
     }
 
     public static void main(String[] args) {
-        Config config = ConfigUtils.createConfig();
-        config.network().setInputFile("\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\01_ModellCH_15\\10_Network\\network_v3\\network_v3.xml.gz");
+		Config config = ConfigUtils.createConfig();
+		config.network().setInputFile("\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\01_ModellCH_15\\10_Network\\network_v3\\network_v3.xml.gz");
 
-        Scenario scenario = ScenarioUtils.loadScenario(config);
-        Network network = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(scenario.getNetwork()).filter(network, Collections.singleton(SBBModes.CAR));
+		Scenario scenario = ScenarioUtils.loadScenario(config);
+		Network network = NetworkUtils.createNetwork();
+		new TransportModeNetworkFilter(scenario.getNetwork()).filter(network, Collections.singleton(SBBModes.CAR));
 
-        new NetworkConverter(scenario.getNetwork(), network);
-        new NetworkWriter(scenario.getNetwork()).write("\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\01_ModellCH_15\\10_Network\\network_v3\\network_v3_visumIds.xml.gz");
-    }
+		new NetworkConverter(scenario.getNetwork(), network);
+		new NetworkWriter(scenario.getNetwork()).write("\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\01_ModellCH_15\\10_Network\\network_v3\\network_v3_visumIds.xml.gz");
+	}
 
 }

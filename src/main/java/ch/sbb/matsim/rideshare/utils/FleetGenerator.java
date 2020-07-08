@@ -41,22 +41,22 @@ public class FleetGenerator {
 
     private void run() {
 
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile.toString());
-        //        List<Id<Link>> availableLinks  = scenario.getNetwork().getLinks().entrySet().stream()
-        //              .filter(entry -> entry.getValue().getAllowedModes().contains(SBBModes.CAR)).map(e->e.getKey()).collect(Collectors.toList());
-        //        List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(177382)); //lcf
-        List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(598836)); //ne
-        Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
-        for (int z = 0; z < numberOfVehicles; z++) {
-            vehicleSpecifications.add(ImmutableDvrpVehicleSpecification.newBuilder()
-                    .id(Id.create("drt_" + z, DvrpVehicle.class))
-                    .startLinkId(availableLinks.get(random.nextInt(availableLinks.size())))
-                    .capacity(seatsPerVehicle)
-                    .serviceBeginTime(operationStartTime)
-                    .serviceEndTime(operationEndTime)
-                    .build());
-        }
-        new FleetWriter(vehicleSpecifications.stream().sorted(Comparator.comparing(v -> v.getId().toString()))).write(outputFile.toString());
-    }
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile.toString());
+		//        List<Id<Link>> availableLinks  = scenario.getNetwork().getLinks().entrySet().stream()
+		//              .filter(entry -> entry.getValue().getAllowedModes().contains(SBBModes.CAR)).map(e->e.getKey()).collect(Collectors.toList());
+		//        List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(177382)); //lcf
+		List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(598836)); //ne
+		Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
+		for (int z = 0; z < numberOfVehicles; z++) {
+			vehicleSpecifications.add(ImmutableDvrpVehicleSpecification.newBuilder()
+					.id(Id.create("drt_" + z, DvrpVehicle.class))
+					.startLinkId(availableLinks.get(random.nextInt(availableLinks.size())))
+					.capacity(seatsPerVehicle)
+					.serviceBeginTime(operationStartTime)
+					.serviceEndTime(operationEndTime)
+					.build());
+		}
+		new FleetWriter(vehicleSpecifications.stream().sorted(Comparator.comparing(v -> v.getId().toString()))).write(outputFile.toString());
+	}
 }

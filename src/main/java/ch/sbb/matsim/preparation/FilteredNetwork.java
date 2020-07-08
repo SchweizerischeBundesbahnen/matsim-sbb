@@ -37,7 +37,6 @@ public class FilteredNetwork {
 
     public Network filterNetwork(Network network) {
 
-
         final Network carNetwork = NetworkUtils.createNetwork();
         new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(SBBModes.CAR));
 

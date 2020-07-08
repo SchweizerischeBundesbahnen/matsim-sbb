@@ -135,31 +135,31 @@ public class TestFixture {
 
         PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("home");
         params.setScoringThisActivityAtAll(false);
-        scenario.getConfig().planCalcScore().addActivityParams(params);
+		scenario.getConfig().planCalcScore().addActivityParams(params);
 
-        PlanCalcScoreConfigGroup.ActivityParams params2 = new PlanCalcScoreConfigGroup.ActivityParams("work");
-        params2.setScoringThisActivityAtAll(false);
-        scenario.getConfig().planCalcScore().addActivityParams(params2);
+		PlanCalcScoreConfigGroup.ActivityParams params2 = new PlanCalcScoreConfigGroup.ActivityParams("work");
+		params2.setScoringThisActivityAtAll(false);
+		scenario.getConfig().planCalcScore().addActivityParams(params2);
 
-        PlanCalcScoreConfigGroup.ActivityParams params3 = new PlanCalcScoreConfigGroup.ActivityParams(mode + " interaction");
-        params3.setScoringThisActivityAtAll(false);
-        scenario.getConfig().planCalcScore().addActivityParams(params3);
+		PlanCalcScoreConfigGroup.ActivityParams params3 = new PlanCalcScoreConfigGroup.ActivityParams(mode + " interaction");
+		params3.setScoringThisActivityAtAll(false);
+		scenario.getConfig().planCalcScore().addActivityParams(params3);
 
-        accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-        accessParams.setConstant(constant);
+		accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
+		accessParams.setConstant(constant);
 
-        egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-        egressParams.setConstant(constant);
+		egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
+		egressParams.setConstant(constant);
 
-        StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
-        settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);
-        settings.setWeight(1.0);
-        scenario.getConfig().strategy().addStrategySettings(settings);
+		StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
+		settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);
+		settings.setWeight(1.0);
+		scenario.getConfig().strategy().addStrategySettings(settings);
 
-        ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
-        zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, null));
+		ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
+		zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, null));
 
-        SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
+		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
         accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
         accessTimeConfigGroup.setModesWithAccessTime(modesWithAccess);
         accessTimeConfigGroup.setZonesId("zones");

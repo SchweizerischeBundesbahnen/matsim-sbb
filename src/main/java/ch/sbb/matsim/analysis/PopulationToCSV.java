@@ -86,22 +86,22 @@ public class PopulationToCSV {
                             planelementsWriter.set("planelement_id", Integer.toString(i));
 
                             if (planelement instanceof Leg) {
-                                Leg leg = ((Leg) planelement);
-                                planelementsWriter.set("mode", leg.getMode());
-                                planelementsWriter.set("start_time", Double.toString(leg.getDepartureTime().seconds()));
-                                planelementsWriter.set("end_time", Double.toString(leg.getDepartureTime().seconds() + leg.getTravelTime().seconds()));
-                                planelementsWriter.set("type", "leg");
+								Leg leg = ((Leg) planelement);
+								planelementsWriter.set("mode", leg.getMode());
+								planelementsWriter.set("start_time", Double.toString(leg.getDepartureTime().seconds()));
+								planelementsWriter.set("end_time", Double.toString(leg.getDepartureTime().seconds() + leg.getTravelTime().seconds()));
+								planelementsWriter.set("type", "leg");
 
-                            }
+							}
                             if (planelement instanceof Activity) {
-                                Activity activity = ((Activity) planelement);
-                                planelementsWriter.set("activity_type", activity.getType());
-                                planelementsWriter.set("start_time", Double.toString(activity.getStartTime().seconds()));
-                                planelementsWriter.set("end_time", Double.toString(activity.getEndTime().seconds()));
-                                planelementsWriter.set("type", "activity");
-                                planelementsWriter.set("x", Double.toString(activity.getCoord().getX()));
-                                planelementsWriter.set("y", Double.toString(activity.getCoord().getY()));
-                            }
+								Activity activity = ((Activity) planelement);
+								planelementsWriter.set("activity_type", activity.getType());
+								planelementsWriter.set("start_time", Double.toString(activity.getStartTime().seconds()));
+								planelementsWriter.set("end_time", Double.toString(activity.getEndTime().seconds()));
+								planelementsWriter.set("type", "activity");
+								planelementsWriter.set("x", Double.toString(activity.getCoord().getX()));
+								planelementsWriter.set("y", Double.toString(activity.getCoord().getY()));
+							}
 
                             planelementsWriter.writeRow();
                         }

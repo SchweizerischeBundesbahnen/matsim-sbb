@@ -56,10 +56,10 @@ public class RunTravelTimeValidation {
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
         this.router = new NetworkRoutingModule(
-                SBBModes.CAR,
-                PopulationUtils.getFactory(),
-                network,
-                routeAlgo);
+				SBBModes.CAR,
+				PopulationUtils.getFactory(),
+				network,
+				routeAlgo);
     }
 
     //use this method for travel time evaluation in congested network
@@ -83,78 +83,78 @@ public class RunTravelTimeValidation {
         TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
-        this.router = new NetworkRoutingModule(
-                SBBModes.CAR,
-                PopulationUtils.getFactory(),
-                network,
-                routeAlgo);
+		this.router = new NetworkRoutingModule(
+				SBBModes.CAR,
+				PopulationUtils.getFactory(),
+				network,
+				routeAlgo);
     }
 
     public RunTravelTimeValidation(Network network, TravelTime tt, double startTime) {
-        this.network = network;
-        this.startTime = startTime;
-        DijkstraFactory factory = new DijkstraFactory();
-        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
+		this.network = network;
+		this.startTime = startTime;
+		DijkstraFactory factory = new DijkstraFactory();
+		TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
-        LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
-        this.router = new NetworkRoutingModule(
-                SBBModes.CAR,
-                PopulationUtils.getFactory(),
-                network,
-                routeAlgo);
-    }
+		LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
+		this.router = new NetworkRoutingModule(
+				SBBModes.CAR,
+				PopulationUtils.getFactory(),
+				network,
+				routeAlgo);
+	}
 
-    public static void main(String[] args) {
-        String runOutputFolder = args[0];
-        String runPrefix = args[1];
-        boolean calcCongestedTravelTimes = Boolean.parseBoolean(args[2]);
-        double startTime = Double.parseDouble(args[3]); // start time in hours (e.g. 7am)
-        String relationFile = args[4];
-        String outputFile = args[5];
+	public static void main(String[] args) {
+		String runOutputFolder = args[0];
+		String runPrefix = args[1];
+		boolean calcCongestedTravelTimes = Boolean.parseBoolean(args[2]);
+		double startTime = Double.parseDouble(args[3]); // start time in hours (e.g. 7am)
+		String relationFile = args[4];
+		String outputFile = args[5];
 
-        // read network file
-        Network network = NetworkUtils.createNetwork();
-        new MatsimNetworkReader(network).readFile(runOutputFolder + "\\" + runPrefix + ".output_network.xml.gz");
-        Network reducedNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(network).filter(reducedNetwork,
-                CollectionUtils.stringToSet(SBBModes.CAR));
+		// read network file
+		Network network = NetworkUtils.createNetwork();
+		new MatsimNetworkReader(network).readFile(runOutputFolder + "\\" + runPrefix + ".output_network.xml.gz");
+		Network reducedNetwork = NetworkUtils.createNetwork();
+		new TransportModeNetworkFilter(network).filter(reducedNetwork,
+				CollectionUtils.stringToSet(SBBModes.CAR));
 
-        RunTravelTimeValidation validation;
-        if (calcCongestedTravelTimes) {
-            String config = runOutputFolder + "\\" + runPrefix + ".output_config.xml";
-            String events = runOutputFolder + "\\" + runPrefix + ".output_events.xml.gz";
-            validation = new RunTravelTimeValidation(reducedNetwork, config, events, startTime);
-        } else {
-            validation = new RunTravelTimeValidation(reducedNetwork, startTime);
-        }
-        validation.run(relationFile, outputFile);
-    }
+		RunTravelTimeValidation validation;
+		if (calcCongestedTravelTimes) {
+			String config = runOutputFolder + "\\" + runPrefix + ".output_config.xml";
+			String events = runOutputFolder + "\\" + runPrefix + ".output_events.xml.gz";
+			validation = new RunTravelTimeValidation(reducedNetwork, config, events, startTime);
+		} else {
+			validation = new RunTravelTimeValidation(reducedNetwork, startTime);
+		}
+		validation.run(relationFile, outputFile);
+	}
 
-    public void run(String relationsCsvPath, String outputPath) {
-        String[] columns = {"Dist_MATSim", "Time_MATSim"};
+	public void run(String relationsCsvPath, String outputPath) {
+		String[] columns = {"Dist_MATSim", "Time_MATSim"};
 
-        try (CSVReader reader = new CSVReader(relationsCsvPath, ";")) {
-            String[] allColumns = Stream.concat(Arrays.stream(reader.getColumns()), Arrays.stream(columns)).toArray(String[]::new);
+		try (CSVReader reader = new CSVReader(relationsCsvPath, ";")) {
+			String[] allColumns = Stream.concat(Arrays.stream(reader.getColumns()), Arrays.stream(columns)).toArray(String[]::new);
 
-            try (CSVWriter writer = new CSVWriter("", allColumns, new File(outputPath).toString())) {
-                Map<String, String> map;
-                while ((map = reader.readLine()) != null) {
-                    if (!map.get("Origin_X").isEmpty()) {
-                        log.info(map);
-                        Leg leg = this.fetch(
-                                Float.parseFloat(map.get("Origin_Y")),
-                                Float.parseFloat(map.get("Origin_X")),
-                                Float.parseFloat(map.get("Destination_Y")),
-                                Float.parseFloat(map.get("Destination_X"))
-                        );
-                        for (String column : reader.getColumns()) {
-                            writer.set(column, map.get(column));
-                        }
+			try (CSVWriter writer = new CSVWriter("", allColumns, new File(outputPath).toString())) {
+				Map<String, String> map;
+				while ((map = reader.readLine()) != null) {
+					if (!map.get("Origin_X").isEmpty()) {
+						log.info(map);
+						Leg leg = this.fetch(
+								Float.parseFloat(map.get("Origin_Y")),
+								Float.parseFloat(map.get("Origin_X")),
+								Float.parseFloat(map.get("Destination_Y")),
+								Float.parseFloat(map.get("Destination_X"))
+						);
+						for (String column : reader.getColumns()) {
+							writer.set(column, map.get(column));
+						}
 
-                        writer.set("Dist_MATSim", Double.toString(leg.getRoute().getDistance()));
-                        writer.set("Time_MATSim", Double.toString(leg.getRoute().getTravelTime().seconds()));
-                        writer.writeRow();
-                    }
+						writer.set("Dist_MATSim", Double.toString(leg.getRoute().getDistance()));
+						writer.set("Time_MATSim", Double.toString(leg.getRoute().getTravelTime().seconds()));
+						writer.writeRow();
+					}
                 }
             } catch (IOException e) {
                 log.warn(e);

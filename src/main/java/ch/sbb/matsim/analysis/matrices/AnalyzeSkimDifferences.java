@@ -136,23 +136,23 @@ public class AnalyzeSkimDifferences {
             System.out.println("Reading file " + file);
             int i = 0;
             while (line != null) {
-                int from = (int) Double.parseDouble(line.get("FROM"));
-                int to = (int) Double.parseDouble(line.get("TO"));
-                double value = Double.parseDouble(line.get("VALUE"));
-                SkimsValue skimsvalue = skimsCache.get(from).get(to);
-                double diff = value - skimsvalue.origValue;
-                if (Double.isInfinite(value) && Double.isInfinite(skimsvalue.origValue)) {
-                    diff = 0;
-                    //mathematically incorrect, but for the purpose of this analysis appropriate
-                }
-                skimsvalue.compareValues[count] = value;
-                skimsvalue.diffs[count] = diff;
-                if (i % 1000000 == 0) {
-                    System.out.println("Line " + i);
-                }
-                i++;
-                line = reader.readLine();
-            }
+				int from = (int) Double.parseDouble(line.get("FROM"));
+				int to = (int) Double.parseDouble(line.get("TO"));
+				double value = Double.parseDouble(line.get("VALUE"));
+				SkimsValue skimsvalue = skimsCache.get(from).get(to);
+				double diff = value - skimsvalue.origValue;
+				if (Double.isInfinite(value) && Double.isInfinite(skimsvalue.origValue)) {
+					diff = 0;
+					//mathematically incorrect, but for the purpose of this analysis appropriate
+				}
+				skimsvalue.compareValues[count] = value;
+				skimsvalue.diffs[count] = diff;
+				if (i % 1000000 == 0) {
+					System.out.println("Line " + i);
+				}
+				i++;
+				line = reader.readLine();
+			}
 
         } catch (IOException e) {
             e.printStackTrace();

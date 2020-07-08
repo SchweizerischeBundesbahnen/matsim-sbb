@@ -2771,7 +2771,7 @@
             </parameterset>
             <parameterset type="modeParams">
                 <!-- [utils] alternative-specific constant.  Normally per trip, but that is probably buggy for multi-leg trips. -->
-                <param name="constant" value="-1.0"/>
+                <param name="constant" value="-3.0"/>
                 <!-- [money] daily monetary constant. default=0 to be backwards compatible -->
                 <param name="dailyMonetaryConstant" value="0.0"/>
                 <!-- [utils] daily utility constant. default=0 to be backwards compatible -->
@@ -2811,15 +2811,15 @@
                 <param name="mode" value="transit_walk"/>
                 <param name="monetaryDistanceRate" value="0.0"/>
             </parameterset>
-           <parameterset type="modeParams">
-               <param name="constant" value="0.0"/>
-               <param name="dailyMonetaryConstant" value="0.0"/>
-               <param name="dailyUtilityConstant" value="0.0"/>
-               <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
-               <param name="marginalUtilityOfTraveling_util_hr" value="0.0"/>
-               <param name="mode" value="walk"/>
-               <param name="monetaryDistanceRate" value="0.0"/>
-           </parameterset>
+            <parameterset type="modeParams">
+                <param name="constant" value="0.0"/>
+                <param name="dailyMonetaryConstant" value="0.0"/>
+                <param name="dailyUtilityConstant" value="0.0"/>
+                <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
+                <param name="marginalUtilityOfTraveling_util_hr" value="0.0"/>
+                <param name="mode" value="walk"/>
+                <param name="monetaryDistanceRate" value="0.0"/>
+            </parameterset>
             <parameterset type="modeParams">
                 <param name="constant" value="0.0"/>
                 <param name="dailyMonetaryConstant" value="0.0"/>
@@ -2849,7 +2849,7 @@
                 <param name="monetaryDistanceRate" value="0.0"/>
             </parameterset>
             <parameterset type="modeParams">
-                <param name="constant" value="0.0"/>
+                <param name="constant" value="25.0"/>
                 <param name="dailyMonetaryConstant" value="0.0"/>
                 <param name="dailyUtilityConstant" value="0.0"/>
                 <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
@@ -3151,26 +3151,21 @@
 
         <parameterset type="mode">
             <param name="mode" value="carfeeder"/>
-            <param name="constant" value="0.0"/>
-            <param name="mutt" value="30"/>
             <param name="accessTimeZonesAttributeName" value="ACCCAR"/>
             <param name="egressTimeZonesAttributeName" value="ACCCAR"/>
             <param name="isSimulatedOnNetwork" value="true"/>
             <param name="isRoutedOnNetwork" value="true"/>
+
         </parameterset>
         <parameterset type="mode">
             <param name="mode" value="bike"/>
             <param name="waitingTime" value="0"/>
-            <param name="constant" value="0.0"/>
-            <param name="mutt" value="35"/>
             <param name="detourFactor" value="1.0"/>
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="isRoutedOnNetwork" value="false"/>
         </parameterset>
         <parameterset type="mode">
             <param name="mode" value="drtfeeder"/>
-            <param name="constant" value="0.0"/>
-            <param name="mutt" value="25"/>
             <param name="detourFactorZonesAttributeName" value="FEEDERDET"/>
             <param name="accessTimeZonesAttributeName" value="FEEDERWAIT"/>
             <param name="isSimulatedOnNetwork" value="false"/>

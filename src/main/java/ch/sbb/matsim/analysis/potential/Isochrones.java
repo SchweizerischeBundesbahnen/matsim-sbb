@@ -46,30 +46,28 @@ import org.opengis.feature.simple.SimpleFeature;
 
 public class Isochrones {
 
-    private static final Logger log = Logger.getLogger(Isochrones.class);
+	private static final Logger log = Logger.getLogger(Isochrones.class);
 
-    private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
-    private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
+	private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
+	private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
 
-    private Scenario scenario;
-    private String eventsFilename;
-    private Config config;
-    private Network network;
-    private Network filteredNetwork;
-    private Graph graph;
-    private Collection<SimpleFeature> collection = new ArrayList<SimpleFeature>();
-    private TravelTime travelTime;
-    private TravelTime travelTimeWithLoad;
-    private TravelDisutility travelDisutility;
-    private PolygonFeatureFactory pff;
+	private Scenario scenario;
+	private String eventsFilename;
+	private Config config;
+	private Network network;
+	private Network filteredNetwork;
+	private Graph graph;
+	private Collection<SimpleFeature> collection = new ArrayList<SimpleFeature>();
+	private TravelTime travelTime;
+	private TravelTime travelTimeWithLoad;
+	private TravelDisutility travelDisutility;
+	private PolygonFeatureFactory pff;
 
+	public Isochrones(String configFile, String eventsFilename) {
+		this.config = ConfigUtils.loadConfig(configFile);
+		this.eventsFilename = eventsFilename;
 
-    public Isochrones(String configFile, String eventsFilename) {
-        this.config = ConfigUtils.loadConfig(configFile);
-        this.eventsFilename = eventsFilename;
-
-
-        this.pff = new PolygonFeatureFactory.Builder()
+		this.pff = new PolygonFeatureFactory.Builder()
                 .setName("EvacuationArea")
                 .setCrs(DefaultGeographicCRS.WGS84)
                 .addAttribute("station", String.class)
@@ -82,24 +80,24 @@ public class Isochrones {
 
     public void load() {
 
-        this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
-        new MatsimNetworkReader(this.scenario.getNetwork()).readFile(this.config.network().getInputFile());
-        new TransitScheduleReader(this.scenario).readFile(this.config.transit().getTransitScheduleFile());
+		new MatsimNetworkReader(this.scenario.getNetwork()).readFile(this.config.network().getInputFile());
+		new TransitScheduleReader(this.scenario).readFile(this.config.transit().getTransitScheduleFile());
 
-        this.network = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.network, Collections.singleton(SBBModes.CAR));
-        this.graph = new Graph(this.network);
-        this.filteredNetwork = new FilteredNetwork().filterNetwork(this.network);
+		this.network = NetworkUtils.createNetwork();
+		new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.network, Collections.singleton(SBBModes.CAR));
+		this.graph = new Graph(this.network);
+		this.filteredNetwork = new FilteredNetwork().filterNetwork(this.network);
 
-        this.travelTime = getTravelTime();
-        if (this.eventsFilename != null) {
-            this.travelTimeWithLoad = getTravelTime(this.eventsFilename);
-        }
+		this.travelTime = getTravelTime();
+		if (this.eventsFilename != null) {
+			this.travelTimeWithLoad = getTravelTime(this.eventsFilename);
+		}
 
-        this.travelDisutility = new OnlyTimeDependentTravelDisutility(this.travelTime);
+		this.travelDisutility = new OnlyTimeDependentTravelDisutility(this.travelTime);
 
-    }
+	}
 
 
     private TravelTime getTravelTime() {
@@ -148,38 +146,38 @@ public class Isochrones {
 
 
     private void computeIsochrone(Coord coord, double threshold, String name, boolean withLoad) {
-        TravelTime tt = this.travelTime;
-        if (withLoad) {
-            tt = this.travelTimeWithLoad;
-        }
+		TravelTime tt = this.travelTime;
+		if (withLoad) {
+			tt = this.travelTimeWithLoad;
+		}
 
-        Node node = NetworkUtils.getNearestNode(this.filteredNetwork, coord);
-        LeastCostPathTree leastCostPathTree = new LeastCostPathTree(this.graph, tt, this.travelDisutility);
+		Node node = NetworkUtils.getNearestNode(this.filteredNetwork, coord);
+		LeastCostPathTree leastCostPathTree = new LeastCostPathTree(this.graph, tt, this.travelDisutility);
 
-        int startTime = 7 * 60 * 60;
-        leastCostPathTree.calculate(node.getId().index(), startTime, PERSON, VEHICLE);
+		int startTime = 7 * 60 * 60;
+		leastCostPathTree.calculate(node.getId().index(), startTime, PERSON, VEHICLE);
 
-        final int bucketCount = 2;
-        final double bucketSize = threshold / bucketCount;
-        List<List<Coordinate>> buckets = this.createBuckets(bucketCount);
+		final int bucketCount = 2;
+		final double bucketSize = threshold / bucketCount;
+		List<List<Coordinate>> buckets = this.createBuckets(bucketCount);
 
-        for (Node n : this.network.getNodes().values()) {
-            Id<Node> id = n.getId();
-            OptionalTime time1 = leastCostPathTree.getTime(id.index());
-            if (time1.isUndefined()) {
-                continue;
-            }
-            double time2 = time1.seconds() - startTime;
+		for (Node n : this.network.getNodes().values()) {
+			Id<Node> id = n.getId();
+			OptionalTime time1 = leastCostPathTree.getTime(id.index());
+			if (time1.isUndefined()) {
+				continue;
+			}
+			double time2 = time1.seconds() - startTime;
 
-            int bucketIndex = (int) (time2 / bucketSize);
+			int bucketIndex = (int) (time2 / bucketSize);
 
-            if (bucketIndex < bucketCount) {
-                Coord nodeCoord = this.network.getNodes().get(id).getCoord();
+			if (bucketIndex < bucketCount) {
+				Coord nodeCoord = this.network.getNodes().get(id).getCoord();
 
-                buckets.get(bucketIndex).add(new Coordinate(nodeCoord.getX(), nodeCoord.getY()));
+				buckets.get(bucketIndex).add(new Coordinate(nodeCoord.getX(), nodeCoord.getY()));
 
-            }
-        }
+			}
+		}
 
         try {
 

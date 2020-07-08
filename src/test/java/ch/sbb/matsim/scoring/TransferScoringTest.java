@@ -195,48 +195,48 @@ public class TransferScoringTest {
             vc.setSeats(100);
             vehicles.addVehicleType(vt);
             vehicles.addVehicle(vf.createVehicle(Id.create("b1", Vehicle.class), vt));
-            vehicles.addVehicle(vf.createVehicle(Id.create("r1", Vehicle.class), vt));
+			vehicles.addVehicle(vf.createVehicle(Id.create("r1", Vehicle.class), vt));
 
-            TransitSchedule schedule = this.scenario.getTransitSchedule();
-            TransitScheduleFactory sf = schedule.getFactory();
+			TransitSchedule schedule = this.scenario.getTransitSchedule();
+			TransitScheduleFactory sf = schedule.getFactory();
 
-            TransitStopFacility stop1 = sf.createTransitStopFacility(Id.create("1", TransitStopFacility.class), new Coord(3000, 1000), false);
-            stop1.setLinkId(Id.create("1", Link.class));
-            schedule.addStopFacility(stop1);
+			TransitStopFacility stop1 = sf.createTransitStopFacility(Id.create("1", TransitStopFacility.class), new Coord(3000, 1000), false);
+			stop1.setLinkId(Id.create("1", Link.class));
+			schedule.addStopFacility(stop1);
 
-            TransitStopFacility stop2 = sf.createTransitStopFacility(Id.create("2", TransitStopFacility.class), new Coord(5000, 1000), false);
-            stop2.setLinkId(Id.create("2", Link.class));
-            schedule.addStopFacility(stop2);
+			TransitStopFacility stop2 = sf.createTransitStopFacility(Id.create("2", TransitStopFacility.class), new Coord(5000, 1000), false);
+			stop2.setLinkId(Id.create("2", Link.class));
+			schedule.addStopFacility(stop2);
 
-            TransitStopFacility stop3 = sf.createTransitStopFacility(Id.create("3", TransitStopFacility.class), new Coord(7000, 1000), false);
-            stop3.setLinkId(Id.create("3", Link.class));
-            schedule.addStopFacility(stop3);
+			TransitStopFacility stop3 = sf.createTransitStopFacility(Id.create("3", TransitStopFacility.class), new Coord(7000, 1000), false);
+			stop3.setLinkId(Id.create("3", Link.class));
+			schedule.addStopFacility(stop3);
 
-            TransitLine blueLine = sf.createTransitLine(Id.create("blue", TransitLine.class));
-            NetworkRoute blueNetRoute = RouteUtils.createLinkNetworkRouteImpl(Id.create(1, Link.class), Id.create(2, Link.class));
-            List<TransitRouteStop> blueStops = new ArrayList<>();
-            blueStops.add(sf.createTransitRouteStopBuilder(stop1).departureOffset(0.).build());
-            blueStops.add(sf.createTransitRouteStopBuilder(stop2).arrivalOffset(120.0).build());
-            TransitRoute blueRoute = sf.createTransitRoute(Id.create("blue1", TransitRoute.class), blueNetRoute, blueStops, "train");
-            Departure blueDeparture = sf.createDeparture(Id.create(1, Departure.class), 8 * 3600);
-            blueDeparture.setVehicleId(Id.create("b1", Vehicle.class));
-            blueRoute.addDeparture(blueDeparture);
+			TransitLine blueLine = sf.createTransitLine(Id.create("blue", TransitLine.class));
+			NetworkRoute blueNetRoute = RouteUtils.createLinkNetworkRouteImpl(Id.create(1, Link.class), Id.create(2, Link.class));
+			List<TransitRouteStop> blueStops = new ArrayList<>();
+			blueStops.add(sf.createTransitRouteStopBuilder(stop1).departureOffset(0.).build());
+			blueStops.add(sf.createTransitRouteStopBuilder(stop2).arrivalOffset(120.0).build());
+			TransitRoute blueRoute = sf.createTransitRoute(Id.create("blue1", TransitRoute.class), blueNetRoute, blueStops, "train");
+			Departure blueDeparture = sf.createDeparture(Id.create(1, Departure.class), 8 * 3600);
+			blueDeparture.setVehicleId(Id.create("b1", Vehicle.class));
+			blueRoute.addDeparture(blueDeparture);
 
-            blueLine.addRoute(blueRoute);
-            schedule.addTransitLine(blueLine);
+			blueLine.addRoute(blueRoute);
+			schedule.addTransitLine(blueLine);
 
-            TransitLine redLine = sf.createTransitLine(Id.create("red", TransitLine.class));
-            NetworkRoute redNetRoute = RouteUtils.createLinkNetworkRouteImpl(Id.create(2, Link.class), Id.create(3, Link.class));
-            List<TransitRouteStop> redStops = new ArrayList<>();
-            redStops.add(sf.createTransitRouteStopBuilder(stop2).departureOffset(0.).build());
-            redStops.add(sf.createTransitRouteStopBuilder(stop3).arrivalOffset(120.).build());
-            TransitRoute redRoute = sf.createTransitRoute(Id.create("red1", TransitRoute.class), redNetRoute, redStops, "train");
-            Departure redDeparture = sf.createDeparture(Id.create(1, Departure.class), 8 * 3600 + 240);
-            redDeparture.setVehicleId(Id.create("r1", Vehicle.class));
-            redRoute.addDeparture(redDeparture);
-            redLine.addRoute(redRoute);
-            schedule.addTransitLine(redLine);
-        }
+			TransitLine redLine = sf.createTransitLine(Id.create("red", TransitLine.class));
+			NetworkRoute redNetRoute = RouteUtils.createLinkNetworkRouteImpl(Id.create(2, Link.class), Id.create(3, Link.class));
+			List<TransitRouteStop> redStops = new ArrayList<>();
+			redStops.add(sf.createTransitRouteStopBuilder(stop2).departureOffset(0.).build());
+			redStops.add(sf.createTransitRouteStopBuilder(stop3).arrivalOffset(120.).build());
+			TransitRoute redRoute = sf.createTransitRoute(Id.create("red1", TransitRoute.class), redNetRoute, redStops, "train");
+			Departure redDeparture = sf.createDeparture(Id.create(1, Departure.class), 8 * 3600 + 240);
+			redDeparture.setVehicleId(Id.create("r1", Vehicle.class));
+			redRoute.addDeparture(redDeparture);
+			redLine.addRoute(redRoute);
+			schedule.addTransitLine(redLine);
+		}
 
         private void createPopulation() {
             TransitSchedule schedule = this.scenario.getTransitSchedule();
@@ -263,43 +263,43 @@ public class TransferScoringTest {
             home1.setEndTime(8*3600 - 600);
             home1.setLinkId(Id.create("1", Link.class));
 
-            Activity home2 = pf.createActivityFromCoord("home", home2Coord);
-            home2.setLinkId(Id.create("4", Link.class));
+			Activity home2 = pf.createActivityFromCoord("home", home2Coord);
+			home2.setLinkId(Id.create("4", Link.class));
 
-            Activity ptAct1 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(3000, 1000));
-            ptAct1.setLinkId(Id.create(1, Link.class));
-            ptAct1.setMaximumDuration(0.0);
-            Activity transferAct = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(5000, 1000));
-            transferAct.setLinkId(Id.create(2, Link.class));
-            transferAct.setMaximumDuration(0.0);
-            Activity ptAct2 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(7000, 1000));
-            ptAct2.setLinkId(Id.create(3, Link.class));
-            ptAct2.setMaximumDuration(0.0);
+			Activity ptAct1 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(3000, 1000));
+			ptAct1.setLinkId(Id.create(1, Link.class));
+			ptAct1.setMaximumDuration(0.0);
+			Activity transferAct = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(5000, 1000));
+			transferAct.setLinkId(Id.create(2, Link.class));
+			transferAct.setMaximumDuration(0.0);
+			Activity ptAct2 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(7000, 1000));
+			ptAct2.setLinkId(Id.create(3, Link.class));
+			ptAct2.setMaximumDuration(0.0);
 
-            plan.addActivity(home1);
-            Leg accessLeg = pf.createLeg(SBBModes.ACCESS_EGRESS_WALK);
-            accessLeg.setRoute(RouteUtils.createGenericRouteImpl(Id.create("1", Link.class), Id.create("1", Link.class)));
-            accessLeg.getRoute().setDistance(200);
-            accessLeg.getRoute().setTravelTime(300);
-            plan.addLeg(accessLeg);
-            plan.addActivity(ptAct1);
-            Leg pt1Leg = pf.createLeg(SBBModes.PT);
-            pt1Leg.setRoute(new DefaultTransitPassengerRoute(stop1, blueLine, blueRoute, stop2));
-            plan.addLeg(pt1Leg);
-            plan.addActivity(transferAct);
-            Leg pt2Leg = pf.createLeg(SBBModes.PT);
-            pt2Leg.setRoute(new DefaultTransitPassengerRoute(stop2, redLine, redRoute, stop3));
-            plan.addLeg(pt2Leg);
-            plan.addActivity(ptAct2);
-            Leg egressLeg = pf.createLeg(SBBModes.ACCESS_EGRESS_WALK);
-            egressLeg.setRoute(RouteUtils.createGenericRouteImpl(Id.create("3", Link.class), Id.create("4", Link.class)));
-            egressLeg.getRoute().setDistance(200);
-            egressLeg.getRoute().setTravelTime(300);
-            plan.addLeg(egressLeg);
-            plan.addActivity(home2);
-            TripStructureUtils.getLegs(plan).stream().forEach(leg -> TripStructureUtils.setRoutingMode(leg, SBBModes.PT));
-            pop.addPerson(person);
-        }
+			plan.addActivity(home1);
+			Leg accessLeg = pf.createLeg(SBBModes.ACCESS_EGRESS_WALK);
+			accessLeg.setRoute(RouteUtils.createGenericRouteImpl(Id.create("1", Link.class), Id.create("1", Link.class)));
+			accessLeg.getRoute().setDistance(200);
+			accessLeg.getRoute().setTravelTime(300);
+			plan.addLeg(accessLeg);
+			plan.addActivity(ptAct1);
+			Leg pt1Leg = pf.createLeg(SBBModes.PT);
+			pt1Leg.setRoute(new DefaultTransitPassengerRoute(stop1, blueLine, blueRoute, stop2));
+			plan.addLeg(pt1Leg);
+			plan.addActivity(transferAct);
+			Leg pt2Leg = pf.createLeg(SBBModes.PT);
+			pt2Leg.setRoute(new DefaultTransitPassengerRoute(stop2, redLine, redRoute, stop3));
+			plan.addLeg(pt2Leg);
+			plan.addActivity(ptAct2);
+			Leg egressLeg = pf.createLeg(SBBModes.ACCESS_EGRESS_WALK);
+			egressLeg.setRoute(RouteUtils.createGenericRouteImpl(Id.create("3", Link.class), Id.create("4", Link.class)));
+			egressLeg.getRoute().setDistance(200);
+			egressLeg.getRoute().setTravelTime(300);
+			plan.addLeg(egressLeg);
+			plan.addActivity(home2);
+			TripStructureUtils.getLegs(plan).stream().forEach(leg -> TripStructureUtils.setRoutingMode(leg, SBBModes.PT));
+			pop.addPerson(person);
+		}
 
     }
 

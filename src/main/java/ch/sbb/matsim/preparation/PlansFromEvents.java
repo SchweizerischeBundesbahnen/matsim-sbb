@@ -289,7 +289,9 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
             if (personsInVehicle == null) {
                 throw new IllegalStateException("there must be at least one person in the vehicle");
             } else {
-                if (!(personsInVehicle.remove(person))) throw new IllegalStateException("Person must be in vehicle " + person.getId());
+                if (!(personsInVehicle.remove(person))) {
+                    throw new IllegalStateException("Person must be in vehicle " + person.getId());
+                }
             }
             Leg leg = getLastLeg(person.getSelectedPlan());
             leg.setTravelTime(event.getTime() - leg.getDepartureTime().seconds());

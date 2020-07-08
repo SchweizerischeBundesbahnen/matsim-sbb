@@ -46,28 +46,28 @@ public class AccessEgressRouting {
 
     public double addAccess(final Facility fromFacility, final Link accessActLink, double now, final List<PlanElement> result, final Person person) {
 
-        final Leg accessLeg = this.populationFactory.createLeg(SBBModes.ACCESS_EGRESS_WALK);
-        accessLeg.setDepartureTime(now);
-        now += routeBushwhackingLeg(person, accessLeg, fromFacility.getCoord(), now, accessActLink.getId(), accessActLink.getId());
+		final Leg accessLeg = this.populationFactory.createLeg(SBBModes.ACCESS_EGRESS_WALK);
+		accessLeg.setDepartureTime(now);
+		now += routeBushwhackingLeg(person, accessLeg, fromFacility.getCoord(), now, accessActLink.getId(), accessActLink.getId());
 
-        result.add(accessLeg);
+		result.add(accessLeg);
 
-        final Activity interactionActivity = createInteractionActivity(accessActLink);
-        result.add(interactionActivity);
-        return now;
-    }
+		final Activity interactionActivity = createInteractionActivity(accessActLink);
+		result.add(interactionActivity);
+		return now;
+	}
 
 
     public double addEgress(final Facility toFacility, final Link egressActLink, double now, final List<PlanElement> result, final Person person) {
-        final Activity interactionActivity = createInteractionActivity(egressActLink);
-        result.add(interactionActivity);
+		final Activity interactionActivity = createInteractionActivity(egressActLink);
+		result.add(interactionActivity);
 
-        final Leg egressLeg = this.populationFactory.createLeg(SBBModes.ACCESS_EGRESS_WALK);
-        egressLeg.setDepartureTime(now);
-        now += routeBushwhackingLeg(person, egressLeg, toFacility.getCoord(), now, egressActLink.getId(), egressActLink.getId());
-        result.add(egressLeg);
-        return now;
-    }
+		final Leg egressLeg = this.populationFactory.createLeg(SBBModes.ACCESS_EGRESS_WALK);
+		egressLeg.setDepartureTime(now);
+		now += routeBushwhackingLeg(person, egressLeg, toFacility.getCoord(), now, egressActLink.getId(), egressActLink.getId());
+		result.add(egressLeg);
+		return now;
+	}
 
     private Activity createInteractionActivity(final Link link) {
         final Coord coord = link.getToNode().getCoord();

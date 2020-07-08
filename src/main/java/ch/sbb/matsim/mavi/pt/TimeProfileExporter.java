@@ -29,7 +29,10 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleCapacity;
 import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleType.DoorOperationMode;
+import org.matsim.vehicles.VehicleUtils;
 import org.matsim.vehicles.Vehicles;
 import org.matsim.vehicles.VehiclesFactory;
 
@@ -81,7 +84,7 @@ public class TimeProfileExporter {
         Visum.ComObject vehJourneys = visum.getNetObject("VehicleJourneys");
         int nrOfVehJourneys = vehJourneys.countActive();
         String[][] vehJourneyAttributes = Visum.getArrayFromAttributeList(nrOfVehJourneys, vehJourneys,
-                "TimeProfile\\ID", "No", "FromTProfItemIndex", "ToTProfItemIndex", "Dep");
+                "TimeProfile\\ID", "No", "FromTProfItemIndex", "ToTProfItemIndex", "Dep", "VehCapacity", "StandingRoom");
         for (int vj = 0; vj < nrOfVehJourneys; vj++) {
             TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(vehJourneyAttributes[vj][0]));
             if (tp == null)
@@ -89,7 +92,9 @@ public class TimeProfileExporter {
             tp.addVehicleJourney(new VehicleJourney((int) Double.parseDouble(vehJourneyAttributes[vj][1]),
                     (int) Double.parseDouble(vehJourneyAttributes[vj][2]),
                     (int) Double.parseDouble(vehJourneyAttributes[vj][3]),
-                    Double.parseDouble(vehJourneyAttributes[vj][4])));
+                    Double.parseDouble(vehJourneyAttributes[vj][4]),
+                    (int) Double.parseDouble(vehJourneyAttributes[vj][5].isEmpty() ? "-1" : vehJourneyAttributes[vj][5]),
+                    (int) Double.parseDouble(vehJourneyAttributes[vj][6].isEmpty() ? "-1" : vehJourneyAttributes[vj][6])));
         }
 
         // time profile items
@@ -280,18 +285,49 @@ public class TimeProfileExporter {
                 IntStream.range(0, values.length).forEach(j -> addAttribute(route.getAttributes(), custAttNames.get(j).getAttributeName(),
                         values[j], custAttNames.get(j).getDataType()));
 
-                String vehicleType = tp.tSysCode;
-                Id<VehicleType> vehicleTypeId = Id.create(vehicleType, VehicleType.class);
-                Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, this.vehicles.getVehicleTypes().get(vehicleTypeId));
+                VehicleType vehType = getVehicleType(tp.tSysCode, vj.vehCapacity, vj.standingRoom);
+                Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, vehType);
                 this.vehicles.addVehicle(vehicle);
             });
         }
         log.info("Loading transit routes finished");
     }
 
-    private static void addAttribute(Attributes attributes, String name, String value, String dataType)  {
-        if(!value.isEmpty() && !value.equals("null"))    {
-            switch ( dataType ) {
+    private VehicleType getVehicleType(String tSysCode, int capacity, int standingRoom) {
+        Id<VehicleType> vehicleTypeId = Id.create(tSysCode + "_" + capacity + "_" + standingRoom, VehicleType.class);
+        VehicleType vehType = this.vehicles.getVehicleTypes().get(vehicleTypeId);
+        if (vehType == null) {
+            vehType = this.vehicleBuilder.createVehicleType(vehicleTypeId);
+            vehType.setDescription(tSysCode);
+            VehicleUtils.setDoorOperationMode(vehType, DoorOperationMode.serial);
+            VehicleCapacity vehicleCapacity = vehType.getCapacity();
+            if (capacity < 0) {
+                vehicleCapacity.setSeats(150); // default in case of missing value
+            } else {
+                vehicleCapacity.setSeats(capacity);
+            }
+            if (standingRoom < 0) {
+                vehicleCapacity.setStandingRoom(50); // default in case of missing value
+            } else {
+                vehicleCapacity.setStandingRoom(standingRoom);
+            }
+            if (capacity == 0 && standingRoom == 0) {
+                log.warn("There exists a vehicle type with capacity and standingRoom both = 0. tSysCode = " + tSysCode);
+            }
+
+            // the following parameters do not have any influence in a deterministic simulation engine
+            vehType.setLength(10);
+            vehType.setWidth(2);
+            vehType.setPcuEquivalents(1);
+            vehType.setMaximumVelocity(10000);
+            this.vehicles.addVehicleType(vehType);
+        }
+        return vehType;
+    }
+
+    private static void addAttribute(Attributes attributes, String name, String value, String dataType) {
+        if (!value.isEmpty() && !value.equals("null")) {
+            switch (dataType) {
                 case "java.lang.String":
                     attributes.putAttribute(name, value);
                     break;
@@ -336,16 +372,21 @@ public class TimeProfileExporter {
     }
 
     private static class VehicleJourney {
+
         final int no;
         final int fromTProfItemIndex;
         final int toTProfItemIndex;
         final double dep;
+        final int vehCapacity;
+        final int standingRoom;
 
-        public VehicleJourney(int no, int fromTProfItemIndex, int toTProfItemIndex, double dep) {
+        public VehicleJourney(int no, int fromTProfItemIndex, int toTProfItemIndex, double dep, int vehCapacity, int standingRoom) {
             this.no = no;
             this.fromTProfItemIndex = fromTProfItemIndex;
             this.toTProfItemIndex = toTProfItemIndex;
             this.dep = dep;
+            this.vehCapacity = vehCapacity;
+            this.standingRoom = standingRoom;
         }
     }
 
