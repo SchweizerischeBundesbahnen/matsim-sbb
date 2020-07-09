@@ -4,10 +4,8 @@
 
 package ch.sbb.matsim.analysis.travelcomponents;
 
-import org.matsim.core.config.Config;
-
 import java.util.concurrent.atomic.AtomicInteger;
-
+import org.matsim.core.config.Config;
 
 public class TravelComponent {
 
@@ -18,13 +16,14 @@ public class TravelComponent {
 	private static AtomicInteger id = new AtomicInteger(0); // for enumeration
 
 	private double startTime;
-	private double endTime = 30 * 3600;
+	private double endTime;
 
 	private int elementId;
 
 	public TravelComponent(Config config) {
 		elementId = id.incrementAndGet();
-		endTime = config.qsim().getEndTime();
+		endTime = config.qsim().getEndTime().orElse(30 * 3600);
+
 	}
 
 	public int getElementId() {

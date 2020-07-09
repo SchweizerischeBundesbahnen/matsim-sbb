@@ -1,11 +1,19 @@
 package ch.sbb.matsim.analysis.traveltimes;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.network.Link;
@@ -20,17 +28,12 @@ import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.geometry.transformations.CH1903LV03PlustoWGS84;
-import org.matsim.counts.*;
+import org.matsim.counts.Count;
+import org.matsim.counts.CountSimComparison;
+import org.matsim.counts.CountSimComparisonImpl;
+import org.matsim.counts.Counts;
+import org.matsim.counts.MatsimCountsReader;
 import org.matsim.counts.algorithms.CountSimComparisonKMLWriter;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author jbischoff / SBB
@@ -88,8 +91,8 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
         writeCountsComparisons(outputFolder, scalefactor, network, counts, countsLinks);
         TransportModeNetworkFilter networkFilter = new TransportModeNetworkFilter(network);
         Network carNet = NetworkUtils.createNetwork();
-        networkFilter.filter(carNet, Collections.singleton(TransportMode.car));
-        new RunTravelTimeValidation(carNet, ttc.getLinkTravelTimes(), startTime).run(travelTimeRelationsFile, outputFolder + "/congestedTravelTimeComparison_" + startTime + ".csv");
+		networkFilter.filter(carNet, Collections.singleton(SBBModes.CAR));
+		new RunTravelTimeValidation(carNet, ttc.getLinkTravelTimes(), startTime).run(travelTimeRelationsFile, outputFolder + "/congestedTravelTimeComparison_" + startTime + ".csv");
 
     }
 

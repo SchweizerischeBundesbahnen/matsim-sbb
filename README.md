@@ -1,4 +1,4 @@
 # matsim-sbb
 
-MATSim for project MEMO-P (Multimodale Erweiterung der Modell-Landschaft P)
+MATSim for project SIMBA MOBi.
 

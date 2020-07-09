@@ -1,7 +1,7 @@
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
@@ -28,8 +28,8 @@ public class NetworkMerger {
 
     public static Network removePtOnlyLinks(Network network) {
         Network reducedNetwork = NetworkUtils.createNetwork();
-        new TransportModeNetworkFilter(network).filter(reducedNetwork,
-                CollectionUtils.stringToSet(TransportMode.car + ","  +TransportMode.ride));
+		new TransportModeNetworkFilter(network).filter(reducedNetwork,
+				CollectionUtils.stringToSet(SBBModes.CAR + "," + SBBModes.RIDE));
         return reducedNetwork;
     }
 }

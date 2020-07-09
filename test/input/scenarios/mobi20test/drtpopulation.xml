@@ -18,7 +18,8 @@
             <attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
             <attribute name="employed" class="java.lang.Boolean">true</attribute>
             <attribute name="hasLicense" class="java.lang.String">true</attribute>
-            <attribute name="initialActivityEndTimes" class="java.lang.String">68134.0_72045.0</attribute>
+            <attribute name="initialActivityEndTimes" class="java.lang.String">68134.0_72045.0
+            </attribute>
             <attribute name="mobility" class="java.lang.Integer">10</attribute>
             <attribute name="ms_region" class="java.lang.Integer">98</attribute>
             <attribute name="pt_subscr" class="java.lang.String">none</attribute>
@@ -30,7 +31,43 @@
             <activity type="outside" x="605889.0" y="125314.0" end_time="19:04:55">
             </activity>
             <leg mode="drt"/>
-            <activity type="leisure_30" facility="B_228261" x="614224.0" y="134386.0" start_time="19:31:31"
+            <activity type="leisure_30" facility="B_228261" x="614224.0" y="134386.0"
+                      start_time="19:31:31"
+                      end_time="20:00:45">
+            </activity>
+            <leg mode="drt"/>
+
+            <activity type="outside" x="605858.5" y="125360.5" end_time="20:35:17">
+            </activity>
+        </plan>
+
+    </person>
+
+    <person id="P_1131551">
+        <attributes>
+            <attribute name="age" class="java.lang.Integer">48</attribute>
+            <attribute name="age_cat" class="java.lang.Integer">4</attribute>
+            <attribute name="carAvail" class="java.lang.String">always</attribute>
+            <attribute name="cut" class="java.lang.Boolean">true</attribute>
+            <attribute name="edu_type" class="java.lang.Integer">0</attribute>
+            <attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+            <attribute name="employed" class="java.lang.Boolean">true</attribute>
+            <attribute name="hasLicense" class="java.lang.String">true</attribute>
+            <attribute name="initialActivityEndTimes" class="java.lang.String">68134.0_72045.0
+            </attribute>
+            <attribute name="mobility" class="java.lang.Integer">10</attribute>
+            <attribute name="ms_region" class="java.lang.Integer">98</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="sex" class="java.lang.String">0</attribute>
+            <attribute name="subpopulation" class="java.lang.String">outsideAgent</attribute>
+            <attribute name="tZone" class="java.lang.String">623801001.0</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="outside" x="605889.0" y="125314.0" end_time="19:04:55">
+            </activity>
+            <leg mode="walk_main"/>
+            <activity type="leisure_30" facility="B_228261" x="614224.0" y="134386.0"
+                      start_time="19:31:31"
                       end_time="20:00:45">
             </activity>
             <leg mode="drt"/>

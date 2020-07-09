@@ -6,13 +6,14 @@ package ch.sbb.matsim.analysis.travelcomponents;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.TransportMode;
-import org.matsim.core.config.Config;
-
-import java.util.*;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.matsim.api.core.v01.Id;
+import org.matsim.core.config.Config;
 
 public class Trip extends TravelComponent {
 
@@ -26,8 +27,8 @@ public class Trip extends TravelComponent {
 
     Trip(Config config) {
         super(config);
-        this.config = config;
-        this.walkSpeed = config.plansCalcRoute().getModeRoutingParams().get( TransportMode.walk ).getTeleportedModeSpeed();
+		this.config = config;
+		this.walkSpeed = config.plansCalcRoute().getModeRoutingParams().get(SBBModes.WALK_FOR_ANALYSIS).getTeleportedModeSpeed();
     }
 
     public TravelledLeg addLeg() {
@@ -55,14 +56,16 @@ public class Trip extends TravelComponent {
     }
 
     public double getInVehDistance() {
-        if (getMainMode().equals(SBBModes.WALK))
-            return 0;
+		if (getMainMode().equals(SBBModes.WALK_FOR_ANALYSIS)) {
+			return 0;
+		}
         return this.legs.stream().mapToDouble(TravelledLeg::getDistance).sum();
     }
 
     private double getWalkDistance() {
-        if (getMainMode().equals(SBBModes.WALK))
-            return walkSpeed * getDuration();
+		if (getMainMode().equals(SBBModes.WALK_FOR_ANALYSIS)) {
+			return walkSpeed * getDuration();
+		}
         return 0;
     }
 
@@ -71,8 +74,9 @@ public class Trip extends TravelComponent {
     }
 
     public double getInVehTime() {
-        if (getMainMode().equals(SBBModes.WALK))
-            return 0;
+		if (getMainMode().equals(SBBModes.WALK_FOR_ANALYSIS)) {
+			return 0;
+		}
         return this.legs.stream().mapToDouble(TravelledLeg::getDuration).sum();
     }
 
@@ -80,15 +84,15 @@ public class Trip extends TravelComponent {
         // get main mode according to hierarchical order
         TravelledLeg leg = Collections.min(this.legs, Comparator.comparing(TravelledLeg::getModeHierarchy));
         if (leg.getModeHierarchy() != SBBModes.DEFAULT_MODE_HIERARCHY) {
-            if (leg.isPtLeg()) {
-                return SBBModes.PT;
-            }
-            String mainMode = leg.getMode();
-            if (mainMode.equals(SBBModes.PT_FALLBACK_MODE)) {
-                return SBBModes.WALK;
-            }
-            return mainMode;
-        }
+			if (leg.isPtLeg()) {
+				return SBBModes.PT;
+			}
+			String mainMode = leg.getMode();
+			if (mainMode.equals(SBBModes.PT_FALLBACK_MODE) || mainMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+				return SBBModes.WALK_FOR_ANALYSIS;
+			}
+			return mainMode;
+		}
         else    {
             // fallback solution -> get main mode according to longest distance
             return Collections.max(this.legs, Comparator.comparing(TravelledLeg::getDistance)).getMode();
