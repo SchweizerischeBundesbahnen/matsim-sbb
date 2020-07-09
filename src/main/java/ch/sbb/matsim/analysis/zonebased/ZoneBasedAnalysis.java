@@ -45,8 +45,8 @@ public class ZoneBasedAnalysis {
     final private Set<String> ptModes;
     final private MainModeIdentifier identifier;
     Map<Id<TransitRoute>, String> modePerRoute;
-    private Scenario scenario;
-    private Map<Id<Zone>, ZoneStats> zoneStatsMap;
+    private final Scenario scenario;
+    private final Map<Id<Zone>, ZoneStats> zoneStatsMap;
 
     ZoneBasedAnalysis(Zones zones, RunZonebasedAnalysis.ZonebasedAnalysisConfig config, MainModeIdentifier identifier) {
         this.zones = zones;
@@ -177,8 +177,8 @@ public class ZoneBasedAnalysis {
                     ZoneStats zoneStats = zoneStatsMap.get(startZone.getId());
                     zoneStats.travelDistance.computeIfAbsent(mainMode, a -> new DescriptiveStatistics()).addValue(distance);
                     zoneStats.travelTimes.computeIfAbsent(mainMode, a -> new DescriptiveStatistics()).addValue(travelTime);
-                    if (mainMode.equals(TransportMode.pt)) {
-                        long transfers = trip.getLegsOnly().stream().filter(t -> t.getMode().equals(TransportMode.pt)).count() - 1;
+                    if (mainMode.equals(SBBModes.PT)) {
+                        long transfers = trip.getLegsOnly().stream().filter(t -> t.getMode().equals(SBBModes.PT)).count() - 1;
                         if (transfers >= 0) {
                             zoneStats.transfers.addValue(transfers);
                         }
