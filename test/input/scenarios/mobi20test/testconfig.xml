@@ -6,6 +6,8 @@
 
         <param name="flowCapacityFactor" value="0.1"/>
         <param name="storageCapacityFactor" value="0.2"/>
+        <param name="useDeterministicPt" value="true"/>
+
     </module>
     <module name="PostProcessing">
         <!-- Run Screenline Analysis -->
