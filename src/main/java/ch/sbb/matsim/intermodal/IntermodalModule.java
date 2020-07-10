@@ -1,7 +1,7 @@
 package ch.sbb.matsim.intermodal;
 
-import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
-import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
+import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
+import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
@@ -60,7 +60,7 @@ public class IntermodalModule extends AbstractModule {
     }
 
     public static void prepareIntermodalScenario(Scenario scenario) {
-        SBBIntermodalConfigGroup configGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBIntermodalConfigGroup.class);
+		SBBIntermodalConfiggroup configGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBIntermodalConfiggroup.class);
 
         URL csvPath = configGroup.getAttributesCSVPathURL(scenario.getConfig().getContext());
         if (csvPath != null) {
@@ -84,7 +84,7 @@ public class IntermodalModule extends AbstractModule {
 
     @Override
     public void install() {
-		SBBIntermodalConfigGroup configGroup = ConfigUtils.addOrGetModule(this.getConfig(), SBBIntermodalConfigGroup.class);
+		SBBIntermodalConfiggroup configGroup = ConfigUtils.addOrGetModule(this.getConfig(), SBBIntermodalConfiggroup.class);
 		SwissRailRaptorConfigGroup swissRailRaptorConfigGroup = ConfigUtils.addOrGetModule(this.getConfig(), SwissRailRaptorConfigGroup.class);
 		if (swissRailRaptorConfigGroup.isUseIntermodalAccessEgress()) {
 			for (SBBIntermodalModeParameterSet mode : configGroup.getModeParameterSets()) {

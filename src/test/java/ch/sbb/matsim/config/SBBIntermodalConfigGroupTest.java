@@ -20,22 +20,22 @@ public class SBBIntermodalConfigGroupTest {
 
     @Test
     public void testIO() throws IOException {
-        SBBIntermodalConfigGroup intermodal1 = new SBBIntermodalConfigGroup();
-        SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet mode1a = new SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet();
+        SBBIntermodalConfiggroup intermodal1 = new SBBIntermodalConfiggroup();
+        SBBIntermodalModeParameterSet mode1a = new SBBIntermodalModeParameterSet();
         mode1a.setMode("bicycle_feeder");
         mode1a.setDetourFactor(0.95); // the bicycle takes short cuts ;-)
-        mode1a.setWaitingTime(3*60);
+        mode1a.setWaitingTime(3 * 60);
         mode1a.setSimulatedOnNetwork(false);
         mode1a.setRoutedOnNetwork(false);
         intermodal1.addModeParameters(mode1a);
-        SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet mode1b = new SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet();
+        SBBIntermodalModeParameterSet mode1b = new SBBIntermodalModeParameterSet();
         mode1b.setMode("scooter");
         mode1b.setDetourFactor(1.08);
-        mode1b.setWaitingTime(2*60);
+        mode1b.setWaitingTime(2 * 60);
         mode1b.setSimulatedOnNetwork(true);
         mode1b.setRoutedOnNetwork(true);
         intermodal1.addModeParameters(mode1b);
-        SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet mode1c = new SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet();
+        SBBIntermodalModeParameterSet mode1c = new SBBIntermodalModeParameterSet();
         mode1c.setMode("car_feeder");
         mode1c.setDetourFactor(1.08);
         mode1c.setSimulatedOnNetwork(true);
@@ -55,20 +55,20 @@ public class SBBIntermodalConfigGroupTest {
              data = byteOut.toByteArray();
         }
 
-        SBBIntermodalConfigGroup intermodal2 = new SBBIntermodalConfigGroup();
+        SBBIntermodalConfiggroup intermodal2 = new SBBIntermodalConfiggroup();
         Config config2 = ConfigUtils.createConfig(intermodal2);
         try (ByteArrayInputStream byteIn = new ByteArrayInputStream(data)) {
             new ConfigReader(config2).parse(byteIn);
         }
 
-        List<SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> modes2 = intermodal2.getModeParameterSets();
+        List<SBBIntermodalModeParameterSet> modes2 = intermodal2.getModeParameterSets();
         Assert.assertEquals(3, modes2.size());
 
-        SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet mode2a = null;
-        SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet mode2b = null;
-        SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet mode2c = null;
+        SBBIntermodalModeParameterSet mode2a = null;
+        SBBIntermodalModeParameterSet mode2b = null;
+        SBBIntermodalModeParameterSet mode2c = null;
 
-        for (SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet mode2 : modes2) {
+        for (SBBIntermodalModeParameterSet mode2 : modes2) {
             if (mode2.getMode().equals(mode1a.getMode())) {
                 mode2a = mode2;
             }

@@ -1,6 +1,7 @@
 package ch.sbb.matsim.routing.pt.raptor;
 
-import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
+import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
+import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.routing.graph.Graph;
 import ch.sbb.matsim.routing.graph.LeastCostPathTree;
@@ -52,7 +53,7 @@ public class AccessEgressRouteCache {
 	private final static Logger LOGGER = Logger.getLogger(AccessEgressRouteCache.class);
 	private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
 	private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
-	private final Map<String, SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
+	private final Map<String, SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
 	private final Map<String, SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet> raptorIntermodalModeParams;
 	private final TransitSchedule transitSchedule;
 	private final Zones zonesCollection;
@@ -67,14 +68,14 @@ public class AccessEgressRouteCache {
 		this.scenario = scenario;
 		this.transitSchedule = scenario.getTransitSchedule();
 		this.singleModeNetworksCache = singleModeNetworksCache;
-		SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
+		SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
 		SwissRailRaptorConfigGroup railRaptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
-        raptorIntermodalModeParams = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().collect(Collectors.toMap(m -> m.getMode(), m -> m));
-        this.zonesCollection = allZones.getZones(intermodalConfigGroup.getZonesId());
-        for (SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet paramset : intermodalConfigGroup.getModeParameterSets()) {
-            if (paramset.isRoutedOnNetwork() && !paramset.isSimulatedOnNetwork()) {
-                LOGGER.info("Building Traveltime cache for feeder mode " + paramset.getMode() + "....");
-                Gbl.printMemoryUsage();
+		raptorIntermodalModeParams = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().collect(Collectors.toMap(m -> m.getMode(), m -> m));
+		this.zonesCollection = allZones.getZones(intermodalConfigGroup.getZonesId());
+		for (SBBIntermodalModeParameterSet paramset : intermodalConfigGroup.getModeParameterSets()) {
+			if (paramset.isRoutedOnNetwork() && !paramset.isSimulatedOnNetwork()) {
+				LOGGER.info("Building Traveltime cache for feeder mode " + paramset.getMode() + "....");
+				Gbl.printMemoryUsage();
 				this.intermodalModeParams.put(paramset.getMode(), paramset);
 				SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet raptorParams = raptorIntermodalModeParams.get(paramset.getMode());
 				String stopFilterAttribute = raptorParams.getStopFilterAttribute();
