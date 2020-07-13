@@ -8,6 +8,7 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.intermodal.analysis.IntermodalControlerListener;
 import ch.sbb.matsim.intermodal.analysis.IntermodalTransferTimeAnalyser;
+import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.AccessEgressRouteCache;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
@@ -69,11 +70,14 @@ public class IntermodalModule extends AbstractModule {
 
         for (SBBIntermodalModeParameterSet mode : configGroup.getModeParameterSets()) {
             if (mode.isRoutedOnNetwork()) {
-                SBBNetworkRoutingModule.addNetworkMode(scenario.getNetwork(), mode.getMode(), SBBModes.CAR);
-                Set<String> routedModes = new HashSet<>(scenario.getConfig().plansCalcRoute().getNetworkModes());
-                routedModes.add(mode.getMode());
-                scenario.getConfig().plansCalcRoute().setNetworkModes(routedModes);
-            }
+				SBBNetworkRoutingModule.addNetworkMode(scenario.getNetwork(), mode.getMode(), SBBModes.CAR);
+				Set<String> routedModes = new HashSet<>(scenario.getConfig().plansCalcRoute().getNetworkModes());
+				routedModes.add(mode.getMode());
+				scenario.getConfig().plansCalcRoute().setNetworkModes(routedModes);
+				if (mode.getAccessTimeZoneId() != null) {
+					AccessEgressModule.prepareAccessEgressTimesForMode(mode.getMode(), configGroup.getZonesId(), mode.getAccessTimeZoneId(), mode.getEgressTimeZoneId(), scenario);
+				}
+			}
             if (mode.isSimulatedOnNetwork()) {
                 Set<String> mainModes = new HashSet<>(scenario.getConfig().qsim().getMainModes());
                 mainModes.add(mode.getMode());
