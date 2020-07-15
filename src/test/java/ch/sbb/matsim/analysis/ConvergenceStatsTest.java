@@ -85,15 +85,15 @@ public class ConvergenceStatsTest {
         csConfig.setIterationWindowSize(2);
         csConfig.setTestsToRun(ConvergenceConfigGroup.Test.values());
 
-        // setup convergence criterion weights and target (weight stats equally but only consider CV)
-        csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.CV.name(), "all", 0.1);
-        csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KS_NORMAL.name(), "all", 0.0);
-        csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KENDALL.name(), "all", 0.0);
-        csConfig.setConvergenceCriterionFunctionTarget(0.07); // should stop at 3 or 4 iterations
+		// setup convergence criterion weights and target (weight stats equally but only consider CV)
+		csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.CV.name(), "all", 0.1);
+		csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KS_NORMAL.name(), "all", 0.0);
+		csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KENDALL.name(), "all", 0.0);
+		csConfig.setConvergenceCriterionFunctionTarget(0.07); // should stop at 3 or 4 iterations
 
-        // shut-off outputs
-        int absoluteLastIteration = 10;
-        config.controler().setLastIteration(absoluteLastIteration);
+		// shut-off outputs
+		int absoluteLastIteration = 10;
+		config.controler().setLastIteration(absoluteLastIteration);
 		config.controler().setOutputDirectory(utils.getOutputDirectory());
 		config.controler().setWriteEventsInterval(0);
 		config.controler().setWritePlansInterval(0);
@@ -116,9 +116,9 @@ public class ConvergenceStatsTest {
 			List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());
 			iterationsRun = lines.size();
 			Assert.assertNotNull(lines.get(1));
-        }
-        Assert.assertTrue(iterationsRun-1 < absoluteLastIteration - csConfig.getIterationWindowSize());
-    }
+		}
+		Assert.assertTrue(iterationsRun - 1 < absoluteLastIteration - csConfig.getIterationWindowSize());
+	}
 
     private class StubControler implements MatsimServices {
         @Override

@@ -3,7 +3,8 @@ package ch.sbb.matsim.routing.network.AccessTime;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.routing.access.AccessEgress;
+import ch.sbb.matsim.routing.access.AccessEgressModule;
+import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.zones.ZonesModule;
 import java.util.HashSet;
 import java.util.List;
@@ -54,7 +55,6 @@ public class TestFixture {
 
         Config config = ConfigUtils.createConfig(new SBBAccessTimeConfigGroup());
         scenario = ScenarioUtils.createScenario(config);
-
         population = scenario.getPopulation();
         Network network = scenario.getNetwork();
 
@@ -144,12 +144,12 @@ public class TestFixture {
         PlanCalcScoreConfigGroup.ActivityParams params3 = new PlanCalcScoreConfigGroup.ActivityParams(mode + " interaction");
         params3.setScoringThisActivityAtAll(false);
         scenario.getConfig().planCalcScore().addActivityParams(params3);
-
-		accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-		accessParams.setConstant(constant);
-
-		egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-		egressParams.setConstant(constant);
+        var rideParams = scenario.getConfig().plansCalcRoute().getModeRoutingParams().get(SBBModes.RIDE);
+        scenario.getConfig().plansCalcRoute().removeParameterSet(rideParams);
+        egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
+        egressParams.setConstant(constant);
+        accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
+        accessParams.setConstant(constant);
 
         StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
         settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);
@@ -169,10 +169,20 @@ public class TestFixture {
         config.controler().setWriteEventsUntilIteration(1);
         config.controler().setWritePlansInterval(1);
         config.qsim().setEndTime(10 * 60 * 60);
+        //config.plansCalcRoute().setNetworkModes(List.of(SBBModes.CAR,SBBModes.RIDE));
+        SBBNetworkRoutingModule.prepareScenario(scenario);
+        ZonesModule.addZonestoScenario(scenario);
+        AccessEgressModule.prepareAccessEgressTimes(scenario);
+
     }
 
     public void run() {
         controler = new Controler(scenario);
+        controler.addOverridingModule(new ZonesModule(scenario));
+        controler.addOverridingModule(new AccessEgressModule());
+        controler.addOverridingModule(new AccessEgressModule());
+        EventsCollector collector = new EventsCollector();
+        controler.getEvents().addHandler(collector);
 
         controler.addOverridingModule(new AbstractModule() {
             @Override
@@ -181,12 +191,6 @@ public class TestFixture {
                 addTravelDisutilityFactoryBinding("ride").to(carTravelDisutilityFactoryKey());
             }
         });
-
-        controler.addOverridingModule(new ZonesModule());
-        controler.addOverridingModule(new AccessEgress(scenario));
-
-        EventsCollector collector = new EventsCollector();
-        controler.getEvents().addHandler(collector);
 
         controler.run();
 

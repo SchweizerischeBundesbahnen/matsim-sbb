@@ -78,24 +78,24 @@ public class PtTestFixture {
     }
 
     public void addSingleTransitDemand() {
-        Population population = this.scenario.getPopulation();
-        PopulationFactory pf = population.getFactory();
-        Person person = pf.createPerson(Id.create(1, Person.class));
-        person.getAttributes().putAttribute("subpopulation", "regular");
-        Plan plan = pf.createPlan();
-        Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
-        act1.setEndTime(29500);
+		Population population = this.scenario.getPopulation();
+		PopulationFactory pf = population.getFactory();
+		Person person = pf.createPerson(Id.create(1, Person.class));
+		person.getAttributes().putAttribute("subpopulation", "regular");
+		Plan plan = pf.createPlan();
+		Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
+		act1.setEndTime(29500);
 		Leg leg = pf.createLeg("pt");
 		Route route = new DefaultTransitPassengerRoute(this.stopB, this.line1, this.route1, this.stopD);
-        leg.setRoute(route);
-        Activity act2 = pf.createActivityFromLinkId("work", Id.create(3, Link.class));
+		leg.setRoute(route);
+		Activity act2 = pf.createActivityFromLinkId("work", Id.create(3, Link.class));
 
-        plan.addActivity(act1);
-        plan.addLeg(leg);
-        plan.addActivity(act2);
-        person.addPlan(plan);
-        population.addPerson(person);
-    }
+		plan.addActivity(act1);
+		plan.addLeg(leg);
+		plan.addActivity(act2);
+		person.addPlan(plan);
+		population.addPerson(person);
+	}
 
 
     private void createNetwork() {
@@ -156,30 +156,30 @@ public class PtTestFixture {
         schedule.addStopFacility(this.stopB);
         schedule.addStopFacility(this.stopC);
         schedule.addStopFacility(this.stopD);
-        schedule.addStopFacility(this.stopE);
+		schedule.addStopFacility(this.stopE);
 
-        this.line1 = f.createTransitLine(Id.create("S2016_1", TransitLine.class));
+		this.line1 = f.createTransitLine(Id.create("S2016_1", TransitLine.class));
 
-        List<Id<Link>> linkIdList = new ArrayList<>();
-        linkIdList.add(link2.getId());
-        linkIdList.add(link3.getId());
-        NetworkRoute networkRoute = RouteUtils.createLinkNetworkRouteImpl(link1.getId(), linkIdList, link4.getId());
+		List<Id<Link>> linkIdList = new ArrayList<>();
+		linkIdList.add(link2.getId());
+		linkIdList.add(link3.getId());
+		NetworkRoute networkRoute = RouteUtils.createLinkNetworkRouteImpl(link1.getId(), linkIdList, link4.getId());
 
-        List<TransitRouteStop> stops = new ArrayList<>(5);
+		List<TransitRouteStop> stops = new ArrayList<>(5);
 		stops.add(f.createTransitRouteStopBuilder(this.stopA).departureOffset(0.0).build());
 		stops.add(f.createTransitRouteStop(this.stopB, 100, 120.0));
 		stops.add(f.createTransitRouteStopBuilder(this.stopC).departureOffset(300.).build());
 		stops.add(f.createTransitRouteStop(this.stopD, 570, 600.0));
 		stops.add(f.createTransitRouteStopBuilder(this.stopE).arrivalOffset(720.).build());
 
-        this.route1 = f.createTransitRoute(Id.create("A2E", TransitRoute.class), networkRoute, stops, "train");
+		this.route1 = f.createTransitRoute(Id.create("A2E", TransitRoute.class), networkRoute, stops, "train");
 
-        Departure departure1 = f.createDeparture(Id.create(1, Departure.class), 30000.0);
-        departure1.setVehicleId(veh1.getId());
-        this.route1.addDeparture(departure1);
+		Departure departure1 = f.createDeparture(Id.create(1, Departure.class), 30000.0);
+		departure1.setVehicleId(veh1.getId());
+		this.route1.addDeparture(departure1);
 
-        this.line1.addRoute(this.route1);
-        schedule.addTransitLine(this.line1);
+		this.line1.addRoute(this.route1);
+		schedule.addTransitLine(this.line1);
 
         addRouteAttributes(this.line1.getId(), this.route1.getId(), "route1");
         addStopsAttributes(this.stopA.getId(), "A");

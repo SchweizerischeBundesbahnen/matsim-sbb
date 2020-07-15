@@ -325,9 +325,9 @@ public class TimeProfileExporter {
         return vehType;
     }
 
-    private static void addAttribute(Attributes attributes, String name, String value, String dataType)  {
-        if(!value.isEmpty() && !value.equals("null"))    {
-            switch ( dataType ) {
+    private static void addAttribute(Attributes attributes, String name, String value, String dataType) {
+        if (!value.isEmpty() && !value.equals("null")) {
+            switch (dataType) {
                 case "java.lang.String":
                     attributes.putAttribute(name, value);
                     break;
@@ -372,6 +372,7 @@ public class TimeProfileExporter {
     }
 
     private static class VehicleJourney {
+
         final int no;
         final int fromTProfItemIndex;
         final int toTProfItemIndex;

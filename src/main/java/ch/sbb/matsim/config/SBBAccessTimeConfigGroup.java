@@ -1,13 +1,12 @@
 package ch.sbb.matsim.config;
 
 import ch.sbb.matsim.zones.Zones;
-import org.matsim.api.core.v01.Id;
-import org.matsim.core.config.ReflectiveConfigGroup;
-import org.matsim.core.utils.collections.CollectionUtils;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.matsim.api.core.v01.Id;
+import org.matsim.core.config.ReflectiveConfigGroup;
+import org.matsim.core.utils.collections.CollectionUtils;
 
 
 public class SBBAccessTimeConfigGroup extends ReflectiveConfigGroup {
@@ -15,14 +14,26 @@ public class SBBAccessTimeConfigGroup extends ReflectiveConfigGroup {
 
     static private final String PARAM_MODES_WITH_ACCESS_TIME = "modesWithAccessTime";
     static private final String PARAM_ZONES_ID = "zonesId";
+    static private final String PARAM_PREFIX = "attributePrefix";
     static private final String PARAM_IS_INSERTING = "isInsertingAccessEgressWalk";
 
     private Id<Zones> zonesId = null;
+    private String attributePrefix = "ACC";
     private Boolean isInsertingAccessEgressWalk = false;
     private Set<String> modesWithAccessTime = new HashSet<>();
 
     public SBBAccessTimeConfigGroup() {
         super(GROUP_NAME);
+    }
+
+    @StringGetter(PARAM_PREFIX)
+    public String getAttributePrefix() {
+        return attributePrefix;
+    }
+
+    @StringSetter(PARAM_PREFIX)
+    public void setAttributePrefix(String attributePrefix) {
+        this.attributePrefix = attributePrefix;
     }
 
     @StringGetter(PARAM_ZONES_ID)

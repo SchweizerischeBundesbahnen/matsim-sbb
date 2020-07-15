@@ -60,16 +60,14 @@ public class Isochrones {
 	private Collection<SimpleFeature> collection = new ArrayList<SimpleFeature>();
 	private TravelTime travelTime;
 	private TravelTime travelTimeWithLoad;
-    private TravelDisutility travelDisutility;
-    private PolygonFeatureFactory pff;
+	private TravelDisutility travelDisutility;
+	private PolygonFeatureFactory pff;
 
+	public Isochrones(String configFile, String eventsFilename) {
+		this.config = ConfigUtils.loadConfig(configFile);
+		this.eventsFilename = eventsFilename;
 
-    public Isochrones(String configFile, String eventsFilename) {
-        this.config = ConfigUtils.loadConfig(configFile);
-        this.eventsFilename = eventsFilename;
-
-
-        this.pff = new PolygonFeatureFactory.Builder()
+		this.pff = new PolygonFeatureFactory.Builder()
                 .setName("EvacuationArea")
                 .setCrs(DefaultGeographicCRS.WGS84)
                 .addAttribute("station", String.class)
@@ -148,10 +146,10 @@ public class Isochrones {
 
 
     private void computeIsochrone(Coord coord, double threshold, String name, boolean withLoad) {
-        TravelTime tt = this.travelTime;
-        if (withLoad) {
-            tt = this.travelTimeWithLoad;
-        }
+		TravelTime tt = this.travelTime;
+		if (withLoad) {
+			tt = this.travelTimeWithLoad;
+		}
 
 		Node node = NetworkUtils.getNearestNode(this.filteredNetwork, coord);
 		LeastCostPathTree leastCostPathTree = new LeastCostPathTree(this.graph, tt, this.travelDisutility);

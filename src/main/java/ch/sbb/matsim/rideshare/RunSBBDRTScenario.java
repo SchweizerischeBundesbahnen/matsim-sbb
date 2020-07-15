@@ -57,15 +57,15 @@ public class RunSBBDRTScenario {
     }
 
     public static void prepareDrtConfig(Config config) {
-        DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore(), config.plansCalcRoute());
+		DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore(), config.plansCalcRoute());
 
 		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
 			// MATSim defines ride by default as teleported, which conflicts with the network mode
 			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
 		}
 
-        config.checkConsistency();
-    }
+		config.checkConsistency();
+	}
 
 
     public static void prepareDrtControler(Controler controler) {

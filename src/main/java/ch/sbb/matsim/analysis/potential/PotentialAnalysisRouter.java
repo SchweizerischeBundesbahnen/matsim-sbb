@@ -74,7 +74,7 @@ public class PotentialAnalysisRouter {
         TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
-        this.router = new NetworkRoutingModule(
+		this.router = new NetworkRoutingModule(
 				SBBModes.CAR,
 				PopulationUtils.getFactory(),
 				network,

@@ -83,7 +83,7 @@ public class RunTravelTimeValidation {
         TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
         LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
-        this.router = new NetworkRoutingModule(
+		this.router = new NetworkRoutingModule(
 				SBBModes.CAR,
 				PopulationUtils.getFactory(),
 				network,
@@ -91,9 +91,9 @@ public class RunTravelTimeValidation {
     }
 
     public RunTravelTimeValidation(Network network, TravelTime tt, double startTime) {
-        this.network = network;
-        this.startTime = startTime;
-        DijkstraFactory factory = new DijkstraFactory();
+		this.network = network;
+		this.startTime = startTime;
+		DijkstraFactory factory = new DijkstraFactory();
 		TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
 		LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
@@ -139,22 +139,22 @@ public class RunTravelTimeValidation {
 			try (CSVWriter writer = new CSVWriter("", allColumns, new File(outputPath).toString())) {
 				Map<String, String> map;
 				while ((map = reader.readLine()) != null) {
-                    if (!map.get("Origin_X").isEmpty()) {
-                        log.info(map);
-                        Leg leg = this.fetch(
-                                Float.parseFloat(map.get("Origin_Y")),
-                                Float.parseFloat(map.get("Origin_X")),
-                                Float.parseFloat(map.get("Destination_Y")),
-                                Float.parseFloat(map.get("Destination_X"))
-                        );
-                        for (String column : reader.getColumns()) {
-                            writer.set(column, map.get(column));
-                        }
+					if (!map.get("Origin_X").isEmpty()) {
+						log.info(map);
+						Leg leg = this.fetch(
+								Float.parseFloat(map.get("Origin_Y")),
+								Float.parseFloat(map.get("Origin_X")),
+								Float.parseFloat(map.get("Destination_Y")),
+								Float.parseFloat(map.get("Destination_X"))
+						);
+						for (String column : reader.getColumns()) {
+							writer.set(column, map.get(column));
+						}
 
 						writer.set("Dist_MATSim", Double.toString(leg.getRoute().getDistance()));
 						writer.set("Time_MATSim", Double.toString(leg.getRoute().getTravelTime().seconds()));
 						writer.writeRow();
-                    }
+					}
                 }
             } catch (IOException e) {
                 log.warn(e);

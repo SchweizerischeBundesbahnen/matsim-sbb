@@ -199,12 +199,12 @@ public class AbmConverter {
 
     public void adjustModeIfNoLicense(Population population) {
         for (final Person person : population.getPersons().values()) {
-            for (Leg leg: TripStructureUtils.getLegs(person.getSelectedPlan())) {
+			for (Leg leg : TripStructureUtils.getLegs(person.getSelectedPlan())) {
 				if (!PersonUtils.hasLicense(person) && leg.getMode().equals(SBBModes.CAR)) {
 					leg.setMode(SBBModes.RIDE);
 				}
 			}
-        }
+		}
     }
 
     public void addHomeFacilityAttributes(Population population, ActivityFacilities facilities, String facilityAttribute) {

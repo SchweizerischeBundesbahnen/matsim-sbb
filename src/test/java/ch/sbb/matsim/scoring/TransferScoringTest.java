@@ -195,16 +195,16 @@ public class TransferScoringTest {
             vc.setSeats(100);
             vehicles.addVehicleType(vt);
             vehicles.addVehicle(vf.createVehicle(Id.create("b1", Vehicle.class), vt));
-            vehicles.addVehicle(vf.createVehicle(Id.create("r1", Vehicle.class), vt));
+			vehicles.addVehicle(vf.createVehicle(Id.create("r1", Vehicle.class), vt));
 
-            TransitSchedule schedule = this.scenario.getTransitSchedule();
-            TransitScheduleFactory sf = schedule.getFactory();
+			TransitSchedule schedule = this.scenario.getTransitSchedule();
+			TransitScheduleFactory sf = schedule.getFactory();
 
-            TransitStopFacility stop1 = sf.createTransitStopFacility(Id.create("1", TransitStopFacility.class), new Coord(3000, 1000), false);
-            stop1.setLinkId(Id.create("1", Link.class));
-            schedule.addStopFacility(stop1);
+			TransitStopFacility stop1 = sf.createTransitStopFacility(Id.create("1", TransitStopFacility.class), new Coord(3000, 1000), false);
+			stop1.setLinkId(Id.create("1", Link.class));
+			schedule.addStopFacility(stop1);
 
-            TransitStopFacility stop2 = sf.createTransitStopFacility(Id.create("2", TransitStopFacility.class), new Coord(5000, 1000), false);
+			TransitStopFacility stop2 = sf.createTransitStopFacility(Id.create("2", TransitStopFacility.class), new Coord(5000, 1000), false);
 			stop2.setLinkId(Id.create("2", Link.class));
 			schedule.addStopFacility(stop2);
 
@@ -263,16 +263,16 @@ public class TransferScoringTest {
             home1.setEndTime(8*3600 - 600);
             home1.setLinkId(Id.create("1", Link.class));
 
-            Activity home2 = pf.createActivityFromCoord("home", home2Coord);
-            home2.setLinkId(Id.create("4", Link.class));
+			Activity home2 = pf.createActivityFromCoord("home", home2Coord);
+			home2.setLinkId(Id.create("4", Link.class));
 
-            Activity ptAct1 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(3000, 1000));
-            ptAct1.setLinkId(Id.create(1, Link.class));
-            ptAct1.setMaximumDuration(0.0);
-            Activity transferAct = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(5000, 1000));
-            transferAct.setLinkId(Id.create(2, Link.class));
-            transferAct.setMaximumDuration(0.0);
-            Activity ptAct2 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(7000, 1000));
+			Activity ptAct1 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(3000, 1000));
+			ptAct1.setLinkId(Id.create(1, Link.class));
+			ptAct1.setMaximumDuration(0.0);
+			Activity transferAct = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(5000, 1000));
+			transferAct.setLinkId(Id.create(2, Link.class));
+			transferAct.setMaximumDuration(0.0);
+			Activity ptAct2 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(7000, 1000));
 			ptAct2.setLinkId(Id.create(3, Link.class));
 			ptAct2.setMaximumDuration(0.0);
 
@@ -299,7 +299,7 @@ public class TransferScoringTest {
 			plan.addActivity(home2);
 			TripStructureUtils.getLegs(plan).stream().forEach(leg -> TripStructureUtils.setRoutingMode(leg, SBBModes.PT));
 			pop.addPerson(person);
-        }
+		}
 
     }
 

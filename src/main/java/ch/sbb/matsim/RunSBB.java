@@ -11,7 +11,7 @@ import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
-import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
+import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
 import ch.sbb.matsim.config.SBBS3ConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
@@ -26,7 +26,7 @@ import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.replanning.SimpleAnnealer;
 import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
-import ch.sbb.matsim.routing.access.AccessEgress;
+import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
@@ -59,7 +59,7 @@ public class RunSBB {
     private static final Logger log = Logger.getLogger(RunSBB.class);
     public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
             new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(),
+            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
             new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup()};
 
 
@@ -91,8 +91,10 @@ public class RunSBB {
 
     public static void addSBBDefaultScenarioModules(Scenario scenario) {
         new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
+        ZonesModule.addZonestoScenario(scenario);
         SBBNetworkRoutingModule.prepareScenario(scenario);
         IntermodalModule.prepareIntermodalScenario(scenario);
+        AccessEgressModule.prepareAccessEgressTimes(scenario);
         // vehicle types
         new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
                 scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
@@ -103,7 +105,6 @@ public class RunSBB {
             SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
             sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
         }
-
 
     }
 
@@ -128,7 +129,7 @@ public class RunSBB {
 
                 install(new SBBTransitModule());
                 install(new SwissRailRaptorModule());
-                install(new ZonesModule());
+                install(new ZonesModule(scenario));
 
                 Config config = getConfig();
                 ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
@@ -162,7 +163,7 @@ public class RunSBB {
         });
 
         controler.addOverridingModule(new SBBNetworkRoutingModule());
-        controler.addOverridingModule(new AccessEgress(scenario));
+        controler.addOverridingModule(new AccessEgressModule());
         controler.addOverridingModule(new IntermodalModule());
 
 
@@ -171,10 +172,10 @@ public class RunSBB {
     public static Config buildConfig(String filepath) {
         Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
 
-		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
-			// MATSim defines ride by default as teleported, which conflicts with the network mode
-			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
-		}
+        if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
+            // MATSim defines ride by default as teleported, which conflicts with the network mode
+            config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
+        }
 
         config.checkConsistency();
         return config;

@@ -28,28 +28,28 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
     private int writeOutputsInterval = 10;
     private Boolean writeAgentsCSV = false;
-    private Boolean writePlanElementsCSV = false;
-    private Boolean finalDailyVolumes = false;
-    private String linkCountDataFile = null;
-    private String stopCountDataFile = null;
-    private Boolean writeVisumPuTSurvey = false;
+	private Boolean writePlanElementsCSV = false;
+	private Boolean finalDailyVolumes = false;
+	private String linkCountDataFile = null;
+	private String stopCountDataFile = null;
+	private Boolean writeVisumPuTSurvey = false;
 
-    private Boolean analyseScreenline = false;
-    private String shapefileScreenline = null;
+	private Boolean analyseScreenline = false;
+	private String shapefileScreenline = null;
 
-    private Boolean visumNetFile = false;
+	private Boolean visumNetFile = false;
 	private Integer visumNetworkThreshold = 5000;
 	private String visumNetworkMode = SBBModes.CAR;
 
-    @StringGetter(PARAM_SHAPEFILE_SCREENLINE)
-    public String getShapefileScreenline() {
-        return shapefileScreenline;
-    }
+	@StringGetter(PARAM_SHAPEFILE_SCREENLINE)
+	public String getShapefileScreenline() {
+		return shapefileScreenline;
+	}
 
-    @StringSetter(PARAM_SHAPEFILE_SCREENLINE)
-    public void setShapefileScreenline(String shapefileScreenline) {
-        this.shapefileScreenline = shapefileScreenline;
-    }
+	@StringSetter(PARAM_SHAPEFILE_SCREENLINE)
+	public void setShapefileScreenline(String shapefileScreenline) {
+		this.shapefileScreenline = shapefileScreenline;
+	}
 
     @StringGetter(PARAM_MODE_VISUM_NETWORK)
     public String getVisumNetworkMode() {

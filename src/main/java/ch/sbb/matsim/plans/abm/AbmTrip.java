@@ -34,7 +34,7 @@ public class AbmTrip {
 		this.coordDest = coordDest;
 		this.coordOrig = coordOrig;
 
-    }
+	}
 
 
     public Coord getCoordOrig() {

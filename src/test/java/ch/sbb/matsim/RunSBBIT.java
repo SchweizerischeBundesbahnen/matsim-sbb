@@ -1,6 +1,7 @@
 package ch.sbb.matsim;
 
 import org.junit.Test;
+import org.matsim.core.config.Config;
 
 /**
  * An integration test to see if the Mobi Scenario is running.
@@ -8,8 +9,20 @@ import org.junit.Test;
 public class RunSBBIT {
 
     @Test
-    public void main() {
-        RunSBB.main(new String[]{"test/input/scenarios/mobi20test/testconfig.xml"});
+    public void qsimIT() {
+        System.setProperty("matsim.preferLocalDtds", "true");
+        Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
+        config.controler().setMobsim("qsim");
+        RunSBB.run(config);
+
+    }
+
+    @Test
+    public void hermesIT() {
+        System.setProperty("matsim.preferLocalDtds", "true");
+        Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
+        config.controler().setMobsim("hermes");
+        RunSBB.run(config);
 
     }
 

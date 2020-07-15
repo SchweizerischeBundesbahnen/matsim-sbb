@@ -8,7 +8,9 @@ import java.util.Set;
 import org.matsim.api.core.v01.TransportMode;
 
 public class SBBModes {
-    private SBBModes() {}
+
+	private SBBModes() {
+	}
 
 	public static final String CAR = TransportMode.car;
 	public static final String RIDE = TransportMode.ride;
@@ -33,13 +35,13 @@ public class SBBModes {
 		mode2HierarchalNumber.put(PT, 0);
 		mode2HierarchalNumber.put(CAR, 10);
 		mode2HierarchalNumber.put(AVTAXI, 11);
-        mode2HierarchalNumber.put(DRT, 12);
-        mode2HierarchalNumber.put(RIDE, 20);
+		mode2HierarchalNumber.put(DRT, 12);
+		mode2HierarchalNumber.put(RIDE, 20);
 		mode2HierarchalNumber.put(BIKE, 30);
 		mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 40);
 		mode2HierarchalNumber.put(PT_FALLBACK_MODE, 41);
 		mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 50);
-    }
+	}
 
     public static class PTSubModes {
         public static final String RAIL = "rail";

@@ -28,16 +28,6 @@ public class AccessTimeTest {
 
     }
 
-    @Test
-    public final void testScoringCarNoAccess() {
-        assertScoring(false, 0.0, -1.68, -2.586, "car", "car,bike");
-    }
-
-    @Test
-    public final void testScoringRideIfAccessForCar() {
-        assertScoring(true, 0.0, -1.68, -2.578, "ride", "car");
-    }
-
 
     @Test
     public final void testScoringCarAccessForCarConstantNullUtilityNull() {
@@ -46,33 +36,27 @@ public class AccessTimeTest {
 
     @Test
     public final void testScoringRideAccessForCarConstantNull() {
-        assertScoring(true, 0.0, -1.68, -2.610, "car", "car");
+        assertScoring(true, 0.0, -1.68, -2.59, "car", "car");
     }
 
     @Test
     public final void testScoringCarAccessForCar() {
-        assertScoring(true, -1.0, -1.68, -6.610, "car", "car");
+        assertScoring(true, -1.0, -1.68, -6.590, "car", "car");
     }
 
     @Test
     public final void testScoringRideAccessForCarHigherConstant() {
-        assertScoring(true, -10.0, -1.68, -42.610, "car", "car");
+        assertScoring(true, -10.0, -1.68, -42.59, "car", "car");
     }
 
     @Test
     public final void testScoringRideAccessForCarHigherConstantHigherUtility() {
-        assertScoring(true, -10.0, -30, -42.956, "car", "car");
+        assertScoring(true, -10.0, -30, -42.59, "car", "car");
     }
 
     @Test
     public final void testScoringRideIfUsingAccess() {
-        assertScoring(true, 0.0, -30, -4.868, "ride", "car,ride");
-    }
-
-    @Test
-    public final void testScoringBike() {
-        //without access/egress score = -432
-        assertScoring(true, 0.0, -1.68, -432.018, "bike", "bike,car");
+        assertScoring(true, 0.0, -30, -1.935, "ride", "car,ride");
     }
 
 }

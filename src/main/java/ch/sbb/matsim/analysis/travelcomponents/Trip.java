@@ -26,10 +26,10 @@ public class Trip extends TravelComponent {
     private final Config config;
 
     Trip(Config config) {
-        super(config);
+		super(config);
 		this.config = config;
 		this.walkSpeed = config.plansCalcRoute().getModeRoutingParams().get(SBBModes.WALK_FOR_ANALYSIS).getTeleportedModeSpeed();
-    }
+	}
 
     public TravelledLeg addLeg() {
         TravelledLeg leg = new TravelledLeg(this.config);
@@ -59,15 +59,15 @@ public class Trip extends TravelComponent {
 		if (getMainMode().equals(SBBModes.WALK_FOR_ANALYSIS)) {
 			return 0;
 		}
-        return this.legs.stream().mapToDouble(TravelledLeg::getDistance).sum();
-    }
+		return this.legs.stream().mapToDouble(TravelledLeg::getDistance).sum();
+	}
 
     private double getWalkDistance() {
 		if (getMainMode().equals(SBBModes.WALK_FOR_ANALYSIS)) {
 			return walkSpeed * getDuration();
 		}
-        return 0;
-    }
+		return 0;
+	}
 
     public double getDistance() {
         return getInVehDistance() + getWalkDistance();
@@ -77,8 +77,8 @@ public class Trip extends TravelComponent {
 		if (getMainMode().equals(SBBModes.WALK_FOR_ANALYSIS)) {
 			return 0;
 		}
-        return this.legs.stream().mapToDouble(TravelledLeg::getDuration).sum();
-    }
+		return this.legs.stream().mapToDouble(TravelledLeg::getDuration).sum();
+	}
 
     public String getMainMode() {
         // get main mode according to hierarchical order
@@ -169,14 +169,14 @@ public class Trip extends TravelComponent {
             for(TravelledLeg leg : accessLegs) {
                 modes.add(leg.getMode());
             }
-            if (modes.contains("non_network_walk")){
-                if (modes.size()>1){
-                    modes.remove("non_network_walk");
+            if (modes.contains(SBBModes.ACCESS_EGRESS_WALK)) {
+                if (modes.size() > 1) {
+                    modes.remove(SBBModes.ACCESS_EGRESS_WALK);
                 }
             }
-            if (modes.size()==0) {
+            if (modes.size() == 0) {
                 return "";
-            } else if (modes.size()==1){
+            } else if (modes.size() == 1) {
                 return new ArrayList<>(modes).get(0);
             } else {
                 return String.join(",", new ArrayList<>(modes));
@@ -194,14 +194,14 @@ public class Trip extends TravelComponent {
             for(TravelledLeg leg : egressLegs) {
                 modes.add(leg.getMode());
             }
-            if (modes.contains("non_network_walk")){
-                if (modes.size()>1){
-                    modes.remove("non_network_walk");
+            if (modes.contains(SBBModes.ACCESS_EGRESS_WALK)) {
+                if (modes.size() > 1) {
+                    modes.remove(SBBModes.ACCESS_EGRESS_WALK);
                 }
             }
-            if (modes.size()==0) {
+            if (modes.size() == 0) {
                 return "";
-            } else if (modes.size()==1){
+            } else if (modes.size() == 1) {
                 return new ArrayList<>(modes).get(0);
             } else {
                 return String.join(",", new ArrayList<>(modes));

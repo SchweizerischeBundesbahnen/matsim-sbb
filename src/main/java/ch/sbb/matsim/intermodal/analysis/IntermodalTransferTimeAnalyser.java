@@ -91,7 +91,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     private boolean isIgnoredMode(String mode) {
 		return mode.equals(SBBModes.ACCESS_EGRESS_WALK) || mode.equals(SBBModes.PT_FALLBACK_MODE);
 
-    }
+	}
 
     @Override
     public void handleEvent(PersonArrivalEvent event) {
@@ -109,20 +109,20 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
     private void finishTransfer(Id<Person> personId) {
 		IntermodalTransfer transfer = openTransfers.remove(personId);
 		double transferTime = (transfer.boardingTime.isUndefined() ? transfer.departureTime.seconds() : transfer.boardingTime.seconds()) - transfer.arrivalTime;
-        if (monitoredModes.contains(transfer.departureMode) && monitoredModes.contains(transfer.arrivalMode)) {
-            transferStats.get(transfer.arrivalMode).get(transfer.departureMode).addValue(transferTime);
-        }
-    }
+		if (monitoredModes.contains(transfer.departureMode) && monitoredModes.contains(transfer.arrivalMode)) {
+			transferStats.get(transfer.arrivalMode).get(transfer.departureMode).addValue(transferTime);
+		}
+	}
 
     @Override
     public void handleEvent(PersonDepartureEvent event) {
         if (isIgnoredMode(event.getLegMode())) return;
         if (openTransfers.containsKey(event.getPersonId())) {
-            IntermodalTransfer transfer = openTransfers.get(event.getPersonId());
+			IntermodalTransfer transfer = openTransfers.get(event.getPersonId());
 			transfer.departureMode = event.getLegMode();
 			transfer.departureTime = OptionalTime.defined(event.getTime());
 
-        }
+		}
     }
 
     @Override
@@ -131,7 +131,7 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
 			openTransfers.get(event.getPersonId()).boardingTime = OptionalTime.defined(event.getTime());
 			finishTransfer(event.getPersonId());
 
-        }
+		}
     }
 
     public void writeIterationStats(String iterationFilename) {
@@ -207,15 +207,15 @@ public class IntermodalTransferTimeAnalyser implements PersonArrivalEventHandler
         if (openTransfers.containsKey(event.getPersonId())) {
             if (!event.getActType().endsWith("interaction")) {
                 openTransfers.remove(event.getPersonId());
-            }
-        }
-    }
+			}
+		}
+	}
 
-    @Override
-    public void reset(int iteration) {
+	@Override
+	public void reset(int iteration) {
 		this.openTransfers.clear();
 		initializeTransferStats();
-    }
+	}
 
 	private static class IntermodalTransfer {
 

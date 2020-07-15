@@ -27,9 +27,9 @@ public class NetworkMerger {
     }
 
     public static Network removePtOnlyLinks(Network network) {
-        Network reducedNetwork = NetworkUtils.createNetwork();
+		Network reducedNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(network).filter(reducedNetwork,
 				CollectionUtils.stringToSet(SBBModes.CAR + "," + SBBModes.RIDE));
-        return reducedNetwork;
-    }
+		return reducedNetwork;
+	}
 }

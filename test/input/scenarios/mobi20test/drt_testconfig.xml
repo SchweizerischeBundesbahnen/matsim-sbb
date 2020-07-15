@@ -4,17 +4,19 @@
 <config>
     <module name="multiModeDrt">
         <parameterset type="drt">
-        <!-- If true, the startLink is changed to last link in the current schedule, so the taxi starts the next day at the link where it stopped operating the day before. False by default. -->
-        <param name="changeStartLinkToLastLinkInSchedule" value="false"/>
-        <!-- Beeline distance factor for DRT. Used in analyis and in plans file. The default value is 1.3. -->
-        <param name="estimatedBeelineDistanceFactor" value="1.3"/>
-        <!-- Beeline-speed estimate for DRT. Used in analysis, optimisation constraints and in plans file, [m/s]. The default value is 25 km/h -->
-        <param name="estimatedDrtSpeed" value="8.333333333333334"/>
-        <!-- Defines the slope of the maxTravelTime estimation function (optimisation constraint), i.e. maxTravelTimeAlpha * estimated_drt_travel_time + maxTravelTimeBeta. alpha should not be smaller than 1. -->
-        <param name="maxTravelTimeAlpha" value="1.5"/>
-        <!-- Defines the shift of the maxTravelTime estimation function (optimisation constraint), i.e. maxTravelTimeAlpha * estimated_drt_travel_time + maxTravelTimeBeta. Beta should not be smaller than 0. -->
-        <param name="maxTravelTimeBeta" value="1200.0"/>
-        <!-- Max wait time for the bus to come (optimisation constraint). -->
+            <parameterset type="ExtensiveInsertionSearch"/>
+
+            <!-- If true, the startLink is changed to last link in the current schedule, so the taxi starts the next day at the link where it stopped operating the day before. False by default. -->
+            <param name="changeStartLinkToLastLinkInSchedule" value="false"/>
+            <!-- Beeline distance factor for DRT. Used in analyis and in plans file. The default value is 1.3. -->
+            <param name="estimatedBeelineDistanceFactor" value="1.3"/>
+            <!-- Beeline-speed estimate for DRT. Used in analysis, optimisation constraints and in plans file, [m/s]. The default value is 25 km/h -->
+            <param name="estimatedDrtSpeed" value="8.333333333333334"/>
+            <!-- Defines the slope of the maxTravelTime estimation function (optimisation constraint), i.e. maxTravelTimeAlpha * estimated_drt_travel_time + maxTravelTimeBeta. alpha should not be smaller than 1. -->
+            <param name="maxTravelTimeAlpha" value="1.5"/>
+            <!-- Defines the shift of the maxTravelTime estimation function (optimisation constraint), i.e. maxTravelTimeAlpha * estimated_drt_travel_time + maxTravelTimeBeta. Beta should not be smaller than 0. -->
+            <param name="maxTravelTimeBeta" value="1200.0"/>
+            <!-- Max wait time for the bus to come (optimisation constraint). -->
         <param name="maxWaitTime" value="1200.0"/>
 
         <!-- Operational Scheme, either door2door or stopbased. door2door by default -->
@@ -3001,8 +3003,6 @@
         <param name="usePersonIdForMissingVehicleId" value="true"/>
         <!-- If false, the qsim accumulates fractional flows up to one flow unit in every time step.  If true, flows are updated only if an agent wants to enter the link or an agent is added to buffer. Default is true. -->
         <param name="usingFastCapacityUpdate" value="false"/>
-        <!-- if the qsim should use as many runners as there are threads (Christoph's dissertation version) or more of them, together with a thread pool (seems to be faster in some situations, but is not tested). -->
-        <param name="usingThreadpool" value="false"/>
         <!-- Defines what happens if an agent wants to depart, but the specified vehicle is not available. One of: teleport wait exception  -->
         <param name="vehicleBehavior" value="teleport"/>
         <!-- If vehicles should all be the same default vehicle, or come from the vehicles file, or something else.  Possible values:  defaultVehicle modeVehicleTypesFromVehiclesData fromVehiclesData -->

@@ -35,14 +35,14 @@ public class ParkingCostVehicleTrackerTest {
 
     @Test
     public void testParkingCostEvents() {
-        Fixture f = new Fixture();
+		Fixture f = new Fixture();
 
-        f.events.addHandler(new EventsLogger());
+		f.events.addHandler(new EventsLogger());
 
-        ParkingCostVehicleTracker tracker = new ParkingCostVehicleTracker(f.scenario, f.zones, f.events);
-        f.events.addHandler(tracker);
-        EventsCollector collector = new EventsCollector();
-        f.events.addHandler(collector);
+		ParkingCostVehicleTracker tracker = new ParkingCostVehicleTracker(f.scenario, f.zones, f.events);
+		f.events.addHandler(tracker);
+		EventsCollector collector = new EventsCollector();
+		f.events.addHandler(collector);
 
 		Id<Person> personId = Id.create(1, Person.class);
 		Id<Vehicle> vehicleId = Id.create(2, Vehicle.class);

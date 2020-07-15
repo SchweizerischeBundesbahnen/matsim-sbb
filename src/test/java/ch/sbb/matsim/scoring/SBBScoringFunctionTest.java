@@ -33,7 +33,7 @@ public class SBBScoringFunctionTest {
     @Test
     public void testTransferScoring() {
 		testTransferScoring(SBBModes.ACCESS_EGRESS_WALK, SBBModes.ACCESS_EGRESS_WALK);
-    }
+	}
 
     @Test
     public void testTransferScoring_accessEgressJustTransit() {
@@ -64,16 +64,16 @@ public class SBBScoringFunctionTest {
 		plan.addLeg(accessLeg);
 		plan.addActivity(ptInteraction1);
 		plan.addLeg(ptLeg1);
-        plan.addActivity(ptInteraction2);
-        plan.addLeg(transferLeg);
-        plan.addActivity(ptInteraction3);
-        plan.addLeg(ptLeg2);
-        plan.addActivity(ptInteraction4);
-        plan.addLeg(egressLeg);
-        plan.addActivity(homeAct2);
-        person1.addPlan(plan);
+		plan.addActivity(ptInteraction2);
+		plan.addLeg(transferLeg);
+		plan.addActivity(ptInteraction3);
+		plan.addLeg(ptLeg2);
+		plan.addActivity(ptInteraction4);
+		plan.addLeg(egressLeg);
+		plan.addActivity(homeAct2);
+		person1.addPlan(plan);
 
-        List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan);
+		List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan);
 
         PlanCalcScoreConfigGroup.ActivityParams homeParams = new PlanCalcScoreConfigGroup.ActivityParams("home");
         homeParams.setTypicalDuration(12*3600);
@@ -118,14 +118,14 @@ public class SBBScoringFunctionTest {
         double score = sf.getScore();
         System.out.println(score);
 
-        int numberOfTransfers = 1;
-        double minTransferUtility = Math.min(sbbParams.getMinimumTransferUtility(), sbbParams.getMaximumTransferUtility());
-        double maxTransferUtility = Math.max(sbbParams.getMinimumTransferUtility(), sbbParams.getMaximumTransferUtility());
-        double singleTransferScore = Math.max(minTransferUtility, Math.min(maxTransferUtility, sbbParams.getBaseTransferUtility() + sbbParams.getTransferUtilityPerTravelTime_utils_hr() * 0.8));
-        double expectedScore = numberOfTransfers * singleTransferScore;
+		int numberOfTransfers = 1;
+		double minTransferUtility = Math.min(sbbParams.getMinimumTransferUtility(), sbbParams.getMaximumTransferUtility());
+		double maxTransferUtility = Math.max(sbbParams.getMinimumTransferUtility(), sbbParams.getMaximumTransferUtility());
+		double singleTransferScore = Math.max(minTransferUtility, Math.min(maxTransferUtility, sbbParams.getBaseTransferUtility() + sbbParams.getTransferUtilityPerTravelTime_utils_hr() * 0.8));
+		double expectedScore = numberOfTransfers * singleTransferScore;
 
-        Assert.assertEquals(expectedScore, score, 1e-6);
-    }
+		Assert.assertEquals(expectedScore, score, 1e-6);
+	}
 
 	private Activity createActivity(PopulationFactory pf, String type, double x, double y, OptionalTime startTime, OptionalTime endTime) {
 		Activity act = pf.createActivityFromCoord(type, new Coord(x, y));
@@ -142,10 +142,10 @@ public class SBBScoringFunctionTest {
 		return act;
 	}
 
-    private Leg createLeg(PopulationFactory pf, String mode, double departureTime, double arrivalTime) {
-        Leg leg = pf.createLeg(mode);
-        leg.setDepartureTime(departureTime);
-        leg.setTravelTime(arrivalTime - departureTime);
+	private Leg createLeg(PopulationFactory pf, String mode, double departureTime, double arrivalTime) {
+		Leg leg = pf.createLeg(mode);
+		leg.setDepartureTime(departureTime);
+		leg.setTravelTime(arrivalTime - departureTime);
         return leg;
     }
 

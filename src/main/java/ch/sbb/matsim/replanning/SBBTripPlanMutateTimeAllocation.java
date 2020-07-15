@@ -51,22 +51,24 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 			if (pe instanceof Activity) {
 				Activity act = (Activity) pe;
 
-                // skip outside activities
-                if ("outside".equals(act.getType())) { continue; }
+				// skip outside activities
+				if ("outside".equals(act.getType())) {
+					continue;
+				}
 
-                // handle first activity
-                if (i == 0) {
-                    // set start to midnight
-                    act.setStartTime(now);
-                    // mutate the end time of the first activity
+				// handle first activity
+				if (i == 0) {
+					// set start to midnight
+					act.setStartTime(now);
+					// mutate the end time of the first activity
 					OptionalTime initialEndTime = initialEndTimes.get(i);
-                    act.setEndTime(mutateTime(initialEndTime, mutationRange));
-                    // calculate resulting duration
+					act.setEndTime(mutateTime(initialEndTime, mutationRange));
+					// calculate resulting duration
 					act.setMaximumDuration(act.getEndTime().seconds() - act.getStartTime().seconds());
-                    // move now pointer
+					// move now pointer
 					now += act.getEndTime().seconds();
 					i++;
-                }
+				}
                 // handle middle activities
                 else if (act != lastAct) {
                     // assume that there will be no delay between arrival time and activity start time
@@ -77,17 +79,17 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 						}
 						OptionalTime initialEndTime = initialEndTimes.get(i);
 						double newEndTime = mutateTime(initialEndTime, mutationRange);
-                        if (newEndTime < now) {
-                            newEndTime = now;
-                        }
-                        act.setEndTime(newEndTime);
-                        now = newEndTime;
-                        i++;
-                    }
+						if (newEndTime < now) {
+							newEndTime = now;
+						}
+						act.setEndTime(newEndTime);
+						now = newEndTime;
+						i++;
+					}
                 }
 
-                // handle last activity
-                else {
+				// handle last activity
+				else {
 					// assume that there will be no delay between arrival time and activity start time
 					act.setStartTime(now);
 					// invalidate duration and end time because the plan will be interpreted 24 hour wrap-around
@@ -95,7 +97,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 					act.setEndTimeUndefined();
 				}
 
-            } else {
+			} else {
 				Leg leg = (Leg) pe;
 				// assume that there will be no delay between end time of previous activity and departure time
 				leg.setDepartureTime(now);

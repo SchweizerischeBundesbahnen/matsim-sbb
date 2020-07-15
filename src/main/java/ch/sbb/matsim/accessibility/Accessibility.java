@@ -83,29 +83,29 @@ import org.matsim.vehicles.Vehicle;
  */
 public class Accessibility {
 
-    private final static Logger log = Logger.getLogger(Accessibility.class);
+	private final static Logger log = Logger.getLogger(Accessibility.class);
 
-    private final String networkFilename;
-    private final String eventsFilename;
-    private final String scheduleFilename;
-    private final String transitNetworkFilename;
-    private final Config config;
+	private final String networkFilename;
+	private final String eventsFilename;
+	private final String scheduleFilename;
+	private final String transitNetworkFilename;
+	private final Config config;
 	private final Map<Coord, Double> attractions;
+	private final double[] carAMDepTimes;
+	private final double[] carPMDepTimes;
+	private final double ptMinDepartureTime;
+	private final double ptMaxDepartureTime;
+	private final BiPredicate<TransitLine, TransitRoute> trainDetector;
+	private final Zones zones;
 	private Predicate<Link> xy2linksPredicate;
 	private boolean scenarioLoaded = false;
 	private Network carNetwork;
 	private TravelTime tt;
 	private TravelDisutility td;
 	private int threadCount = 4;
-	private final double[] carAMDepTimes;
-	private final double[] carPMDepTimes;
 	private SwissRailRaptorData raptorData;
 	private TransitSchedule transitSchedule;
 	private DeparturesCache departuresCache;
-	private final double ptMinDepartureTime;
-	private final double ptMaxDepartureTime;
-	private final BiPredicate<TransitLine, TransitRoute> trainDetector;
-	private final Zones zones;
 
 	public Accessibility(String networkFilename, String eventsFilename, String scheduleFilename, String transitNetworkFilename,
 			Map<Coord, Double> attractions, double[] carAMDepTimes, double[] carPMDepTimes,
@@ -121,17 +121,17 @@ public class Accessibility {
 		this.carPMDepTimes = eventsFilename == null ? new double[0] : carPMDepTimes;
 		this.ptMinDepartureTime = ptMinDepartureTime;
 		this.ptMaxDepartureTime = ptMaxDepartureTime;
-        this.trainDetector = trainDetector;
-        this.zones = zones;
-    }
+		this.trainDetector = trainDetector;
+		this.zones = zones;
+	}
 
-    public void setXy2LinksPredicate(Predicate<Link> xy2linksPredicate) {
-        this.xy2linksPredicate = xy2linksPredicate;
-    }
+	public void setXy2LinksPredicate(Predicate<Link> xy2linksPredicate) {
+		this.xy2linksPredicate = xy2linksPredicate;
+	}
 
-    public void setThreadCount(int threadCount) {
-        this.threadCount = threadCount;
-    }
+	public void setThreadCount(int threadCount) {
+		this.threadCount = threadCount;
+	}
 
 	private static boolean requiresCar(Modes[] modes) {
 		for (Modes mode : modes) {
@@ -200,6 +200,16 @@ public class Accessibility {
 		return connections;
 	}
 
+	private static Collection<TransitStopFacility> findStopCandidates(Coord coord, SwissRailRaptor raptor, RaptorParameters parameters) {
+		Collection<TransitStopFacility> stops = raptor.getUnderlyingData().findNearbyStops(coord.getX(), coord.getY(), parameters.getSearchRadius());
+		if (stops.isEmpty()) {
+			TransitStopFacility nearest = raptor.getUnderlyingData().findNearestStop(coord.getX(), coord.getY());
+			double nearestStopDistance = CoordUtils.calcEuclideanDistance(coord, nearest.getCoord());
+			stops = raptor.getUnderlyingData().findNearbyStops(coord.getX(), coord.getY(), nearestStopDistance + parameters.getExtensionRadius());
+		}
+		return stops;
+	}
+
 	public void calculateAccessibility(List<Coord> coordinates, Modes[] modes, File csvOutputFile) {
 		boolean requiresCar = requiresCar(modes);
 
@@ -226,7 +236,7 @@ public class Accessibility {
 						this.carNetwork.getNodes().get(NetworkUtils.getNearestLink(xy2linksNetwork, coord).getFromNode().getId()),
 						attraction
 				));
-            }
+			}
 		}
 
 		try (BufferedWriter writer = IOUtils.getBufferedWriter(csvOutputFile.getAbsolutePath())) {
@@ -463,73 +473,72 @@ public class Accessibility {
 		if (requiresCar) {
 			if (eventsFilename != null) {
 				log.info("extracting actual travel times from " + eventsFilename);
-                TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), config.travelTimeCalculator());
-                EventsManager events = EventsUtils.createEventsManager();
-                events.addHandler(ttc);
-                new MatsimEventsReader(events).readFile(eventsFilename);
-                this.tt = ttc.getLinkTravelTimes();
-            } else {
-                this.tt = new FreeSpeedTravelTime();
-                log.info("No events specified. Travel Times will be calculated with free speed travel times.");
-            }
+				TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), config.travelTimeCalculator());
+				EventsManager events = EventsUtils.createEventsManager();
+				events.addHandler(ttc);
+				new MatsimEventsReader(events).readFile(eventsFilename);
+				this.tt = ttc.getLinkTravelTimes();
+			} else {
+				this.tt = new FreeSpeedTravelTime();
+				log.info("No events specified. Travel Times will be calculated with free speed travel times.");
+			}
 
-            this.td = new OnlyTimeDependentTravelDisutility(tt);
+			this.td = new OnlyTimeDependentTravelDisutility(tt);
 
-        } else {
-            log.info("not loading events, as no car-accessibility needs to be calculated.");
-        }
-        log.info("extracting car-only network"); // this is used in any case, not only when car is needed.
+		} else {
+			log.info("not loading events, as no car-accessibility needs to be calculated.");
+		}
+		log.info("extracting car-only network"); // this is used in any case, not only when car is needed.
 		this.carNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.carNetwork, Collections.singleton(SBBModes.CAR));
 
-        log.info("loading schedule from " + this.scheduleFilename);
-        Scenario ptScenario;
-        if (transitNetworkFilename.equals(networkFilename)) {
-            ptScenario = scenario;
-        } else {
-            ptScenario = ScenarioUtils.createScenario(this.config);
-            new MatsimNetworkReader(ptScenario.getNetwork()).readFile(transitNetworkFilename);
-        }
-        new TransitScheduleReader(ptScenario).readFile(this.scheduleFilename);
-        log.info("prepare PT Matrix calculation");
-        RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(this.config);
+		log.info("loading schedule from " + this.scheduleFilename);
+		Scenario ptScenario;
+		if (transitNetworkFilename.equals(networkFilename)) {
+			ptScenario = scenario;
+		} else {
+			ptScenario = ScenarioUtils.createScenario(this.config);
+			new MatsimNetworkReader(ptScenario.getNetwork()).readFile(transitNetworkFilename);
+		}
+		new TransitScheduleReader(ptScenario).readFile(this.scheduleFilename);
+		log.info("prepare PT Matrix calculation");
+		RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(this.config);
 		raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
 		this.transitSchedule = ptScenario.getTransitSchedule();
 		this.raptorData = SwissRailRaptorData.create(ptScenario.getTransitSchedule(), raptorConfig, ptScenario.getNetwork());
 		this.departuresCache = new DeparturesCache(this.transitSchedule);
 
-        this.scenarioLoaded = true;
-    }
+		this.scenarioLoaded = true;
+	}
 
-    private static class ZoneData {
+	private static class ZoneData {
 
-        final Node node;
-        final double attraction;
+		final Node node;
+		final double attraction;
 
-        public ZoneData(Node node, double attraction) {
-            this.node = node;
-            this.attraction = attraction;
-        }
-    }
+		public ZoneData(Node node, double attraction) {
+			this.node = node;
+			this.attraction = attraction;
+		}
+	}
 
-    /**
-     * Simple implementation for TravelTime and TravelDisutility that assumes a fixed speed on all links,
-     * resulting in the shortest (and not the fastest) path to be found.
-     */
-    private static class FixedSpeedTravelTimeAndDisutility implements TravelTime, TravelDisutility {
+	/**
+	 * Simple implementation for TravelTime and TravelDisutility that assumes a fixed speed on all links, resulting in the shortest (and not the fastest) path to be found.
+	 */
+	private static class FixedSpeedTravelTimeAndDisutility implements TravelTime, TravelDisutility {
 
-        private final double speed;
+		private final double speed;
 
-        public FixedSpeedTravelTimeAndDisutility(double speed) {
+		public FixedSpeedTravelTimeAndDisutility(double speed) {
             this.speed = speed;
-        }
+		}
 
-        @Override
-        public double getLinkTravelDisutility(Link link, double v, Person person, Vehicle vehicle) {
-            return link.getLength() / this.speed;
-        }
+		@Override
+		public double getLinkTravelDisutility(Link link, double v, Person person, Vehicle vehicle) {
+			return link.getLength() / this.speed;
+		}
 
-        @Override
+		@Override
 		public double getLinkMinimumTravelDisutility(Link link) {
 			return link.getLength() / this.speed;
 		}
@@ -596,10 +605,10 @@ public class Accessibility {
 		private final LeastCostPathTree[] amLcpTree;
 		private final LeastCostPathTree[] pmLcpTree;
 		private final double[] carAMDepTimes;
-        private final double[] carPMDepTimes;
-        private final SwissRailRaptor raptor;
-        private final RaptorParameters parameters;
-        private final double ptMinDepartureTime;
+		private final double[] carPMDepTimes;
+		private final SwissRailRaptor raptor;
+		private final RaptorParameters parameters;
+		private final double ptMinDepartureTime;
 		private final double ptMaxDepartureTime;
 		private final double stepSize = 120;
 		private final BiPredicate<TransitLine, TransitRoute> trainDetector;
@@ -624,23 +633,23 @@ public class Accessibility {
 			this.amLcpTree = new LeastCostPathTree[carAMDepTimes.length];
 			for (int i = 0; i < carAMDepTimes.length; i++) {
 				this.amLcpTree[i] = new LeastCostPathTree(carGraph, tt, td);
-            }
-            this.pmLcpTree = new LeastCostPathTree[carPMDepTimes.length];
-            for (int i = 0; i < carPMDepTimes.length; i++) {
+			}
+			this.pmLcpTree = new LeastCostPathTree[carPMDepTimes.length];
+			for (int i = 0; i < carPMDepTimes.length; i++) {
 				this.pmLcpTree[i] = new LeastCostPathTree(carGraph, tt, td);
-            }
+			}
 			this.raptor = raptor;
 			this.parameters = parameters;
-            this.ptMinDepartureTime = ptMinDepartureTime;
-            this.ptMaxDepartureTime = ptMaxDepartureTime;
-            this.trainDetector = trainDetector;
+			this.ptMinDepartureTime = ptMinDepartureTime;
+			this.ptMaxDepartureTime = ptMaxDepartureTime;
+			this.trainDetector = trainDetector;
 
-            this.zoneData = zoneData;
-            this.requiresCar = requiresCar(modes);
-            this.modes = modes;
-            this.zones = zones;
-            this.counter = counter;
-            this.coordinates = coordinates;
+			this.zoneData = zoneData;
+			this.requiresCar = requiresCar(modes);
+			this.modes = modes;
+			this.zones = zones;
+			this.counter = counter;
+			this.coordinates = coordinates;
             this.results = results;
         }
 
@@ -664,21 +673,21 @@ public class Accessibility {
             if (this.requiresCar) {
                 for (int i = 0; i < this.amLcpTree.length; i++) {
 					this.amLcpTree[i].calculate(nearestNode.getId().index(), this.carAMDepTimes[i], null, null);
-                }
+				}
 
                 for (int i = 0; i < this.pmLcpTree.length; i++) {
 					this.pmLcpTree[i].calculate(nearestNode.getId().index(), this.carPMDepTimes[i], null, null);
-                }
-            }
+				}
+			}
 
-            // WALK, BIKE
-            {
+			// WALK, BIKE
+			{
 				this.shortestLcpTree.calculate(nearestNode.getId().index(), 8 * 3600, null, null);
-            }
+			}
 
-            // PT
+			// PT
 
-            double walkSpeed = this.parameters.getBeelineWalkSpeed();
+			double walkSpeed = this.parameters.getBeelineWalkSpeed();
 
 			Collection<TransitStopFacility> fromStops = findStopCandidates(fromCoord, this.raptor, this.parameters);
 			Map<Id<TransitStopFacility>, Double> accessTimes = new HashMap<>();
@@ -703,22 +712,22 @@ public class Accessibility {
 			// CALCULATION
 
 			double[] accessibility = new double[this.modes.length];
-            for (Entry<Coord, ZoneData> e : this.zoneData.entrySet()) {
-                Coord toCoord = e.getKey();
-                ZoneData zData = e.getValue();
-                Node toNode = zData.node;
+			for (Entry<Coord, ZoneData> e : this.zoneData.entrySet()) {
+				Coord toCoord = e.getKey();
+				ZoneData zData = e.getValue();
+				Node toNode = zData.node;
 				double attraction = zData.attraction;
 				int toNodeIndex = toNode.getId().index();
 
-                // CAR
+				// CAR
 
-                double distCar = 0;
-                double amTravelTime = 0;
-                double pmTravelTime = 0;
-                boolean hasCar = false;
-                if (requiresCar) {
-                    int amCount = 0;
-                    for (int i = 0; i < this.amLcpTree.length; i++) {
+				double distCar = 0;
+				double amTravelTime = 0;
+				double pmTravelTime = 0;
+				boolean hasCar = false;
+				if (requiresCar) {
+					int amCount = 0;
+					for (int i = 0; i < this.amLcpTree.length; i++) {
 						OptionalTime time = this.amLcpTree[i].getTime(toNodeIndex);
 						if (time.isDefined()) {
 							amTravelTime += time.seconds() - this.carAMDepTimes[i];
@@ -742,18 +751,18 @@ public class Accessibility {
                     distCar /= Math.max(1, amCount + pmCount);
 
                     distCar /= 1000.0; // we use kilometers in the following formulas
-                }
+				}
 
-                double ttCar = Math.max(amTravelTime, pmTravelTime) / 60; // we need minutes in the following formulas
-                double distCar0015 = Math.min(distCar, 15);
-                double distCar1550 = Math.max(0, Math.min(distCar - 15, 35)); // 35 = 50 - 15, upperBound - lowerBound
-                double distCar5099 = Math.max(0, Math.min(distCar - 50, 50)); // 50 = 100 - 50
-                double distCar100x = Math.max(0, distCar - 100);
+				double ttCar = Math.max(amTravelTime, pmTravelTime) / 60; // we need minutes in the following formulas
+				double distCar0015 = Math.min(distCar, 15);
+				double distCar1550 = Math.max(0, Math.min(distCar - 15, 35)); // 35 = 50 - 15, upperBound - lowerBound
+				double distCar5099 = Math.max(0, Math.min(distCar - 50, 50)); // 50 = 100 - 50
+				double distCar100x = Math.max(0, distCar - 100);
 
-                // WALK, BIKE
+				// WALK, BIKE
 
-                boolean hasShortestDistance = true;
-                double distShortest = 0;
+				boolean hasShortestDistance = true;
+				double distShortest = 0;
 				{
 					OptionalTime time = this.shortestLcpTree.getTime(toNodeIndex);
 					if (time.isDefined()) {
@@ -762,29 +771,29 @@ public class Accessibility {
 						hasShortestDistance = false;
 					}
 				}
-                distShortest /= 1000.0; // we use kilometers in the following formulas
+				distShortest /= 1000.0; // we use kilometers in the following formulas
 
-                // PT
-                Collection<TransitStopFacility> toStops = findStopCandidates(toCoord, this.raptor, this.parameters);
-                Map<Id<TransitStopFacility>, Double> egressTimes = new HashMap<>();
-                for (TransitStopFacility stop : toStops) {
-                    double distance = CoordUtils.calcEuclideanDistance(stop.getCoord(), toCoord);
-                    double egressTime = distance / walkSpeed;
-                    egressTimes.put(stop.getId(), egressTime);
-                }
+				// PT
+				Collection<TransitStopFacility> toStops = findStopCandidates(toCoord, this.raptor, this.parameters);
+				Map<Id<TransitStopFacility>, Double> egressTimes = new HashMap<>();
+				for (TransitStopFacility stop : toStops) {
+					double distance = CoordUtils.calcEuclideanDistance(stop.getCoord(), toCoord);
+					double egressTime = distance / walkSpeed;
+					egressTimes.put(stop.getId(), egressTime);
+				}
 
 				List<ODConnection> connections = buildODConnections(trees, accessTimes, egressTimes);
 				boolean hasPT = !connections.isEmpty();
 
-                double ttTrain = 0;
-                double ttBus = 0;
-                double ptAccessTime = 0;
-                double ptEgressTime = 0;
-                double ptFrequency = 0;
-                double ptTransfers = 0;
-                double ptDistance = 0;
+				double ttTrain = 0;
+				double ttBus = 0;
+				double ptAccessTime = 0;
+				double ptEgressTime = 0;
+				double ptFrequency = 0;
+				double ptTransfers = 0;
+				double ptDistance = 0;
 
-                if (hasPT) {
+				if (hasPT) {
 					connections = RooftopUtils.sortAndFilterConnections(connections, ptMaxDepartureTime);
 					double avgAdaptionTime = RooftopUtils.calcAverageAdaptionTime(connections, ptMinDepartureTime, ptMaxDepartureTime);
 
@@ -798,23 +807,23 @@ public class Accessibility {
 					double totalInVehTime = 0;
 					double trainInVehTime = 0;
 
-                    for (Entry<ODConnection, Double> cs : connectionShares.entrySet()) {
-                        ODConnection connection = cs.getKey();
-                        double share = cs.getValue();
+					for (Entry<ODConnection, Double> cs : connectionShares.entrySet()) {
+						ODConnection connection = cs.getKey();
+						double share = cs.getValue();
 
-                        accessTime += share * accessTimes.get(connection.travelInfo.departureStop).floatValue();
-                        egressTime += share * (float) connection.egressTime;
-                        transferCount += share * (float) connection.transferCount;
-                        travelTime += share * (float) connection.totalTravelTime();
+						accessTime += share * accessTimes.get(connection.travelInfo.departureStop).floatValue();
+						egressTime += share * (float) connection.egressTime;
+						transferCount += share * (float) connection.transferCount;
+						travelTime += share * (float) connection.totalTravelTime();
 
-                        double connTotalDistance = 0;
-                        double connTotalInVehTime = 0;
+						double connTotalDistance = 0;
+						double connTotalInVehTime = 0;
 						double connTrainInVehTime = 0;
 						boolean isFirstLeg = true;
 
-                        RaptorRoute route = connection.travelInfo.getRaptorRoute();
-                        for (RoutePart part : route.getParts()) {
-                            if (part.line != null) {
+						RaptorRoute route = connection.travelInfo.getRaptorRoute();
+						for (RoutePart part : route.getParts()) {
+							if (part.line != null) {
 								// it's a non-transfer part, an actual pt stage
 
 								boolean isTrain = this.trainDetector.test(part.line, part.route);
@@ -844,26 +853,26 @@ public class Accessibility {
                     ptFrequency = 900 / avgAdaptionTime;
                     ptTransfers = transferCount;
 
-                    ptDistance /= 1000.0; // we use kilometers in the following formulas
-                }
-                double distPt0015 = Math.min(ptDistance, 15);
-                double distPt1550 = Math.max(0, Math.min(ptDistance - 15, 35)); // 35 = 50 - 15, upperBound - lowerBound
-                double distPt5099 = Math.max(0, Math.min(ptDistance - 50, 50)); // 50 = 100 - 50
-                double distPt100x = Math.max(0, ptDistance - 100);
+					ptDistance /= 1000.0; // we use kilometers in the following formulas
+				}
+				double distPt0015 = Math.min(ptDistance, 15);
+				double distPt1550 = Math.max(0, Math.min(ptDistance - 15, 35)); // 35 = 50 - 15, upperBound - lowerBound
+				double distPt5099 = Math.max(0, Math.min(ptDistance - 50, 50)); // 50 = 100 - 50
+				double distPt100x = Math.max(0, ptDistance - 100);
 
-                // ACCESSIBILITY
+				// ACCESSIBILITY
 
 				//                U(bike)= -0.25 + (-0.150)*dist_car/0.21667
 				//
-//                U(car)  = -0.40 + (-0.053)*TT_car + (-0.040)*dist_car_0015 + (-0.040)*dist_car_1550 + 0.015*dist_car_5099 + 0.010*dist_car_100x + (-0.047)*(FROM[ACCCAR]+TO[ACCCAR])/60 + (-0.135)*TO[PCOST]*2
-//
-//                U(pt)  = +0.75 + (-0.042)*TT_bus + (-0.0378)*TT_train + (-0.015)*dist_car_0015 + (-0.015)*dist_car_1550 + 0.005*dist_car_5099 + 0.025*dist_car_100x + (-0.050)*(pt_accTime+pt_egrTime) + (-0.014)*(60/pt_freq) + (-0.227)*transfers
-//
-//                U(walk)= +2.30 + (-0.100)*dist_car/0.078336
+				//                U(car)  = -0.40 + (-0.053)*TT_car + (-0.040)*dist_car_0015 + (-0.040)*dist_car_1550 + 0.015*dist_car_5099 + 0.010*dist_car_100x + (-0.047)*(FROM[ACCCAR]+TO[ACCCAR])/60 + (-0.135)*TO[PCOST]*2
+				//
+				//                U(pt)  = +0.75 + (-0.042)*TT_bus + (-0.0378)*TT_train + (-0.015)*dist_car_0015 + (-0.015)*dist_car_1550 + 0.005*dist_car_5099 + 0.025*dist_car_100x + (-0.050)*(pt_accTime+pt_egrTime) + (-0.014)*(60/pt_freq) + (-0.227)*transfers
+				//
+				//                U(walk)= +2.30 + (-0.100)*dist_car/0.078336
 
-                Zone toZone = this.zones.findZone(toCoord.getX(), toCoord.getY());
-                double carEgressTime = toZone == null ? 0 : ((Number) toZone.getAttribute("ACCCAR")).doubleValue(); // in seconds
-                double carParkingCost = toZone == null ? 0 : ((Number) toZone.getAttribute("PCOST")).doubleValue();
+				Zone toZone = this.zones.findZone(toCoord.getX(), toCoord.getY());
+				double carEgressTime = toZone == null ? 0 : ((Number) toZone.getAttribute("ACCCAR")).doubleValue(); // in seconds
+				double carParkingCost = toZone == null ? 0 : ((Number) toZone.getAttribute("PCOST")).doubleValue();
 
                 for (int m = 0; m < this.modes.length; m++) {
                     Modes modes = this.modes[m];
@@ -873,24 +882,14 @@ public class Accessibility {
                     double uPt = (modes.pt && hasPT) ? (+0.75 + (-0.042)*ttBus + (-0.0378)*ttTrain + (-0.015)*distPt0015 + (-0.015)*distPt1550 + 0.005*distPt5099 + 0.025*distPt100x + (-0.050)*(ptAccessTime+ptEgressTime) + (-0.014)*(60/ptFrequency) + (-0.227)*ptTransfers) : modes.missingModeUtility;
                     double uWalk = (modes.walk && hasShortestDistance) ? (+2.30 + (-0.100) * distShortest / 0.078336) : modes.missingModeUtility;
 
-                    double theta = modes.theta;
-                    double destinationUtility = Math.exp(uCar / theta) + Math.exp(uPt / theta) + Math.exp(uWalk / theta) + Math.exp(uBike / theta);
+					double theta = modes.theta;
+					double destinationUtility = Math.exp(uCar / theta) + Math.exp(uPt / theta) + Math.exp(uWalk / theta) + Math.exp(uBike / theta);
 
-                    accessibility[m] += attraction * Math.exp(theta * Math.log(destinationUtility));
-                }
-            }
-            return accessibility;
-        }
-    }
-
-	private static Collection<TransitStopFacility> findStopCandidates(Coord coord, SwissRailRaptor raptor, RaptorParameters parameters) {
-		Collection<TransitStopFacility> stops = raptor.getUnderlyingData().findNearbyStops(coord.getX(), coord.getY(), parameters.getSearchRadius());
-		if (stops.isEmpty()) {
-			TransitStopFacility nearest = raptor.getUnderlyingData().findNearestStop(coord.getX(), coord.getY());
-			double nearestStopDistance = CoordUtils.calcEuclideanDistance(coord, nearest.getCoord());
-			stops = raptor.getUnderlyingData().findNearbyStops(coord.getX(), coord.getY(), nearestStopDistance + parameters.getExtensionRadius());
+					accessibility[m] += attraction * Math.exp(theta * Math.log(destinationUtility));
+				}
+			}
+			return accessibility;
 		}
-		return stops;
 	}
 
 	private static class OptimizedRowWorker implements Runnable {
@@ -1318,7 +1317,7 @@ public class Accessibility {
 			}
 			this.cache.put(fromStop.getId(), connectionsPerStop);
 		}
-    }
+	}
 
 	public static class Modes {
 

@@ -56,7 +56,7 @@ public class FleetGenerator {
 					.serviceBeginTime(operationStartTime)
 					.serviceEndTime(operationEndTime)
 					.build());
-        }
-        new FleetWriter(vehicleSpecifications.stream().sorted(Comparator.comparing(v -> v.getId().toString()))).write(outputFile.toString());
-    }
+		}
+		new FleetWriter(vehicleSpecifications.stream().sorted(Comparator.comparing(v -> v.getId().toString()))).write(outputFile.toString());
+	}
 }

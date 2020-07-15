@@ -45,9 +45,9 @@ public class CreateVehiclesFromType {
     public void createVehicles() {
         VehiclesFactory vf = this.vehicles.getFactory();
         for (Person person : population.getPersons().values()) {
-            Id<Person> personId = person.getId();
-            Id<Vehicle> vehicleId = Id.create(personId.toString(), Vehicle.class);
-            String vehicleTypeName = (String) person.getAttributes().getAttribute(this.vehicleTypeAttributeName);
+			Id<Person> personId = person.getId();
+			Id<Vehicle> vehicleId = Id.create(personId.toString(), Vehicle.class);
+			String vehicleTypeName = (String) person.getAttributes().getAttribute(this.vehicleTypeAttributeName);
 			if (vehicleTypeName == null) {
 				vehicleTypeName = this.defaultVehicleType;
 			}

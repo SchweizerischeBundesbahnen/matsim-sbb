@@ -41,23 +41,23 @@ public class ZoneBasedSpinne {
 
     private static HashSet<Id<Link>> getLinksInZone(String networkFile, ZonesQueryCache zonesCache, String attName,
                                                     String attValue) {
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
-        HashSet<Id<Link>> linksInZone = new HashSet<>();
+		HashSet<Id<Link>> linksInZone = new HashSet<>();
 		scenario.getNetwork().getLinks().values().stream().
 				filter(link -> link.getAllowedModes().contains(SBBModes.CAR)).
 				forEach(link -> {
-                    Coord fromCoord = link.getFromNode().getCoord();
-                    Coord toCoord = link.getToNode().getCoord();
-                    double x = (fromCoord.getX() + toCoord.getX()) / 2.0;
-                    double y = (fromCoord.getY() + toCoord.getY()) / 2.0;
-                    Zone z = zonesCache.findZone(x, y);
-                    String shapeValue = z == null ? null : z.getAttribute(attName).toString();
-                    if (shapeValue != null && shapeValue.equals(attValue)) {
-                        linksInZone.add(link.getId());
-                    }
-                });
+					Coord fromCoord = link.getFromNode().getCoord();
+					Coord toCoord = link.getToNode().getCoord();
+					double x = (fromCoord.getX() + toCoord.getX()) / 2.0;
+					double y = (fromCoord.getY() + toCoord.getY()) / 2.0;
+					Zone z = zonesCache.findZone(x, y);
+					String shapeValue = z == null ? null : z.getAttribute(attName).toString();
+					if (shapeValue != null && shapeValue.equals(attValue)) {
+						linksInZone.add(link.getId());
+					}
+				});
         log.info("Links in zone: " + linksInZone.size());
         log.info("Total number of links: " + scenario.getNetwork().getLinks().size());
         return linksInZone;
@@ -87,21 +87,21 @@ public class ZoneBasedSpinne {
         r.addAlgorithm(person -> {
             String subpop = person.getAttributes().getAttribute(Variables.SUBPOPULATION).toString();
             // take agent if it is not a freight agent
-            if(subpop.equals("regular") || subpop.equals("cb_road") || subpop.equals("airport_road"))    {
-                Plan selectedPlan = person.getSelectedPlan();
+            if(subpop.equals("regular") || subpop.equals("cb_road") || subpop.equals("airport_road")) {
+				Plan selectedPlan = person.getSelectedPlan();
 				TripStructureUtils.getLegs(selectedPlan).parallelStream().
 						filter(leg -> (leg.getMode().equals(SBBModes.CAR) || leg.getMode().equals(SBBModes.RIDE))).
 						forEach(leg -> {
-                            NetworkRoute route = (NetworkRoute) leg.getRoute();
-                            if (linksInZone.contains(route.getStartLinkId()) || linksInZone.contains(route.getEndLinkId())) {
-                                addRouteToOrigDestVolumes(route);
-                            } else {
-                                for (Id<Link> link : route.getLinkIds()) {
-                                    if (linksInZone.contains(link)) {
-                                        addRouteToTransitVolumes(route);
-                                        break;
-                                    }
-                                }
+							NetworkRoute route = (NetworkRoute) leg.getRoute();
+							if (linksInZone.contains(route.getStartLinkId()) || linksInZone.contains(route.getEndLinkId())) {
+								addRouteToOrigDestVolumes(route);
+							} else {
+								for (Id<Link> link : route.getLinkIds()) {
+									if (linksInZone.contains(link)) {
+										addRouteToTransitVolumes(route);
+										break;
+									}
+								}
                             }
                         });
             }

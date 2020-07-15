@@ -81,20 +81,20 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
                 if (countsLinks.containsKey(event.getLinkId())) {
                     int hour = (int) (event.getTime() / 3600.0);
                     if (hour > 23) {
-                        hour = hour - 24;
-                    }
-                    countsLinks.get(event.getLinkId())[hour]++;
-                }
-            }
-        });
-        new MatsimEventsReader(eventsManager).readFile(simFolder + "/" + runId + ".output_events.xml.gz");
-        writeCountsComparisons(outputFolder, scalefactor, network, counts, countsLinks);
-        TransportModeNetworkFilter networkFilter = new TransportModeNetworkFilter(network);
-        Network carNet = NetworkUtils.createNetwork();
+						hour = hour - 24;
+					}
+					countsLinks.get(event.getLinkId())[hour]++;
+				}
+			}
+		});
+		new MatsimEventsReader(eventsManager).readFile(simFolder + "/" + runId + ".output_events.xml.gz");
+		writeCountsComparisons(outputFolder, scalefactor, network, counts, countsLinks);
+		TransportModeNetworkFilter networkFilter = new TransportModeNetworkFilter(network);
+		Network carNet = NetworkUtils.createNetwork();
 		networkFilter.filter(carNet, Collections.singleton(SBBModes.CAR));
 		new RunTravelTimeValidation(carNet, ttc.getLinkTravelTimes(), startTime).run(travelTimeRelationsFile, outputFolder + "/congestedTravelTimeComparison_" + startTime + ".csv");
 
-    }
+	}
 
     public void writeCountsComparisons(String outputFolder, double scalefactor, Network network, Counts<Link> counts, Map<Id<Link>, int[]> countsLinks) {
         List<CountSimComparison> comparisons = new ArrayList<>();

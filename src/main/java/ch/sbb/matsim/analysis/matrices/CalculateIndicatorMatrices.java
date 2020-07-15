@@ -22,27 +22,27 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
 public class CalculateIndicatorMatrices {
 
     public static void main(String[] args) throws IOException {
-        System.setProperty("matsim.preferLocalDtds", "true");
-        String coordinatesFilename = args[0];
-        String networkFilename = args[1];
-        String transitScheduleFilename = args[2];
-        String eventsFilename = args[3].equals("-") ? null : args[3];
-        String outputDirectory = args[4];
-        int numberOfThreads = Integer.valueOf(args[5]);
-        boolean detectTrainLines = Boolean.parseBoolean(args[6]);
-        BiPredicate<TransitLine, TransitRoute> trainLinePredictor = detectTrainLines ?
-                (line, route) -> route.getTransportMode().equals(SBBModes.PTSubModes.RAIL) :
-                (line, route) -> false;
+		System.setProperty("matsim.preferLocalDtds", "true");
+		String coordinatesFilename = args[0];
+		String networkFilename = args[1];
+		String transitScheduleFilename = args[2];
+		String eventsFilename = args[3].equals("-") ? null : args[3];
+		String outputDirectory = args[4];
+		int numberOfThreads = Integer.valueOf(args[5]);
+		boolean detectTrainLines = Boolean.parseBoolean(args[6]);
+		BiPredicate<TransitLine, TransitRoute> trainLinePredictor = detectTrainLines ?
+				(line, route) -> route.getTransportMode().equals(SBBModes.PTSubModes.RAIL) :
+				(line, route) -> false;
 
-        Map<String, double[]> timesCar = new LinkedHashMap<>();
-        Map<String, double[]> timesPt = new LinkedHashMap<>();
+		Map<String, double[]> timesCar = new LinkedHashMap<>();
+		Map<String, double[]> timesPt = new LinkedHashMap<>();
 
-        for (int argIdx = 7; argIdx < args.length; argIdx++) {
-            String arg = args[argIdx];
-            String mode = null;
-            String data = null;
-            if (arg.startsWith("car=")) {
-                mode = "car";
+		for (int argIdx = 7; argIdx < args.length; argIdx++) {
+			String arg = args[argIdx];
+			String mode = null;
+			String data = null;
+			if (arg.startsWith("car=")) {
+				mode = "car";
                 data = arg.substring(4);
             }
             if (arg.startsWith("pt=")) {

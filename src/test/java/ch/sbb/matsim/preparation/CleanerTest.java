@@ -28,40 +28,37 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.testcases.MatsimTestUtils;
 
 /**
- *
  * @author pmanser / SBB
  */
 
 public class CleanerTest {
 
-	@Rule
-	public MatsimTestUtils utils = new MatsimTestUtils();
-
 	private static final Logger log = Logger.getLogger(CleanerTest.class);
-
 	private final static List<String> MODES_PT = Collections.singletonList(SBBModes.PT);
 	private final static List<String> MODES_CAR = Collections.singletonList(SBBModes.CAR);
 	private final static List<String> SUBPOP_REGULAR = Collections.singletonList("regular");
 	private final static List<String> SUBPOP_ALL = Collections.singletonList("all");
 	private final static List<String> SUBPOP_CB = Collections.singletonList("cb");
 	private final static List<String> SUBPOP_FREIGHT = Collections.singletonList("freight");
+	@Rule
+	public MatsimTestUtils utils = new MatsimTestUtils();
 
 	@Test
 	public void testPlansRemover() {
 		Fixture f = new Fixture();
 		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
-        assertEquals(2, f.scenario.getPopulation().getPersons().get(Id.createPersonId("1")).getPlans().size(), 0.0);
-        cleaner.removeNonSelectedPlans();
-        assertEquals(1, f.scenario.getPopulation().getPersons().get(Id.createPersonId("1")).getPlans().size(), 0.0);
-    }
+		assertEquals(2, f.scenario.getPopulation().getPersons().get(Id.createPersonId("1")).getPlans().size(), 0.0);
+		cleaner.removeNonSelectedPlans();
+		assertEquals(1, f.scenario.getPopulation().getPersons().get(Id.createPersonId("1")).getPlans().size(), 0.0);
+	}
 
-    @Test
-    public void testCarAgentNoAccessTimes() {
-        Fixture f = new Fixture();
-        Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
+	@Test
+	public void testCarAgentNoAccessTimes() {
+		Fixture f = new Fixture();
+		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
-        Leg carLeg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("1")).getPlans().get(0).getPlanElements().get(1);
+		Leg carLeg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("1")).getPlans().get(0).getPlanElements().get(1);
 
 		assertEquals(carLeg.getMode(), SBBModes.CAR);
 		assertEquals(carLeg.getRoute().getStartLinkId().toString(), "2");
@@ -81,27 +78,27 @@ public class CleanerTest {
 
     @Test
     public void testCarAgentWithAccessTimes() {
-        Fixture f = new Fixture();
-        Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
+		Fixture f = new Fixture();
+		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
-        List<PlanElement> pe =  f.scenario.getPopulation().getPersons().get(Id.createPersonId("2")).getPlans().get(0).getPlanElements();
+		List<PlanElement> pe = f.scenario.getPopulation().getPersons().get(Id.createPersonId("2")).getPlans().get(0).getPlanElements();
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-        cleaner.clean(MODES_PT, SUBPOP_REGULAR);
+		cleaner.clean(MODES_PT, SUBPOP_REGULAR);
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-        cleaner.clean(MODES_CAR, SUBPOP_CB);
+		cleaner.clean(MODES_CAR, SUBPOP_CB);
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-        cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
+		cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
 		assertEquals(3, pe.size(), 0);
 		assertEquals(SBBModes.CAR, ((Leg) pe.get(1)).getMode());
-    }
+	}
 
-    @Test
+	@Test
     public void testBikeAgentNoAccessTimes() {
 		Fixture f = new Fixture();
 		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
@@ -124,37 +121,37 @@ public class CleanerTest {
 		assertNull(leg.getRoute());
 	}
 
-    @Test
+	@Test
     public void testBikeAgentWithAccessTimes() {
-        Fixture f = new Fixture();
-        Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
+		Fixture f = new Fixture();
+		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
-        List<PlanElement> pe =  f.scenario.getPopulation().getPersons().get(Id.createPersonId("4")).getPlans().get(0).getPlanElements();
+		List<PlanElement> pe = f.scenario.getPopulation().getPersons().get(Id.createPersonId("4")).getPlans().get(0).getPlanElements();
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-        cleaner.clean(MODES_PT, SUBPOP_REGULAR);
+		cleaner.clean(MODES_PT, SUBPOP_REGULAR);
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-        cleaner.clean(MODES_CAR, SUBPOP_CB);
+		cleaner.clean(MODES_CAR, SUBPOP_CB);
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
 		cleaner.clean(Arrays.asList(SBBModes.BIKE), SUBPOP_REGULAR);
 		assertEquals(3, pe.size(), 0);
 		assertEquals(SBBModes.BIKE, ((Leg) pe.get(1)).getMode());
-    }
+	}
 
-    @Test
+	@Test
     public void testPTAgentFirstLegTransitWalk() {
-        Fixture f = new Fixture();
-        Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
+		Fixture f = new Fixture();
+		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
-        Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("5")).getPlans().get(0).getPlanElements().get(1);
+		Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("5")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
-        assertEquals(7, f.scenario.getPopulation().getPersons().get(Id.createPersonId("5")).getPlans().get(0).getPlanElements().size(), 0);
+		assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
+		assertEquals(7, f.scenario.getPopulation().getPersons().get(Id.createPersonId("5")).getPlans().get(0).getPlanElements().size(), 0);
 		assertEquals(leg.getRoute().getStartLinkId().toString(), "2");
 
 		cleaner.clean(MODES_PT, SUBPOP_CB);
@@ -171,37 +168,37 @@ public class CleanerTest {
 		assertNull(leg.getRoute());
 	}
 
-    @Test
+	@Test
     public void testPTAgentFirstLegAccessWalk() {
-        Fixture f = new Fixture();
-        Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
+		Fixture f = new Fixture();
+		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
-        List<PlanElement> pe =  f.scenario.getPopulation().getPersons().get(Id.createPersonId("6")).getPlans().get(0).getPlanElements();
+		List<PlanElement> pe = f.scenario.getPopulation().getPersons().get(Id.createPersonId("6")).getPlans().get(0).getPlanElements();
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-        cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
+		cleaner.clean(MODES_CAR, SUBPOP_REGULAR);
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-        cleaner.clean(MODES_PT, SUBPOP_CB);
+		cleaner.clean(MODES_PT, SUBPOP_CB);
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-        cleaner.clean(MODES_PT, SUBPOP_REGULAR);
+		cleaner.clean(MODES_PT, SUBPOP_REGULAR);
 		assertEquals(3, pe.size(), 0);
 		assertEquals(SBBModes.PT, ((Leg) pe.get(1)).getMode());
-    }
+	}
 
-    @Test
+	@Test
     public void testPTAgentTransitWalkOnly() {
-        Fixture f = new Fixture();
-        Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
+		Fixture f = new Fixture();
+		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
-        Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("7")).getPlans().get(0).getPlanElements().get(1);
+		Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("7")).getPlans().get(0).getPlanElements().get(1);
 
-        assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
-        assertEquals(3, f.scenario.getPopulation().getPersons().get(Id.createPersonId("7")).getPlans().get(0).getPlanElements().size(), 0);
+		assertEquals(leg.getMode(), SBBModes.PT_FALLBACK_MODE);
+		assertEquals(3, f.scenario.getPopulation().getPersons().get(Id.createPersonId("7")).getPlans().get(0).getPlanElements().size(), 0);
 		assertEquals(leg.getRoute().getStartLinkId().toString(), "2");
 
 		cleaner.clean(MODES_PT, SUBPOP_CB);
@@ -218,18 +215,18 @@ public class CleanerTest {
 		assertNull(leg.getRoute());
 	}
 
-    @Test
+	@Test
     public void testComplexPTTrip() {
-        Fixture f = new Fixture();
-        Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
+		Fixture f = new Fixture();
+		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
-        Leg oldLeg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(1);
+		Leg oldLeg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(1);
 
 		assertEquals(oldLeg.getMode(), SBBModes.ACCESS_EGRESS_WALK);
 		assertEquals(13, f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().size(), 0);
-        assertEquals(oldLeg.getRoute().getStartLinkId().toString(), "2");
+		assertEquals(oldLeg.getRoute().getStartLinkId().toString(), "2");
 
-        Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(3);
+		Leg leg = (Leg) f.scenario.getPopulation().getPersons().get(Id.createPersonId("8")).getPlans().get(0).getPlanElements().get(3);
 		assertEquals(leg.getMode(), SBBModes.PT);
 
 		cleaner.clean(MODES_PT, SUBPOP_CB);
@@ -248,7 +245,7 @@ public class CleanerTest {
 		assertNull(oldLeg.getRoute());
 	}
 
-    private static class Fixture {
+	private static class Fixture {
         public final Scenario scenario;
 
         public Fixture()  {
@@ -257,8 +254,8 @@ public class CleanerTest {
 
             String plansXml =
                     "<?xml version=\"1.0\" ?>" +
-                    "<!DOCTYPE population SYSTEM \"http://www.matsim.org/files/dtd/population_v6.dtd\">" +
-                    "<population>" +
+							"<!DOCTYPE population SYSTEM \"http://www.matsim.org/files/dtd/population_v6.dtd\">" +
+							"<population>" +
 
 							"<person id=\"1\">" +
 							"  <plan selected=\"yes\">" +
@@ -419,7 +416,7 @@ public class CleanerTest {
 
 							"</population>";
 
-            new PopulationReader(scenario).parse(new ByteArrayInputStream(plansXml.getBytes()));
+			new PopulationReader(scenario).parse(new ByteArrayInputStream(plansXml.getBytes()));
 
             scenario.getPopulation().getPersons().get(Id.create("1", Person.class)).getAttributes().putAttribute("subpopulation", "cb");
             scenario.getPopulation().getPersons().get(Id.create("2", Person.class)).getAttributes().putAttribute("subpopulation", "regular");

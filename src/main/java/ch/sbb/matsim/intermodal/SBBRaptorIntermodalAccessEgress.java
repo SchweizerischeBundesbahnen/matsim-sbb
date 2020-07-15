@@ -5,8 +5,8 @@
 
 package ch.sbb.matsim.intermodal;
 
-import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
-import ch.sbb.matsim.config.SBBIntermodalConfigGroup.SBBIntermodalModeParameterSet;
+import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
+import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
@@ -37,14 +37,14 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
     private final List<SBBIntermodalModeParameterSet> intermodalModeParams;
     private final Zones zones;
-    private final Network network;
-    private final PlanCalcScoreConfigGroup scoreConfigGroup;
+	private final Network network;
+	private final PlanCalcScoreConfigGroup scoreConfigGroup;
 
     @Inject
     SBBRaptorIntermodalAccessEgress(Config config, ZonesCollection zonesCollection, Network network) {
-        SBBIntermodalConfigGroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfigGroup.class);
-        scoreConfigGroup = config.planCalcScore();
-        intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
+        SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
+		scoreConfigGroup = config.planCalcScore();
+		intermodalModeParams = intermodalConfigGroup.getModeParameterSets();
         Id<Zones> zonesId = intermodalConfigGroup.getZonesId();
         this.zones = zonesId != null ? new ZonesQueryCache(zonesCollection.getZones(intermodalConfigGroup.getZonesId())) : null;
         this.network = network;
@@ -52,16 +52,16 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
 
     private boolean isIntermodalMode(String mode) {
-        if (mode.equals(SBBModes.ACCESS_EGRESS_WALK)) {
-            return false;
-        }
-        for (SBBIntermodalModeParameterSet modeParams : this.intermodalModeParams) {
-            if (mode.equals(modeParams.getMode())) {
-                return true;
-            }
-        }
-        return false;
-    }
+		if (mode.equals(SBBModes.ACCESS_EGRESS_WALK)) {
+			return false;
+		}
+		for (SBBIntermodalModeParameterSet modeParams : this.intermodalModeParams) {
+			if (mode.equals(modeParams.getMode())) {
+				return true;
+			}
+		}
+		return false;
+	}
 
     private String getIntermodalTripMode(final List<? extends PlanElement> legs) {
         for (PlanElement pe : legs) {
@@ -211,18 +211,17 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
     }
 
-
-    private double computeIntermodalDisutility(final List<? extends PlanElement> legs, RaptorParameters params, PlanCalcScoreConfigGroup.ModeParams modeParams) {
-        double utility = 0.0;
-        for (PlanElement pe : legs) {
-            if (pe instanceof Leg) {
-                OptionalTime time = ((Leg) pe).getTravelTime();
-                if (time.isDefined()) {
-                    utility += time.seconds() * (modeParams.getMarginalUtilityOfTraveling() / 3600.0);
-                }
-            }
-        }
-        utility += modeParams.getConstant();
+	private double computeIntermodalDisutility(final List<? extends PlanElement> legs, RaptorParameters params, PlanCalcScoreConfigGroup.ModeParams modeParams) {
+		double utility = 0.0;
+		for (PlanElement pe : legs) {
+			if (pe instanceof Leg) {
+				OptionalTime time = ((Leg) pe).getTravelTime();
+				if (time.isDefined()) {
+					utility += time.seconds() * (modeParams.getMarginalUtilityOfTraveling() / 3600.0);
+				}
+			}
+		}
+		utility += modeParams.getConstant();
         //return the *mostly positive* disutility, as required by the router
         return (-utility);
 
@@ -235,12 +234,12 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
         double disutility;
 
         if (isIntermodal) {
-            SBBIntermodalModeParameterSet intermodalModeParameters = getIntermodalModeParameters(intermodalTripMode);
-            this.setIntermodalWaitingTimesAndDetour(legs, intermodalModeParameters);
-            PlanCalcScoreConfigGroup.ModeParams modeParams = this.scoreConfigGroup.getModes().get(intermodalTripMode);
+			SBBIntermodalModeParameterSet intermodalModeParameters = getIntermodalModeParameters(intermodalTripMode);
+			this.setIntermodalWaitingTimesAndDetour(legs, intermodalModeParameters);
+			PlanCalcScoreConfigGroup.ModeParams modeParams = this.scoreConfigGroup.getModes().get(intermodalTripMode);
 
-            disutility = this.computeIntermodalDisutility(legs, params, modeParams);
-        } else {
+			disutility = this.computeIntermodalDisutility(legs, params, modeParams);
+		} else {
             disutility = this.computeDisutility(legs, params);
         }
 
