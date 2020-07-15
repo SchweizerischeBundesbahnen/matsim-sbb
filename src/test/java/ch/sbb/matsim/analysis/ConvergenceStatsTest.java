@@ -78,7 +78,7 @@ public class ConvergenceStatsTest {
 	public void test_convergenceCriterion() throws IOException {
 		System.setProperty("matsim.preferLocalDtds", "true");
 		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
-
+		config.controler().setMobsim("qsim");
 		// integrate config
 		ConvergenceConfigGroup csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
 		csConfig.setActivateConvergenceStats(true);
