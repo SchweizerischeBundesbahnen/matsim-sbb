@@ -7,6 +7,7 @@
         <param name="flowCapacityFactor" value="0.1"/>
         <param name="storageCapacityFactor" value="0.2"/>
         <param name="useDeterministicPt" value="true"/>
+        <param name="endTime" value="36:00:00"/>
 
     </module>
     <module name="PostProcessing">
@@ -94,7 +95,7 @@
         <!-- Defines which mobility simulation will be used. Currently supported: qsim JDEQSim
 		Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
 		For 'qsim', add a module 'qsim' to the config. -->
-        <param name="mobsim" value="hermes"/>
+        <param name="mobsim" value="qsim"/>
         <param name="outputDirectory" value="test/output/runSBBIT"/>
         <!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
         <param name="overwriteFiles" value="deleteDirectoryIfExists"/>
