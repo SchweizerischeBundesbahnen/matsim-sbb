@@ -59,10 +59,5 @@ public class AccessTimeTest {
         assertScoring(true, 0.0, -30, -1.935, "ride", "car,ride");
     }
 
-    @Test
-    public final void testScoringBike() {
-        //without access/egress score = -432
-        assertScoring(true, 0.0, -1.68, -432.018, "bike", "bike,car");
-    }
 
 }
