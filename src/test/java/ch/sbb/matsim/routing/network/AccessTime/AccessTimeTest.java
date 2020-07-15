@@ -59,5 +59,4 @@ public class AccessTimeTest {
         assertScoring(true, 0.0, -30, -1.935, "ride", "car,ride");
     }
 
-
 }
