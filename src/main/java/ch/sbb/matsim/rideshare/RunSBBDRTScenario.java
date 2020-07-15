@@ -27,36 +27,37 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 public class RunSBBDRTScenario {
 
-    private final static Logger log = Logger.getLogger(RunSBBDRTScenario.class);
+	private final static Logger log = Logger.getLogger(RunSBBDRTScenario.class);
 
-    public static void main(String[] args) {
-        System.setProperty("matsim.preferLocalDtds", "true");
-        final String configFile = args[0];
-        log.info(configFile);
-        Config config = ConfigUtils.loadConfig(configFile, getSBBAndDrtConfigGroups());
-        if (args.length > 1)
-            config.controler().setOutputDirectory(args[1]);
-        prepareDrtConfig(config);
-        Scenario scenario = DrtControlerCreator.createScenarioWithDrtRouteFactory(config);
-        ScenarioUtils.loadScenario(scenario);
-        RunSBB.addSBBDefaultScenarioModules(scenario);
-        Controler controler = new Controler(scenario);
-        RunSBB.addSBBDefaultControlerModules(controler);
-        prepareDrtControler(controler);
-        controler.run();
-    }
+	public static void main(String[] args) {
+		System.setProperty("matsim.preferLocalDtds", "true");
+		final String configFile = args[0];
+		log.info(configFile);
+		Config config = ConfigUtils.loadConfig(configFile, getSBBAndDrtConfigGroups());
+		if (args.length > 1) {
+			config.controler().setOutputDirectory(args[1]);
+		}
+		prepareDrtConfig(config);
+		Scenario scenario = DrtControlerCreator.createScenarioWithDrtRouteFactory(config);
+		ScenarioUtils.loadScenario(scenario);
+		RunSBB.addSBBDefaultScenarioModules(scenario);
+		Controler controler = new Controler(scenario);
+		RunSBB.addSBBDefaultControlerModules(controler);
+		prepareDrtControler(controler);
+		controler.run();
+	}
 
-    public static ConfigGroup[] getSBBAndDrtConfigGroups() {
-        List<ConfigGroup> configGroupList = new ArrayList<>();
-        configGroupList.addAll(Arrays.asList(RunSBB.sbbDefaultConfigGroups));
-        configGroupList.add(new MultiModeDrtConfigGroup());
-        configGroupList.add(new DvrpConfigGroup());
-        configGroupList.add(new DrtFaresConfigGroup());
+	public static ConfigGroup[] getSBBAndDrtConfigGroups() {
+		List<ConfigGroup> configGroupList = new ArrayList<>();
+		configGroupList.addAll(Arrays.asList(RunSBB.sbbDefaultConfigGroups));
+		configGroupList.add(new MultiModeDrtConfigGroup());
+		configGroupList.add(new DvrpConfigGroup());
+		configGroupList.add(new DrtFaresConfigGroup());
 
-        return configGroupList.toArray(new ConfigGroup[configGroupList.size()]);
-    }
+		return configGroupList.toArray(new ConfigGroup[configGroupList.size()]);
+	}
 
-    public static void prepareDrtConfig(Config config) {
+	public static void prepareDrtConfig(Config config) {
 		DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore(), config.plansCalcRoute());
 
 		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
@@ -67,19 +68,17 @@ public class RunSBBDRTScenario {
 		config.checkConsistency();
 	}
 
-
-    public static void prepareDrtControler(Controler controler) {
-        controler.addOverridingModule(new MultiModeDrtModule());
-        controler.addOverridingModule(new DvrpModule());
-        controler.configureQSimComponents(DvrpQSimComponents.activateAllModes(MultiModeDrtConfigGroup.get(controler.getConfig())));
-        controler.addOverridingModule(new SBBDRTAnalysisModule());
-        controler.addOverridingModule(new AbstractModule() {
-            @Override
-            public void install() {
-                bind(MainModeIdentifier.class).to(RideshareAwareIntermodalMainModeIdentifier.class);
-            }
-        });
-    }
-
+	public static void prepareDrtControler(Controler controler) {
+		controler.addOverridingModule(new MultiModeDrtModule());
+		controler.addOverridingModule(new DvrpModule());
+		controler.configureQSimComponents(DvrpQSimComponents.activateAllModes(MultiModeDrtConfigGroup.get(controler.getConfig())));
+		controler.addOverridingModule(new SBBDRTAnalysisModule());
+		controler.addOverridingModule(new AbstractModule() {
+			@Override
+			public void install() {
+				bind(MainModeIdentifier.class).to(RideshareAwareIntermodalMainModeIdentifier.class);
+			}
+		});
+	}
 
 }

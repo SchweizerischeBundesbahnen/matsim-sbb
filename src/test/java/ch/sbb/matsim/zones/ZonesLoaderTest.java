@@ -12,24 +12,24 @@ import org.matsim.core.config.ConfigUtils;
  */
 public class ZonesLoaderTest {
 
-    @Test
-    public void testLoadZones() {
-        Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP", "ID");
-        Assert.assertEquals("testZones", zones.getId().toString());
-        Assert.assertEquals(5, zones.size());
-    }
+	@Test
+	public void testLoadZones() {
+		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP", "ID");
+		Assert.assertEquals("testZones", zones.getId().toString());
+		Assert.assertEquals(5, zones.size());
+	}
 
-    @Test
-    public void testLoadAllZones() {
-        Config config = ConfigUtils.createConfig();
-        ZonesListConfigGroup cfg = new ZonesListConfigGroup();
-        cfg.addZones(new ZonesListConfigGroup.ZonesParameterSet("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP", "ID"));
-        ZonesCollection zonesCollection = new ZonesCollection();
-        config.addModule(cfg);
-        ZonesLoader.loadAllZones(config, zonesCollection);
+	@Test
+	public void testLoadAllZones() {
+		Config config = ConfigUtils.createConfig();
+		ZonesListConfigGroup cfg = new ZonesListConfigGroup();
+		cfg.addZones(new ZonesListConfigGroup.ZonesParameterSet("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP", "ID"));
+		ZonesCollection zonesCollection = new ZonesCollection();
+		config.addModule(cfg);
+		ZonesLoader.loadAllZones(config, zonesCollection);
 
-        Zones testZones = zonesCollection.getZones(Id.create("testZones", Zones.class));
-        Assert.assertNotNull(testZones);
-        Assert.assertEquals(5, testZones.size());
-    }
+		Zones testZones = zonesCollection.getZones(Id.create("testZones", Zones.class));
+		Assert.assertNotNull(testZones);
+		Assert.assertEquals(5, testZones.size());
+	}
 }

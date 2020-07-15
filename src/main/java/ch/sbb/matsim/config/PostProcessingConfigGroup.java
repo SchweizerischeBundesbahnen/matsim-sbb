@@ -12,22 +12,22 @@ import org.matsim.core.config.ReflectiveConfigGroup;
 
 public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
-    static public final String GROUP_NAME = "PostProcessing";
+	static public final String GROUP_NAME = "PostProcessing";
 
-    static private final String PARAM_ANALYSE_SCREENLINE = "analyseScreenline";
-    static private final String PARAM_SHAPEFILE_SCREENLINE = "shapefileScreenline";
-    static private final String PARAM_MODE_VISUM_NETWORK = "visumNetworkMode";
+	static private final String PARAM_ANALYSE_SCREENLINE = "analyseScreenline";
+	static private final String PARAM_SHAPEFILE_SCREENLINE = "shapefileScreenline";
+	static private final String PARAM_MODE_VISUM_NETWORK = "visumNetworkMode";
 
-    private Id<Zones> zonesId = null;
-    private String zoneAttribute = "GMDNR";
-    private Boolean mapActivitiesToZone = false;
-    private Boolean travelDiaries = true;
-    private Boolean ptVolumes = false;
-    private Boolean linkVolumes = false;
-    private Boolean eventsPerPerson = false;
-    private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
-    private int writeOutputsInterval = 10;
-    private Boolean writeAgentsCSV = false;
+	private Id<Zones> zonesId = null;
+	private String zoneAttribute = "GMDNR";
+	private Boolean mapActivitiesToZone = false;
+	private Boolean travelDiaries = true;
+	private Boolean ptVolumes = false;
+	private Boolean linkVolumes = false;
+	private Boolean eventsPerPerson = false;
+	private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
+	private int writeOutputsInterval = 10;
+	private Boolean writeAgentsCSV = false;
 	private Boolean writePlanElementsCSV = false;
 	private Boolean finalDailyVolumes = false;
 	private String linkCountDataFile = null;
@@ -41,6 +41,10 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	private Integer visumNetworkThreshold = 5000;
 	private String visumNetworkMode = SBBModes.CAR;
 
+	public PostProcessingConfigGroup() {
+		super(GROUP_NAME);
+	}
+
 	@StringGetter(PARAM_SHAPEFILE_SCREENLINE)
 	public String getShapefileScreenline() {
 		return shapefileScreenline;
@@ -51,222 +55,215 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 		this.shapefileScreenline = shapefileScreenline;
 	}
 
-    @StringGetter(PARAM_MODE_VISUM_NETWORK)
-    public String getVisumNetworkMode() {
-        return visumNetworkMode;
-    }
+	@StringGetter(PARAM_MODE_VISUM_NETWORK)
+	public String getVisumNetworkMode() {
+		return visumNetworkMode;
+	}
 
-    @StringSetter(PARAM_MODE_VISUM_NETWORK)
-    public void setVisumNetworkMode(String visumNetworkMode) {
-        this.visumNetworkMode = visumNetworkMode;
-    }
+	@StringSetter(PARAM_MODE_VISUM_NETWORK)
+	public void setVisumNetworkMode(String visumNetworkMode) {
+		this.visumNetworkMode = visumNetworkMode;
+	}
 
+	@StringGetter(PARAM_ANALYSE_SCREENLINE)
+	public Boolean getAnalyseScreenline() {
+		return analyseScreenline;
+	}
 
-    @StringGetter(PARAM_ANALYSE_SCREENLINE)
-    public Boolean getAnalyseScreenline() {
-        return analyseScreenline;
-    }
+	@StringSetter(PARAM_ANALYSE_SCREENLINE)
+	public void setAnalyseScreenline(Boolean write) {
+		this.analyseScreenline = write;
+	}
 
-    @StringSetter(PARAM_ANALYSE_SCREENLINE)
-    public void setAnalyseScreenline(Boolean write) {
-        this.analyseScreenline = write;
-    }
+	@StringGetter("writeVisumPuTSurvey")
+	public Boolean getWriteVisumPuTSurvey() {
+		return writeVisumPuTSurvey;
+	}
 
+	@StringSetter("writeVisumPuTSurvey")
+	public void setWriteVisumPuTSurvey(Boolean write) {
+		this.writeVisumPuTSurvey = write;
+	}
 
-    @StringGetter("writeVisumPuTSurvey")
-    public Boolean getWriteVisumPuTSurvey() {
-        return writeVisumPuTSurvey;
-    }
+	@StringGetter("writeOutputsInterval")
+	public int getWriteOutputsInterval() {
+		return this.writeOutputsInterval;
+	}
 
-    @StringSetter("writeVisumPuTSurvey")
-    public void setWriteVisumPuTSurvey(Boolean write) {
-        this.writeVisumPuTSurvey = write;
-    }
+	@StringSetter("writeOutputsInterval")
+	public void setWriteOutputsInterval(final int writeOutputsInterval) {
+		this.writeOutputsInterval = writeOutputsInterval;
+	}
 
-    @StringGetter("writeOutputsInterval")
-    public int getWriteOutputsInterval() {
-        return this.writeOutputsInterval;
-    }
+	@StringGetter("writeAgentsCSV")
+	public Boolean getWriteAgentsCSV() {
+		return writeAgentsCSV;
+	}
 
-    @StringSetter("writeOutputsInterval")
-    public void setWriteOutputsInterval(final int writeOutputsInterval) {
-        this.writeOutputsInterval = writeOutputsInterval;
-    }
+	@StringSetter("writeAgentsCSV")
+	public void setWriteAgentsCSV(Boolean value) {
+		this.writeAgentsCSV = value;
+	}
 
-    @StringGetter("writeAgentsCSV")
-    public Boolean getWriteAgentsCSV() {
-        return writeAgentsCSV;
-    }
+	@StringGetter("writePlanElementsCSV")
+	public Boolean getWritePlanElementsCSV() {
+		return writePlanElementsCSV;
+	}
 
-    @StringSetter("writeAgentsCSV")
-    public void setWriteAgentsCSV(Boolean value) {
-        this.writeAgentsCSV = value;
-    }
+	@StringSetter("writePlanElementsCSV")
+	public void setWritePlanElementsCSV(Boolean value) {
+		this.writePlanElementsCSV = value;
+	}
 
-    @StringGetter("writePlanElementsCSV")
-    public Boolean getWritePlanElementsCSV() {
-        return writePlanElementsCSV;
-    }
+	@StringGetter("writeFinalDailyVolumes")
+	public Boolean getFinalDailyVolumes() {
+		return finalDailyVolumes;
+	}
 
-    @StringSetter("writePlanElementsCSV")
-    public void setWritePlanElementsCSV(Boolean value) {
-        this.writePlanElementsCSV = value;
-    }
+	@StringSetter("writeFinalDailyVolumes")
+	public void setFinalDailyVolumes(Boolean finalDailyVolumes) {
+		this.finalDailyVolumes = finalDailyVolumes;
+	}
 
-    @StringGetter("writeFinalDailyVolumes")
-    public Boolean getFinalDailyVolumes() {
-        return finalDailyVolumes;
-    }
+	@StringGetter("personAttributes")
+	public String getPersonAttributes() {
+		return personAttributes;
+	}
 
-    @StringSetter("writeFinalDailyVolumes")
-    public void setFinalDailyVolumes(Boolean finalDailyVolumes) {
-        this.finalDailyVolumes = finalDailyVolumes;
-    }
+	@StringSetter("personAttributes")
+	public void setPersonAttributes(String personAttributes) {
+		this.personAttributes = personAttributes;
+	}
 
-    @StringGetter("personAttributes")
-    public String getPersonAttributes() {
-        return personAttributes;
-    }
+	@StringGetter("eventsPerPerson")
+	public Boolean getEventsPerPerson() {
+		return eventsPerPerson;
+	}
 
-    @StringSetter("personAttributes")
-    public void setPersonAttributes(String personAttributes) {
-        this.personAttributes = personAttributes;
-    }
+	@StringSetter("eventsPerPerson")
+	public void setEventsPerPerson(Boolean eventsPerPerson) {
+		this.eventsPerPerson = eventsPerPerson;
+	}
 
-    public PostProcessingConfigGroup() {
-        super(GROUP_NAME);
-    }
+	@StringGetter("travelDiaries")
+	public Boolean getTravelDiaries() {
+		return travelDiaries;
+	}
 
-    @StringGetter("eventsPerPerson")
-    public Boolean getEventsPerPerson() {
-        return eventsPerPerson;
-    }
+	@StringSetter("travelDiaries")
+	public void setTravelDiaries(Boolean travelDiaries) {
+		this.travelDiaries = travelDiaries;
+	}
 
-    @StringSetter("eventsPerPerson")
-    public void setEventsPerPerson(Boolean eventsPerPerson) {
-        this.eventsPerPerson = eventsPerPerson;
-    }
+	@StringGetter("ptVolumes")
+	public Boolean getPtVolumes() {
+		return ptVolumes;
+	}
 
-    @StringGetter("travelDiaries")
-    public Boolean getTravelDiaries() {
-        return travelDiaries;
-    }
+	@StringSetter("ptVolumes")
+	public void setPtVolumes(Boolean ptVolumes) {
+		this.ptVolumes = ptVolumes;
+	}
 
-    @StringSetter("travelDiaries")
-    public void setTravelDiaries(Boolean travelDiaries) {
-        this.travelDiaries = travelDiaries;
-    }
+	@StringGetter("linkVolumes")
+	public Boolean getLinkVolumes() {
+		return linkVolumes;
+	}
 
-    @StringGetter("ptVolumes")
-    public Boolean getPtVolumes() {
-        return ptVolumes;
-    }
+	@StringSetter("linkVolumes")
+	public void setLinkVolumes(Boolean linkVolumes) {
+		this.linkVolumes = linkVolumes;
+	}
 
-    @StringSetter("ptVolumes")
-    public void setPtVolumes(Boolean ptVolumes) {
-        this.ptVolumes = ptVolumes;
-    }
+	@StringGetter("visumNetFile")
+	public Boolean getVisumNetFile() {
+		return visumNetFile;
+	}
 
-    @StringGetter("linkVolumes")
-    public Boolean getLinkVolumes() {
-        return linkVolumes;
-    }
+	@StringSetter("visumNetFile")
+	public void setVisumNetFile(Boolean visumNetFile) {
+		this.visumNetFile = visumNetFile;
+	}
 
-    @StringSetter("linkVolumes")
-    public void setLinkVolumes(Boolean linkVolumes) {
-        this.linkVolumes = linkVolumes;
-    }
+	@StringGetter("linkCountDataFile")
+	public String getLinkCountDataFile() {
+		return linkCountDataFile;
+	}
 
-    @StringGetter("visumNetFile")
-    public Boolean getVisumNetFile() {
-        return visumNetFile;
-    }
+	@StringSetter("linkCountDataFile")
+	public void setLinkCountDataFile(String linkCountDataFile) {
+		this.linkCountDataFile = linkCountDataFile;
+	}
 
-    @StringSetter("visumNetFile")
-    public void setVisumNetFile(Boolean visumNetFile) {
-        this.visumNetFile = visumNetFile;
-    }
+	@StringGetter("stopCountDataFile")
+	public String getStopCountDataFile() {
+		return stopCountDataFile;
+	}
 
-    @StringGetter("linkCountDataFile")
-    public String getLinkCountDataFile() {
-        return linkCountDataFile;
-    }
+	@StringSetter("stopCountDataFile")
+	public void setStopCountDataFile(String stopCountDataFile) {
+		this.stopCountDataFile = stopCountDataFile;
+	}
 
-    @StringSetter("linkCountDataFile")
-    public void setLinkCountDataFile(String linkCountDataFile) {
-        this.linkCountDataFile = linkCountDataFile;
-    }
+	@StringGetter("zoneAttribute")
+	public String getZoneAttribute() {
+		return zoneAttribute;
+	}
 
+	@StringSetter("zoneAttribute")
+	void setZoneAttribute(String txt) {
+		this.zoneAttribute = txt;
+	}
 
-    @StringGetter("stopCountDataFile")
-    public String getStopCountDataFile() {
-        return stopCountDataFile;
-    }
+	@StringGetter("zonesId")
+	public String getZonesId_asString() {
+		return this.zonesId == null ? null : this.zonesId.toString();
+	}
 
-    @StringSetter("stopCountDataFile")
-    public void setStopCountDataFile(String stopCountDataFile) {
-        this.stopCountDataFile = stopCountDataFile;
-    }
+	public Id<Zones> getZonesId() {
+		return this.zonesId;
+	}
 
-    @StringGetter("zoneAttribute")
-    public String getZoneAttribute() {
-        return zoneAttribute;
-    }
+	@StringSetter("zonesId")
+	void setZonesId(String zonesId) {
+		this.zonesId = Id.create(zonesId, Zones.class);
+	}
 
-    @StringSetter("zoneAttribute")
-    void setZoneAttribute(String txt) {
-        this.zoneAttribute = txt;
-    }
+	void setZonesId(Id<Zones> zonesId) {
+		this.zonesId = zonesId;
+	}
 
-    @StringGetter("zonesId")
-    public String getZonesId_asString() {
-        return this.zonesId == null ? null : this.zonesId.toString();
-    }
+	@StringGetter("mapActivitiesToZone")
+	public Boolean getMapActivitiesToZone() {
+		return mapActivitiesToZone;
+	}
 
-    public Id<Zones> getZonesId() {
-        return this.zonesId;
-    }
+	@StringSetter("mapActivitiesToZone")
+	public void setMapActivitiesToZone(Boolean mapActivitiesToZone) {
+		this.mapActivitiesToZone = mapActivitiesToZone;
+	}
 
-    @StringSetter("zonesId")
-    void setZonesId(String zonesId) {
-        this.zonesId = Id.create(zonesId, Zones.class);
-    }
+	@Override
+	public Map<String, String> getComments() {
+		Map<String, String> comments = super.getComments();
+		comments.put(PARAM_ANALYSE_SCREENLINE, "Run Screenline Analysis");
+		comments.put(PARAM_SHAPEFILE_SCREENLINE, "Shapefile for screenline. Contains polylines");
+		comments.put(PARAM_MODE_VISUM_NETWORK, "Mode to consider to export Network with volume to Visum (*.net File");
+		return comments;
+	}
 
-    void setZonesId(Id<Zones> zonesId) {
-        this.zonesId = zonesId;
-    }
-
-    @StringGetter("mapActivitiesToZone")
-    public Boolean getMapActivitiesToZone() {
-        return mapActivitiesToZone;
-    }
-
-    @StringSetter("mapActivitiesToZone")
-    public void setMapActivitiesToZone(Boolean mapActivitiesToZone) {
-        this.mapActivitiesToZone = mapActivitiesToZone;
-    }
-
-    @Override
-    public Map<String, String> getComments() {
-        Map<String, String> comments = super.getComments();
-        comments.put(PARAM_ANALYSE_SCREENLINE, "Run Screenline Analysis");
-        comments.put(PARAM_SHAPEFILE_SCREENLINE, "Shapefile for screenline. Contains polylines");
-        comments.put(PARAM_MODE_VISUM_NETWORK, "Mode to consider to export Network with volume to Visum (*.net File");
-        return comments;
-    }
-
-    public void setAllPostProcessingOff() {
-        this.travelDiaries = false;
-        this.ptVolumes = false;
-        this.linkVolumes = false;
-        this.eventsPerPerson = false;
-        this.writeAgentsCSV = false;
-        this.writePlanElementsCSV = false;
-        this.finalDailyVolumes = false;
-        this.writeVisumPuTSurvey = false;
-        this.analyseScreenline = false;
-        this.visumNetFile = false;
-        this.writeOutputsInterval = 0;
-    }
+	public void setAllPostProcessingOff() {
+		this.travelDiaries = false;
+		this.ptVolumes = false;
+		this.linkVolumes = false;
+		this.eventsPerPerson = false;
+		this.writeAgentsCSV = false;
+		this.writePlanElementsCSV = false;
+		this.finalDailyVolumes = false;
+		this.writeVisumPuTSurvey = false;
+		this.analyseScreenline = false;
+		this.visumNetFile = false;
+		this.writeOutputsInterval = 0;
+	}
 
 }

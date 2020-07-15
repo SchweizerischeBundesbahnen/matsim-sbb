@@ -33,8 +33,8 @@ import org.matsim.vehicles.Vehicle;
  */
 public class RideParkingCostTrackerTest {
 
-    @Test
-    public void testParkingCostEvents() {
+	@Test
+	public void testParkingCostEvents() {
 		Fixture f = new Fixture();
 
 		f.events.addHandler(new EventsLogger());
@@ -107,87 +107,88 @@ public class RideParkingCostTrackerTest {
 		Assert.assertEquals(17, collector.getEvents().size());
 	}
 
-    /**
-     * Creates a simple test scenario matching the accesstime_zone.SHP test file.
-     */
-    private static class Fixture {
-        Config config;
-        Scenario scenario;
-        ZonesCollection zones = new ZonesCollection();
-        EventsManager events;
+	/**
+	 * Creates a simple test scenario matching the accesstime_zone.SHP test file.
+	 */
+	private static class Fixture {
 
-        public Fixture() {
-            this.config = ConfigUtils.createConfig();
-            prepareConfig();
-            this.scenario = ScenarioUtils.createScenario(this.config);
-            createNetwork();
-            loadZones();
-            prepareEvents();
-        }
+		Config config;
+		Scenario scenario;
+		ZonesCollection zones = new ZonesCollection();
+		EventsManager events;
 
-        private void prepareConfig() {
-            ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);
-            ZonesListConfigGroup.ZonesParameterSet parkingZonesConfig = new ZonesListConfigGroup.ZonesParameterSet();
-            parkingZonesConfig.setFilename("src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP");
-            parkingZonesConfig.setId("parkingZones");
-            parkingZonesConfig.setIdAttributeName("ID");
-            zonesConfig.addZones(parkingZonesConfig);
+		public Fixture() {
+			this.config = ConfigUtils.createConfig();
+			prepareConfig();
+			this.scenario = ScenarioUtils.createScenario(this.config);
+			createNetwork();
+			loadZones();
+			prepareEvents();
+		}
 
-            ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
-            parkingConfig.setZonesId("parkingZones");
-            parkingConfig.setZonesRideParkingCostAttributeName("ACCCAR"); // yes, we misuse the access times in the test data as parking costs
-        }
+		private void prepareConfig() {
+			ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);
+			ZonesListConfigGroup.ZonesParameterSet parkingZonesConfig = new ZonesListConfigGroup.ZonesParameterSet();
+			parkingZonesConfig.setFilename("src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP");
+			parkingZonesConfig.setId("parkingZones");
+			parkingZonesConfig.setIdAttributeName("ID");
+			zonesConfig.addZones(parkingZonesConfig);
 
-        private void createNetwork() {
-            Network network = this.scenario.getNetwork();
-            NetworkFactory nf = network.getFactory();
+			ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
+			parkingConfig.setZonesId("parkingZones");
+			parkingConfig.setZonesRideParkingCostAttributeName("ACCCAR"); // yes, we misuse the access times in the test data as parking costs
+		}
 
-            Node nL1 = nf.createNode(Id.create("L1", Node.class), new Coord(545000, 150000));
-            Node nL2 = nf.createNode(Id.create("L2", Node.class), new Coord(540000, 165000));
-            Node nB1 = nf.createNode(Id.create("B1", Node.class), new Coord(595000, 205000));
-            Node nB2 = nf.createNode(Id.create("B2", Node.class), new Coord(605000, 195000));
-            Node nT1 = nf.createNode(Id.create("T1", Node.class), new Coord(610000, 180000));
-            Node nT2 = nf.createNode(Id.create("T2", Node.class), new Coord(620000, 175000));
+		private void createNetwork() {
+			Network network = this.scenario.getNetwork();
+			NetworkFactory nf = network.getFactory();
 
-            network.addNode(nL1);
-            network.addNode(nL2);
-            network.addNode(nB1);
-            network.addNode(nB2);
-            network.addNode(nT1);
-            network.addNode(nT2);
+			Node nL1 = nf.createNode(Id.create("L1", Node.class), new Coord(545000, 150000));
+			Node nL2 = nf.createNode(Id.create("L2", Node.class), new Coord(540000, 165000));
+			Node nB1 = nf.createNode(Id.create("B1", Node.class), new Coord(595000, 205000));
+			Node nB2 = nf.createNode(Id.create("B2", Node.class), new Coord(605000, 195000));
+			Node nT1 = nf.createNode(Id.create("T1", Node.class), new Coord(610000, 180000));
+			Node nT2 = nf.createNode(Id.create("T2", Node.class), new Coord(620000, 175000));
 
-            Link lL = createLink(nf, "L", nL1, nL2, 500, 1000, 10);
-            Link lLB = createLink(nf, "LB", nL2, nB1, 5000, 2000, 25);
-            Link lB = createLink(nf, "B", nB1, nB2, 500, 1000, 10);
-            Link lBT = createLink(nf, "BT", nB2, nT1, 5000, 2000, 25);
-            Link lT = createLink(nf, "T", nT1, nT2, 500, 1000, 10);
-            Link lTL = createLink(nf, "TL", nT2, nL1, 5000, 2000, 25);
+			network.addNode(nL1);
+			network.addNode(nL2);
+			network.addNode(nB1);
+			network.addNode(nB2);
+			network.addNode(nT1);
+			network.addNode(nT2);
 
-            network.addLink(lL);
-            network.addLink(lLB);
-            network.addLink(lB);
-            network.addLink(lBT);
-            network.addLink(lT);
-            network.addLink(lTL);
-        }
+			Link lL = createLink(nf, "L", nL1, nL2, 500, 1000, 10);
+			Link lLB = createLink(nf, "LB", nL2, nB1, 5000, 2000, 25);
+			Link lB = createLink(nf, "B", nB1, nB2, 500, 1000, 10);
+			Link lBT = createLink(nf, "BT", nB2, nT1, 5000, 2000, 25);
+			Link lT = createLink(nf, "T", nT1, nT2, 500, 1000, 10);
+			Link lTL = createLink(nf, "TL", nT2, nL1, 5000, 2000, 25);
 
-        private Link createLink(NetworkFactory nf, String id, Node fromNode, Node toNode, double length, double capacity, double freespeed) {
-            Link l = nf.createLink(Id.create(id, Link.class), fromNode, toNode);
-            l.setLength(length);
-            l.setCapacity(capacity);
-            l.setFreespeed(freespeed);
-            l.setAllowedModes(CollectionUtils.stringToSet("car"));
-            l.setNumberOfLanes(1);
-            return l;
-        }
+			network.addLink(lL);
+			network.addLink(lLB);
+			network.addLink(lB);
+			network.addLink(lBT);
+			network.addLink(lT);
+			network.addLink(lTL);
+		}
 
-        private void loadZones() {
-            ZonesLoader.loadAllZones(config, this.zones);
-        }
+		private Link createLink(NetworkFactory nf, String id, Node fromNode, Node toNode, double length, double capacity, double freespeed) {
+			Link l = nf.createLink(Id.create(id, Link.class), fromNode, toNode);
+			l.setLength(length);
+			l.setCapacity(capacity);
+			l.setFreespeed(freespeed);
+			l.setAllowedModes(CollectionUtils.stringToSet("car"));
+			l.setNumberOfLanes(1);
+			return l;
+		}
 
-        private void prepareEvents() {
-            this.events = EventsUtils.createEventsManager(this.config);
-        }
+		private void loadZones() {
+			ZonesLoader.loadAllZones(config, this.zones);
+		}
 
-    }
+		private void prepareEvents() {
+			this.events = EventsUtils.createEventsManager(this.config);
+		}
+
+	}
 }

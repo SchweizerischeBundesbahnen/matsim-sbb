@@ -8,27 +8,27 @@ import org.matsim.core.config.Config;
  */
 public class RunSBBIT {
 
-    @Test
-    public void qsimIT() {
-        System.setProperty("matsim.preferLocalDtds", "true");
-        Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
-        config.controler().setMobsim("qsim");
-        RunSBB.run(config);
+	@Test
+	public void qsimIT() {
+		System.setProperty("matsim.preferLocalDtds", "true");
+		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
+		config.controler().setMobsim("qsim");
+		RunSBB.run(config);
 
-    }
+	}
 
-    @Test
-    public void hermesIT() {
-        System.setProperty("matsim.preferLocalDtds", "true");
-        Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
-        config.controler().setMobsim("hermes");
-        RunSBB.run(config);
+	@Test
+	public void hermesIT() {
+		System.setProperty("matsim.preferLocalDtds", "true");
+		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
+		config.controler().setMobsim("hermes");
+		RunSBB.run(config);
 
-    }
+	}
 
-    @Test
-    public void interModalIT() {
-        RunSBB.main(new String[]{"test/input/scenarios/mobi20test/intermodal_testconfig.xml"});
+	@Test
+	public void interModalIT() {
+		RunSBB.main(new String[]{"test/input/scenarios/mobi20test/intermodal_testconfig.xml"});
 
-    }
+	}
 }

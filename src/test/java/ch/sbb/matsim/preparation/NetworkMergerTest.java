@@ -17,19 +17,20 @@ import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.testcases.MatsimTestUtils;
 
 public class NetworkMergerTest {
-    @Rule
-    public MatsimTestUtils utils = new MatsimTestUtils();
 
-    @Test
-    public void testNetworkMerger() {
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        Network network = scenario.getNetwork();
+	@Rule
+	public MatsimTestUtils utils = new MatsimTestUtils();
 
-        NetworkFactory nf = network.getFactory();
+	@Test
+	public void testNetworkMerger() {
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		Network network = scenario.getNetwork();
 
-        Node node1 = nf.createNode(Id.create(1, Node.class), new Coord(0, 0));
-        Node node2 = nf.createNode(Id.create(2, Node.class), new Coord(15000, 0));
-        Node node3 = nf.createNode(Id.create(3, Node.class), new Coord(25000, 0));
+		NetworkFactory nf = network.getFactory();
+
+		Node node1 = nf.createNode(Id.create(1, Node.class), new Coord(0, 0));
+		Node node2 = nf.createNode(Id.create(2, Node.class), new Coord(15000, 0));
+		Node node3 = nf.createNode(Id.create(3, Node.class), new Coord(25000, 0));
 		Node node4 = nf.createNode(Id.create(4, Node.class), new Coord(35000, 0));
 		Node node5 = nf.createNode(Id.create(5, Node.class), new Coord(40000, 0));
 

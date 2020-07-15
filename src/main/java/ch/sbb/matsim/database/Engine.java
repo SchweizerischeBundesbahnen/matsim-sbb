@@ -1,85 +1,88 @@
 package ch.sbb.matsim.database;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Iterator;
 import org.apache.log4j.Logger;
 import org.jvnet.jaxb2_commons.lang.StringUtils;
 
-import java.sql.*;
-import java.util.Iterator;
-
-
 public class Engine {
-    private final static Logger log = Logger.getLogger(Engine.class);
 
-    private String url;
-    private String user = "docker";
-    private String password = System.getenv("PG_PASSWORD");
+	private final static Logger log = Logger.getLogger(Engine.class);
 
-    public Engine(String schema, String host, String port, String database) {
-        this.url = "jdbc:postgresql://" + host + ":" + port + "/" + database + "?currentSchema=" + schema;
-    }
+	private String url;
+	private String user = "docker";
+	private String password = System.getenv("PG_PASSWORD");
 
-    public Engine(String host, String port, String database) {
-        this.url = "jdbc:postgresql://" + host + ":" + port + "/" + database;
-    }
+	public Engine(String schema, String host, String port, String database) {
+		this.url = "jdbc:postgresql://" + host + ":" + port + "/" + database + "?currentSchema=" + schema;
+	}
 
-    public void dropTable(DatabaseTable table) throws SQLException {
-        String sql = "DROP TABLE IF EXISTS " + table.getName() + ";";
-        this.executeSQL(sql);
-    }
+	public Engine(String host, String port, String database) {
+		this.url = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+	}
 
-    public void executeSQL(String sql) throws SQLException {
+	public void dropTable(DatabaseTable table) throws SQLException {
+		String sql = "DROP TABLE IF EXISTS " + table.getName() + ";";
+		this.executeSQL(sql);
+	}
 
-        try (Connection connection = this.getConnection(); Statement stmt = connection.createStatement()) {
-            stmt.execute(sql);
-        }
-    }
+	public void executeSQL(String sql) throws SQLException {
 
-    public void createTable(DatabaseTable table) throws SQLException {
+		try (Connection connection = this.getConnection(); Statement stmt = connection.createStatement()) {
+			stmt.execute(sql);
+		}
+	}
 
-        try (Connection connection = this.getConnection(); Statement stmt = connection.createStatement()) {
-            table.createTable(stmt);
-        }
-    }
+	public void createTable(DatabaseTable table) throws SQLException {
 
-    private void createSchema(String schema) throws SQLException {
-        String sql = "CREATE SCHEMA IF NOT EXISTS \"" + schema + "\";";
-        this.executeSQL(sql);
-    }
+		try (Connection connection = this.getConnection(); Statement stmt = connection.createStatement()) {
+			table.createTable(stmt);
+		}
+	}
 
-    public Connection getConnection() throws SQLException {
+	private void createSchema(String schema) throws SQLException {
+		String sql = "CREATE SCHEMA IF NOT EXISTS \"" + schema + "\";";
+		this.executeSQL(sql);
+	}
 
-        return DriverManager.getConnection(this.url, this.user, this.password);
-    }
+	public Connection getConnection() throws SQLException {
 
-    public void writeToTable(DatabaseTable table) throws SQLException {
+		return DriverManager.getConnection(this.url, this.user, this.password);
+	}
 
-        try (Connection connection = this.getConnection()) {
+	public void writeToTable(DatabaseTable table) throws SQLException {
 
-            String columns = StringUtils.join(table.getColumnsNames().iterator(), ",");
-            String questions = StringUtils.join(table.getColumnsNames().stream().map(x -> "?").iterator(), ",");
+		try (Connection connection = this.getConnection()) {
 
-            String sql = "insert into " + table.getName() + " (" + columns + ") values (" + questions + ")";
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+			String columns = StringUtils.join(table.getColumnsNames().iterator(), ",");
+			String questions = StringUtils.join(table.getColumnsNames().stream().map(x -> "?").iterator(), ",");
 
-                final int batchSize = 1000;
-                int count = 1;
+			String sql = "insert into " + table.getName() + " (" + columns + ") values (" + questions + ")";
+			try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
-                Iterator iter = table.getRowIterator();
-                while (iter.hasNext()) {
-                    table.write(iter.next(), ps);
-                    ps.addBatch();
+				final int batchSize = 1000;
+				int count = 1;
 
-                    if (++count % batchSize == 0) {
-                        ps.executeBatch();
-                    }
-                }
-                ps.executeBatch(); // insert remaining records
-            }
-        }
-    }
+				Iterator iter = table.getRowIterator();
+				while (iter.hasNext()) {
+					table.write(iter.next(), ps);
+					ps.addBatch();
 
-    public void readFromTable() {
+					if (++count % batchSize == 0) {
+						ps.executeBatch();
+					}
+				}
+				ps.executeBatch(); // insert remaining records
+			}
+		}
+	}
 
-    }
+	public void readFromTable() {
+
+	}
 
 }

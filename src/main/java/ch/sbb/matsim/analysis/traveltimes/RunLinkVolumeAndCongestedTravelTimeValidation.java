@@ -40,47 +40,46 @@ import org.matsim.counts.algorithms.CountSimComparisonKMLWriter;
  */
 public class RunLinkVolumeAndCongestedTravelTimeValidation {
 
+	public static final String LINKID = "LINKID";
+	public static final String COUNTNAME = "COUNTNAME";
+	public static final String COORDX = "COORDX";
+	public static final String COORDY = "COORDY";
+	public static final String COUNTVALUE = "COUNTVALUE";
+	public static final String SIMVALUE = "SIMVALUE";
+	public static final String HOUR = "HOUR";
 
-    public static final String LINKID = "LINKID";
-    public static final String COUNTNAME = "COUNTNAME";
-    public static final String COORDX = "COORDX";
-    public static final String COORDY = "COORDY";
-    public static final String COUNTVALUE = "COUNTVALUE";
-    public static final String SIMVALUE = "SIMVALUE";
-    public static final String HOUR = "HOUR";
+	public static void main(String[] args) throws IOException {
+		String simFolder = args[0];
+		String runId = args[1];
+		String countsFile = args[2];
+		String outputFolder = args[3];
+		double scaleFactor = Double.parseDouble(args[4]);
+		String travelTimeRelations = args[5];
+		double startTime = Double.parseDouble(args[6]);
+		new RunLinkVolumeAndCongestedTravelTimeValidation().run(simFolder, runId, countsFile, outputFolder, scaleFactor, startTime, travelTimeRelations);
 
-    public static void main(String[] args) throws IOException {
-        String simFolder = args[0];
-        String runId = args[1];
-        String countsFile = args[2];
-        String outputFolder = args[3];
-        double scaleFactor = Double.parseDouble(args[4]);
-        String travelTimeRelations = args[5];
-        double startTime = Double.parseDouble(args[6]);
-        new RunLinkVolumeAndCongestedTravelTimeValidation().run(simFolder, runId, countsFile, outputFolder, scaleFactor, startTime, travelTimeRelations);
+	}
 
-    }
+	public void run(String simFolder, String runId, String countsFile, String outputFolder, double scalefactor, double startTime, String travelTimeRelationsFile) throws IOException {
+		Files.createDirectories(Paths.get(outputFolder));
+		Network network = NetworkUtils.createNetwork();
+		new MatsimNetworkReader(network).readFile(simFolder + "/" + runId + ".output_network.xml.gz");
+		Config config = ConfigUtils.loadConfig(simFolder + "/" + runId + ".output_config.xml");
+		TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(network);
+		builder.configure(config.travelTimeCalculator());
+		TravelTimeCalculator ttc = builder.build();
 
-    public void run(String simFolder, String runId, String countsFile, String outputFolder, double scalefactor, double startTime, String travelTimeRelationsFile) throws IOException {
-        Files.createDirectories(Paths.get(outputFolder));
-        Network network = NetworkUtils.createNetwork();
-        new MatsimNetworkReader(network).readFile(simFolder + "/" + runId + ".output_network.xml.gz");
-        Config config = ConfigUtils.loadConfig(simFolder + "/" + runId + ".output_config.xml");
-        TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(network);
-        builder.configure(config.travelTimeCalculator());
-        TravelTimeCalculator ttc = builder.build();
-
-        Counts<Link> counts = new Counts<>();
-        new MatsimCountsReader(counts).readFile(countsFile);
-        final Map<Id<Link>, int[]> countsLinks = counts.getCounts().keySet().stream().collect(Collectors.toMap(p -> p, p -> new int[24]));
-        EventsManager eventsManager = EventsUtils.createEventsManager(ConfigUtils.createConfig());
-        eventsManager.addHandler(ttc);
-        eventsManager.addHandler(new LinkEnterEventHandler() {
-            @Override
-            public void handleEvent(LinkEnterEvent event) {
-                if (countsLinks.containsKey(event.getLinkId())) {
-                    int hour = (int) (event.getTime() / 3600.0);
-                    if (hour > 23) {
+		Counts<Link> counts = new Counts<>();
+		new MatsimCountsReader(counts).readFile(countsFile);
+		final Map<Id<Link>, int[]> countsLinks = counts.getCounts().keySet().stream().collect(Collectors.toMap(p -> p, p -> new int[24]));
+		EventsManager eventsManager = EventsUtils.createEventsManager(ConfigUtils.createConfig());
+		eventsManager.addHandler(ttc);
+		eventsManager.addHandler(new LinkEnterEventHandler() {
+			@Override
+			public void handleEvent(LinkEnterEvent event) {
+				if (countsLinks.containsKey(event.getLinkId())) {
+					int hour = (int) (event.getTime() / 3600.0);
+					if (hour > 23) {
 						hour = hour - 24;
 					}
 					countsLinks.get(event.getLinkId())[hour]++;
@@ -96,46 +95,46 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 
 	}
 
-    public void writeCountsComparisons(String outputFolder, double scalefactor, Network network, Counts<Link> counts, Map<Id<Link>, int[]> countsLinks) {
-        List<CountSimComparison> comparisons = new ArrayList<>();
-        try (CSVWriter writer = new CSVWriter(null, new String[]{LINKID, COUNTNAME, COORDX, COORDY, HOUR, COUNTVALUE, SIMVALUE}, outputFolder + "/countcomparisons.csv")) {
-            for (Count count : counts.getCounts().values()) {
-                int[] simvalues = countsLinks.get(count.getId());
-                Link link = network.getLinks().get(Id.createLinkId(count.getId()));
-                if (link != null) {
-                    int cap = (int) link.getCapacity();
-                    String title = count.getCsLabel() + "\n Link ID" + link.getId() + " Category: " + NetworkUtils.getType(link);
-                    SBBCountsLoadCurveGraph countsLoadCurveGraph = new SBBCountsLoadCurveGraph(cap, title);
-                    for (int i = 0; i < 24; i++) {
-                        double simvalue = simvalues[i] * scalefactor;
-                        double countvalue = count.getVolume(i + 1).getValue();
-                        writer.set(LINKID, count.getId().toString());
-                        writer.set(COUNTNAME, count.getCsLabel());
-                        writer.set(COORDX, Double.toString(count.getCoord().getX()));
-                        writer.set(COORDY, Double.toString(count.getCoord().getY()));
-                        writer.set(COUNTVALUE, Double.toString(countvalue));
-                        writer.set(HOUR, Integer.toString(i + 1));
-                        writer.set(SIMVALUE, Double.toString(simvalue));
-                        writer.writeRow();
-                        CountSimComparison<Link> countSimComparison = new CountSimComparisonImpl(count.getId(), count.getCsLabel(), i + 1, countvalue, simvalue);
-                        comparisons.add(countSimComparison);
+	public void writeCountsComparisons(String outputFolder, double scalefactor, Network network, Counts<Link> counts, Map<Id<Link>, int[]> countsLinks) {
+		List<CountSimComparison> comparisons = new ArrayList<>();
+		try (CSVWriter writer = new CSVWriter(null, new String[]{LINKID, COUNTNAME, COORDX, COORDY, HOUR, COUNTVALUE, SIMVALUE}, outputFolder + "/countcomparisons.csv")) {
+			for (Count count : counts.getCounts().values()) {
+				int[] simvalues = countsLinks.get(count.getId());
+				Link link = network.getLinks().get(Id.createLinkId(count.getId()));
+				if (link != null) {
+					int cap = (int) link.getCapacity();
+					String title = count.getCsLabel() + "\n Link ID" + link.getId() + " Category: " + NetworkUtils.getType(link);
+					SBBCountsLoadCurveGraph countsLoadCurveGraph = new SBBCountsLoadCurveGraph(cap, title);
+					for (int i = 0; i < 24; i++) {
+						double simvalue = simvalues[i] * scalefactor;
+						double countvalue = count.getVolume(i + 1).getValue();
+						writer.set(LINKID, count.getId().toString());
+						writer.set(COUNTNAME, count.getCsLabel());
+						writer.set(COORDX, Double.toString(count.getCoord().getX()));
+						writer.set(COORDY, Double.toString(count.getCoord().getY()));
+						writer.set(COUNTVALUE, Double.toString(countvalue));
+						writer.set(HOUR, Integer.toString(i + 1));
+						writer.set(SIMVALUE, Double.toString(simvalue));
+						writer.writeRow();
+						CountSimComparison<Link> countSimComparison = new CountSimComparisonImpl(count.getId(), count.getCsLabel(), i + 1, countvalue, simvalue);
+						comparisons.add(countSimComparison);
 
-                        countsLoadCurveGraph.add2LoadCurveDataSets(countSimComparison);
+						countsLoadCurveGraph.add2LoadCurveDataSets(countSimComparison);
 
-                    }
-                    JFreeChart chart = countsLoadCurveGraph.createChart();
-                    String chartfilename = link.getId().toString() + "_" + count.getCsLabel().replace(",", "").replace("\\", "-").replace("/", "-").toLowerCase();
-                    ChartUtils.writeChartAsPNG(Files.newOutputStream(Paths.get(outputFolder + "/" + chartfilename + ".png")), chart, 1200, 750);
-                } else {
-                    Logger.getLogger(getClass()).warn(count.getId() + " , " + count.getCsLabel() + " was not found in network, but is in counts. Skipping.");
-                }
+					}
+					JFreeChart chart = countsLoadCurveGraph.createChart();
+					String chartfilename = link.getId().toString() + "_" + count.getCsLabel().replace(",", "").replace("\\", "-").replace("/", "-").toLowerCase();
+					ChartUtils.writeChartAsPNG(Files.newOutputStream(Paths.get(outputFolder + "/" + chartfilename + ".png")), chart, 1200, 750);
+				} else {
+					Logger.getLogger(getClass()).warn(count.getId() + " , " + count.getCsLabel() + " was not found in network, but is in counts. Skipping.");
+				}
 
-            }
-        } catch (IOException e) {
+			}
+		} catch (IOException e) {
 
-        }
+		}
 
-        new CountSimComparisonKMLWriter<>(comparisons, counts, new CH1903LV03PlustoWGS84(), "Sim-Counts-Comparison").writeFile(outputFolder + "/counts.kmz");
-    }
+		new CountSimComparisonKMLWriter<>(comparisons, counts, new CH1903LV03PlustoWGS84(), "Sim-Counts-Comparison").writeFile(outputFolder + "/counts.kmz");
+	}
 
 }

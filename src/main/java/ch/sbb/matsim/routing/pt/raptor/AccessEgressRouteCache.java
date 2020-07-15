@@ -127,67 +127,69 @@ public class AccessEgressRouteCache {
 				LOGGER.info("...done.");
 
 			}
-        }
+		}
 
-    }
+	}
 
-    private Map<Id<Link>, Integer> calcModeAccessTimes(Set<Id<Link>> stopLinkIds, String accessTimeZoneId, Network network) {
-        Map<Id<Link>, Integer> accessTimes = new HashMap<>();
-        if (accessTimeZoneId == null) {
-            stopLinkIds.forEach(i -> accessTimes.put(i, 0));
-        } else {
-            stopLinkIds.parallelStream().forEach(l -> {
-                Coord coord = network.getLinks().get(l).getCoord();
-                Integer accessTime = getAccessTime(accessTimeZoneId, coord);
-                accessTimes.put(l, accessTime);
-            });
-        }
+	private Map<Id<Link>, Integer> calcModeAccessTimes(Set<Id<Link>> stopLinkIds, String accessTimeZoneId, Network network) {
+		Map<Id<Link>, Integer> accessTimes = new HashMap<>();
+		if (accessTimeZoneId == null) {
+			stopLinkIds.forEach(i -> accessTimes.put(i, 0));
+		} else {
+			stopLinkIds.parallelStream().forEach(l -> {
+				Coord coord = network.getLinks().get(l).getCoord();
+				Integer accessTime = getAccessTime(accessTimeZoneId, coord);
+				accessTimes.put(l, accessTime);
+			});
+		}
 
-        return accessTimes;
-    }
+		return accessTimes;
+	}
 
-    private int getAccessTime(String accessTimeZoneId, Coord coord) {
-        if (accessTimeZoneId == null) {
-            return 0;
-        }
-        Zone zone = zonesCollection.findZone(coord);
-        if (zone != null) {
-            Object at = zone.getAttribute(accessTimeZoneId);
-            return at != null ? (int) Double.parseDouble(at.toString()) : 0;
-        } else return 0;
-    }
+	private int getAccessTime(String accessTimeZoneId, Coord coord) {
+		if (accessTimeZoneId == null) {
+			return 0;
+		}
+		Zone zone = zonesCollection.findZone(coord);
+		if (zone != null) {
+			Object at = zone.getAttribute(accessTimeZoneId);
+			return at != null ? (int) Double.parseDouble(at.toString()) : 0;
+		} else {
+			return 0;
+		}
+	}
 
-    private Network getRoutingNetwork(String mode) {
-        Map<String, Network> cache = this.singleModeNetworksCache.getSingleModeNetworksCache();
-        Network filteredNetwork = cache.get(mode);
-        if (filteredNetwork == null) {
-            // Ensure this is not performed concurrently by multiple threads!
-            synchronized (cache) {
-                filteredNetwork = cache.get(mode);
-                if (filteredNetwork == null) {
-                    TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
-                    Set<String> modes = new HashSet<>();
-                    modes.add(mode);
-                    filteredNetwork = NetworkUtils.createNetwork();
-                    filter.filter(filteredNetwork, modes);
-                    cache.put(mode, filteredNetwork);
-                }
-            }
-        }
-        return filteredNetwork;
-    }
+	private Network getRoutingNetwork(String mode) {
+		Map<String, Network> cache = this.singleModeNetworksCache.getSingleModeNetworksCache();
+		Network filteredNetwork = cache.get(mode);
+		if (filteredNetwork == null) {
+			// Ensure this is not performed concurrently by multiple threads!
+			synchronized (cache) {
+				filteredNetwork = cache.get(mode);
+				if (filteredNetwork == null) {
+					TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
+					Set<String> modes = new HashSet<>();
+					modes.add(mode);
+					filteredNetwork = NetworkUtils.createNetwork();
+					filter.filter(filteredNetwork, modes);
+					cache.put(mode, filteredNetwork);
+				}
+			}
+		}
+		return filteredNetwork;
+	}
 
-    public RouteCharacteristics getCachedRouteCharacteristics(String mode, Facility stopFacility, Facility actFacility, RoutingModule module, Person person) {
-        Id<Link> stopFacilityLinkId = stopFacility.getLinkId();
-        Id<Link> actFacilityLinkId = actFacility.getLinkId();
-        Map<Id<Link>, Map<Id<Link>, int[]>> modalStats = this.travelTimesDistances.get(mode);
-        Map<Id<Link>, int[]> facStats = modalStats.get(stopFacilityLinkId);
-        if (facStats == null) {
-            throw new RuntimeException("Stop at linkId " + stopFacilityLinkId + " is not a listed stop for intermodal access egress.");
-        }
-        int[] value = facStats.get(actFacilityLinkId);
-        int accessTime = accessTimes.getOrDefault(mode, Collections.emptyMap()).getOrDefault(stopFacilityLinkId, 0);
-        if (value == null) {
+	public RouteCharacteristics getCachedRouteCharacteristics(String mode, Facility stopFacility, Facility actFacility, RoutingModule module, Person person) {
+		Id<Link> stopFacilityLinkId = stopFacility.getLinkId();
+		Id<Link> actFacilityLinkId = actFacility.getLinkId();
+		Map<Id<Link>, Map<Id<Link>, int[]>> modalStats = this.travelTimesDistances.get(mode);
+		Map<Id<Link>, int[]> facStats = modalStats.get(stopFacilityLinkId);
+		if (facStats == null) {
+			throw new RuntimeException("Stop at linkId " + stopFacilityLinkId + " is not a listed stop for intermodal access egress.");
+		}
+		int[] value = facStats.get(actFacilityLinkId);
+		int accessTime = accessTimes.getOrDefault(mode, Collections.emptyMap()).getOrDefault(stopFacilityLinkId, 0);
+		if (value == null) {
 			//we are slightly outside the cached radius
 			List<? extends PlanElement> routeParts = module.calcRoute(stopFacility, actFacility, 3 * 3600, person);
 			Leg routedLeg = TripStructureUtils.getLegs(routeParts).stream().filter(leg -> leg.getMode().equals(mode)).findFirst().orElseThrow(RuntimeException::new);
@@ -198,38 +200,38 @@ public class AccessEgressRouteCache {
 			facStats.put(actFacilityLinkId, value);
 
 		}
-        return new RouteCharacteristics(value[0], accessTime, value[2], value[1] * FREESPEED_TRAVELTIME_FACTOR);
-    }
+		return new RouteCharacteristics(value[0], accessTime, value[2], value[1] * FREESPEED_TRAVELTIME_FACTOR);
+	}
 
+	static class RouteCharacteristics {
 
-    static class RouteCharacteristics {
-        private final double distance;
-        private final double accessTime;
-        private final double egressTime;
-        private final double travelTime;
+		private final double distance;
+		private final double accessTime;
+		private final double egressTime;
+		private final double travelTime;
 
-        public RouteCharacteristics(double distance, double accessTime, double egressTime, double travelTime) {
-            this.distance = distance;
-            this.accessTime = accessTime;
-            this.egressTime = egressTime;
-            this.travelTime = travelTime;
-        }
+		public RouteCharacteristics(double distance, double accessTime, double egressTime, double travelTime) {
+			this.distance = distance;
+			this.accessTime = accessTime;
+			this.egressTime = egressTime;
+			this.travelTime = travelTime;
+		}
 
-        public double getDistance() {
-            return distance;
-        }
+		public double getDistance() {
+			return distance;
+		}
 
-        public double getAccessTime() {
-            return accessTime;
-        }
+		public double getAccessTime() {
+			return accessTime;
+		}
 
-        public double getEgressTime() {
-            return egressTime;
-        }
+		public double getEgressTime() {
+			return egressTime;
+		}
 
-        public double getTravelTime() {
-            return travelTime;
-        }
+		public double getTravelTime() {
+			return travelTime;
+		}
 
-    }
+	}
 }

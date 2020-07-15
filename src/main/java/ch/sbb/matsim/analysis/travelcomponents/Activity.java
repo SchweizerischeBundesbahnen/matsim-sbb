@@ -8,14 +8,15 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 
-public 	class Activity extends TravelComponent {
+public class Activity extends TravelComponent {
+
 	private Id facility;
 	private Coord coord;
 	private String type;
 
-	Activity(Config config){
-	    super(config);
-    }
+	Activity(Config config) {
+		super(config);
+	}
 
 	public String toString() {
 		return String

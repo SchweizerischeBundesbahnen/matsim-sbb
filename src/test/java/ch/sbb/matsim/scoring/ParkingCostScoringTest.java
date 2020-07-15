@@ -41,228 +41,231 @@ import org.matsim.testcases.MatsimTestUtils;
  */
 public class ParkingCostScoringTest {
 
-    private static final Logger log = Logger.getLogger(ParkingCostScoringTest.class);
+	private static final Logger log = Logger.getLogger(ParkingCostScoringTest.class);
 
-    @Rule
-    public MatsimTestUtils helper = new MatsimTestUtils();
+	@Rule
+	public MatsimTestUtils helper = new MatsimTestUtils();
 
-    @Test
-    public void testParkingCostScoring() {
-        Fixture f = new Fixture();
+	@Test
+	public void testParkingCostScoring() {
+		Fixture f = new Fixture();
 
-        f.config.controler().setLastIteration(0);
+		f.config.controler().setLastIteration(0);
 
-        double scoreWithout;
-        double scoreWith;
+		double scoreWithout;
+		double scoreWith;
 
-        ParkingCostEventCollector parkingCostCollectorWithout = new ParkingCostEventCollector();
-        ParkingCostEventCollector parkingCostCollectorWith = new ParkingCostEventCollector();
+		ParkingCostEventCollector parkingCostCollectorWithout = new ParkingCostEventCollector();
+		ParkingCostEventCollector parkingCostCollectorWith = new ParkingCostEventCollector();
 
-        { // run 1 without parking cost
-            f.config.controler().setOutputDirectory(this.helper.getOutputDirectory() + "/without");
-            Controler controler = new Controler(f.scenario);
-            ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(f.scenario);
-            controler.setScoringFunctionFactory(scoringFunctionFactory);
+		{ // run 1 without parking cost
+			f.config.controler().setOutputDirectory(this.helper.getOutputDirectory() + "/without");
+			Controler controler = new Controler(f.scenario);
+			ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(f.scenario);
+			controler.setScoringFunctionFactory(scoringFunctionFactory);
 
-            controler.addOverridingModule(new AbstractModule() {
-                @Override
-                public void install() {
-                    addEventHandlerBinding().toInstance(parkingCostCollectorWithout);
-                }
-            });
+			controler.addOverridingModule(new AbstractModule() {
+				@Override
+				public void install() {
+					addEventHandlerBinding().toInstance(parkingCostCollectorWithout);
+				}
+			});
 
-            controler.run();
+			controler.run();
 
-            Person person = f.scenario.getPopulation().getPersons().get(Id.create("1", Person.class));
-            scoreWithout = person.getSelectedPlan().getScore();
-        }
+			Person person = f.scenario.getPopulation().getPersons().get(Id.create("1", Person.class));
+			scoreWithout = person.getSelectedPlan().getScore();
+		}
 
-        { // run 2 with parking cost
-            f.config.controler().setOutputDirectory(this.helper.getOutputDirectory() + "/with");
-            Controler controler = new Controler(f.scenario);
-            controler.addOverridingModule(new ZonesModule(f.scenario));
-            ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(f.scenario);
-            controler.setScoringFunctionFactory(scoringFunctionFactory);
+		{ // run 2 with parking cost
+			f.config.controler().setOutputDirectory(this.helper.getOutputDirectory() + "/with");
+			Controler controler = new Controler(f.scenario);
+			controler.addOverridingModule(new ZonesModule(f.scenario));
+			ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(f.scenario);
+			controler.setScoringFunctionFactory(scoringFunctionFactory);
 
-            controler.addOverridingModule(new AbstractModule() {
-                @Override
-                public void install() {
-                    install(new ZonesModule(f.scenario));
-                    addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
-                    addEventHandlerBinding().toInstance(parkingCostCollectorWith);
-                }
-            });
+			controler.addOverridingModule(new AbstractModule() {
+				@Override
+				public void install() {
+					install(new ZonesModule(f.scenario));
+					addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+					addEventHandlerBinding().toInstance(parkingCostCollectorWith);
+				}
+			});
 
-            controler.run();
-            scoreWith = f.scenario.getPopulation().getPersons().get(Id.create("1", Person.class)).getSelectedPlan().getScore();
-        }
+			controler.run();
+			scoreWith = f.scenario.getPopulation().getPersons().get(Id.create("1", Person.class)).getSelectedPlan().getScore();
+		}
 
-        log.info("Agent's score without parking cost: " + scoreWithout);
-        log.info("Agent's score with parking cost: " + scoreWith);
+		log.info("Agent's score without parking cost: " + scoreWithout);
+		log.info("Agent's score with parking cost: " + scoreWith);
 
-        Assert.assertEquals("There should be no parking-cost event in the first case.", 0, parkingCostCollectorWithout.events.size());
-        Assert.assertEquals("There should be some parking-cost event in the second case.", 3, parkingCostCollectorWith.events.size());
-        Assert.assertTrue("Agent's score with parking cost should be lower than the score without parking costs.", scoreWith < scoreWithout);
+		Assert.assertEquals("There should be no parking-cost event in the first case.", 0, parkingCostCollectorWithout.events.size());
+		Assert.assertEquals("There should be some parking-cost event in the second case.", 3, parkingCostCollectorWith.events.size());
+		Assert.assertTrue("Agent's score with parking cost should be lower than the score without parking costs.", scoreWith < scoreWithout);
 
-    }
+	}
 
-    public interface ParkingCostEventHandler extends EventHandler {
-        @SuppressWarnings("unused")
-        void handleEvent(ParkingCostEvent event);
-    }
+	public interface ParkingCostEventHandler extends EventHandler {
 
-    private static class ParkingCostEventCollector implements ParkingCostEventHandler {
-        final List<ParkingCostEvent> events = new ArrayList<>();
+		@SuppressWarnings("unused")
+		void handleEvent(ParkingCostEvent event);
+	}
 
-        @Override
-        public void handleEvent(ParkingCostEvent event) {
-            this.events.add(event);
-        }
-    }
+	private static class ParkingCostEventCollector implements ParkingCostEventHandler {
 
-    /**
-     * Creates a simple test scenario matching the accesstime_zone.SHP test file.
-     */
-    private static class Fixture {
-        Config config;
-        Scenario scenario;
-        ZonesCollection zones = new ZonesCollection();
+		final List<ParkingCostEvent> events = new ArrayList<>();
 
-        Fixture() {
-            this.config = ConfigUtils.createConfig();
-            prepareConfig();
-            this.scenario = ScenarioUtils.createScenario(this.config);
-            createNetwork();
-            createPopulation();
-            ZonesModule.addZonestoScenario(scenario);
-        }
+		@Override
+		public void handleEvent(ParkingCostEvent event) {
+			this.events.add(event);
+		}
+	}
 
-        private void prepareConfig() {
-            ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);
-            ZonesListConfigGroup.ZonesParameterSet parkingZonesConfig = new ZonesListConfigGroup.ZonesParameterSet();
-            parkingZonesConfig.setFilename("src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP");
-            parkingZonesConfig.setId("parkingZones");
-            parkingZonesConfig.setIdAttributeName("ID");
-            zonesConfig.addZones(parkingZonesConfig);
+	/**
+	 * Creates a simple test scenario matching the accesstime_zone.SHP test file.
+	 */
+	private static class Fixture {
 
-            ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
-            parkingConfig.setZonesId("parkingZones");
-            parkingConfig.setZonesParkingCostAttributeName("ACCCAR"); // yes, we misuse the access times in the test data as parking costs
+		Config config;
+		Scenario scenario;
+		ZonesCollection zones = new ZonesCollection();
 
-            SBBBehaviorGroupsConfigGroup sbbScoringConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
-            sbbScoringConfig.setMarginalUtilityOfParkingPrice(-0.1);
+		Fixture() {
+			this.config = ConfigUtils.createConfig();
+			prepareConfig();
+			this.scenario = ScenarioUtils.createScenario(this.config);
+			createNetwork();
+			createPopulation();
+			ZonesModule.addZonestoScenario(scenario);
+		}
 
-            PlanCalcScoreConfigGroup scoringConfig = this.config.planCalcScore();
-            PlanCalcScoreConfigGroup.ActivityParams homeScoring = new PlanCalcScoreConfigGroup.ActivityParams("home");
-            homeScoring.setTypicalDuration(12*3600);
-            scoringConfig.addActivityParams(homeScoring);
-            PlanCalcScoreConfigGroup.ActivityParams workScoring = new PlanCalcScoreConfigGroup.ActivityParams("work");
-            workScoring.setTypicalDuration(8*3600);
-            scoringConfig.addActivityParams(workScoring);
-            PlanCalcScoreConfigGroup.ActivityParams shopScoring = new PlanCalcScoreConfigGroup.ActivityParams("shop");
-            shopScoring.setTypicalDuration(8*3600);
-            scoringConfig.addActivityParams(shopScoring);
+		private void prepareConfig() {
+			ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);
+			ZonesListConfigGroup.ZonesParameterSet parkingZonesConfig = new ZonesListConfigGroup.ZonesParameterSet();
+			parkingZonesConfig.setFilename("src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP");
+			parkingZonesConfig.setId("parkingZones");
+			parkingZonesConfig.setIdAttributeName("ID");
+			zonesConfig.addZones(parkingZonesConfig);
 
-            PlanCalcScoreConfigGroup.ActivityParams rideInteractionScoring = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
-            rideInteractionScoring.setScoringThisActivityAtAll(false);
-            config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(rideInteractionScoring);
+			ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
+			parkingConfig.setZonesId("parkingZones");
+			parkingConfig.setZonesParkingCostAttributeName("ACCCAR"); // yes, we misuse the access times in the test data as parking costs
 
-            this.config.controler().setCreateGraphs(false);
-            this.config.controler().setDumpDataAtEnd(false);
-        }
+			SBBBehaviorGroupsConfigGroup sbbScoringConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
+			sbbScoringConfig.setMarginalUtilityOfParkingPrice(-0.1);
 
-        private void createNetwork() {
-            Network network = this.scenario.getNetwork();
-            NetworkFactory nf = network.getFactory();
+			PlanCalcScoreConfigGroup scoringConfig = this.config.planCalcScore();
+			PlanCalcScoreConfigGroup.ActivityParams homeScoring = new PlanCalcScoreConfigGroup.ActivityParams("home");
+			homeScoring.setTypicalDuration(12 * 3600);
+			scoringConfig.addActivityParams(homeScoring);
+			PlanCalcScoreConfigGroup.ActivityParams workScoring = new PlanCalcScoreConfigGroup.ActivityParams("work");
+			workScoring.setTypicalDuration(8 * 3600);
+			scoringConfig.addActivityParams(workScoring);
+			PlanCalcScoreConfigGroup.ActivityParams shopScoring = new PlanCalcScoreConfigGroup.ActivityParams("shop");
+			shopScoring.setTypicalDuration(8 * 3600);
+			scoringConfig.addActivityParams(shopScoring);
 
-            Node nL1 = nf.createNode(Id.create("L1", Node.class), new Coord(545000, 150000));
-            Node nL2 = nf.createNode(Id.create("L2", Node.class), new Coord(540000, 165000));
-            Node nB1 = nf.createNode(Id.create("B1", Node.class), new Coord(595000, 205000));
-            Node nB2 = nf.createNode(Id.create("B2", Node.class), new Coord(605000, 195000));
-            Node nT1 = nf.createNode(Id.create("T1", Node.class), new Coord(610000, 180000));
-            Node nT2 = nf.createNode(Id.create("T2", Node.class), new Coord(620000, 175000));
+			PlanCalcScoreConfigGroup.ActivityParams rideInteractionScoring = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
+			rideInteractionScoring.setScoringThisActivityAtAll(false);
+			config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(rideInteractionScoring);
 
-            network.addNode(nL1);
-            network.addNode(nL2);
-            network.addNode(nB1);
-            network.addNode(nB2);
-            network.addNode(nT1);
-            network.addNode(nT2);
+			this.config.controler().setCreateGraphs(false);
+			this.config.controler().setDumpDataAtEnd(false);
+		}
 
-            Link lL = createLink(nf, "L", nL1, nL2, 500, 1000, 10);
-            Link lLB = createLink(nf, "LB", nL2, nB1, 5000, 2000, 25);
-            Link lB = createLink(nf, "B", nB1, nB2, 500, 1000, 10);
-            Link lBT = createLink(nf, "BT", nB2, nT1, 5000, 2000, 25);
-            Link lT = createLink(nf, "T", nT1, nT2, 500, 1000, 10);
-            Link lTL = createLink(nf, "TL", nT2, nL1, 5000, 2000, 25);
+		private void createNetwork() {
+			Network network = this.scenario.getNetwork();
+			NetworkFactory nf = network.getFactory();
 
-            network.addLink(lL);
-            network.addLink(lLB);
-            network.addLink(lB);
-            network.addLink(lBT);
-            network.addLink(lT);
-            network.addLink(lTL);
-        }
+			Node nL1 = nf.createNode(Id.create("L1", Node.class), new Coord(545000, 150000));
+			Node nL2 = nf.createNode(Id.create("L2", Node.class), new Coord(540000, 165000));
+			Node nB1 = nf.createNode(Id.create("B1", Node.class), new Coord(595000, 205000));
+			Node nB2 = nf.createNode(Id.create("B2", Node.class), new Coord(605000, 195000));
+			Node nT1 = nf.createNode(Id.create("T1", Node.class), new Coord(610000, 180000));
+			Node nT2 = nf.createNode(Id.create("T2", Node.class), new Coord(620000, 175000));
 
-        private Link createLink(NetworkFactory nf, String id, Node fromNode, Node toNode, double length, double capacity, double freespeed) {
-            Link l = nf.createLink(Id.create(id, Link.class), fromNode, toNode);
-            l.setLength(length);
-            l.setCapacity(capacity);
-            l.setFreespeed(freespeed);
-            l.setAllowedModes(CollectionUtils.stringToSet("car"));
-            l.setNumberOfLanes(1);
-            return l;
-        }
+			network.addNode(nL1);
+			network.addNode(nL2);
+			network.addNode(nB1);
+			network.addNode(nB2);
+			network.addNode(nT1);
+			network.addNode(nT2);
 
-        private void createPopulation() {
-            Population pop = this.scenario.getPopulation();
-            PopulationFactory pf = pop.getFactory();
+			Link lL = createLink(nf, "L", nL1, nL2, 500, 1000, 10);
+			Link lLB = createLink(nf, "LB", nL2, nB1, 5000, 2000, 25);
+			Link lB = createLink(nf, "B", nB1, nB2, 500, 1000, 10);
+			Link lBT = createLink(nf, "BT", nB2, nT1, 5000, 2000, 25);
+			Link lT = createLink(nf, "T", nT1, nT2, 500, 1000, 10);
+			Link lTL = createLink(nf, "TL", nT2, nL1, 5000, 2000, 25);
 
-            Id<Person> personId = Id.create("1", Person.class);
-            Person person = pf.createPerson(personId);
-            Plan plan = pf.createPlan();
-            person.addPlan(plan);
+			network.addLink(lL);
+			network.addLink(lLB);
+			network.addLink(lB);
+			network.addLink(lBT);
+			network.addLink(lT);
+			network.addLink(lTL);
+		}
 
-            Coord homeCoord = new Coord(545000, 160000);
-            Coord workCoord = new Coord(600000, 195000);
-            Coord shopCoord = new Coord(615000, 175000);
+		private Link createLink(NetworkFactory nf, String id, Node fromNode, Node toNode, double length, double capacity, double freespeed) {
+			Link l = nf.createLink(Id.create(id, Link.class), fromNode, toNode);
+			l.setLength(length);
+			l.setCapacity(capacity);
+			l.setFreespeed(freespeed);
+			l.setAllowedModes(CollectionUtils.stringToSet("car"));
+			l.setNumberOfLanes(1);
+			return l;
+		}
 
-            Activity home1 = pf.createActivityFromCoord("home", homeCoord);
-            home1.setEndTime(7*3600);
-            home1.setLinkId(Id.create("L", Link.class));
+		private void createPopulation() {
+			Population pop = this.scenario.getPopulation();
+			PopulationFactory pf = pop.getFactory();
 
-            Activity work1 = pf.createActivityFromCoord("work", workCoord);
-            work1.setEndTime(12*3600);
-            work1.setLinkId(Id.create("B", Link.class));
+			Id<Person> personId = Id.create("1", Person.class);
+			Person person = pf.createPerson(personId);
+			Plan plan = pf.createPlan();
+			person.addPlan(plan);
 
-            Activity shop1 = pf.createActivityFromCoord("shop", shopCoord);
-            shop1.setEndTime(13*3600);
-            shop1.setLinkId(Id.create("T", Link.class));
+			Coord homeCoord = new Coord(545000, 160000);
+			Coord workCoord = new Coord(600000, 195000);
+			Coord shopCoord = new Coord(615000, 175000);
 
-            Activity home2 = pf.createActivityFromCoord("home", homeCoord);
-            home2.setEndTime(15*3600);
-            home2.setLinkId(Id.create("L", Link.class));
+			Activity home1 = pf.createActivityFromCoord("home", homeCoord);
+			home1.setEndTime(7 * 3600);
+			home1.setLinkId(Id.create("L", Link.class));
 
-            Activity work2 = pf.createActivityFromCoord("work", workCoord);
-            work2.setEndTime(18*3600);
-            work2.setLinkId(Id.create("B", Link.class));
+			Activity work1 = pf.createActivityFromCoord("work", workCoord);
+			work1.setEndTime(12 * 3600);
+			work1.setLinkId(Id.create("B", Link.class));
 
-            Activity home3 = pf.createActivityFromCoord("home", homeCoord);
-            home3.setLinkId(Id.create("L", Link.class));
+			Activity shop1 = pf.createActivityFromCoord("shop", shopCoord);
+			shop1.setEndTime(13 * 3600);
+			shop1.setLinkId(Id.create("T", Link.class));
 
-            plan.addActivity(home1);
-            plan.addLeg(pf.createLeg("car"));
-            plan.addActivity(work1);
-            plan.addLeg(pf.createLeg("car"));
-            plan.addActivity(shop1);
-            plan.addLeg(pf.createLeg("car"));
-            plan.addActivity(work2);
-            plan.addLeg(pf.createLeg("car"));
-            plan.addActivity(home3);
+			Activity home2 = pf.createActivityFromCoord("home", homeCoord);
+			home2.setEndTime(15 * 3600);
+			home2.setLinkId(Id.create("L", Link.class));
 
-            pop.addPerson(person);
-        }
+			Activity work2 = pf.createActivityFromCoord("work", workCoord);
+			work2.setEndTime(18 * 3600);
+			work2.setLinkId(Id.create("B", Link.class));
 
-    }
+			Activity home3 = pf.createActivityFromCoord("home", homeCoord);
+			home3.setLinkId(Id.create("L", Link.class));
+
+			plan.addActivity(home1);
+			plan.addLeg(pf.createLeg("car"));
+			plan.addActivity(work1);
+			plan.addLeg(pf.createLeg("car"));
+			plan.addActivity(shop1);
+			plan.addLeg(pf.createLeg("car"));
+			plan.addActivity(work2);
+			plan.addLeg(pf.createLeg("car"));
+			plan.addActivity(home3);
+
+			pop.addPerson(person);
+		}
+
+	}
 
 }

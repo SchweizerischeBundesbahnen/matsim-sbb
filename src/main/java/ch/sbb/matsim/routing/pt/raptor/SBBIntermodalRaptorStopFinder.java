@@ -45,85 +45,83 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
  */
 public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 
-    private final static Logger log = Logger.getLogger(SBBIntermodalRaptorStopFinder.class);
+	private final static Logger log = Logger.getLogger(SBBIntermodalRaptorStopFinder.class);
 
 	private final RaptorIntermodalAccessEgress intermodalAE;
 	private final Map<String, SBBIntermodalModeParameterSet> intermodalModeParams;
 	private final Map<String, RoutingModule> routingModules;
-    private final TransitSchedule transitSchedule;
-    private final Random random = MatsimRandom.getLocalInstance();
+	private final TransitSchedule transitSchedule;
+	private final Random random = MatsimRandom.getLocalInstance();
 	private final AccessEgressRouteCache accessEgressRouteCache;
 	private final IntermodalAccessEgressParameterSet walkParameterset;
 
-    @Inject
-    public SBBIntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE,
-                                         Map<String, Provider<RoutingModule>> routingModuleProviders,
-                                         TransitSchedule transitSchedule, AccessEgressRouteCache accessEgressRouteCache) {
-        this.intermodalAE = intermodalAE;
-        this.transitSchedule = transitSchedule;
-        this.accessEgressRouteCache = accessEgressRouteCache;
+	@Inject
+	public SBBIntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE,
+			Map<String, Provider<RoutingModule>> routingModuleProviders,
+			TransitSchedule transitSchedule, AccessEgressRouteCache accessEgressRouteCache) {
+		this.intermodalAE = intermodalAE;
+		this.transitSchedule = transitSchedule;
+		this.accessEgressRouteCache = accessEgressRouteCache;
 
 		SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
-        this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(set -> set.getMode(), set -> set));
-        SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
+		this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(set -> set.getMode(), set -> set));
+		SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
 		walkParameterset = srrConfig.getIntermodalAccessEgressParameterSets().stream().filter(l -> l.getMode().equals(TransportMode.walk)).findFirst().orElseThrow(RuntimeException::new);
 		this.routingModules = new HashMap<>();
-        if (srrConfig.isUseIntermodalAccessEgress()) {
-            for (IntermodalAccessEgressParameterSet params : srrConfig.getIntermodalAccessEgressParameterSets()) {
-                String mode = params.getMode();
-                this.routingModules.put(mode, routingModuleProviders.get(mode).get());
+		if (srrConfig.isUseIntermodalAccessEgress()) {
+			for (IntermodalAccessEgressParameterSet params : srrConfig.getIntermodalAccessEgressParameterSets()) {
+				String mode = params.getMode();
+				this.routingModules.put(mode, routingModuleProviders.get(mode).get());
 
-            }
-        }
+			}
+		}
 
-    }
+	}
 
+	@Override
+	public List<InitialStop> findStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data, RaptorStopFinder.Direction type) {
+		if (type == Direction.ACCESS) {
+			return findAccessStops(facility, person, departureTime, parameters, data);
+		}
+		if (type == Direction.EGRESS) {
+			return findEgressStops(facility, person, departureTime, parameters, data);
+		}
+		return Collections.emptyList();
+	}
 
-
-    @Override
-    public List<InitialStop> findStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data, RaptorStopFinder.Direction type) {
-        if (type == Direction.ACCESS) {
-            return findAccessStops(facility, person, departureTime, parameters, data);
-        }
-        if (type == Direction.EGRESS) {
-            return findEgressStops(facility, person, departureTime, parameters, data);
-        }
-        return Collections.emptyList();
-    }
-
-    private List<InitialStop> findAccessStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data) {
-        SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
-        if (srrCfg.isUseIntermodalAccessEgress()) {
-            return findIntermodalStops(facility, person, departureTime, Direction.ACCESS, parameters, data);
-        } else {
-            double distanceFactor = data.config.getBeelineWalkDistanceFactor();
-            List<TransitStopFacility> stops = findNearbyStops(facility, parameters, data);
-            return stops.stream().map(stop -> {
+	private List<InitialStop> findAccessStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data) {
+		SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
+		if (srrCfg.isUseIntermodalAccessEgress()) {
+			return findIntermodalStops(facility, person, departureTime, Direction.ACCESS, parameters, data);
+		} else {
+			double distanceFactor = data.config.getBeelineWalkDistanceFactor();
+			List<TransitStopFacility> stops = findNearbyStops(facility, parameters, data);
+			return stops.stream().map(stop -> {
 				double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
 				double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
 				double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
 				return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
 			}).collect(Collectors.toList());
-        }
-    }
+		}
+	}
 
-    private List<InitialStop> findEgressStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data) {
-        SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
-        if (srrCfg.isUseIntermodalAccessEgress()) {
-            return findIntermodalStops(facility, person, departureTime, Direction.EGRESS, parameters, data);
-        } else {
-            double distanceFactor = data.config.getBeelineWalkDistanceFactor();
-            List<TransitStopFacility> stops = findNearbyStops(facility, parameters, data);
-            return stops.stream().map(stop -> {
+	private List<InitialStop> findEgressStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data) {
+		SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
+		if (srrCfg.isUseIntermodalAccessEgress()) {
+			return findIntermodalStops(facility, person, departureTime, Direction.EGRESS, parameters, data);
+		} else {
+			double distanceFactor = data.config.getBeelineWalkDistanceFactor();
+			List<TransitStopFacility> stops = findNearbyStops(facility, parameters, data);
+			return stops.stream().map(stop -> {
 				double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
 				double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
 				double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
 				return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
 			}).collect(Collectors.toList());
-        }
-    }
+		}
+	}
 
-    private List<InitialStop> findIntermodalStops(Facility facility, Person person, double departureTime, Direction direction, RaptorParameters parameters, SwissRailRaptorData data) {
+	private List<InitialStop> findIntermodalStops(Facility facility, Person person, double departureTime, Direction direction, RaptorParameters parameters, SwissRailRaptorData data) {
 		SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
 		double x = facility.getCoord().getX();
 		double y = facility.getCoord().getY();
@@ -315,57 +313,55 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		}
 	}
 
-    private List<? extends PlanElement> getCachedTravelTime(Facility stopFacility, Facility actFacility, double departureTime, Person person, String mode, RoutingModule module, boolean backwards) {
-        AccessEgressRouteCache.RouteCharacteristics characteristics = this.accessEgressRouteCache.getCachedRouteCharacteristics(mode, stopFacility, actFacility, module, person);
+	private List<? extends PlanElement> getCachedTravelTime(Facility stopFacility, Facility actFacility, double departureTime, Person person, String mode, RoutingModule module, boolean backwards) {
+		AccessEgressRouteCache.RouteCharacteristics characteristics = this.accessEgressRouteCache.getCachedRouteCharacteristics(mode, stopFacility, actFacility, module, person);
 
-        Id<Link> startLink = backwards ? actFacility.getLinkId() : stopFacility.getLinkId();
-        Id<Link> endLink = backwards ? stopFacility.getLinkId() : actFacility.getLinkId();
-        List<PlanElement> travel = new ArrayList<>();
-        double accessTime = backwards ? characteristics.getEgressTime() : characteristics.getAccessTime();
-        double egressTime = backwards ? characteristics.getAccessTime() : characteristics.getEgressTime();
-        if (!Double.isNaN(accessTime)) {
-            Leg leg = createAccessEgressLeg(accessTime, startLink);
-            leg.setDepartureTime(departureTime);
+		Id<Link> startLink = backwards ? actFacility.getLinkId() : stopFacility.getLinkId();
+		Id<Link> endLink = backwards ? stopFacility.getLinkId() : actFacility.getLinkId();
+		List<PlanElement> travel = new ArrayList<>();
+		double accessTime = backwards ? characteristics.getEgressTime() : characteristics.getAccessTime();
+		double egressTime = backwards ? characteristics.getAccessTime() : characteristics.getEgressTime();
+		if (!Double.isNaN(accessTime)) {
+			Leg leg = createAccessEgressLeg(accessTime, startLink);
+			leg.setDepartureTime(departureTime);
 			travel.add(leg);
-            Activity stage = createStageAct(startLink);
-            travel.add(stage);
-        }
-        Leg leg = PopulationUtils.createLeg(mode);
-        Route route = RouteUtils.createGenericRouteImpl(startLink, endLink);
-        route.setTravelTime(characteristics.getTravelTime());
-        route.setDistance(characteristics.getDistance());
-        leg.setTravelTime(characteristics.getTravelTime());
-        leg.setRoute(route);
-        travel.add(leg);
-        if (!Double.isNaN(egressTime)) {
-            Activity stage = createStageAct(startLink);
-            travel.add(stage);
-            Leg leg3 = createAccessEgressLeg(egressTime, endLink);
-            travel.add(leg3);
-        }
-        return travel;
+			Activity stage = createStageAct(startLink);
+			travel.add(stage);
+		}
+		Leg leg = PopulationUtils.createLeg(mode);
+		Route route = RouteUtils.createGenericRouteImpl(startLink, endLink);
+		route.setTravelTime(characteristics.getTravelTime());
+		route.setDistance(characteristics.getDistance());
+		leg.setTravelTime(characteristics.getTravelTime());
+		leg.setRoute(route);
+		travel.add(leg);
+		if (!Double.isNaN(egressTime)) {
+			Activity stage = createStageAct(startLink);
+			travel.add(stage);
+			Leg leg3 = createAccessEgressLeg(egressTime, endLink);
+			travel.add(leg3);
+		}
+		return travel;
 
+	}
 
-    }
+	private Activity createStageAct(Id<Link> linkId) {
+		Activity activity = PopulationUtils.createActivityFromLinkId("pt interaction", linkId);
+		activity.setMaximumDuration(0);
+		return activity;
+	}
 
-    private Activity createStageAct(Id<Link> linkId) {
-        Activity activity = PopulationUtils.createActivityFromLinkId("pt interaction", linkId);
-        activity.setMaximumDuration(0);
-        return activity;
-    }
+	private Leg createAccessEgressLeg(double traveltime, Id<Link> link) {
+		Leg leg = PopulationUtils.createLeg(SBBModes.ACCESS_EGRESS_WALK);
+		Route route = RouteUtils.createGenericRouteImpl(link, link);
+		route.setTravelTime(traveltime);
+		route.setDistance(0.0);
+		leg.setTravelTime(traveltime);
+		leg.setRoute(route);
+		return leg;
+	}
 
-    private Leg createAccessEgressLeg(double traveltime, Id<Link> link) {
-        Leg leg = PopulationUtils.createLeg(SBBModes.ACCESS_EGRESS_WALK);
-        Route route = RouteUtils.createGenericRouteImpl(link, link);
-        route.setTravelTime(traveltime);
-        route.setDistance(0.0);
-        leg.setTravelTime(traveltime);
-        leg.setRoute(route);
-        return leg;
-    }
-
-
-    private boolean doUseMinimalTransferTimes(String mode) {
+	private boolean doUseMinimalTransferTimes(String mode) {
 		for (SBBIntermodalModeParameterSet modeParams : this.intermodalModeParams.values()) {
 			if (mode.equals(modeParams.getMode())) {
 				return modeParams.doUseMinimalTransferTimes();
@@ -374,62 +370,61 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		return false;
 	}
 
-    private double getMinimalTransferTime(TransitStopFacility stop) {
-        MinimalTransferTimes mtt = this.transitSchedule.getMinimalTransferTimes();
-        double transferTime = mtt.get(stop.getId(), stop.getId());
-        if (Double.isNaN(transferTime)) {
-            // return a default value of 30 seconds
-            return 30.0;
-        } else {
-            return transferTime;
-        }
-    }
+	private double getMinimalTransferTime(TransitStopFacility stop) {
+		MinimalTransferTimes mtt = this.transitSchedule.getMinimalTransferTimes();
+		double transferTime = mtt.get(stop.getId(), stop.getId());
+		if (Double.isNaN(transferTime)) {
+			// return a default value of 30 seconds
+			return 30.0;
+		} else {
+			return transferTime;
+		}
+	}
 
-    private List<TransitStopFacility> findNearbyStops(Facility facility, RaptorParameters parameters, SwissRailRaptorData data) {
-        double x = facility.getCoord().getX();
-        double y = facility.getCoord().getY();
-        Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, parameters.getSearchRadius());
-        if (stopFacilities.size() < 2) {
-            TransitStopFacility  nearestStop = data.stopsQT.getClosest(x, y);
-            double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
-            stopFacilities = data.stopsQT.getDisk(x, y, nearestDistance + parameters.getExtensionRadius());
-        }
-        if (stopFacilities instanceof List) {
-            return (List<TransitStopFacility>) stopFacilities;
-        }
-        return new ArrayList<>(stopFacilities);
-    }
+	private List<TransitStopFacility> findNearbyStops(Facility facility, RaptorParameters parameters, SwissRailRaptorData data) {
+		double x = facility.getCoord().getX();
+		double y = facility.getCoord().getY();
+		Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, parameters.getSearchRadius());
+		if (stopFacilities.size() < 2) {
+			TransitStopFacility nearestStop = data.stopsQT.getClosest(x, y);
+			double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
+			stopFacilities = data.stopsQT.getDisk(x, y, nearestDistance + parameters.getExtensionRadius());
+		}
+		if (stopFacilities instanceof List) {
+			return (List<TransitStopFacility>) stopFacilities;
+		}
+		return new ArrayList<>(stopFacilities);
+	}
 
-    private static class ChangedLinkFacility implements Facility, Identifiable<TransitStopFacility> {
+	private static class ChangedLinkFacility implements Facility, Identifiable<TransitStopFacility> {
 
-        private final TransitStopFacility delegate;
-        private final Id<Link> linkId;
+		private final TransitStopFacility delegate;
+		private final Id<Link> linkId;
 
-        ChangedLinkFacility(final TransitStopFacility delegate, final Id<Link> linkId) {
-            this.delegate = delegate;
-            this.linkId = linkId;
-        }
+		ChangedLinkFacility(final TransitStopFacility delegate, final Id<Link> linkId) {
+			this.delegate = delegate;
+			this.linkId = linkId;
+		}
 
-        @Override
-        public Id<Link> getLinkId() {
-            return this.linkId;
-        }
+		@Override
+		public Id<Link> getLinkId() {
+			return this.linkId;
+		}
 
-        @Override
-        public Coord getCoord() {
-            return this.delegate.getCoord();
-        }
+		@Override
+		public Coord getCoord() {
+			return this.delegate.getCoord();
+		}
 
-        @Override
-        public Map<String, Object> getCustomAttributes() {
-            return this.delegate.getCustomAttributes();
-        }
+		@Override
+		public Map<String, Object> getCustomAttributes() {
+			return this.delegate.getCustomAttributes();
+		}
 
-        @Override
-        public Id<TransitStopFacility> getId() {
-            return this.delegate.getId();
-        }
-    }
-
+		@Override
+		public Id<TransitStopFacility> getId() {
+			return this.delegate.getId();
+		}
+	}
 
 }

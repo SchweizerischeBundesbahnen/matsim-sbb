@@ -16,6 +16,11 @@ public class AccessTimeIntegrationTest {
 	public Coord bern = new Coord(600000, 200000); // 20
 	public Coord stleo = new Coord(598345.54, 122581.99); // 2
 
+	private static void assertEqualEvent(Class<? extends Event> eventClass, double time, Event event) {
+		Assert.assertTrue(event.getClass().isAssignableFrom(event.getClass()));
+		Assert.assertEquals(time, event.getTime(), 1e-7);
+	}
+
 	@Test
 	public final void testIntegration() {
 
@@ -33,10 +38,5 @@ public class AccessTimeIntegrationTest {
 		assertEqualEvent(PersonDepartureEvent.class, 21600, fixture.allEvents.get(1));
 		assertEqualEvent(TeleportationArrivalEvent.class, 21600, fixture.allEvents.get(2));
 	}
-
-    private static void assertEqualEvent(Class<? extends Event> eventClass, double time, Event event) {
-        Assert.assertTrue(event.getClass().isAssignableFrom(event.getClass()));
-        Assert.assertEquals(time, event.getTime(), 1e-7);
-    }
 
 }

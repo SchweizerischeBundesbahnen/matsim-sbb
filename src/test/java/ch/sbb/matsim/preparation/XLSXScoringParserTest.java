@@ -4,13 +4,9 @@
 
 package ch.sbb.matsim.preparation;
 
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -20,117 +16,116 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.testcases.MatsimTestUtils;
 
-import java.util.Map;
-
 public class XLSXScoringParserTest {
-    @Rule
-    public MatsimTestUtils utils = new MatsimTestUtils();
 
-    /*
-    * set general scoring parameter
-    * */
-    @Test
-    public void testParseGeneralScoringParams() {
-        double utilOfLineSwitch = -0.42;
+	@Rule
+	public MatsimTestUtils utils = new MatsimTestUtils();
 
-        Config config = ConfigUtils.createConfig();
+	/*
+	 * set general scoring parameter
+	 * */
+	@Test
+	public void testParseGeneralScoringParams() {
+		double utilOfLineSwitch = -0.42;
 
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        workbook.createSheet(XLSXScoringParser.SCORING_SHEET);
+		Config config = ConfigUtils.createConfig();
 
-        Sheet scoringParamsSheet = workbook.getSheet(XLSXScoringParser.SCORING_SHEET);
-        scoringParamsSheet.createRow(0);
-        scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.MATSIM_PARAMS_LABEL);
-        scoringParamsSheet.getRow(0).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.GENERAL_PARAMS_LABEL);
-        scoringParamsSheet.createRow(1);
-        scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.UTL_OF_LINE_SWITCH);
-        scoringParamsSheet.getRow(1).createCell(1, CellType.NUMERIC).setCellValue(utilOfLineSwitch);
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		workbook.createSheet(XLSXScoringParser.SCORING_SHEET);
 
-        XLSXScoringParser scoringParser = new XLSXScoringParser();
+		Sheet scoringParamsSheet = workbook.getSheet(XLSXScoringParser.SCORING_SHEET);
+		scoringParamsSheet.createRow(0);
+		scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.MATSIM_PARAMS_LABEL);
+		scoringParamsSheet.getRow(0).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.GENERAL_PARAMS_LABEL);
+		scoringParamsSheet.createRow(1);
+		scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.UTL_OF_LINE_SWITCH);
+		scoringParamsSheet.getRow(1).createCell(1, CellType.NUMERIC).setCellValue(utilOfLineSwitch);
 
-        scoringParser.parseXLSXWorkbook(workbook, config);
+		XLSXScoringParser scoringParser = new XLSXScoringParser();
 
-        PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+		scoringParser.parseXLSXWorkbook(workbook, config);
 
-        Assert.assertEquals (utilOfLineSwitch, planCalcScore.getUtilityOfLineSwitch(), 0);
-    }
+		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
 
-    /*
-    * set mode scoring parameter
-    * */
-    @Test
-    public void testParseModeScoringParams() {
-        double constantCar = -1.22;
-        String mode = "car";
+		Assert.assertEquals(utilOfLineSwitch, planCalcScore.getUtilityOfLineSwitch(), 0);
+	}
 
-        Config config = ConfigUtils.createConfig();
+	/*
+	 * set mode scoring parameter
+	 * */
+	@Test
+	public void testParseModeScoringParams() {
+		double constantCar = -1.22;
+		String mode = "car";
 
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        workbook.createSheet(XLSXScoringParser.SCORING_SHEET);
+		Config config = ConfigUtils.createConfig();
 
-        Sheet scoringParamsSheet = workbook.getSheet(XLSXScoringParser.SCORING_SHEET);
-        scoringParamsSheet.createRow(0);
-        scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.MATSIM_PARAMS_LABEL);
-        scoringParamsSheet.getRow(0).createCell(1, CellType.STRING).setCellValue("car");
-        scoringParamsSheet.createRow(1);
-        scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.CONSTANT);
-        scoringParamsSheet.getRow(1).createCell(1, CellType.NUMERIC).setCellValue(constantCar);
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		workbook.createSheet(XLSXScoringParser.SCORING_SHEET);
 
-        XLSXScoringParser scoringParser = new XLSXScoringParser();
+		Sheet scoringParamsSheet = workbook.getSheet(XLSXScoringParser.SCORING_SHEET);
+		scoringParamsSheet.createRow(0);
+		scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.MATSIM_PARAMS_LABEL);
+		scoringParamsSheet.getRow(0).createCell(1, CellType.STRING).setCellValue("car");
+		scoringParamsSheet.createRow(1);
+		scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.CONSTANT);
+		scoringParamsSheet.getRow(1).createCell(1, CellType.NUMERIC).setCellValue(constantCar);
 
-        scoringParser.parseXLSXWorkbook(workbook, config);
+		XLSXScoringParser scoringParser = new XLSXScoringParser();
 
-        PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+		scoringParser.parseXLSXWorkbook(workbook, config);
 
-        Assert.assertEquals (constantCar, planCalcScore.getOrCreateModeParams(mode).getConstant(), 0);
-    }
+		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
 
-    /*
-    * set behaviorGroup scoring parameter (season_ticket = "none", mode car, constant)
-    * */
-    @Test
-    public void testParseBehaviorGroupScoringParams() {
-        double constant = -1.22;
-        double marginalUtilityOfDistance = 0;
-        double marginalUtilityOfTraveling = 0;
-        double monetaryDistanceRate = 0;
-        String behaviorGroupName = "season_ticket";
-        String sheetName = "Abobesitz";
+		Assert.assertEquals(constantCar, planCalcScore.getOrCreateModeParams(mode).getConstant(), 0);
+	}
 
-        Config config = ConfigUtils.createConfig();
-        SBBBehaviorGroupsConfigGroup behaviorGroupConfig = new SBBBehaviorGroupsConfigGroup();
-        config.addModule(behaviorGroupConfig);
+	/*
+	 * set behaviorGroup scoring parameter (season_ticket = "none", mode car, constant)
+	 * */
+	@Test
+	public void testParseBehaviorGroupScoringParams() {
+		double constant = -1.22;
+		double marginalUtilityOfDistance = 0;
+		double marginalUtilityOfTraveling = 0;
+		double monetaryDistanceRate = 0;
+		String behaviorGroupName = "season_ticket";
+		String sheetName = "Abobesitz";
 
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        workbook.createSheet(sheetName);
+		Config config = ConfigUtils.createConfig();
+		SBBBehaviorGroupsConfigGroup behaviorGroupConfig = new SBBBehaviorGroupsConfigGroup();
+		config.addModule(behaviorGroupConfig);
 
-        Sheet scoringParamsSheet = workbook.getSheet(sheetName);
-        scoringParamsSheet.createRow(0);
-        scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.BEHAVIOR_GROUP_LABEL);
-        scoringParamsSheet.createRow(1);
-        scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue(behaviorGroupName);
-        scoringParamsSheet.getRow(1).createCell(2, CellType.STRING).setCellValue("car");
-        scoringParamsSheet.createRow(2);
-        scoringParamsSheet.getRow(2).createCell(0, CellType.STRING).setCellValue("none");
-        scoringParamsSheet.getRow(2).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.CONSTANT);
-        scoringParamsSheet.getRow(2).createCell(2, CellType.NUMERIC).setCellValue(constant);
-        scoringParamsSheet.createRow(3);
-        scoringParamsSheet.getRow(3).createCell(0, CellType.STRING).setCellValue("none");
-        scoringParamsSheet.getRow(3).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.MARGINAL_UTILITY_OF_DISTANCE);
-        scoringParamsSheet.getRow(3).createCell(2, CellType.NUMERIC).setCellValue(marginalUtilityOfDistance);
-        scoringParamsSheet.createRow(4);
-        scoringParamsSheet.getRow(4).createCell(0, CellType.STRING).setCellValue("none");
-        scoringParamsSheet.getRow(4).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.MARGINAL_UTILITY_OF_TRAVELING);
-        scoringParamsSheet.getRow(4).createCell(2, CellType.NUMERIC).setCellValue(marginalUtilityOfTraveling);
-        scoringParamsSheet.createRow(5);
-        scoringParamsSheet.getRow(5).createCell(0, CellType.STRING).setCellValue("none");
-        scoringParamsSheet.getRow(5).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.MONETARY_DISTANCE_RATE);
-        scoringParamsSheet.getRow(5).createCell(2, CellType.NUMERIC).setCellValue(monetaryDistanceRate);
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		workbook.createSheet(sheetName);
 
-        XLSXScoringParser scoringParser = new XLSXScoringParser();
+		Sheet scoringParamsSheet = workbook.getSheet(sheetName);
+		scoringParamsSheet.createRow(0);
+		scoringParamsSheet.getRow(0).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.BEHAVIOR_GROUP_LABEL);
+		scoringParamsSheet.createRow(1);
+		scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue(behaviorGroupName);
+		scoringParamsSheet.getRow(1).createCell(2, CellType.STRING).setCellValue("car");
+		scoringParamsSheet.createRow(2);
+		scoringParamsSheet.getRow(2).createCell(0, CellType.STRING).setCellValue("none");
+		scoringParamsSheet.getRow(2).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.CONSTANT);
+		scoringParamsSheet.getRow(2).createCell(2, CellType.NUMERIC).setCellValue(constant);
+		scoringParamsSheet.createRow(3);
+		scoringParamsSheet.getRow(3).createCell(0, CellType.STRING).setCellValue("none");
+		scoringParamsSheet.getRow(3).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.MARGINAL_UTILITY_OF_DISTANCE);
+		scoringParamsSheet.getRow(3).createCell(2, CellType.NUMERIC).setCellValue(marginalUtilityOfDistance);
+		scoringParamsSheet.createRow(4);
+		scoringParamsSheet.getRow(4).createCell(0, CellType.STRING).setCellValue("none");
+		scoringParamsSheet.getRow(4).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.MARGINAL_UTILITY_OF_TRAVELING);
+		scoringParamsSheet.getRow(4).createCell(2, CellType.NUMERIC).setCellValue(marginalUtilityOfTraveling);
+		scoringParamsSheet.createRow(5);
+		scoringParamsSheet.getRow(5).createCell(0, CellType.STRING).setCellValue("none");
+		scoringParamsSheet.getRow(5).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.MONETARY_DISTANCE_RATE);
+		scoringParamsSheet.getRow(5).createCell(2, CellType.NUMERIC).setCellValue(monetaryDistanceRate);
 
-        scoringParser.parseXLSXWorkbook(workbook, config);
+		XLSXScoringParser scoringParser = new XLSXScoringParser();
 
-        Assert.assertEquals (constant, behaviorGroupConfig.getBehaviorGroupParams().get(sheetName).getPersonGroupByAttribute("none").getModeCorrectionParams().get("car").getConstant(), 0);
-    }
+		scoringParser.parseXLSXWorkbook(workbook, config);
+
+		Assert.assertEquals(constant, behaviorGroupConfig.getBehaviorGroupParams().get(sheetName).getPersonGroupByAttribute("none").getModeCorrectionParams().get("car").getConstant(), 0);
+	}
 }

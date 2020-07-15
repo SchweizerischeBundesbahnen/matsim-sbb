@@ -9,11 +9,14 @@ import org.matsim.api.core.v01.Id;
  */
 public interface Zone {
 
-    Id<Zone> getId();
-    Object getAttribute(String name);
+	Id<Zone> getId();
 
-    Envelope getEnvelope();
-    boolean contains(Point pt);
-    double distance(Point pt);
+	Object getAttribute(String name);
+
+	Envelope getEnvelope();
+
+	boolean contains(Point pt);
+
+	double distance(Point pt);
 
 }
