@@ -4,20 +4,20 @@
 
 package ch.sbb.matsim.analysis.travelcomponents;
 
-import org.matsim.core.config.Config;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-
+import org.matsim.core.config.Config;
 
 public class TravellerChain {
+
+	private final Config config;
 	private boolean isStuck = false;
 	private List<Activity> acts = new ArrayList<>(5);
 	private List<Trip> trips = new ArrayList<>(5);
-	private final Config config;
+	private boolean inPT = false;
 
-	public TravellerChain(Config config){
+	public TravellerChain(Config config) {
 		this.config = config;
 	}
 
@@ -36,7 +36,8 @@ public class TravellerChain {
 	public boolean isStuck() {
 		return isStuck;
 	}
-	public void setStuck(){
+
+	public void setStuck() {
 		this.isStuck = true;
 	}
 
@@ -73,7 +74,5 @@ public class TravellerChain {
 	public void setInPT(boolean inPT) {
 		this.inPT = inPT;
 	}
-
-	private boolean inPT = false;
 
 }

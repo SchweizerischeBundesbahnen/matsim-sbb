@@ -15,19 +15,20 @@ import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 
 public class NetworkConverter {
-    public NetworkConverter(Network originalNetwork, Network network) {
-        VisumNetwork visumNetwork = new VisumNetwork();
 
-        for(Link link: network.getLinks().values()){
-            VisumLink visumLink = visumNetwork.getOrCreateLink(link);
-            Link originalLink = originalNetwork.getLinks().get(link.getId());
-            originalLink.getAttributes().putAttribute("visumId", visumLink.getId()+"_"+visumLink.getFromNode().getId()+"_"+visumLink.getToNode().getId());
-        }
+	public NetworkConverter(Network originalNetwork, Network network) {
+		VisumNetwork visumNetwork = new VisumNetwork();
 
-        visumNetwork.write("D:\\tmp\\");
-    }
+		for (Link link : network.getLinks().values()) {
+			VisumLink visumLink = visumNetwork.getOrCreateLink(link);
+			Link originalLink = originalNetwork.getLinks().get(link.getId());
+			originalLink.getAttributes().putAttribute("visumId", visumLink.getId() + "_" + visumLink.getFromNode().getId() + "_" + visumLink.getToNode().getId());
+		}
 
-    public static void main(String[] args) {
+		visumNetwork.write("D:\\tmp\\");
+	}
+
+	public static void main(String[] args) {
 		Config config = ConfigUtils.createConfig();
 		config.network().setInputFile("\\\\V00925\\Simba\\20_Modelle\\80_MatSim\\30_ModellCH\\01_ModellCH_15\\10_Network\\network_v3\\network_v3.xml.gz");
 

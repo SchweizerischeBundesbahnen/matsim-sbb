@@ -31,56 +31,56 @@ import org.matsim.facilities.MatsimFacilitiesReader;
  * @author jbischoff / SBB
  */
 public class PopulationSlicer {
-    Random random = MatsimRandom.getRandom();
 
-    /*
-    Randomly slices a population in n parts
-     */
-    public static void main(String[] args) throws IOException {
-        String inputPopulation = args[0];
-        String inputFacilities = args[1];
-        int slices = Integer.parseInt(args[2]);
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new MatsimFacilitiesReader(scenario).readFile(inputFacilities);
-        BetterPopulationReader.readSelectedPlansOnly(scenario, new File(inputPopulation));
+	Random random = MatsimRandom.getRandom();
 
-        var outputDir = Paths.get(inputPopulation.replace(".xml.gz", "_" + slices));
-        Files.createDirectory(outputDir);
+	/*
+	Randomly slices a population in n parts
+	 */
+	public static void main(String[] args) throws IOException {
+		String inputPopulation = args[0];
+		String inputFacilities = args[1];
+		int slices = Integer.parseInt(args[2]);
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		new MatsimFacilitiesReader(scenario).readFile(inputFacilities);
+		BetterPopulationReader.readSelectedPlansOnly(scenario, new File(inputPopulation));
 
-        String outputFolder = outputDir.toAbsolutePath().toString();
-        new PopulationSlicer().run(scenario, outputFolder, slices);
+		var outputDir = Paths.get(inputPopulation.replace(".xml.gz", "_" + slices));
+		Files.createDirectory(outputDir);
 
-    }
+		String outputFolder = outputDir.toAbsolutePath().toString();
+		new PopulationSlicer().run(scenario, outputFolder, slices);
 
-    public void run(Scenario scenario, String outputFolder, int slices) {
-        Population population = scenario.getPopulation();
-        List<Id<Person>> personIds = new ArrayList<>(population.getPersons().keySet());
-        Collections.shuffle(personIds, random);
-        int partitionsize = personIds.size() / slices;
+	}
 
-        for (int i = 0; i < slices; i++) {
-            StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();
-            streamingPopulationWriter.startStreaming(outputFolder + "/population_" + i + ".xml.gz");
-            Set<Id<ActivityFacility>> usedFacilities = new HashSet<>();
-            for (int j = 0; j < partitionsize; j++) {
-                int personNo = i * partitionsize + j;
-                Person person = population.getPersons().get(personIds.get(personNo));
-                streamingPopulationWriter.run(person);
-                usedFacilities.addAll(TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream()
-                        .map(activity -> activity.getFacilityId())
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet()));
+	public void run(Scenario scenario, String outputFolder, int slices) {
+		Population population = scenario.getPopulation();
+		List<Id<Person>> personIds = new ArrayList<>(population.getPersons().keySet());
+		Collections.shuffle(personIds, random);
+		int partitionsize = personIds.size() / slices;
 
-            }
-            Scenario newfacilities = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-            for (var facId : usedFacilities) {
-                newfacilities.getActivityFacilities().addActivityFacility(scenario.getActivityFacilities().getFacilities().get(facId));
-            }
-            new FacilitiesWriter(newfacilities.getActivityFacilities()).write(outputFolder + "/facilities_" + i + ".xml.gz");
-            streamingPopulationWriter.closeStreaming();
-        }
+		for (int i = 0; i < slices; i++) {
+			StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();
+			streamingPopulationWriter.startStreaming(outputFolder + "/population_" + i + ".xml.gz");
+			Set<Id<ActivityFacility>> usedFacilities = new HashSet<>();
+			for (int j = 0; j < partitionsize; j++) {
+				int personNo = i * partitionsize + j;
+				Person person = population.getPersons().get(personIds.get(personNo));
+				streamingPopulationWriter.run(person);
+				usedFacilities.addAll(TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream()
+						.map(activity -> activity.getFacilityId())
+						.filter(Objects::nonNull)
+						.collect(Collectors.toSet()));
 
+			}
+			Scenario newfacilities = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+			for (var facId : usedFacilities) {
+				newfacilities.getActivityFacilities().addActivityFacility(scenario.getActivityFacilities().getFacilities().get(facId));
+			}
+			new FacilitiesWriter(newfacilities.getActivityFacilities()).write(outputFolder + "/facilities_" + i + ".xml.gz");
+			streamingPopulationWriter.closeStreaming();
+		}
 
-    }
+	}
 
 }

@@ -8,6 +8,7 @@ import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
+import java.util.List;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -17,41 +18,40 @@ import org.matsim.core.events.EventsManagerImpl;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.scenario.ScenarioUtils;
 
-import java.util.List;
-
 public class RunSBBPostProcessing {
-    private final static Logger log = Logger.getLogger(RunSBBPostProcessing.class);
 
-    public static void main(String[] args) {
-        final String configFile = args[0];
-        final String eventsFileName = args[1];
-        final String outputPath = args[2];
-        log.info(configFile);
+	private final static Logger log = Logger.getLogger(RunSBBPostProcessing.class);
 
-        final Config config = ConfigUtils.loadConfig(configFile, RunSBB.sbbDefaultConfigGroups);
-        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
+	public static void main(String[] args) {
+		final String configFile = args[0];
+		final String eventsFileName = args[1];
+		final String outputPath = args[2];
+		log.info(configFile);
 
-        ZonesCollection allZones = new ZonesCollection();
-        ZonesLoader.loadAllZones(config, allZones);
+		final Config config = ConfigUtils.loadConfig(configFile, RunSBB.sbbDefaultConfigGroups);
+		PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
 
-        Scenario scenario = ScenarioUtils.loadScenario(config);
-        EventsManager eventsManager = new EventsManagerImpl();
+		ZonesCollection allZones = new ZonesCollection();
+		ZonesLoader.loadAllZones(config, allZones);
 
-        List<EventsAnalysis> eventWriters = SBBPostProcessingOutputHandler.buildEventWriters(scenario, ppConfig, outputPath, allZones);
+		Scenario scenario = ScenarioUtils.loadScenario(config);
+		EventsManager eventsManager = new EventsManagerImpl();
 
-        for (EventsAnalysis eventWriter : eventWriters) {
-            eventsManager.addHandler(eventWriter);
-        }
+		List<EventsAnalysis> eventWriters = SBBPostProcessingOutputHandler.buildEventWriters(scenario, ppConfig, outputPath, allZones);
 
-        new MatsimEventsReader(eventsManager).readFile(eventsFileName);
+		for (EventsAnalysis eventWriter : eventWriters) {
+			eventsManager.addHandler(eventWriter);
+		}
 
-        for (EventsAnalysis eventWriter : eventWriters) {
-            eventWriter.writeResults(true);
-        }
+		new MatsimEventsReader(eventsManager).readFile(eventsFileName);
 
-        if (ppConfig.getWriteAgentsCSV() || ppConfig.getWritePlanElementsCSV()) {
-            new PopulationToCSV(scenario).write(outputPath);
-        }
+		for (EventsAnalysis eventWriter : eventWriters) {
+			eventWriter.writeResults(true);
+		}
 
-    }
+		if (ppConfig.getWriteAgentsCSV() || ppConfig.getWritePlanElementsCSV()) {
+			new PopulationToCSV(scenario).write(outputPath);
+		}
+
+	}
 }

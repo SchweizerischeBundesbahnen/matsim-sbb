@@ -19,22 +19,19 @@ import org.matsim.core.scoring.functions.ScoringParameters;
 
 public class ScoringFixture {
 
-    Config config;
-    SBBBehaviorGroupsConfigGroup sbbConfig;
-    Scenario scenario;
-
-    private final static String GROUP1 = "Abobesitz";
-    private final static String ATTRIBUTEGROUP1 = "season_ticket";
-    private final static String VALUEGROUP1 = "Generalabo";
-
+	private final static String GROUP1 = "Abobesitz";
+	private final static String ATTRIBUTEGROUP1 = "season_ticket";
+	private final static String VALUEGROUP1 = "Generalabo";
 	private final static String GROUP2 = "Raumtypen";
 	private final static String ATTRIBUTEGROUP2 = "raumtyp";
 	private final static String VALUESGROUP2 = "2,5,6";
 	private final static int VALUEGROUP2 = 2;
-
 	private final static String GROUP3 = "Alter";
 	private final static String ATTRIBUTEGROUP3 = "alter";
 	private final static String VALUEGROUP3 = "25";
+	Config config;
+	SBBBehaviorGroupsConfigGroup sbbConfig;
+	Scenario scenario;
 
 	ScoringFixture() {
 		this.config = ConfigUtils.createConfig();
@@ -45,6 +42,12 @@ public class ScoringFixture {
 		this.scenario = ScenarioUtils.createScenario(this.config);
 		this.sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
 		addRideInteractionScoring(this.config);
+	}
+
+	static void addRideInteractionScoring(Config config) {
+		PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
+		params.setScoringThisActivityAtAll(false);
+		config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(params);
 	}
 
 	ScoringParameters buildDefaultScoringParams(Id<Person> personId) {
@@ -105,50 +108,44 @@ public class ScoringFixture {
 		this.sbbConfig.addBehaviorGroupParams(bgp);
 	}
 
-    void addPersonNoAttribute() {
-        Population population = this.scenario.getPopulation();
-        PopulationFactory pf = population.getFactory();
-        Person person = pf.createPerson(Id.create(1, Person.class));
-        person.addPlan(pf.createPlan());
-        this.scenario.getPopulation().addPerson(person);
-    }
+	void addPersonNoAttribute() {
+		Population population = this.scenario.getPopulation();
+		PopulationFactory pf = population.getFactory();
+		Person person = pf.createPerson(Id.create(1, Person.class));
+		person.addPlan(pf.createPlan());
+		this.scenario.getPopulation().addPerson(person);
+	}
 
-    void personOneAttribute() {
-        Population population = this.scenario.getPopulation();
-        PopulationFactory pf = population.getFactory();
-        Person person = pf.createPerson(Id.create(2, Person.class));
-        person.addPlan(pf.createPlan());
+	void personOneAttribute() {
+		Population population = this.scenario.getPopulation();
+		PopulationFactory pf = population.getFactory();
+		Person person = pf.createPerson(Id.create(2, Person.class));
+		person.addPlan(pf.createPlan());
 
-        person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
-        this.scenario.getPopulation().addPerson(person);
-    }
+		person.getAttributes().putAttribute(ATTRIBUTEGROUP1, VALUEGROUP1);
+		this.scenario.getPopulation().addPerson(person);
+	}
 
-    void personTwoAttribute() {
-        Population population = this.scenario.getPopulation();
-        PopulationFactory pf = population.getFactory();
-        Person person = pf.createPerson(Id.create(3, Person.class));
-        person.addPlan(pf.createPlan());
+	void personTwoAttribute() {
+		Population population = this.scenario.getPopulation();
+		PopulationFactory pf = population.getFactory();
+		Person person = pf.createPerson(Id.create(3, Person.class));
+		person.addPlan(pf.createPlan());
 
-        person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
-        person.getAttributes().putAttribute(ATTRIBUTEGROUP2,VALUEGROUP2);
-        this.scenario.getPopulation().addPerson(person);
-    }
+		person.getAttributes().putAttribute(ATTRIBUTEGROUP1, VALUEGROUP1);
+		person.getAttributes().putAttribute(ATTRIBUTEGROUP2, VALUEGROUP2);
+		this.scenario.getPopulation().addPerson(person);
+	}
 
-    void personThreeAttribute() {
-        Population population = this.scenario.getPopulation();
-        PopulationFactory pf = population.getFactory();
-        Person person = pf.createPerson(Id.create(4, Person.class));
-        person.addPlan(pf.createPlan());
+	void personThreeAttribute() {
+		Population population = this.scenario.getPopulation();
+		PopulationFactory pf = population.getFactory();
+		Person person = pf.createPerson(Id.create(4, Person.class));
+		person.addPlan(pf.createPlan());
 
-        person.getAttributes().putAttribute(ATTRIBUTEGROUP1,VALUEGROUP1);
-        person.getAttributes().putAttribute(ATTRIBUTEGROUP2,VALUEGROUP2);
-        person.getAttributes().putAttribute(ATTRIBUTEGROUP3,VALUEGROUP3);
-        this.scenario.getPopulation().addPerson(person);
-    }
-
-    static void addRideInteractionScoring(Config config) {
-        PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
-        params.setScoringThisActivityAtAll(false);
-        config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(params);
-    }
+		person.getAttributes().putAttribute(ATTRIBUTEGROUP1, VALUEGROUP1);
+		person.getAttributes().putAttribute(ATTRIBUTEGROUP2, VALUEGROUP2);
+		person.getAttributes().putAttribute(ATTRIBUTEGROUP3, VALUEGROUP3);
+		this.scenario.getPopulation().addPerson(person);
+	}
 }

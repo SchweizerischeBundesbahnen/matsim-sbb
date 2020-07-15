@@ -5,7 +5,9 @@ import org.matsim.facilities.ActivityFacilities;
 
 public interface SynpopReader {
 
-    Population getPopulation();
-    ActivityFacilities getFacilities();
-    void load();
+	Population getPopulation();
+
+	ActivityFacilities getFacilities();
+
+	void load();
 }

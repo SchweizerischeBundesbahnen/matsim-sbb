@@ -76,8 +76,8 @@ public class CleanerTest {
 		assertNull(carLeg.getRoute());
 	}
 
-    @Test
-    public void testCarAgentWithAccessTimes() {
+	@Test
+	public void testCarAgentWithAccessTimes() {
 		Fixture f = new Fixture();
 		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
@@ -99,7 +99,7 @@ public class CleanerTest {
 	}
 
 	@Test
-    public void testBikeAgentNoAccessTimes() {
+	public void testBikeAgentNoAccessTimes() {
 		Fixture f = new Fixture();
 		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
@@ -122,7 +122,7 @@ public class CleanerTest {
 	}
 
 	@Test
-    public void testBikeAgentWithAccessTimes() {
+	public void testBikeAgentWithAccessTimes() {
 		Fixture f = new Fixture();
 		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
@@ -144,7 +144,7 @@ public class CleanerTest {
 	}
 
 	@Test
-    public void testPTAgentFirstLegTransitWalk() {
+	public void testPTAgentFirstLegTransitWalk() {
 		Fixture f = new Fixture();
 		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
@@ -169,7 +169,7 @@ public class CleanerTest {
 	}
 
 	@Test
-    public void testPTAgentFirstLegAccessWalk() {
+	public void testPTAgentFirstLegAccessWalk() {
 		Fixture f = new Fixture();
 		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
@@ -191,7 +191,7 @@ public class CleanerTest {
 	}
 
 	@Test
-    public void testPTAgentTransitWalkOnly() {
+	public void testPTAgentTransitWalkOnly() {
 		Fixture f = new Fixture();
 		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
@@ -216,7 +216,7 @@ public class CleanerTest {
 	}
 
 	@Test
-    public void testComplexPTTrip() {
+	public void testComplexPTTrip() {
 		Fixture f = new Fixture();
 		Cleaner cleaner = new Cleaner(f.scenario.getPopulation());
 
@@ -246,14 +246,15 @@ public class CleanerTest {
 	}
 
 	private static class Fixture {
-        public final Scenario scenario;
 
-        public Fixture()  {
-            Config config = ConfigUtils.createConfig();
-            this.scenario = ScenarioUtils.createScenario(config);
+		public final Scenario scenario;
 
-            String plansXml =
-                    "<?xml version=\"1.0\" ?>" +
+		public Fixture() {
+			Config config = ConfigUtils.createConfig();
+			this.scenario = ScenarioUtils.createScenario(config);
+
+			String plansXml =
+					"<?xml version=\"1.0\" ?>" +
 							"<!DOCTYPE population SYSTEM \"http://www.matsim.org/files/dtd/population_v6.dtd\">" +
 							"<population>" +
 
@@ -418,14 +419,14 @@ public class CleanerTest {
 
 			new PopulationReader(scenario).parse(new ByteArrayInputStream(plansXml.getBytes()));
 
-            scenario.getPopulation().getPersons().get(Id.create("1", Person.class)).getAttributes().putAttribute("subpopulation", "cb");
-            scenario.getPopulation().getPersons().get(Id.create("2", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
-            scenario.getPopulation().getPersons().get(Id.create("3", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
-            scenario.getPopulation().getPersons().get(Id.create("4", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
-            // no attribute for person 5 -> "all" works
-            scenario.getPopulation().getPersons().get(Id.create("6", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
-            scenario.getPopulation().getPersons().get(Id.create("7", Person.class)).getAttributes().putAttribute("subpopulation", "freight");
-            scenario.getPopulation().getPersons().get(Id.create("8", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
-        }
-    }
+			scenario.getPopulation().getPersons().get(Id.create("1", Person.class)).getAttributes().putAttribute("subpopulation", "cb");
+			scenario.getPopulation().getPersons().get(Id.create("2", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
+			scenario.getPopulation().getPersons().get(Id.create("3", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
+			scenario.getPopulation().getPersons().get(Id.create("4", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
+			// no attribute for person 5 -> "all" works
+			scenario.getPopulation().getPersons().get(Id.create("6", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
+			scenario.getPopulation().getPersons().get(Id.create("7", Person.class)).getAttributes().putAttribute("subpopulation", "freight");
+			scenario.getPopulation().getPersons().get(Id.create("8", Person.class)).getAttributes().putAttribute("subpopulation", "regular");
+		}
+	}
 }

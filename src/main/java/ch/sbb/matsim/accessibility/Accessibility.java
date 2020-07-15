@@ -125,14 +125,6 @@ public class Accessibility {
 		this.zones = zones;
 	}
 
-	public void setXy2LinksPredicate(Predicate<Link> xy2linksPredicate) {
-		this.xy2linksPredicate = xy2linksPredicate;
-	}
-
-	public void setThreadCount(int threadCount) {
-		this.threadCount = threadCount;
-	}
-
 	private static boolean requiresCar(Modes[] modes) {
 		for (Modes mode : modes) {
 			if (mode.car) {
@@ -208,6 +200,14 @@ public class Accessibility {
 			stops = raptor.getUnderlyingData().findNearbyStops(coord.getX(), coord.getY(), nearestStopDistance + parameters.getExtensionRadius());
 		}
 		return stops;
+	}
+
+	public void setXy2LinksPredicate(Predicate<Link> xy2linksPredicate) {
+		this.xy2linksPredicate = xy2linksPredicate;
+	}
+
+	public void setThreadCount(int threadCount) {
+		this.threadCount = threadCount;
 	}
 
 	public void calculateAccessibility(List<Coord> coordinates, Modes[] modes, File csvOutputFile) {
@@ -530,7 +530,7 @@ public class Accessibility {
 		private final double speed;
 
 		public FixedSpeedTravelTimeAndDisutility(double speed) {
-            this.speed = speed;
+			this.speed = speed;
 		}
 
 		@Override
@@ -650,32 +650,32 @@ public class Accessibility {
 			this.zones = zones;
 			this.counter = counter;
 			this.coordinates = coordinates;
-            this.results = results;
-        }
+			this.results = results;
+		}
 
-        public void run() {
-            while (true) {
-                Coord fromCoord = this.coordinates.poll();
-                if (fromCoord == null) {
-                    return;
-                }
+		public void run() {
+			while (true) {
+				Coord fromCoord = this.coordinates.poll();
+				if (fromCoord == null) {
+					return;
+				}
 
-                this.counter.incCounter();
-                double[] accessibilities = calcForCoord(fromCoord);
-                this.results.add(new Tuple<>(fromCoord, accessibilities));
-            }
-        }
+				this.counter.incCounter();
+				double[] accessibilities = calcForCoord(fromCoord);
+				this.results.add(new Tuple<>(fromCoord, accessibilities));
+			}
+		}
 
-        private double[] calcForCoord(Coord fromCoord) {
-            Node nearestNode = this.carNetwork.getNodes().get(NetworkUtils.getNearestLink(this.xy2linksNetwork, fromCoord).getToNode().getId());
+		private double[] calcForCoord(Coord fromCoord) {
+			Node nearestNode = this.carNetwork.getNodes().get(NetworkUtils.getNearestLink(this.xy2linksNetwork, fromCoord).getToNode().getId());
 
-            // CAR
-            if (this.requiresCar) {
-                for (int i = 0; i < this.amLcpTree.length; i++) {
+			// CAR
+			if (this.requiresCar) {
+				for (int i = 0; i < this.amLcpTree.length; i++) {
 					this.amLcpTree[i].calculate(nearestNode.getId().index(), this.carAMDepTimes[i], null, null);
 				}
 
-                for (int i = 0; i < this.pmLcpTree.length; i++) {
+				for (int i = 0; i < this.pmLcpTree.length; i++) {
 					this.pmLcpTree[i].calculate(nearestNode.getId().index(), this.carPMDepTimes[i], null, null);
 				}
 			}
@@ -735,10 +735,10 @@ public class Accessibility {
 							amCount++;
 						}
 					}
-                    amTravelTime /= Math.max(1, amCount);
+					amTravelTime /= Math.max(1, amCount);
 
-                    int pmCount = 0;
-                    for (int i = 0; i < this.pmLcpTree.length; i++) {
+					int pmCount = 0;
+					for (int i = 0; i < this.pmLcpTree.length; i++) {
 						OptionalTime time = this.pmLcpTree[i].getTime(toNodeIndex);
 						if (time.isDefined()) {
 							pmTravelTime += time.seconds() - this.carPMDepTimes[i];
@@ -746,11 +746,11 @@ public class Accessibility {
 							pmCount++;
 						}
 					}
-                    hasCar = (amCount + pmCount) > 0;
-                    pmTravelTime /= Math.max(1, pmCount);
-                    distCar /= Math.max(1, amCount + pmCount);
+					hasCar = (amCount + pmCount) > 0;
+					pmTravelTime /= Math.max(1, pmCount);
+					distCar /= Math.max(1, amCount + pmCount);
 
-                    distCar /= 1000.0; // we use kilometers in the following formulas
+					distCar /= 1000.0; // we use kilometers in the following formulas
 				}
 
 				double ttCar = Math.max(amTravelTime, pmTravelTime) / 60; // we need minutes in the following formulas
@@ -837,21 +837,21 @@ public class Accessibility {
 									connTrainInVehTime += inVehicleTime;
 								}
 							}
-                        }
-                        ptDistance += share * connTotalDistance;
+						}
+						ptDistance += share * connTotalDistance;
 
-                        totalInVehTime += share * connTotalInVehTime;
-                        trainInVehTime += share * connTrainInVehTime;
-                    }
+						totalInVehTime += share * connTotalInVehTime;
+						trainInVehTime += share * connTrainInVehTime;
+					}
 
-                    float trainShareByTravelTime = totalInVehTime > 0 ? (float) (trainInVehTime / totalInVehTime) : 0;
+					float trainShareByTravelTime = totalInVehTime > 0 ? (float) (trainInVehTime / totalInVehTime) : 0;
 
-                    ttTrain = travelTime / 60 * trainShareByTravelTime; // in minutes
-                    ttBus = travelTime / 60 - ttTrain; // in minutes
-                    ptAccessTime = accessTime / 60; // in minutes
-                    ptEgressTime = egressTime / 60; // in minutes
-                    ptFrequency = 900 / avgAdaptionTime;
-                    ptTransfers = transferCount;
+					ttTrain = travelTime / 60 * trainShareByTravelTime; // in minutes
+					ttBus = travelTime / 60 - ttTrain; // in minutes
+					ptAccessTime = accessTime / 60; // in minutes
+					ptEgressTime = egressTime / 60; // in minutes
+					ptFrequency = 900 / avgAdaptionTime;
+					ptTransfers = transferCount;
 
 					ptDistance /= 1000.0; // we use kilometers in the following formulas
 				}
@@ -874,13 +874,15 @@ public class Accessibility {
 				double carEgressTime = toZone == null ? 0 : ((Number) toZone.getAttribute("ACCCAR")).doubleValue(); // in seconds
 				double carParkingCost = toZone == null ? 0 : ((Number) toZone.getAttribute("PCOST")).doubleValue();
 
-                for (int m = 0; m < this.modes.length; m++) {
-                    Modes modes = this.modes[m];
+				for (int m = 0; m < this.modes.length; m++) {
+					Modes modes = this.modes[m];
 
-                    double uBike = (modes.bike && hasShortestDistance) ? (-0.25 + (-0.150) * distShortest / 0.21667) : modes.missingModeUtility;
-                    double uCar = (modes.car && hasCar) ? (-0.40 + (-0.053) * ttCar + (-0.040) * distCar0015 + (-0.040) * distCar1550 + 0.015 * distCar5099 + 0.010 * distCar100x + (-0.047) * (carAccessTime + carEgressTime) / 60 + (-0.135) * carParkingCost * 2) : modes.missingModeUtility;
-                    double uPt = (modes.pt && hasPT) ? (+0.75 + (-0.042)*ttBus + (-0.0378)*ttTrain + (-0.015)*distPt0015 + (-0.015)*distPt1550 + 0.005*distPt5099 + 0.025*distPt100x + (-0.050)*(ptAccessTime+ptEgressTime) + (-0.014)*(60/ptFrequency) + (-0.227)*ptTransfers) : modes.missingModeUtility;
-                    double uWalk = (modes.walk && hasShortestDistance) ? (+2.30 + (-0.100) * distShortest / 0.078336) : modes.missingModeUtility;
+					double uBike = (modes.bike && hasShortestDistance) ? (-0.25 + (-0.150) * distShortest / 0.21667) : modes.missingModeUtility;
+					double uCar = (modes.car && hasCar) ? (-0.40 + (-0.053) * ttCar + (-0.040) * distCar0015 + (-0.040) * distCar1550 + 0.015 * distCar5099 + 0.010 * distCar100x
+							+ (-0.047) * (carAccessTime + carEgressTime) / 60 + (-0.135) * carParkingCost * 2) : modes.missingModeUtility;
+					double uPt = (modes.pt && hasPT) ? (+0.75 + (-0.042) * ttBus + (-0.0378) * ttTrain + (-0.015) * distPt0015 + (-0.015) * distPt1550 + 0.005 * distPt5099 + 0.025 * distPt100x
+							+ (-0.050) * (ptAccessTime + ptEgressTime) + (-0.014) * (60 / ptFrequency) + (-0.227) * ptTransfers) : modes.missingModeUtility;
+					double uWalk = (modes.walk && hasShortestDistance) ? (+2.30 + (-0.100) * distShortest / 0.078336) : modes.missingModeUtility;
 
 					double theta = modes.theta;
 					double destinationUtility = Math.exp(uCar / theta) + Math.exp(uPt / theta) + Math.exp(uWalk / theta) + Math.exp(uBike / theta);
@@ -1336,6 +1338,6 @@ public class Accessibility {
 			this.walk = walk;
 			this.bike = bike;
 		}
-    }
+	}
 
 }

@@ -1,96 +1,93 @@
 package ch.sbb.matsim.synpop.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.jvnet.jaxb2_commons.lang.StringUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
-import org.matsim.core.utils.collections.CollectionUtils;
-
-import java.util.*;
 
 public class AttributeMappingParameterSet extends ReflectiveConfigGroup {
-    private static final String TYPE = "AttributeMapping";
 
+	private static final String TYPE = "AttributeMapping";
 
-    private static final String PARAM_MODE = "table";
-    private static final String PARAM_COLUMN = "column";
-    private static final String PARAM_FALC_COLUMNS = "FalcColumns";
-    private static final String PARAM_MOBI_COLUMNS = "MobiColumns";
+	private static final String PARAM_MODE = "table";
+	private static final String PARAM_COLUMN = "column";
+	private static final String PARAM_FALC_COLUMNS = "FalcColumns";
+	private static final String PARAM_MOBI_COLUMNS = "MobiColumns";
 
+	private List<String> falcColumns = new ArrayList<>();
+	private List<String> mobiColumns = new ArrayList<>();
 
-    private List<String> falcColumns = new ArrayList<>();
-    private List<String> mobiColumns = new ArrayList<>();
+	private String table;
+	private String column;
 
-    private String table;
-    private String column;
+	public AttributeMappingParameterSet() {
+		super(TYPE);
+	}
 
+	public static String getType() {
+		return TYPE;
+	}
 
-    public AttributeMappingParameterSet() {
-        super(TYPE);
-    }
+	@StringGetter(PARAM_MODE)
+	public String getTable() {
+		return table;
+	}
 
-    @StringSetter(PARAM_MODE)
-    public void setTable(String table) {
-        this.table = table;
-    }
+	@StringSetter(PARAM_MODE)
+	public void setTable(String table) {
+		this.table = table;
+	}
 
-    @StringGetter(PARAM_MODE)
-    public String getTable() {
-        return table;
-    }
+	@StringGetter(PARAM_COLUMN)
+	public String getColumn() {
+		return column;
+	}
 
+	@StringSetter(PARAM_COLUMN)
+	public void setColumn(String table) {
+		this.column = table;
+	}
 
-    @StringSetter(PARAM_COLUMN)
-    public void setColumn(String table) {
-        this.column = table;
-    }
+	@StringGetter(PARAM_FALC_COLUMNS)
+	private String getFalcColumnsAsString() {
+		return StringUtils.join(this.falcColumns.listIterator(), ",");
+	}
 
-    @StringGetter(PARAM_COLUMN)
-    public String getColumn() {
-        return column;
-    }
+	public List<String> getFalcColumns() {
+		return this.falcColumns;
+	}
 
-    @StringGetter(PARAM_FALC_COLUMNS)
-    private String getFalcColumnsAsString() {
-        return StringUtils.join(this.falcColumns.listIterator(), ",");
-    }
+	@StringSetter(PARAM_FALC_COLUMNS)
+	private void setFalcColumns(String modes) {
+		setFalcColumns(Arrays.asList(modes.split(",")));
+	}
 
-    public List<String> getFalcColumns() {
-        return this.falcColumns;
-    }
+	public void setFalcColumns(List<String> modes) {
+		this.falcColumns.clear();
+		this.falcColumns.addAll(modes);
+	}
 
-    @StringSetter(PARAM_FALC_COLUMNS)
-    private void setFalcColumns(String modes) {
-        setFalcColumns(Arrays.asList(modes.split(",")));
-    }
+	@StringGetter(PARAM_MOBI_COLUMNS)
+	private String getMobiColumnsAsString() {
+		return StringUtils.join(this.falcColumns.listIterator(), ",");
+	}
 
-    public void setFalcColumns(List<String> modes) {
-        this.falcColumns.clear();
-        this.falcColumns.addAll(modes);
-    }
+	public List<String> getMobiColumns() {
+		return this.mobiColumns;
+	}
 
-    @StringGetter(PARAM_MOBI_COLUMNS)
-    private String getMobiColumnsAsString() {
-        return StringUtils.join(this.falcColumns.listIterator(), ",");
-    }
+	@StringSetter(PARAM_MOBI_COLUMNS)
+	private void setMobiColumns(String modes) {
+		setMobiColumns(Arrays.asList(modes.split(",")));
+	}
 
-    public List<String> getMobiColumns() {
-        return this.mobiColumns;
-    }
+	public void setMobiColumns(List<String> modes) {
+		this.mobiColumns.clear();
+		this.mobiColumns.addAll(modes);
+	}
 
-    @StringSetter(PARAM_MOBI_COLUMNS)
-    private void setMobiColumns(String modes) {
-        setMobiColumns(Arrays.asList(modes.split(",")));
-    }
-
-    public void setMobiColumns(List<String> modes) {
-        this.mobiColumns.clear();
-        this.mobiColumns.addAll(modes);
-    }
-
-    public String getKey(){
-        return this.table+"_"+this.column;
-    }
-
-    public static String getType() {
-        return TYPE;
-    }
+	public String getKey() {
+		return this.table + "_" + this.column;
+	}
 }

@@ -39,58 +39,57 @@ import org.matsim.facilities.Facility;
 
 public class RunTravelTimeValidation {
 
-    private static final Logger log = Logger.getLogger(RunTravelTimeValidation.class);
+	private static final Logger log = Logger.getLogger(RunTravelTimeValidation.class);
+	private final double startTime;
+	private Network network;
+	private NetworkRoutingModule router;
 
-    private Network network;
-    private final double startTime;
-    private NetworkRoutingModule router;
+	//use this method for free flow travel time evaluation
+	public RunTravelTimeValidation(Network network, double startTime) {
+		this.network = network;
+		this.startTime = startTime;
 
-    //use this method for free flow travel time evaluation
-    public RunTravelTimeValidation(Network network, double startTime) {
-        this.network = network;
-        this.startTime = startTime;
+		DijkstraFactory factory = new DijkstraFactory();
+		TravelTime tt = new FreeSpeedTravelTime();
+		TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
-        DijkstraFactory factory = new DijkstraFactory();
-        TravelTime tt = new FreeSpeedTravelTime();
-        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
-
-        LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
-        this.router = new NetworkRoutingModule(
-				SBBModes.CAR,
-				PopulationUtils.getFactory(),
-				network,
-				routeAlgo);
-    }
-
-    //use this method for travel time evaluation in congested network
-    public RunTravelTimeValidation(Network network, String configPath, String eventsFilename, double startTime) {
-        this.network = network;
-        this.startTime = startTime;
-
-        Config config = ConfigUtils.loadConfig(configPath);
-
-        DijkstraFactory factory = new DijkstraFactory();
-
-        TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(network);
-        builder.configure(config.travelTimeCalculator());
-        TravelTimeCalculator ttc = builder.build();
-
-        EventsManager events = EventsUtils.createEventsManager();
-        events.addHandler(ttc);
-        new MatsimEventsReader(events).readFile(eventsFilename);
-        TravelTime tt = ttc.getLinkTravelTimes();
-
-        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
-
-        LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
+		LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
 		this.router = new NetworkRoutingModule(
 				SBBModes.CAR,
 				PopulationUtils.getFactory(),
 				network,
 				routeAlgo);
-    }
+	}
 
-    public RunTravelTimeValidation(Network network, TravelTime tt, double startTime) {
+	//use this method for travel time evaluation in congested network
+	public RunTravelTimeValidation(Network network, String configPath, String eventsFilename, double startTime) {
+		this.network = network;
+		this.startTime = startTime;
+
+		Config config = ConfigUtils.loadConfig(configPath);
+
+		DijkstraFactory factory = new DijkstraFactory();
+
+		TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(network);
+		builder.configure(config.travelTimeCalculator());
+		TravelTimeCalculator ttc = builder.build();
+
+		EventsManager events = EventsUtils.createEventsManager();
+		events.addHandler(ttc);
+		new MatsimEventsReader(events).readFile(eventsFilename);
+		TravelTime tt = ttc.getLinkTravelTimes();
+
+		TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
+
+		LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
+		this.router = new NetworkRoutingModule(
+				SBBModes.CAR,
+				PopulationUtils.getFactory(),
+				network,
+				routeAlgo);
+	}
+
+	public RunTravelTimeValidation(Network network, TravelTime tt, double startTime) {
 		this.network = network;
 		this.startTime = startTime;
 		DijkstraFactory factory = new DijkstraFactory();
@@ -155,30 +154,30 @@ public class RunTravelTimeValidation {
 						writer.set("Time_MATSim", Double.toString(leg.getRoute().getTravelTime().seconds()));
 						writer.writeRow();
 					}
-                }
-            } catch (IOException e) {
-                log.warn(e);
-            }
-        } catch (IOException e) {
-            log.warn(e);
-        }
-    }
+				}
+			} catch (IOException e) {
+				log.warn(e);
+			}
+		} catch (IOException e) {
+			log.warn(e);
+		}
+	}
 
-    private Coord transformCoord(Coord coord) {
-        return new WGS84toCH1903LV03Plus().transform(coord);
-    }
+	private Coord transformCoord(Coord coord) {
+		return new WGS84toCH1903LV03Plus().transform(coord);
+	}
 
-    public Leg fetch(float fromX, float fromY, float toX, float toY) {
+	public Leg fetch(float fromX, float fromY, float toX, float toY) {
 
-        Activity fromAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(fromX, fromY)));
-        Facility fromFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, fromAct.getCoord()));
+		Activity fromAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(fromX, fromY)));
+		Facility fromFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, fromAct.getCoord()));
 
-        Activity toAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(toX, toY)));
-        Facility toFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, toAct.getCoord()));
+		Activity toAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(toX, toY)));
+		Facility toFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, toAct.getCoord()));
 
-        List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility,
-                this.startTime * 60 * 60, null);
-        Leg leg = (Leg) pes.get(0);
-        return leg;
-    }
+		List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility,
+				this.startTime * 60 * 60, null);
+		Leg leg = (Leg) pes.get(0);
+		return leg;
+	}
 }

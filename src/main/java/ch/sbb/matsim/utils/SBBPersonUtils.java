@@ -11,39 +11,39 @@ import org.matsim.facilities.ActivityFacility;
 
 public class SBBPersonUtils {
 
-    private final static Logger log = Logger.getLogger(SBBPersonUtils.class);
+	private final static Logger log = Logger.getLogger(SBBPersonUtils.class);
 
-    public static Activity getHomeActivity(Person person)   {
-        Plan plan = person.getSelectedPlan();
-        if(plan == null)   {
-            log.warn("person " + person.getId().toString() + " has no selected plan!");
-            return null;
-        }
+	public static Activity getHomeActivity(Person person) {
+		Plan plan = person.getSelectedPlan();
+		if (plan == null) {
+			log.warn("person " + person.getId().toString() + " has no selected plan!");
+			return null;
+		}
 
-        if(plan.getPlanElements().isEmpty())   {
-            log.warn("selected plan of person " + person.getId().toString() + " has no plan elements!");
-            return null;
-        }
-        PlanElement firstPlanElement = plan.getPlanElements().get(0);
+		if (plan.getPlanElements().isEmpty()) {
+			log.warn("selected plan of person " + person.getId().toString() + " has no plan elements!");
+			return null;
+		}
+		PlanElement firstPlanElement = plan.getPlanElements().get(0);
 
-        if (firstPlanElement instanceof Activity) {
-            String type = ((Activity) firstPlanElement).getType();
+		if (firstPlanElement instanceof Activity) {
+			String type = ((Activity) firstPlanElement).getType();
 
-            if (!type.equals(SBBActivities.home)) {
-                log.warn("first plan element of person " + person.getId().toString() + " is not of type home");
-                return null;
-            } else {
-                return (Activity) firstPlanElement;
-            }
-        } else {
-            log.warn("first planelement of person " + person.getId().toString() + " is not an activity. Something is wrong" +
-                    "with this plan");
-            return null;
-        }
-    }
+			if (!type.equals(SBBActivities.home)) {
+				log.warn("first plan element of person " + person.getId().toString() + " is not of type home");
+				return null;
+			} else {
+				return (Activity) firstPlanElement;
+			}
+		} else {
+			log.warn("first planelement of person " + person.getId().toString() + " is not an activity. Something is wrong" +
+					"with this plan");
+			return null;
+		}
+	}
 
-    public static ActivityFacility getHomeFacility(Person person, ActivityFacilities facilities)   {
-        Activity homeActivity = getHomeActivity(person);
-        return facilities.getFacilities().get(homeActivity.getFacilityId());
-    }
+	public static ActivityFacility getHomeFacility(Person person, ActivityFacilities facilities) {
+		Activity homeActivity = getHomeActivity(person);
+		return facilities.getFacilities().get(homeActivity.getFacilityId());
+	}
 }

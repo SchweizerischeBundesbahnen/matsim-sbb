@@ -23,69 +23,93 @@ import org.matsim.households.HouseholdsReaderV10;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 public class PopulationToCSV {
-    private final static Logger log = Logger.getLogger(PopulationToCSV.class);
 
-    private final static String[] PLANELEMENTS_COLUMNS = new String[]{"person_id", "plan_id", "planelement_id", "selected", "plan_score", "start_time", "end_time", "type", "mode", "activity_type", "x", "y"};
+	private final static Logger log = Logger.getLogger(PopulationToCSV.class);
 
-    private final Scenario scenario;
+	private final static String[] PLANELEMENTS_COLUMNS = new String[]{"person_id", "plan_id", "planelement_id", "selected", "plan_score", "start_time", "end_time", "type", "mode", "activity_type",
+			"x", "y"};
 
-    public PopulationToCSV(Scenario scenario) {
-        this.scenario = scenario;
-    }
+	private final Scenario scenario;
 
-    public void write(String filename) {
-        this.write(filename + "agents.csv.gz", filename + "plan_elements.csv.gz");
-    }
+	public PopulationToCSV(Scenario scenario) {
+		this.scenario = scenario;
+	}
 
-    public void write(String agentsFilename, String planElementsFilename) {
-        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(this.scenario.getConfig(), PostProcessingConfigGroup.class);
-        Population population = this.scenario.getPopulation();
-        String[] attributes = ppConfig.getPersonAttributes().split(",");
+	public static void main(final String[] args) throws IOException {
+		Config config = ConfigUtils.loadConfig(args[0], new PostProcessingConfigGroup());
+		String populationFile = args[1];
 
-        if(ppConfig.getWriteAgentsCSV()) {
-            try (CSVWriter agentsWriter = new CSVWriter("", getColumns(attributes), agentsFilename)) {
-                for (Person person : population.getPersons().values()) {
-                    agentsWriter.set("person_id", person.getId().toString());
-                    for (String attribute_name : attributes) {
-                        Object attribute;
-                        attribute = person.getAttributes().getAttribute(attribute_name);
+		Scenario scenario = ScenarioUtils.createScenario(config);
+		config.plans().setInputFile(populationFile);
 
-                        if (attribute != null)
-                            agentsWriter.set(attribute_name, attribute.toString());
-                    }
-                    agentsWriter.writeRow();
-                }
-            } catch (IOException e) {
-                log.error("Could not write agents.csv.gz " + e.getMessage(), e);
-            }
-        }
+		new PopulationReader(scenario).readFile(config.plans().getInputFile());
 
-        if(ppConfig.getWritePlanElementsCSV())  {
-            try(CSVWriter planelementsWriter = new CSVWriter("", PLANELEMENTS_COLUMNS, planElementsFilename)) {
-                for (Person person : population.getPersons().values()) {
-                    int j = 0;
-                    for (Plan plan : person.getPlans()) {
-                        j += 1;
+		if (config.households().getInputFile() != null) {
+			new HouseholdsReaderV10(scenario.getHouseholds()).readFile(config.households().getInputFile());
+		}
+		if (config.households().getInputHouseholdAttributesFile() != null) {
+			new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes()).readFile(config.households().getInputHouseholdAttributesFile());
+		}
 
-                        String score = "";
-                        if (plan.getScore() != null)
-                            score = plan.getScore().toString();
+		new PopulationToCSV(scenario).write("agents.csv.gz", "planelements.csv.gz");
+	}
 
-                        String selected = "no";
-                        if (person.getSelectedPlan().equals(plan))
-                            selected = "yes";
+	public void write(String filename) {
+		this.write(filename + "agents.csv.gz", filename + "plan_elements.csv.gz");
+	}
 
-                        int i = 0;
-                        for (PlanElement planelement : plan.getPlanElements()) {
-                            i += 1;
+	public void write(String agentsFilename, String planElementsFilename) {
+		PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(this.scenario.getConfig(), PostProcessingConfigGroup.class);
+		Population population = this.scenario.getPopulation();
+		String[] attributes = ppConfig.getPersonAttributes().split(",");
 
-                            planelementsWriter.set("person_id", person.getId().toString());
-                            planelementsWriter.set("plan_id", Integer.toString(j));
-                            planelementsWriter.set("selected", selected);
-                            planelementsWriter.set("plan_score", score);
-                            planelementsWriter.set("planelement_id", Integer.toString(i));
+		if (ppConfig.getWriteAgentsCSV()) {
+			try (CSVWriter agentsWriter = new CSVWriter("", getColumns(attributes), agentsFilename)) {
+				for (Person person : population.getPersons().values()) {
+					agentsWriter.set("person_id", person.getId().toString());
+					for (String attribute_name : attributes) {
+						Object attribute;
+						attribute = person.getAttributes().getAttribute(attribute_name);
 
-                            if (planelement instanceof Leg) {
+						if (attribute != null) {
+							agentsWriter.set(attribute_name, attribute.toString());
+						}
+					}
+					agentsWriter.writeRow();
+				}
+			} catch (IOException e) {
+				log.error("Could not write agents.csv.gz " + e.getMessage(), e);
+			}
+		}
+
+		if (ppConfig.getWritePlanElementsCSV()) {
+			try (CSVWriter planelementsWriter = new CSVWriter("", PLANELEMENTS_COLUMNS, planElementsFilename)) {
+				for (Person person : population.getPersons().values()) {
+					int j = 0;
+					for (Plan plan : person.getPlans()) {
+						j += 1;
+
+						String score = "";
+						if (plan.getScore() != null) {
+							score = plan.getScore().toString();
+						}
+
+						String selected = "no";
+						if (person.getSelectedPlan().equals(plan)) {
+							selected = "yes";
+						}
+
+						int i = 0;
+						for (PlanElement planelement : plan.getPlanElements()) {
+							i += 1;
+
+							planelementsWriter.set("person_id", person.getId().toString());
+							planelementsWriter.set("plan_id", Integer.toString(j));
+							planelementsWriter.set("selected", selected);
+							planelementsWriter.set("plan_score", score);
+							planelementsWriter.set("planelement_id", Integer.toString(i));
+
+							if (planelement instanceof Leg) {
 								Leg leg = ((Leg) planelement);
 								planelementsWriter.set("mode", leg.getMode());
 								planelementsWriter.set("start_time", Double.toString(leg.getDepartureTime().seconds()));
@@ -93,7 +117,7 @@ public class PopulationToCSV {
 								planelementsWriter.set("type", "leg");
 
 							}
-                            if (planelement instanceof Activity) {
+							if (planelement instanceof Activity) {
 								Activity activity = ((Activity) planelement);
 								planelementsWriter.set("activity_type", activity.getType());
 								planelementsWriter.set("start_time", Double.toString(activity.getStartTime().seconds()));
@@ -103,40 +127,21 @@ public class PopulationToCSV {
 								planelementsWriter.set("y", Double.toString(activity.getCoord().getY()));
 							}
 
-                            planelementsWriter.writeRow();
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                log.error("Could not write agents.csv.gz " + e.getMessage(), e);
-            }
-        }
-    }
+							planelementsWriter.writeRow();
+						}
+					}
+				}
+			} catch (IOException e) {
+				log.error("Could not write agents.csv.gz " + e.getMessage(), e);
+			}
+		}
+	}
 
-    private String[] getColumns(String[] attributes) {
-        String[] columns = new String[attributes.length + 1];
-        columns[0] = "person_id";
-        System.arraycopy(attributes, 0, columns, 1, attributes.length);
-        return columns;
-    }
-
-    public static void main(final String[] args) throws IOException {
-        Config config = ConfigUtils.loadConfig(args[0], new PostProcessingConfigGroup());
-        String populationFile = args[1];
-
-        Scenario scenario = ScenarioUtils.createScenario(config);
-        config.plans().setInputFile(populationFile);
-
-        new PopulationReader(scenario).readFile(config.plans().getInputFile());
-
-        if (config.households().getInputFile() != null) {
-            new HouseholdsReaderV10(scenario.getHouseholds()).readFile(config.households().getInputFile());
-        }
-        if (config.households().getInputHouseholdAttributesFile() != null) {
-            new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes()).readFile(config.households().getInputHouseholdAttributesFile());
-        }
-
-        new PopulationToCSV(scenario).write("agents.csv.gz", "planelements.csv.gz");
-    }
+	private String[] getColumns(String[] attributes) {
+		String[] columns = new String[attributes.length + 1];
+		columns[0] = "person_id";
+		System.arraycopy(attributes, 0, columns, 1, attributes.length);
+		return columns;
+	}
 
 }

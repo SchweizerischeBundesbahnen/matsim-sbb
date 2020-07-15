@@ -16,6 +16,7 @@
  *   See also COPYING, LICENSE and WARRANTY file                           *
  *                                                                         *
  * *********************************************************************** */
+
 package ch.sbb.matsim.utils;
 
 import org.apache.log4j.Logger;
@@ -32,64 +33,62 @@ import org.matsim.vehicles.MatsimVehicleReader;
 
 /**
  * @author jlie
- *         <p>
- *         Based on package org.matsim.contrib.travelsummary.events2traveldiaries.RunEventsToTravelDiearies.java
- *         Not properly cleaned!
- *         </p>
+ * 		<p>
+ * 		Based on package org.matsim.contrib.travelsummary.events2traveldiaries.RunEventsToTravelDiearies.java Not properly cleaned!
+ * 		</p>
  */
 public class RunEventsToEventsPerPersonTable {
 
-    private static final Logger log = Logger.getLogger(RunEventsToEventsPerPersonTable.class);
+	private static final Logger log = Logger.getLogger(RunEventsToEventsPerPersonTable.class);
 
-    public static void main(String[] args) {
+	public static void main(String[] args) {
 
-        String eventsFileName = null;
-        Config config = null;
-        String outputDirectory = null;
-        String personIdString = null;
-        printHelp();
-        try {
-            config = ConfigUtils.loadConfig(args[0]);
-            outputDirectory = config.controler().getOutputDirectory();
-            eventsFileName = args[1];
-            if (args.length == 3) {
-                personIdString = args[2];
-            }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.exit(1);
-        }
-        Scenario scenario = ScenarioUtils.createScenario(config);
+		String eventsFileName = null;
+		Config config = null;
+		String outputDirectory = null;
+		String personIdString = null;
+		printHelp();
+		try {
+			config = ConfigUtils.loadConfig(args[0]);
+			outputDirectory = config.controler().getOutputDirectory();
+			eventsFileName = args[1];
+			if (args.length == 3) {
+				personIdString = args[2];
+			}
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.exit(1);
+		}
+		Scenario scenario = ScenarioUtils.createScenario(config);
 
-        new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
+		new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
 
-        if (config.transit().isUseTransit() ) {
-            new TransitScheduleReader(scenario)
-                    .readFile(config.transit().getTransitScheduleFile());
-            new MatsimVehicleReader(scenario.getTransitVehicles())
-                    .readFile(config.transit().getVehiclesFile());
-        }
-        EventsToEventsPerPersonTable handler;
-        if (personIdString == null) {
-            handler = new EventsToEventsPerPersonTable(scenario, outputDirectory);
-        }
-        else {
-            handler = new EventsToEventsPerPersonTable(scenario, outputDirectory);
-            handler.setPersonIdString(personIdString);
-        }
+		if (config.transit().isUseTransit()) {
+			new TransitScheduleReader(scenario)
+					.readFile(config.transit().getTransitScheduleFile());
+			new MatsimVehicleReader(scenario.getTransitVehicles())
+					.readFile(config.transit().getVehiclesFile());
+		}
+		EventsToEventsPerPersonTable handler;
+		if (personIdString == null) {
+			handler = new EventsToEventsPerPersonTable(scenario, outputDirectory);
+		} else {
+			handler = new EventsToEventsPerPersonTable(scenario, outputDirectory);
+			handler.setPersonIdString(personIdString);
+		}
 
-        EventsManager events = new EventsManagerImpl();
+		EventsManager events = new EventsManagerImpl();
 
-        events.addHandler(handler);
+		events.addHandler(handler);
 
-        new MatsimEventsReader(events).readFile(eventsFileName);
+		new MatsimEventsReader(events).readFile(eventsFileName);
 
-        handler.writeResults(true);
+		handler.writeResults(true);
 
-        log.info("Number of stuck vehicles/passengers: " + handler.getStuck());
-    }
+		log.info("Number of stuck vehicles/passengers: " + handler.getStuck());
+	}
 
-    private static void printHelp() {
-        log.info("Just for internal use at SBB\n");
-    }
+	private static void printHelp() {
+		log.info("Just for internal use at SBB\n");
+	}
 }
 

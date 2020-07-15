@@ -13,29 +13,27 @@ import org.matsim.core.population.algorithms.PlanAlgorithm;
 import org.matsim.core.utils.misc.OptionalTime;
 
 /**
- * SBB version of the default TripPlanMutateTimeAllocation.
- * It strongly relies on the person attribute initialActivityEndTimes and works with this attribute only.
- * In contrast the original mutation strategy, the SBBTripPlanMutateTimeAllocation allows time allocation from initial
- * activity end times only.
- * @author PM / SBB
+ * SBB version of the default TripPlanMutateTimeAllocation. It strongly relies on the person attribute initialActivityEndTimes and works with this attribute only. In contrast the original mutation
+ * strategy, the SBBTripPlanMutateTimeAllocation allows time allocation from initial activity end times only.
  *
+ * @author PM / SBB
  */
 public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 
-    private final double mutationRange;
-    private final Random random;
+	private final double mutationRange;
+	private final Random random;
 
-    public SBBTripPlanMutateTimeAllocation(final double mutationRange, final Random random) {
-        this.mutationRange = mutationRange;
-        this.random = random;
-    }
+	public SBBTripPlanMutateTimeAllocation(final double mutationRange, final Random random) {
+		this.mutationRange = mutationRange;
+		this.random = random;
+	}
 
-    @Override
-    public void run(final Plan plan) {
-        mutatePlan(plan);
-    }
+	@Override
+	public void run(final Plan plan) {
+		mutatePlan(plan);
+	}
 
-    private void mutatePlan(final Plan plan) {
+	private void mutatePlan(final Plan plan) {
 		List<OptionalTime> initialEndTimes = Stream
 				.of(((String) plan.getPerson().getAttributes().getAttribute(Variables.INIT_END_TIMES)).split("_"))
 				.map(s -> s.equals(Variables.NO_INIT_END_TIME) ? OptionalTime.undefined() : OptionalTime.defined(Double.parseDouble(s)))
@@ -69,11 +67,11 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 					now += act.getEndTime().seconds();
 					i++;
 				}
-                // handle middle activities
-                else if (act != lastAct) {
-                    // assume that there will be no delay between arrival time and activity start time
-                    act.setStartTime(now);
-                    if (!act.getType().endsWith("interaction")) {
+				// handle middle activities
+				else if (act != lastAct) {
+					// assume that there will be no delay between arrival time and activity start time
+					act.setStartTime(now);
+					if (!act.getType().endsWith("interaction")) {
 						if (act.getEndTime().isUndefined()) {
 							throw new IllegalStateException("Can not mutate activity end time because it is not set for Person: " + plan.getPerson().getId());
 						}
@@ -86,7 +84,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 						now = newEndTime;
 						i++;
 					}
-                }
+				}
 
 				// handle last activity
 				else {

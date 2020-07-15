@@ -32,15 +32,15 @@ import org.matsim.pt.PtConstants;
  */
 public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumScoringFunction.LegScoring, org.matsim.core.scoring.SumScoringFunction.ArbitraryEventScoring {
 
-	protected double score;
-
+	private static int ccc = 0;
 	/** The parameters used for scoring */
 	protected final ScoringParameters params;
+	private final Set<String> ptModes;
+	protected double score;
 	protected Network network;
 	private boolean nextStartPtLegIsFirstOfTrip = true;
 	private boolean currentLegIsPtLeg = false;
 	private OptionalTime lastActivityEndTime = OptionalTime.undefined();
-	private final Set<String> ptModes;
 
 	public SBBCharyparNagelLegScoring(final ScoringParameters params, Network network, Set<String> ptModes) {
 		this.params = params;
@@ -60,14 +60,12 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		return this.score;
 	}
 
-	private static int ccc=0 ;
-	
 	protected double calcLegScore(final double departureTime, final double arrivalTime, final Leg leg) {
 		double tmpScore = 0.0;
 		double travelTime = arrivalTime - departureTime; // travel time in seconds
 		ModeUtilityParameters modeParams = this.params.modeParams.get(leg.getMode());
 		if (modeParams == null) {
-            if (leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) || leg.getMode().equals(SBBModes.ACCESS_EGRESS_WALK)) {
+			if (leg.getMode().equals(SBBModes.PT_FALLBACK_MODE) || leg.getMode().equals(SBBModes.ACCESS_EGRESS_WALK)) {
 				modeParams = this.params.modeParams.get(SBBModes.WALK_FOR_ANALYSIS);
 			} else {
 				//				modeParams = this.params.modeParams.get(TransportMode.other);
@@ -79,14 +77,14 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 				|| modeParams.monetaryDistanceCostRate != 0.0) {
 			Route route = leg.getRoute();
 			double dist = route.getDistance(); // distance in meters
-			if ( Double.isNaN(dist) ) {
-				if ( ccc<10 ) {
-					ccc++ ;
+			if (Double.isNaN(dist)) {
+				if (ccc < 10) {
+					ccc++;
 					Logger.getLogger(this.getClass()).warn("distance is NaN. Will make score of this plan NaN. Possible reason: Simulation does not report " +
 							"a distance for this trip. Possible reason for that: mode is teleported and router does not " +
-							"write distance into plan.  Needs to be fixed or these plans will die out.") ;
-					if ( ccc==10 ) {
-						Logger.getLogger(this.getClass()).warn(Gbl.FUTURE_SUPPRESSED) ;
+							"write distance into plan.  Needs to be fixed or these plans will die out.");
+					if (ccc == 10) {
+						Logger.getLogger(this.getClass()).warn(Gbl.FUTURE_SUPPRESSED);
 					}
 				}
 			}
@@ -98,7 +96,7 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		// (yy NOTE: the constant is added for _every_ pt leg.  This is not how such models are estimated.  kai, nov'12)
 		return tmpScore;
 	}
-	
+
 	@Override
 	public void handleEvent(Event event) {
 		if (event instanceof ActivityEndEvent) {

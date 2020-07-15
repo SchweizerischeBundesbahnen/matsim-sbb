@@ -18,12 +18,11 @@ import org.matsim.testcases.MatsimTestUtils;
 
 public class SBBScoringParametersForPersonTest {
 
-    @Rule public MatsimTestUtils utils = new MatsimTestUtils();
+	private static final Logger log = Logger.getLogger(SBBScoringParametersForPersonTest.class);
+	@Rule public MatsimTestUtils utils = new MatsimTestUtils();
 
-    private static final Logger log = Logger.getLogger(SBBScoringParametersForPersonTest.class);
-
-    @Test
-    public void testDefaultScoringParams() {
+	@Test
+	public void testDefaultScoringParams() {
 		ScoringFixture f = new ScoringFixture();
 
 		PlanCalcScoreConfigGroup.ModeParams defaultModeParams = f.config.planCalcScore().getModes().get(SBBModes.PT);
@@ -40,8 +39,8 @@ public class SBBScoringParametersForPersonTest {
 		assertEquals(-0.000300, params.modeParams.get(SBBModes.PT).monetaryDistanceCostRate, 0.0);
 	}
 
-    @Test
-    public void testCustomScoringParamsOneAttribute() {
+	@Test
+	public void testCustomScoringParamsOneAttribute() {
 		ScoringFixture f = new ScoringFixture();
 		f.addCustomScoringParams();
 
@@ -60,8 +59,8 @@ public class SBBScoringParametersForPersonTest {
 		assertEquals(0.0, params.modeParams.get(SBBModes.PT).monetaryDistanceCostRate, 0.0);
 	}
 
-    @Test
-    public void testCustomScoringParamsTwoAttributes() {
+	@Test
+	public void testCustomScoringParamsTwoAttributes() {
 		ScoringFixture f = new ScoringFixture();
 		f.addCustomScoringParams();
 
@@ -87,8 +86,8 @@ public class SBBScoringParametersForPersonTest {
 		assertEquals(0.0, params.modeParams.get(SBBModes.PT).monetaryDistanceCostRate, 0.0);
 	}
 
-    @Test
-    public void testCustomScoringParamsThreeAttributes() {
+	@Test
+	public void testCustomScoringParamsThreeAttributes() {
 		ScoringFixture f = new ScoringFixture();
 		f.addCustomScoringParams();
 

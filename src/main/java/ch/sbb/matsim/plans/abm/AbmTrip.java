@@ -7,20 +7,17 @@ import org.matsim.facilities.ActivityFacility;
 
 public class AbmTrip {
 
-    private String oAct;
-    private String dAct;
-    private String mode;
-    private int deptime;
-    private int arrtime;
+	private final Coord coordOrig;
+	private final Coord coordDest;
+	private String oAct;
+	private String dAct;
+	private String mode;
+	private int deptime;
+	private int arrtime;
+	private Id<ActivityFacility> origFacilityId;
+	private Id<ActivityFacility> destFacilityId;
 
-    private Id<ActivityFacility> origFacilityId;
-    private Id<ActivityFacility> destFacilityId;
-
-    private final Coord coordOrig;
-    private final Coord coordDest;
-
-
-    public AbmTrip(Id<ActivityFacility> origFacilityId, Id<ActivityFacility> destFacilityId, String oAct, String dAct, String mode, int deptime, int arrtime, Coord coordOrig, Coord coordDest) {
+	public AbmTrip(Id<ActivityFacility> origFacilityId, Id<ActivityFacility> destFacilityId, String oAct, String dAct, String mode, int deptime, int arrtime, Coord coordOrig, Coord coordDest) {
 		this.oAct = oAct;
 		this.dAct = dAct;
 		this.mode = mode.equals(SBBModes.WALK_FOR_ANALYSIS) ? SBBModes.WALK_MAIN_MAINMODE : mode;
@@ -36,42 +33,40 @@ public class AbmTrip {
 
 	}
 
+	public Coord getCoordOrig() {
+		return coordOrig;
+	}
 
-    public Coord getCoordOrig() {
-        return coordOrig;
-    }
+	public Coord getCoordDest() {
+		return coordDest;
+	}
 
-    public Coord getCoordDest() {
-        return coordDest;
-    }
+	public Id<ActivityFacility> getOrigFacilityId() {
+		return origFacilityId;
+	}
 
-    public Id<ActivityFacility> getOrigFacilityId() {
-        return origFacilityId;
-    }
+	public Id<ActivityFacility> getDestFacilityId() {
+		return destFacilityId;
+	}
 
-    public Id<ActivityFacility> getDestFacilityId() {
-        return destFacilityId;
-    }
+	public String getMode() {
+		return this.mode;
+	}
 
-    public String getMode() {
-        return this.mode;
-    }
+	public int getArrtime() {
+		return arrtime;
+	}
 
-    public int getArrtime() {
-        return arrtime;
-    }
+	public int getDepTime() {
+		return this.deptime;
+	}
 
+	public String getDestAct() {
+		return this.dAct;
+	}
 
-    public int getDepTime() {
-        return this.deptime;
-    }
-
-    public String getDestAct() {
-        return this.dAct;
-    }
-
-    public String getoAct() {
-        return oAct;
-    }
+	public String getoAct() {
+		return oAct;
+	}
 
 }

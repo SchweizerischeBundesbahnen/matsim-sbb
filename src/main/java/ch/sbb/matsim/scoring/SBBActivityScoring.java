@@ -11,40 +11,40 @@ import org.matsim.pt.PtConstants;
  */
 public class SBBActivityScoring implements SumScoringFunction.ActivityScoring {
 
-    private final CharyparNagelActivityScoring delegate;
+	private final CharyparNagelActivityScoring delegate;
 
-    public SBBActivityScoring(ScoringParameters params) {
-        this.delegate = new CharyparNagelActivityScoring(params);
-    }
+	public SBBActivityScoring(ScoringParameters params) {
+		this.delegate = new CharyparNagelActivityScoring(params);
+	}
 
-    @Override
-    public void handleFirstActivity(Activity act) {
-        if (!PtConstants.TRANSIT_ACTIVITY_TYPE.equals(act.getType())) {
-            this.delegate.handleFirstActivity(act);
-        }
-    }
+	@Override
+	public void handleFirstActivity(Activity act) {
+		if (!PtConstants.TRANSIT_ACTIVITY_TYPE.equals(act.getType())) {
+			this.delegate.handleFirstActivity(act);
+		}
+	}
 
-    @Override
-    public void handleActivity(Activity act) {
-        if (!PtConstants.TRANSIT_ACTIVITY_TYPE.equals(act.getType())) {
-            this.delegate.handleActivity(act);
-        }
-    }
+	@Override
+	public void handleActivity(Activity act) {
+		if (!PtConstants.TRANSIT_ACTIVITY_TYPE.equals(act.getType())) {
+			this.delegate.handleActivity(act);
+		}
+	}
 
-    @Override
-    public void handleLastActivity(Activity act) {
-        if (!PtConstants.TRANSIT_ACTIVITY_TYPE.equals(act.getType())) {
-            this.delegate.handleLastActivity(act);
-        }
-    }
+	@Override
+	public void handleLastActivity(Activity act) {
+		if (!PtConstants.TRANSIT_ACTIVITY_TYPE.equals(act.getType())) {
+			this.delegate.handleLastActivity(act);
+		}
+	}
 
-    @Override
-    public void finish() {
-        this.delegate.finish();
-    }
+	@Override
+	public void finish() {
+		this.delegate.finish();
+	}
 
-    @Override
-    public double getScore() {
-        return this.delegate.getScore();
-    }
+	@Override
+	public double getScore() {
+		return this.delegate.getScore();
+	}
 }

@@ -1,10 +1,12 @@
 package ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.index.SpatialIndex;
-import org.locationtech.jts.index.quadtree.Quadtree;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 import org.apache.log4j.Logger;
+import org.locationtech.jts.geom.Geometry;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -18,102 +20,93 @@ import org.matsim.core.utils.gis.ShapeFileReader;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.opengis.feature.simple.SimpleFeature;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-
-
 public class ScreenLinesAnalyser {
-    private final static Logger log = Logger.getLogger(ScreenLinesAnalyser.class);
 
-    Network network;
+	private final static Logger log = Logger.getLogger(ScreenLinesAnalyser.class);
 
-    public ArrayList<ScreenLine> getScreenlines() {
-        return screenlines;
-    }
+	Network network;
+	ArrayList<ScreenLine> screenlines;
 
-    ArrayList<ScreenLine> screenlines;
+	public ScreenLinesAnalyser(Scenario scenario, String shapefile) {
+		this.network = scenario.getNetwork();
+		this.screenlines = this.readShapeFile(shapefile);
+	}
 
-    public ScreenLinesAnalyser(Scenario scenario, String shapefile) {
-        this.network = scenario.getNetwork();
-        this.screenlines = this.readShapeFile(shapefile);
-    }
+	public static void main(String[] args) {
+		Config config = ConfigUtils.createConfig();
+		String network = "D:\\tmp\\miv\\network.xml.gz";
+		String events = "D:\\tmp\\miv\\CH.10pct.2015.output_events.xml.gz";
+		String shapefile = "D:\\tmp\\miv\\screenlines\\screenlines.shp";
 
+		config.network().setInputFile(network);
+		Scenario scenario = ScenarioUtils.loadScenario(config);
 
-    public ArrayList<ScreenLine> readShapeFile(String shapefile) {
-        ArrayList<ScreenLine> screenlines = new ArrayList<>();
+		EventsManager eventsManager = new EventsManagerImpl();
 
-        ShapeFileReader shapeFileReader = new ShapeFileReader();
-        shapeFileReader.readFileAndInitialize(shapefile);
+		scenario.getNetwork();
 
-        Collection<SimpleFeature> features = shapeFileReader.getFeatureSet();
-        for (SimpleFeature feature : features) {
-            Geometry geometry = (Geometry) feature.getDefaultGeometry();
-            ScreenLine screenLine = new ScreenLine(geometry);
-            screenLine.findLinks(this.network);
-            screenlines.add(screenLine);
-        }
-        return screenlines;
-    }
+		ScreenLinesAnalyser sla = new ScreenLinesAnalyser(scenario, shapefile);
 
+		//new MatsimEventsReader(eventsManager).readFile(events);
 
-    public void write(String folder, Map<Id, Integer> volumes, double scale) {
-        final String[] COLUMNS = new String[]{
-                "MATSIMID",
-                "FROM_X",
-                "FROM_Y",
-                "TO_X",
-                "TO_Y",
-                "VOLUME",
-                "SCREENLINE", "MODES"
-        };
-        try (CSVWriter writer = new CSVWriter("", COLUMNS, folder + "/screenlines.csv")) {
-            Integer i = 0;
-            for (ScreenLine screenLine : this.screenlines) {
-                i+=1;
-                for (Link link : screenLine.getLinks()) {
+	}
 
-                    double volume = 0;
-                    if(volumes.containsKey(link.getId())){
-                        volume = volumes.get(link.getId())*scale;
-                    }
+	public ArrayList<ScreenLine> getScreenlines() {
+		return screenlines;
+	}
 
-                    writer.set("MATSIMID", link.getId().toString());
-                    writer.set("FROM_X", Double.toString(link.getFromNode().getCoord().getX()));
-                    writer.set("FROM_Y", Double.toString(link.getFromNode().getCoord().getY()));
-                    writer.set("TO_X", Double.toString(link.getToNode().getCoord().getX()));
-                    writer.set("TO_Y", Double.toString(link.getToNode().getCoord().getY()));
-                    writer.set("VOLUME", Double.toString(volume));
-                    writer.set("SCREENLINE", i.toString());
-                    writer.set("MODES", link.getAllowedModes().toString());
-                    writer.writeRow();
-                }
-            }
+	public ArrayList<ScreenLine> readShapeFile(String shapefile) {
+		ArrayList<ScreenLine> screenlines = new ArrayList<>();
 
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+		ShapeFileReader shapeFileReader = new ShapeFileReader();
+		shapeFileReader.readFileAndInitialize(shapefile);
 
-    }
+		Collection<SimpleFeature> features = shapeFileReader.getFeatureSet();
+		for (SimpleFeature feature : features) {
+			Geometry geometry = (Geometry) feature.getDefaultGeometry();
+			ScreenLine screenLine = new ScreenLine(geometry);
+			screenLine.findLinks(this.network);
+			screenlines.add(screenLine);
+		}
+		return screenlines;
+	}
 
+	public void write(String folder, Map<Id, Integer> volumes, double scale) {
+		final String[] COLUMNS = new String[]{
+				"MATSIMID",
+				"FROM_X",
+				"FROM_Y",
+				"TO_X",
+				"TO_Y",
+				"VOLUME",
+				"SCREENLINE", "MODES"
+		};
+		try (CSVWriter writer = new CSVWriter("", COLUMNS, folder + "/screenlines.csv")) {
+			Integer i = 0;
+			for (ScreenLine screenLine : this.screenlines) {
+				i += 1;
+				for (Link link : screenLine.getLinks()) {
 
-    public static void main(String[] args) {
-        Config config = ConfigUtils.createConfig();
-        String network = "D:\\tmp\\miv\\network.xml.gz";
-        String events = "D:\\tmp\\miv\\CH.10pct.2015.output_events.xml.gz";
-        String shapefile = "D:\\tmp\\miv\\screenlines\\screenlines.shp";
+					double volume = 0;
+					if (volumes.containsKey(link.getId())) {
+						volume = volumes.get(link.getId()) * scale;
+					}
 
-        config.network().setInputFile(network);
-        Scenario scenario = ScenarioUtils.loadScenario(config);
+					writer.set("MATSIMID", link.getId().toString());
+					writer.set("FROM_X", Double.toString(link.getFromNode().getCoord().getX()));
+					writer.set("FROM_Y", Double.toString(link.getFromNode().getCoord().getY()));
+					writer.set("TO_X", Double.toString(link.getToNode().getCoord().getX()));
+					writer.set("TO_Y", Double.toString(link.getToNode().getCoord().getY()));
+					writer.set("VOLUME", Double.toString(volume));
+					writer.set("SCREENLINE", i.toString());
+					writer.set("MODES", link.getAllowedModes().toString());
+					writer.writeRow();
+				}
+			}
 
-        EventsManager eventsManager = new EventsManagerImpl();
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 
-        scenario.getNetwork();
-
-        ScreenLinesAnalyser sla = new ScreenLinesAnalyser(scenario, shapefile);
-
-        //new MatsimEventsReader(eventsManager).readFile(events);
-
-    }
+	}
 }
