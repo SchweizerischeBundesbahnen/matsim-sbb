@@ -38,7 +38,6 @@ public class AccessEgressModule extends AbstractModule {
                 NetworkUtils.setLinkEgressTime(l, mode, accessTime);
             }
         }
-        System.out.println();
 
     }
 
