@@ -7,22 +7,21 @@ import org.matsim.core.population.algorithms.PlanAlgorithm;
 import org.matsim.core.replanning.modules.AbstractMultithreadedModule;
 
 /**
- * THIS IS A COPY of the default TimeAllocationMutator.
- * It allows to create a custom instance of PlanAlgorithm.
- * @author PM / SBB
+ * THIS IS A COPY of the default TimeAllocationMutator. It allows to create a custom instance of PlanAlgorithm.
  *
+ * @author PM / SBB
  */
 public class SBBTimeAllocationMutator extends AbstractMultithreadedModule {
 
-    private final double mutationRange;
+	private final double mutationRange;
 
-    public SBBTimeAllocationMutator(TimeAllocationMutatorConfigGroup timeAllocationMutatorConfigGroup, GlobalConfigGroup globalConfigGroup) {
-        super(globalConfigGroup);
-        this.mutationRange = timeAllocationMutatorConfigGroup.getMutationRange();
-    }
+	public SBBTimeAllocationMutator(TimeAllocationMutatorConfigGroup timeAllocationMutatorConfigGroup, GlobalConfigGroup globalConfigGroup) {
+		super(globalConfigGroup);
+		this.mutationRange = timeAllocationMutatorConfigGroup.getMutationRange();
+	}
 
-    @Override
-    public PlanAlgorithm getPlanAlgoInstance() {
-        return new SBBTripPlanMutateTimeAllocation(this.mutationRange, MatsimRandom.getLocalInstance());
-    }
+	@Override
+	public PlanAlgorithm getPlanAlgoInstance() {
+		return new SBBTripPlanMutateTimeAllocation(this.mutationRange, MatsimRandom.getLocalInstance());
+	}
 }

@@ -9,29 +9,29 @@ import org.matsim.core.scoring.SumScoringFunction;
  */
 public class SBBParkingCostScoring implements SumScoringFunction.ArbitraryEventScoring {
 
-    private double score = 0.0;
-    private final double marginalUtilityOfParkingPrice_util_money;
+	private final double marginalUtilityOfParkingPrice_util_money;
+	private double score = 0.0;
 
-    public SBBParkingCostScoring(double marginalUtilityOfParkingPrice_util_money) {
-        this.marginalUtilityOfParkingPrice_util_money = marginalUtilityOfParkingPrice_util_money;
-    }
+	public SBBParkingCostScoring(double marginalUtilityOfParkingPrice_util_money) {
+		this.marginalUtilityOfParkingPrice_util_money = marginalUtilityOfParkingPrice_util_money;
+	}
 
-    @Override
-    public void handleEvent(Event event) {
-        if (event instanceof ParkingCostEvent) {
-            ParkingCostEvent pce = (ParkingCostEvent) event;
-            double monetaryAmount = pce.getMonetaryAmount();
-            double scoreDelta = monetaryAmount * this.marginalUtilityOfParkingPrice_util_money;
-            this.score += scoreDelta;
-        }
-    }
+	@Override
+	public void handleEvent(Event event) {
+		if (event instanceof ParkingCostEvent) {
+			ParkingCostEvent pce = (ParkingCostEvent) event;
+			double monetaryAmount = pce.getMonetaryAmount();
+			double scoreDelta = monetaryAmount * this.marginalUtilityOfParkingPrice_util_money;
+			this.score += scoreDelta;
+		}
+	}
 
-    @Override
-    public void finish() {
-    }
+	@Override
+	public void finish() {
+	}
 
-    @Override
-    public double getScore() {
-        return this.score;
-    }
+	@Override
+	public double getScore() {
+		return this.score;
+	}
 }

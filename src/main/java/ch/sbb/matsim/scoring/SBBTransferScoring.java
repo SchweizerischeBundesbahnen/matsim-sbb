@@ -11,58 +11,58 @@ import org.matsim.core.utils.misc.OptionalTime;
  */
 public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 
-    private final SBBScoringParameters params;
-    private final Set<String> ptModes;
-    private final Set<String> ptFeederModes;
-    private double score = 0.0;
+	private final SBBScoringParameters params;
+	private final Set<String> ptModes;
+	private final Set<String> ptFeederModes;
+	private double score = 0.0;
 
-    public SBBTransferScoring(SBBScoringParameters params, Set<String> ptModes, Set<String> ptFeederModes) {
-        this.params = params;
-        this.ptModes = ptModes;
-        this.ptFeederModes = ptFeederModes;
-    }
+	public SBBTransferScoring(SBBScoringParameters params, Set<String> ptModes, Set<String> ptFeederModes) {
+		this.params = params;
+		this.ptModes = ptModes;
+		this.ptFeederModes = ptFeederModes;
+	}
 
-    @Override
-    public void handleTrip(TripStructureUtils.Trip trip) {
+	@Override
+	public void handleTrip(TripStructureUtils.Trip trip) {
 		OptionalTime departureTime = OptionalTime.undefined();
 		double arrivalTime = 0;
-        int transitLegsCount = 0;
+		int transitLegsCount = 0;
 
-        for (Leg leg : trip.getLegsOnly()) {
-            String legMode = leg.getMode();
-            boolean isTransit = this.ptModes.contains(legMode) || this.ptFeederModes.contains(legMode);
-            if (isTransit) {
-                transitLegsCount++;
+		for (Leg leg : trip.getLegsOnly()) {
+			String legMode = leg.getMode();
+			boolean isTransit = this.ptModes.contains(legMode) || this.ptFeederModes.contains(legMode);
+			if (isTransit) {
+				transitLegsCount++;
 				if (departureTime.isUndefined()) {
 					departureTime = leg.getDepartureTime();
 				}
 				arrivalTime = leg.getDepartureTime().seconds() + leg.getTravelTime().seconds();
-            }
-        }
-        if (transitLegsCount > 1) {
+			}
+		}
+		if (transitLegsCount > 1) {
 			int transferCount = transitLegsCount - 1;
 			double travelTime = arrivalTime - departureTime.seconds();
-            this.scoreTransitTrip(travelTime, transferCount);
-        }
-    }
+			this.scoreTransitTrip(travelTime, transferCount);
+		}
+	}
 
-    private void scoreTransitTrip(double travelTime, int transferCount) {
-        double partialScore = this.params.getBaseTransferUtility() + (travelTime / 3600) * this.params.getTransferUtilityPerTravelTime_utilsPerHour();
-        if (partialScore < this.params.getMinimumTransferUtility()) {
-            partialScore = this.params.getMinimumTransferUtility();
-        }
-        if (partialScore > this.params.getMaximumTransferUtility()) {
-            partialScore = this.params.getMaximumTransferUtility();
-        }
-        this.score += partialScore * transferCount;
-    }
+	private void scoreTransitTrip(double travelTime, int transferCount) {
+		double partialScore = this.params.getBaseTransferUtility() + (travelTime / 3600) * this.params.getTransferUtilityPerTravelTime_utilsPerHour();
+		if (partialScore < this.params.getMinimumTransferUtility()) {
+			partialScore = this.params.getMinimumTransferUtility();
+		}
+		if (partialScore > this.params.getMaximumTransferUtility()) {
+			partialScore = this.params.getMaximumTransferUtility();
+		}
+		this.score += partialScore * transferCount;
+	}
 
-    @Override
-    public void finish() {
-    }
+	@Override
+	public void finish() {
+	}
 
-    @Override
-    public double getScore() {
-        return this.score;
-    }
+	@Override
+	public double getScore() {
+		return this.score;
+	}
 }

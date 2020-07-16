@@ -1,66 +1,58 @@
 package ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork;
 
-
-import org.matsim.api.core.v01.network.Link;
-
 import java.util.concurrent.atomic.AtomicInteger;
+import org.matsim.api.core.v01.network.Link;
 
 public class VisumLink {
 
-    private static final AtomicInteger count = new AtomicInteger(1000000000);
+	private static final AtomicInteger count = new AtomicInteger(1000000000);
+	private final VisumNode fromNode;
+	private final VisumNode toNode;
+	private final int id;
+	private double volume = 0;
+	private Link link = null;
 
+	public VisumLink(VisumNode fromNode, VisumNode toNode) {
+		this.fromNode = fromNode;
+		this.toNode = toNode;
+		this.id = count.incrementAndGet();
+	}
 
-    public double getVolume() {
-        return volume;
-    }
+	public VisumLink(VisumNode fromNode, VisumNode toNode, Integer id) {
+		this.fromNode = fromNode;
+		this.toNode = toNode;
+		this.id = id;
+	}
 
-    private double volume = 0;
+	public double getVolume() {
+		return volume;
+	}
 
-    public VisumNode getFromNode() {
-        return fromNode;
-    }
+	public void setVolume(double volume) {
+		this.volume = volume;
+	}
 
-    private final VisumNode fromNode;
+	public VisumNode getFromNode() {
+		return fromNode;
+	}
 
-    public VisumNode getToNode() {
-        return toNode;
-    }
+	public VisumNode getToNode() {
+		return toNode;
+	}
 
-    private final VisumNode toNode;
+	public int getId() {
+		return id;
+	}
 
-    public int getId() {
-        return id;
-    }
+	public Link getMATSimLink() {
+		return link;
+	}
 
-    private final int id;
+	public void setMATSimLink(Link link) {
+		this.link = link;
+	}
 
-    public Link getMATSimLink() {
-        return link;
-    }
-
-    private Link link = null;
-
-    public VisumLink(VisumNode fromNode, VisumNode toNode) {
-        this.fromNode = fromNode;
-        this.toNode = toNode;
-        this.id = count.incrementAndGet();
-    }
-
-    public VisumLink(VisumNode fromNode, VisumNode toNode, Integer id) {
-        this.fromNode = fromNode;
-        this.toNode = toNode;
-        this.id = id;
-    }
-
-    public void setMATSimLink(Link link){
-        this.link = link;
-    }
-
-    public void setVolume(double volume) {
-        this.volume = volume;
-    }
-
-    public VisumLink create_opposite_direction() {
-        return new VisumLink(this.toNode, this.fromNode, this.id);
-    }
+	public VisumLink create_opposite_direction() {
+		return new VisumLink(this.toNode, this.fromNode, this.id);
+	}
 }

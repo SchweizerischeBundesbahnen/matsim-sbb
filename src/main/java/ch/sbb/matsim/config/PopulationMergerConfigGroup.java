@@ -4,120 +4,113 @@
 
 package ch.sbb.matsim.config;
 
-import org.matsim.core.config.ConfigGroup;
-import org.matsim.core.config.ReflectiveConfigGroup;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.matsim.core.config.ConfigGroup;
+import org.matsim.core.config.ReflectiveConfigGroup;
 
 public class PopulationMergerConfigGroup extends ReflectiveConfigGroup {
 
-    static public final String GROUP_NAME = "populationMerger";
+	static public final String GROUP_NAME = "populationMerger";
 
-    private static final String PARAM_BASE_PLANS = "baseInputPlansFile";
-    private static final String PARAM_BASE_ATTRIBUTES = "baseInputPersonAttributesFile";
-    private static final String PARAM_OUTPUT = "outputFolder";
+	private static final String PARAM_BASE_PLANS = "baseInputPlansFile";
+	private static final String PARAM_BASE_ATTRIBUTES = "baseInputPersonAttributesFile";
+	private static final String PARAM_OUTPUT = "outputFolder";
+	private final Map<String, PopulationTypeParameterSet> subpopulations = new HashMap<>();
+	private String inputPlansFiles;
+	private String outputFolder;
 
-    private String inputPlansFiles;
-    private String outputFolder;
+	public PopulationMergerConfigGroup() {
+		super(GROUP_NAME);
+	}
 
-    private final Map<String, PopulationTypeParameterSet> subpopulations = new HashMap<>();
+	@Override
+	public ConfigGroup createParameterSet(String type) {
+		if (PopulationTypeParameterSet.TYPE.equals(type)) {
+			return new PopulationTypeParameterSet();
+		} else {
+			throw new IllegalArgumentException("Unsupported parameterset-type: " + type);
+		}
+	}
 
-    public PopulationMergerConfigGroup() {
-        super(GROUP_NAME);
-    }
+	public Set<String> getPopulationTypes() {
+		return this.subpopulations.keySet();
+	}
 
+	private void addSubpopulation(PopulationTypeParameterSet set) {
+		this.subpopulations.put(set.getSubpopulation(), set);
+	}
 
-    @Override
-    public ConfigGroup createParameterSet(String type) {
-        if (PopulationTypeParameterSet.TYPE.equals(type)) {
-            return new PopulationTypeParameterSet();
-        } else {
-            throw new IllegalArgumentException("Unsupported parameterset-type: " + type);
-        }
-    }
+	@Override
+	public void addParameterSet(ConfigGroup set) {
+		if (set instanceof PopulationTypeParameterSet) {
+			this.addSubpopulation((PopulationTypeParameterSet) set);
 
-    public Set<String> getPopulationTypes() {
-        return this.subpopulations.keySet();
-    }
+		} else {
+			throw new IllegalArgumentException("Unsupported parameterset: " + set.getClass().getName());
+		}
+		super.addParameterSet(set);
+	}
 
-    private void addSubpopulation(PopulationTypeParameterSet set) {
-        this.subpopulations.put(set.getSubpopulation(), set);
-    }
+	public PopulationTypeParameterSet getSubpopulations(String subpopulation) {
+		return this.subpopulations.get(subpopulation);
+	}
 
-    @Override
-    public void addParameterSet(ConfigGroup set) {
-        if (set instanceof PopulationTypeParameterSet) {
-            this.addSubpopulation((PopulationTypeParameterSet) set);
+	@StringGetter(PARAM_BASE_PLANS)
+	public String getInputPlansFiles() {
+		return inputPlansFiles;
+	}
 
-        } else {
-            throw new IllegalArgumentException("Unsupported parameterset: " + set.getClass().getName());
-        }
-        super.addParameterSet(set);
-    }
+	@StringSetter(PARAM_BASE_PLANS)
+	public void setInputPlansFiles(String inputPlansFiles) {
+		this.inputPlansFiles = inputPlansFiles;
+	}
 
-    public PopulationTypeParameterSet getSubpopulations(String subpopulation) {
-        return this.subpopulations.get(subpopulation);
-    }
+	@StringGetter(PARAM_OUTPUT)
+	public String getOutputFolder() {
+		return outputFolder;
+	}
 
+	@StringSetter(PARAM_OUTPUT)
+	public void setOutputFolder(String outputFolder) {
+		this.outputFolder = outputFolder;
+	}
 
-    @StringGetter(PARAM_BASE_PLANS)
-    public String getInputPlansFiles() {
-        return inputPlansFiles;
-    }
+	public static class PopulationTypeParameterSet extends ReflectiveConfigGroup {
 
-    @StringSetter(PARAM_BASE_PLANS)
-    public void setInputPlansFiles(String inputPlansFiles) {
-        this.inputPlansFiles = inputPlansFiles;
-    }
+		private static final String TYPE = "populationType";
 
-    @StringGetter(PARAM_OUTPUT)
-    public String getOutputFolder() {
-        return outputFolder;
-    }
+		private static final String PARAM_PLANSFILE = "plansFile";
+		private static final String PARAM_SUBPOPULATION = "subpopulation";
 
-    @StringSetter(PARAM_OUTPUT)
-    public void setOutputFolder(String outputFolder) {
-        this.outputFolder = outputFolder;
-    }
+		private String plansFile;
+		private String subpopulation;
 
+		public PopulationTypeParameterSet() {
+			super(TYPE);
+		}
 
-    public static class PopulationTypeParameterSet extends ReflectiveConfigGroup {
+		@StringGetter(PARAM_PLANSFILE)
+		public String getPlansFile() {
+			return plansFile;
+		}
 
-        private static final String TYPE = "populationType";
+		@StringSetter(PARAM_PLANSFILE)
+		public void setPlansFile(String plansFile) {
+			this.plansFile = plansFile;
+		}
 
-        private static final String PARAM_PLANSFILE = "plansFile";
-        private static final String PARAM_SUBPOPULATION = "subpopulation";
+		@StringGetter(PARAM_SUBPOPULATION)
+		public String getSubpopulation() {
+			return this.subpopulation;
+		}
 
-        private String plansFile;
-        private String subpopulation;
+		@StringSetter(PARAM_SUBPOPULATION)
+		public void setSubpopulation(String subpopulation) {
+			this.subpopulation = subpopulation;
+		}
 
-        public PopulationTypeParameterSet() {
-            super(TYPE);
-        }
-
-
-        @StringGetter(PARAM_PLANSFILE)
-        public String getPlansFile() {
-            return plansFile;
-        }
-
-        @StringSetter(PARAM_PLANSFILE)
-        public void setPlansFile(String plansFile) {
-            this.plansFile = plansFile;
-        }
-
-        @StringGetter(PARAM_SUBPOPULATION)
-        public String getSubpopulation() {
-            return this.subpopulation;
-        }
-
-        @StringSetter(PARAM_SUBPOPULATION)
-        public void setSubpopulation(String subpopulation) {
-            this.subpopulation = subpopulation;
-        }
-
-    }
+	}
 
 }

@@ -12,24 +12,25 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.CollectionUtils;
 
 public class NetworkMerger {
-    public static void main(String[] args)  {
-        String inputNetwork = args[0];
-        String transitNetwork = args[1];
-        String outputNetwork = args[2];
 
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new MatsimNetworkReader(scenario.getNetwork()).readFile(inputNetwork);
+	public static void main(String[] args) {
+		String inputNetwork = args[0];
+		String transitNetwork = args[1];
+		String outputNetwork = args[2];
 
-        Network reducedNetwork = removePtOnlyLinks(scenario.getNetwork());
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		new MatsimNetworkReader(scenario.getNetwork()).readFile(inputNetwork);
 
-        new MatsimNetworkReader(reducedNetwork).readFile(transitNetwork);
-        new NetworkWriter(reducedNetwork).write(outputNetwork);
-    }
+		Network reducedNetwork = removePtOnlyLinks(scenario.getNetwork());
 
-    public static Network removePtOnlyLinks(Network network) {
-        Network reducedNetwork = NetworkUtils.createNetwork();
+		new MatsimNetworkReader(reducedNetwork).readFile(transitNetwork);
+		new NetworkWriter(reducedNetwork).write(outputNetwork);
+	}
+
+	public static Network removePtOnlyLinks(Network network) {
+		Network reducedNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(network).filter(reducedNetwork,
 				CollectionUtils.stringToSet(SBBModes.CAR + "," + SBBModes.RIDE));
-        return reducedNetwork;
-    }
+		return reducedNetwork;
+	}
 }

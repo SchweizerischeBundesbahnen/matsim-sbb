@@ -41,59 +41,59 @@ import org.matsim.testcases.MatsimTestUtils;
 
 public class ConvergenceStatsTest {
 
-    @Rule
-    public MatsimTestUtils utils = new MatsimTestUtils();
+	@Rule
+	public MatsimTestUtils utils = new MatsimTestUtils();
 
-    @Test
-    public void test_ConvergenceTests() throws IOException {
-        ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfigGroup.Test.values(), ConfigUtils.createConfig());
-        double[] scores = ConvergenceStats.loadGlobalStats( utils.getPackageInputDirectory() + "convergence/traveldistancestats.txt");
-        System.out.println("Test: statistic=p-value");
-        for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
-            Map.Entry<Double, Double> res = cs.runTest(test, scores);
-            System.out.print(test.name() + ": ");
-            System.out.println(res);
-            Assert.assertTrue(Double.isFinite(res.getKey()));
-            Assert.assertTrue(Double.isFinite(res.getValue()) || Double.isNaN(res.getValue()));
-        }
-    }
+	@Test
+	public void test_ConvergenceTests() throws IOException {
+		ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfigGroup.Test.values(), ConfigUtils.createConfig());
+		double[] scores = ConvergenceStats.loadGlobalStats(utils.getPackageInputDirectory() + "convergence/traveldistancestats.txt");
+		System.out.println("Test: statistic=p-value");
+		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
+			Map.Entry<Double, Double> res = cs.runTest(test, scores);
+			System.out.print(test.name() + ": ");
+			System.out.println(res);
+			Assert.assertTrue(Double.isFinite(res.getKey()));
+			Assert.assertTrue(Double.isFinite(res.getValue()) || Double.isNaN(res.getValue()));
+		}
+	}
 
-    @Test
-    public void test_ConvergenceTestsOutput() throws IOException {
-        FileUtils.copyDirectory(new File(utils.getPackageInputDirectory() + "convergence"), new File(utils.getOutputDirectory()));
-        ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfigGroup.Test.values(), ConfigUtils.createConfig());
-        IterationStartsEvent event = new IterationStartsEvent(new StubControler(), 301);
-        cs.notifyIterationStarts(event);
-        cs.close();
-        for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
-            File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
-            Assert.assertTrue(file.exists());
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            br.readLine(); // skip header
-            Assert.assertNotNull(br.readLine());
-        }
-    }
+	@Test
+	public void test_ConvergenceTestsOutput() throws IOException {
+		FileUtils.copyDirectory(new File(utils.getPackageInputDirectory() + "convergence"), new File(utils.getOutputDirectory()));
+		ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfigGroup.Test.values(), ConfigUtils.createConfig());
+		IterationStartsEvent event = new IterationStartsEvent(new StubControler(), 301);
+		cs.notifyIterationStarts(event);
+		cs.close();
+		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
+			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
+			Assert.assertTrue(file.exists());
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			br.readLine(); // skip header
+			Assert.assertNotNull(br.readLine());
+		}
+	}
 
-    @Test
-    public void test_convergenceCriterion() throws IOException {
-        System.setProperty("matsim.preferLocalDtds", "true");
-        Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
+	@Test
+	public void test_convergenceCriterion() throws IOException {
+		System.setProperty("matsim.preferLocalDtds", "true");
+		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
+		config.controler().setMobsim("qsim");
+		// integrate config
+		ConvergenceConfigGroup csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
+		csConfig.setActivateConvergenceStats(true);
+		csConfig.setIterationWindowSize(2);
+		csConfig.setTestsToRun(ConvergenceConfigGroup.Test.values());
 
-        // integrate config
-        ConvergenceConfigGroup csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
-        csConfig.setActivateConvergenceStats(true);
-        csConfig.setIterationWindowSize(2);
-        csConfig.setTestsToRun(ConvergenceConfigGroup.Test.values());
+		// setup convergence criterion weights and target (weight stats equally but only consider CV)
+		csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.CV.name(), "all", 0.1);
+		csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KS_NORMAL.name(), "all", 0.0);
+		csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KENDALL.name(), "all", 0.0);
+		csConfig.setConvergenceCriterionFunctionTarget(0.07); // should stop at 3 or 4 iterations
 
-        // setup convergence criterion weights and target (weight stats equally but only consider CV)
-        csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.CV.name(), "all", 0.1);
-        csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KS_NORMAL.name(), "all", 0.0);
-        csConfig.addConvergenceFunctionWeight(ConvergenceConfigGroup.Test.KENDALL.name(), "all", 0.0);
-        csConfig.setConvergenceCriterionFunctionTarget(0.07); // should stop at 3 or 4 iterations
-
-        // shut-off outputs
-        int absoluteLastIteration = 10;
-        config.controler().setLastIteration(absoluteLastIteration);
+		// shut-off outputs
+		int absoluteLastIteration = 10;
+		config.controler().setLastIteration(absoluteLastIteration);
 		config.controler().setOutputDirectory(utils.getOutputDirectory());
 		config.controler().setWriteEventsInterval(0);
 		config.controler().setWritePlansInterval(0);
@@ -116,33 +116,84 @@ public class ConvergenceStatsTest {
 			List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());
 			iterationsRun = lines.size();
 			Assert.assertNotNull(lines.get(1));
-        }
-        Assert.assertTrue(iterationsRun-1 < absoluteLastIteration - csConfig.getIterationWindowSize());
-    }
+		}
+		Assert.assertTrue(iterationsRun - 1 < absoluteLastIteration - csConfig.getIterationWindowSize());
+	}
 
-    private class StubControler implements MatsimServices {
-        @Override
-        public OutputDirectoryHierarchy getControlerIO() {
-            return new OutputDirectoryHierarchy(utils.getOutputDirectory(),
-                    OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, ControlerConfigGroup.CompressionType.none);
-        }
-        public Integer getIterationNumber(){return null;}
-        public IterationStopWatch getStopwatch(){return null;}
-        public TravelTime getLinkTravelTimes(){return null;}
-        public Provider<TripRouter> getTripRouterProvider(){return null;}
-        public TravelDisutility createTravelDisutilityCalculator(){return null;}
-        public LeastCostPathCalculatorFactory getLeastCostPathCalculatorFactory(){return null;}
-        public ScoringFunctionFactory getScoringFunctionFactory(){return null;}
-        public Config getConfig(){return null;}
-        public Scenario getScenario(){return null;}
-        public EventsManager getEvents(){return null;}
-        public com.google.inject.Injector getInjector(){return null;}
-        public CalcLinkStats getLinkStats(){return null;}
-        public VolumesAnalyzer getVolumes(){return null;}
-        public ScoreStats getScoreStats(){return null;}
-        public TravelDisutilityFactory getTravelDisutilityFactory(){return null;}
-        public StrategyManager getStrategyManager(){return null;}
-        public void addControlerListener(ControlerListener controlerListener){}
-    }
+	private class StubControler implements MatsimServices {
+
+		@Override
+		public OutputDirectoryHierarchy getControlerIO() {
+			return new OutputDirectoryHierarchy(utils.getOutputDirectory(),
+					OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, ControlerConfigGroup.CompressionType.none);
+		}
+
+		public Integer getIterationNumber() {
+			return null;
+		}
+
+		public IterationStopWatch getStopwatch() {
+			return null;
+		}
+
+		public TravelTime getLinkTravelTimes() {
+			return null;
+		}
+
+		public Provider<TripRouter> getTripRouterProvider() {
+			return null;
+		}
+
+		public TravelDisutility createTravelDisutilityCalculator() {
+			return null;
+		}
+
+		public LeastCostPathCalculatorFactory getLeastCostPathCalculatorFactory() {
+			return null;
+		}
+
+		public ScoringFunctionFactory getScoringFunctionFactory() {
+			return null;
+		}
+
+		public Config getConfig() {
+			return null;
+		}
+
+		public Scenario getScenario() {
+			return null;
+		}
+
+		public EventsManager getEvents() {
+			return null;
+		}
+
+		public com.google.inject.Injector getInjector() {
+			return null;
+		}
+
+		public CalcLinkStats getLinkStats() {
+			return null;
+		}
+
+		public VolumesAnalyzer getVolumes() {
+			return null;
+		}
+
+		public ScoreStats getScoreStats() {
+			return null;
+		}
+
+		public TravelDisutilityFactory getTravelDisutilityFactory() {
+			return null;
+		}
+
+		public StrategyManager getStrategyManager() {
+			return null;
+		}
+
+		public void addControlerListener(ControlerListener controlerListener) {
+		}
+	}
 
 }

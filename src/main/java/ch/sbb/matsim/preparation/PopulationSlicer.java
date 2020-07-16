@@ -1,6 +1,18 @@
 package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.preparation.cutter.BetterPopulationReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -8,48 +20,67 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.io.StreamingPopulationWriter;
+import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.FacilitiesWriter;
+import org.matsim.facilities.MatsimFacilitiesReader;
 
 /**
  * @author jbischoff / SBB
  */
 public class PopulationSlicer {
-    Random random = MatsimRandom.getRandom();
 
-    /*
-    Randomly slices a population in n parts
-     */
-    public static void main(String[] args) {
-        String inputPopulation = args[0];
-        int slices = Integer.parseInt(args[1]);
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        BetterPopulationReader.readSelectedPlansOnly(scenario, new File(inputPopulation));
-        new PopulationSlicer().run(scenario.getPopulation(), inputPopulation.replace(".xml.gz", ""), slices);
+	Random random = MatsimRandom.getRandom();
 
-    }
+	/*
+	Randomly slices a population in n parts
+	 */
+	public static void main(String[] args) throws IOException {
+		String inputPopulation = args[0];
+		String inputFacilities = args[1];
+		int slices = Integer.parseInt(args[2]);
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		new MatsimFacilitiesReader(scenario).readFile(inputFacilities);
+		BetterPopulationReader.readSelectedPlansOnly(scenario, new File(inputPopulation));
 
-    public void run(Population population, String outputName, int slices) {
-        List<Id<Person>> personIds = new ArrayList<>(population.getPersons().keySet());
-        Collections.shuffle(personIds, random);
-        int partitionsize = personIds.size() / slices;
+		var outputDir = Paths.get(inputPopulation.replace(".xml.gz", "_" + slices));
+		Files.createDirectory(outputDir);
 
-        for (int i = 0; i < slices; i++) {
-            StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();
-            streamingPopulationWriter.startStreaming(outputName + "_" + i + ".xml.gz");
-            for (int j = 0; j < partitionsize; j++) {
-                int personNo = i * partitionsize + j;
-                streamingPopulationWriter.run(population.getPersons().get(personIds.get(personNo)));
-            }
-            streamingPopulationWriter.closeStreaming();
-        }
+		String outputFolder = outputDir.toAbsolutePath().toString();
+		new PopulationSlicer().run(scenario, outputFolder, slices);
 
+	}
 
-    }
+	public void run(Scenario scenario, String outputFolder, int slices) {
+		Population population = scenario.getPopulation();
+		List<Id<Person>> personIds = new ArrayList<>(population.getPersons().keySet());
+		Collections.shuffle(personIds, random);
+		int partitionsize = personIds.size() / slices;
+
+		for (int i = 0; i < slices; i++) {
+			StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();
+			streamingPopulationWriter.startStreaming(outputFolder + "/population_" + i + ".xml.gz");
+			Set<Id<ActivityFacility>> usedFacilities = new HashSet<>();
+			for (int j = 0; j < partitionsize; j++) {
+				int personNo = i * partitionsize + j;
+				Person person = population.getPersons().get(personIds.get(personNo));
+				streamingPopulationWriter.run(person);
+				usedFacilities.addAll(TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream()
+						.map(activity -> activity.getFacilityId())
+						.filter(Objects::nonNull)
+						.collect(Collectors.toSet()));
+
+			}
+			Scenario newfacilities = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+			for (var facId : usedFacilities) {
+				newfacilities.getActivityFacilities().addActivityFacility(scenario.getActivityFacilities().getFacilities().get(facId));
+			}
+			new FacilitiesWriter(newfacilities.getActivityFacilities()).write(outputFolder + "/facilities_" + i + ".xml.gz");
+			streamingPopulationWriter.closeStreaming();
+		}
+
+	}
 
 }

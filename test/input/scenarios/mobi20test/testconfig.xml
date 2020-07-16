@@ -2,14 +2,13 @@
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">
 <!-- test config. all scoring parameters in this file are nonsense -->
 <config>
-    <module name="JDEQSim">
-        <param name="carSize" value="7.5"/>
-        <param name="endTime" value="undefined"/>
-        <param name="flowCapacityFactor" value="1.0"/>
-        <param name="gapTravelSpeed" value="15.0"/>
-        <param name="minimumInFlowCapacity" value="1800.0"/>
-        <param name="squeezeTime" value="1800.0"/>
-        <param name="storageCapacityFactor" value="1.0"/>
+    <module name="hermes">
+
+        <param name="flowCapacityFactor" value="0.1"/>
+        <param name="storageCapacityFactor" value="0.2"/>
+        <param name="useDeterministicPt" value="true"/>
+        <param name="endTime" value="36:00:00"/>
+
     </module>
     <module name="PostProcessing">
         <!-- Run Screenline Analysis -->
@@ -173,9 +172,9 @@
         <!-- Estimated number of events during mobsim run. An optional optimization hint for the framework. -->
         <param name="estimatedNumberOfEvents" value="null"/>
         <!-- Number of threads for parallel events handler. _null_ means the framework decides by itself. 0 is currently not possible. -->
-        <param name="numberOfThreads" value="1"/>
+        <param name="numberOfThreads" value="2"/>
         <!-- If enabled, each event handler is assigned to its own thread. Note that enabling this feature disabled the numberOfThreads option! This feature is still experimental! -->
-        <param name="oneThreadPerHandler" value="false"/>
+        <param name="oneThreadPerHandler" value="true"/>
         <!-- If enabled, it is ensured that all events that are created during a time step of the mobility simulation are processed before the next time step is simulated. E.g. neccessary when within-day replanning is used. -->
         <param name="synchronizeOnSimSteps" value="false"/>
     </module>
@@ -2856,7 +2855,7 @@
         <param name="activityDurationInterpretation" value="minOfDurationAndEndTime"/>
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
         <param name="inputCRS" value="null"/>
-        <param name="inputPlansFile" value="population.xml.gz"/>
+        <param name="inputPlansFile" value="population.xml"/>
         <!-- Defines how routes are stored in memory. Currently supported: LinkNetworkRoute, CompressedNetworkRoute. -->
         <param name="networkRouteType" value="LinkNetworkRoute"/>
         <!-- (not tested) will remove plan attributes that are presumably not used, such as activityStartTime. default=false. Use with Caution! -->
@@ -2954,8 +2953,6 @@
         <param name="usePersonIdForMissingVehicleId" value="true"/>
         <!-- If false, the qsim accumulates fractional flows up to one flow unit in every time step.  If true, flows are updated only if an agent wants to enter the link or an agent is added to buffer. Default is true. -->
         <param name="usingFastCapacityUpdate" value="false"/>
-        <!-- if the qsim should use as many runners as there are threads (Christoph's dissertation version) or more of them, together with a thread pool (seems to be faster in some situations, but is not tested). -->
-        <param name="usingThreadpool" value="false"/>
         <!-- Defines what happens if an agent wants to depart, but the specified vehicle is not available. One of: teleport wait exception  -->
         <param name="vehicleBehavior" value="teleport"/>
         <!-- If vehicles should all be the same default vehicle, or come from the vehicles file, or something else.  Possible values:  defaultVehicle modeVehicleTypesFromVehiclesData fromVehiclesData -->

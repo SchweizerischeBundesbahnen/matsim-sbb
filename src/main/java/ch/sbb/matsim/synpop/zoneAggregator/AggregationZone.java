@@ -3,27 +3,28 @@ package ch.sbb.matsim.synpop.zoneAggregator;
 import java.util.ArrayList;
 
 public class AggregationZone<T> {
-    private final int zoneId;
-    private ArrayList<T> data;
 
-    public AggregationZone(int id) {
-        this.zoneId = id;
-        this.data = new ArrayList<T>();
-    }
+	private final int zoneId;
+	private ArrayList<T> data;
 
-    public int getId() {
-        return this.zoneId;
-    }
+	public AggregationZone(int id) {
+		this.zoneId = id;
+		this.data = new ArrayList<T>();
+	}
 
-    void addItem(T item) {
-        this.data.add(item);
-    }
+	public int getId() {
+		return this.zoneId;
+	}
 
-    public int count() {
-        return this.data.size();
-    }
+	void addItem(T item) {
+		this.data.add(item);
+	}
 
-    public ArrayList<T> getData() {
-        return this.data;
-    }
+	public int count() {
+		return this.data.size();
+	}
+
+	public ArrayList<T> getData() {
+		return this.data;
+	}
 }

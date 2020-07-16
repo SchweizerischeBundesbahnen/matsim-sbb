@@ -11,7 +11,7 @@ import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
-import ch.sbb.matsim.config.SBBIntermodalConfigGroup;
+import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
 import ch.sbb.matsim.config.SBBS3ConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
@@ -26,7 +26,7 @@ import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.replanning.SimpleAnnealer;
 import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
-import ch.sbb.matsim.routing.access.AccessEgress;
+import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
@@ -56,127 +56,125 @@ import org.matsim.core.scoring.ScoringFunctionFactory;
  */
 public class RunSBB {
 
-    private static final Logger log = Logger.getLogger(RunSBB.class);
-    public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-            new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
-            new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfigGroup(), new SBBAccessTimeConfigGroup(),
-            new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup()};
+	public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+			new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
+			new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
+			new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup()};
+	private static final Logger log = Logger.getLogger(RunSBB.class);
 
+	public static void main(String[] args) {
+		System.setProperty("matsim.preferLocalDtds", "true");
 
-    public static void main(String[] args) {
-        System.setProperty("matsim.preferLocalDtds", "true");
+		final String configFile = args[0];
+		log.info(configFile);
+		final Config config = buildConfig(configFile);
 
-        final String configFile = args[0];
-        log.info(configFile);
-        final Config config = buildConfig(configFile);
+		if (args.length > 1) {
+			config.controler().setOutputDirectory(args[1]);
+		}
 
-        if (args.length > 1)
-            config.controler().setOutputDirectory(args[1]);
+		run(config);
+	}
 
-        run(config);
-    }
+	public static void run(Config config) {
+		new S3Downloader(config);
 
-    public static void run(Config config) {
-        new S3Downloader(config);
+		Scenario scenario = ScenarioUtils.loadScenario(config);
+		addSBBDefaultScenarioModules(scenario);
 
-        Scenario scenario = ScenarioUtils.loadScenario(config);
-        addSBBDefaultScenarioModules(scenario);
+		// controler
+		Controler controler = new Controler(scenario);
+		addSBBDefaultControlerModules(controler);
+		controler.run();
+	}
 
-        // controler
-        Controler controler = new Controler(scenario);
-        addSBBDefaultControlerModules(controler);
-        controler.run();
-    }
+	public static void addSBBDefaultScenarioModules(Scenario scenario) {
+		new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
+		ZonesModule.addZonestoScenario(scenario);
+		SBBNetworkRoutingModule.prepareScenario(scenario);
+		IntermodalModule.prepareIntermodalScenario(scenario);
+		AccessEgressModule.prepareAccessEgressTimes(scenario);
+		// vehicle types
+		new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
+				scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
+		scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
+		SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
+		if (samplerConfig.getDoSample()) {
+			SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
+			sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
+		}
 
-    public static void addSBBDefaultScenarioModules(Scenario scenario) {
-        new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
-        SBBNetworkRoutingModule.prepareScenario(scenario);
-        IntermodalModule.prepareIntermodalScenario(scenario);
-        // vehicle types
-        new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
-                scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
-        scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
+	}
 
-        SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
-        if (samplerConfig.getDoSample()) {
-            SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
-            sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
-        }
+	public static void addSBBDefaultControlerModules(Controler controler) {
+		Config config = controler.getConfig();
+		Scenario scenario = controler.getScenario();
+		ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
+		controler.setScoringFunctionFactory(scoringFunctionFactory);
 
+		controler.addOverridingModule(new AbstractModule() {
+			@Override
+			public void install() {
+				this.addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
+			}
+		});
 
-    }
+		controler.addOverridingModule(new AbstractModule() {
+			@Override
+			public void install() {
+				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 
-    public static void addSBBDefaultControlerModules(Controler controler) {
-        Config config = controler.getConfig();
-        Scenario scenario = controler.getScenario();
-        ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
-        controler.setScoringFunctionFactory(scoringFunctionFactory);
+				install(new SBBTransitModule());
+				install(new SwissRailRaptorModule());
+				install(new ZonesModule(scenario));
 
-        controler.addOverridingModule(new AbstractModule() {
-            @Override
-            public void install() {
-                this.addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
-            }
-        });
+				Config config = getConfig();
+				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
+				if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+					addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+				}
+				if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
+					addEventHandlerBinding().to(RideParkingCostTracker.class);
+				}
 
+				SimpleAnnealerConfigGroup annealerConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
+				if (annealerConfig.isActivateAnnealingModule()) {
+					addControlerListenerBinding().to(SimpleAnnealer.class);
+				}
+				ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
+				if (convergenceStatsConfig.isActivateConvergenceStats()) {
+					ConvergenceStats convergenceStats = new ConvergenceStats(this.getConfig());
+					addControlerListenerBinding().toInstance(convergenceStats);
+					bind(TerminationCriterion.class).toInstance(convergenceStats);
+				}
 
-        controler.addOverridingModule(new AbstractModule() {
-            @Override
-            public void install() {
-                addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
+			}
 
-                install(new SBBTransitModule());
-                install(new SwissRailRaptorModule());
-                install(new ZonesModule());
+			@Provides
+			QSimComponentsConfig provideQSimComponentsConfig() {
+				QSimComponentsConfig components = new QSimComponentsConfig();
+				new StandardQSimComponentConfigurator(config).configure(components);
+				SBBTransitEngineQSimModule.configure(components);
+				return components;
+			}
+		});
 
-                Config config = getConfig();
-                ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
-                if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
-                    addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
-                }
-                if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
-                    addEventHandlerBinding().to(RideParkingCostTracker.class);
-                }
+		controler.addOverridingModule(new SBBNetworkRoutingModule());
+		controler.addOverridingModule(new AccessEgressModule());
+		controler.addOverridingModule(new IntermodalModule());
 
-                SimpleAnnealerConfigGroup annealerConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
-                if (annealerConfig.isActivateAnnealingModule()) {
-                    addControlerListenerBinding().to(SimpleAnnealer.class);
-                }
-                ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
-                if (convergenceStatsConfig.isActivateConvergenceStats()) {
-                    ConvergenceStats convergenceStats = new ConvergenceStats(this.getConfig());
-                    addControlerListenerBinding().toInstance(convergenceStats);
-                    bind(TerminationCriterion.class).toInstance(convergenceStats);
-                }
+	}
 
-            }
-
-            @Provides
-            QSimComponentsConfig provideQSimComponentsConfig() {
-                QSimComponentsConfig components = new QSimComponentsConfig();
-                new StandardQSimComponentConfigurator(config).configure(components);
-                SBBTransitEngineQSimModule.configure(components);
-                return components;
-            }
-        });
-
-        controler.addOverridingModule(new SBBNetworkRoutingModule());
-        controler.addOverridingModule(new AccessEgress(scenario));
-        controler.addOverridingModule(new IntermodalModule());
-
-
-    }
-
-    public static Config buildConfig(String filepath) {
-        Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
+	public static Config buildConfig(String filepath) {
+		Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
 
 		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
 			// MATSim defines ride by default as teleported, which conflicts with the network mode
 			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
 		}
 
-        config.checkConsistency();
-        return config;
-    }
+		config.checkConsistency();
+		return config;
+	}
 }

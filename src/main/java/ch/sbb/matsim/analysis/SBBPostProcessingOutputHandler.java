@@ -10,6 +10,8 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
 import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
+import java.util.LinkedList;
+import java.util.List;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -24,131 +26,128 @@ import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.controler.listener.ShutdownListener;
 import org.matsim.core.controler.listener.StartupListener;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, IterationEndsListener, StartupListener, ShutdownListener {
 
-    private static final Logger log = Logger.getLogger(SBBPostProcessingOutputHandler.class);
+	private static final Logger log = Logger.getLogger(SBBPostProcessingOutputHandler.class);
 
-    private final Scenario scenario;
-    private OutputDirectoryHierarchy controlerIO;
-    private final EventsManager eventsManager;
-    private List<EventsAnalysis> analyses = new LinkedList<>();
-    private List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
-    private ControlerConfigGroup config;
-    private PostProcessingConfigGroup ppConfig;
-    private ZonesCollection zones;
+	private final Scenario scenario;
+	private final EventsManager eventsManager;
+	private OutputDirectoryHierarchy controlerIO;
+	private List<EventsAnalysis> analyses = new LinkedList<>();
+	private List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
+	private ControlerConfigGroup config;
+	private PostProcessingConfigGroup ppConfig;
+	private ZonesCollection zones;
 
-    @Inject
-    public SBBPostProcessingOutputHandler(
-            final EventsManager eventsManager,
-            final Scenario scenario,
-            final OutputDirectoryHierarchy controlerIO,
-            final ControlerConfigGroup config,
-            final PostProcessingConfigGroup ppConfig,
-            final ZonesCollection zones) {
-        this.eventsManager = eventsManager;
-        this.scenario = scenario;
-        this.controlerIO = controlerIO;
-        this.config = config;
-        this.ppConfig = ppConfig;
-        this.zones = zones;
-    }
+	@Inject
+	public SBBPostProcessingOutputHandler(
+			final EventsManager eventsManager,
+			final Scenario scenario,
+			final OutputDirectoryHierarchy controlerIO,
+			final ControlerConfigGroup config,
+			final PostProcessingConfigGroup ppConfig,
+			final ZonesCollection zones) {
+		this.eventsManager = eventsManager;
+		this.scenario = scenario;
+		this.controlerIO = controlerIO;
+		this.config = config;
+		this.ppConfig = ppConfig;
+		this.zones = zones;
+	}
 
-    @Override
-    public void notifyStartup(StartupEvent event) {
-        String outputDirectory = this.controlerIO.getOutputFilename("");
+	static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
+		Double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
+		List<EventsAnalysis> analyses = new LinkedList<>();
 
-        if (this.ppConfig.getWriteAgentsCSV() || this.ppConfig.getWritePlanElementsCSV()) {
-            new PopulationToCSV(scenario).write(outputDirectory);
-        }
-        if (this.ppConfig.getFinalDailyVolumes()) {
-            this.persistentAnalyses = buildPersistentEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""));
-            for (EventsAnalysis analysis : this.persistentAnalyses) {
-                eventsManager.addHandler(analysis);
-            }
-        }
-    }
+		if (ppConfig.getPtVolumes()) {
+			PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, false);
+			analyses.add(ptVolumeWriter);
+		}
 
-    @Override
-    public void notifyBeforeMobsim(BeforeMobsimEvent event) {
-        int iteration = event.getIteration();
-        int interval = this.ppConfig.getWriteOutputsInterval();
+		if (ppConfig.getTravelDiaries()) {
+			EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename, zones);
+			analyses.add(diariesWriter);
+		}
 
-        if (((interval > 0) && (iteration % interval == 0)) || iteration == this.config.getLastIteration()) {
-            this.analyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""), this.zones);
-        }
+		if (ppConfig.getEventsPerPerson()) {
+			EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(scenario, filename);
+			analyses.add(eventsPerPersonWriter);
+		}
 
-        for (EventsAnalysis analysis : this.analyses) {
-            eventsManager.addHandler(analysis);
-        }
-    }
+		if (ppConfig.getLinkVolumes()) {
+			LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(scenario, filename);
+			analyses.add(linkVolumeWriter);
+		}
 
-    @Override
-    public void notifyIterationEnds(IterationEndsEvent event) {
-        for (EventsAnalysis analysis : this.analyses) {
-            analysis.writeResults(event.getIteration() == this.config.getLastIteration());
-            this.eventsManager.removeHandler(analysis);
-        }
+		if (ppConfig.getVisumNetFile()) {
+			VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkMode(), filename, false);
+			analyses.add(visumNetworkEventWriter);
+		}
 
-        this.analyses.clear();
-    }
+		if (ppConfig.getAnalyseScreenline()) {
+			ScreenLineEventWriter screenLineEventWriter = new ScreenLineEventWriter(scenario, scaleFactor, ppConfig.getShapefileScreenline(), filename);
+			analyses.add(screenLineEventWriter);
+		}
 
-    @Override
-    public void notifyShutdown(ShutdownEvent event) {
-        for (EventsAnalysis analysis : this.persistentAnalyses) {
-            analysis.writeResults(true);
-        }
-    }
+		return analyses;
+	}
 
-    static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
-        Double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
-        List<EventsAnalysis> analyses = new LinkedList<>();
+	static List<EventsAnalysis> buildPersistentEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
+		List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
 
-        if (ppConfig.getPtVolumes()) {
-            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, false);
-            analyses.add(ptVolumeWriter);
-        }
+		PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, true);
+		persistentAnalyses.add(ptVolumeWriter);
 
-        if (ppConfig.getTravelDiaries()) {
-            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename, zones);
-            analyses.add(diariesWriter);
-        }
+		VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, 1.0,
+				ppConfig.getVisumNetworkMode(), filename, true);
+		persistentAnalyses.add(visumNetworkEventWriter);
 
-        if (ppConfig.getEventsPerPerson()) {
-            EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(scenario, filename);
-            analyses.add(eventsPerPersonWriter);
-        }
+		return persistentAnalyses;
+	}
 
-        if (ppConfig.getLinkVolumes()) {
-            LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(scenario, filename);
-            analyses.add(linkVolumeWriter);
-        }
+	@Override
+	public void notifyStartup(StartupEvent event) {
+		String outputDirectory = this.controlerIO.getOutputFilename("");
 
-        if (ppConfig.getVisumNetFile()) {
-            VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkMode(), filename, false);
-            analyses.add(visumNetworkEventWriter);
-        }
+		if (this.ppConfig.getWriteAgentsCSV() || this.ppConfig.getWritePlanElementsCSV()) {
+			new PopulationToCSV(scenario).write(outputDirectory);
+		}
+		if (this.ppConfig.getFinalDailyVolumes()) {
+			this.persistentAnalyses = buildPersistentEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""));
+			for (EventsAnalysis analysis : this.persistentAnalyses) {
+				eventsManager.addHandler(analysis);
+			}
+		}
+	}
 
-        if (ppConfig.getAnalyseScreenline()) {
-            ScreenLineEventWriter screenLineEventWriter = new ScreenLineEventWriter(scenario, scaleFactor, ppConfig.getShapefileScreenline(), filename);
-            analyses.add(screenLineEventWriter);
-        }
+	@Override
+	public void notifyBeforeMobsim(BeforeMobsimEvent event) {
+		int iteration = event.getIteration();
+		int interval = this.ppConfig.getWriteOutputsInterval();
 
-        return analyses;
-    }
+		if (((interval > 0) && (iteration % interval == 0)) || iteration == this.config.getLastIteration()) {
+			this.analyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""), this.zones);
+		}
 
-    static List<EventsAnalysis> buildPersistentEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
-        List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
+		for (EventsAnalysis analysis : this.analyses) {
+			eventsManager.addHandler(analysis);
+		}
+	}
 
-        PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, true);
-        persistentAnalyses.add(ptVolumeWriter);
+	@Override
+	public void notifyIterationEnds(IterationEndsEvent event) {
+		for (EventsAnalysis analysis : this.analyses) {
+			analysis.writeResults(event.getIteration() == this.config.getLastIteration());
+			this.eventsManager.removeHandler(analysis);
+		}
 
-        VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, 1.0,
-                ppConfig.getVisumNetworkMode(), filename, true);
-        persistentAnalyses.add(visumNetworkEventWriter);
+		this.analyses.clear();
+	}
 
-        return persistentAnalyses;
-    }
+	@Override
+	public void notifyShutdown(ShutdownEvent event) {
+		for (EventsAnalysis analysis : this.persistentAnalyses) {
+			analysis.writeResults(true);
+		}
+	}
 }

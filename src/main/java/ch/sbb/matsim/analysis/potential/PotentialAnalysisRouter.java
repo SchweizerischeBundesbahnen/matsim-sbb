@@ -26,69 +26,64 @@ import org.matsim.facilities.Facility;
 
 public class PotentialAnalysisRouter {
 
+	private static final Logger log = Logger.getLogger(PotentialAnalysisRouter.class);
+	private final double startTime;
+	private Network network;
+	private NetworkRoutingModule router;
+	private Person person;
 
-    private static final Logger log = Logger.getLogger(PotentialAnalysisRouter.class);
+	//use this method for free flow travel time evaluation
+	public PotentialAnalysisRouter(Network network, double startTime) {
+		this.person = PopulationUtils.getFactory().createPerson(Id.create(1, Person.class));
+		this.network = network;
+		this.startTime = startTime;
 
-    private Network network;
-    private final double startTime;
-    private NetworkRoutingModule router;
-    private Person person;
+		DijkstraFactory factory = new DijkstraFactory();
+		TravelTime tt = new FreeSpeedTravelTime();
+		TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
-    //use this method for free flow travel time evaluation
-    public PotentialAnalysisRouter(Network network, double startTime) {
-        this.person = PopulationUtils.getFactory().createPerson(Id.create(1, Person.class));
-        this.network = network;
-        this.startTime = startTime;
-
-        DijkstraFactory factory = new DijkstraFactory();
-        TravelTime tt = new FreeSpeedTravelTime();
-        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
-
-        LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
-        this.router = new NetworkRoutingModule(
+		LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
+		this.router = new NetworkRoutingModule(
 				SBBModes.CAR,
 				PopulationUtils.getFactory(),
 				network,
 				routeAlgo);
-    }
+	}
 
-    //use this method for travel time evaluation in congested network
-    public PotentialAnalysisRouter(Network network, String configPath, String eventsFilename, double startTime) {
-        this.person = PopulationUtils.getFactory().createPerson(Id.create(1, Person.class));
-        this.network = network;
-        this.startTime = startTime;
+	//use this method for travel time evaluation in congested network
+	public PotentialAnalysisRouter(Network network, String configPath, String eventsFilename, double startTime) {
+		this.person = PopulationUtils.getFactory().createPerson(Id.create(1, Person.class));
+		this.network = network;
+		this.startTime = startTime;
 
-        Config config = ConfigUtils.loadConfig(configPath);
+		Config config = ConfigUtils.loadConfig(configPath);
 
-        DijkstraFactory factory = new DijkstraFactory();
+		DijkstraFactory factory = new DijkstraFactory();
 
-        TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(network);
-        builder.configure(config.travelTimeCalculator());
-        TravelTimeCalculator ttc = builder.build();
+		TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(network);
+		builder.configure(config.travelTimeCalculator());
+		TravelTimeCalculator ttc = builder.build();
 
-        EventsManager events = EventsUtils.createEventsManager();
-        events.addHandler(ttc);
-        new MatsimEventsReader(events).readFile(eventsFilename);
-        TravelTime tt = ttc.getLinkTravelTimes();
+		EventsManager events = EventsUtils.createEventsManager();
+		events.addHandler(ttc);
+		new MatsimEventsReader(events).readFile(eventsFilename);
+		TravelTime tt = ttc.getLinkTravelTimes();
 
-        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
+		TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
-        LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
-        this.router = new NetworkRoutingModule(
+		LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
+		this.router = new NetworkRoutingModule(
 				SBBModes.CAR,
 				PopulationUtils.getFactory(),
 				network,
 				routeAlgo);
-    }
+	}
 
+	public Leg fetch(Facility fromFacility, Facility toFacility) {
 
-    public Leg fetch(Facility fromFacility, Facility toFacility) {
+		List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility, this.startTime, this.person);
+		Leg leg = (Leg) pes.get(0);
 
-
-        List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility, this.startTime, this.person);
-        Leg leg = (Leg) pes.get(0);
-
-
-        return leg;
-    }
+		return leg;
+	}
 }

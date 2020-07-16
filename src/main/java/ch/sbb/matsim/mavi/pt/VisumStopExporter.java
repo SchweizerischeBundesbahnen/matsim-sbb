@@ -23,113 +23,114 @@ import org.matsim.utils.objectattributes.attributable.Attributes;
 
 public class VisumStopExporter {
 
-    private static final Logger log = Logger.getLogger(VisumStopExporter.class);
+	private static final Logger log = Logger.getLogger(VisumStopExporter.class);
 
-    private final Network network;
-    private final TransitSchedule schedule;
-    private final NetworkFactory networkBuilder;
-    private final TransitScheduleFactory scheduleBuilder;
+	private final Network network;
+	private final TransitSchedule schedule;
+	private final NetworkFactory networkBuilder;
+	private final TransitScheduleFactory scheduleBuilder;
 
-    private HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints = new HashMap<>();
+	private HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints = new HashMap<>();
 
-    public VisumStopExporter(Scenario scenario) {
-        this.network = scenario.getNetwork();
-        this.schedule = scenario.getTransitSchedule();
-        this.networkBuilder = this.network.getFactory();
-        this.scheduleBuilder = this.schedule.getFactory();
-    }
+	public VisumStopExporter(Scenario scenario) {
+		this.network = scenario.getNetwork();
+		this.schedule = scenario.getTransitSchedule();
+		this.networkBuilder = this.network.getFactory();
+		this.scheduleBuilder = this.schedule.getFactory();
+	}
 
-    public HashMap<Integer, Set<Id<TransitStopFacility>>> getStopAreasToStopPoints() {
-        return this.stopAreasToStopPoints;
-    }
+	private static void addAttribute(Attributes attributes, String name, String value, String dataType) {
+		if (!value.isEmpty() && !value.equals("null")) {
+			switch (dataType) {
+				case "java.lang.String":
+					attributes.putAttribute(name, value);
+					break;
+				case "java.lang.Double":
+					attributes.putAttribute(name, Double.parseDouble(value));
+					break;
+				case "java.lang.Integer":
+					attributes.putAttribute(name, (int) Double.parseDouble(value));
+					break;
+				case "java.lang.Boolean":
+					attributes.putAttribute(name, value);
+					break;
 
-    public void loadStopPoints(Visum visum, VisumPtExporterConfigGroup config) {
-        Visum.ComObject stopPoints = visum.getNetObject("StopPoints");
-        int nrOfStopPoints = stopPoints.countActive();
-        log.info("loading " + nrOfStopPoints + " stop points");
+				default:
+					throw new IllegalArgumentException(dataType);
+			}
+		}
+	}
 
-        String[][] stopPointAttributes = Visum.getArrayFromAttributeList(nrOfStopPoints, stopPoints,
-                "No", "XCoord", "YCoord", "Name", "IsOnNode", "IsOnLink", "NodeNo", "FromNodeNo", "StopArea\\No");
+	public HashMap<Integer, Set<Id<TransitStopFacility>>> getStopAreasToStopPoints() {
+		return this.stopAreasToStopPoints;
+	}
 
-        String[][] customAttributes = Visum.getArrayFromAttributeList(nrOfStopPoints, stopPoints,
-                config.getStopAttributeParams().values().stream().
-                        map(VisumPtExporterConfigGroup.StopAttributeParams::getAttributeValue).
-                        toArray(String[]::new));
+	public void loadStopPoints(Visum visum, VisumPtExporterConfigGroup config) {
+		Visum.ComObject stopPoints = visum.getNetObject("StopPoints");
+		int nrOfStopPoints = stopPoints.countActive();
+		log.info("loading " + nrOfStopPoints + " stop points");
 
-        IntStream.range(0, nrOfStopPoints).forEach(m -> createStopPoint(m, stopPointAttributes, customAttributes, config));
+		String[][] stopPointAttributes = Visum.getArrayFromAttributeList(nrOfStopPoints, stopPoints,
+				"No", "XCoord", "YCoord", "Name", "IsOnNode", "IsOnLink", "NodeNo", "FromNodeNo", "StopArea\\No");
 
-        log.info("finished loading " + nrOfStopPoints + " stop points");
-    }
+		String[][] customAttributes = Visum.getArrayFromAttributeList(nrOfStopPoints, stopPoints,
+				config.getStopAttributeParams().values().stream().
+						map(VisumPtExporterConfigGroup.StopAttributeParams::getAttributeValue).
+						toArray(String[]::new));
 
-    private void createStopPoint(int i, String[][] stopPointAttributes, String[][] customAttributes, VisumPtExporterConfigGroup config) {
-        int stopPointNo = (int) Double.parseDouble(stopPointAttributes[i][0]);
-        Id<TransitStopFacility> stopPointID = Id.create(stopPointNo, TransitStopFacility.class);
-        double xCoord = Double.parseDouble(stopPointAttributes[i][1]);
-        double yCoord = Double.parseDouble(stopPointAttributes[i][2]);
-        Coord stopPointCoord = new Coord(xCoord, yCoord);
-        String stopPointName = stopPointAttributes[i][3];
+		IntStream.range(0, nrOfStopPoints).forEach(m -> createStopPoint(m, stopPointAttributes, customAttributes, config));
 
-        double fromStopIsOnNode = Double.parseDouble(stopPointAttributes[i][4]);
-        double fromStopIsOnLink = Double.parseDouble(stopPointAttributes[i][5]);
-        Node stopNode = null;
-        if (fromStopIsOnNode == 1.0) {
-            int stopNodeIDNo = (int) Double.parseDouble(stopPointAttributes[i][6]);
-            Id<Node> stopNodeID = Id.createNodeId(config.getNetworkMode() + "_" + stopNodeIDNo);
-            stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
-            this.network.addNode(stopNode);
-        } else if (fromStopIsOnLink == 1.0) {
-            int stopLinkFromNodeNo = (int) Double.parseDouble(stopPointAttributes[i][7]);
-            Id<Node> stopNodeID = Id.createNodeId(config.getNetworkMode() + "_" + stopLinkFromNodeNo + "_" + stopPointNo);
-            stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
-            this.network.addNode(stopNode);
-        }
+		log.info("finished loading " + nrOfStopPoints + " stop points");
+	}
 
-        Id<Link> loopLinkID = Id.createLinkId(config.getNetworkMode() + "_" + stopPointNo);
-        Link loopLink = this.networkBuilder.createLink(loopLinkID, stopNode, stopNode);
-        loopLink.setLength(0.0);
-        loopLink.setFreespeed(10000);
-        loopLink.setCapacity(10000);
-        loopLink.setNumberOfLanes(10000);
-        loopLink.setAllowedModes(Collections.singleton(config.getNetworkMode()));
-        this.network.addLink(loopLink);
+	private void createStopPoint(int i, String[][] stopPointAttributes, String[][] customAttributes, VisumPtExporterConfigGroup config) {
+		int stopPointNo = (int) Double.parseDouble(stopPointAttributes[i][0]);
+		Id<TransitStopFacility> stopPointID = Id.create(stopPointNo, TransitStopFacility.class);
+		double xCoord = Double.parseDouble(stopPointAttributes[i][1]);
+		double yCoord = Double.parseDouble(stopPointAttributes[i][2]);
+		Coord stopPointCoord = new Coord(xCoord, yCoord);
+		String stopPointName = stopPointAttributes[i][3];
 
-        int stopAreaNo = (int) Double.parseDouble(stopPointAttributes[i][8]);
-        if (this.stopAreasToStopPoints.get(stopAreaNo) == null)
-            this.stopAreasToStopPoints.put(stopAreaNo, new HashSet<>());
-        this.stopAreasToStopPoints.get(stopAreaNo).add(stopPointID);
+		double fromStopIsOnNode = Double.parseDouble(stopPointAttributes[i][4]);
+		double fromStopIsOnLink = Double.parseDouble(stopPointAttributes[i][5]);
+		Node stopNode = null;
+		if (fromStopIsOnNode == 1.0) {
+			int stopNodeIDNo = (int) Double.parseDouble(stopPointAttributes[i][6]);
+			Id<Node> stopNodeID = Id.createNodeId(config.getNetworkMode() + "_" + stopNodeIDNo);
+			stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
+			this.network.addNode(stopNode);
+		} else if (fromStopIsOnLink == 1.0) {
+			int stopLinkFromNodeNo = (int) Double.parseDouble(stopPointAttributes[i][7]);
+			Id<Node> stopNodeID = Id.createNodeId(config.getNetworkMode() + "_" + stopLinkFromNodeNo + "_" + stopPointNo);
+			stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
+			this.network.addNode(stopNode);
+		}
 
-        // create transitStopFacility
-        TransitStopFacility st = this.scheduleBuilder.createTransitStopFacility(stopPointID, stopPointCoord, false);
-        st.setName(stopPointName);
-        st.setLinkId(loopLinkID);
+		Id<Link> loopLinkID = Id.createLinkId(config.getNetworkMode() + "_" + stopPointNo);
+		Link loopLink = this.networkBuilder.createLink(loopLinkID, stopNode, stopNode);
+		loopLink.setLength(0.0);
+		loopLink.setFreespeed(10000);
+		loopLink.setCapacity(10000);
+		loopLink.setNumberOfLanes(10000);
+		loopLink.setAllowedModes(Collections.singleton(config.getNetworkMode()));
+		this.network.addLink(loopLink);
 
-        String[] values = customAttributes[i];
-        List<VisumPtExporterConfigGroup.StopAttributeParams> custAttNames = new ArrayList<>(config.getStopAttributeParams().values());
-        IntStream.range(0, values.length).forEach(j -> addAttribute(st.getAttributes(), custAttNames.get(j).getAttributeName(),
-                values[j], custAttNames.get(j).getDataType()));
+		int stopAreaNo = (int) Double.parseDouble(stopPointAttributes[i][8]);
+		if (this.stopAreasToStopPoints.get(stopAreaNo) == null) {
+			this.stopAreasToStopPoints.put(stopAreaNo, new HashSet<>());
+		}
+		this.stopAreasToStopPoints.get(stopAreaNo).add(stopPointID);
 
-        this.schedule.addStopFacility(st);
-    }
+		// create transitStopFacility
+		TransitStopFacility st = this.scheduleBuilder.createTransitStopFacility(stopPointID, stopPointCoord, false);
+		st.setName(stopPointName);
+		st.setLinkId(loopLinkID);
 
-    private static void addAttribute(Attributes attributes, String name, String value, String dataType) {
-        if (!value.isEmpty() && !value.equals("null")) {
-            switch (dataType) {
-                case "java.lang.String":
-                    attributes.putAttribute(name, value);
-                    break;
-                case "java.lang.Double":
-                    attributes.putAttribute(name, Double.parseDouble(value));
-                    break;
-                case "java.lang.Integer":
-                    attributes.putAttribute(name, (int) Double.parseDouble(value));
-                    break;
-                case "java.lang.Boolean":
-                    attributes.putAttribute(name, value);
-                    break;
+		String[] values = customAttributes[i];
+		List<VisumPtExporterConfigGroup.StopAttributeParams> custAttNames = new ArrayList<>(config.getStopAttributeParams().values());
+		IntStream.range(0, values.length).forEach(j -> addAttribute(st.getAttributes(), custAttNames.get(j).getAttributeName(),
+				values[j], custAttNames.get(j).getDataType()));
 
-                default:
-                    throw new IllegalArgumentException(dataType);
-            }
-        }
-    }
+		this.schedule.addStopFacility(st);
+	}
 }

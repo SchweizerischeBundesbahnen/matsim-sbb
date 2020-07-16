@@ -2,21 +2,20 @@ package ch.sbb.matsim.synpop.attributes;
 
 public class SynpopAttribute {
 
-    private String name;
+	private String name;
+	private String sqlType;
 
-    public String getName() {
-        return name;
-    }
+	public SynpopAttribute(String name, String sqlType) {
+		this.name = name;
+		this.sqlType = sqlType;
 
-    public String getSqlType() {
-        return sqlType;
-    }
+	}
 
-    private String sqlType;
+	public String getName() {
+		return name;
+	}
 
-    public SynpopAttribute(String name, String sqlType){
-        this.name = name;
-        this.sqlType = sqlType;
-
-    }
+	public String getSqlType() {
+		return sqlType;
+	}
 }

@@ -8,21 +8,21 @@ import org.matsim.api.core.v01.Id;
  */
 public interface Zones {
 
-    Id<Zones> getId();
+	Id<Zones> getId();
 
-    int size();
+	int size();
 
-    Zone findZone(double x, double y);
+	Zone findZone(double x, double y);
 
-    default Zone findZone(Coord coord) {
-        return findZone(coord.getX(), coord.getY());
-    }
+	default Zone findZone(Coord coord) {
+		return findZone(coord.getX(), coord.getY());
+	}
 
-    Zone findNearestZone(double x, double y, double maxDistance);
+	Zone findNearestZone(double x, double y, double maxDistance);
 
-    default Zone findNearestZone(Coord coord, double maxDistance) {
-        return findNearestZone(coord.getX(), coord.getY(), maxDistance);
-    }
+	default Zone findNearestZone(Coord coord, double maxDistance) {
+		return findNearestZone(coord.getX(), coord.getY(), maxDistance);
+	}
 
-    Zone getZone(Id<Zone> id);
+	Zone getZone(Id<Zone> id);
 }

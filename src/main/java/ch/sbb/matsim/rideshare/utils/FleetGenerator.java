@@ -21,25 +21,26 @@ import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
 
 public class FleetGenerator {
-    /**
-     * Adjust these variables and paths to your need.
-     */
 
-    private static final int numberOfVehicles = 100;
-    private static final int seatsPerVehicle = 2; //this is important for DRT, value is not used by taxi
-    private static final double operationStartTime = 0;
-    private static final double operationEndTime = 30 * 60 * 60; //24h
-    private static final Random random = MatsimRandom.getRandom();
+	/**
+	 * Adjust these variables and paths to your need.
+	 */
 
-    private static final Path networkFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\network.xml.gz");
-    private static final Path outputFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\fleetVehicles_feeder_ne.xml");
+	private static final int numberOfVehicles = 100;
+	private static final int seatsPerVehicle = 2; //this is important for DRT, value is not used by taxi
+	private static final double operationStartTime = 0;
+	private static final double operationEndTime = 30 * 60 * 60; //24h
+	private static final Random random = MatsimRandom.getRandom();
 
-    public static void main(String[] args) {
+	private static final Path networkFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\network.xml.gz");
+	private static final Path outputFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\fleetVehicles_feeder_ne.xml");
 
-        new FleetGenerator().run();
-    }
+	public static void main(String[] args) {
 
-    private void run() {
+		new FleetGenerator().run();
+	}
+
+	private void run() {
 
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile.toString());
@@ -56,7 +57,7 @@ public class FleetGenerator {
 					.serviceBeginTime(operationStartTime)
 					.serviceEndTime(operationEndTime)
 					.build());
-        }
-        new FleetWriter(vehicleSpecifications.stream().sorted(Comparator.comparing(v -> v.getId().toString()))).write(outputFile.toString());
-    }
+		}
+		new FleetWriter(vehicleSpecifications.stream().sorted(Comparator.comparing(v -> v.getId().toString()))).write(outputFile.toString());
+	}
 }
