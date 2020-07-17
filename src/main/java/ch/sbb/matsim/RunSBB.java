@@ -112,23 +112,18 @@ public class RunSBB {
 		Scenario scenario = controler.getScenario();
 		ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
 		controler.setScoringFunctionFactory(scoringFunctionFactory);
-
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
-				this.addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
-			}
-		});
-
-		controler.addOverridingModule(new AbstractModule() {
-			@Override
-			public void install() {
+				addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 
 				install(new SBBTransitModule());
 				install(new SwissRailRaptorModule());
 				install(new ZonesModule(scenario));
-
+				install(new SBBNetworkRoutingModule());
+				install(new AccessEgressModule());
+				install(new IntermodalModule());
 				Config config = getConfig();
 				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
 				if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
@@ -159,10 +154,6 @@ public class RunSBB {
 				return components;
 			}
 		});
-
-		controler.addOverridingModule(new SBBNetworkRoutingModule());
-		controler.addOverridingModule(new AccessEgressModule());
-		controler.addOverridingModule(new IntermodalModule());
 
 	}
 
