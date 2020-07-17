@@ -165,7 +165,7 @@
                 <version>2.7</version>
                 <executions>
                     <execution>
-                        <phase>release</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>lock-snapshots</goal>
                         </goals>
