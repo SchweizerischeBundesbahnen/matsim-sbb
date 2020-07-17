@@ -33,7 +33,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>13.0-2020w28-SNAPSHOT</matsim.version>
+    <!--        <matsim.version>13.0-2020w28-SNAPSHOT</matsim.version> -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>
@@ -45,19 +45,19 @@
         <dependency>
             <groupId>org.matsim</groupId>
             <artifactId>matsim</artifactId>
-            <version>${matsim.version}</version>
+            <version>13.0-2020w28-20200713.070727-1</version>
         </dependency>
 
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>drt</artifactId>
-            <version>${matsim.version}</version>
+            <version>13.0-2020w28-20200713.071257-1</version>
         </dependency>
 
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>av</artifactId>
-            <version>${matsim.version}</version>
+            <version>13.0-2020w28-20200713.071318-1</version>
         </dependency>
         <dependency> <!-- MATSim uses Guice 4.1.0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
             <groupId>com.google.guava</groupId>
@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.matsim</groupId>
             <artifactId>matsim</artifactId>
-            <version>${matsim.version}</version>
+            <version>13.0-2020w28-20200713.070727-1</version>
             <classifier>tests</classifier>
             <scope>test</scope>
             <type>test-jar</type>
