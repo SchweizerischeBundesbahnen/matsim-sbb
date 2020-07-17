@@ -33,7 +33,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>13.0-2020w28-SNAPSHOT</matsim.version>
+        <matsim.version>matsim-13.0-2020w28-20200713.070727-1</matsim.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>

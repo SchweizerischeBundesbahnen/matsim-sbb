@@ -31,7 +31,6 @@
       "sonarScanEnabled": false,
       "triggerBuildOnCommitEnabled": false,
       "hotfixCreationEnabled": false,
-      "additionalBuildParams":"-DignoreSnapshots=true"
     },
     {
       "stepType": "hotfix",
