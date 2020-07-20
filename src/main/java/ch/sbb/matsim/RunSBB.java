@@ -125,7 +125,6 @@ public class RunSBB {
 				install(new ZonesModule(scenario));
 				install(new SBBNetworkRoutingModule());
 				install(new AccessEgressModule());
-				install(new IntermodalModule());
 				Config config = getConfig();
 				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
 				if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
@@ -148,6 +147,7 @@ public class RunSBB {
 
 			}
 
+
 			@Provides
 			QSimComponentsConfig provideQSimComponentsConfig() {
 				QSimComponentsConfig components = new QSimComponentsConfig();
@@ -156,6 +156,8 @@ public class RunSBB {
 				return components;
 			}
 		});
+		controler.addOverridingModule(new IntermodalModule());
+
 
 	}
 
