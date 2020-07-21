@@ -21,4 +21,6 @@ public class Variables {
 	public static final String INTERMODAL_ACCESS_LINK_ID = "accessLinkId";
 	public static final String PERSONID = "personId";
 
+	public static final String CAR_AVAIL = "car_available";
+	public static final String CAR_AVAL_TRUE = "1";
 }

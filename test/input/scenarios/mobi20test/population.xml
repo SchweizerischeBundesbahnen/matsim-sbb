@@ -10,7 +10,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">35</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -54,7 +54,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">35</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -118,7 +118,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">70</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -167,7 +167,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">48</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -204,7 +204,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">35</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -241,7 +241,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">37</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -290,7 +290,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">12</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -328,7 +328,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">49</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -371,7 +371,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">13</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -420,7 +420,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">28</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -458,7 +458,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">51</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -496,7 +496,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">23</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -539,7 +539,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">53</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -583,7 +583,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">41</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -634,7 +634,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">9</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -683,7 +683,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">7</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -732,7 +732,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">49</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
@@ -774,7 +774,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">21</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -814,7 +814,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">37</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -863,7 +863,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">13</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -901,7 +901,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">41</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -944,7 +944,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">18</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -998,7 +998,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">73</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -1031,7 +1031,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">33</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -1069,7 +1069,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">37</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -1128,7 +1128,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">32</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -1187,7 +1187,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">39</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -1251,7 +1251,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">59</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
@@ -1289,7 +1289,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">30</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -1327,7 +1327,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">53</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -1371,7 +1371,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">52</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
@@ -1409,7 +1409,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">44</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -1453,7 +1453,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">23</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -1506,7 +1506,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">11</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -1555,7 +1555,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">67</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -1598,7 +1598,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">53</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -1637,7 +1637,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">25</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -1686,7 +1686,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">45</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -1739,7 +1739,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -1798,7 +1798,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">22</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -1864,7 +1864,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">23</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -1908,7 +1908,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">11</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -1947,7 +1947,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">36</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -2016,7 +2016,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">51</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -2070,7 +2070,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">43</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -2108,7 +2108,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">6</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -2156,7 +2156,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">24</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">4</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -2205,7 +2205,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">32</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -2253,7 +2253,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">49</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -2302,7 +2302,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">23</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
@@ -2350,7 +2350,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">48</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -2424,7 +2424,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">50</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -2477,7 +2477,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">83</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -2526,7 +2526,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">14</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -2585,7 +2585,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">31</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -2629,7 +2629,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">62</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -2678,7 +2678,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">36</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
@@ -2756,7 +2756,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">33</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -2799,7 +2799,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">63</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -2848,7 +2848,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">50</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -2907,7 +2907,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">17</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">3</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -2955,7 +2955,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">41</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3004,7 +3004,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">58</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3042,7 +3042,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">46</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3075,7 +3075,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">64</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3129,7 +3129,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">25</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3183,7 +3183,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -3230,7 +3230,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">21</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">4</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -3267,7 +3267,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">37</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -3327,7 +3327,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">42</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3365,7 +3365,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -3402,7 +3402,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3461,7 +3461,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">46</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -3499,7 +3499,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">56</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
@@ -3537,7 +3537,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">43</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3586,7 +3586,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">53</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3624,7 +3624,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">20</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3698,7 +3698,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">36</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -3736,7 +3736,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">47</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3785,7 +3785,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">71</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -3839,7 +3839,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">6</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -3893,7 +3893,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">36</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3947,7 +3947,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">27</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -3985,7 +3985,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
@@ -4023,7 +4023,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">47</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -4074,7 +4074,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">61</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -4116,7 +4116,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">28</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">4</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
@@ -4154,7 +4154,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">83</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -4192,7 +4192,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -4236,7 +4236,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">8</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -4285,7 +4285,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">55</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -4323,7 +4323,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">55</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -4361,7 +4361,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">15</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -4415,7 +4415,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">55</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -4469,7 +4469,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">22</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -4543,7 +4543,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">81</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -4580,7 +4580,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -4617,7 +4617,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">66</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -4655,7 +4655,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">64</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -4702,7 +4702,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">59</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -4746,7 +4746,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">55</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -4805,7 +4805,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">67</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
@@ -4843,7 +4843,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">24</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -4881,7 +4881,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">29</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -4949,7 +4949,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">19</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">3</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -4989,7 +4989,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">80</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -5048,7 +5048,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">66</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -5117,7 +5117,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">61</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -5155,7 +5155,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">37</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -5209,7 +5209,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">72</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -5258,7 +5258,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">66</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
@@ -5307,7 +5307,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">45</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
@@ -5372,7 +5372,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">30</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -5405,7 +5405,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">49</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -5454,7 +5454,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">57</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -5488,7 +5488,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">20</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
-			<attribute name="carAvail" class="java.lang.String">never</attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
@@ -5537,7 +5537,7 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">76</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
-			<attribute name="carAvail" class="java.lang.String">always</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
 			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
 			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>

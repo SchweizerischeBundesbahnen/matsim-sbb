@@ -30,6 +30,9 @@ public class CalculateIndicatorMatrices {
 		String outputDirectory = args[4];
 		int numberOfThreads = Integer.valueOf(args[5]);
 		boolean detectTrainLines = Boolean.parseBoolean(args[6]);
+		if (!args[6].equalsIgnoreCase("true") || !args[6].equalsIgnoreCase("false")){
+			throw new RuntimeException("train detection must be argument must be either true or false");
+		}
 		BiPredicate<TransitLine, TransitRoute> trainLinePredictor = detectTrainLines ?
 				(line, route) -> route.getTransportMode().equals(SBBModes.PTSubModes.RAIL) :
 				(line, route) -> false;

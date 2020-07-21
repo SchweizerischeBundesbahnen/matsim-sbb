@@ -23,6 +23,7 @@ import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
+import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.replanning.SimpleAnnealer;
 import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
@@ -48,6 +49,7 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.TerminationCriterion;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
+import org.matsim.core.population.algorithms.PermissibleModesCalculator;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 
@@ -112,23 +114,17 @@ public class RunSBB {
 		Scenario scenario = controler.getScenario();
 		ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
 		controler.setScoringFunctionFactory(scoringFunctionFactory);
-
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
-				this.addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
-			}
-		});
-
-		controler.addOverridingModule(new AbstractModule() {
-			@Override
-			public void install() {
+				addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
-
+				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class);
 				install(new SBBTransitModule());
 				install(new SwissRailRaptorModule());
 				install(new ZonesModule(scenario));
-
+				install(new SBBNetworkRoutingModule());
+				install(new AccessEgressModule());
 				Config config = getConfig();
 				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
 				if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
@@ -151,6 +147,7 @@ public class RunSBB {
 
 			}
 
+
 			@Provides
 			QSimComponentsConfig provideQSimComponentsConfig() {
 				QSimComponentsConfig components = new QSimComponentsConfig();
@@ -159,10 +156,8 @@ public class RunSBB {
 				return components;
 			}
 		});
-
-		controler.addOverridingModule(new SBBNetworkRoutingModule());
-		controler.addOverridingModule(new AccessEgressModule());
 		controler.addOverridingModule(new IntermodalModule());
+
 
 	}
 
