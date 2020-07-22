@@ -18,10 +18,10 @@ import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
-import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
@@ -38,8 +38,15 @@ import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.vehicles.RideParkingCostTracker;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
@@ -50,8 +57,11 @@ import org.matsim.core.controler.TerminationCriterion;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
 import org.matsim.core.population.algorithms.PermissibleModesCalculator;
+import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
+import org.matsim.core.utils.misc.OptionalTime;
 
 /**
  * @author denism
@@ -91,7 +101,7 @@ public class RunSBB {
 	}
 
 	public static void addSBBDefaultScenarioModules(Scenario scenario) {
-		new AbmConverter().createInitialEndTimeAttribute(scenario.getPopulation());
+		createInitialEndTimeAttribute(scenario.getPopulation());
 		ZonesModule.addZonestoScenario(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		IntermodalModule.prepareIntermodalScenario(scenario);
@@ -171,5 +181,31 @@ public class RunSBB {
 
 		config.checkConsistency();
 		return config;
+	}
+
+	public static void createInitialEndTimeAttribute(Population population) {
+		for (Person p : population.getPersons().values()) {
+			if (p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null) {
+				continue;
+			}
+			Plan plan = p.getSelectedPlan();
+			List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
+			List<OptionalTime> endTimeList = new ArrayList<>();
+			int i = 0;
+
+			for (Activity act : activities) {
+				if (i == activities.size() - 1) {
+					break;
+				}
+				endTimeList.add(act.getEndTime());
+				i += 1;
+			}
+
+			p.getAttributes()
+					.putAttribute(Variables.INIT_END_TIMES, endTimeList
+							.stream()
+							.map(e -> e.isDefined() ? Double.toString(e.seconds()) : Variables.NO_INIT_END_TIME)
+							.collect(Collectors.joining("_")));
+		}
 	}
 }
