@@ -18,7 +18,7 @@ public class SBBAccessTimeConfigGroup extends ReflectiveConfigGroup {
 	static private final String PARAM_IS_INSERTING = "isInsertingAccessEgressWalk";
 
 	private Id<Zones> zonesId = null;
-	private String attributePrefix = "ACC";
+	private String attributePrefix = "at_";
 	private Boolean isInsertingAccessEgressWalk = false;
 	private Set<String> modesWithAccessTime = new HashSet<>();
 

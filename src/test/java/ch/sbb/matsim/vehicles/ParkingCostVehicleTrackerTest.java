@@ -137,7 +137,7 @@ public class ParkingCostVehicleTrackerTest {
 
 			ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
 			parkingConfig.setZonesId("parkingZones");
-			parkingConfig.setZonesParkingCostAttributeName("ACCCAR"); // yes, we misuse the access times in the test data as parking costs
+			parkingConfig.setZonesParkingCostAttributeName("at_car"); // yes, we misuse the access times in the test data as parking costs
 		}
 
 		private void createNetwork() {

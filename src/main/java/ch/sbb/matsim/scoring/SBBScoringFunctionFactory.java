@@ -36,7 +36,7 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 	public ScoringFunction createNewScoringFunction(Person person) {
 		Set<String> ptModes = this.scenario.getConfig().transit().getTransitModes();
 		SBBIntermodalConfiggroup config = ConfigUtils.addOrGetModule(this.scenario.getConfig(), SBBIntermodalConfiggroup.class);
-		Set<String> ptFeederModes = new HashSet<String>();
+		Set<String> ptFeederModes = new HashSet<>();
 		for (SBBIntermodalModeParameterSet modeParams : config.getModeParameterSets()) {
 			if (modeParams.doUseMinimalTransferTimes()) {
 				ptFeederModes.add(modeParams.getMode());

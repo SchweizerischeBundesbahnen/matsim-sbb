@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans;
 
+import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.abm.AbmConverter;
 import ch.sbb.matsim.plans.facilities.FacilitiesReader;
@@ -32,7 +33,7 @@ public class PlanGenerator {
 		abmConverter.adjustModeIfNoLicense(population);
 		abmConverter.addHomeFacilityAttributes(population, facilities, Variables.T_ZONE);
 		abmConverter.addHomeFacilityAttributes(population, facilities, Variables.MS_REGION);
-		abmConverter.createInitialEndTimeAttribute(population);
+		RunSBB.createInitialEndTimeAttribute(population);
 		abmConverter.writeOutputs(population, pathTopPlanOutputDir);
 	}
 }

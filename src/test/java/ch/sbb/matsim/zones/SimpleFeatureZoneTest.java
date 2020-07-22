@@ -22,7 +22,7 @@ public class SimpleFeatureZoneTest {
 		Assert.assertNotNull(z);
 		Assert.assertEquals("4", z.getId().toString());
 		Assert.assertEquals("Bern", z.getAttribute("NAME"));
-		Assert.assertEquals(20, ((Integer) z.getAttribute("ACCCAR")).intValue());
+		Assert.assertEquals(20, ((Integer) z.getAttribute("at_car")).intValue());
 
 		z = zones.findZone(610000, 207000); // within bounding box of Bern, but outside the zone
 		Assert.assertNull(z);

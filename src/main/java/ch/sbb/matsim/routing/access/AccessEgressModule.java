@@ -31,7 +31,7 @@ public class AccessEgressModule extends AbstractModule {
 			Set<String> modesWithAccessTime = accessTimeConfigGroup.getModesWithAccessTime();
 			Zone zone = zones.findZone(l.getCoord());
 			for (var mode : modesWithAccessTime) {
-				String attribute = attributePrefix + mode.toUpperCase();
+				String attribute = attributePrefix + mode.toLowerCase();
 				double accessTime = zone != null ? ((Number) zone.getAttribute(attribute)).intValue() : .0;
 				NetworkUtils.setLinkAccessTime(l, mode, accessTime);
 				NetworkUtils.setLinkEgressTime(l, mode, accessTime);
@@ -57,7 +57,6 @@ public class AccessEgressModule extends AbstractModule {
 	public void install() {
 		Config config = getConfig();
 		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
-		Id<Zones> zonesId = accessTimeConfigGroup.getZonesId();
 
 		if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
 			config.plansCalcRoute().setAccessEgressType(AccessEgressType.walkConstantTimeToLink);
