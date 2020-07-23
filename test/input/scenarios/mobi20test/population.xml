@@ -2136,7 +2136,7 @@
 			</leg>
 			<activity type="outside" x="627291.5" y="128159.0" end_time="06:46:28">
 			</activity>
-			<leg mode="car">
+			<leg mode="ride">
 			</leg>
 			<activity type="education_240" facility="B_371096" x="614368.0" y="136564.0"
 					  start_time="07:17:06" end_time="11:31:47">
