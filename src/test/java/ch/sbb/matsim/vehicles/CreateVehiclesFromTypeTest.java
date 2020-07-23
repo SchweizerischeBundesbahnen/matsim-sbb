@@ -91,11 +91,11 @@ public class CreateVehiclesFromTypeTest {
 		vehicleCreator.createVehicles();
 
 		Assert.assertEquals(5, scenario.getVehicles().getVehicles().size());
-		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create(1, Vehicle.class)).getType().getId().toString());
-		Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create(2, Vehicle.class)).getType().getId().toString());
-		Assert.assertEquals(VEHTYPE_ELECTRIC, scenario.getVehicles().getVehicles().get(Id.create(3, Vehicle.class)).getType().getId().toString());
-		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create(4, Vehicle.class)).getType().getId().toString());
-		Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create(5, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create("v"+1, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create("v"+2, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_ELECTRIC, scenario.getVehicles().getVehicles().get(Id.create("v"+3, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create("v"+4, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create("v"+5, Vehicle.class)).getType().getId().toString());
 	}
 
 	@Test
@@ -110,11 +110,11 @@ public class CreateVehiclesFromTypeTest {
 		vehicleCreator.createVehicles();
 
 		Assert.assertEquals(5, scenario.getVehicles().getVehicles().size());
-		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create(1, Vehicle.class)).getType().getId().toString());
-		Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create(2, Vehicle.class)).getType().getId().toString());
-		Assert.assertEquals(VEHTYPE_ELECTRIC, scenario.getVehicles().getVehicles().get(Id.create(3, Vehicle.class)).getType().getId().toString());
-		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create(4, Vehicle.class)).getType().getId().toString());
-		Assert.assertEquals(DEFAULT_VEHICLE_TYPE, scenario.getVehicles().getVehicles().get(Id.create(5, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create("v"+1, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create("v"+2, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_ELECTRIC, scenario.getVehicles().getVehicles().get(Id.create("v"+3, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create("v"+4, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(DEFAULT_VEHICLE_TYPE, scenario.getVehicles().getVehicles().get(Id.create("v"+5, Vehicle.class)).getType().getId().toString());
 	}
 
 	@Test
