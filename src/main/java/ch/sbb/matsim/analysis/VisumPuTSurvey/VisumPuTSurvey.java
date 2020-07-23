@@ -30,7 +30,7 @@ public class VisumPuTSurvey {
 
 	public static final String FILENAME = "matsim_put_survey.att";
 
-	private static final String GEM_SHAPE_ATTR = "munid";
+	private static final String GEM_SHAPE_ATTR = "mun_id";
 
 	private static final String COL_PATH_ID = "$OEVTEILWEG:DATENSATZNR";
 	private static final String COL_LEG_ID = "TWEGIND";
