@@ -26,7 +26,6 @@ public class SBBModes {
 
 	static {
 		mode2HierarchalNumber = new HashMap<>();
-
 		mode2HierarchalNumber.put(PT, 0);
 		mode2HierarchalNumber.put(CAR, 10);
 		mode2HierarchalNumber.put(AVTAXI, 11);
@@ -35,6 +34,7 @@ public class SBBModes {
 		mode2HierarchalNumber.put(BIKE, 30);
 		mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 40);
 		mode2HierarchalNumber.put(PT_FALLBACK_MODE, 41);
+		mode2HierarchalNumber.put(WALK_MAIN_MAINMODE, 42);
 		mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 50);
 	}
 
