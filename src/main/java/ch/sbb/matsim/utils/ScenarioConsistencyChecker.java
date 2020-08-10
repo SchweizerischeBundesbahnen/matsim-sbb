@@ -54,7 +54,7 @@ public class ScenarioConsistencyChecker {
 				.map(a->a.getType().split("_")[0])
 				.collect(Collectors.toSet());
 		Set<String> permissibleActivityTypes = new HashSet<>(SBBActivities.abmActs2matsimActs.values());
-		permissibleActivityTypes.add("outside");
+		permissibleActivityTypes.add(Variables.OUTSIDE);
 		if (!permissibleActivityTypes.containsAll(activitytypes)){
 			LOGGER.error("Detected unknown activity types: \n"+activitytypes+"\n Permissible Types: "+ permissibleActivityTypes);
 			result= false;
@@ -64,8 +64,10 @@ public class ScenarioConsistencyChecker {
 				.flatMap(person -> TripStructureUtils.getLegs(person.getSelectedPlan()).stream())
 				.map(a->a.getMode())
 				.collect(Collectors.toSet());
-		if (!SBBModes.mode2HierarchalNumber.keySet().containsAll(modes)){
-			LOGGER.error("Detected unknown modes: \n"+modes+"\n Permissible Types: "+ SBBModes.mode2HierarchalNumber.keySet());
+		Set<String> permissiblemodes = new HashSet<>(SBBModes.mode2HierarchalNumber.keySet());
+		permissiblemodes.add(Variables.OUTSIDE);
+		if (!permissiblemodes.containsAll(modes)){
+			LOGGER.error("Detected unknown modes: \n"+modes+"\n Permissible Types: "+ permissiblemodes);
 			result= false;
 		}
 
