@@ -2,6 +2,7 @@ package ch.sbb.matsim.utils;
 
 import static org.junit.Assert.*;
 
+import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import org.junit.Test;
@@ -17,9 +18,13 @@ import org.matsim.vehicles.VehicleUtils;
 
 public class ScenarioConsistencyCheckerTest {
 
+	public static final String HOME = SBBActivities.home;
+	public static final String WORK = SBBActivities.work+"_23";
 	private Person orderlyPerson;
+	private Person personWithSpaceship;
 	private Person personWithLackingAttribute;
-	private Person personWithMismatchinLegs;
+	private Person personWithMismatchingLegs;
+	private Person personWithUnknownActivity;
 	private Person carlessPersonUsingCar;
 
 	@Test
@@ -45,7 +50,23 @@ public class ScenarioConsistencyCheckerTest {
 	public void checkWrongPlanElements() {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		createPersons(scenario);
-		scenario.getPopulation().addPerson(personWithMismatchinLegs);
+		scenario.getPopulation().addPerson(personWithMismatchingLegs);
+		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void checkWrongModes() {
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		createPersons(scenario);
+		scenario.getPopulation().addPerson(personWithSpaceship);
+		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void checkWrongActivities() {
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		createPersons(scenario);
+		scenario.getPopulation().addPerson(personWithUnknownActivity);
 		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
 	}
 
@@ -66,44 +87,72 @@ public class ScenarioConsistencyCheckerTest {
 	}
 
 	private void createPersons(Scenario scenario) {
-		orderlyPerson = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
-		Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> orderlyPerson.getAttributes().putAttribute(s,"1"));
-		PopulationUtils.putSubpopulation(orderlyPerson,Variables.REGULAR);
+		{
+			orderlyPerson = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
+			Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> orderlyPerson.getAttributes().putAttribute(s, "1"));
+			PopulationUtils.putSubpopulation(orderlyPerson, Variables.REGULAR);
+			Plan plan = scenario.getPopulation().getFactory().createPlan();
+			plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(HOME, new Coord(0, 0)));
+			plan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
+			plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(WORK, new Coord(0, 0)));
+			orderlyPerson.addPlan(plan);
+		}
+		{
+			personWithSpaceship = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
+			Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> personWithSpaceship.getAttributes().putAttribute(s, "1"));
+			PopulationUtils.putSubpopulation(personWithSpaceship, Variables.REGULAR);
+			Plan plan = scenario.getPopulation().getFactory().createPlan();
+			plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(HOME, new Coord(0, 0)));
+			plan.addLeg(scenario.getPopulation().getFactory().createLeg("spaceship"));
+			plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(WORK, new Coord(0, 0)));
+			personWithSpaceship.addPlan(plan);
+		}
 
-		Plan plan = scenario.getPopulation().getFactory().createPlan();
-		plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord("h",new Coord(0,0)));
-		plan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
-		plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord("w",new Coord(0,0)));
-		orderlyPerson.addPlan(plan);
+		{
+			personWithUnknownActivity = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
+			Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> personWithUnknownActivity.getAttributes().putAttribute(s, "1"));
+			PopulationUtils.putSubpopulation(personWithUnknownActivity, Variables.REGULAR);
+			Plan plan = scenario.getPopulation().getFactory().createPlan();
+			plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord("SINGINGLOUDLY", new Coord(0, 0)));
+			plan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
+			plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(WORK, new Coord(0, 0)));
+			personWithUnknownActivity.addPlan(plan);
+		}
 
-		personWithLackingAttribute = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
-		Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> personWithLackingAttribute.getAttributes().putAttribute(s,"1"));
-		personWithLackingAttribute.getAttributes().removeAttribute(Variables.PT_SUBSCRIPTION);
-		PopulationUtils.putSubpopulation(personWithLackingAttribute,Variables.REGULAR);
-		Plan plan2 = scenario.getPopulation().getFactory().createPlan();
-		plan2.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord("h",new Coord(0,0)));
-		plan2.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
-		plan2.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord("w",new Coord(0,0)));
-		personWithLackingAttribute.addPlan(plan2);
+		{
+			personWithLackingAttribute = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
+			Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> personWithLackingAttribute.getAttributes().putAttribute(s, "1"));
+			personWithLackingAttribute.getAttributes().removeAttribute(Variables.PT_SUBSCRIPTION);
+			PopulationUtils.putSubpopulation(personWithLackingAttribute, Variables.REGULAR);
+			Plan plan2 = scenario.getPopulation().getFactory().createPlan();
+			plan2.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(HOME, new Coord(0, 0)));
+			plan2.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
+			plan2.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(WORK, new Coord(0, 0)));
+			personWithLackingAttribute.addPlan(plan2);
+		}
 
-		personWithMismatchinLegs = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
-		Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> personWithMismatchinLegs.getAttributes().putAttribute(s,"1"));
-		PopulationUtils.putSubpopulation(personWithMismatchinLegs,Variables.REGULAR);
-		Plan wrongPlan = scenario.getPopulation().getFactory().createPlan();
-		wrongPlan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord("h",new Coord(0,0)));
-		wrongPlan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
-		wrongPlan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
-		wrongPlan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord("w",new Coord(0,0)));
-		personWithMismatchinLegs.addPlan(wrongPlan);
+		{
+			personWithMismatchingLegs = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
+			Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> personWithMismatchingLegs.getAttributes().putAttribute(s, "1"));
+			PopulationUtils.putSubpopulation(personWithMismatchingLegs, Variables.REGULAR);
+			Plan wrongPlan = scenario.getPopulation().getFactory().createPlan();
+			wrongPlan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(HOME, new Coord(0, 0)));
+			wrongPlan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
+			wrongPlan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
+			wrongPlan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(WORK, new Coord(0, 0)));
+			personWithMismatchingLegs.addPlan(wrongPlan);
+		}
 
+		{
 		carlessPersonUsingCar = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
 		Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> carlessPersonUsingCar.getAttributes().putAttribute(s,"0"));
 		PopulationUtils.putSubpopulation(carlessPersonUsingCar,Variables.REGULAR);
 		Plan carplan = scenario.getPopulation().getFactory().createPlan();
-		carplan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord("h",new Coord(0,0)));
+		carplan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(HOME,new Coord(0,0)));
 		carplan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
-		carplan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord("w",new Coord(0,0)));
-		personWithMismatchinLegs.addPlan(carplan);
+		carplan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(WORK,new Coord(0,0)));
+		carlessPersonUsingCar.addPlan(carplan);
+		}
 
 	}
 }

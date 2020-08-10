@@ -19,8 +19,10 @@
 
 package ch.sbb.matsim.utils;
 
+import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,6 +49,26 @@ public class ScenarioConsistencyChecker {
 		boolean result = true;
 		Set<Person> regularPopulation = scenario.getPopulation().getPersons().values().stream()
 				.filter(p-> PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)).collect(Collectors.toSet());
+		Set<String> activitytypes = regularPopulation.stream()
+				.flatMap(person -> TripStructureUtils.getActivities(person.getSelectedPlan(),StageActivityHandling.ExcludeStageActivities).stream())
+				.map(a->a.getType().split("_")[0])
+				.collect(Collectors.toSet());
+		Set<String> permissibleActivityTypes = new HashSet<>(SBBActivities.abmActs2matsimActs.values());
+		permissibleActivityTypes.add("outside");
+		if (!permissibleActivityTypes.containsAll(activitytypes)){
+			LOGGER.error("Detected unknown activity types: \n"+activitytypes+"\n Permissible Types: "+ permissibleActivityTypes);
+			result= false;
+		}
+
+		Set<String> modes = regularPopulation.stream()
+				.flatMap(person -> TripStructureUtils.getLegs(person.getSelectedPlan()).stream())
+				.map(a->a.getMode())
+				.collect(Collectors.toSet());
+		if (!SBBModes.mode2HierarchalNumber.keySet().containsAll(modes)){
+			LOGGER.error("Detected unknown modes: \n"+modes+"\n Permissible Types: "+ SBBModes.mode2HierarchalNumber.keySet());
+			result= false;
+		}
+
 		for (Person  p : regularPopulation){
 			var atts = p.getAttributes().getAsMap();
 			for (var at : Variables.DEFAULT_PERSON_ATTRIBUTES){
@@ -63,7 +85,9 @@ public class ScenarioConsistencyChecker {
 			}
 		}
 
+
 		}
+		//all agents (including exogenous demand)
 		for (Person p : scenario.getPopulation().getPersons().values()){
 			int legs = TripStructureUtils.getLegs(p.getSelectedPlan()).size();
 			int acts = TripStructureUtils.getActivities(p.getSelectedPlan(), StageActivityHandling.StagesAsNormalActivities).size();
