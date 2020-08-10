@@ -11,19 +11,19 @@
 			<attribute name="age" class="java.lang.Integer">35</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				44205.0_45626.0_70326.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">2</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">GA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611701001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611701001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1020" facility="H_397417" x="618206.0" y="130272.0"
@@ -55,19 +55,19 @@
 			<attribute name="age" class="java.lang.Integer">35</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				19352.0_27031.0_36960.0_44529.0_65203.0_67974.0_72740.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_600" facility="H_41584" x="614402.0" y="136091.0"
@@ -119,19 +119,19 @@
 			<attribute name="age" class="java.lang.Integer">70</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				52693.0_55686.0_64056.0_65809.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1260_19.0" facility="H_414774" x="614779.0" y="136521.0"
@@ -169,18 +169,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">68134.0_72045.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">98</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">98</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">623801001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">623801001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="605889.0" y="125314.0" end_time="19:04:55">
@@ -206,18 +206,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">28725.0_60442.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">88</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">88</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">540201003.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">540201003.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="605731.5" y="125272.5" end_time="08:25:25">
@@ -242,19 +242,19 @@
 			<attribute name="age" class="java.lang.Integer">37</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				26871.0_33699.0_49168.0_70036.0_74509.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_660" facility="H_468450" x="614357.0" y="135853.0"
@@ -291,18 +291,18 @@
 			<attribute name="age" class="java.lang.Integer">12</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">2</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">61900.0_70925.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1260" facility="H_479119" x="614824.0" y="136505.0"
@@ -330,19 +330,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				44760.0_46967.0_68618.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">98</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">98</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">625001001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">625001001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="607878.0" y="128500.0" end_time="12:22:40">
@@ -372,19 +372,19 @@
 			<attribute name="age" class="java.lang.Integer">13</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">2</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27156.0_45339.0_46353.0_62225.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_840_18.0" facility="H_497191" x="614426.0" y="136390.0"
@@ -422,19 +422,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				20622.0_23481.0_51938.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611001002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611001002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="615386.0" y="128628.0" end_time="05:39:53">
@@ -459,18 +459,18 @@
 			<attribute name="age" class="java.lang.Integer">51</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">31619.0_67353.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_840_19.0" facility="H_542934" x="614375.0" y="136654.0"
@@ -498,19 +498,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				31396.0_34379.0_40333.0_71737.0_82197.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">610101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">610101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="617598.0" y="127193.0" end_time="11:37:10">
@@ -540,19 +540,19 @@
 			<attribute name="age" class="java.lang.Integer">53</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				35666.0_60888.0_67972.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_19.0" facility="H_571755" x="614487.0" y="137068.0"
@@ -585,19 +585,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				26417.0_37606.0_57487.0_78629.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">98</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">98</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">623201001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">623201001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="605889.0" y="125314.0" end_time="06:57:52">
@@ -635,19 +635,19 @@
 			<attribute name="age" class="java.lang.Integer">9</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">1</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				29441.0_45610.0_48684.0_62693.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611701001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611701001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_18.0" facility="H_598373" x="617239.0" y="129895.0"
@@ -684,19 +684,19 @@
 			<attribute name="age" class="java.lang.Integer">7</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">1</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				29864.0_39447.0_46425.0_58025.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611701001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611701001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1020_17.0" facility="H_598373" x="617239.0" y="129895.0"
@@ -734,19 +734,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				23864.0_26101.0_28937.0_30335.0_42633.0_49771.0_63325.0_66487.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">96</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">96</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">620401003.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">620401003.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="623656.0" y="129328.0" end_time="08:45:37">
@@ -776,19 +776,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">2</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				20648.0_40422.0_56163.0_67853.0_77766.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611001001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611001001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="615014.2892793881" y="129802.42343323423"
@@ -815,19 +815,19 @@
 			<attribute name="age" class="java.lang.Integer">37</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27584.0_65764.0_70583.0_73901.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_720" facility="H_687073" x="614500.0" y="135880.0"
@@ -864,18 +864,18 @@
 			<attribute name="age" class="java.lang.Integer">13</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">2</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">38460.0_43347.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611601001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611601001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1380" facility="H_701409" x="612870.0" y="129509.0"
@@ -903,19 +903,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				39364.0_42499.0_58834.0_72944.0_75165.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611901001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611901001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="620792.0" y="126996.5" end_time="16:33:54">
@@ -946,19 +946,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">2</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30543.0_37949.0_40693.0_48986.0_52813.0_71019.0_74076.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">2</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">GA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611001001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611001001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="615413.5245804692" y="129787.1165329076"
@@ -999,18 +999,18 @@
 			<attribute name="age" class="java.lang.Integer">73</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">36971.0_39820.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1380" facility="H_72148" x="614492.0" y="137145.0"
@@ -1032,18 +1032,18 @@
 			<attribute name="age" class="java.lang.Integer">33</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">28762.0_55065.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">5</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">VA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1020" facility="H_752046" x="614704.0" y="136439.0"
@@ -1070,19 +1070,19 @@
 			<attribute name="age" class="java.lang.Integer">37</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30816.0_52851.0_56666.0_58625.0_62215.0_67338.0_78253.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611701001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611701001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_660" facility="H_836493" x="617148.0" y="129939.0"
@@ -1129,19 +1129,19 @@
 			<attribute name="age" class="java.lang.Integer">32</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				26579.0_28355.0_34229.0_38996.0_45652.0_80942.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_540" facility="H_845806" x="614440.0" y="135633.0"
@@ -1188,19 +1188,19 @@
 			<attribute name="age" class="java.lang.Integer">39</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				55818.0_57704.0_58866.0_61178.0_62187.0_73303.0_79279.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">610901001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">610901001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1080" facility="H_846652" x="613721.0" y="132474.0"
@@ -1253,19 +1253,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27453.0_42991.0_53816.0_59051.0_66312.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">101</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">101</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">615301013.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">615301013.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="605731.5" y="125272.5" end_time="07:53:07">
@@ -1290,18 +1290,18 @@
 			<attribute name="age" class="java.lang.Integer">30</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">70189.0_77716.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1320" facility="H_872314" x="614641.0" y="136634.0"
@@ -1328,19 +1328,19 @@
 			<attribute name="age" class="java.lang.Integer">53</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				43730.0_61157.0_69089.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1020" facility="H_879247" x="614614.0" y="136860.0"
@@ -1373,19 +1373,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30962.0_42942.0_55525.0_59071.0_69484.0_71720.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611801001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611801001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="620240.0" y="129039.0" end_time="19:21:32">
@@ -1410,19 +1410,19 @@
 			<attribute name="age" class="java.lang.Integer">44</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				58693.0_63048.0_64559.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1380_19.0" facility="H_907681" x="614648.0" y="136963.0"
@@ -1455,19 +1455,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">2</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				24150.0_38873.0_40146.0_48277.0_61021.0_67066.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">100</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">100</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">603601001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">603601001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="605731.5" y="125272.5" end_time="06:55:23">
@@ -1507,19 +1507,19 @@
 			<attribute name="age" class="java.lang.Integer">11</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">1</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30575.0_46447.0_49694.0_61486.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_960_18.0" facility="H_952498" x="614630.0" y="136896.0"
@@ -1557,19 +1557,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				48148.0_57562.0_63862.0_79497.0_81464.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611001003.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611001003.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="615375.0" y="127316.0" end_time="17:55:01">
@@ -1599,19 +1599,19 @@
 			<attribute name="age" class="java.lang.Integer">53</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				50145.0_61927.0_65240.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1200_19.0" facility="H_989725" x="614594.0" y="136137.0"
@@ -1638,19 +1638,19 @@
 			<attribute name="age" class="java.lang.Integer">25</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				32736.0_36545.0_46856.0_69925.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">12</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">GA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_840" facility="H_989725" x="614594.0" y="136137.0"
@@ -1688,19 +1688,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				24583.0_34855.0_51935.0_82710.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_480" facility="H_994644" x="614490.0" y="137114.0"
@@ -1740,19 +1740,19 @@
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				26223.0_40708.0_44344.0_63043.0_69075.0_74752.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611701001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611701001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_660" facility="H_1044709" x="618234.0" y="130362.0"
@@ -1800,19 +1800,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				20045.0_34363.0_40729.0_51488.0_61155.0_62122.0_74276.0_78265.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">98</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">98</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">623801001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">623801001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="605889.0" y="125314.0" end_time="05:13:48">
@@ -1866,18 +1866,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">42715.0_56243.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">12</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">GA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1020_19.0" facility="H_1045980" x="614523.0" y="136166.0"
@@ -1909,18 +1909,18 @@
 			<attribute name="age" class="java.lang.Integer">11</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">1</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">28920.0_41714.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">610201001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">610201001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1200" facility="H_1071902" x="615175.0" y="132123.0"
@@ -1948,19 +1948,19 @@
 			<attribute name="age" class="java.lang.Integer">36</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30570.0_41207.0_43333.0_46229.0_49629.0_59786.0_60653.0_77241.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_660" facility="H_1121020" x="614511.0" y="136881.0"
@@ -2017,19 +2017,19 @@
 			<attribute name="age" class="java.lang.Integer">51</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27864.0_45609.0_51996.0_65393.0_67385.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">610901001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">610901001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_780_19.0" facility="H_1125637" x="613814.0" y="132416.0"
@@ -2071,18 +2071,18 @@
 			<attribute name="age" class="java.lang.Integer">43</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">54447.0_56800.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1440_17.0" facility="H_1132327" x="614334.0" y="136905.0"
@@ -2108,21 +2108,21 @@
 		<attributes>
 			<attribute name="age" class="java.lang.Integer">6</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
-			<attribute name="car_available" class="java.lang.Integer">0</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">1</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				18121.0_25202.0_42833.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">-1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1020" facility="H_1163353" x="614621.0" y="135734.0"
@@ -2157,19 +2157,19 @@
 			<attribute name="age" class="java.lang.Integer">24</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">4</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">4</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				55165.0_59204.0_66749.0_77466.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1080" facility="H_113205" x="614772.0" y="136483.0"
@@ -2207,19 +2207,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27121.0_45805.0_51942.0_65597.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611001003.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611001003.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="616057.0" y="127956.0" end_time="07:05:58">
@@ -2254,19 +2254,19 @@
 			<attribute name="age" class="java.lang.Integer">49</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				25141.0_41975.0_50216.0_51467.0_59992.0_81811.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_480" facility="H_1187976" x="614810.0" y="136559.0"
@@ -2304,19 +2304,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27093.0_47517.0_48686.0_64197.0_70747.0_72014.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">100</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">100</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">613301002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">613301002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="605731.5" y="125272.5" end_time="08:25:47">
@@ -2351,19 +2351,19 @@
 			<attribute name="age" class="java.lang.Integer">48</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				34211.0_36563.0_45325.0_49867.0_52127.0_57401.0_64152.0_65580.0_69353.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900" facility="H_1378674" x="614371.0" y="136786.0"
@@ -2426,19 +2426,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				24906.0_29037.0_55878.0_63359.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611601001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611601001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_780_19.0" facility="H_1407119" x="613589.0" y="130069.0"
@@ -2478,19 +2478,19 @@
 			<attribute name="age" class="java.lang.Integer">83</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				29319.0_31802.0_63509.0_64973.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_19.0" facility="H_1407887" x="614603.0" y="136353.0"
@@ -2527,19 +2527,19 @@
 			<attribute name="age" class="java.lang.Integer">14</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">2</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				29170.0_49899.0_51733.0_66121.0_68640.0_71973.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_720" facility="H_1416574" x="614350.0" y="136800.0"
@@ -2586,19 +2586,19 @@
 			<attribute name="age" class="java.lang.Integer">31</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				43157.0_51822.0_59293.0_65001.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1080_19.0" facility="H_1424125" x="614288.0" y="136785.0"
@@ -2630,19 +2630,19 @@
 			<attribute name="age" class="java.lang.Integer">62</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30683.0_44292.0_49531.0_66163.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_19.0" facility="H_1438614" x="614530.0" y="136522.0"
@@ -2680,19 +2680,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				22654.0_27577.0_34975.0_39866.0_46282.0_52213.0_63520.0_67664.0_70134.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_660" facility="H_1464728" x="614501.0" y="136783.0"
@@ -2758,19 +2758,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				28971.0_58066.0_60535.0_64487.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">98</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">98</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">624801015.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">624801015.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="607284.0" y="127199.0" end_time="07:50:18">
@@ -2800,19 +2800,19 @@
 			<attribute name="age" class="java.lang.Integer">63</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				49523.0_51691.0_63620.0_66923.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1200_19.0" facility="H_142647" x="614513.0" y="135962.0"
@@ -2849,19 +2849,19 @@
 			<attribute name="age" class="java.lang.Integer">50</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				24204.0_35994.0_39799.0_52324.0_63061.0_64837.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_780_19.0" facility="H_1488102" x="614700.0" y="136526.0"
@@ -2909,19 +2909,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">3</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">3</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30514.0_46158.0_47007.0_60463.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">96</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">96</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">629701002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">629701002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="627291.5" y="128159.0" end_time="08:09:57">
@@ -2956,19 +2956,19 @@
 			<attribute name="age" class="java.lang.Integer">41</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				31658.0_42815.0_63577.0_67272.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_840_19.0" facility="H_1554221" x="614371.0" y="136786.0"
@@ -3005,18 +3005,18 @@
 			<attribute name="age" class="java.lang.Integer">58</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">32340.0_67144.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_19.0" facility="H_149923" x="614503.0" y="136719.0"
@@ -3043,18 +3043,18 @@
 			<attribute name="age" class="java.lang.Integer">46</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">61107.0_63944.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1380_19.0" facility="H_1647047" x="613813.0" y="135156.0"
@@ -3076,19 +3076,19 @@
 			<attribute name="age" class="java.lang.Integer">64</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30028.0_32199.0_34677.0_43050.0_76187.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_720" facility="H_1674539" x="614503.0" y="136719.0"
@@ -3130,19 +3130,19 @@
 			<attribute name="age" class="java.lang.Integer">25</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				38552.0_41698.0_43749.0_69235.0_86203.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_660" facility="H_1695893" x="614368.0" y="136564.0"
@@ -3185,18 +3185,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">46123.0_50499.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1380" facility="H_1696938" x="614475.0" y="135635.0"
@@ -3232,18 +3232,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">4</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">4</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">51490.0_63825.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611901001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611901001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="620792.0" y="126996.5" end_time="14:34:03">
@@ -3269,19 +3269,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				24182.0_55361.0_64732.0_71583.0_72458.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">12</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">GA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_660" facility="H_1713119" x="614663.0" y="136857.0"
@@ -3328,18 +3328,18 @@
 			<attribute name="age" class="java.lang.Integer">42</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">27687.0_44270.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1200" facility="H_1729835" x="614964.0" y="136873.0"
@@ -3367,18 +3367,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">61328.0_69998.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611301002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611301002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="610433.0" y="128824.0" end_time="17:02:50">
@@ -3403,19 +3403,19 @@
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27871.0_29224.0_37503.0_39311.0_60351.0_64538.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_840_19.0" facility="H_1749628" x="614436.0" y="136715.0"
@@ -3463,19 +3463,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				25911.0_62446.0_64784.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611001002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611001002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="615857.0" y="128840.0" end_time="07:03:07">
@@ -3501,19 +3501,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				44385.0_52851.0_54016.0_66754.0_67869.0_73438.0_76974.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">98</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">98</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">624801017.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">624801017.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="608301.0" y="126641.0" end_time="18:54:01">
@@ -3538,19 +3538,19 @@
 			<attribute name="age" class="java.lang.Integer">43</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				34820.0_40028.0_61890.0_64214.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_960_19.0" facility="H_171083" x="614308.0" y="136958.0"
@@ -3587,18 +3587,18 @@
 			<attribute name="age" class="java.lang.Integer">53</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">27134.0_29905.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1380" facility="H_1856063" x="614572.0" y="136636.0"
@@ -3625,19 +3625,19 @@
 			<attribute name="age" class="java.lang.Integer">20</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30082.0_32251.0_34317.0_36182.0_37802.0_43613.0_48523.0_61246.0_65670.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_840_19.0" facility="H_1856063" x="614572.0" y="136636.0"
@@ -3700,19 +3700,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				32477.0_33455.0_44196.0_47386.0_58086.0_61842.0_65455.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611801002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611801002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="622039.0" y="130772.0" end_time="13:08:01">
@@ -3737,19 +3737,19 @@
 			<attribute name="age" class="java.lang.Integer">47</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				45889.0_56548.0_65713.0_74565.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_960" facility="H_181694" x="614347.0" y="136845.0"
@@ -3786,19 +3786,19 @@
 			<attribute name="age" class="java.lang.Integer">71</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				37404.0_42631.0_46009.0_61936.0_66367.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_960_19.0" facility="H_1942111" x="614604.0" y="136439.0"
@@ -3840,19 +3840,19 @@
 			<attribute name="age" class="java.lang.Integer">6</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">1</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				31901.0_44613.0_52724.0_59693.0_78087.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">-1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_660" facility="H_1972785" x="614369.0" y="136810.0"
@@ -3894,19 +3894,19 @@
 			<attribute name="age" class="java.lang.Integer">36</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				26914.0_34706.0_38845.0_40902.0_43443.0_44934.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1140" facility="H_1983588" x="614426.0" y="136110.0"
@@ -3948,18 +3948,18 @@
 			<attribute name="age" class="java.lang.Integer">27</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">27362.0_63123.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_840_19.0" facility="H_2004697" x="614737.0" y="136514.0"
@@ -3987,19 +3987,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				34736.0_38591.0_48853.0_50801.0_66697.0_72876.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611901002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611901002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="620599.0" y="127826.0" end_time="18:27:13">
@@ -4025,19 +4025,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				21130.0_38156.0_43481.0_65046.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">98</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">98</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">623201003.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">623201003.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="605889.0" y="125314.0" end_time="06:11:38">
@@ -4076,18 +4076,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">32454.0_58813.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_960_18.0" facility="H_2053263" x="614877.0" y="136961.0"
@@ -4118,19 +4118,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">4</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">4</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				36826.0_38305.0_46165.0_49384.0_55457.0_61354.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">98</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">98</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">625201002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">625201002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="609082.0" y="125648.0" end_time="13:15:10">
@@ -4155,18 +4155,18 @@
 			<attribute name="age" class="java.lang.Integer">83</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">30033.0_32642.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1440" facility="H_2149368" x="614808.0" y="136987.0"
@@ -4193,19 +4193,19 @@
 			<attribute name="age" class="java.lang.Integer">54</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				44644.0_50353.0_65773.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1080_19.0" facility="H_2163409" x="614556.0" y="136105.0"
@@ -4237,19 +4237,19 @@
 			<attribute name="age" class="java.lang.Integer">8</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">1</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">1</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				31448.0_43309.0_49858.0_69198.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_840" facility="H_2213347" x="614369.0" y="136810.0"
@@ -4287,19 +4287,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				22189.0_24684.0_62554.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">94</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">94</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">607601003.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">607601003.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="627291.5" y="128159.0" end_time="07:49:11">
@@ -4324,18 +4324,18 @@
 			<attribute name="age" class="java.lang.Integer">55</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">28977.0_57704.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">610201001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">610201001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_960_17.0" facility="H_2262865" x="615253.0" y="132050.0"
@@ -4362,19 +4362,19 @@
 			<attribute name="age" class="java.lang.Integer">15</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">1</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">2</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27217.0_37115.0_46058.0_64873.0_68494.0_70973.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_720" facility="H_2277627" x="614336.0" y="135784.0"
@@ -4416,19 +4416,19 @@
 			<attribute name="age" class="java.lang.Integer">55</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				29246.0_42024.0_43858.0_47799.0_61315.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_18.0" facility="H_2327963" x="614582.0" y="136531.0"
@@ -4470,19 +4470,19 @@
 			<attribute name="age" class="java.lang.Integer">22</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">2</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">2</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				25605.0_32128.0_33582.0_42018.0_45265.0_58971.0_68247.0_71676.0_79852.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_540" facility="H_2849" x="614308.0" y="136958.0"
@@ -4545,18 +4545,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">53776.0_56835.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611001002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611001002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="615386.0" y="128628.0" end_time="14:46:26">
@@ -4582,18 +4582,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">54305.0_65866.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611801002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611801002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="623492.0" y="129322.0" end_time="14:46:11">
@@ -4618,18 +4618,18 @@
 			<attribute name="age" class="java.lang.Integer">66</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">57878.0_59591.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1440_17.0" facility="H_2414363" x="614354.0" y="136172.0"
@@ -4657,18 +4657,18 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">31043.0_53713.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1080" facility="H_2427116" x="614356.0" y="136700.0"
@@ -4703,19 +4703,19 @@
 			<attribute name="age" class="java.lang.Integer">59</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">3</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">3</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30351.0_46913.0_55356.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">1</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1020" facility="H_2444170" x="614606.0" y="136710.0"
@@ -4747,19 +4747,19 @@
 			<attribute name="age" class="java.lang.Integer">55</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30821.0_43597.0_48327.0_54242.0_61408.0_64562.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611701001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611701001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_19.0" facility="H_2448701" x="617878.0" y="129949.0"
@@ -4807,19 +4807,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				30097.0_41907.0_52543.0_60073.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">12</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">GA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611001001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611001001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="614793.0" y="129687.0" end_time="14:26:02">
@@ -4845,19 +4845,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				25849.0_53393.0_61659.0_64816.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">100</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">100</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">613701002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">613701002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="605731.5" y="125272.5" end_time="07:13:32">
@@ -4883,19 +4883,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27539.0_29512.0_32943.0_47829.0_53176.0_57623.0_70466.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_660" facility="H_2576977" x="614667.0" y="136498.0"
@@ -4951,19 +4951,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">3</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">3</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				26369.0_59483.0_67121.0_69845.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">12</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">99</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">99</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">GA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">626601019.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">626601019.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="615841.4371176962" y="128932.85084914418"
@@ -4990,19 +4990,19 @@
 			<attribute name="age" class="java.lang.Integer">80</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				38086.0_40109.0_49232.0_55265.0_64223.0_66421.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1020_19.0" facility="H_2593511" x="614444.0" y="136865.0"
@@ -5049,19 +5049,19 @@
 			<attribute name="age" class="java.lang.Integer">66</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				29402.0_37118.0_42846.0_44105.0_60711.0_65042.0_78531.0_82330.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_540" facility="H_2630599" x="614511.0" y="136881.0"
@@ -5118,18 +5118,18 @@
 			<attribute name="age" class="java.lang.Integer">61</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">27220.0_60613.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_17.0" facility="H_2630599" x="614511.0" y="136881.0"
@@ -5156,19 +5156,19 @@
 			<attribute name="age" class="java.lang.Integer">37</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				31086.0_50431.0_51644.0_54982.0_73783.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_720" facility="H_2636149" x="614457.0" y="136711.0"
@@ -5210,19 +5210,19 @@
 			<attribute name="age" class="java.lang.Integer">72</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				38151.0_40273.0_43017.0_44773.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1380" facility="H_2641175" x="614535.0" y="136654.0"
@@ -5259,19 +5259,19 @@
 			<attribute name="age" class="java.lang.Integer">66</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">5</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				39542.0_43177.0_52585.0_60390.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1080_18.0" facility="H_2674639" x="614406.0" y="136410.0"
@@ -5309,19 +5309,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				15410.0_44539.0_56783.0_63017.0_80731.0_83715.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">12</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">GA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_300" facility="H_2696583" x="614604.0" y="136439.0"
@@ -5373,18 +5373,18 @@
 			<attribute name="age" class="java.lang.Integer">30</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">3</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">39533.0_66248.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_1020_19.0" facility="H_2701632" x="614525.0" y="135967.0"
@@ -5406,19 +5406,19 @@
 			<attribute name="age" class="java.lang.Integer">49</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				29561.0_45347.0_47911.0_63087.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611301001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611301001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_18.0" facility="H_2737847" x="610138.0" y="129192.0"
@@ -5455,19 +5455,19 @@
 			<attribute name="age" class="java.lang.Integer">57</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">4</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">4</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				27665.0_41980.0_43132.0_46187.0_65938.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">11</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
 			<attribute name="sex" class="java.lang.String">0</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101001.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101001.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_840_19.0" facility="H_2741986" x="614543.0" y="136305.0"
@@ -5489,19 +5489,19 @@
 			<attribute name="age" class="java.lang.Integer">20</attribute>
 			<attribute name="age_cat" class="java.lang.Integer">2</attribute>
 			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">2</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">2</attribute>
 			<attribute name="employed" class="java.lang.Boolean">true</attribute>
 			<attribute name="hasLicense" class="java.lang.String">false</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				35490.0_44205.0_66099.0_67654.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">0</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611101002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611101002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="home_900_19.0" facility="H_2760367" x="614566.0" y="136706.0"
@@ -5539,19 +5539,19 @@
 			<attribute name="age_cat" class="java.lang.Integer">6</attribute>
 			<attribute name="car_available" class="java.lang.Integer">1</attribute>
 			<attribute name="cut" class="java.lang.Boolean">true</attribute>
-			<attribute name="edu_type" class="java.lang.Integer">0</attribute>
-			<attribute name="empl_pct_cat" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.Integer">0</attribute>
+			<attribute name="level_of_employment" class="java.lang.Integer">1</attribute>
 			<attribute name="employed" class="java.lang.Boolean">false</attribute>
 			<attribute name="hasLicense" class="java.lang.String">true</attribute>
 			<attribute name="initialActivityEndTimes" class="java.lang.String">
 				49693.0_58987.0_62274.0
 			</attribute>
 			<attribute name="mobility" class="java.lang.Integer">10</attribute>
-			<attribute name="ms_region" class="java.lang.Integer">97</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">97</attribute>
 			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
 			<attribute name="sex" class="java.lang.String">1</attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-			<attribute name="tZone" class="java.lang.String">611001002.0</attribute>
+			<attribute name="residence_zone_id" class="java.lang.String">611001002.0</attribute>
 		</attributes>
 		<plan selected="yes">
 			<activity type="outside" x="615499.0" y="128637.0" end_time="14:18:39">
