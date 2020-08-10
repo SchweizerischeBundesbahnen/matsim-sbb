@@ -26,7 +26,6 @@ public class SBBModes {
 
 	static {
 		mode2HierarchalNumber = new HashMap<>();
-
 		mode2HierarchalNumber.put(PT, 0);
 		mode2HierarchalNumber.put(CAR, 10);
 		mode2HierarchalNumber.put(AVTAXI, 11);
