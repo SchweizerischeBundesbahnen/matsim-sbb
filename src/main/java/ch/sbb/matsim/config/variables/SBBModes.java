@@ -34,6 +34,7 @@ public class SBBModes {
 		mode2HierarchalNumber.put(BIKE, 30);
 		mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 40);
 		mode2HierarchalNumber.put(PT_FALLBACK_MODE, 41);
+		mode2HierarchalNumber.put(WALK_MAIN_MAINMODE, 42);
 		mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 50);
 	}
 

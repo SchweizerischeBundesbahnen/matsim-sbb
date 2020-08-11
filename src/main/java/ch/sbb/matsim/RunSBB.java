@@ -33,6 +33,7 @@ import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
+import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
 import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.vehicles.RideParkingCostTracker;
@@ -93,7 +94,7 @@ public class RunSBB {
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 		addSBBDefaultScenarioModules(scenario);
-
+		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
 		// controler
 		Controler controler = new Controler(scenario);
 		addSBBDefaultControlerModules(controler);
@@ -129,7 +130,7 @@ public class RunSBB {
 			public void install() {
 				addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
-				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class);
+				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
 				install(new SBBTransitModule());
 				install(new SwissRailRaptorModule());
 				install(new ZonesModule(scenario));
