@@ -22,6 +22,7 @@ package ch.sbb.matsim.utils;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import com.google.errorprone.annotations.Var;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -49,6 +50,11 @@ public class ScenarioConsistencyChecker {
 		boolean result = true;
 		Set<Person> regularPopulation = scenario.getPopulation().getPersons().values().stream()
 				.filter(p-> PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)).collect(Collectors.toSet());
+		if (regularPopulation.size() == 0){
+			LOGGER.error("No agent in subpopulation" + Variables.REGULAR + " found. ");
+			result = false;
+
+		}
 		Set<String> activitytypes = regularPopulation.stream()
 				.flatMap(person -> TripStructureUtils.getActivities(person.getSelectedPlan(),StageActivityHandling.ExcludeStageActivities).stream())
 				.map(a->a.getType().split("_")[0])
