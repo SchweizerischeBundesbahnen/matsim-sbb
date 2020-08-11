@@ -15,7 +15,7 @@
             <attribute name="car_available" class="java.lang.Integer">1</attribute>
             <attribute name="cut" class="java.lang.Boolean">true</attribute>
             <attribute name="current_edu" class="java.lang.Integer">0</attribute>
-            <attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.Integer">4</attribute>
             <attribute name="employed" class="java.lang.Boolean">true</attribute>
             <attribute name="hasLicense" class="java.lang.String">true</attribute>
             <attribute name="initialActivityEndTimes" class="java.lang.String">68134.0_72045.0
@@ -50,7 +50,7 @@
             <attribute name="car_available" class="java.lang.Integer">1</attribute>
             <attribute name="cut" class="java.lang.Boolean">true</attribute>
             <attribute name="current_edu" class="java.lang.Integer">0</attribute>
-            <attribute name="level_of_employment" class="java.lang.Integer">4</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.Integer">4</attribute>
             <attribute name="employed" class="java.lang.Boolean">true</attribute>
             <attribute name="hasLicense" class="java.lang.String">true</attribute>
             <attribute name="initialActivityEndTimes" class="java.lang.String">68134.0_72045.0
