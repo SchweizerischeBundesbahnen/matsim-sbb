@@ -117,8 +117,8 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 			if (t.seconds() < 0) {
 				newTime = 0;
 			}
-			if (t.seconds() > 24 * 3600) {
-				newTime = 24.0 * 3600;
+			if (t.seconds() > 29 * 3600) {
+				newTime = 29.0 * 3600;
 			}
 		} else {
 			newTime = this.random.nextInt(24 * 3600);
