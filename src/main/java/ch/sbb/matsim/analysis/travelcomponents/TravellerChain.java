@@ -16,15 +16,25 @@ public class TravellerChain {
 	private List<Activity> acts = new ArrayList<>(5);
 	private List<Trip> trips = new ArrayList<>(5);
 	private boolean inPT = false;
-
+	private List<String> visumTripIds;
 	public TravellerChain(Config config) {
 		this.config = config;
 	}
 
 	public Trip addTrip() {
 		Trip trip = new Trip(this.config);
+		String visumTripId = visumTripIds.size()>trips.size()?visumTripIds.get(trips.size()):"";
+		trip.setVisumTripId(visumTripId);
 		getTrips().add(trip);
 		return trip;
+	}
+
+	public void setVisumTripIds(List<String> visumTripIds) {
+		this.visumTripIds = visumTripIds;
+	}
+
+	public List<String> getVisumTripIds() {
+		return visumTripIds;
 	}
 
 	public Activity addActivity() {

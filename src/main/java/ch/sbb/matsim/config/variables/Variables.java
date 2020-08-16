@@ -27,6 +27,7 @@ public class Variables {
 	public static final String CAR_AVAL_TRUE = "1";
 
 	public static final String OUTSIDE = "outside";
+	public static final String NEXT_TRIP_ID_ATTRIBUTE = "next_trip_id";
 
 
 
