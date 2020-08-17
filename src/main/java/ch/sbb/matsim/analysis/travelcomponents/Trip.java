@@ -24,6 +24,7 @@ public class Trip extends TravelComponent {
 	private TravelledLeg firstRailLeg;
 	private TravelledLeg lastRailLeg;
 	private List<TravelledLeg> legs = new ArrayList<>();
+	private String visumTripId;
 
 	Trip(Config config) {
 		super(config);
@@ -35,6 +36,14 @@ public class Trip extends TravelComponent {
 		TravelledLeg leg = new TravelledLeg(this.config);
 		this.legs.add(leg);
 		return leg;
+	}
+
+	public void setVisumTripId(String visumTripId) {
+		this.visumTripId = visumTripId;
+	}
+
+	public String getVisumTripId() {
+		return visumTripId;
 	}
 
 	public List<TravelledLeg> getLegs() {

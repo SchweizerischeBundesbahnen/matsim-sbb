@@ -18,20 +18,6 @@ public class RunSBBIT {
 
 	}
 
-
-
-	@Test
-	@Ignore
-	//fails on jenkins, dont know why
-	public void hermesIT() {
-		System.setProperty("matsim.preferLocalDtds", "true");
-		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
-		config.controler().setMobsim("hermes");
-		config.controler().setOutputDirectory("test/output/hermesIt");
-		RunSBB.run(config);
-
-	}
-
 	@Test
 	public void interModalIT() {
 		RunSBB.main(new String[]{"test/input/scenarios/mobi20test/intermodal_testconfig.xml"});

@@ -28,21 +28,30 @@
 		<plan selected="yes">
 			<activity type="home_1020" facility="H_397417" x="618206.0" y="130272.0"
 					  start_time="00:00:00" end_time="12:02:26">
+				<attributes>
+					<attribute name="next_trip_id" class="java.lang.String">0</attribute>
+		  		</attributes>
+
 			</activity>
 			<leg mode="pt">
 			</leg>
 			<activity type="leisure_30" facility="H_3063929" x="617378.0" y="130005.0"
 					  start_time="12:06:40" end_time="12:35:53">
+					  				<attributes>
+					<attribute name="next_trip_id" class="java.lang.String">1</attribute>
+		  		</attributes>
 			</activity>
 			<leg mode="pt">
 			</leg>
 			<activity type="education_420_np" facility="B_373550" x="614368.0" y="136564.0"
 					  start_time="12:55:44" end_time="19:25:56">
+					  				<attributes>
+					<attribute name="next_trip_id" class="java.lang.String">2</attribute>
+		  		</attributes>
 			</activity>
 			<leg mode="pt">
 			</leg>
-			<activity type="home_1020" facility="H_397417" x="618206.0" y="130272.0"
-					  start_time="19:47:43">
+			<activity type="home_1020" facility="H_397417" x="618206.0" y="130272.0">
 			</activity>
 		</plan>
 

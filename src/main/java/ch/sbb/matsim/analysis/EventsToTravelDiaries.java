@@ -11,17 +11,21 @@ import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
 import ch.sbb.matsim.analysis.travelcomponents.Trip;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesQueryCache;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -55,6 +59,8 @@ import org.matsim.core.api.experimental.events.handler.VehicleArrivesAtFacilityE
 import org.matsim.core.api.experimental.events.handler.VehicleDepartsAtFacilityEventHandler;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.utils.misc.Counter;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.transitSchedule.api.Departure;
@@ -162,6 +168,9 @@ public class EventsToTravelDiaries implements
 				act.setFacility(event.getFacilityId());
 				act.setStartTime(0.0);
 				act.setType(event.getActType());
+				Person person = scenario.getPopulation().getPersons().get(event.getPersonId());
+				chain.setVisumTripIds(person!=null? TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream().map(a -> (String) a.getAttributes().getAttribute(
+						Variables.NEXT_TRIP_ID_ATTRIBUTE)).filter(Objects::nonNull).collect(Collectors.toList()): Collections.emptyList());
 
 			} else if (!chain.isInPT()) {
 				Activity act = chain.getLastActivity();
@@ -427,7 +436,7 @@ public class EventsToTravelDiaries implements
 
 		String[] tripsData = new String[]{"trip_id", "person_id", "start_time", "end_time", "distance", "main_mode",
 				"from_act", "to_act", "to_act_type", "in_vehicle_distance", "in_vehicle_time", "first_rail_boarding_stop",
-				"last_rail_alighting_stop", "got_stuck", "access_mode", "egress_mode", "access_dist", "egress_dist"};
+				"last_rail_alighting_stop", "got_stuck", "access_mode", "egress_mode", "access_dist", "egress_dist", "tourId_tripId"};
 		CSVWriter tripsWriter = new CSVWriter(null, tripsData, this.filename + FILENAME_TRIPS);
 
 		String[] legsData = new String[]{"leg_id", "trip_id", "start_time", "end_time", "distance", "mode", "line", "route",
@@ -474,6 +483,7 @@ public class EventsToTravelDiaries implements
 					tripsWriter.set("start_time", Integer.toString((int) trip.getStartTime()));
 					tripsWriter.set("end_time", Integer.toString((int) trip.getEndTime()));
 					tripsWriter.set("distance", Double.toString(trip.getDistance()));
+					tripsWriter.set("tourId_tripId", trip.getVisumTripId());
 					tripsWriter.set("main_mode", trip.getMainMode());
 					tripsWriter.set("from_act", Integer.toString(trip.getFromAct().getElementId()));
 					tripsWriter.set("to_act", Integer.toString(trip.getToAct().getElementId()));
