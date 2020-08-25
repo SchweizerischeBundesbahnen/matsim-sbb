@@ -84,80 +84,19 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 		return null;
 	}
 
-	private void setIntermodalWaitingTimesAndDetour(final List<? extends PlanElement> legs, SBBIntermodalModeParameterSet modeParams) {
-		Leg accessLeg = null;
-		Leg mainAccessModeLeg = null;
-		Leg egressLeg = null;
-		double egressTime = 0.0;
-		int i = 0;
+	private void setIntermodalDetour(final List<? extends PlanElement> legs) {
 		for (PlanElement pe : legs) {
 			if (pe instanceof Leg) {
 				Leg leg = (Leg) pe;
 				String mode = leg.getMode();
-				if ((i == 0) && mode.equals(SBBModes.ACCESS_EGRESS_WALK)) {
-					accessLeg = leg;
-				}
-				if ((i == legs.size() - 1) && mode.equals(SBBModes.ACCESS_EGRESS_WALK)) {
-					egressLeg = leg;
-				}
 				if (this.isIntermodalMode(mode)) {
 					double travelTime = leg.getTravelTime().seconds();
 					travelTime *= getDetourFactor(leg.getRoute().getStartLinkId(), mode);
-					final double accessTime = getAccessTime(leg.getRoute().getStartLinkId(), mode);
-					if (accessLeg != null) {
-						accessLeg.setTravelTime(accessTime);
-						accessLeg.getRoute().setTravelTime(accessTime);
-					} else {
-						travelTime += accessTime;
-					}
-					egressTime = getEgressTime(leg.getRoute().getEndLinkId(), mode);
 					leg.setTravelTime(travelTime);
 					leg.getRoute().setTravelTime(travelTime);
-					mainAccessModeLeg = leg;
-				}
-			}
-			i++;
-		}
-
-		if (egressLeg != null) {
-			egressLeg.setTravelTime(egressTime);
-			egressLeg.getRoute().setTravelTime(egressTime);
-		} else if (egressTime > 0.0) {
-			double mainLegTravelTime = mainAccessModeLeg.getTravelTime().seconds() + egressTime;
-			mainAccessModeLeg.setTravelTime(mainLegTravelTime);
-			mainAccessModeLeg.getRoute().setTravelTime(mainLegTravelTime);
-		}
-
-	}
-
-	private double getEgressTime(Id<Link> endLinkId, String mode) {
-		SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
-		if (parameterSet.getEgressTimeZoneId() != null) {
-			Zone zone = zones.findZone(network.getLinks().get(endLinkId).getCoord());
-			if (zone != null) {
-				Object att = zone.getAttribute(parameterSet.getEgressTimeZoneId());
-				if (att != null) {
-					return Double.parseDouble(att.toString());
 				}
 			}
 		}
-		return 0.0;
-	}
-
-	private double getAccessTime(Id<Link> startLinkId, String mode) {
-		SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
-		if (parameterSet.getAccessTimeZoneId() != null) {
-			Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
-			if (zone != null) {
-				Object att = zone.getAttribute(parameterSet.getAccessTimeZoneId());
-				if (att != null) {
-					return Double.parseDouble(att.toString());
-				}
-			}
-		} else if (parameterSet.getWaitingTime() != null) {
-			return parameterSet.getWaitingTime();
-		}
-		return 0.0;
 
 	}
 
@@ -231,10 +170,9 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 		double disutility;
 
 		if (isIntermodal) {
-			SBBIntermodalModeParameterSet intermodalModeParameters = getIntermodalModeParameters(intermodalTripMode);
-			this.setIntermodalWaitingTimesAndDetour(legs, intermodalModeParameters);
 			PlanCalcScoreConfigGroup.ModeParams modeParams = this.scoreConfigGroup.getModes().get(intermodalTripMode);
-
+			this.setIntermodalDetour(legs);
+			//better move this directly into routing module?
 			disutility = this.computeIntermodalDisutility(legs, params, modeParams);
 		} else {
 			disutility = this.computeDisutility(legs, params);
