@@ -1,6 +1,5 @@
 package ch.sbb.matsim;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.matsim.core.config.Config;
 
@@ -14,6 +13,7 @@ public class RunSBBIT {
 		System.setProperty("matsim.preferLocalDtds", "true");
 		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
 		config.controler().setMobsim("qsim");
+		config.controler().setCreateGraphs(true);
 		RunSBB.run(config);
 
 	}
