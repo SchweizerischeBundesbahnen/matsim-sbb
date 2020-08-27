@@ -52,7 +52,8 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
     private final Set<Id<TransitRoute>> railLines;
     private final Frequency railTransfers;
     private final Frequency ptTransfers;
-    private final double[] pt_pkm = new double[2];
+    private final double[] pt_pkm = new double[4];
+
     @Inject
     private ExperiencedPlansService experiencedPlansService;
 
@@ -98,6 +99,9 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
         railTransfers.clear();
         pt_pkm[0] = 0.;
         pt_pkm[1] = 0.;
+        pt_pkm[2] = 0.;
+        pt_pkm[3] = 0.;
+
     }
 
     public void analyseTransfers(Collection<Plan> experiencedPlans, String iterationFilename) {
@@ -105,11 +109,13 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
                 .flatMap(a -> TripStructureUtils.getTrips(a).stream())
                 .filter(trip -> trip.getLegsOnly().stream().anyMatch(leg -> monitoredPtModes.contains(leg.getMode())))
                 .forEach(trip -> {
+                    pt_pkm[3]++;
                     int ptLegs = 0;
                     int raillegs = 0;
                     double lastRelevantArrival = Double.NaN;
                     String lastMode = null;
                     for (Leg leg : trip.getLegsOnly()) {
+                        pt_pkm[2] += leg.getRoute().getDistance();
                         if (monitoredModes.contains(leg.getMode())) {
                             if (lastMode != null) {
 
@@ -180,6 +186,11 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
                 }
 
             }
+            csvWriter.writeRow();
+
+            csvWriter.set(fromModeD, "Average PT Trip length [km]");
+            csvWriter.set(toModeD, Double.toString((pt_pkm[2] / 1000.) / pt_pkm[3]));
+            csvWriter.writeRow();
             csvWriter.writeRow();
             csvWriter.set(fromModeD, "Rail PKM");
             csvWriter.set(toModeD, Integer.toString((int) Math.round(pt_pkm[0])));
