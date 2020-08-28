@@ -87,6 +87,7 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
         railTransfers = new Frequency();
         ptTransfers = new Frequency();
         ptOnlyTransfers = new Frequency();
+        initializeStats();
     }
 
     @Override
