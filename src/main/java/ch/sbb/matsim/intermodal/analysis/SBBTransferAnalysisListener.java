@@ -56,6 +56,7 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
     private final Set<Id<TransitRoute>> railLines;
     private final Frequency railTransfers;
     private final Frequency ptTransfers;
+    private final Frequency ptOnlyTransfers;
     private final double[] pt_pkm = new double[4];
 
     @Inject
@@ -85,8 +86,7 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
         monitoredModes.addAll(monitoredPtModes);
         railTransfers = new Frequency();
         ptTransfers = new Frequency();
-        initializeStats();
-
+        ptOnlyTransfers = new Frequency();
     }
 
     @Override
@@ -102,6 +102,7 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
             transferStats.put(mode, modeMap);
         }
         ptTransfers.clear();
+        ptOnlyTransfers.clear();
         railTransfers.clear();
         pt_pkm[0] = 0.;
         pt_pkm[1] = 0.;
@@ -147,7 +148,10 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
                     }
                     if (raillegs > 0) {
                         railTransfers.addValue(raillegs - 1);
+                    } else if (ptLegs > 0) {
+                        ptOnlyTransfers.addValue(ptLegs - 1);
                     }
+
                     if (ptLegs > 0) {
                         ptTransfers.addValue(ptLegs - 1);
                     }
@@ -250,6 +254,27 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
             csvWriter.set(p95TT, Double.toString(ptTransfers.getPct(4)));
             csvWriter.writeRow();
 
+            csvWriter.set(fromModeD, "PT Transfer (excl. rail) frequency");
+            csvWriter.set(n, "0");
+            csvWriter.set(minTT, "1");
+            csvWriter.set(meanTT, "2");
+            csvWriter.set(medianTT, "3");
+            csvWriter.set(p95TT, "4");
+            csvWriter.set(maxTT, "total trips");
+            csvWriter.writeRow();
+            csvWriter.set(n, Long.toString(ptOnlyTransfers.getCount(0)));
+            csvWriter.set(minTT, Long.toString(ptOnlyTransfers.getCount(1)));
+            csvWriter.set(meanTT, Long.toString(ptOnlyTransfers.getCount(2)));
+            csvWriter.set(medianTT, Long.toString(ptOnlyTransfers.getCount(3)));
+            csvWriter.set(p95TT, Long.toString(ptOnlyTransfers.getCount(4)));
+            csvWriter.set(maxTT, Long.toString(ptOnlyTransfers.getSumFreq()));
+            csvWriter.writeRow();
+            csvWriter.set(n, Double.toString(ptOnlyTransfers.getPct(0)));
+            csvWriter.set(minTT, Double.toString(ptOnlyTransfers.getPct(1)));
+            csvWriter.set(meanTT, Double.toString(ptOnlyTransfers.getPct(2)));
+            csvWriter.set(medianTT, Double.toString(ptOnlyTransfers.getPct(3)));
+            csvWriter.set(p95TT, Double.toString(ptOnlyTransfers.getPct(4)));
+            csvWriter.writeRow();
         } catch (IOException e) {
             Logger.getLogger(getClass()).error("Error writing transfer stats.");
         }
