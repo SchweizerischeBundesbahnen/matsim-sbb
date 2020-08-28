@@ -85,6 +85,8 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
         monitoredModes.addAll(monitoredPtModes);
         railTransfers = new Frequency();
         ptTransfers = new Frequency();
+        initializeStats();
+
     }
 
     @Override
