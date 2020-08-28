@@ -1,5 +1,6 @@
 package ch.sbb.matsim.intermodal.analysis;
 
+import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
@@ -36,11 +37,14 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.MatsimServices;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;
+import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.EventsToLegs;
 import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 public class SBBTransferAnalysisListener implements IterationEndsListener {
 
@@ -272,5 +276,20 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
             ChartSaveUtils.saveAsPNG(chart, iterationFilename, 2048, 1536);
 
         }
+    }
+
+    public static void main(String[] args) {
+        String schedule = args[0];
+        String experiencedPlans = args[1];
+        String config = args[2];
+        String outputfile = args[3];
+        Scenario scenario = ScenarioUtils.createScenario(RunSBB.buildConfig(config));
+        new TransitScheduleReader(scenario).readFile(schedule);
+        SBBTransferAnalysisListener sbbTransferAnalysisListener = new SBBTransferAnalysisListener(scenario);
+        StreamingPopulationReader streamingPopulationReader = new StreamingPopulationReader(scenario);
+        Set<Plan> plans = new HashSet<>();
+        streamingPopulationReader.addAlgorithm(person -> plans.add(person.getSelectedPlan()));
+        streamingPopulationReader.readFile(experiencedPlans);
+        sbbTransferAnalysisListener.analyseTransfers(plans, outputfile);
     }
 }
