@@ -1,6 +1,5 @@
 package ch.sbb.matsim;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.matsim.core.config.Config;
 
@@ -14,13 +13,17 @@ public class RunSBBIT {
 		System.setProperty("matsim.preferLocalDtds", "true");
 		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
 		config.controler().setMobsim("qsim");
+		config.controler().setCreateGraphs(true);
 		RunSBB.run(config);
 
 	}
 
 	@Test
 	public void interModalIT() {
-		RunSBB.main(new String[]{"test/input/scenarios/mobi20test/intermodal_testconfig.xml"});
-
+		System.setProperty("matsim.preferLocalDtds", "true");
+		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/intermodal_testconfig.xml");
+		config.controler().setOutputDirectory("test/output/intermodaltest");
+		config.controler().setCreateGraphs(true);
+		RunSBB.run(config);
 	}
 }

@@ -6,8 +6,6 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
-import ch.sbb.matsim.intermodal.analysis.IntermodalControlerListener;
-import ch.sbb.matsim.intermodal.analysis.IntermodalTransferTimeAnalyser;
 import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.AccessEgressRouteCache;
@@ -101,8 +99,6 @@ public class IntermodalModule extends AbstractModule {
 			bind(AccessEgressRouteCache.class).asEagerSingleton();
 			bind(RaptorStopFinder.class).to(SBBIntermodalRaptorStopFinder.class);
 		}
-		bind(IntermodalTransferTimeAnalyser.class).asEagerSingleton();
-		addControlerListenerBinding().to(IntermodalControlerListener.class).asEagerSingleton();
 	}
 
 }

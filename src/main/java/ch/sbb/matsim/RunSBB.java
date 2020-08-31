@@ -20,6 +20,7 @@ import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.intermodal.IntermodalModule;
+import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
@@ -136,6 +137,7 @@ public class RunSBB {
 				install(new ZonesModule(scenario));
 				install(new SBBNetworkRoutingModule());
 				install(new AccessEgressModule());
+				addControlerListenerBinding().to(SBBTransferAnalysisListener.class).asEagerSingleton();
 				Config config = getConfig();
 				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
 				if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {

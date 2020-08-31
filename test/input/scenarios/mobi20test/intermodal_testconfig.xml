@@ -3153,6 +3153,8 @@
             <param name="egressTimeZonesAttributeName" value="at_car"/>
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="isRoutedOnNetwork" value="true"/>
+            <param name="useMinimalTransferTimes" value="true"/>
+
 
         </parameterset>
         <parameterset type="mode">
