@@ -137,7 +137,7 @@ public class PopulationToCSV {
 		}
 	}
 
-	private String[] getColumns(String[] attributes) {
+	public static String[] getColumns(String[] attributes) {
 		String[] columns = new String[attributes.length + 1];
 		columns[0] = "person_id";
 		System.arraycopy(attributes, 0, columns, 1, attributes.length);
