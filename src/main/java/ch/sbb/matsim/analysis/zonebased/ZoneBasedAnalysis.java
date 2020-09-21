@@ -31,6 +31,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
@@ -57,7 +58,7 @@ public class ZoneBasedAnalysis {
 		new TransitScheduleReader(scenario).readFile(config.transitScheduleFile);
 		new MatsimFacilitiesReader(scenario).readFile(config.facilitiesFile);
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(config.networkFile);
-		prepareSchedule(zones);
+		prepareSchedule(zones, scenario.getTransitSchedule());
 		modePerRoute = scenario.getTransitSchedule().getTransitLines().values().stream()
 				.flatMap(l -> l.getRoutes().values().stream())
 				.collect(Collectors.toMap(r -> r.getId(), r -> r.getTransportMode()));
@@ -133,8 +134,8 @@ public class ZoneBasedAnalysis {
 		}
 	}
 
-	private void prepareSchedule(Zones zones) {
-		for (TransitStopFacility f : scenario.getTransitSchedule().getFacilities().values()) {
+	public static void prepareSchedule(Zones zones, TransitSchedule schedule) {
+		for (TransitStopFacility f : schedule.getFacilities().values()) {
 			Zone zone = zones.findZone(f.getCoord());
 			if (zone != null) {
 				f.getAttributes().putAttribute(ZONE_ID, zone.getId());
