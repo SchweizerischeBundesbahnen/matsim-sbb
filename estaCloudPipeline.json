@@ -2,6 +2,7 @@
   "$schema": "https://code.sbb.ch/projects/KD_ESTA/repos/esta-cloud-pipeline/raw/resources/estaCloudPipelineSchema.json?at=refs%2Ftags%2Frelease",
   "mainBranch": "master",
   "hotfixBranch": "bugfix",
+  "versionIncrementPosition": "patch",
   "jdkLabel": "OpenJDK 11 64-Bit",
   "mvn": {
     "parentPom": "pom.xml",
