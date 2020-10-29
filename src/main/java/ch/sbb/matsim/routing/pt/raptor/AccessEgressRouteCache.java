@@ -3,6 +3,7 @@ package ch.sbb.matsim.routing.pt.raptor;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.routing.graph.Graph;
 import ch.sbb.matsim.routing.graph.LeastCostPathTree;
 import ch.sbb.matsim.zones.Zone;
@@ -74,7 +75,6 @@ public class AccessEgressRouteCache {
 		this.zonesCollection = allZones.getZones(intermodalConfigGroup.getZonesId());
 		for (SBBIntermodalModeParameterSet paramset : intermodalConfigGroup.getModeParameterSets()) {
 			if (paramset.isRoutedOnNetwork() && !paramset.isSimulatedOnNetwork()) {
-				LOGGER.info("Building Traveltime cache for feeder mode " + paramset.getMode() + "....");
 				Gbl.printMemoryUsage();
 				this.intermodalModeParams.put(paramset.getMode(), paramset);
 				SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet raptorParams = raptorIntermodalModeParams.get(paramset.getMode());
@@ -87,48 +87,54 @@ public class AccessEgressRouteCache {
 						.collect(Collectors.toSet());
 				LOGGER.info("Found " + stopLinkIds.size() + " stops with intermodal access option for this mode.");
 				Network network = getRoutingNetwork(paramset.getMode());
-				Graph graph = new Graph(network);
-				final FreeSpeedTravelTime freeSpeedTravelTime = new FreeSpeedTravelTime();
-				final FreespeedTravelTimeAndDisutility travelTimeAndDisutility = new FreespeedTravelTimeAndDisutility(config.planCalcScore());
 				Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeZoneId(), network);
 				accessTimes.put(paramset.getMode(), modeAccessTimes);
-				final double maxRadius = raptorParams.getMaxRadius();
-				Map<Id<Link>, LeastCostPathTree> travelTimes = stopLinkIds.parallelStream()
-						.collect(Collectors.toMap(l -> l, l -> {
-							LeastCostPathTree leastCostPathTree = new LeastCostPathTree(graph, freeSpeedTravelTime, travelTimeAndDisutility);
-							Node fromNode = network.getLinks().get(l).getToNode();
-							leastCostPathTree.calculate(fromNode.getId().index(), 0, PERSON, VEHICLE, new LeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
-							return leastCostPathTree;
 
-						}));
-				Map<Id<Link>, Map<Id<Link>, int[]>> travelTimeLinks = new HashMap<>();
-				for (Map.Entry<Id<Link>, LeastCostPathTree> entry : travelTimes.entrySet()) {
-					Map<Id<Link>, int[]> travelTimesToLink = new ConcurrentHashMap<>();
-					LeastCostPathTree tree = entry.getValue();
-					for (Node node : network.getNodes().values()) {
-						int nodeIndex = node.getId().index();
-						OptionalTime arrivalTime = tree.getTime(nodeIndex);
-						if (arrivalTime.isUndefined()) {
-							continue; // node was not reached, skip to next node.
-						}
-						int travelTime = (int) Math.round(arrivalTime.seconds());
-						int travelDistance = (int) Math.round(tree.getDistance(nodeIndex));
-						int egressTime = getAccessTime(paramset.getAccessTimeZoneId(), node.getCoord());
-						int[] data = new int[]{travelDistance, travelTime, egressTime};
-						for (Id<Link> inlink : node.getInLinks().keySet()) {
-							travelTimesToLink.put(inlink, data);
-						}
-					}
-
-					travelTimeLinks.put(entry.getKey(), travelTimesToLink);
-				}
-				this.travelTimesDistances.put(paramset.getMode(), travelTimeLinks);
-				Gbl.printMemoryUsage();
-				LOGGER.info("...done.");
+				buildRoutingCacheForMode(config, paramset, raptorParams, stopLinkIds, network);
 
 			}
 		}
 
+	}
+
+	public void buildRoutingCacheForMode(Config config, SBBIntermodalModeParameterSet paramset, IntermodalAccessEgressParameterSet raptorParams, Set<Id<Link>> stopLinkIds, Network network) {
+		Graph graph = new Graph(network);
+		LOGGER.info("Building Traveltime cache for feeder mode " + paramset.getMode() + "....");
+		final double maxRadius = raptorParams.getMaxRadius();
+		final FreeSpeedTravelTime freeSpeedTravelTime = new FreeSpeedTravelTime();
+		final FreespeedTravelTimeAndDisutility travelTimeAndDisutility = new FreespeedTravelTimeAndDisutility(config.planCalcScore());
+		Map<Id<Link>, LeastCostPathTree> travelTimes = stopLinkIds.parallelStream()
+				.collect(Collectors.toMap(l -> l, l -> {
+					LeastCostPathTree leastCostPathTree = new LeastCostPathTree(graph, freeSpeedTravelTime, travelTimeAndDisutility);
+					Node fromNode = network.getLinks().get(l).getToNode();
+					leastCostPathTree.calculate(fromNode.getId().index(), 0, PERSON, VEHICLE, new LeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
+					return leastCostPathTree;
+
+				}));
+		Map<Id<Link>, Map<Id<Link>, int[]>> travelTimeLinks = new HashMap<>();
+		for (Map.Entry<Id<Link>, LeastCostPathTree> entry : travelTimes.entrySet()) {
+			Map<Id<Link>, int[]> travelTimesToLink = new ConcurrentHashMap<>();
+			LeastCostPathTree tree = entry.getValue();
+			for (Node node : network.getNodes().values()) {
+				int nodeIndex = node.getId().index();
+				OptionalTime arrivalTime = tree.getTime(nodeIndex);
+				if (arrivalTime.isUndefined()) {
+					continue; // node was not reached, skip to next node.
+				}
+				int travelTime = (int) Math.round(arrivalTime.seconds());
+				int travelDistance = (int) Math.round(tree.getDistance(nodeIndex));
+				int egressTime = getAccessTime(paramset.getAccessTimeZoneId(), node.getCoord());
+				int[] data = new int[]{travelDistance, travelTime, egressTime};
+				for (Id<Link> inlink : node.getInLinks().keySet()) {
+					travelTimesToLink.put(inlink, data);
+				}
+			}
+
+			travelTimeLinks.put(entry.getKey(), travelTimesToLink);
+		}
+		this.travelTimesDistances.put(paramset.getMode(), travelTimeLinks);
+		Gbl.printMemoryUsage();
+		LOGGER.info("...done.");
 	}
 
 	private Map<Id<Link>, Integer> calcModeAccessTimes(Set<Id<Link>> stopLinkIds, String accessTimeZoneId, Network network) {
