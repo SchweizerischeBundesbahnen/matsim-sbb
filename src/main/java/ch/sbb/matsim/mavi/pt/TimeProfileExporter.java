@@ -277,7 +277,11 @@ public class TimeProfileExporter {
 						fromStop = stop;
 						prevLinkSeq = tpi.linkSequence;
 					}
-					routeLinks.remove(routeLinks.size() - 1);
+					if (routeLinks.size() > 0) {
+						routeLinks.remove(routeLinks.size() - 1);
+					} else {
+						Logger.getLogger(getClass()).warn(routeID + " has no links along route");
+					}
 					NetworkRoute netRoute = RouteUtils.createLinkNetworkRouteImpl(startLink, endLink);
 					netRoute.setLinkIds(startLink, routeLinks, endLink);
 

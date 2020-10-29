@@ -59,7 +59,15 @@ public class RunVisumPtExporter {
 		for (TransitLine line : schedule.getTransitLines().values()) {
 			for (TransitRoute route : line.getRoutes().values()) {
 				for (TransitRouteStop stops : route.getStops()) {
-					stopsToKeep.add(stops.getStopFacility().getId());
+					if (stops != null) {
+						if (stops.getStopFacility() != null) {
+							stopsToKeep.add(stops.getStopFacility().getId());
+						} else {
+							log.warn("A stop facility on route " + route.getId() + "on line" + line.getId() + " is null");
+						}
+					} else {
+						log.warn("stop is null");
+					}
 				}
 			}
 		}
