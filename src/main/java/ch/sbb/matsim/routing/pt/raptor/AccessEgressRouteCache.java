@@ -1,19 +1,26 @@
 package ch.sbb.matsim.routing.pt.raptor;
 
+import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
+import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.routing.graph.Graph;
 import ch.sbb.matsim.routing.graph.LeastCostPathTree;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesModule;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -38,7 +45,9 @@ import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.SingleModeNetworksCache;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
+import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
+import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
@@ -90,9 +99,52 @@ public class AccessEgressRouteCache {
 				Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeZoneId(), network);
 				accessTimes.put(paramset.getMode(), modeAccessTimes);
 
-				buildRoutingCacheForMode(config, paramset, raptorParams, stopLinkIds, network);
+				if (paramset.getIntermodalAccessCacheFileString() == null) {
+					buildRoutingCacheForMode(config, paramset, raptorParams, stopLinkIds, network);
+				} else {
+					readCachedTraveltimesFromFile(paramset.getIntermodalAccessCacheFile(config.getContext()), paramset.getMode());
+				}
 
 			}
+		}
+
+	}
+
+	public static void main(String[] args) {
+		Config config = RunSBB.buildConfig(args[0]);
+		String outputPath = args[1];
+		SingleModeNetworksCache singleModeNetworksCache = new SingleModeNetworksCache();
+		Scenario scenario = ScenarioUtils.loadScenario(config);
+		RunSBB.addSBBDefaultScenarioModules(scenario);
+		AccessEgressRouteCache cache = new AccessEgressRouteCache((ZonesCollection) scenario.getScenarioElement(ZonesModule.SBB_ZONES), singleModeNetworksCache, config, scenario);
+		cache.writeCachedTraveltimes(outputPath);
+	}
+
+	private void readCachedTraveltimesFromFile(URL intermodalAccessCacheFile, String mode) {
+		var modemap = this.travelTimesDistances.computeIfAbsent(mode, a -> new HashMap<>());
+		LOGGER.info("Reading intermodal cache for mode " + mode + "from File: " + intermodalAccessCacheFile.toString());
+		final String stop = "stop";
+		final String link = "link";
+		final String v0 = "0";
+		final String v1 = "1";
+		final String s = "2";
+		try (CSVReader csvReader = new CSVReader(new String[]{stop, link, v0, v1, s}, intermodalAccessCacheFile, ";")) {
+			var line = csvReader.readLine();
+			while (line != null) {
+				if (line.get(stop) == null) {
+					break;
+				}
+				var stationMap = modemap.computeIfAbsent(Id.createLinkId(line.get(stop)), a -> new HashMap<>());
+				int[] cachedtimes = {Integer.parseInt(line.get(v0)), Integer.parseInt(line.get(v1)), Integer.parseInt(line.get(s))};
+				var toLink = Id.createLinkId(line.get(link));
+				stationMap.put(toLink, cachedtimes);
+				line = csvReader.readLine();
+
+			}
+			LOGGER.info("done");
+
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 	}
@@ -239,5 +291,24 @@ public class AccessEgressRouteCache {
 			return travelTime;
 		}
 
+	}
+
+	private void writeCachedTraveltimes(String outputFolder) {
+		for (Entry<String, Map<Id<Link>, Map<Id<Link>, int[]>>> e : this.travelTimesDistances.entrySet()) {
+			String filename = outputFolder + "/intermodalCache_" + e.getKey() + ".csv.gz";
+			LOGGER.info("writing intermodal cache for mode " + e.getKey() + "to File: " + filename);
+
+			try (BufferedWriter bw = IOUtils.getBufferedWriter(filename)) {
+				for (Entry<Id<Link>, Map<Id<Link>, int[]>> stop : e.getValue().entrySet()) {
+					for (Entry<Id<Link>, int[]> link : stop.getValue().entrySet()) {
+						bw.write(stop.getKey().toString() + ";" + link.getKey().toString() + ";" + link.getValue()[0] + ";" + link.getValue()[1] + ";" + link.getValue()[2]);
+						bw.newLine();
+					}
+				}
+				LOGGER.info("done");
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
 	}
 }

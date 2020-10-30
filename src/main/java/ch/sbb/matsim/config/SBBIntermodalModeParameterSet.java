@@ -1,9 +1,11 @@
 package ch.sbb.matsim.config;
 
+import java.net.URL;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
@@ -32,6 +34,9 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 	static private final String PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE = "personActivityFilterAttribute";
 	static private final String PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE_DESC = "activities from/to which feeder mode is available";
 
+	static private final String PARAM_CACHE_FILE = "intermodalAccessCacheFile";
+	static private final String PARAM_CACHE_FILE_DESC = "Cached intermodal travel times to and from stations.";
+
 	private String mode = null;
 	private Integer waitingTime = 0;
 	private Double detourFactor = 1.0;
@@ -42,6 +47,7 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 	private String detourFactorZoneId = null;
 	private boolean useMinimalTransferTimes = false;
 	private String personActivityFilterAttribute = null;
+	private String intermodalAccessCacheFile = null;
 
 	public SBBIntermodalModeParameterSet() {
 		super(TYPE);
@@ -154,6 +160,20 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 		this.personActivityFilterAttribute = personActivityFilterAttribute;
 	}
 
+	@StringSetter(PARAM_CACHE_FILE)
+	public void setIntermodalAccessCacheFile(String intermodalAccessCacheFile) {
+		this.intermodalAccessCacheFile = intermodalAccessCacheFile;
+	}
+
+	@StringGetter(PARAM_CACHE_FILE)
+	public String getIntermodalAccessCacheFileString() {
+		return intermodalAccessCacheFile;
+	}
+
+	public URL getIntermodalAccessCacheFile(URL context) {
+		return ConfigGroup.getInputFileURL(context, intermodalAccessCacheFile);
+	}
+
 	@Override
 	public Map<String, String> getComments() {
 		Map<String, String> comments = super.getComments();
@@ -167,6 +187,7 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 		comments.put(PARAM_ACCESSTIME_ZONEATT, PARAM_ACCESSTIME_ZONEATT_DESC);
 		comments.put(PARAM_USEMINIMALTRANSFERTIMES, PARAM_USEMINIMALTRANSFERTIMES_DESC);
 		comments.put(PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE, PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE_DESC);
+		comments.put(PARAM_CACHE_FILE, PARAM_CACHE_FILE_DESC);
 		return comments;
 	}
 
