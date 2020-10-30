@@ -3154,6 +3154,7 @@
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="isRoutedOnNetwork" value="true"/>
             <param name="useMinimalTransferTimes" value="true"/>
+            <param name="intermodalAccessCacheFile" value="intermodalCache_carfeeder.csv.gz"/>
 
 
         </parameterset>

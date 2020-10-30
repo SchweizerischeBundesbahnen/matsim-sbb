@@ -27,6 +27,12 @@ public class CSVReader implements AutoCloseable {
 		this.br = IOUtils.getBufferedReader(csvFile);
 	}
 
+	public CSVReader(String[] columns, final URL csvFileURL, final String splitBy) throws UncheckedIOException {
+		this.columns = columns;
+		this.splitBy = splitBy;
+		this.br = IOUtils.getBufferedReader(csvFileURL);
+	}
+
 	public CSVReader(final URL csvFileURL, final String splitBy) throws UncheckedIOException, IOException {
 		this(splitBy, IOUtils.getBufferedReader(csvFileURL));
 	}
