@@ -3154,8 +3154,7 @@
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="isRoutedOnNetwork" value="true"/>
             <param name="useMinimalTransferTimes" value="true"/>
-            <param name="intermodalAccessCacheFile"
-                   value="C:\devsbb\code\matsim-sbb\test\input\scenarios\mobi20test\intermodalCache_carfeeder.csv.gz"/>
+            <param name="intermodalAccessCacheFile" value="intermodalCache_carfeeder.csv.gz"/>
 
 
         </parameterset>
