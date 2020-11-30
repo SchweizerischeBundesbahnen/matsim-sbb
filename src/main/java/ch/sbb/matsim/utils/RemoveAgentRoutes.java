@@ -1,6 +1,5 @@
 package ch.sbb.matsim.utils;
 
-import ch.sbb.matsim.routing.pt.raptor.IntermodalAwareRouterModeIdentifier;
 import java.util.List;
 import java.util.Set;
 import org.matsim.api.core.v01.Scenario;
@@ -21,7 +20,7 @@ import org.matsim.core.utils.collections.CollectionUtils;
 /**
  * @author jbischoff / SBB
  */
-public class RemovePtRoutes {
+public class RemoveAgentRoutes {
 
 	public static void main(String[] args) {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
@@ -32,7 +31,7 @@ public class RemovePtRoutes {
 	}
 
 	public static void removePtRoutes(Set<String> modesToRemoveRoutes, Scenario scenario, String popWithRoutes, String popWithoutRoutes) {
-		SBBTripsToLegsAlgorithm algorithm = new SBBTripsToLegsAlgorithm(new IntermodalAwareRouterModeIdentifier(scenario.getConfig()), modesToRemoveRoutes);
+		SBBTripsToLegsAlgorithm algorithm = new SBBTripsToLegsAlgorithm(new SBBIntermodalAwareRouterModeIdentifier(scenario.getConfig()), modesToRemoveRoutes);
 		StreamingPopulationReader streamingPopulationReader = new StreamingPopulationReader(scenario);
 		StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();
 		streamingPopulationWriter.startStreaming(popWithoutRoutes);

@@ -160,7 +160,12 @@ public class PolylinesCreator {
 				String linkId = link.getId().toString();
 				String[] sequence = this.linkSequencePerMatsimLink.get(linkId);
 				if (sequence != null) {
-					double[] xys = processLink(link, sequence);
+					double[] xys = null;
+					try {
+						xys = processLink(link, sequence);
+					} catch (NullPointerException e) {
+
+					}
 					if (xys != null && xys.length > 0) {
 						out.set("LINK", linkId);
 						out.set("WKT", xyToWkt(xys));
