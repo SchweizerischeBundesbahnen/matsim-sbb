@@ -62,7 +62,7 @@ public class ConvergenceStatsTest {
 	public void test_ConvergenceTestsOutput() throws IOException {
 		FileUtils.copyDirectory(new File(utils.getPackageInputDirectory() + "convergence"), new File(utils.getOutputDirectory()));
 		ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfigGroup.Test.values(), ConfigUtils.createConfig());
-		IterationStartsEvent event = new IterationStartsEvent(new StubControler(), 301);
+		IterationStartsEvent event = new IterationStartsEvent(new StubControler(), 301, true);
 		cs.notifyIterationStarts(event);
 		cs.close();
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
