@@ -22,7 +22,6 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
-import org.matsim.core.controler.TerminationCriterion;
 import org.matsim.core.controler.events.IterationStartsEvent;
 import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.utils.io.IOUtils;
@@ -31,7 +30,7 @@ import smile.stat.distribution.GaussianDistribution;
 import smile.stat.hypothesis.CorTest;
 import smile.stat.hypothesis.KSTest;
 
-public class ConvergenceStats implements IterationStartsListener, TerminationCriterion {
+public class ConvergenceStats implements IterationStartsListener {
 
 	/**
 	 * Calculates at each iteration the following statistics:
@@ -59,7 +58,6 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
 	private Map<Test, CSVWriter> writers;
 	private List<String> columns;
 	private ConvergenceConfigGroup csConfig;
-	private int absoluteLastIteration;
 	private double currentConvergenceFunctionResults = 0.0;
 	private CSVWriter convergenceFunctionWriter;
 
@@ -78,7 +76,6 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
 		this.csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
 		this.iterationWindowSize = iterationWindowSize;
 		this.testsToRun = testsToRun;
-		this.absoluteLastIteration = config.controler().getLastIteration();
 	}
 
 	private static boolean functionTermMatches(String configTest, String actualTest, String configStat, String actualStat) {
@@ -110,16 +107,6 @@ public class ConvergenceStats implements IterationStartsListener, TerminationCri
 		return values;
 	}
 
-	@Override
-	public boolean continueIterations(int iteration) {
-		boolean beforeLastIt = iteration <= this.absoluteLastIteration;
-		boolean convergenceCriterionUnreached = true;
-		if (this.currentConvergenceFunctionResults > 0.0 && this.csConfig.getConvergenceCriterionFunctionTarget() > 0.0) {
-			convergenceCriterionUnreached =
-					this.currentConvergenceFunctionResults > this.csConfig.getConvergenceCriterionFunctionTarget();
-		}
-		return beforeLastIt && convergenceCriterionUnreached;
-	}
 
 	@Override
 	public void notifyIterationStarts(IterationStartsEvent event) {
