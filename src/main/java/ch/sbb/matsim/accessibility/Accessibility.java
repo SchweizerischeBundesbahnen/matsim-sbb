@@ -705,9 +705,9 @@ public class Accessibility {
 			double timeWindow = this.ptMaxDepartureTime - this.ptMinDepartureTime;
 			double endTime = this.ptMaxDepartureTime + timeWindow;
 			for (double time = this.ptMinDepartureTime - timeWindow; time < endTime; time += this.stepSize) {
-				//fixme
-				//				Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStops, time, this.parameters);
-				//				trees.add(tree);
+
+				Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStops, time, this.parameters, null);
+				trees.add(tree);
 			}
 
 			Zone fromZone = this.zones.findZone(fromCoord.getX(), fromCoord.getY());
@@ -1027,9 +1027,8 @@ public class Accessibility {
 						while (time < endTime) {
 							time = this.departuresCache.getNextDepartureTime(fromStop.getId(), time).seconds();
 
-							//fixme
-							//Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStop, time, this.parameters);
-							//trees.add(tree);
+							Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStop, time, this.parameters, null);
+							trees.add(tree);
 
 							time += 60; // +1 minute
 						}
@@ -1300,8 +1299,7 @@ public class Accessibility {
 			while (time < endTime) {
 				time = this.departuresCache.getNextDepartureTime(fromStop.getId(), time).seconds();
 
-				//Fixme
-				Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStop, time, null);
+				Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStop, time, this.parameters, null);
 				trees.add(tree);
 
 				time += 60; // +1 minute
