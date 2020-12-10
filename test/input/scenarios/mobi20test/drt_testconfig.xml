@@ -8,30 +8,32 @@
 
             <!-- If true, the startLink is changed to last link in the current schedule, so the taxi starts the next day at the link where it stopped operating the day before. False by default. -->
             <param name="changeStartLinkToLastLinkInSchedule" value="false"/>
-            <!-- Beeline distance factor for DRT. Used in analyis and in plans file. The default value is 1.3. -->
-            <param name="estimatedBeelineDistanceFactor" value="1.3"/>
-            <!-- Beeline-speed estimate for DRT. Used in analysis, optimisation constraints and in plans file, [m/s]. The default value is 25 km/h -->
-            <param name="estimatedDrtSpeed" value="8.333333333333334"/>
             <!-- Defines the slope of the maxTravelTime estimation function (optimisation constraint), i.e. maxTravelTimeAlpha * estimated_drt_travel_time + maxTravelTimeBeta. alpha should not be smaller than 1. -->
             <param name="maxTravelTimeAlpha" value="1.5"/>
             <!-- Defines the shift of the maxTravelTime estimation function (optimisation constraint), i.e. maxTravelTimeAlpha * estimated_drt_travel_time + maxTravelTimeBeta. Beta should not be smaller than 0. -->
             <param name="maxTravelTimeBeta" value="1200.0"/>
             <!-- Max wait time for the bus to come (optimisation constraint). -->
-        <param name="maxWaitTime" value="1200.0"/>
+            <param name="maxWaitTime" value="1200.0"/>
 
-        <!-- Operational Scheme, either door2door or stopbased. door2door by default -->
-        <param name="operationalScheme" value="door2door"/>
-        <!-- Bus stop duration. -->
-        <param name="stopDuration" value="60.0"/>
-        <!-- An XML file specifying the vehicle fleet. The file format according to dvrp_vehicles_v1.dtd -->
+            <!-- Operational Scheme, either door2door or stopbased. door2door by default -->
+            <param name="operationalScheme" value="door2door"/>
+            <!-- Bus stop duration. -->
+            <param name="stopDuration" value="60.0"/>
+            <!-- An XML file specifying the vehicle fleet. The file format according to dvrp_vehicles_v1.dtd -->
             <param name="vehiclesFile" value="fleetVehicles.xml"/>
-        <!-- Writes out detailed DRT customer stats in each iteration. True by default. -->
-        <param name="writeDetailedCustomerStats" value="true"/>
-        <parameterset type="minCostFlowRebalancing">
-            <param name="targetAlpha" value="0.5"/>
-            <param name="targetBeta" value="0.5"/>
-            <param name="cellSize" value="2000"/>
-        </parameterset>
+            <!-- Writes out detailed DRT customer stats in each iteration. True by default. -->
+            <param name="writeDetailedCustomerStats" value="true"/>
+            <parameterset type="zonalSystem">
+                <param name="zonesGeneration" value="GridFromNetwork"/>
+                <param name="cellSize" value="2000"/>
+            </parameterset>
+
+            <parameterset type="rebalancing">
+                <parameterset type="minCostFlowRebalancingStrategy">
+                    <param name="targetAlpha" value="0.5"/>
+                    <param name="targetBeta" value="0.5"/>
+                </parameterset>
+            </parameterset>
         </parameterset>
     </module>
     <module name="dvrp">
@@ -207,7 +209,7 @@
         <!-- If enabled, each event handler is assigned to its own thread. Note that enabling this feature disabled the numberOfThreads option! This feature is still experimental! -->
         <param name="oneThreadPerHandler" value="false"/>
         <!-- If enabled, it is ensured that all events that are created during a time step of the mobility simulation are processed before the next time step is simulated. E.g. neccessary when within-day replanning is used. -->
-        <param name="synchronizeOnSimSteps" value="false"/>
+        <param name="synchronizeOnSimSteps" value="true"/>
     </module>
     <module name="parkingCosts">
         <!-- The id of the zones collection as listed in the zones-configuration. -->

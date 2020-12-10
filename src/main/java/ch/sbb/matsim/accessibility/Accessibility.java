@@ -473,7 +473,10 @@ public class Accessibility {
 		if (requiresCar) {
 			if (eventsFilename != null) {
 				log.info("extracting actual travel times from " + eventsFilename);
-				TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), config.travelTimeCalculator());
+				TravelTimeCalculator.Builder b = new TravelTimeCalculator.Builder(scenario.getNetwork());
+				b.configure(config.travelTimeCalculator());
+				TravelTimeCalculator ttc = b.build();
+
 				EventsManager events = EventsUtils.createEventsManager();
 				events.addHandler(ttc);
 				new MatsimEventsReader(events).readFile(eventsFilename);

@@ -160,24 +160,24 @@ public class PotentialAnalysis {
 	}
 
 	private void computeDurationToStation(Scenario scenario) {
-		Config config = ConfigUtils.createConfig();
+        Config config = ConfigUtils.createConfig();
 
-		RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(config);
-		raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
-		SwissRailRaptorData raptorData = SwissRailRaptorData.create(scenario.getTransitSchedule(), raptorConfig, scenario.getNetwork());
-		RaptorParameters raptorParameters = RaptorUtils.createParameters(config);
+        RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(config);
+        raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
+        SwissRailRaptorData raptorData = SwissRailRaptorData.create(scenario.getTransitSchedule(), scenario.getTransitVehicles(), raptorConfig, scenario.getNetwork(), null);
+        RaptorParameters raptorParameters = RaptorUtils.createParameters(config);
 
-		SwissRailRaptor raptor = new SwissRailRaptor(raptorData, null, null, null);
+        SwissRailRaptor raptor = new SwissRailRaptor(raptorData, null, null, null, null);
 
-		Network carNetwork = NetworkUtils.createNetwork();
-		(new TransportModeNetworkFilter(scenario.getNetwork())).filter(carNetwork, Collections.singleton("car"));
+        Network carNetwork = NetworkUtils.createNetwork();
+        (new TransportModeNetworkFilter(scenario.getNetwork())).filter(carNetwork, Collections.singleton("car"));
 
-		PotentialAnalysisRouter potentialAnalysisRouter = new PotentialAnalysisRouter(carNetwork, 7 * 60 * 60);
-		Counter facCounterProcess = new Counter("#");
-		for (ActivityFacility facility : scenario.getActivityFacilities().getFacilities().values()) {
-			double minimumTime = 999999999;
-			TransitStopFacility closestFacility = null;
-			facCounterProcess.incCounter();
+        PotentialAnalysisRouter potentialAnalysisRouter = new PotentialAnalysisRouter(carNetwork, 7 * 60 * 60);
+        Counter facCounterProcess = new Counter("#");
+        for (ActivityFacility facility : scenario.getActivityFacilities().getFacilities().values()) {
+            double minimumTime = 999999999;
+            TransitStopFacility closestFacility = null;
+            facCounterProcess.incCounter();
 
 			for (TransitStopFacility stopFacility : findStopCandidates(facility.getCoord(), raptor, raptorParameters)) {
 

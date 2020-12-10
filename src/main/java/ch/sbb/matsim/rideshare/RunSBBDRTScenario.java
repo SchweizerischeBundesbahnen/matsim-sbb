@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.contrib.av.robotaxi.fares.drt.DrtFaresConfigGroup;
 import org.matsim.contrib.drt.run.DrtConfigs;
 import org.matsim.contrib.drt.run.DrtControlerCreator;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
@@ -52,7 +51,6 @@ public class RunSBBDRTScenario {
 		configGroupList.addAll(Arrays.asList(RunSBB.sbbDefaultConfigGroups));
 		configGroupList.add(new MultiModeDrtConfigGroup());
 		configGroupList.add(new DvrpConfigGroup());
-		configGroupList.add(new DrtFaresConfigGroup());
 
 		return configGroupList.toArray(new ConfigGroup[configGroupList.size()]);
 	}

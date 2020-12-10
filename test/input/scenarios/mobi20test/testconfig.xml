@@ -10,6 +10,9 @@
         <param name="endTime" value="36:00:00"/>
 
     </module>
+    <module name="ConvergenceStats">
+        <param name="activateConvergenceStats" value="true"/>
+    </module>
     <module name="PostProcessing">
         <!-- Run Screenline Analysis -->
         <param name="analyseScreenline" value="false"/>

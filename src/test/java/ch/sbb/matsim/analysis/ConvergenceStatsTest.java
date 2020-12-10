@@ -117,7 +117,7 @@ public class ConvergenceStatsTest {
 			iterationsRun = lines.size();
 			Assert.assertNotNull(lines.get(1));
 		}
-		Assert.assertTrue(iterationsRun - 1 < absoluteLastIteration - csConfig.getIterationWindowSize());
+
 	}
 
 	private class StubControler implements MatsimServices {

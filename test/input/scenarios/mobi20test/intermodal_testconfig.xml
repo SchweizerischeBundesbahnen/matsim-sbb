@@ -2,6 +2,10 @@
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">
 <!-- test config. all scoring parameters in this file are nonsense -->
 <config>
+
+    <module name="ConvergenceStats">
+        <param name="activateConvergenceStats" value="true"/>
+    </module>
     <module name="JDEQSim">
         <param name="carSize" value="7.5"/>
         <param name="endTime" value="undefined"/>

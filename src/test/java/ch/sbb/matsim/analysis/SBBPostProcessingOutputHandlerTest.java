@@ -50,21 +50,21 @@ public class SBBPostProcessingOutputHandlerTest {
 
 		int iteration = 10;
 
-		SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-				eventsManager,
-				scenario,
-				controlerIO,
-				configGroup,
-				ppConfig,
-				null
-		);
+        SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
+                eventsManager,
+                scenario,
+                controlerIO,
+                configGroup,
+                ppConfig,
+                null
+        );
 
-		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
+        BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
-		outputHandler.notifyBeforeMobsim(event);
+        outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(0, eventsManager.getEventHandlers().size());
-	}
+        Assert.assertEquals(0, eventsManager.getEventHandlers().size());
+    }
 
 	/*
 	 * some CSV writers are set, but it is the wrong iteration, so we expect no eventHandlers to be configured
@@ -83,21 +83,21 @@ public class SBBPostProcessingOutputHandlerTest {
 
 		int iteration = 9;
 
-		SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-				eventsManager,
-				scenario,
-				controlerIO,
-				configGroup,
-				ppConfig,
-				null
-		);
+        SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
+                eventsManager,
+                scenario,
+                controlerIO,
+                configGroup,
+                ppConfig,
+                null
+        );
 
-		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
+        BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
-		outputHandler.notifyBeforeMobsim(event);
+        outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(0, eventsManager.getEventHandlers().size());
-	}
+        Assert.assertEquals(0, eventsManager.getEventHandlers().size());
+    }
 
 	/*
 	 * some CSV writers are set and it is the right iteration, so we expect 5 eventHandlers to be configured:
@@ -118,21 +118,21 @@ public class SBBPostProcessingOutputHandlerTest {
 		int iteration = 10;
 		controlerIO.createIterationDirectory(iteration);
 
-		SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-				eventsManager,
-				scenario,
-				controlerIO,
-				configGroup,
-				ppConfig,
-				null
-		);
+        SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
+                eventsManager,
+                scenario,
+                controlerIO,
+                configGroup,
+                ppConfig,
+                null
+        );
 
-		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
+        BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
-		outputHandler.notifyBeforeMobsim(event);
+        outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(5, eventsManager.getEventHandlers().size());
-	}
+        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
+    }
 
 	/*
 	 * some CSV writers are set and it is the last iteration, so we expect 5 eventHandlers to be configured:
@@ -154,21 +154,21 @@ public class SBBPostProcessingOutputHandlerTest {
 		int iteration = 11;
 		controlerIO.createIterationDirectory(iteration);
 
-		SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-				eventsManager,
-				scenario,
-				controlerIO,
-				configGroup,
-				ppConfig,
-				null
-		);
+        SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
+                eventsManager,
+                scenario,
+                controlerIO,
+                configGroup,
+                ppConfig,
+                null
+        );
 
-		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
+        BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
-		outputHandler.notifyBeforeMobsim(event);
+        outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(5, eventsManager.getEventHandlers().size());
-	}
+        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
+    }
 
 	/*
 	 * some CSV writers are set, it is the last iteration AND outputs are dumped, so we expect 10 eventHandlers to be configured:
@@ -190,21 +190,21 @@ public class SBBPostProcessingOutputHandlerTest {
 		int iteration = 10;
 		controlerIO.createIterationDirectory(10);
 
-		SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-				eventsManager,
-				scenario,
-				controlerIO,
-				configGroup,
-				ppConfig,
-				null
-		);
+        SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
+                eventsManager,
+                scenario,
+                controlerIO,
+                configGroup,
+                ppConfig,
+                null
+        );
 
-		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration);
+        BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
-		outputHandler.notifyBeforeMobsim(event);
+        outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(5, eventsManager.getEventHandlers().size());
-	}
+        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
+    }
 
 	@Test
 	public void test_persistentPtVolumesToCSV() throws IOException {
@@ -239,27 +239,27 @@ public class SBBPostProcessingOutputHandlerTest {
 		StartupEvent startupEvent = new StartupEvent(controler);
 		outputHandler.notifyStartup(startupEvent);
 		for (int i = 0; i <= lastIteration; i++) {
-			System.out.println("### Iteration " + i + " ###");
-			controlerIO.createIterationDirectory(i);
-			BeforeMobsimEvent beforeMobsimEvent = new BeforeMobsimEvent(controler, i);
-			IterationEndsEvent iterationEndsEvent = new IterationEndsEvent(controler, i);
+            System.out.println("### Iteration " + i + " ###");
+            controlerIO.createIterationDirectory(i);
+            BeforeMobsimEvent beforeMobsimEvent = new BeforeMobsimEvent(controler, i, false);
+            IterationEndsEvent iterationEndsEvent = new IterationEndsEvent(controler, i, false);
 
-			outputHandler.notifyBeforeMobsim(beforeMobsimEvent);
-			testFixture.addEvents();
-			testFixture.eventsManager.resetHandlers(i);
-			outputHandler.notifyIterationEnds(iterationEndsEvent);
-		}
-		ShutdownEvent shutdownEvent = new ShutdownEvent(startupEvent.getServices(), false);
-		outputHandler.notifyShutdown(shutdownEvent);
+            outputHandler.notifyBeforeMobsim(beforeMobsimEvent);
+            testFixture.addEvents();
+            testFixture.eventsManager.resetHandlers(i);
+            outputHandler.notifyIterationEnds(iterationEndsEvent);
+        }
+        ShutdownEvent shutdownEvent = new ShutdownEvent(startupEvent.getServices(), false, 0);
+        outputHandler.notifyShutdown(shutdownEvent);
 
-		Assert.assertEquals(PtVolumeToCSVTest.expectedStops, readResult(this.utils.getOutputDirectory() + "matsim_stops.csv.gz"));
-		Assert.assertEquals(PtVolumeToCSVTest.expectedVehJourneys, readResult(this.utils.getOutputDirectory() + "matsim_vehjourneys.csv.gz"));
-		Assert.assertEquals(PtVolumeToCSVTest.expectedStopsDaily, readResult(this.utils.getOutputDirectory() + "matsim_stops_daily.csv.gz"));
-		Assert.assertEquals(
-				readResult(this.utils.getOutputDirectory() + "ITERS/it." + lastIteration + "/" + lastIteration + ".matsim_stops.csv.gz"),
-				readResult(this.utils.getOutputDirectory() + "matsim_stops.csv.gz"));
-		Assert.assertEquals(
-				readResult(this.utils.getOutputDirectory() + "ITERS/it." + lastIteration + "/" + lastIteration + ".matsim_vehjourneys.csv.gz"),
+        Assert.assertEquals(PtVolumeToCSVTest.expectedStops, readResult(this.utils.getOutputDirectory() + "matsim_stops.csv.gz"));
+        Assert.assertEquals(PtVolumeToCSVTest.expectedVehJourneys, readResult(this.utils.getOutputDirectory() + "matsim_vehjourneys.csv.gz"));
+        Assert.assertEquals(PtVolumeToCSVTest.expectedStopsDaily, readResult(this.utils.getOutputDirectory() + "matsim_stops_daily.csv.gz"));
+        Assert.assertEquals(
+                readResult(this.utils.getOutputDirectory() + "ITERS/it." + lastIteration + "/" + lastIteration + ".matsim_stops.csv.gz"),
+                readResult(this.utils.getOutputDirectory() + "matsim_stops.csv.gz"));
+        Assert.assertEquals(
+                readResult(this.utils.getOutputDirectory() + "ITERS/it." + lastIteration + "/" + lastIteration + ".matsim_vehjourneys.csv.gz"),
 				readResult(this.utils.getOutputDirectory() + "matsim_vehjourneys.csv.gz"));
 	}
 
@@ -296,27 +296,27 @@ public class SBBPostProcessingOutputHandlerTest {
 		StartupEvent startupEvent = new StartupEvent(controler);
 		outputHandler.notifyStartup(startupEvent);
 		for (int i = 0; i <= lastIteration; i++) {
-			System.out.println("### Iteration " + i + " ###");
-			controlerIO.createIterationDirectory(i);
-			BeforeMobsimEvent beforeMobsimEvent = new BeforeMobsimEvent(controler, i);
-			IterationEndsEvent iterationEndsEvent = new IterationEndsEvent(controler, i);
+            System.out.println("### Iteration " + i + " ###");
+            controlerIO.createIterationDirectory(i);
+            BeforeMobsimEvent beforeMobsimEvent = new BeforeMobsimEvent(controler, i, false);
+            IterationEndsEvent iterationEndsEvent = new IterationEndsEvent(controler, i, false);
 
-			outputHandler.notifyBeforeMobsim(beforeMobsimEvent);
-			testFixture.addEvents();
-			testFixture.eventsManager.resetHandlers(i);
-			outputHandler.notifyIterationEnds(iterationEndsEvent);
-		}
-		ShutdownEvent shutdownEvent = new ShutdownEvent(startupEvent.getServices(), false);
-		outputHandler.notifyShutdown(shutdownEvent);
+            outputHandler.notifyBeforeMobsim(beforeMobsimEvent);
+            testFixture.addEvents();
+            testFixture.eventsManager.resetHandlers(i);
+            outputHandler.notifyIterationEnds(iterationEndsEvent);
+        }
+        ShutdownEvent shutdownEvent = new ShutdownEvent(startupEvent.getServices(), false, 0);
+        outputHandler.notifyShutdown(shutdownEvent);
 
-		String expectedLinksDaily = "it;2;3;4\n0;0;1;1\n1;0;1;1\n2;0;1;1\n";
-		String expectedLinks = "LINK_ID_SIM;FROMNODENO;TONODENO;VOLUME_SIM\n3;3;4;1.0\n4;4;5;1.0\n";
+        String expectedLinksDaily = "it;2;3;4\n0;0;1;1\n1;0;1;1\n2;0;1;1\n";
+        String expectedLinks = "LINK_ID_SIM;FROMNODENO;TONODENO;VOLUME_SIM\n3;3;4;1.0\n4;4;5;1.0\n";
 
-		Assert.assertEquals(expectedLinks, readResult(this.utils.getOutputDirectory() + "visum_volumes.csv.gz"));
-		Assert.assertEquals(expectedLinksDaily, readResult(this.utils.getOutputDirectory() + "visum_volumes_daily.csv.gz"));
-		Assert.assertEquals(
-				readResult(this.utils.getOutputDirectory() + "ITERS/it." + lastIteration + "/" + lastIteration + ".visum_volumes.csv.gz"),
-				readResult(this.utils.getOutputDirectory() + "visum_volumes.csv.gz"));
+        Assert.assertEquals(expectedLinks, readResult(this.utils.getOutputDirectory() + "visum_volumes.csv.gz"));
+        Assert.assertEquals(expectedLinksDaily, readResult(this.utils.getOutputDirectory() + "visum_volumes_daily.csv.gz"));
+        Assert.assertEquals(
+                readResult(this.utils.getOutputDirectory() + "ITERS/it." + lastIteration + "/" + lastIteration + ".visum_volumes.csv.gz"),
+                readResult(this.utils.getOutputDirectory() + "visum_volumes.csv.gz"));
 	}
 
 	private String readResult(String filePath) throws IOException {
