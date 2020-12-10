@@ -55,7 +55,6 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.controler.TerminationCriterion;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
 import org.matsim.core.population.algorithms.PermissibleModesCalculator;
@@ -155,7 +154,6 @@ public class RunSBB {
 				if (convergenceStatsConfig.isActivateConvergenceStats()) {
 					ConvergenceStats convergenceStats = new ConvergenceStats(this.getConfig());
 					addControlerListenerBinding().toInstance(convergenceStats);
-					bind(TerminationCriterion.class).toInstance(convergenceStats);
 				}
 
 			}

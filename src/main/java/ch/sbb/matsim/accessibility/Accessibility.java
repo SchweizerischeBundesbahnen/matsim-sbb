@@ -224,7 +224,7 @@ public class Accessibility {
 		log.info("pre-create SwissRailRaptor-instances...");
 		SwissRailRaptor[] raptors = new SwissRailRaptor[this.threadCount];
 		for (int i = 0; i < this.threadCount; i++) {
-			raptors[i] = new SwissRailRaptor(raptorData, null, null, null);
+			raptors[i] = new SwissRailRaptor(raptorData, null, null, null, null);
 		}
 
 		Map<Coord, ZoneData> zoneData = new HashMap<>();
@@ -473,7 +473,10 @@ public class Accessibility {
 		if (requiresCar) {
 			if (eventsFilename != null) {
 				log.info("extracting actual travel times from " + eventsFilename);
-				TravelTimeCalculator ttc = TravelTimeCalculator.create(scenario.getNetwork(), config.travelTimeCalculator());
+				TravelTimeCalculator.Builder b = new TravelTimeCalculator.Builder(scenario.getNetwork());
+				b.configure(config.travelTimeCalculator());
+				TravelTimeCalculator ttc = b.build();
+
 				EventsManager events = EventsUtils.createEventsManager();
 				events.addHandler(ttc);
 				new MatsimEventsReader(events).readFile(eventsFilename);
@@ -505,7 +508,7 @@ public class Accessibility {
 		RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(this.config);
 		raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
 		this.transitSchedule = ptScenario.getTransitSchedule();
-		this.raptorData = SwissRailRaptorData.create(ptScenario.getTransitSchedule(), raptorConfig, ptScenario.getNetwork());
+		this.raptorData = SwissRailRaptorData.create(ptScenario.getTransitSchedule(), ptScenario.getTransitVehicles(), raptorConfig, ptScenario.getNetwork(), null);
 		this.departuresCache = new DeparturesCache(this.transitSchedule);
 
 		this.scenarioLoaded = true;
@@ -702,7 +705,8 @@ public class Accessibility {
 			double timeWindow = this.ptMaxDepartureTime - this.ptMinDepartureTime;
 			double endTime = this.ptMaxDepartureTime + timeWindow;
 			for (double time = this.ptMinDepartureTime - timeWindow; time < endTime; time += this.stepSize) {
-				Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStops, time, this.parameters);
+
+				Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStops, time, this.parameters, null);
 				trees.add(tree);
 			}
 
@@ -1023,7 +1027,7 @@ public class Accessibility {
 						while (time < endTime) {
 							time = this.departuresCache.getNextDepartureTime(fromStop.getId(), time).seconds();
 
-							Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStop, time, this.parameters);
+							Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStop, time, this.parameters, null);
 							trees.add(tree);
 
 							time += 60; // +1 minute
@@ -1295,7 +1299,7 @@ public class Accessibility {
 			while (time < endTime) {
 				time = this.departuresCache.getNextDepartureTime(fromStop.getId(), time).seconds();
 
-				Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStop, time, this.parameters);
+				Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStop, time, this.parameters, null);
 				trees.add(tree);
 
 				time += 60; // +1 minute

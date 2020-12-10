@@ -43,13 +43,13 @@
         <dependency>
             <groupId>org.matsim</groupId>
             <artifactId>matsim</artifactId>
-            <version>13.0-2020w35-20200831.014018-1</version>
+            <version>13.0-2020w49-20201207.024323-1</version>
         </dependency>
 
         <dependency>
             <groupId>org.matsim</groupId>
             <artifactId>matsim</artifactId>
-            <version>13.0-2020w35-20200831.014018-1</version>
+            <version>13.0-2020w49-20201207.024323-1</version>
             <classifier>tests</classifier>
             <scope>test</scope>
             <type>test-jar</type>
@@ -58,13 +58,13 @@
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>drt</artifactId>
-            <version>13.0-2020w35-20200831.014500-1</version>
+            <version>13.0-2020w49-20201207.024806-1</version>
         </dependency>
 
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>av</artifactId>
-            <version>13.0-2020w35-20200831.014526-1</version>
+            <version>13.0-2020w49-20201207.024826-1</version>
         </dependency>
         <dependency> <!-- MATSim uses Guice 4.1.0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
             <groupId>com.google.guava</groupId>
@@ -82,7 +82,7 @@
             <!-- groupId>com.github.SchweizerischeBundesbahnen</groupId-->
             <groupId>ch.sbb</groupId>
             <artifactId>matsim-sbb-extensions</artifactId>
-            <version>12.12</version>
+            <version>12.14</version>
         </dependency>
 
         <!-- Include the JUnit testing library -->
