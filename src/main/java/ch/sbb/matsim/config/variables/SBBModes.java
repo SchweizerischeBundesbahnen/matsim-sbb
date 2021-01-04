@@ -14,7 +14,10 @@ public class SBBModes {
 	public static final String PT = TransportMode.pt;
 	public static final String BIKE = TransportMode.bike;
 	public static final String AVTAXI = "avtaxi";
-	public static final String AVFEEDER = "avfeeder";
+	public static final String AVFEEDER = "av_feeder";
+	public static final String BIKEFEEDER = "bike_feeder";
+	public static final String RIDEFEEDER = "ride_feeder";
+	public static final String CARFEEDER = "car_feeder";
 	public static final String DRT = TransportMode.drt;
 	public static final String PT_FALLBACK_MODE = TransportMode.transit_walk;
 	public static final String ACCESS_EGRESS_WALK = TransportMode.walk;
@@ -32,6 +35,10 @@ public class SBBModes {
 		mode2HierarchalNumber.put(DRT, 12);
 		mode2HierarchalNumber.put(RIDE, 20);
 		mode2HierarchalNumber.put(BIKE, 30);
+		mode2HierarchalNumber.put(AVFEEDER, 31);
+		mode2HierarchalNumber.put(BIKEFEEDER, 32);
+		mode2HierarchalNumber.put(RIDEFEEDER, 33);
+		mode2HierarchalNumber.put(CARFEEDER, 34);
 		mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 40);
 		mode2HierarchalNumber.put(PT_FALLBACK_MODE, 41);
 		mode2HierarchalNumber.put(WALK_MAIN_MAINMODE, 42);
