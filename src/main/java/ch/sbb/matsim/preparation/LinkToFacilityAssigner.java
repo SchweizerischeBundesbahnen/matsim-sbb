@@ -12,42 +12,30 @@ import org.matsim.facilities.MatsimFacilitiesReader;
 
 public class LinkToFacilityAssigner {
 
-	private ActivityFacilities facilities;
-
-	public LinkToFacilityAssigner() {
-
-	}
-
 	public static void main(String[] args) {
 		String facilityFile = args[0];
 		String networkFile = args[1];
 		String outputFile = args[2];
-
-		new LinkToFacilityAssigner().run(facilityFile, networkFile, outputFile);
-	}
-
-	public void run(String facilityFile, String networkFile, String output) {
-		readFacilities(facilityFile);
-		Network filteredNetwork = new FilteredNetwork().readAndFilterNetwork(networkFile);
-		assignLinkToFacility(filteredNetwork);
-		writeFacilityFile(output);
-	}
-
-	private void readFacilities(String facilityFile) {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new MatsimFacilitiesReader(scenario).readFile(facilityFile);
-		this.facilities = scenario.getActivityFacilities();
+		Network filteredNetwork = new FilteredNetwork().readAndFilterNetwork(networkFile);
+		run(scenario.getActivityFacilities(), filteredNetwork);
+		new FacilitiesWriter(scenario.getActivityFacilities()).write(outputFile);
+
 	}
 
-	private void assignLinkToFacility(Network network) {
-		this.facilities.getFacilities().values().
+	public static void run(ActivityFacilities facilities, Network network) {
+		Network filteredNetwork = new FilteredNetwork().filterNetwork(network);
+		assignLinkToFacility(facilities, filteredNetwork);
+
+	}
+
+	private static void assignLinkToFacility(ActivityFacilities facilities, Network network) {
+		facilities.getFacilities().values().
 				forEach(f -> FacilitiesUtils.setLinkID(f, NetworkUtils.getNearestLink(network,
 						f.getCoord()).getId()));
 	}
 
-	private void writeFacilityFile(String output) {
-		new FacilitiesWriter(this.facilities).write(output);
-	}
 }
 
 
