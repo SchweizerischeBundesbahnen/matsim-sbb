@@ -25,6 +25,7 @@ import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.LinkToFacilityAssigner;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
+import ch.sbb.matsim.preparation.PrepareActivitiesInPlans;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.replanning.SimpleAnnealer;
@@ -103,6 +104,8 @@ public class RunSBB {
 	}
 
 	public static void addSBBDefaultScenarioModules(Scenario scenario) {
+		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork());
+		PrepareActivitiesInPlans.prepareActivityTimesAndConfig(scenario);
 		createInitialEndTimeAttribute(scenario.getPopulation());
 		ZonesModule.addZonestoScenario(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
@@ -112,7 +115,6 @@ public class RunSBB {
 		new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
 				scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
 		scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
-		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork());
 
 		SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
 		if (samplerConfig.getDoSample()) {
