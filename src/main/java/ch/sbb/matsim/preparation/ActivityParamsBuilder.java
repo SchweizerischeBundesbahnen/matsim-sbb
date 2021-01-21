@@ -14,6 +14,31 @@ public class ActivityParamsBuilder {
 			config.planCalcScore().addActivityParams(params);
 		}
 
+		//exogeneous activities
+		{
+			String type = SBBActivities.exogeneous;
+			final ActivityParams params = new ActivityParams(type);
+			params.setMinimalDuration(10 * 60);
+			params.setTypicalDuration(40 * 60);
+			params.setScoringThisActivityAtAll(false);
+			config.planCalcScore().addActivityParams(params);
+		}
+		{
+			String type = SBBActivities.freight;
+			final ActivityParams params = new ActivityParams(type);
+			params.setTypicalDuration(12 * 3600);
+			params.setScoringThisActivityAtAll(false);
+			config.planCalcScore().addActivityParams(params);
+		}
+
+		{
+			String type = SBBActivities.cbHome;
+			final ActivityParams params = new ActivityParams(type);
+			params.setTypicalDuration(12 * 3660);
+			params.setScoringThisActivityAtAll(false);
+			config.planCalcScore().addActivityParams(params);
+		}
+
 		// home
 		for (long ii = 30; ii <= 1440; ii += 30) {
 			String type = SBBActivities.home + "_" + ii;

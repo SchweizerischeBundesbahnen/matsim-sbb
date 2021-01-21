@@ -15,6 +15,10 @@ public final class SBBActivities {
 	public static final String shopping = "shopping";
 	public static final String accompany = "accompany";
 	public static final String other = "other";
+	public static final String cbHome = "cbHome";
+	public static final String exogeneous = "Exogenous";
+	public static final String freight = "freight";
+
 	public final static Map<String, String> abmActs2matsimActs;
 	public final static Map<String, String> matsimActs2abmActs;
 	public final static Set<String> stageActivityTypeList;
