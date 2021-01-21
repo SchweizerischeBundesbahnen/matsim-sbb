@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE population SYSTEM "http://www.matsim.org/files/dtd/population_v6.dtd">
+
+<population desc="population written from streaming">
+
+
+    <!-- ====================================================================== -->
+
+    <person id="368554">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="328251" x="2688136.0" y="1166055.0"
+                      start_time="08:01:27" end_time="08:01:27">
+                <attributes>
+                    <attribute name="next_trip_id" class="java.lang.String">1_1"</attribute>
+                </attributes>
+            </activity>
+            <leg mode="drt">
+            </leg>
+            <activity type="other" facility="1441145" x="2692123.0" y="1178951.0"
+                      start_time="08:24:06" end_time="11:19:56">
+                <attributes>
+                    <attribute name="next_trip_id" class="java.lang.String">2_1"</attribute>
+                </attributes>
+            </activity>
+            <leg mode="drt">
+            </leg>
+            <activity type="home" facility="328251" x="2688136.0" y="1166055.0"
+                      start_time="11:42:35" end_time="13:36:15">
+                <attributes>
+                    <attribute name="next_trip_id" class="java.lang.String">1_2"</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="leisure" facility="1725808" x="2688500.0" y="1165500.0"
+                      start_time="13:45:46" end_time="15:01:53">
+                <attributes>
+                    <attribute name="next_trip_id" class="java.lang.String">2_2"</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="328251" x="2688136.0" y="1166055.0"
+                      start_time="15:11:24" end_time="15:11:24">
+            </activity>
+        </plan>
+
+    </person>
+
+</population>
