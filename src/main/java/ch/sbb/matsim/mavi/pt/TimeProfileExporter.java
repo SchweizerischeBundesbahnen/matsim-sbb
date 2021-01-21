@@ -57,9 +57,39 @@ public class TimeProfileExporter {
 		this.vehicleBuilder = scenario.getVehicles().getFactory();
 	}
 
+	private static class LineRouteItem {
+		int index;
+		String node;
+		String outLink;
+
+		public LineRouteItem(int index, String node, String outLink) {
+			this.index = index;
+			this.node = node;
+			this.outLink = outLink;
+		}
+	}
 	private static HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum, VisumPtExporterConfigGroup config) {
 		HashMap<Integer, TimeProfile> timeProfileMap = new HashMap<>();
 
+		log.info("loading LineRouteItems");
+		// line route items
+		Visum.ComObject lineRouteItems = visum.getNetObject("LineRouteItems");
+		if (lineRouteItems == null) {
+			log.error("could not get LineRouteItems");
+		}
+		Map<String, List<LineRouteItem>> lrItemsPerLineRoute = new HashMap<>();
+		int nrOfLRItems = lineRouteItems.countActive();
+		String[][] lineRouteItemAttributes = Visum.getArrayFromAttributeList(nrOfLRItems, lineRouteItems,
+				"LineName", "LineRoute\\Name", "DirectionCode", "Index", "Node\\No", "OutLink\\No");
+		for (int i = 0; i < nrOfLRItems; i++) {
+			String[] row = lineRouteItemAttributes[i];
+			String lrKey = row[0] + "||" + row[1] + "||" + row[2];
+			lrItemsPerLineRoute.computeIfAbsent(lrKey, k -> new ArrayList<>()).add(new LineRouteItem(Integer.parseInt(row[3]), row[4], row[5]));
+		}
+		log.info("sorting LineRouteItems");
+		lrItemsPerLineRoute.forEach((key, list) -> list.sort((o1, o2) -> Integer.compare(o1.index, o2.index)));
+
+		log.info("loading TimeProfiles");
 		// time profiles
 		Visum.ComObject timeProfiles = visum.getNetObject("TimeProfiles");
 		int nrOfTimeProfiles = timeProfiles.countActive();
@@ -80,6 +110,7 @@ public class TimeProfileExporter {
 							customAttributes[tp]));
 		}
 
+		log.info("loading VehicleJourneys");
 		// vehicles journeys
 		Visum.ComObject vehJourneys = visum.getNetObject("VehicleJourneys");
 		int nrOfVehJourneys = vehJourneys.countActive();
@@ -103,9 +134,11 @@ public class TimeProfileExporter {
 		int nrOfTimeProfileItems = timeProfileItems.countActive();
 		String[][] timeProfileItemAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfileItems, timeProfileItems,
 				"TimeProfile\\ID", "Index", "LineRouteItem\\StopPointNo", "Dep", "Arr", "PostLength",
-				"Concatenate:UsedLineRouteItems\\OutLink\\No");
+				"LineName", "LineRouteName", "DirectionCode", "LRITEMINDEX");
+		int lastLRItemIndex = 0;
 		for (int tpi = 0; tpi < nrOfTimeProfileItems; tpi++) {
-			String[] linkSeq = timeProfileItemAttributes[tpi][6].split(",");
+			String[] row = timeProfileItemAttributes[tpi];
+			String[] linkSeq = row[6].split(",");
 			List<String> linkSeqList = new ArrayList<>();
 			linkSeqList.add(linkSeq[0]);
 			for (int i = 1; i < linkSeq.length; i++) {
@@ -113,13 +146,45 @@ public class TimeProfileExporter {
 					linkSeqList.add(linkSeq[i]);
 				}
 			}
-			TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(timeProfileItemAttributes[tpi][0]));
-			tp.addTimeProfileItem(new TimeProfileItem((int) Double.parseDouble(timeProfileItemAttributes[tpi][1]),
-					(int) Double.parseDouble(timeProfileItemAttributes[tpi][2]),
-					Double.parseDouble(timeProfileItemAttributes[tpi][3]),
-					Double.parseDouble(timeProfileItemAttributes[tpi][4]),
-					Double.parseDouble(timeProfileItemAttributes[tpi][5]),
-					String.join(", ", linkSeqList)));
+
+			String linkSequence = "";
+			String lineRouteKey = row[6] + "||" + row[7] + "||" + row[8];
+			List<LineRouteItem> tpLineRouteItems = lrItemsPerLineRoute.get(lineRouteKey);
+			if (tpLineRouteItems == null) {
+				log.error("Could not find line route items for " + lineRouteKey);
+			} else {
+				int thisLRItemIndex = Integer.parseInt(row[9]);
+				boolean useIt = false;
+				StringBuilder seq = new StringBuilder();
+				String lastLink = null;
+				for (LineRouteItem lri : tpLineRouteItems) {
+					if (!useIt && lri.index >= lastLRItemIndex) {
+						useIt = true;
+					}
+					if (useIt) {
+						if (!lri.outLink.equals(lastLink) && !lri.outLink.isBlank()) {
+							if (seq.length() > 0) {
+								seq.append(',');
+							}
+							seq.append(lri.outLink);
+							lastLink = lri.outLink;
+						}
+					}
+					if (useIt && lri.index >= thisLRItemIndex) {
+						break;
+					}
+				}
+				linkSequence = seq.toString();
+				lastLRItemIndex = thisLRItemIndex;
+			}
+
+			TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(row[0]));
+			tp.addTimeProfileItem(new TimeProfileItem((int) Double.parseDouble(row[1]),
+					(int) Double.parseDouble(row[2]),
+					Double.parseDouble(row[3]),
+					Double.parseDouble(row[4]),
+					Double.parseDouble(row[5]),
+					linkSequence));
 		}
 
 		return timeProfileMap;
@@ -198,7 +263,6 @@ public class TimeProfileExporter {
 					Id<Link> startLink = null;
 					Id<Link> endLink = null;
 					TransitStopFacility fromStop = null;
-					String prevLinkSeq = null;
 					double postlength = 0.0;
 					double delta = 0.0;
 					boolean isFirstRouteStop = true;
@@ -238,16 +302,16 @@ public class TimeProfileExporter {
 							Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString());
 							if (!this.network.getLinks().containsKey(newLinkID)) {
 								createLink(newLinkID, fromNode, toNode, mode, postlength);
-								this.linkToVisumSequence.put(newLinkID, prevLinkSeq);
+								this.linkToVisumSequence.put(newLinkID, tpi.linkSequence);
 							}
 							// differentiate between links with the same from- and to-node but different length
 							else {
 								boolean hasSameLinkSequence = false;
-								if (!this.linkToVisumSequence.get(newLinkID).equals(prevLinkSeq)) {
+								if (!this.linkToVisumSequence.get(newLinkID).equals(tpi.linkSequence)) {
 									int m = 1;
 									Id<Link> linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
 									while (this.network.getLinks().containsKey(linkID)) {
-										if (this.linkToVisumSequence.get(linkID).equals(prevLinkSeq)) {
+										if (this.linkToVisumSequence.get(linkID).equals(tpi.linkSequence)) {
 											hasSameLinkSequence = true;
 											newLinkID = linkID;
 											Link link = this.network.getLinks().get(newLinkID);
@@ -265,7 +329,7 @@ public class TimeProfileExporter {
 									}
 									if (!hasSameLinkSequence) {
 										createLink(linkID, fromNode, toNode, mode, postlength);
-										this.linkToVisumSequence.put(linkID, prevLinkSeq);
+										this.linkToVisumSequence.put(linkID, tpi.linkSequence);
 										newLinkID = linkID;
 									}
 								}
@@ -275,7 +339,6 @@ public class TimeProfileExporter {
 						}
 						postlength = tpi.length;
 						fromStop = stop;
-						prevLinkSeq = tpi.linkSequence;
 					}
 					if (routeLinks.size() > 0) {
 						routeLinks.remove(routeLinks.size() - 1);
