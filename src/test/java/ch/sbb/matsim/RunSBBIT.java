@@ -8,20 +8,11 @@ import org.matsim.core.config.Config;
  */
 public class RunSBBIT {
 
-	@Test
-	public void qsimIT() {
-		System.setProperty("matsim.preferLocalDtds", "true");
-		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/testconfig.xml");
-		config.controler().setMobsim("qsim");
-		config.controler().setCreateGraphs(true);
-		RunSBB.run(config);
-
-	}
 
 	@Test
-	public void interModalIT() {
+	public void runSBBIt() {
 		System.setProperty("matsim.preferLocalDtds", "true");
-		Config config = RunSBB.buildConfig("test/input/scenarios/mobi20test/intermodal_testconfig.xml");
+		Config config = RunSBB.buildConfig("test/input/scenarios/mobi31test/config.xml");
 		config.controler().setOutputDirectory("test/output/intermodaltest");
 		config.controler().setCreateGraphs(true);
 		RunSBB.run(config);
