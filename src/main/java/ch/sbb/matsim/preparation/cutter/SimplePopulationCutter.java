@@ -50,7 +50,7 @@ public class SimplePopulationCutter {
         String outputPopulation = args[3];
         String outputFacilities = args[4];
         boolean deleteAttributes = false;
-
+        boolean onlyInsideAgents = true;
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         Zones z = ZonesLoader.loadZones("zones", inputShape, "zone_id");
         new MatsimFacilitiesReader(scenario).readFile(inputFacilities);
@@ -60,12 +60,14 @@ public class SimplePopulationCutter {
         StreamingPopulationReader spr = new StreamingPopulationReader(scenario);
         spr.addAlgorithm(person -> {
             Plan plan = person.getSelectedPlan();
-            boolean keep = TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities).stream().anyMatch(a -> z.findZone(a.getCoord()) != null);
+            boolean keep = onlyInsideAgents ?
+                    TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities).stream().allMatch(a -> z.findZone(a.getCoord()) != null) :
+                    TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities).stream().anyMatch(a -> z.findZone(a.getCoord()) != null);
+
             if (keep) {
                 facilitiesToKeep.addAll(TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities).stream().map(activity -> activity.getFacilityId()).filter(Objects::nonNull)
-                        .collect(
-                                Collectors.toSet()));
-                if (!deleteAttributes) {
+                        .collect(Collectors.toSet()));
+                if (deleteAttributes) {
                     person.getAttributes().getAsMap().keySet().forEach(p -> person.getAttributes().removeAttribute(p));
                 }
                 streamingPopulationWriter.run(person);

@@ -3,6 +3,7 @@ package ch.sbb.matsim.preparation.cutter;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -189,94 +190,38 @@ public class ScenarioCutter {
 
 	}
 
-	public static void main(String[] args) throws IOException {
-		System.setProperty("matsim.preferLocalDtds", "true");
-
-		args = new String[]{
-				"C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_config_cutter.xml",
-				"C:\\devsbb\\codes\\_data\\CH2016_1.2.17\\CH.10pct.2016.output_events.xml.gz",
-				"0.1",
-				"C:\\devsbb\\codes\\_data\\CH2016_1.2.17_cut"
-		};
-
-		String configFilename = args[0];
-		String eventsFilename = (args[1] == null || args[1].isEmpty()) ? null : args[1];
-		double scenarioSampleSize = Double.parseDouble(args[2]);
-		String outputDirectoryname = args[3];
-
-		Thread ramObserver = new Thread(() -> {
-			//noinspection InfiniteLoopStatement
-			while (true) {
-				Gbl.printMemoryUsage();
-				try {
-					Thread.sleep(20_000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}, "MemoryObserver");
-		ramObserver.setDaemon(true);
-		ramObserver.start();
-
-		File outputDir = new File(outputDirectoryname);
-		log.info("ScenarioCutter: output directory = " + outputDir.getAbsolutePath());
-		if (!outputDir.exists()) {
-			outputDir.mkdirs();
-		}
-
-		Config config = ConfigUtils.loadConfig(configFilename);
+	public static void cutNetworkAndTransitScheduleOnly(String cutExtentShape, String inputTransitSchedule, String inputTransitVehicles, String inputNetwork, String outputTransitSchedule,
+			String outputTransitVehicles, String outputNetwork) {
+		Config config = ConfigUtils.createConfig();
 		Scenario scenario = ScenarioUtils.createScenario(config);
-		new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
-		new TransitScheduleReader(scenario).readFile(config.transit().getTransitScheduleFile());
-		new MatsimVehicleReader(scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
-		BetterPopulationReader.readSelectedPlansOnly(scenario, new File(config.plans().getInputFile()));
-		new MatsimFacilitiesReader(scenario).readFile(config.facilities().getInputFile());
+		new MatsimNetworkReader(scenario.getNetwork()).readFile(inputNetwork);
+		new TransitScheduleReader(scenario).readFile(inputTransitSchedule);
+		new MatsimVehicleReader(scenario.getTransitVehicles()).readFile(inputTransitVehicles);
+		final String zonesIdAttribute = "zone_id";
+		final String zonesId = "zone_id";
 
-		log.info("clean network");
+		CutExtent networkExtent = new ShapeExtent(ZonesLoader.loadZones
+				(zonesId, cutExtentShape, zonesIdAttribute));
 		simpleCleanNetwork(scenario.getNetwork());
+		ScenarioCutter cutter = new ScenarioCutter(scenario);
+		CutContext ctx = new CutContext(scenario, null, networkExtent, networkExtent, networkExtent, true);
+		cutter.cutNetwork(ctx);
+		cutter.cutTransit(ctx);
+		new TransitScheduleWriter(ctx.dest.getTransitSchedule()).writeFile(outputTransitSchedule);
+		new NetworkWriter(ctx.dest.getNetwork()).write(outputNetwork);
+		new MatsimVehicleWriter(ctx.dest.getTransitVehicles()).writeFile(outputTransitVehicles);
 
-		CutExtent extent = new RadialExtent(600_000, 200_000, 10_000);
-		CutExtent extended = new RadialExtent(600_000, 200_000, 15_000);
-		CutExtent networkExtent = new RadialExtent(600_000, 200_000, 30_000);
+	}
 
-		TravelTime travelTime = new FreeSpeedTravelTime();
-		if (eventsFilename != null) {
-			log.info("Extracting link travel times from Events file " + eventsFilename);
-			TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(scenario.getNetwork());
-			ttBuilder.setAnalyzedModes(Collections.singleton(SBBModes.CAR));
-			ttBuilder.setCalculateLinkTravelTimes(true);
-			TravelTimeCalculator ttCalculator = ttBuilder.build();
-			EventsManager eventsManager = EventsUtils.createEventsManager(scenario.getConfig());
-			eventsManager.addHandler(ttCalculator);
-			new MatsimEventsReader(eventsManager).readFile(eventsFilename);
-			travelTime = ttCalculator.getLinkTravelTimes();
-		}
-
-		log.info("Analyzing scenario...");
-		Scenario analysisScenario = new ScenarioCutter(scenario).analyzeCut(extent, travelTime, true);
-
-		log.info("Writing relevant activity locations...");
-		List<Coord> relevantActLocations = (List<Coord>) analysisScenario.getScenarioElement(RELEVANT_ACT_LOCATIONS);
-		writeRelevantLocations(new File(outputDir, "relevantActivityLocations.csv.gz"), relevantActLocations);
-		relevantActLocations.clear(); // free the memory
-
-		log.info("Cutting scenario...");
-		boolean cutNetworkAndPlans = true;
-		Scenario cutScenario = new ScenarioCutter(scenario).performCut(extent, extended, networkExtent, travelTime, scenarioSampleSize, cutNetworkAndPlans);
-
-		log.info("Writing cut scenario...");
-
-		new NetworkWriter(cutScenario.getNetwork()).write(new File(outputDir, "network.xml.gz").getAbsolutePath());
-		new PopulationWriter(cutScenario.getPopulation()).write(new File(outputDir, "population.xml.gz").getAbsolutePath());
-		new MatsimVehicleWriter(cutScenario.getTransitVehicles()).writeFile(new File(outputDir, "transitVehicles.xml.gz").getAbsolutePath());
-		new TransitScheduleWriter(cutScenario.getTransitSchedule()).writeFile(new File(outputDir, "schedule.xml.gz").getAbsolutePath());
-
-		new FacilitiesWriter(cutScenario.getActivityFacilities()).write(new File(outputDir, "facilities.xml.gz").getAbsolutePath());
-
-		List<NetworkChangeEvent> changeEvents = (List<NetworkChangeEvent>) cutScenario.getScenarioElement(CHANGE_EVENTS);
-		new NetworkChangeEventsWriter().write(new File(outputDir, "networkChangeEvents.xml.gz").getAbsolutePath(), changeEvents);
-
-		writeMissingDemand(new File(outputDir, "missingDemand.csv"), cutScenario);
+	public static void main(String[] args) throws IOException {
+		String shape = "\\\\wsbbrz0283\\mobi\\99_Playgrounds\\JB\\mobi-31-test\\andermatt-netextent.shp";
+		String inputTransitSchedule = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_3.0\\supply\\NPVM2017_Simba2017_LV95_carfeeder_alle\\transitSchedule.xml.gz";
+		String inputTransitVehicles = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_3.0\\supply\\NPVM2017_Simba2017_LV95_carfeeder_alle\\transitVehicles.xml.gz";
+		String inputNetwork = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_3.0\\supply\\NPVM2017_Simba2017_LV95_carfeeder_alle\\network.xml.gz";
+		String outputTransitSchedule = "\\\\wsbbrz0283\\mobi\\99_Playgrounds\\JB\\mobi-31-test\\transitSchedule.xml.gz";
+		String outputTransitVehicles = "\\\\wsbbrz0283\\mobi\\99_Playgrounds\\JB\\mobi-31-test\\transitVehicles.xml.gz";
+		String outputNetwork = "\\\\wsbbrz0283\\mobi\\99_Playgrounds\\JB\\mobi-31-test\\network.xml.gz";
+		cutNetworkAndTransitScheduleOnly(shape, inputTransitSchedule, inputTransitVehicles, inputNetwork, outputTransitSchedule, outputTransitVehicles, outputNetwork);
 	}
 
 	private static void writeRelevantLocations(File file, List<Coord> coords) throws IOException {
