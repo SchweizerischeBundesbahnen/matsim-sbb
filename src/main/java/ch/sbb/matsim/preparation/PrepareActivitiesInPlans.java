@@ -38,11 +38,6 @@ public class PrepareActivitiesInPlans {
 		new PopulationWriter(scenario.getPopulation()).write(pathOut);
 	}
 
-	public static void prepareActivityTimesAndConfig(Scenario scenario) {
-		overwriteActivitiesInPlans(scenario.getPopulation());
-		ActivityParamsBuilder.buildActivityParams(scenario.getConfig());
-	}
-
 	public static void overwriteActivitiesInPlans(Population population) {
 		for (Person p : population.getPersons().values()) {
 			if (PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)) {

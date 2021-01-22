@@ -7,12 +7,7 @@ import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
 public class ActivityParamsBuilder {
 
 	public static void buildActivityParams(Config config) {
-		for (String stageActivityType : SBBActivities.stageActivityTypeList) {
-			final ActivityParams params = new ActivityParams(stageActivityType);
-			//params.setTypicalDuration( 120.0 );
-			params.setScoringThisActivityAtAll(false);
-			config.planCalcScore().addActivityParams(params);
-		}
+		buildStageActivityModeParams(config);
 
 		//exogeneous activities
 		{
@@ -177,6 +172,14 @@ public class ActivityParamsBuilder {
 			final ActivityParams params = new ActivityParams(type);
 			params.setTypicalDuration(ii * 60.0);
 			params.setScoringThisActivityAtAll(true);
+			config.planCalcScore().addActivityParams(params);
+		}
+	}
+
+	public static void buildStageActivityModeParams(Config config) {
+		for (String stageActivityType : SBBActivities.stageActivityTypeList) {
+			final ActivityParams params = new ActivityParams(stageActivityType);
+			params.setScoringThisActivityAtAll(false);
 			config.planCalcScore().addActivityParams(params);
 		}
 	}
