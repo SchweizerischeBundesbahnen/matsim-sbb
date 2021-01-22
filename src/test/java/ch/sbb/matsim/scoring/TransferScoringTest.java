@@ -2,6 +2,7 @@ package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Logger;
@@ -127,10 +128,7 @@ public class TransferScoringTest {
 			this.config.controler().setDumpDataAtEnd(false);
 
 			this.config.transit().setUseTransit(true);
-
-			PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
-			params.setScoringThisActivityAtAll(false);
-			config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(params);
+			ActivityParamsBuilder.buildStageActivityModeParams(config);
 		}
 
 		void setLineSwitchConfig(double lineSwitchUtility) {

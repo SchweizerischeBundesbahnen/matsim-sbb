@@ -42,7 +42,7 @@ public class SBBScoringFunctionTest {
 
 	private void testTransferScoring(String accessMode, String egressMode) {
 		Config config = ConfigUtils.createConfig();
-		ScoringFixture.addRideInteractionScoring(config);
+		ScoringFixture.addStageInteractionScoring(config);
 		Scenario scenario = ScenarioUtils.createScenario(config);
 
 		PopulationFactory pf = scenario.getPopulation().getFactory();
@@ -155,7 +155,7 @@ public class SBBScoringFunctionTest {
 		 * used, and that, if possible, objects are re-used. */
 		SBBBehaviorGroupsConfigGroup sbbBehaviour = new SBBBehaviorGroupsConfigGroup();
 		Config config = ConfigUtils.createConfig(sbbBehaviour);
-		ScoringFixture.addRideInteractionScoring(config);
+		ScoringFixture.addStageInteractionScoring(config);
 		PlanCalcScoreConfigGroup.ScoringParameterSet params = config.planCalcScore().getOrCreateScoringParameters(null);
 		params.addActivityParams(createActivityParams("home", 8 * 3600, 12 * 3600));
 		params.addActivityParams(createActivityParams("work", 3 * 3600, 8 * 3600));
