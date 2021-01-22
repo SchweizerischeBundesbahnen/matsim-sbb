@@ -777,7 +777,7 @@
     </module>
     <module name="zones">
         <parameterset type="zones">
-            <param name="filename" value="zones\andermatt-zones.shp"/>
+            <param name="filename" value="zones/andermatt-zones.shp"/>
             <param name="id" value="zones"/>
             <param name="idAttributeName" value="zone_id"/>
         </parameterset>
