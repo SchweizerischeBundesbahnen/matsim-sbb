@@ -64,7 +64,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		this.accessEgressRouteCache = accessEgressRouteCache;
 
 		SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
-		this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(set -> set.getMode(), set -> set));
+		this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(set -> set.getMode(), set -> set, (a, b) -> a));
 		SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
 		walkParameterset = srrConfig.getIntermodalAccessEgressParameterSets().stream().filter(l -> l.getMode().equals(TransportMode.walk)).findFirst().orElseThrow(RuntimeException::new);
 		this.routingModules = new HashMap<>();
