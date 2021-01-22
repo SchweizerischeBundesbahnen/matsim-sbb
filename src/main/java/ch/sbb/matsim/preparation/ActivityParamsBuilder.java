@@ -7,9 +7,29 @@ import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
 public class ActivityParamsBuilder {
 
 	public static void buildActivityParams(Config config) {
-		for (String stageActivityType : SBBActivities.stageActivityTypeList) {
-			final ActivityParams params = new ActivityParams(stageActivityType);
-			//params.setTypicalDuration( 120.0 );
+		buildStageActivityModeParams(config);
+
+		//exogeneous activities
+		{
+			String type = SBBActivities.exogeneous;
+			final ActivityParams params = new ActivityParams(type);
+			params.setMinimalDuration(10 * 60);
+			params.setTypicalDuration(40 * 60);
+			params.setScoringThisActivityAtAll(false);
+			config.planCalcScore().addActivityParams(params);
+		}
+		{
+			String type = SBBActivities.freight;
+			final ActivityParams params = new ActivityParams(type);
+			params.setTypicalDuration(12 * 3600);
+			params.setScoringThisActivityAtAll(false);
+			config.planCalcScore().addActivityParams(params);
+		}
+
+		{
+			String type = SBBActivities.cbHome;
+			final ActivityParams params = new ActivityParams(type);
+			params.setTypicalDuration(12 * 3660);
 			params.setScoringThisActivityAtAll(false);
 			config.planCalcScore().addActivityParams(params);
 		}
@@ -152,6 +172,14 @@ public class ActivityParamsBuilder {
 			final ActivityParams params = new ActivityParams(type);
 			params.setTypicalDuration(ii * 60.0);
 			params.setScoringThisActivityAtAll(true);
+			config.planCalcScore().addActivityParams(params);
+		}
+	}
+
+	public static void buildStageActivityModeParams(Config config) {
+		for (String stageActivityType : SBBActivities.stageActivityTypeList) {
+			final ActivityParams params = new ActivityParams(stageActivityType);
+			params.setScoringThisActivityAtAll(false);
 			config.planCalcScore().addActivityParams(params);
 		}
 	}

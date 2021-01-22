@@ -44,7 +44,7 @@ public class FilteredNetwork {
 		this.networkFactory = this.filteredNetwork.getFactory();
 
 		carNetwork.getLinks().values().stream().
-				filter(l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0")).
+				filter(l -> (!String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("1"))).
 				forEach(this::addLinkToNetwork);
 
 		return this.filteredNetwork;

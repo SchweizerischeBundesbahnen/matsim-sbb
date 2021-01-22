@@ -23,7 +23,10 @@ import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
+import ch.sbb.matsim.preparation.ActivityParamsBuilder;
+import ch.sbb.matsim.preparation.LinkToFacilityAssigner;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
+import ch.sbb.matsim.preparation.PrepareActivitiesInPlans;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.replanning.SimpleAnnealer;
@@ -102,6 +105,8 @@ public class RunSBB {
 	}
 
 	public static void addSBBDefaultScenarioModules(Scenario scenario) {
+		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork());
+		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
 		createInitialEndTimeAttribute(scenario.getPopulation());
 		ZonesModule.addZonestoScenario(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
@@ -169,19 +174,21 @@ public class RunSBB {
 		});
 		controler.addOverridingModule(new IntermodalModule());
 
-
 	}
 
 	public static Config buildConfig(String filepath) {
 		Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
+		adjustMobiConfig(config);
+		config.checkConsistency();
+		return config;
+	}
 
+	public static void adjustMobiConfig(Config config) {
 		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
 			// MATSim defines ride by default as teleported, which conflicts with the network mode
 			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
 		}
-
-		config.checkConsistency();
-		return config;
+		ActivityParamsBuilder.buildActivityParams(config);
 	}
 
 	public static void createInitialEndTimeAttribute(Population population) {

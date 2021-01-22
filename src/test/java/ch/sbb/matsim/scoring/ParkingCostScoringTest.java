@@ -4,6 +4,7 @@ import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.events.ParkingCostEvent;
+import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
@@ -141,6 +142,7 @@ public class ParkingCostScoringTest {
 		}
 
 		private void prepareConfig() {
+			ActivityParamsBuilder.buildStageActivityModeParams(this.config);
 			ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);
 			ZonesListConfigGroup.ZonesParameterSet parkingZonesConfig = new ZonesListConfigGroup.ZonesParameterSet();
 			parkingZonesConfig.setFilename("src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP");

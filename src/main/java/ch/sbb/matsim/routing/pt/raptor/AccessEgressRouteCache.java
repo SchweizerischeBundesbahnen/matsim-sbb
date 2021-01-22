@@ -80,7 +80,7 @@ public class AccessEgressRouteCache {
 		this.singleModeNetworksCache = singleModeNetworksCache;
 		SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
 		SwissRailRaptorConfigGroup railRaptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
-		raptorIntermodalModeParams = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().collect(Collectors.toMap(m -> m.getMode(), m -> m));
+		raptorIntermodalModeParams = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().collect(Collectors.toMap(m -> m.getMode(), m -> m, (m, n) -> m));
 		this.zonesCollection = allZones.getZones(intermodalConfigGroup.getZonesId());
 		for (SBBIntermodalModeParameterSet paramset : intermodalConfigGroup.getModeParameterSets()) {
 			if (paramset.isRoutedOnNetwork() && !paramset.isSimulatedOnNetwork()) {

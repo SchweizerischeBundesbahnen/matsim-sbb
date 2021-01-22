@@ -6,6 +6,7 @@ package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -13,7 +14,6 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.functions.ScoringParameters;
 
@@ -41,13 +41,11 @@ public class ScoringFixture {
 		this.config.planCalcScore().getModes().get(SBBModes.PT).setMonetaryDistanceRate(-0.000300);
 		this.scenario = ScenarioUtils.createScenario(this.config);
 		this.sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
-		addRideInteractionScoring(this.config);
+		addStageInteractionScoring(this.config);
 	}
 
-	static void addRideInteractionScoring(Config config) {
-		PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
-		params.setScoringThisActivityAtAll(false);
-		config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(params);
+	static void addStageInteractionScoring(Config config) {
+		ActivityParamsBuilder.buildStageActivityModeParams(config);
 	}
 
 	ScoringParameters buildDefaultScoringParams(Id<Person> personId) {
