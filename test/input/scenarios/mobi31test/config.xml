@@ -348,7 +348,7 @@
                 <param name="dailyMonetaryConstant" value="0.0"/>
                 <param name="dailyUtilityConstant" value="0.0"/>
                 <param name="marginalUtilityOfDistance_util_m" value="0.0"/>
-                <param name="marginalUtilityOfTraveling_util_hr" value="-1.0"/>
+                <param name="marginalUtilityOfTraveling_util_hr" value="7.0"/>
                 <param name="mode" value="bike_feeder"/>
                 <param name="monetaryDistanceRate" value="0.0"/>
             </parameterset>
@@ -631,8 +631,6 @@
             <param name="linkIdAttribute" value="accessLinkId"/>
             <param name="maxRadius" value="4000.0"/>
             <param name="mode" value="bike_feeder"/>
-            <param name="personFilterAttribute" value="bike2pt"/>
-            <param name="personFilterValue" value="1"/>
             <param name="searchExtensionRadius" value="500.0"/>
             <param name="stopFilterAttribute" value="bikeFeederAccessible"/>
             <param name="stopFilterValue" value="1"/>
@@ -642,8 +640,6 @@
             <param name="linkIdAttribute" value="accessLinkId"/>
             <param name="maxRadius" value="15000.0"/>
             <param name="mode" value="car_feeder"/>
-            <param name="personFilterAttribute" value="car2pt"/>
-            <param name="personFilterValue" value="1"/>
             <param name="searchExtensionRadius" value="10000.0"/>
             <param name="stopFilterAttribute" value="carFeederAccessible"/>
             <param name="stopFilterValue" value="1"/>
@@ -653,8 +649,6 @@
             <param name="linkIdAttribute" value="accessLinkId"/>
             <param name="maxRadius" value="15000.0"/>
             <param name="mode" value="ride_feeder"/>
-            <param name="personFilterAttribute" value="ride2pt"/>
-            <param name="personFilterValue" value="1"/>
             <param name="searchExtensionRadius" value="10000.0"/>
             <param name="stopFilterAttribute" value="rideFeederAccessible"/>
             <param name="stopFilterValue" value="1"/>
