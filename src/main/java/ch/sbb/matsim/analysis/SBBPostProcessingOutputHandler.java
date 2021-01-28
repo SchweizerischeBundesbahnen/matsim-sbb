@@ -143,18 +143,20 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
 	@Override
 	public void notifyIterationEnds(IterationEndsEvent event) {
-		for (EventsAnalysis analysis : this.analyses) {
-			analysis.writeResults(event.getIteration() == this.config.getLastIteration());
-			this.eventsManager.removeHandler(analysis);
-		}
-		int interval = this.ppConfig.getWriteOutputsInterval();
-		if (event.getIteration() == this.config.getLastIteration()) {
-			double scalefactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
-			railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, controlerIO.getOutputFilename("railDemandAggregate.csv"));
-		}
+        for (EventsAnalysis analysis : this.analyses) {
+            analysis.writeResults(event.getIteration() == this.config.getLastIteration());
+            this.eventsManager.removeHandler(analysis);
+        }
+        int interval = this.ppConfig.getWriteOutputsInterval();
+        if (((interval > 0) && (event.getIteration() % interval == 0)) || event.getIteration() == this.config.getLastIteration()) {
+            double scalefactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
+            String filename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
+                    : controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
+            railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, filename);
+        }
 
-		this.analyses.clear();
-	}
+        this.analyses.clear();
+    }
 
 	@Override
 	public void notifyShutdown(ShutdownEvent event) {

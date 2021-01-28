@@ -44,7 +44,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	static private final String WRITE_RAIL_MATRIX = "writeRailMatrix";
 	static private final String RAIL_DEMAND_MATRIX_AGGREGATE = "railDemandMatrixAggregateAttribute";
 	private boolean writeRailMatrix = true;
-	private String railMatrixAggregate = "amgr_name";
+	private String railMatrixAggregate = "amgr_id";
 
 	public PostProcessingConfigGroup() {
 		super(GROUP_NAME);
@@ -250,7 +250,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	}
 
 	@StringSetter("zonesId")
-	void setZonesId(String zonesId) {
+	public void setZonesId(String zonesId) {
 		this.zonesId = Id.create(zonesId, Zones.class);
 	}
 

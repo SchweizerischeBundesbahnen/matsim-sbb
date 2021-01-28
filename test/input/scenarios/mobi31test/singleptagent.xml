@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE population SYSTEM "http://www.matsim.org/files/dtd/population_v6.dtd">
+
+<population desc="population written from streaming">
+
+    <attributes>
+        <attribute name="coordinateReferenceSystem" class="java.lang.String">CH1903plus_LV95
+        </attribute>
+    </attributes>
+
+
+    <person id="mobi-test1">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">0_to_17</attribute>
+            <attribute name="car_available" class="java.lang.Integer">0</attribute>
+            <attribute name="current_edu" class="java.lang.String">pupil_secondary</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan score="120.46234876932293" selected="yes">
+            <activity type="home_960_17.0" link="9qaf_2o48" x="2681622.522142" y="1161336.37470735"
+                      start_time="08:01:27" end_time="08:01:27">
+                <attributes>
+                    <attribute name="next_trip_id" class="java.lang.String">1_1"</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk" dep_time="08:01:27" trav_time="00:01:10">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="9qaf_2o48" end_link="pt_2537" trav_time="00:01:10"
+                       distance="92.07859476142688"></route>
+            </leg>
+            <activity type="pt interaction" link="pt_2537" x="2681605.0019259" y="1161405.00332215"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="pt" dep_time="08:02:37" trav_time="00:17:23">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="default_pt" start_link="pt_2537" end_link="pt_1187"
+                       trav_time="00:17:23" distance="8550.01999999999">
+                    {"transitRouteId":"137188_1_24","boardingTime":"08:04:00","transitLineId":"Simba2017_003-D-15104","accessFacilityId":"2537","egressFacilityId":"1187"}
+                </route>
+            </leg>
+            <activity type="pt interaction" link="pt_1187" x="2688418.47703264" y="1165729.24478805"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="walk" dep_time="08:20:00" trav_time="00:01:00">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="pt_1187" end_link="pt_1187" trav_time="00:01:00"
+                       distance="0.0"></route>
+            </leg>
+            <activity type="pt interaction" link="pt_1187" x="2688418.47703264" y="1165729.24478805"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="pt" dep_time="08:21:05" trav_time="00:22:55">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="default_pt" start_link="pt_1187" end_link="pt_19045997"
+                       trav_time="00:22:55" distance="3750.01">
+                    {"transitRouteId":"137191_1_2","boardingTime":"08:29:00","transitLineId":"Simba2017_003-D-15104","accessFacilityId":"1187","egressFacilityId":"19045997"}
+                </route>
+            </leg>
+            <activity type="pt interaction" link="pt_19045997" x="2687996.33275375"
+                      y="1168929.85250344" max_dur="00:00:00">
+            </activity>
+            <leg mode="walk" dep_time="08:44:00" trav_time="00:03:00">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="pt_19045997" end_link="pt_1850"
+                       trav_time="00:03:00" distance="85.0"></route>
+            </leg>
+            <activity type="pt interaction" link="pt_1850" x="2688057.22450574" y="1168952.98086226"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="pt" dep_time="08:47:05" trav_time="00:37:55">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="default_pt" start_link="pt_1850" end_link="pt_1691"
+                       trav_time="00:37:55" distance="28860.01000000001">
+                    {"transitRouteId":"137918_1_12","boardingTime":"08:59:00","transitLineId":"Simba2017_015-C-12080","accessFacilityId":"1850","egressFacilityId":"1691"}
+                </route>
+            </leg>
+            <activity type="pt interaction" link="pt_1691" x="2692471.31443069" y="1186179.30024295"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="walk" dep_time="09:25:00" trav_time="00:01:00">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="pt_1691" end_link="pt_1691" trav_time="00:01:00"
+                       distance="0.0"></route>
+            </leg>
+            <activity type="pt interaction" link="pt_1691" x="2692471.31443069" y="1186179.30024295"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="pt" dep_time="09:26:05" trav_time="00:14:55">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="default_pt" start_link="pt_1691" end_link="pt_1749"
+                       trav_time="00:14:55" distance="9282.01">
+                    {"transitRouteId":"137914_1_8","boardingTime":"09:34:00","transitLineId":"Simba2017_041-B-01133","accessFacilityId":"1691","egressFacilityId":"1749"}
+                </route>
+            </leg>
+            <activity type="pt interaction" link="pt_1749" x="2690339.18941736" y="1195195.90965534"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="walk" dep_time="09:41:00" trav_time="00:00:13">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="pt_1749" end_link="adun_nr8q" trav_time="00:00:13"
+                       distance="17.270060718202853"></route>
+            </leg>
+            <activity type="leisure_300" link="adun_nr8q" x="2690325.96495644" y="1195194.6463738"
+                      start_time="09:24:06" end_time="14:19:56">
+            </activity>
+            <leg mode="walk" dep_time="14:19:56" trav_time="00:00:00">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="adun_nr8q" end_link="pt_485731131"
+                       trav_time="00:00:00" distance="0.0"></route>
+            </leg>
+            <activity type="pt interaction" link="pt_485731131" x="2690325.96495644"
+                      y="1195194.6463738" max_dur="00:00:00">
+            </activity>
+            <leg mode="walk" dep_time="14:19:56" trav_time="00:03:00">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="pt_485731131" end_link="pt_1749"
+                       trav_time="00:03:00" distance="18.0"></route>
+            </leg>
+            <activity type="pt interaction" link="pt_1749" x="2690339.18941736" y="1195195.90965534"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="pt" dep_time="14:22:56" trav_time="00:33:04">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="default_pt" start_link="pt_1749" end_link="pt_1691"
+                       trav_time="00:33:04" distance="9282.020000000004">
+                    {"transitRouteId":"137641_1_15","boardingTime":"14:45:00","transitLineId":"Simba2017_014-D-11711","accessFacilityId":"1749","egressFacilityId":"1691"}
+                </route>
+            </leg>
+            <activity type="pt interaction" link="pt_1691" x="2692471.31443069" y="1186179.30024295"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="walk" dep_time="14:56:00" trav_time="00:01:00">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="pt_1691" end_link="pt_1691" trav_time="00:01:00"
+                       distance="0.0"></route>
+            </leg>
+            <activity type="pt interaction" link="pt_1691" x="2692471.31443069" y="1186179.30024295"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="pt" dep_time="14:57:05" trav_time="00:57:55">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="default_pt" start_link="pt_1691" end_link="pt_1850"
+                       trav_time="00:57:55" distance="28860.01">
+                    {"transitRouteId":"137921_1_12","boardingTime":"15:30:00","transitLineId":"Simba2017_015-C-12080","accessFacilityId":"1691","egressFacilityId":"1850"}
+                </route>
+            </leg>
+            <activity type="pt interaction" link="pt_1850" x="2688057.22450574" y="1168952.98086226"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="walk" dep_time="15:55:00" trav_time="00:03:05">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="pt_1850" end_link="a77x_v8ge" trav_time="00:03:05"
+                       distance="0.0"></route>
+            </leg>
+            <activity type="pt interaction" link="a77x_v8ge" x="2688016.29384503"
+                      y="1169046.61310872" max_dur="00:00:00">
+            </activity>
+            <leg mode="walk" dep_time="15:58:05" trav_time="00:00:45">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="a77x_v8ge" end_link="a77x_v8ge"
+                       trav_time="00:00:45" distance="0.0"></route>
+            </leg>
+            <activity type="pt interaction" link="a77x_v8ge" x="2688016.29384503"
+                      y="1169046.61310872" max_dur="00:00:00">
+            </activity>
+            <leg mode="car_feeder" dep_time="15:58:50" trav_time="00:20:42">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="a77x_v8ge" end_link="9qaf_2o48"
+                       trav_time="00:20:42" distance="14180.0"></route>
+            </leg>
+            <activity type="pt interaction" link="9qaf_2o48" x="2681622.522142" y="1161336.37470735"
+                      max_dur="00:00:00">
+            </activity>
+            <leg mode="walk" dep_time="16:19:32" trav_time="00:00:45">
+                <attributes>
+                    <attribute name="routingMode" class="java.lang.String">pt</attribute>
+                </attributes>
+                <route type="generic" start_link="9qaf_2o48" end_link="9qaf_2o48"
+                       trav_time="00:00:45" distance="0.0"></route>
+            </leg>
+            <activity type="home_960_17.0" link="9qaf_2o48" x="2681622.522142" y="1161336.37470735"
+                      start_time="16:01:27">
+            </activity>
+        </plan>
+
+    </person>
+
+    <!-- ====================================================================== -->
+
+</population>
