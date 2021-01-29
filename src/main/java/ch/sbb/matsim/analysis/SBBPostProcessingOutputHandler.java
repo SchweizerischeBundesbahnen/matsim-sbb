@@ -6,6 +6,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
 import ch.sbb.matsim.zones.ZonesCollection;
@@ -40,19 +41,24 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 	private ZonesCollection zones;
 
 	@Inject
+	private RailDemandMatrixAggregator railDemandMatrixAggregator;
+
+	@Inject
 	public SBBPostProcessingOutputHandler(
 			final EventsManager eventsManager,
 			final Scenario scenario,
 			final OutputDirectoryHierarchy controlerIO,
 			final ControlerConfigGroup config,
 			final PostProcessingConfigGroup ppConfig,
-			final ZonesCollection zones) {
+			final ZonesCollection zones
+	) {
 		this.eventsManager = eventsManager;
 		this.scenario = scenario;
 		this.controlerIO = controlerIO;
 		this.config = config;
 		this.ppConfig = ppConfig;
 		this.zones = zones;
+
 	}
 
 	static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
@@ -132,6 +138,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 		for (EventsAnalysis analysis : this.analyses) {
 			eventsManager.addHandler(analysis);
 		}
+
 	}
 
 	@Override
@@ -139,6 +146,15 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 		for (EventsAnalysis analysis : this.analyses) {
 			analysis.writeResults(event.getIteration() == this.config.getLastIteration());
 			this.eventsManager.removeHandler(analysis);
+		}
+		int interval = this.ppConfig.getWriteOutputsInterval();
+		if (ppConfig.isWriteRailMatrix()) {
+			if (((interval > 0) && (event.getIteration() % interval == 0)) || event.getIteration() == this.config.getLastIteration()) {
+				double scalefactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
+				String filename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
+						: controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
+				railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, filename);
+			}
 		}
 
 		this.analyses.clear();

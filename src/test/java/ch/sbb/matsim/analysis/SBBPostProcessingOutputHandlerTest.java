@@ -216,6 +216,7 @@ public class SBBPostProcessingOutputHandlerTest {
 		ppConfig.setFinalDailyVolumes(true);
 		ppConfig.setPtVolumes(true);
 		ppConfig.setTravelDiaries(false);
+		ppConfig.setWriteRailMatrix(false);
 		config.addModule(ppConfig);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
@@ -273,6 +274,7 @@ public class SBBPostProcessingOutputHandlerTest {
 		ppConfig.setVisumNetFile(true);
 		ppConfig.setFinalDailyVolumes(true);
 		ppConfig.setTravelDiaries(false);
+		ppConfig.setWriteRailMatrix(false);
 		config.addModule(ppConfig);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);

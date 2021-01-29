@@ -41,8 +41,33 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	private Integer visumNetworkThreshold = 5000;
 	private String visumNetworkMode = SBBModes.CAR;
 
+	static private final String WRITE_RAIL_MATRIX = "writeRailMatrix";
+	static private final String RAIL_DEMAND_MATRIX_AGGREGATE = "railDemandMatrixAggregateAttribute";
+	private boolean writeRailMatrix = true;
+	private String railMatrixAggregate = "amgr_id";
+
 	public PostProcessingConfigGroup() {
 		super(GROUP_NAME);
+	}
+
+	@StringGetter(WRITE_RAIL_MATRIX)
+	public boolean isWriteRailMatrix() {
+		return writeRailMatrix;
+	}
+
+	@StringSetter(WRITE_RAIL_MATRIX)
+	public void setWriteRailMatrix(boolean writeRailMatrix) {
+		this.writeRailMatrix = writeRailMatrix;
+	}
+
+	@StringGetter(RAIL_DEMAND_MATRIX_AGGREGATE)
+	public String getRailMatrixAggregate() {
+		return railMatrixAggregate;
+	}
+
+	@StringSetter(RAIL_DEMAND_MATRIX_AGGREGATE)
+	public void setRailMatrixAggregate(String railMatrixAggregate) {
+		this.railMatrixAggregate = railMatrixAggregate;
 	}
 
 	@StringGetter(PARAM_SHAPEFILE_SCREENLINE)
@@ -225,7 +250,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	}
 
 	@StringSetter("zonesId")
-	void setZonesId(String zonesId) {
+	public void setZonesId(String zonesId) {
 		this.zonesId = Id.create(zonesId, Zones.class);
 	}
 

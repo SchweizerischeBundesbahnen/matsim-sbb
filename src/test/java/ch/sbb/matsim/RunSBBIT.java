@@ -15,5 +15,6 @@ public class RunSBBIT {
 		Config config = RunSBB.buildConfig("test/input/scenarios/mobi31test/config.xml");
 		config.controler().setCreateGraphs(true);
 		RunSBB.run(config);
-	}
+
+    }
 }
