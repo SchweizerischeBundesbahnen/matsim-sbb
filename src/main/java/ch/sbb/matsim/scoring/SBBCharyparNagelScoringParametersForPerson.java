@@ -16,6 +16,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansConfigGroup;
 import org.matsim.core.config.groups.ScenarioConfigGroup;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.scoring.functions.ModeUtilityParameters;
 import org.matsim.core.scoring.functions.ScoringParameters;
@@ -35,7 +36,6 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 	private final PlanCalcScoreConfigGroup config;
 	private final ScenarioConfigGroup scConfig;
 	private final Map<Person, SBBScoringParameters> paramsPerPerson = new LinkedHashMap<>();
-	private final String subpopulationAttributeName;
 	private final SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup;
 
 	private final Map<ComparableActivityParams, ComparableActivityParams> actParamCache = new ConcurrentHashMap<>();
@@ -54,7 +54,6 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 			SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup) {
 		this.config = planCalcScoreConfigGroup;
 		this.scConfig = scenarioConfigGroup;
-		this.subpopulationAttributeName = plansConfigGroup.getSubpopulationAttributeName();
 		this.behaviorGroupsConfigGroup = behaviorGroupsConfigGroup;
 	}
 
@@ -70,7 +69,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 			return sbbParams;
 		}
 
-		final String subpopulation = (String) person.getAttributes().getAttribute(subpopulationAttributeName);
+		final String subpopulation = PopulationUtils.getSubpopulation(person);
 
 		PlanCalcScoreConfigGroup.ScoringParameterSet scoringParameters = this.config.getScoringParameters(subpopulation);
 		PlanCalcScoreConfigGroup.ScoringParameterSet filteredParameters = (PlanCalcScoreConfigGroup.ScoringParameterSet) this.config
