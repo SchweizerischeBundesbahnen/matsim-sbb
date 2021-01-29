@@ -85,7 +85,7 @@ public class ConvergenceStats implements IterationStartsListener {
 	}
 
 	public static double[] loadGlobalStats(String path) throws IOException {
-		Map<String, List<Double>> valuesMap = loadGlobalStats(path, null);
+		Map<String, List<Double>> valuesMap = loadGlobalStats(path, (String) null);
 		return valuesMap.values().stream().findFirst().orElseThrow(IllegalStateException::new)
 				.stream().mapToDouble(Double::doubleValue).toArray();
 	}
@@ -233,8 +233,7 @@ public class ConvergenceStats implements IterationStartsListener {
 
 	private double[] standardizeTs(double[] timeseries) {
 		DescriptiveStatistics ds = new DescriptiveStatistics(timeseries);
-		return IntStream.range(0, timeseries.length).
-				mapToDouble(i -> (timeseries[i] - ds.getMean()) / ds.getStandardDeviation()).toArray();
+		return Arrays.stream(timeseries).map(timesery -> (timesery - ds.getMean()) / ds.getStandardDeviation()).toArray();
 	}
 
 }
