@@ -72,6 +72,7 @@
             <version>29.0-jre</version>
         </dependency>
 
+
         <dependency>
             <groupId>com.graphhopper</groupId>
             <artifactId>graphhopper-isochrone</artifactId>
@@ -79,7 +80,6 @@
         </dependency>
 
         <dependency>
-            <!-- groupId>com.github.SchweizerischeBundesbahnen</groupId-->
             <groupId>ch.sbb</groupId>
             <artifactId>matsim-sbb-extensions</artifactId>
             <version>12.14</version>
@@ -100,12 +100,8 @@
             <version>1.18</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi</artifactId>
-            <version>4.1.2</version>
-        </dependency>
 
+        <!-- used by convergence stats-->
         <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-core</artifactId>
@@ -113,6 +109,7 @@
         </dependency>
 
 
+        <!-- ScoringXLSX Parser-->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
