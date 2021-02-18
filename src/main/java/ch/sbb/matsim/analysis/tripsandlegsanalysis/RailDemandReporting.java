@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -47,6 +48,7 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
+@Singleton
 public class RailDemandReporting {
 
     public static final String NONE = "none";
@@ -59,7 +61,6 @@ public class RailDemandReporting {
     private final Map<Id<TransitLine>, String> lineSparte = new HashMap<>();
     private final Map<Id<TransitLine>, String> lineLfpCat = new HashMap<>();
     private final Map<Id<TransitLine>, String> lineAbgrenzung = new HashMap<>();
-    private final double scaleFactor;
     @Inject
     private ExperiencedPlansService experiencedPlansService;
     private double fqdistance = 0;
@@ -68,10 +69,9 @@ public class RailDemandReporting {
     private int railtrips = 0;
 
     @Inject
-    public RailDemandReporting(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule, double scaleFactor) {
+    public RailDemandReporting(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule) {
         this.railTripsAnalyzer = railTripsAnalyzer;
         prepareCategories(schedule);
-        this.scaleFactor = scaleFactor;
     }
 
     public static void main(String[] args) {
@@ -86,8 +86,8 @@ public class RailDemandReporting {
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         new PopulationReader(scenario).readFile(experiencedPlansFile);
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
-        RailDemandReporting railDemandReporting = new RailDemandReporting(railTripsAnalyzer, scenario.getTransitSchedule(), scaleFactor);
-        railDemandReporting.calcAndWriteDistanceReporting(outputFile, scenario.getPopulation().getPersons().values().stream().map(p -> p.getSelectedPlan()).collect(Collectors.toSet()));
+        RailDemandReporting railDemandReporting = new RailDemandReporting(railTripsAnalyzer, scenario.getTransitSchedule());
+        railDemandReporting.calcAndWriteDistanceReporting(outputFile, scenario.getPopulation().getPersons().values().stream().map(p -> p.getSelectedPlan()).collect(Collectors.toSet()), scaleFactor);
     }
 
     private void reset() {
@@ -100,17 +100,17 @@ public class RailDemandReporting {
         railDistance = 0.0;
     }
 
-    private void calcAndWriteDistanceReporting(String outputfile, Collection<Plan> plans) {
+    private void calcAndWriteDistanceReporting(String outputfile, Collection<Plan> plans, double scaleFactor) {
         reset();
         aggregateRailDistances(plans);
-        writeRailDistanceReporting(outputfile);
+        writeRailDistanceReporting(outputfile, scaleFactor);
     }
 
-    public void calcAndwriteIterationDistanceReporting(String outputfile) {
-        calcAndWriteDistanceReporting(outputfile, experiencedPlansService.getExperiencedPlans().values());
+    public void calcAndwriteIterationDistanceReporting(String outputfile, double scaleFactor) {
+        calcAndWriteDistanceReporting(outputfile, experiencedPlansService.getExperiencedPlans().values(), scaleFactor);
     }
 
-    private void writeRailDistanceReporting(String outputfile) {
+    private void writeRailDistanceReporting(String outputfile, double scaleFactor) {
         try (BufferedWriter bw = IOUtils.getBufferedWriter(outputfile)) {
             bw.write("SIMBA MOBi Rail Reporting");
             bw.newLine();

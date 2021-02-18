@@ -7,6 +7,7 @@ package ch.sbb.matsim.analysis;
 import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
 import ch.sbb.matsim.zones.ZonesCollection;
@@ -42,6 +43,9 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
 	@Inject
 	private RailDemandMatrixAggregator railDemandMatrixAggregator;
+
+	@Inject
+	private RailDemandReporting railDemandReporting;
 
 	@Inject
 	public SBBPostProcessingOutputHandler(
@@ -151,9 +155,12 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 		if (ppConfig.isWriteRailMatrix()) {
 			if (((interval > 0) && (event.getIteration() % interval == 0)) || event.getIteration() == this.config.getLastIteration()) {
 				double scalefactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
-				String filename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
-						: controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
-				railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, filename);
+				String railDemandAggregateFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
+						: controlerIO.getIterationFilename(event.getIteration(), "railTripsAnalysis.csv");
+				railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename);
+				String railTripsFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandReport.csv")
+						: controlerIO.getIterationFilename(event.getIteration(), "railDemandReport.csv");
+				railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, scalefactor);
 			}
 		}
 
