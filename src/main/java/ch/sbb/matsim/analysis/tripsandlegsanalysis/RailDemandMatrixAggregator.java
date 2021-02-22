@@ -40,6 +40,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.Trip;
@@ -122,19 +123,21 @@ public class RailDemandMatrixAggregator {
         String experiencedPlansFile = args[0];
         String transitScheduleFile = args[1];
         String zonesShapeFile = args[2];
-        String aggregationId = args[3];
-        double scaleFactor = Double.parseDouble(args[4]);
-        String outputFile = args[5];
+        String networkFile = args[3];
+        String aggregationId = args[4];
+        double scaleFactor = Double.parseDouble(args[5]);
+        String outputFile = args[6];
 
         ZonesCollection zonesCollection = new ZonesCollection();
         zonesCollection.addZones(ZonesLoader.loadZones("zones", zonesShapeFile, "zone_id"));
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         new PopulationReader(scenario).readFile(experiencedPlansFile);
         PostProcessingConfigGroup ppcg = new PostProcessingConfigGroup();
         ppcg.setRailMatrixAggregate(aggregationId);
         ppcg.setZonesId("zones");
-        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule());
+        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
         RailDemandMatrixAggregator railDemandMatrixAggregator = new RailDemandMatrixAggregator(scenario.getTransitSchedule(), zonesCollection, ppcg, railTripsAnalyzer);
         railDemandMatrixAggregator
                 .writeMatrix(railDemandMatrixAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(p -> p.getSelectedPlan()).collect(

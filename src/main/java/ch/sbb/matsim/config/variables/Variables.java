@@ -1,6 +1,9 @@
 package ch.sbb.matsim.config.variables;
 
+import java.util.List;
 import java.util.Set;
+import org.matsim.api.core.v01.Id;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class Variables {
 
@@ -29,7 +32,14 @@ public class Variables {
 	public static final String OUTSIDE = "outside";
 	public static final String NEXT_TRIP_ID_ATTRIBUTE = "next_trip_id";
 
+	public static final String SIMBA_CH_PERIMETER = "08_SIMBA_CH_Perimeter";
+	public static final String FQ_RELEVANT = "07_FQ_relevant";
 
+	public static final String ABGRENZGRUPPE = "ABGRENZGRUPPE";
+	public static final String BETREIBERAGGRLFP = "BETREIBERAGGRLFP";
+	public static final String SPARTE = "Sparte";
 
-	public static final Set<String> DEFAULT_PERSON_ATTRIBUTES = Set.of("age_cat",CAR_AVAIL,"current_edu","level_of_employment_cat",PT_SUBSCRIPTION,"residence_msr_id","residence_zone_id");
+	public static final List<Id<TransitStopFacility>> EXCEPTIONAL_CH_STOPS = List.of(Id.create("1618", TransitStopFacility.class));
+
+	public static final Set<String> DEFAULT_PERSON_ATTRIBUTES = Set.of("age_cat", CAR_AVAIL, "current_edu", "level_of_employment_cat", PT_SUBSCRIPTION, "residence_msr_id", "residence_zone_id");
 }

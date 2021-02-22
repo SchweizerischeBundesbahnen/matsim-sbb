@@ -5,6 +5,7 @@ import org.locationtech.jts.util.Assert;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -15,7 +16,7 @@ public class RailTripsAnalyzerTest {
     @Test
     public void runRailTripsAnalyzerTest() {
         Scenario scenario = setupScenario();
-        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule());
+        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
         var trips = TripStructureUtils.getTrips(scenario.getPopulation().getPersons().get(Id.createPersonId("mobi-test1")).getSelectedPlan());
         var trip0 = trips.get(0);
         var trip1 = trips.get(1);
@@ -41,6 +42,7 @@ public class RailTripsAnalyzerTest {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile("test/input/scenarios/mobi31test/singleptagent.xml");
         new TransitScheduleReader(scenario).readFile("test/input/scenarios/mobi31test/transitSchedule.xml.gz");
+        new MatsimNetworkReader(scenario.getNetwork()).readFile("test/input/scenarios/mobi31test/network.xml.gz");
         return scenario;
     }
 }

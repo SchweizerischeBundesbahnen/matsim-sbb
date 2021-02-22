@@ -8,6 +8,7 @@ import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.SBBTripsExtension;
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
@@ -142,6 +143,7 @@ public class RunSBB {
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
 				bind(RailTripsAnalyzer.class);
 				bind(RailDemandMatrixAggregator.class);
+				bind(RailDemandReporting.class);
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
 				install(new SBBTransitModule());
 				install(new SwissRailRaptorModule());
