@@ -198,26 +198,28 @@ public class TimeProfileExporter {
 					break;
 				case "java.lang.Double":
 					attributes.putAttribute(name, Double.parseDouble(value));
-					break;
-				case "java.lang.Integer":
-					attributes.putAttribute(name, (int) Double.parseDouble(value));
-					break;
-				default:
-					throw new IllegalArgumentException(dataType);
-			}
-		}
-	}
+                    break;
+                case "java.lang.Integer":
+                    attributes.putAttribute(name, (int) Double.parseDouble(value));
+                    break;
+                default:
+                    throw new IllegalArgumentException(dataType);
+            }
+        }
+    }
 
-	public void writeLinkSequence(String outputfolder) {
-		try (CSVWriter writer = new CSVWriter("", new String[]{"matsim_link", "link_sequence_visum"},
-				outputfolder + "/link_sequences.csv")) {
-			for (Id<Link> linkId : this.linkToVisumSequence.keySet()) {
-				writer.set("matsim_link", linkId.toString());
-				writer.set("link_sequence_visum", this.linkToVisumSequence.get(linkId));
-				writer.writeRow();
-			}
-		} catch (IOException e) {
-			log.error("Could not write file. " + e.getMessage(), e);
+    public void writeLinkSequence(String outputfolder, Network network) {
+        try (CSVWriter writer = new CSVWriter("", new String[]{"matsim_link", "link_sequence_visum"},
+                outputfolder + "/link_sequences.csv")) {
+            for (Id<Link> linkId : this.linkToVisumSequence.keySet()) {
+                if (network.getLinks().containsKey(linkId)) {
+                    writer.set("matsim_link", linkId.toString());
+                    writer.set("link_sequence_visum", this.linkToVisumSequence.get(linkId));
+                    writer.writeRow();
+                }
+            }
+        } catch (IOException e) {
+            log.error("Could not write file. " + e.getMessage(), e);
 		}
 	}
 
