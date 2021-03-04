@@ -37,7 +37,7 @@ import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
-public class PtLinkAnalyzer {
+public class PtLinkVolumeAnalyzer {
 
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final Set<Id<Link>> ptlinks;
@@ -45,7 +45,7 @@ public class PtLinkAnalyzer {
     private ExperiencedPlansService experiencedPlansService;
 
     @Inject
-    public PtLinkAnalyzer(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule, Network network) {
+    public PtLinkVolumeAnalyzer(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule, Network network) {
         this.railTripsAnalyzer = railTripsAnalyzer;
         this.ptlinks = network.getLinks().values()
                 .stream()

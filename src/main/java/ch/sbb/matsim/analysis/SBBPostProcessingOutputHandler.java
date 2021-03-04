@@ -6,7 +6,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkAnalyzer;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
@@ -49,7 +49,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 	private RailDemandReporting railDemandReporting;
 
 	@Inject
-	private PtLinkAnalyzer ptLinkAnalyzer;
+	private PtLinkVolumeAnalyzer ptLinkVolumeAnalyzer;
 
 	@Inject
 	public SBBPostProcessingOutputHandler(
@@ -167,7 +167,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 				railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename);
 				String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.csv")
 						: controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.csv");
-				ptLinkAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scenario.getConfig().controler().getRunId(), scalefactor);
+				ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scenario.getConfig().controler().getRunId(), scalefactor);
 			}
 		}
 
