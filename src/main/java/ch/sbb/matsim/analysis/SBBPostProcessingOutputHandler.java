@@ -158,7 +158,9 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 		}
 		String railTripsFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandReport.csv")
 				: controlerIO.getIterationFilename(event.getIteration(), "railDemandReport.csv");
-		railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, scalefactor);
+		if (railDemandReporting != null) {
+			railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, scalefactor);
+		}
 		int interval = this.ppConfig.getWriteOutputsInterval();
 		if (ppConfig.isWriteRailMatrix()) {
 			if (((interval > 0) && (event.getIteration() % interval == 0)) || event.getIteration() == this.config.getLastIteration()) {
