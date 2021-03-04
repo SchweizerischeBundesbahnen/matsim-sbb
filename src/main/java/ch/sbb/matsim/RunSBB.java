@@ -7,6 +7,7 @@ package ch.sbb.matsim;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
@@ -144,6 +145,7 @@ public class RunSBB {
 				bind(RailTripsAnalyzer.class);
 				bind(RailDemandMatrixAggregator.class);
 				bind(RailDemandReporting.class);
+				bind(PtLinkAnalyzer.class);
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
 				install(new SBBTransitModule());
 				install(new SwissRailRaptorModule());
