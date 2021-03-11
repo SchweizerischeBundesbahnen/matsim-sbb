@@ -16,14 +16,10 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -87,42 +83,6 @@ public class RunVisumPtExporter {
 		}
 	}
 
-	private static void cleanNetwork(TransitSchedule schedule, Network network) {
-		Set<Id<Link>> linksToKeep = new HashSet<>();
-
-		for (TransitLine line : schedule.getTransitLines().values()) {
-			for (TransitRoute route : line.getRoutes().values()) {
-				linksToKeep.add(route.getRoute().getStartLinkId());
-				linksToKeep.add(route.getRoute().getEndLinkId());
-				linksToKeep.addAll(route.getRoute().getLinkIds());
-			}
-		}
-		Set<Id<Link>> linksToRemove = network.getLinks().keySet().stream().
-				filter(linkId -> !linksToKeep.contains(linkId)).
-				collect(Collectors.toSet());
-		linksToRemove.forEach(network::removeLink);
-		log.info("Removed " + linksToRemove.size() + " unused links.");
-
-		Set<Id<Node>> nodesToRemove = network.getNodes().values().stream().
-				filter(n -> n.getInLinks().size() == 0 && n.getOutLinks().size() == 0).
-				map(Node::getId).
-				collect(Collectors.toSet());
-		nodesToRemove.forEach(network::removeNode);
-		log.info("removed " + nodesToRemove.size() + " unused nodes.");
-		for (Link l : network.getLinks().values()) {
-			double beelineLength = CoordUtils.calcEuclideanDistance(l.getFromNode().getCoord(), l.getToNode().getCoord());
-			if (l.getLength() < beelineLength) {
-				if (beelineLength - l.getLength() > 1.0) {
-					log.warn(l.getId() + " has a length (" + l.getLength() + ") shorter than its beeline distance (" + beelineLength + "). Correcting this.");
-				}
-				l.setLength(beelineLength);
-			}
-			if (l.getLength() <= 0.0) {
-				l.setLength(0.01);
-			}
-		}
-	}
-
 	private static void createOutputPath(String path) {
 		File outputPath = new File(path);
 		if (!outputPath.exists()) {
@@ -164,18 +124,20 @@ public class RunVisumPtExporter {
 		// load transit lines
 		TimeProfileExporter tpe = new TimeProfileExporter(scenario);
 		tpe.createTransitLines(visum, exporterConfig);
-
 		// reduce the size of the network and the schedule by taking necessary things only.
 		cleanStops(scenario.getTransitSchedule());
-		cleanNetwork(scenario.getTransitSchedule(), scenario.getNetwork());
+		new ScheduleCondenser(tpe.linkToVisumSequence, scenario.getTransitSchedule(), scenario.getNetwork()).condenseSchedule();
+		ScheduleCondenser.cleanNetwork(scenario.getTransitSchedule(), scenario.getNetwork());
 
 		// write outputs
 		createOutputPath(exporterConfig.getOutputPath());
-		tpe.writeLinkSequence(exporterConfig.getOutputPath());
+		tpe.writeLinkSequence(exporterConfig.getOutputPath(), scenario.getNetwork());
 		writeFiles(scenario, exporterConfig.getOutputPath());
 		MobiTransitScheduleVerifiyer.verifyTransitSchedule(scenario.getTransitSchedule());
 
 		// write polyline file
 		new PolylinesCreator().runPt(scenario.getNetwork(), visum, tpe.linkToVisumSequence, exporterConfig.getOutputPath());
 	}
+
+
 }

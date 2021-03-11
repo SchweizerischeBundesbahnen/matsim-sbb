@@ -6,6 +6,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
@@ -46,6 +47,9 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
 	@Inject
 	private RailDemandReporting railDemandReporting;
+
+	@Inject
+	private PtLinkVolumeAnalyzer ptLinkVolumeAnalyzer;
 
 	@Inject
 	public SBBPostProcessingOutputHandler(
@@ -147,20 +151,25 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
 	@Override
 	public void notifyIterationEnds(IterationEndsEvent event) {
+		double scalefactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
 		for (EventsAnalysis analysis : this.analyses) {
 			analysis.writeResults(event.getIteration() == this.config.getLastIteration());
 			this.eventsManager.removeHandler(analysis);
 		}
+		String railTripsFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandReport.csv")
+				: controlerIO.getIterationFilename(event.getIteration(), "railDemandReport.csv");
+		if (railDemandReporting != null) {
+			railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, scalefactor);
+		}
 		int interval = this.ppConfig.getWriteOutputsInterval();
 		if (ppConfig.isWriteRailMatrix()) {
 			if (((interval > 0) && (event.getIteration() % interval == 0)) || event.getIteration() == this.config.getLastIteration()) {
-				double scalefactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
 				String railDemandAggregateFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
-						: controlerIO.getIterationFilename(event.getIteration(), "railTripsAnalysis.csv");
+						: controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
 				railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename);
-				String railTripsFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandReport.csv")
-						: controlerIO.getIterationFilename(event.getIteration(), "railDemandReport.csv");
-				railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, scalefactor);
+				String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.csv")
+						: controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.csv");
+				ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scenario.getConfig().controler().getRunId(), scalefactor);
 			}
 		}
 

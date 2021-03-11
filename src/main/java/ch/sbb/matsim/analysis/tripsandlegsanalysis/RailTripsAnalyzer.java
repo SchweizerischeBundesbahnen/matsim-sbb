@@ -21,16 +21,19 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.gbl.Gbl;
+import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.TripStructureUtils.Trip;
 import org.matsim.core.utils.collections.Tuple;
@@ -131,7 +134,7 @@ public class RailTripsAnalyzer {
     private double calcDomesticDistanceToBorder(Id<TransitRoute> routeId, Id<TransitLine> transitLineId, Id<TransitStopFacility> accessStopId) {
         TransitRoute transitRoute = this.schedule.getTransitLines().get(transitLineId).getRoutes().get(routeId);
         Gbl.assertNotNull(transitRoute);
-        int startIndex = transitRoute.getStops().indexOf(accessStopId);
+        int startIndex = transitRoute.getStops().stream().map(s -> s.getStopFacility().getId()).collect(Collectors.toList()).indexOf(accessStopId);
         final TransitStopFacility accessStop = schedule.getFacilities().get(accessStopId);
         TransitStopFacility lastDomesticStop = accessStop;
         for (int i = startIndex + 1; i < transitRoute.getStops().size(); i++) {
@@ -147,7 +150,7 @@ public class RailTripsAnalyzer {
     private double calcDomesticDistanceFromBorder(Id<TransitRoute> routeId, Id<TransitLine> transitLineId, Id<TransitStopFacility> egressStopId) {
         TransitRoute transitRoute = this.schedule.getTransitLines().get(transitLineId).getRoutes().get(routeId);
         Gbl.assertNotNull(transitRoute);
-        int endIndex = transitRoute.getStops().indexOf(egressStopId);
+        int endIndex = transitRoute.getStops().stream().map(s -> s.getStopFacility().getId()).collect(Collectors.toList()).indexOf(egressStopId);
         final TransitStopFacility egressStop = schedule.getFacilities().get(egressStopId);
         TransitStopFacility firstDomesticStop = null;
         for (int i = 0; i < endIndex; i++) {
@@ -206,4 +209,38 @@ public class RailTripsAnalyzer {
         }
         return 0.0;
     }
+
+    public List<Id<Link>> getPtLinkIdsTraveledOn(TransitPassengerRoute route) {
+        TransitRoute transitRoute = this.schedule.getTransitLines().get(route.getLineId()).getRoutes().get(route.getRouteId());
+        Gbl.assertNotNull(transitRoute);
+        NetworkRoute nr = transitRoute.getRoute();
+
+        Id<Link> enterLinkId = schedule.getFacilities().get(route.getAccessStopId()).getLinkId();
+        Id<Link> exitLinkId = schedule.getFacilities().get(route.getEgressStopId()).getLinkId();
+        List<Id<Link>> linkList = new ArrayList<>();
+        boolean count = false;
+        if (enterLinkId.equals(nr.getStartLinkId())) {
+            count = true;
+            linkList.add(nr.getStartLinkId());
+        }
+        for (Id<Link> linkId : nr.getLinkIds()) {
+            if (count) {
+                linkList.add(linkId);
+            }
+            if (enterLinkId.equals(linkId)) {
+                count = true;
+                linkList.add(linkId);
+
+            }
+            if (exitLinkId.equals(linkId)) {
+                count = false;
+                break;
+            }
+        }
+        if (count) {
+            linkList.add(nr.getEndLinkId());
+        }
+        return linkList;
+    }
+
 }
