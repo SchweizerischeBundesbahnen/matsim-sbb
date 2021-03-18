@@ -19,9 +19,11 @@
 
 package ch.sbb.matsim.preparation;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -32,16 +34,19 @@ import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.geometry.CoordinateTransformation;
+import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
 public class SimplePlansMerger {
 
     public static void main(String[] args) {
-        int n = args.length;
-        List<String> filestomerge = new ArrayList<>();
-        for (int i = 0; i < n - 1; i++) {
-            filestomerge.add(args[i]);
-        }
-        String outputfile = args[n - 1];
+        String folder = args[0];
+
+        File f = new File(folder);
+        List<String> filestomerge = Arrays.stream(f.listFiles((file, s) -> s.endsWith(".xml"))).map(file -> file.getAbsolutePath()).collect(Collectors.toList());
+
+        String outputfile = folder + "/plans.xml.gz";
+        CoordinateTransformation coordinateTransformation = TransformationFactory.getCoordinateTransformation("EPSG:21781", "EPSG:2056");
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         final MutableInt y = new MutableInt();
         filestomerge.forEach(s -> {
@@ -50,6 +55,7 @@ public class SimplePlansMerger {
             for (Person person : scenario2.getPopulation().getPersons().values()) {
                 Person p1 = PopulationUtils.getFactory().createPerson(Id.createPersonId(person.getId().toString() + "_" + y.intValue()));
                 for (Plan plan : person.getPlans()) {
+                    //TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities).stream().filter(activity -> activity.getCoord()!=null).forEach(a->a.setCoord(coordinateTransformation.transform(a.getCoord())));
                     p1.addPlan(plan);
                 }
                 for (Entry<String, Object> o : person.getAttributes().getAsMap().entrySet()) {
