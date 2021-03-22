@@ -55,7 +55,7 @@ public class SimplePlansMerger {
             for (Person person : scenario2.getPopulation().getPersons().values()) {
                 Person p1 = PopulationUtils.getFactory().createPerson(Id.createPersonId(person.getId().toString() + "_" + y.intValue()));
                 for (Plan plan : person.getPlans()) {
-                    //TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities).stream().filter(activity -> activity.getCoord()!=null).forEach(a->a.setCoord(coordinateTransformation.transform(a.getCoord())));
+                //    TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities).stream().filter(activity -> activity.getCoord()!=null).forEach(a->a.setCoord(coordinateTransformation.transform(a.getCoord())));
                     p1.addPlan(plan);
                 }
                 for (Entry<String, Object> o : person.getAttributes().getAsMap().entrySet()) {
