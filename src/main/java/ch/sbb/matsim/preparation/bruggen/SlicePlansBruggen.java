@@ -47,7 +47,7 @@ public class SlicePlansBruggen {
         Map<Id<Person>, Integer> personPartition = new HashMap<>();
         for (int i = 0; i < partitions; i++) {
             StreamingPopulationWriter writer = new StreamingPopulationWriter();
-            writer.startStreaming(outputDirCase + "/population_" + i + "xml.gz");
+            writer.startStreaming(outputDirCase + "/population_" + i + ".xml.gz");
             writersCase.add(writer);
         }
         StreamingPopulationReader streamingPopulationReaderCase = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
@@ -66,7 +66,7 @@ public class SlicePlansBruggen {
 
         for (int i = 0; i < partitions; i++) {
             StreamingPopulationWriter writer = new StreamingPopulationWriter();
-            writer.startStreaming(outputDirRef + "/population_" + i + "xml.gz");
+            writer.startStreaming(outputDirRef + "/population_" + i + ".xml.gz");
             writersRef.add(writer);
         }
         StreamingPopulationReader streamingPopulationReaderRef = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
