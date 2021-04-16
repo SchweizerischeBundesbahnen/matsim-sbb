@@ -6,41 +6,39 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 
 public class LinkToStationsAssigner {
 
-	private Scenario scenario;
 
 	public static void main(String[] args) {
-		String transitSchedule = args[0];
+		String transitScheduleFile = args[0];
 		String networkFile = args[1];
 		String outputFile = args[2];
 
-		new LinkToStationsAssigner().run(transitSchedule, networkFile, outputFile);
-	}
-
-	public void run(String transitSchedule, String networkFile, String output) {
-		readStations(transitSchedule);
 		Network filteredNetwork = new FilteredNetwork().readAndFilterNetwork(networkFile);
-		assignLinkToFacility(filteredNetwork);
-		writeFacilityFile(output);
+		final TransitSchedule transitSchedule = readStations(transitScheduleFile);
+		assignLinkToFacility(filteredNetwork, transitSchedule);
+		new TransitScheduleWriter(transitSchedule).writeFile(outputFile);
 	}
 
-	private void readStations(String transitSchedule) {
+	public static void runAssignment(Scenario scenario) {
+		Network filteredNetwork = new FilteredNetwork().filterNetwork(scenario.getNetwork());
+		assignLinkToFacility(filteredNetwork, scenario.getTransitSchedule());
+	}
+
+	private static TransitSchedule readStations(String transitSchedule) {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new TransitScheduleReader(scenario).readFile(transitSchedule);
-		this.scenario = scenario;
+		return scenario.getTransitSchedule();
 	}
 
-	private void assignLinkToFacility(Network network) {
-		this.scenario.getTransitSchedule().getFacilities().values().
+	private static void assignLinkToFacility(Network network, TransitSchedule transitSchedule) {
+		transitSchedule.getFacilities().values().
 				forEach(f -> f.getAttributes().putAttribute(Variables.INTERMODAL_ACCESS_LINK_ID, NetworkUtils.getNearestLink(network,
 						f.getCoord()).getId().toString()));
 	}
 
-	private void writeFacilityFile(String output) {
-		new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(output);
-	}
 }
