@@ -101,7 +101,7 @@ public class RunVisumPtExporter {
 		VisumPtExporterConfigGroup exporterConfig = ConfigUtils.addOrGetModule(config, VisumPtExporterConfigGroup.class);
 
 		// Start Visum and load version
-		Visum visum = new Visum(18);
+		Visum visum = new Visum(20);
 		visum.loadVersion(exporterConfig.getPathToVisum());
 
 		if (exporterConfig.getAngebotName() != null) {

@@ -34,8 +34,6 @@ import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.geometry.CoordinateTransformation;
-import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
 public class SimplePlansMerger {
 
@@ -46,7 +44,6 @@ public class SimplePlansMerger {
         List<String> filestomerge = Arrays.stream(f.listFiles((file, s) -> s.endsWith(".xml"))).map(file -> file.getAbsolutePath()).collect(Collectors.toList());
 
         String outputfile = folder + "/plans.xml.gz";
-        CoordinateTransformation coordinateTransformation = TransformationFactory.getCoordinateTransformation("EPSG:21781", "EPSG:2056");
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         final MutableInt y = new MutableInt();
         filestomerge.forEach(s -> {
@@ -55,7 +52,6 @@ public class SimplePlansMerger {
             for (Person person : scenario2.getPopulation().getPersons().values()) {
                 Person p1 = PopulationUtils.getFactory().createPerson(Id.createPersonId(person.getId().toString() + "_" + y.intValue()));
                 for (Plan plan : person.getPlans()) {
-                //    TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities).stream().filter(activity -> activity.getCoord()!=null).forEach(a->a.setCoord(coordinateTransformation.transform(a.getCoord())));
                     p1.addPlan(plan);
                 }
                 for (Entry<String, Object> o : person.getAttributes().getAsMap().entrySet()) {
