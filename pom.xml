@@ -10,28 +10,18 @@
 
     <repositories>
         <repository>
-            <!-- MATSim is not on Maven central -->
+            <!-- Repository for MATSim releases and snapshots (MATSim is not on Maven central) -->
             <id>matsim</id>
-            <url>https://dl.bintray.com/matsim/matsim</url>
+            <url>https://repo.matsim.org/repository/matsim</url>
         </repository>
-
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
-
-        <repository>
-            <id>ojo-snapshots</id>
-            <name>MATSim snapshot repository</name>
-            <url>http://oss.jfrog.org/libs-snapshot</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
     </repositories>
 
     <properties>
-    <!--        <matsim.version>13.0-2020w28-SNAPSHOT</matsim.version> -->
+        <matsim.version>13.0</matsim.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>
@@ -43,13 +33,13 @@
         <dependency>
             <groupId>org.matsim</groupId>
             <artifactId>matsim</artifactId>
-            <version>13.0-2020w49-20201207.024323-1</version>
+            <version>${matsim.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.matsim</groupId>
             <artifactId>matsim</artifactId>
-            <version>13.0-2020w49-20201207.024323-1</version>
+            <version>${matsim.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
             <type>test-jar</type>
@@ -58,13 +48,19 @@
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>drt</artifactId>
-            <version>13.0-2020w49-20201207.024806-1</version>
+            <version>${matsim.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>av</artifactId>
-            <version>13.0-2020w49-20201207.024826-1</version>
+            <version>${matsim.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.matsim.contrib</groupId>
+            <artifactId>sbb-extensions</artifactId>
+            <version>${matsim.version}</version>
         </dependency>
         <dependency> <!-- MATSim uses Guice 4.1.0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
             <groupId>com.google.guava</groupId>
@@ -79,11 +75,6 @@
             <version>0.13.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>ch.sbb</groupId>
-            <artifactId>matsim-sbb-extensions</artifactId>
-            <version>12.14</version>
-        </dependency>
 
         <!-- Include the JUnit testing library -->
         <dependency>
