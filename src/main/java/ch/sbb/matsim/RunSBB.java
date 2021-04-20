@@ -19,6 +19,7 @@ import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
 import ch.sbb.matsim.config.SBBS3ConfigGroup;
+import ch.sbb.matsim.config.SBBSupplyConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
@@ -30,6 +31,8 @@ import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import ch.sbb.matsim.preparation.LinkToFacilityAssigner;
+import ch.sbb.matsim.preparation.LinkToStationsAssigner;
+import ch.sbb.matsim.preparation.NetworkMerger;
 import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.preparation.PrepareActivitiesInPlans;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
@@ -81,7 +84,7 @@ public class RunSBB {
 	public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
 			new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
 			new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
-			new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup()};
+			new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup()};
 	private static final Logger log = Logger.getLogger(RunSBB.class);
 
 	public static void main(String[] args) {
@@ -112,6 +115,8 @@ public class RunSBB {
 
 	public static void addSBBDefaultScenarioModules(Scenario scenario) {
 		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork());
+		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
+		LinkToStationsAssigner.runAssignment(scenario);
 		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
 		createInitialEndTimeAttribute(scenario.getPopulation());
 		ZonesModule.addZonestoScenario(scenario);

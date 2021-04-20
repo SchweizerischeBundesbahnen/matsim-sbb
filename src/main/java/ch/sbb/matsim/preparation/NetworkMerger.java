@@ -1,6 +1,9 @@
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.SBBSupplyConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
+import java.net.URL;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
@@ -32,5 +35,21 @@ public class NetworkMerger {
 		new TransportModeNetworkFilter(network).filter(reducedNetwork,
 				CollectionUtils.stringToSet(SBBModes.CAR + "," + SBBModes.RIDE));
 		return reducedNetwork;
+	}
+
+	public static void mergeTransitNetworkFromSupplyConfig(Scenario scenario) {
+		SBBSupplyConfigGroup sbbSupplyConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBSupplyConfigGroup.class);
+		if (sbbSupplyConfigGroup.getTransitNetworkFileString() != null) {
+			URL transitNetworkFile = sbbSupplyConfigGroup.getTransitNetworkFile(scenario.getConfig().getContext());
+			if (sbbSupplyConfigGroup.isCheckIfTransitNetworkExistsAlready()) {
+				boolean hasPt = scenario.getNetwork().getLinks().values().stream().anyMatch(l -> PTSubModes.submodes.stream().anyMatch(m -> l.getAllowedModes().contains(m)));
+				if (hasPt) {
+					throw new RuntimeException("Street Network already contains pt links. Use streets only network or overwrite setting in config");
+				}
+			}
+            // This call does not replace the original network, but additively reads the second.
+			new MatsimNetworkReader(scenario.getNetwork()).readURL(transitNetworkFile);
+
+		}
 	}
 }
