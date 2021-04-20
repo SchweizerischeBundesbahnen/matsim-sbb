@@ -75,6 +75,7 @@ import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.utils.misc.OptionalTime;
+import org.matsim.pt.config.TransitConfigGroup.TransitRoutingAlgorithmType;
 
 /**
  * @author denism
@@ -138,12 +139,16 @@ public class RunSBB {
 
 	public static void addSBBDefaultControlerModules(Controler controler) {
 		Config config = controler.getConfig();
+		//FIXME: Remove with next update
+		config.transit().setRoutingAlgorithmType(TransitRoutingAlgorithmType.DijkstraBased);
 		Scenario scenario = controler.getScenario();
 		ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
 		controler.setScoringFunctionFactory(scoringFunctionFactory);
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
+				//FIXME: Remove with next update
+				install(new SwissRailRaptorModule());
 				addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
@@ -153,7 +158,6 @@ public class RunSBB {
 				bind(PtLinkVolumeAnalyzer.class);
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
 				install(new SBBTransitModule());
-				install(new SwissRailRaptorModule());
 				install(new ZonesModule(scenario));
 				install(new SBBNetworkRoutingModule());
 				install(new AccessEgressModule());

@@ -167,7 +167,7 @@ public class PotentialAnalysis {
         SwissRailRaptorData raptorData = SwissRailRaptorData.create(scenario.getTransitSchedule(), scenario.getTransitVehicles(), raptorConfig, scenario.getNetwork(), null);
         RaptorParameters raptorParameters = RaptorUtils.createParameters(config);
 
-        SwissRailRaptor raptor = new SwissRailRaptor(raptorData, null, null, null, null);
+        SwissRailRaptor raptor = new SwissRailRaptor(raptorData, null, null, null, null, null);
 
         Network carNetwork = NetworkUtils.createNetwork();
         (new TransportModeNetworkFilter(scenario.getNetwork())).filter(carNetwork, Collections.singleton("car"));

@@ -1,6 +1,5 @@
 package ch.sbb.matsim.routing.graph;
 
-import ch.sbb.matsim.routing.graph.Graph.LinkIterator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
@@ -10,6 +9,8 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.router.speedy.SpeedyGraph;
+import org.matsim.core.router.speedy.SpeedyGraph.LinkIterator;
 
 /**
  * @author mrieser
@@ -21,7 +22,7 @@ public class GraphTest {
 		Fixture f = new Fixture();
 		Network network = f.network;
 
-		Graph graph = new Graph(network);
+		SpeedyGraph graph = new SpeedyGraph(network);
 
 		// test out-links
 

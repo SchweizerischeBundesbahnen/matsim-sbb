@@ -9,19 +9,21 @@
     <description>MATSim for SIMBA MOBi</description>
 
     <repositories>
+
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+
         <repository>
             <!-- Repository for MATSim releases and snapshots (MATSim is not on Maven central) -->
             <id>matsim</id>
             <url>https://repo.matsim.org/repository/matsim</url>
         </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
     </repositories>
 
     <properties>
-        <matsim.version>13.0</matsim.version>
+        <matsim.version>14.0-PR1463</matsim.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>

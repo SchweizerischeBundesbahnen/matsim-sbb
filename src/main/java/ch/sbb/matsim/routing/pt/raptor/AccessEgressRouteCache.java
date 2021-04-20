@@ -6,8 +6,6 @@ import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.csv.CSVReader;
-import ch.sbb.matsim.routing.graph.Graph;
-import ch.sbb.matsim.routing.graph.LeastCostPathTree;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
@@ -45,6 +43,8 @@ import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.SingleModeNetworksCache;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
+import org.matsim.core.router.speedy.LeastCostPathTree;
+import org.matsim.core.router.speedy.SpeedyGraph;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.core.utils.io.IOUtils;
@@ -150,17 +150,17 @@ public class AccessEgressRouteCache {
 	}
 
 	public void buildRoutingCacheForMode(Config config, SBBIntermodalModeParameterSet paramset, IntermodalAccessEgressParameterSet raptorParams, Set<Id<Link>> stopLinkIds, Network network) {
-		Graph graph = new Graph(network);
-		LOGGER.info("Building Traveltime cache for feeder mode " + paramset.getMode() + "....");
-		final double maxRadius = raptorParams.getMaxRadius();
-		final FreeSpeedTravelTime freeSpeedTravelTime = new FreeSpeedTravelTime();
-		final FreespeedTravelTimeAndDisutility travelTimeAndDisutility = new FreespeedTravelTimeAndDisutility(config.planCalcScore());
-		Map<Id<Link>, LeastCostPathTree> travelTimes = stopLinkIds.parallelStream()
-				.collect(Collectors.toMap(l -> l, l -> {
-					LeastCostPathTree leastCostPathTree = new LeastCostPathTree(graph, freeSpeedTravelTime, travelTimeAndDisutility);
-					Node fromNode = network.getLinks().get(l).getToNode();
-					leastCostPathTree.calculate(fromNode.getId().index(), 0, PERSON, VEHICLE, new LeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
-					return leastCostPathTree;
+        SpeedyGraph graph = new SpeedyGraph(network);
+        LOGGER.info("Building Traveltime cache for feeder mode " + paramset.getMode() + "....");
+        final double maxRadius = raptorParams.getMaxRadius();
+        final FreeSpeedTravelTime freeSpeedTravelTime = new FreeSpeedTravelTime();
+        final FreespeedTravelTimeAndDisutility travelTimeAndDisutility = new FreespeedTravelTimeAndDisutility(config.planCalcScore());
+        Map<Id<Link>, LeastCostPathTree> travelTimes = stopLinkIds.parallelStream()
+                .collect(Collectors.toMap(l -> l, l -> {
+                    LeastCostPathTree leastCostPathTree = new LeastCostPathTree(graph, freeSpeedTravelTime, travelTimeAndDisutility);
+                    Node fromNode = network.getLinks().get(l).getToNode();
+                    leastCostPathTree.calculate(fromNode.getId().index(), 0, PERSON, VEHICLE, new LeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
+                    return leastCostPathTree;
 
 				}));
 		Map<Id<Link>, Map<Id<Link>, int[]>> travelTimeLinks = new HashMap<>();

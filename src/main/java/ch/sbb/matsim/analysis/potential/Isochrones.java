@@ -2,8 +2,6 @@ package ch.sbb.matsim.analysis.potential;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.preparation.FilteredNetwork;
-import ch.sbb.matsim.routing.graph.Graph;
-import ch.sbb.matsim.routing.graph.LeastCostPathTree;
 import com.graphhopper.isochrone.algorithm.DelaunayTriangulationIsolineBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +28,8 @@ import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
+import org.matsim.core.router.speedy.LeastCostPathTree;
+import org.matsim.core.router.speedy.SpeedyGraph;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -46,26 +46,26 @@ import org.opengis.feature.simple.SimpleFeature;
 
 public class Isochrones {
 
-	private static final Logger log = Logger.getLogger(Isochrones.class);
+    private static final Logger log = Logger.getLogger(Isochrones.class);
 
-	private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
-	private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
+    private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
+    private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
 
-	private Scenario scenario;
-	private String eventsFilename;
-	private Config config;
-	private Network network;
-	private Network filteredNetwork;
-	private Graph graph;
-	private Collection<SimpleFeature> collection = new ArrayList<SimpleFeature>();
-	private TravelTime travelTime;
-	private TravelTime travelTimeWithLoad;
-	private TravelDisutility travelDisutility;
-	private PolygonFeatureFactory pff;
+    private Scenario scenario;
+    private String eventsFilename;
+    private Config config;
+    private Network network;
+    private Network filteredNetwork;
+    private SpeedyGraph graph;
+    private Collection<SimpleFeature> collection = new ArrayList<SimpleFeature>();
+    private TravelTime travelTime;
+    private TravelTime travelTimeWithLoad;
+    private TravelDisutility travelDisutility;
+    private PolygonFeatureFactory pff;
 
-	public Isochrones(String configFile, String eventsFilename) {
-		this.config = ConfigUtils.loadConfig(configFile);
-		this.eventsFilename = eventsFilename;
+    public Isochrones(String configFile, String eventsFilename) {
+        this.config = ConfigUtils.loadConfig(configFile);
+        this.eventsFilename = eventsFilename;
 
 		this.pff = new PolygonFeatureFactory.Builder()
 				.setName("EvacuationArea")
@@ -93,24 +93,24 @@ public class Isochrones {
 
 	public void load() {
 
-		this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
-		new MatsimNetworkReader(this.scenario.getNetwork()).readFile(this.config.network().getInputFile());
-		new TransitScheduleReader(this.scenario).readFile(this.config.transit().getTransitScheduleFile());
+        new MatsimNetworkReader(this.scenario.getNetwork()).readFile(this.config.network().getInputFile());
+        new TransitScheduleReader(this.scenario).readFile(this.config.transit().getTransitScheduleFile());
 
-		this.network = NetworkUtils.createNetwork();
-		new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.network, Collections.singleton(SBBModes.CAR));
-		this.graph = new Graph(this.network);
-		this.filteredNetwork = new FilteredNetwork().filterNetwork(this.network);
+        this.network = NetworkUtils.createNetwork();
+        new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.network, Collections.singleton(SBBModes.CAR));
+        this.graph = new SpeedyGraph(this.network);
+        this.filteredNetwork = new FilteredNetwork().filterNetwork(this.network);
 
-		this.travelTime = getTravelTime();
-		if (this.eventsFilename != null) {
-			this.travelTimeWithLoad = getTravelTime(this.eventsFilename);
-		}
+        this.travelTime = getTravelTime();
+        if (this.eventsFilename != null) {
+            this.travelTimeWithLoad = getTravelTime(this.eventsFilename);
+        }
 
-		this.travelDisutility = new OnlyTimeDependentTravelDisutility(this.travelTime);
+        this.travelDisutility = new OnlyTimeDependentTravelDisutility(this.travelTime);
 
-	}
+    }
 
 	private TravelTime getTravelTime() {
 		log.info("No events specified. Travel Times will be calculated with free speed travel times.");

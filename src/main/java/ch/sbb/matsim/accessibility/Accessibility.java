@@ -3,8 +3,6 @@ package ch.sbb.matsim.accessibility;
 import ch.sbb.matsim.analysis.skims.RooftopUtils;
 import ch.sbb.matsim.analysis.skims.RooftopUtils.ODConnection;
 import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.routing.graph.Graph;
-import ch.sbb.matsim.routing.graph.LeastCostPathTree;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
@@ -51,6 +49,8 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
+import org.matsim.core.router.speedy.LeastCostPathTree;
+import org.matsim.core.router.speedy.SpeedyGraph;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -217,14 +217,14 @@ public class Accessibility {
 			loadScenario(requiresCar);
 		}
 
-		Graph carGraph = new Graph(this.carNetwork);
+		SpeedyGraph carGraph = new SpeedyGraph(this.carNetwork);
 		log.info("filter car-only network for assigning links to locations");
 		Network xy2linksNetwork = extractXy2LinksNetwork(this.carNetwork);
 
 		log.info("pre-create SwissRailRaptor-instances...");
 		SwissRailRaptor[] raptors = new SwissRailRaptor[this.threadCount];
 		for (int i = 0; i < this.threadCount; i++) {
-			raptors[i] = new SwissRailRaptor(raptorData, null, null, null, null);
+			raptors[i] = new SwissRailRaptor(raptorData, null, null, null, null, null);
 		}
 
 		Map<Coord, ZoneData> zoneData = new HashMap<>();
@@ -289,7 +289,7 @@ public class Accessibility {
 	 * First, calculate for each stop in the block the best connections to every other stop in the schedule. Store these connections in a thread-safe cache. Then, calculate for each requested
 	 * coordinate the necessary data. Make use of the cache to look-up possible connections, collect and filter them instead of re-calculating them.
 	 */
-	private Collection<Tuple<Coord, double[]>> doOptimizedCalculation(BlockData block, Graph carGraph,
+	private Collection<Tuple<Coord, double[]>> doOptimizedCalculation(BlockData block, SpeedyGraph carGraph,
 			Network xy2linksNetwork, Map<Coord, ZoneData> zoneData, SwissRailRaptor[] raptors, Modes[] modes) {
 		ConcurrentLinkedQueue<TransitStopFacility> stops = new ConcurrentLinkedQueue<>(block.stops);
 		ConcurrentHashMap<Id<TransitStopFacility>, IdMap<TransitStopFacility, List<ODConnection>>> cache = new ConcurrentHashMap<>();
@@ -337,7 +337,7 @@ public class Accessibility {
 	/**
 	 * Just calculate for each requested coordinate the necessary data to calculate the accessibility.
 	 */
-	private Collection<Tuple<Coord, double[]>> doBasicCalculation(BlockData block, Graph carGraph, Network xy2linksNetwork,
+	private Collection<Tuple<Coord, double[]>> doBasicCalculation(BlockData block, SpeedyGraph carGraph, Network xy2linksNetwork,
 			Map<Coord, ZoneData> zoneData, SwissRailRaptor[] raptors, Modes[] modes) {
 		ConcurrentLinkedQueue<Coord> accessibilityCoords = new ConcurrentLinkedQueue<>(block.coords);
 		ConcurrentLinkedQueue<Tuple<Coord, double[]>> results = new ConcurrentLinkedQueue<>();
@@ -622,7 +622,7 @@ public class Accessibility {
 		private final Queue<Tuple<Coord, double[]>> results;
 		private Zones zones;
 
-		RowWorker(Network carNetwork, Graph carGraph, Network xy2linksNetwork, TravelTime tt, TravelDisutility td, double[] carAMDepTimes, double[] carPMDepTimes,
+		RowWorker(Network carNetwork, SpeedyGraph carGraph, Network xy2linksNetwork, TravelTime tt, TravelDisutility td, double[] carAMDepTimes, double[] carPMDepTimes,
 				SwissRailRaptor raptor, RaptorParameters parameters, double ptMinDepartureTime, double ptMaxDepartureTime, BiPredicate<TransitLine, TransitRoute> trainDetector,
 				Map<Coord, ZoneData> zoneData, Modes[] modes, Zones zones, Counter counter, Queue<Coord> coordinates, Queue<Tuple<Coord, double[]>> results) {
 			this.carNetwork = carNetwork;
@@ -924,7 +924,7 @@ public class Accessibility {
 		private final Queue<Tuple<Coord, double[]>> results;
 		private Zones zones;
 
-		OptimizedRowWorker(Network carNetwork, Graph carGraph, Network xy2linksNetwork, TravelTime tt, TravelDisutility td, double[] carAMDepTimes, double[] carPMDepTimes,
+		OptimizedRowWorker(Network carNetwork, SpeedyGraph carGraph, Network xy2linksNetwork, TravelTime tt, TravelDisutility td, double[] carAMDepTimes, double[] carPMDepTimes,
 				ConcurrentHashMap<Id<TransitStopFacility>, IdMap<TransitStopFacility, List<ODConnection>>> cache, TransitSchedule transitSchedule, DeparturesCache departuresCache,
 				SwissRailRaptor raptor, RaptorParameters parameters, double ptMinDepartureTime, double ptMaxDepartureTime, BiPredicate<TransitLine, TransitRoute> trainDetector,
 				Map<Coord, ZoneData> zoneData, Modes[] modes, Zones zones, Counter counter, Queue<Coord> coordinates, Queue<Tuple<Coord, double[]>> results) {
