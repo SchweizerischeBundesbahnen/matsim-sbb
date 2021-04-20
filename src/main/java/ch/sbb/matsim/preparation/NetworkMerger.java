@@ -47,6 +47,7 @@ public class NetworkMerger {
 					throw new RuntimeException("Street Network already contains pt links. Use streets only network or overwrite setting in config");
 				}
 			}
+            // This call does not replace the original network, but additively reads the second.
 			new MatsimNetworkReader(scenario.getNetwork()).readURL(transitNetworkFile);
 
 		}
