@@ -1,6 +1,6 @@
 package ch.sbb.matsim.utils;
 
-import ch.sbb.matsim.routing.pt.raptor.IntermodalAwareRouterModeIdentifier;
+import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;

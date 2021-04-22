@@ -1,6 +1,6 @@
 package ch.sbb.matsim.rideshare.utils;
 
-import ch.sbb.matsim.routing.pt.raptor.IntermodalAwareRouterModeIdentifier;
+import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
