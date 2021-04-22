@@ -42,7 +42,6 @@ import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
@@ -75,7 +74,6 @@ import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.utils.misc.OptionalTime;
-import org.matsim.pt.config.TransitConfigGroup.TransitRoutingAlgorithmType;
 
 /**
  * @author denism
@@ -139,16 +137,12 @@ public class RunSBB {
 
 	public static void addSBBDefaultControlerModules(Controler controler) {
 		Config config = controler.getConfig();
-		//FIXME: Remove with next update
-		config.transit().setRoutingAlgorithmType(TransitRoutingAlgorithmType.DijkstraBased);
 		Scenario scenario = controler.getScenario();
 		ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
 		controler.setScoringFunctionFactory(scoringFunctionFactory);
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
-				//FIXME: Remove with next update
-				install(new SwissRailRaptorModule());
 				addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();

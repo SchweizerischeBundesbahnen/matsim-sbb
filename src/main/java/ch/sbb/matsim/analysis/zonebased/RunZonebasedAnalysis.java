@@ -2,7 +2,6 @@ package ch.sbb.matsim.analysis.zonebased;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.routing.pt.raptor.IntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesImpl;
