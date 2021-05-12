@@ -1,7 +1,9 @@
 package ch.sbb.matsim.analysis.zonebased;
 
 import ch.sbb.matsim.RunSBB;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.utils.SBBIntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesImpl;
@@ -73,7 +75,7 @@ public class RunZonebasedAnalysis {
 	public Map<String, Map<Id<Zone>, ZoneBasedAnalysis.ZoneStats>> run(Zones zones, List<ZonebasedAnalysisConfig> analysisConfigs) {
 		Map<String, Map<Id<Zone>, ZoneBasedAnalysis.ZoneStats>> stats = new HashMap<>();
 		for (ZonebasedAnalysisConfig config : analysisConfigs) {
-			MainModeIdentifier identifier = new IntermodalAwareRouterModeIdentifier(RunSBB.buildConfig(config.configFile));
+			MainModeIdentifier identifier = new SBBIntermodalAwareRouterModeIdentifier(RunSBB.buildConfig(config.configFile));
 			ZoneBasedAnalysis zoneBasedAnalysis = new ZoneBasedAnalysis(zones, config, identifier);
 			stats.put(config.runId, zoneBasedAnalysis.runAnalysis());
 
@@ -96,7 +98,7 @@ public class RunZonebasedAnalysis {
 		try (CSVWriter writer = new CSVWriter(null, header.toArray(new String[header.size()]), fileName)) {
 			for (Zone zone : zones.getZones()) {
 				writer.set(ZoneBasedAnalysis.ZONE_ID, zone.getId().toString());
-				writer.set(GEMEINDE, String.valueOf(zone.getAttribute("N_Gem")));
+				writer.set(GEMEINDE, String.valueOf(zone.getAttribute(Variables.MUN_NAME)));
 				for (Map.Entry<String, Map<Id<Zone>, ZoneBasedAnalysis.ZoneStats>> zonalRun : stats.entrySet()) {
 					String run = zonalRun.getKey();
 					ZoneBasedAnalysis.ZoneStats zoneStats = zonalRun.getValue().get(zone.getId());
