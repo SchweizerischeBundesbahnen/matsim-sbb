@@ -20,7 +20,7 @@
 package ch.sbb.matsim.preparation.bruggen;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.utils.RemoveAgentRoutes.SBBTripsToLegsAlgorithm;
+import ch.sbb.matsim.utils.SBBTripsToLegsAlgorithm;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.matsim.api.core.v01.Id;
