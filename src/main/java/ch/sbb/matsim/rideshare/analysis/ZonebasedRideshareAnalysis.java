@@ -105,8 +105,8 @@ public class ZonebasedRideshareAnalysis implements DrtRequestSubmittedEventHandl
 	@Override
 	public void handleEvent(PersonArrivalEvent event) {
 
-		if (currentDepartures.containsKey(event.getPersonId())) {
-			PendingDRTTrip trip = currentDepartures.remove(event.getPersonId());
+		PendingDRTTrip trip = currentDepartures.remove(event.getPersonId());
+		if (trip != null) {
 			trip.arrivalTime = event.getTime();
 			finishTrip(trip);
 		}
@@ -131,8 +131,9 @@ public class ZonebasedRideshareAnalysis implements DrtRequestSubmittedEventHandl
 	@Override
 	public void handleEvent(PersonEntersVehicleEvent event) {
 
-		if (currentDepartures.containsKey(event.getPersonId())) {
-			currentDepartures.get(event.getPersonId()).boardingTime = event.getTime();
+		PendingDRTTrip trip = currentDepartures.get(event.getPersonId());
+		if (trip != null) {
+			trip.boardingTime = event.getTime();
 		}
 	}
 

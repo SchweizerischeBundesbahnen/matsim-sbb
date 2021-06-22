@@ -138,7 +138,9 @@ public class VisumPuTSurvey {
 					}
 					int i = 1;
 					for (TravelledLeg leg : trip.getLegs()) {
-						if (this.ptVehicles.containsKey(leg.getVehicleId())) {
+						Id<Vehicle> vId = leg.getVehicleId();
+						PTVehicle vehicle = this.ptVehicles.get(vId);
+						if (vehicle != null) {
 
 							writer.set(COL_PATH_ID, Integer.toString(trip.getElementId()));
 							writer.set(COL_LEG_ID, Integer.toString(i));
@@ -147,8 +149,6 @@ public class VisumPuTSurvey {
 							String alighting = this.transitSchedule.getFacilities().get(leg.getAlightingStop()).getAttributes().getAttribute(STOP_NO).toString();
 							writer.set(COL_TO_STOP, alighting);
 
-							Id<Vehicle> vId = leg.getVehicleId();
-							PTVehicle vehicle = this.ptVehicles.get(vId);
 							Id<TransitLine> lId = vehicle.getLineId();
 							Id<TransitRoute> rId = vehicle.getRouteId();
 							Attributes routeAttributes = this.transitSchedule.getTransitLines().get(lId).getRoutes().get(rId).getAttributes();

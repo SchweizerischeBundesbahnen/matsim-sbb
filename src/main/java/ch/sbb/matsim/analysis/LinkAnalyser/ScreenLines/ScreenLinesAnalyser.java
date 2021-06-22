@@ -87,10 +87,7 @@ public class ScreenLinesAnalyser {
 				i += 1;
 				for (Link link : screenLine.getLinks()) {
 
-					double volume = 0;
-					if (volumes.containsKey(link.getId())) {
-						volume = volumes.get(link.getId()) * scale;
-					}
+					double volume = volumes.getOrDefault(link.getId(), 0) * scale;
 
 					writer.set("MATSIMID", link.getId().toString());
 					writer.set("FROM_X", Double.toString(link.getFromNode().getCoord().getX()));
