@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -173,9 +174,7 @@ public class CalculateAccessibility {
 		}
 
 		Set<String> modesSet = new HashSet<>();
-		for (String mode : modesStr) {
-			modesSet.add(mode);
-		}
+        modesSet.addAll(Arrays.asList(modesStr));
 		List<Accessibility.Modes> modesList = new ArrayList<>();
 		if (modesSet.contains("mm")) {
 			modesList.add(new Accessibility.Modes("mm", true, true, true, true));

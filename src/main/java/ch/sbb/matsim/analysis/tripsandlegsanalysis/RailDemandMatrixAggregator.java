@@ -155,12 +155,10 @@ public class RailDemandMatrixAggregator {
                 s0 = Integer.parseInt(s);
             } catch (NumberFormatException e) {
             }
-            ;
             try {
                 s1 = Integer.parseInt(t1);
             } catch (NumberFormatException e) {
             }
-            ;
             if (s0 != s1) {
                 return Integer.compare(s0, s1);
             } else {

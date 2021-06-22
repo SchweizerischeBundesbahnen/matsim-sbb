@@ -2,7 +2,6 @@ package ch.sbb.matsim.rideshare.utils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +46,7 @@ public class FleetGenerator {
 		//        List<Id<Link>> availableLinks  = scenario.getNetwork().getLinks().entrySet().stream()
 		//              .filter(entry -> entry.getValue().getAllowedModes().contains(SBBModes.CAR)).map(e->e.getKey()).collect(Collectors.toList());
 		//        List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(177382)); //lcf
-		List<Id<Link>> availableLinks = Arrays.asList(Id.createLinkId(598836)); //ne
+		List<Id<Link>> availableLinks = List.of(Id.createLinkId(598836)); //ne
 		Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
 		for (int z = 0; z < numberOfVehicles; z++) {
 			vehicleSpecifications.add(ImmutableDvrpVehicleSpecification.newBuilder()

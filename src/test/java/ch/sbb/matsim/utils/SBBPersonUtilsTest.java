@@ -30,7 +30,7 @@ public class SBBPersonUtilsTest {
 
 		person.addPlan(plan);
 
-		Assert.assertEquals(SBBPersonUtils.getHomeActivity(person), null);
+		Assert.assertNull(SBBPersonUtils.getHomeActivity(person));
 	}
 
 	@Test
@@ -72,7 +72,7 @@ public class SBBPersonUtilsTest {
 
 		person.addPlan(plan);
 
-		Assert.assertEquals(SBBPersonUtils.getHomeActivity(person), null);
+		Assert.assertNull(SBBPersonUtils.getHomeActivity(person));
 	}
 
 }

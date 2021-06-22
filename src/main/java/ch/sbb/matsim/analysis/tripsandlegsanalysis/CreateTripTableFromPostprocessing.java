@@ -81,7 +81,7 @@ public class CreateTripTableFromPostprocessing {
 
         @Override
         public List<String> getAdditionalLegColumns(TripStructureUtils.Trip experiencedTrip, Leg experiencedLeg) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
 }

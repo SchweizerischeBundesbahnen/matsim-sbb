@@ -153,7 +153,7 @@ public class PTObjective implements TransitDriverStartsEventHandler,
 	}
 
 	// Private classes
-	private class PTVehicle {
+	private static class PTVehicle {
 
 		// Attributes
 		private final Id transitLineId;

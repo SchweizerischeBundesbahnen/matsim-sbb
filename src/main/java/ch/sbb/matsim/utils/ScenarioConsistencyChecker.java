@@ -41,8 +41,8 @@ public class ScenarioConsistencyChecker {
 	public static void checkScenarioConsistency(Scenario scenario) {
 		if(!(checkVehicles(scenario) && checkPlans(scenario))){
 			throw new RuntimeException(" Error found while checking consistency of plans. Check log!");
-		};
-	}
+		}
+    }
 
 	private static boolean checkPlans(Scenario scenario) {
 		boolean result = true;

@@ -43,7 +43,7 @@ public class ZonebasedRideshareAnalysis implements DrtRequestSubmittedEventHandl
 	private final Set<String> modes;
 	private final Map<Id<Person>, PendingDRTTrip> currentDepartures = new HashMap<>();
 	private final Map<Id<Link>, Id<Zone>> links2zoneCache = new HashMap<>();
-	private final Map<Id<Request>, Id<Person>> openRequests = new HashMap<Id<org.matsim.contrib.dvrp.optimizer.Request>, Id<Person>>();
+	private final Map<Id<Request>, Id<Person>> openRequests = new HashMap<>();
 	private final Network network;
 	private Map<String, Map<Id<Zone>, DoubleSummaryStatistics>> detourStats = new HashMap<>();
 	private Map<String, Map<Id<Zone>, DoubleSummaryStatistics>> waitStats = new HashMap<>();

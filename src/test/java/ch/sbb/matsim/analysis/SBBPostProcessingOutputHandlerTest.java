@@ -360,7 +360,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
 	private static class EventsManagerStub implements EventsManager {
 
-		List<EventHandler> eventHandlers = new ArrayList<EventHandler>();
+		List<EventHandler> eventHandlers = new ArrayList<>();
 
 		public List<EventHandler> getEventHandlers() {
 			return this.eventHandlers;

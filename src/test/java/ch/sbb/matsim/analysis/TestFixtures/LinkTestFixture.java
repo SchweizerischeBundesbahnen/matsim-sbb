@@ -111,7 +111,7 @@ public class LinkTestFixture {
 
 		LinkNetworkRouteFactory factory = new LinkNetworkRouteFactory();
 		NetworkRoute route = (NetworkRoute) factory.createRoute(link1.getId(), link3.getId());
-		route.setLinkIds(link1.getId(), Arrays.asList(link2.getId()), link3.getId());
+		route.setLinkIds(link1.getId(), List.of(link2.getId()), link3.getId());
 		leg.setRoute(route);
 
 		leg.setRoute(route);

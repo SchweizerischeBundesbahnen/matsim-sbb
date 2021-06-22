@@ -114,14 +114,14 @@ public class EventsToEventsPerPersonTable implements
 				return;
 			}
 			addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
-					event.getPersonId(),
-					event.getTime(),
-					event.getEventType(),
-					event.getActType(),
-					event.getLinkId().toString(),
-					"",
-					"",
-					""));
+                event.getPersonId(),
+                event.getTime(),
+                event.getEventType(),
+                event.getActType(),
+                event.getLinkId().toString(),
+                "",
+                "",
+                ""));
 		} catch (Exception e) {
 			log.error("Exception while working on event: " + event.toString(), e);
 		}
@@ -137,14 +137,14 @@ public class EventsToEventsPerPersonTable implements
 				return;
 			}
 			addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
-					event.getPersonId(),
-					event.getTime(),
-					event.getEventType(),
-					event.getActType(),
-					event.getLinkId().toString(),
-					"",
-					"",
-					""));
+                event.getPersonId(),
+                event.getTime(),
+                event.getEventType(),
+                event.getActType(),
+                event.getLinkId().toString(),
+                "",
+                "",
+                ""));
 		} catch (Exception e) {
 			log.error("Exception while working on event: " + event.toString(), e);
 		}
@@ -160,14 +160,14 @@ public class EventsToEventsPerPersonTable implements
 				return;
 			}
 			addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
-					event.getPersonId(),
-					event.getTime(),
-					event.getEventType(),
-					"",
-					event.getLinkId().toString(),
-					event.getLegMode(),
-					"",
-					""));
+                event.getPersonId(),
+                event.getTime(),
+                event.getEventType(),
+                "",
+                event.getLinkId().toString(),
+                event.getLegMode(),
+                "",
+                ""));
 		} catch (Exception e) {
 			log.error("Exception while working on event: " + event.toString(), e);
 		}
@@ -183,14 +183,14 @@ public class EventsToEventsPerPersonTable implements
 				return;
 			}
 			addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
-					event.getPersonId(),
-					event.getTime(),
-					event.getEventType(),
-					"",
-					event.getLinkId().toString(),
-					event.getLegMode(),
-					"",
-					""));
+                event.getPersonId(),
+                event.getTime(),
+                event.getEventType(),
+                "",
+                event.getLinkId().toString(),
+                event.getLegMode(),
+                "",
+                ""));
 
 		} catch (Exception e) {
 			log.error("Exception while working on event: " + event.toString(), e);
@@ -207,14 +207,14 @@ public class EventsToEventsPerPersonTable implements
 				return;
 			}
 			addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
-					event.getPersonId(),
-					event.getTime(),
-					event.getEventType(),
-					"",
-					event.getLinkId().toString(),
-					event.getLegMode(),
-					"",
-					""));
+                event.getPersonId(),
+                event.getTime(),
+                event.getEventType(),
+                "",
+                event.getLinkId().toString(),
+                event.getLegMode(),
+                "",
+                ""));
 		} catch (Exception e) {
 			log.error("Exception while working on event: " + event.toString(), e);
 		}
@@ -230,14 +230,14 @@ public class EventsToEventsPerPersonTable implements
 				return;
 			}
 			addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
-					event.getPersonId(),
-					event.getTime(),
-					event.getEventType(),
-					"",
-					"",
-					"",
-					event.getVehicleId().toString(),
-					""));
+                event.getPersonId(),
+                event.getTime(),
+                event.getEventType(),
+                "",
+                "",
+                "",
+                event.getVehicleId().toString(),
+                ""));
 		} catch (Exception e) {
 			log.error("Exception while working on event: " + event.toString(), e);
 		}
@@ -253,14 +253,14 @@ public class EventsToEventsPerPersonTable implements
 				return;
 			}
 			addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
-					event.getPersonId(),
-					event.getTime(),
-					event.getEventType(),
-					"",
-					"",
-					"",
-					event.getVehicleId().toString(),
-					""));
+                event.getPersonId(),
+                event.getTime(),
+                event.getEventType(),
+                "",
+                "",
+                "",
+                event.getVehicleId().toString(),
+                ""));
 
 		} catch (Exception e) {
 			log.error("Exception while working on event: " + event.toString(), e);
@@ -277,14 +277,14 @@ public class EventsToEventsPerPersonTable implements
 				return;
 			}
 			addNewEventToEventsPerPerson(event.getPersonId(), new PersonEvent(
-					event.getPersonId(),
-					event.getTime(),
-					event.getEventType(),
-					"",
-					"",
-					"",
-					"",
-					String.valueOf(event.getDistance())));
+                event.getPersonId(),
+                event.getTime(),
+                event.getEventType(),
+                "",
+                "",
+                "",
+                "",
+                String.valueOf(event.getDistance())));
 		} catch (Exception e) {
 			log.error("Exception while working on event: " + event.toString(), e);
 		}
@@ -337,7 +337,7 @@ public class EventsToEventsPerPersonTable implements
 		}
 	}
 
-	private class PersonEvent {
+	private static class PersonEvent {
 
 		private final List<String> attributList = new ArrayList<>();
 

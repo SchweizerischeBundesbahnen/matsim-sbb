@@ -32,7 +32,7 @@ public class MobiTransitScheduleVerifiyer {
 
 	public static void verifyTransitSchedule(TransitSchedule schedule) {
 		//hard coded comparison values from MOBI 2.1 (schedule 2017)
-		Map<String, Integer> modeComparison21 = new HashMap();
+		Map<String, Integer> modeComparison21 = new HashMap<>();
 		modeComparison21.put(SBBModes.PTSubModes.RAIL, 1390);
 		modeComparison21.put(SBBModes.PTSubModes.TRAM, 1428);
 		modeComparison21.put(SBBModes.PTSubModes.OTHER, 524);

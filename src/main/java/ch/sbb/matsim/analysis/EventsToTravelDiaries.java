@@ -370,7 +370,7 @@ public class EventsToTravelDiaries implements
 		try {
 			ptVehicles.put(
 					event.getVehicleId(),
-					new PTVehicle(event.getTransitLineId(), event.getTransitRouteId()));
+				new PTVehicle(event.getTransitLineId(), event.getTransitRouteId()));
 		} catch (Exception e) {
 			log.error("Exception while handling event " + event.toString(), e);
 		}
@@ -620,7 +620,7 @@ public class EventsToTravelDiaries implements
 	}
 
 	// Private classes
-	private class PTVehicle {
+	private static class PTVehicle {
 
 		// Attributes
 		private final Id transitLineId;

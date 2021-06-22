@@ -226,7 +226,7 @@ public class VisumPuTSurvey {
 		return Time.writeTime(sec);
 	}
 
-	private class PTVehicle {
+	private static class PTVehicle {
 
 		TransitLine transitLine;
 		TransitRoute transitRoute;
