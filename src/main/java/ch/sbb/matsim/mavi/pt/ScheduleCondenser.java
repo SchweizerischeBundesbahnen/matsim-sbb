@@ -126,7 +126,7 @@ public class ScheduleCondenser {
 
     public void condenseSchedule() {
         //sort links by length
-        List<Link> linksLongestToShortest = network.getLinks().values().stream().collect(Collectors.toList());
+        List<Link> linksLongestToShortest = new ArrayList<>(network.getLinks().values());
         Collections.sort(linksLongestToShortest, (l1, l2) -> Double.compare(l2.getLength(), l1.getLength()));
         Iterator<Link> links = linksLongestToShortest.iterator();
         while (links.hasNext()) {

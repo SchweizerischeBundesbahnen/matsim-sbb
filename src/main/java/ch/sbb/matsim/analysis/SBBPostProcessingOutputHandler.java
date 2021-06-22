@@ -70,7 +70,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 	}
 
 	static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
-		Double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
+		double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
 		List<EventsAnalysis> analyses = new LinkedList<>();
 
 		if (ppConfig.getPtVolumes()) {

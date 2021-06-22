@@ -73,7 +73,7 @@ public class RailDemandMatrixAggregator {
             }
             zoneStop.put(facility.getId(), aggregate);
         }
-        var sortedZones = new TreeSet(new StringNumberComparator());
+        var sortedZones = new TreeSet<>(new StringNumberComparator());
         sortedZones.addAll(zoneStop.values());
         aggregateZones = new ArrayList<>(sortedZones);
         aggregateZones.remove("");

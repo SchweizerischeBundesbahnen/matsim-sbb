@@ -101,7 +101,7 @@ public class RideFeederScoringCalibration {
 				Plan plan = null;
 
 				while ((row = visumVolume.readLine()) != null) {
-					int planId = Integer.valueOf(row.get("plan_id"));
+					int planId = Integer.parseInt(row.get("plan_id"));
 
 					if (lastPlanId != planId) {
 						first = true;
@@ -123,11 +123,11 @@ public class RideFeederScoringCalibration {
 						double end_time = 24 * 60 * 60;
 
 						if (!start.equals("-")) {
-							start_time = Integer.valueOf(start);
+							start_time = Integer.parseInt(start);
 						}
 
 						if (!end.equals("-")) {
-							end_time = Integer.valueOf(end);
+							end_time = Integer.parseInt(end);
 						}
 
 						plan.addActivity(createActivity(pf, row.get("mode"), 0, 0, start_time, end_time));
@@ -149,7 +149,7 @@ public class RideFeederScoringCalibration {
 						}
 
 					} else {
-						plan.addLeg(createLeg(pf, row.get("mode"), Integer.valueOf(row.get("start_time")), Integer.valueOf(row.get("end_time")), Integer.valueOf(row.get("distance"))));
+						plan.addLeg(createLeg(pf, row.get("mode"), Integer.parseInt(row.get("start_time")), Integer.parseInt(row.get("end_time")), Integer.parseInt(row.get("distance"))));
 						isAct = true;
 					}
 

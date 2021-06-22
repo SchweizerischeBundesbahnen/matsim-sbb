@@ -42,8 +42,8 @@ public class MobiTransitScheduleVerifiyer {
 		int stopsComparison21 = 25037;
 
 		List<String> transportModes = new ArrayList<>();
-		schedule.getTransitLines().values().stream().forEach(transitLine -> transitLine.getRoutes().values().
-				stream().forEach(l -> transportModes.add(l.getTransportMode())));
+		schedule.getTransitLines().values().forEach(transitLine -> transitLine.getRoutes().values()
+				.forEach(l -> transportModes.add(l.getTransportMode())));
 		Set<String> uniqueModes = new TreeSet<>(transportModes);
 		LOGGER.info("Existing transit modes: " + uniqueModes);
 		LOGGER.info("Existing Modes in MOBi 2.1: " + modeComparison21.keySet());

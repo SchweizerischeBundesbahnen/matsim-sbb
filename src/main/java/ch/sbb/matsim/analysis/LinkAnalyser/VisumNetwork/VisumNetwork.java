@@ -81,12 +81,12 @@ public class VisumNetwork {
 	}
 
 	private Tuple<Id<Node>, Id<Node>> getLinkKey(final Link link, final Boolean inverse) {
-		final Id toId = link.getToNode().getId();
-		final Id fromId = link.getFromNode().getId();
+		final Id<Node> toId = link.getToNode().getId();
+		final Id<Node> fromId = link.getFromNode().getId();
 		if (inverse) {
-			return new Tuple<Id<Node>, Id<Node>>(toId, fromId);
+			return new Tuple<>(toId, fromId);
 		} else {
-			return new Tuple<Id<Node>, Id<Node>>(fromId, toId);
+			return new Tuple<>(fromId, toId);
 		}
 	}
 

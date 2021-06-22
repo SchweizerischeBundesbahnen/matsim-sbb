@@ -295,7 +295,7 @@ public class TransferScoringTest {
 			egressLeg.getRoute().setTravelTime(300);
 			plan.addLeg(egressLeg);
 			plan.addActivity(home2);
-			TripStructureUtils.getLegs(plan).stream().forEach(leg -> TripStructureUtils.setRoutingMode(leg, SBBModes.PT));
+			TripStructureUtils.getLegs(plan).forEach(leg -> TripStructureUtils.setRoutingMode(leg, SBBModes.PT));
 			pop.addPerson(person);
 		}
 

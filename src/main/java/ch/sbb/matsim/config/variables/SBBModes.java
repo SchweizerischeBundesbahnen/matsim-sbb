@@ -57,14 +57,8 @@ public class SBBModes {
 		public final static Set<String> submodes;
 
 		static {
-			Set submodeset = new HashSet<>();
-			submodeset.add(RAIL);
-			submodeset.add(TRAM);
-			submodeset.add(BUS);
-			submodeset.add(OTHER);
 			// TODO: remove detPt as soon as we merged the pt-submodeset
-			submodeset.add("detPt");
-			submodes = Collections.unmodifiableSet(submodeset);
+			submodes = Set.of(RAIL, TRAM, BUS, OTHER, "detPt");
 		}
 
 		private PTSubModes() {

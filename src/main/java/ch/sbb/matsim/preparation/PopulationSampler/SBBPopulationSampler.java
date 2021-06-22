@@ -19,7 +19,7 @@ public class SBBPopulationSampler {
 			return;
 		}
 		String inputPopulation = args[0];
-		double fraction = Double.valueOf(args[1]);
+		double fraction = Double.parseDouble(args[1]);
 		String outputPopulation = args[2];
 
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());

@@ -99,7 +99,7 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
     private void initializeStats() {
         for (String mode : monitoredModes) {
             final Map<String, DescriptiveStatistics> modeMap = new HashMap<>();
-            monitoredModes.stream().forEach(m -> modeMap.put(m, new DescriptiveStatistics()));
+            monitoredModes.forEach(m -> modeMap.put(m, new DescriptiveStatistics()));
             transferStats.put(mode, modeMap);
         }
         ptTransfers.clear();

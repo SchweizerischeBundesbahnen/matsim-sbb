@@ -348,7 +348,7 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
 		@StringSetter(PARAM_DELTAPARKINGPRICE)
 		public void setDeltaMarginalUtilityOfParkingPrice(String value) {
-			this.deltaMarginalUtilityOfParkingPrice = Double.valueOf(value);
+			this.deltaMarginalUtilityOfParkingPrice = Double.parseDouble(value);
 		}
 
 		public void setDeltaMarginalUtilityOfParkingPrice(double value) {
