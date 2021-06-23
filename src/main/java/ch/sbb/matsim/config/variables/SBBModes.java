@@ -1,8 +1,6 @@
 package ch.sbb.matsim.config.variables;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.matsim.api.core.v01.TransportMode;
@@ -57,14 +55,8 @@ public class SBBModes {
 		public final static Set<String> submodes;
 
 		static {
-			Set submodeset = new HashSet<>();
-			submodeset.add(RAIL);
-			submodeset.add(TRAM);
-			submodeset.add(BUS);
-			submodeset.add(OTHER);
 			// TODO: remove detPt as soon as we merged the pt-submodeset
-			submodeset.add("detPt");
-			submodes = Collections.unmodifiableSet(submodeset);
+			submodes = Set.of(RAIL, TRAM, BUS, OTHER, "detPt");
 		}
 
 		private PTSubModes() {

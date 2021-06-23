@@ -68,8 +68,8 @@ public class PTObjective implements TransitDriverStartsEventHandler,
 	@Override
 	public void handleEvent(VehicleDepartsAtFacilityEvent event) {
 		Id<Vehicle> vId = event.getVehicleId();
-		if (ptVehicles.containsKey(vId)) {
-			PTVehicle ptVehicle = ptVehicles.get(vId);
+		PTVehicle ptVehicle = ptVehicles.get(vId);
+		if (ptVehicle != null) {
 			ptVehicle.setLastStop(event.getFacilityId());
 
 			String line = ptVehicle.getTransitLineId().toString();
@@ -102,8 +102,8 @@ public class PTObjective implements TransitDriverStartsEventHandler,
 	@Override
 	public void handleEvent(VehicleArrivesAtFacilityEvent event) {
 		Id<Vehicle> vId = event.getVehicleId();
-		if (ptVehicles.containsKey(vId)) {
-			PTVehicle ptVehicle = ptVehicles.get(vId);
+		PTVehicle ptVehicle = ptVehicles.get(vId);
+		if (ptVehicle != null) {
 			ptVehicle.setLastStop(event.getFacilityId());
 		}
 	}
@@ -116,8 +116,8 @@ public class PTObjective implements TransitDriverStartsEventHandler,
 			return;
 		}
 
-		if (ptVehicles.containsKey(vId)) {
-			PTVehicle ptVehicle = ptVehicles.get(vId);
+		PTVehicle ptVehicle = ptVehicles.get(vId);
+		if (ptVehicle != null) {
 			ptVehicle.addPassenger();
 		}
 	}
@@ -128,8 +128,8 @@ public class PTObjective implements TransitDriverStartsEventHandler,
 			return;
 		}
 		Id<Vehicle> vId = event.getVehicleId();
-		if (ptVehicles.containsKey(vId)) {
-			PTVehicle ptVehicle = ptVehicles.get(vId);
+		PTVehicle ptVehicle = ptVehicles.get(vId);
+		if (ptVehicle != null) {
 			ptVehicle.removePassenger();
 		}
 	}
@@ -153,7 +153,7 @@ public class PTObjective implements TransitDriverStartsEventHandler,
 	}
 
 	// Private classes
-	private class PTVehicle {
+	private static class PTVehicle {
 
 		// Attributes
 		private final Id transitLineId;

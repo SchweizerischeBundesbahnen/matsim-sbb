@@ -63,8 +63,8 @@ public class Network2OSMExporter {
                 bw.write("<tag k=\"highway\" v=\"" + type + "\"/>\r\n");
                 double travelTime = tc.getLinkTravelTimes().getLinkTravelTime(link, TIME, null, null);
                 double averageSpeed = link.getLength() / travelTime;
-                bw.write("<tag k=\"maxspeed\" v=\"" + Integer.valueOf((int) (Math.round(averageSpeed * 3.6))) + "\"/>\r\n");
-                bw.write("<tag k=\"freespeed_mobi\" v=\"" + Integer.valueOf((int) (Math.round(link.getFreespeed() * 3.6))) + "\"/>\r\n");
+                bw.write("<tag k=\"maxspeed\" v=\"" + (int) (Math.round(averageSpeed * 3.6)) + "\"/>\r\n");
+                bw.write("<tag k=\"freespeed_mobi\" v=\"" + (int) (Math.round(link.getFreespeed() * 3.6)) + "\"/>\r\n");
                 bw.write("<tag k=\"matsimLink\" v=\"" + link.getId() + "\"/>\r\n");
 
                 bw.write("</way>\r\n");
@@ -73,7 +73,7 @@ public class Network2OSMExporter {
                 bwUc.write("<nd ref='" + nodeMapper.get(link.getFromNode().getId()) + "'/>\r\n");
                 bwUc.write("<nd ref='" + nodeMapper.get(link.getToNode().getId()) + "'/>\r\n");
                 bwUc.write("<tag k=\"highway\" v=\"" + type + "\"/>\r\n");
-                bwUc.write("<tag k=\"maxspeed\" v=\"" + Integer.valueOf((int) (Math.round(link.getFreespeed() * 3.6))) + "\"/>\r\n");
+                bwUc.write("<tag k=\"maxspeed\" v=\"" + (int) (Math.round(link.getFreespeed() * 3.6)) + "\"/>\r\n");
                 bwUc.write("<tag k=\"matsimLink\" v=\"" + link.getId() + "\"/>\r\n");
 
                 bwUc.write("</way>\r\n");

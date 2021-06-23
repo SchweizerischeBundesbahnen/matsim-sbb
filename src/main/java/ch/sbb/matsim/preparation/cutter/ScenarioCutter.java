@@ -472,7 +472,7 @@ public class ScenarioCutter {
 	}
 
 	private void copyVehicleTypes(CutContext ctx) {
-		ctx.source.getVehicles().getVehicleTypes().values().stream()
+		ctx.source.getVehicles().getVehicleTypes().values()
 				.forEach(vehicleType -> ctx.dest.getVehicles().addVehicleType(vehicleType));
 
 	}
@@ -541,7 +541,7 @@ public class ScenarioCutter {
 					.collect(Collectors.toSet()));
 
 		}
-		usedStops.stream().forEach(stop -> dest.addStopFacility(stop));
+		usedStops.forEach(stop -> dest.addStopFacility(stop));
 	}
 
 	private void filterTransitVehicles(CutContext ctx) {

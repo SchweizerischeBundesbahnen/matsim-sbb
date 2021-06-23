@@ -18,6 +18,7 @@ public class Activity extends TravelComponent {
 		super(config);
 	}
 
+	@Override
 	public String toString() {
 		return String
 				.format("ACT: type: %s start: %6.0f end: %6.0f dur: %6.0f x: %6.0f y: %6.0f facId: %s\n",

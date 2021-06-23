@@ -82,15 +82,12 @@ public class ScreenLinesAnalyser {
 				"SCREENLINE", "MODES"
 		};
 		try (CSVWriter writer = new CSVWriter("", COLUMNS, folder + "/screenlines.csv")) {
-			Integer i = 0;
+			int i = 0;
 			for (ScreenLine screenLine : this.screenlines) {
 				i += 1;
 				for (Link link : screenLine.getLinks()) {
 
-					double volume = 0;
-					if (volumes.containsKey(link.getId())) {
-						volume = volumes.get(link.getId()) * scale;
-					}
+					double volume = volumes.getOrDefault(link.getId(), 0) * scale;
 
 					writer.set("MATSIMID", link.getId().toString());
 					writer.set("FROM_X", Double.toString(link.getFromNode().getCoord().getX()));
@@ -98,7 +95,7 @@ public class ScreenLinesAnalyser {
 					writer.set("TO_X", Double.toString(link.getToNode().getCoord().getX()));
 					writer.set("TO_Y", Double.toString(link.getToNode().getCoord().getY()));
 					writer.set("VOLUME", Double.toString(volume));
-					writer.set("SCREENLINE", i.toString());
+					writer.set("SCREENLINE", Integer.toString(i));
 					writer.set("MODES", link.getAllowedModes().toString());
 					writer.writeRow();
 				}

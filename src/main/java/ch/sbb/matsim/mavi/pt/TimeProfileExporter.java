@@ -245,20 +245,22 @@ public class TimeProfileExporter {
 
 			String lineName = tp.lineName;
 			Id<TransitLine> lineID = Id.create(lineName, TransitLine.class);
-			if (!this.schedule.getTransitLines().containsKey(lineID)) {
-				TransitLine line = this.scheduleBuilder.createTransitLine(lineID);
+			TransitLine line = this.schedule.getTransitLines().get(lineID);
+			if (line == null) {
+				line = this.scheduleBuilder.createTransitLine(lineID);
 				this.schedule.addTransitLine(line);
 			}
 
 			String mode = tp.tSysMOBi.toLowerCase();
+			final TransitLine finalLine = line;
 			tp.vehicleJourneys.forEach(vj -> {
 				int routeName = tpId;
 				int from_tp_index = vj.fromTProfItemIndex;
 				int to_tp_index = vj.toTProfItemIndex;
 				Id<TransitRoute> routeID = Id.create(routeName + "_" + from_tp_index + "_" + to_tp_index, TransitRoute.class);
-				TransitRoute route;
+				TransitRoute route = finalLine.getRoutes().get(routeID);
 
-				if (!this.schedule.getTransitLines().get(lineID).getRoutes().containsKey(routeID)) {
+				if (route == null) {
 					// Fahrzeitprofil-Verläufe
 					List<TransitRouteStop> transitRouteStops = new ArrayList<>();
 					List<Id<Link>> routeLinks = new ArrayList<>();
@@ -352,9 +354,7 @@ public class TimeProfileExporter {
 
 					route = this.scheduleBuilder.createTransitRoute(routeID, netRoute, transitRouteStops, mode);
 
-					this.schedule.getTransitLines().get(lineID).addRoute(route);
-				} else {
-					route = this.schedule.getTransitLines().get(lineID).getRoutes().get(routeID);
+					finalLine.addRoute(route);
 				}
 
 				int depName = vj.no;
@@ -368,7 +368,8 @@ public class TimeProfileExporter {
 
 				String[] values = tp.customAttributes;
 				List<VisumPtExporterConfigGroup.RouteAttributeParams> custAttNames = new ArrayList<>(config.getRouteAttributeParams().values());
-				IntStream.range(0, values.length).forEach(j -> addAttribute(route.getAttributes(), custAttNames.get(j).getAttributeName(),
+				Attributes routeAttributes = route.getAttributes();
+				IntStream.range(0, values.length).forEach(j -> addAttribute(routeAttributes, custAttNames.get(j).getAttributeName(),
 						values[j], custAttNames.get(j).getDataType()));
 
 				VehicleType vehType = getVehicleType(tp.tSysCode, vj.vehCapacity, vj.standingRoom);

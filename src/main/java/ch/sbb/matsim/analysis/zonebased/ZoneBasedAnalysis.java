@@ -6,6 +6,7 @@ import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesImpl;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -63,7 +64,7 @@ public class ZoneBasedAnalysis {
 				.flatMap(l -> l.getRoutes().values().stream())
 				.collect(Collectors.toMap(r -> r.getId(), r -> r.getTransportMode()));
 
-		ptModes = modePerRoute.values().stream().collect(Collectors.toSet());
+		ptModes = new HashSet<>(modePerRoute.values());
 
 		zoneStatsMap.values().forEach(z -> {
 			z.modalPtDepartures = new HashMap<>();

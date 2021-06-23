@@ -58,6 +58,7 @@ public class Trip extends TravelComponent {
 		return this.legs.get(this.legs.size() - 1);
 	}
 
+	@Override
 	public String toString() {
 		return String.format("TRIP: start: %6.0f end: %6.0f dur: %6.0f invehDist: %6.0f walkDist: %6.0f \n %s",
 				getStartTime(), getEndTime(), getDuration(), getInVehDistance(), getWalkDistance(),

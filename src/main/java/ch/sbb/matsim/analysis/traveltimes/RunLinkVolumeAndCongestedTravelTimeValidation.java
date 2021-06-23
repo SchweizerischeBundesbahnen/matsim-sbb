@@ -77,12 +77,13 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 		eventsManager.addHandler(new LinkEnterEventHandler() {
 			@Override
 			public void handleEvent(LinkEnterEvent event) {
-				if (countsLinks.containsKey(event.getLinkId())) {
+				int[] counts = countsLinks.get(event.getLinkId());
+				if (counts != null) {
 					int hour = (int) (event.getTime() / 3600.0);
-					if (hour > 23) {
+					while (hour > 23) {
 						hour = hour - 24;
 					}
-					countsLinks.get(event.getLinkId())[hour]++;
+					counts[hour]++;
 				}
 			}
 		});

@@ -656,6 +656,7 @@ public class Accessibility {
 			this.results = results;
 		}
 
+		@Override
 		public void run() {
 			while (true) {
 				Coord fromCoord = this.coordinates.poll();
@@ -963,6 +964,7 @@ public class Accessibility {
 			this.results = results;
 		}
 
+		@Override
 		public void run() {
 			while (true) {
 				Coord fromCoord = this.coordinates.poll();

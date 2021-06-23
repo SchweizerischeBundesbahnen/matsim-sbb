@@ -53,8 +53,8 @@ public class TestFixture {
 		population = scenario.getPopulation();
 		Network network = scenario.getNetwork();
 
-		Double delta_x = end.getX() - start.getX();
-		Double delta_y = end.getY() - start.getY();
+		double delta_x = end.getX() - start.getX();
+		double delta_y = end.getY() - start.getY();
 		Node nodeA = network.getFactory().createNode(Id.createNodeId("a"), start);
 		Node nodeB = network.getFactory().createNode(Id.createNodeId("b"), new Coord(start.getX() + delta_x / 2.0, start.getY() + delta_y / 2.0));
 		Node nodeC = network.getFactory().createNode(Id.createNodeId("c"), new Coord(start.getX() + delta_x / 2.0 * 3.0, start.getY() + delta_y / 2.0 * 3.0));

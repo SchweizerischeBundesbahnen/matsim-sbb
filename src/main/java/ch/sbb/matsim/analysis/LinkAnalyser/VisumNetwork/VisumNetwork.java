@@ -56,8 +56,8 @@ public class VisumNetwork {
 	public VisumLink getOrCreateLink(Link link) {
 		Tuple<Id<Node>, Id<Node>> key = this.getLinkKey(link, false);
 		Tuple<Id<Node>, Id<Node>> reverseKey = this.getLinkKey(link, true);
-		if (!this.links.containsKey(key)) {
-
+		VisumLink visumLink = this.links.get(key);
+		if (visumLink == null) {
 			final VisumNode fromNode = this.getNode(link.getFromNode());
 			final VisumNode toNode = this.getNode(link.getToNode());
 
@@ -66,27 +66,29 @@ public class VisumNetwork {
 
 			this.links.put(key, link1);
 			this.links.put(reverseKey, link2);
+
+			visumLink = link1;
 		}
-		final VisumLink visumLink = this.links.get(key);
 		visumLink.setMATSimLink(link);
 		return visumLink;
 	}
 
 	private VisumNode getNode(final Node node) {
-		if (!this.nodes.containsKey(node.getId())) {
-			final VisumNode visumNode = new VisumNode(node);
+		VisumNode visumNode = this.nodes.get(node.getId());
+		if (visumNode == null) {
+			visumNode = new VisumNode(node);
 			this.nodes.put(node.getId(), visumNode);
 		}
-		return this.nodes.get(node.getId());
+		return visumNode;
 	}
 
 	private Tuple<Id<Node>, Id<Node>> getLinkKey(final Link link, final Boolean inverse) {
-		final Id toId = link.getToNode().getId();
-		final Id fromId = link.getFromNode().getId();
+		final Id<Node> toId = link.getToNode().getId();
+		final Id<Node> fromId = link.getFromNode().getId();
 		if (inverse) {
-			return new Tuple<Id<Node>, Id<Node>>(toId, fromId);
+			return new Tuple<>(toId, fromId);
 		} else {
-			return new Tuple<Id<Node>, Id<Node>>(fromId, toId);
+			return new Tuple<>(fromId, toId);
 		}
 	}
 

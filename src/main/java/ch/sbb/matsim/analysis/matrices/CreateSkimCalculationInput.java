@@ -19,8 +19,8 @@ public class CreateSkimCalculationInput {
 		String zonesIdAttributeName = args[1];
 		String facilitiesFilename = args[2];
 		String outputDirectory = args[3];
-		int numberOfPointsPerZone = Integer.valueOf(args[4]);
-		int numberOfThreads = Integer.valueOf(args[5]);
+		int numberOfPointsPerZone = Integer.parseInt(args[4]);
+		int numberOfThreads = Integer.parseInt(args[5]);
 
 		Random r = new Random(20180404L);
 

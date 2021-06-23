@@ -116,10 +116,8 @@ public class VisumStopExporter {
 		this.network.addLink(loopLink);
 
 		int stopAreaNo = (int) Double.parseDouble(stopPointAttributes[i][8]);
-		if (this.stopAreasToStopPoints.get(stopAreaNo) == null) {
-			this.stopAreasToStopPoints.put(stopAreaNo, new HashSet<>());
-		}
-		this.stopAreasToStopPoints.get(stopAreaNo).add(stopPointID);
+		Set<Id<TransitStopFacility>> set = this.stopAreasToStopPoints.computeIfAbsent(stopAreaNo, k -> new HashSet<>());
+		set.add(stopPointID);
 
 		// create transitStopFacility
 		TransitStopFacility st = this.scheduleBuilder.createTransitStopFacility(stopPointID, stopPointCoord, false);

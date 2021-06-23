@@ -128,70 +128,87 @@ public class ConvergenceStatsTest {
 					OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, ControlerConfigGroup.CompressionType.none);
 		}
 
+		@Override
 		public Integer getIterationNumber() {
 			return null;
 		}
 
+		@Override
 		public IterationStopWatch getStopwatch() {
 			return null;
 		}
 
+		@Override
 		public TravelTime getLinkTravelTimes() {
 			return null;
 		}
 
+		@Override
 		public Provider<TripRouter> getTripRouterProvider() {
 			return null;
 		}
 
+		@Override
 		public TravelDisutility createTravelDisutilityCalculator() {
 			return null;
 		}
 
+		@Override
 		public LeastCostPathCalculatorFactory getLeastCostPathCalculatorFactory() {
 			return null;
 		}
 
+		@Override
 		public ScoringFunctionFactory getScoringFunctionFactory() {
 			return null;
 		}
 
+		@Override
 		public Config getConfig() {
 			return null;
 		}
 
+		@Override
 		public Scenario getScenario() {
 			return null;
 		}
 
+		@Override
 		public EventsManager getEvents() {
 			return null;
 		}
 
+		@Override
 		public com.google.inject.Injector getInjector() {
 			return null;
 		}
 
+		@Override
 		public CalcLinkStats getLinkStats() {
 			return null;
 		}
 
+		@Override
 		public VolumesAnalyzer getVolumes() {
 			return null;
 		}
 
+		@Override
 		public ScoreStats getScoreStats() {
 			return null;
 		}
 
+		@Override
 		public TravelDisutilityFactory getTravelDisutilityFactory() {
 			return null;
 		}
 
+		@Override
 		public StrategyManager getStrategyManager() {
 			return null;
 		}
 
+		@Override
 		public void addControlerListener(ControlerListener controlerListener) {
 		}
 	}
