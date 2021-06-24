@@ -1,6 +1,5 @@
-package ch.sbb.matsim.analysis.matrices;
+package ch.sbb.matsim.analysis.skims;
 
-import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
