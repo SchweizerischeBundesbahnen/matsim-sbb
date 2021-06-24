@@ -2,9 +2,8 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package ch.sbb.matsim.analysis.matrices;
+package ch.sbb.matsim.analysis.skims;
 
-import ch.sbb.matsim.analysis.skims.CalculateSkimMatrices;
 import ch.sbb.matsim.config.variables.SBBModes;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -75,16 +74,16 @@ public class CalculateIndicatorMatrices {
 		for (Map.Entry<String, double[]> e : timesCar.entrySet()) {
 			String prefix = e.getKey();
 			double[] times = e.getValue();
-			skims.calculateNetworkMatrices(networkFilename, eventsFilename, times, config, prefix, l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0"));
+			skims.calculateAndWriteNetworkMatrices(networkFilename, eventsFilename, times, config, prefix, l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0"));
 		}
 
 		for (Map.Entry<String, double[]> e : timesPt.entrySet()) {
 			String prefix = e.getKey();
 			double[] times = e.getValue();
-			skims.calculatePTMatrices(networkFilename, transitScheduleFilename, times[0], times[1], config, prefix, trainLinePredictor);
+			skims.calculateAndWritePTMatrices(networkFilename, transitScheduleFilename, times[0], times[1], config, prefix, trainLinePredictor);
 		}
 
-		skims.calculateBeelineMatrix();
+		skims.calculateAndWriteBeelineMatrix();
 	}
 
 }

@@ -76,27 +76,27 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 			}
 		}
 
-	}
+    }
 
-	@Override
-	public List<InitialStop> findStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data, RaptorStopFinder.Direction type) {
-		if (type == Direction.ACCESS) {
-			return findAccessStops(facility, person, departureTime, parameters, data);
-		}
-		if (type == Direction.EGRESS) {
-			return findEgressStops(facility, person, departureTime, parameters, data);
-		}
-		return Collections.emptyList();
-	}
+    @Override
+    public List<InitialStop> findStops(Facility fromFacility, Facility toFacility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data, Direction type) {
+        if (type == Direction.ACCESS) {
+            return findAccessStops(fromFacility, person, departureTime, parameters, data);
+        }
+        if (type == Direction.EGRESS) {
+            return findEgressStops(toFacility, person, departureTime, parameters, data);
+        }
+        return Collections.emptyList();
+    }
 
-	private List<InitialStop> findAccessStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data) {
-		SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
-		if (srrCfg.isUseIntermodalAccessEgress()) {
-			return findIntermodalStops(facility, person, departureTime, Direction.ACCESS, parameters, data);
-		} else {
-			double distanceFactor = data.config.getBeelineWalkDistanceFactor();
-			List<TransitStopFacility> stops = findNearbyStops(facility, parameters, data);
-			return stops.stream().map(stop -> {
+    private List<InitialStop> findAccessStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data) {
+        SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
+        if (srrCfg.isUseIntermodalAccessEgress()) {
+            return findIntermodalStops(facility, person, departureTime, Direction.ACCESS, parameters, data);
+        } else {
+            double distanceFactor = data.config.getBeelineWalkDistanceFactor();
+            List<TransitStopFacility> stops = findNearbyStops(facility, parameters, data);
+            return stops.stream().map(stop -> {
 				double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
 				double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
 				double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);

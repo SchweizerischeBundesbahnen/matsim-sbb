@@ -1,4 +1,4 @@
-package ch.sbb.matsim.analysis.matrices;
+package ch.sbb.matsim.analysis.skims;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
