@@ -169,7 +169,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 			modeParameteresBuilder.setMarginalUtilityOfDistance_m(margUtilDistance);
 			modeParameteresBuilder.setMarginalUtilityOfTraveling_s(margUtilTime / 3600);
 			modeParameteresBuilder.setMonetaryDistanceRate(monDistRate);
-			builder.getMatsimScoringParametersBuilder().setModeParameters(mode, modeParameteresBuilder);
+			builder.getMatsimScoringParametersBuilder().setModeParameters(mode, modeParameteresBuilder.build());
 		}
 		sbbParams = builder.build();
 

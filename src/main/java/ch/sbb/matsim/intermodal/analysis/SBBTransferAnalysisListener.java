@@ -31,7 +31,6 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Plan;
-import org.matsim.contrib.util.chart.ChartSaveUtils;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.MatsimServices;
@@ -301,7 +300,6 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
                     true
             );
             chart.getLegend().setItemFont(font);
-            ChartSaveUtils.saveAsPNG(chart, iterationFilename, 2048, 1536);
 
         }
     }
