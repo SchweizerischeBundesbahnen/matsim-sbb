@@ -160,12 +160,13 @@ public class PTMerger {
 		ArrayList<TransitLine> lineToDelete = new ArrayList<>();
 
 		for (TransitLine tl : this.scenario.getTransitSchedule().getTransitLines().values()) {
-			Boolean remove = false;
+			boolean remove = false;
 
-			if (!toKeep.containsKey(tl.getId())) {
+			String marker = toKeep.get(tl.getId());
+			if (marker == null) {
 				remove = false;
 				log.info("Not in file but keeping " + tl.getId());
-			} else if (toKeep.get(tl.getId()).equals("1")) {
+			} else if (marker.equals("1")) {
 				remove = true;
 				log.info("Removing " + tl.getId());
 			} else {

@@ -32,7 +32,7 @@ public class MobiTransitScheduleVerifiyer {
 
 	public static void verifyTransitSchedule(TransitSchedule schedule) {
 		//hard coded comparison values from MOBI 2.1 (schedule 2017)
-		Map<String, Integer> modeComparison21 = new HashMap();
+		Map<String, Integer> modeComparison21 = new HashMap<>();
 		modeComparison21.put(SBBModes.PTSubModes.RAIL, 1390);
 		modeComparison21.put(SBBModes.PTSubModes.TRAM, 1428);
 		modeComparison21.put(SBBModes.PTSubModes.OTHER, 524);
@@ -42,8 +42,8 @@ public class MobiTransitScheduleVerifiyer {
 		int stopsComparison21 = 25037;
 
 		List<String> transportModes = new ArrayList<>();
-		schedule.getTransitLines().values().stream().forEach(transitLine -> transitLine.getRoutes().values().
-				stream().forEach(l -> transportModes.add(l.getTransportMode())));
+		schedule.getTransitLines().values().forEach(transitLine -> transitLine.getRoutes().values()
+				.forEach(l -> transportModes.add(l.getTransportMode())));
 		Set<String> uniqueModes = new TreeSet<>(transportModes);
 		LOGGER.info("Existing transit modes: " + uniqueModes);
 		LOGGER.info("Existing Modes in MOBi 2.1: " + modeComparison21.keySet());

@@ -96,7 +96,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 		events.addHandler(plansHandler);
 		new MatsimEventsReader(events).readFile(eventsFileName);
 		Cleaner cleaner = new Cleaner(plansHandler.population);
-		cleaner.clean(Arrays.asList(SBBModes.PT), Arrays.asList("all"));
+		cleaner.clean(List.of(SBBModes.PT), List.of("all"));
 		new PopulationWriter(plansHandler.population).write(planFile);
 	}
 
@@ -233,7 +233,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 		Person person = createPersonIfNecessary(event.getPersonId());
 		if (person != null) {
 			personsInVehicle.add(person);
-			actLinkIdsPerPerson.put(person, new LinkedList<Id<Link>>());
+			actLinkIdsPerPerson.put(person, new LinkedList<>());
 			actDistancePerPerson.put(person, 0.0);
 			getLastLeg(person.getSelectedPlan()).setDepartureTime(event.getTime());
 		}

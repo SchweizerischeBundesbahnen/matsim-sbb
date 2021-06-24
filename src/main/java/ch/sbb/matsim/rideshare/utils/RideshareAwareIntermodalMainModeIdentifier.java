@@ -28,10 +28,6 @@ public class RideshareAwareIntermodalMainModeIdentifier implements MainModeIdent
 	@Override
 	public String identifyMainMode(List<? extends PlanElement> tripElements) {
 		String delegateMode = delegate.identifyMainMode(tripElements);
-		if (drtWalkTypes.containsKey(delegateMode)) {
-			return drtWalkTypes.get(delegateMode);
-		} else {
-			return delegateMode;
-		}
+        return drtWalkTypes.getOrDefault(delegateMode, delegateMode);
 	}
 }

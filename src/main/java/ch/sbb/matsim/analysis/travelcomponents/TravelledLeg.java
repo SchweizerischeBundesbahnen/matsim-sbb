@@ -8,6 +8,7 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
+import org.matsim.vehicles.Vehicle;
 
 public class TravelledLeg extends TravelComponent {
 
@@ -31,13 +32,14 @@ public class TravelledLeg extends TravelComponent {
 		super(config);
 	}
 
+	@Override
 	public String toString() {
 		return String
 				.format("\tLEG: mode: %s start: %6.0f end: %6.0f distance: %6.0f \n",
 						getMode(), getStartTime(), getEndTime(), getDistance());
 	}
 
-	public Id getVehicleId() {
+	public Id<Vehicle> getVehicleId() {
 		return vehicleId;
 	}
 

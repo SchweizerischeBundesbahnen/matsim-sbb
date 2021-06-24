@@ -57,7 +57,7 @@ public class Isochrones {
     private Network network;
     private Network filteredNetwork;
     private SpeedyGraph graph;
-    private Collection<SimpleFeature> collection = new ArrayList<SimpleFeature>();
+    private Collection<SimpleFeature> collection = new ArrayList<>();
     private TravelTime travelTime;
     private TravelTime travelTimeWithLoad;
     private TravelDisutility travelDisutility;
@@ -219,7 +219,7 @@ public class Isochrones {
 	private List<List<Coordinate>> createBuckets(int bucketCount) {
 		List<List<Coordinate>> buckets = new ArrayList<>(bucketCount);
 		for (int i = 0; i < bucketCount + 1; i++) {
-			buckets.add(new ArrayList<Coordinate>());
+			buckets.add(new ArrayList<>());
 		}
 
 		return buckets;

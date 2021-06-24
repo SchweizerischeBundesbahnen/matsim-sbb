@@ -41,9 +41,7 @@ public class XLSXScoringParserTest {
 		scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.UTL_OF_LINE_SWITCH);
 		scoringParamsSheet.getRow(1).createCell(1, CellType.NUMERIC).setCellValue(utilOfLineSwitch);
 
-		XLSXScoringParser scoringParser = new XLSXScoringParser();
-
-		scoringParser.parseXLSXWorkbook(workbook, config);
+		XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 
 		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
 
@@ -71,9 +69,7 @@ public class XLSXScoringParserTest {
 		scoringParamsSheet.getRow(1).createCell(0, CellType.STRING).setCellValue(XLSXScoringParser.CONSTANT);
 		scoringParamsSheet.getRow(1).createCell(1, CellType.NUMERIC).setCellValue(constantCar);
 
-		XLSXScoringParser scoringParser = new XLSXScoringParser();
-
-		scoringParser.parseXLSXWorkbook(workbook, config);
+		XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 
 		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
 
@@ -122,9 +118,7 @@ public class XLSXScoringParserTest {
 		scoringParamsSheet.getRow(5).createCell(1, CellType.STRING).setCellValue(XLSXScoringParser.MONETARY_DISTANCE_RATE);
 		scoringParamsSheet.getRow(5).createCell(2, CellType.NUMERIC).setCellValue(monetaryDistanceRate);
 
-		XLSXScoringParser scoringParser = new XLSXScoringParser();
-
-		scoringParser.parseXLSXWorkbook(workbook, config);
+		XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 
 		Assert.assertEquals(constant, behaviorGroupConfig.getBehaviorGroupParams().get(sheetName).getPersonGroupByAttribute("none").getModeCorrectionParams().get("car").getConstant(), 0);
 	}

@@ -182,7 +182,7 @@ public class AnalyzeSkimDifferences {
 		}
 	}
 
-	private class SkimsValue {
+	private static class SkimsValue {
 
 		double origValue;
 		double[] compareValues;

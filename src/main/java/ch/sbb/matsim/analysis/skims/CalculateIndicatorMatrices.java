@@ -27,7 +27,7 @@ public class CalculateIndicatorMatrices {
 		String transitScheduleFilename = args[2];
 		String eventsFilename = args[3].equals("-") ? null : args[3];
 		String outputDirectory = args[4];
-		int numberOfThreads = Integer.valueOf(args[5]);
+		int numberOfThreads = Integer.parseInt(args[5]);
 		boolean detectTrainLines = Boolean.parseBoolean(args[6]);
 
 		System.out.println("Detecting train lines: " + detectTrainLines);

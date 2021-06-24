@@ -108,7 +108,7 @@ public class CleanerTest {
 		assertEquals(leg.getMode(), SBBModes.BIKE);
 		assertEquals(leg.getRoute().getStartLinkId().toString(), "2");
 
-		cleaner.clean(Arrays.asList(SBBModes.BIKE), SUBPOP_CB);
+		cleaner.clean(List.of(SBBModes.BIKE), SUBPOP_CB);
 		assertEquals(leg.getMode(), SBBModes.BIKE);
 		assertNotNull(leg.getRoute());
 
@@ -138,7 +138,7 @@ public class CleanerTest {
 		assertEquals(7, pe.size(), 0);
 		assertEquals(SBBModes.ACCESS_EGRESS_WALK, ((Leg) pe.get(1)).getMode());
 
-		cleaner.clean(Arrays.asList(SBBModes.BIKE), SUBPOP_REGULAR);
+		cleaner.clean(List.of(SBBModes.BIKE), SUBPOP_REGULAR);
 		assertEquals(3, pe.size(), 0);
 		assertEquals(SBBModes.BIKE, ((Leg) pe.get(1)).getMode());
 	}

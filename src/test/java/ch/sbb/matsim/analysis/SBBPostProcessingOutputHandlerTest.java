@@ -360,33 +360,40 @@ public class SBBPostProcessingOutputHandlerTest {
 
 	private static class EventsManagerStub implements EventsManager {
 
-		List<EventHandler> eventHandlers = new ArrayList<EventHandler>();
+		List<EventHandler> eventHandlers = new ArrayList<>();
 
 		public List<EventHandler> getEventHandlers() {
 			return this.eventHandlers;
 		}
 
+		@Override
 		public void processEvent(final Event event) {
 		}
 
+		@Override
 		public void addHandler(final EventHandler handler) {
 			this.eventHandlers.add(handler);
 		}
 
+		@Override
 		public void removeHandler(final EventHandler handler) {
 			this.eventHandlers.remove(handler);
 		}
 
+		@Override
 		public void resetHandlers(int iteration) {
 			this.eventHandlers.clear();
 		}
 
+		@Override
 		public void initProcessing() {
 		}
 
+		@Override
 		public void afterSimStep(double time) {
 		}
 
+		@Override
 		public void finishProcessing() {
 		}
 	}

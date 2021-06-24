@@ -302,7 +302,7 @@ public class SimpleAnnealer implements IterationStartsListener, StartupListener,
 	}
 
 	private void checkAndFixStartValue(SimpleAnnealerConfigGroup.AnnealingVariable av, StartupEvent event) {
-		Double configValue;
+		double configValue;
 		switch (av.getAnnealParameter()) {
 			case BrainExpBeta:
 				configValue = this.config.planCalcScore().getBrainExpBeta();

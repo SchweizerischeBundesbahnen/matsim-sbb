@@ -8,11 +8,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
-import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.Config;
-import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.algorithms.PermissibleModesCalculator;
 
 public class SBBPermissibleModesCalculator implements PermissibleModesCalculator {

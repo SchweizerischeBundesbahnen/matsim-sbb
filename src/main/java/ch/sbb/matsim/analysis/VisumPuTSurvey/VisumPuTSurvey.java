@@ -136,9 +136,11 @@ public class VisumPuTSurvey {
 							egressMode = SBBModes.WALK_FOR_ANALYSIS;
 						}
 					}
-					Integer i = 1;
+					int i = 1;
 					for (TravelledLeg leg : trip.getLegs()) {
-						if (this.ptVehicles.containsKey(leg.getVehicleId())) {
+						Id<Vehicle> vId = leg.getVehicleId();
+						PTVehicle vehicle = this.ptVehicles.get(vId);
+						if (vehicle != null) {
 
 							writer.set(COL_PATH_ID, Integer.toString(trip.getElementId()));
 							writer.set(COL_LEG_ID, Integer.toString(i));
@@ -147,8 +149,6 @@ public class VisumPuTSurvey {
 							String alighting = this.transitSchedule.getFacilities().get(leg.getAlightingStop()).getAttributes().getAttribute(STOP_NO).toString();
 							writer.set(COL_TO_STOP, alighting);
 
-							Id vId = leg.getVehicleId();
-							PTVehicle vehicle = this.ptVehicles.get(vId);
 							Id<TransitLine> lId = vehicle.getLineId();
 							Id<TransitRoute> rId = vehicle.getRouteId();
 							Attributes routeAttributes = this.transitSchedule.getTransitLines().get(lId).getRoutes().get(rId).getAttributes();
@@ -177,8 +177,8 @@ public class VisumPuTSurvey {
 							writer.set(COL_EINHSTABFAHRTSTAG, getDayIndex(time));
 							writer.set(COL_EINHSTABFAHRTSZEIT, getTime(time));
 
-							Double pfahrt = 1.0 * scaleFactor;
-							writer.set(COL_PFAHRT, Integer.toString(pfahrt.intValue()));
+							double pfahrt = 1.0 * scaleFactor;
+							writer.set(COL_PFAHRT, Integer.toString((int) pfahrt));
 
 							String subpopulation = this.scenario.getPopulation().getPersons().get(paxId).getAttributes().getAttribute("subpopulation").toString();
 							writer.set(COL_SUBPOP, subpopulation);
@@ -226,7 +226,7 @@ public class VisumPuTSurvey {
 		return Time.writeTime(sec);
 	}
 
-	private class PTVehicle {
+	private static class PTVehicle {
 
 		TransitLine transitLine;
 		TransitRoute transitRoute;
