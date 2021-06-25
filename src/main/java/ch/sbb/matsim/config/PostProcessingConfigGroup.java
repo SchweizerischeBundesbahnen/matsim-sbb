@@ -33,6 +33,8 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	private String linkCountDataFile = null;
 	private String stopCountDataFile = null;
 	private Boolean writeVisumPuTSurvey = false;
+	static private final String SIMULATION_SAMPLE_SIZE = "simulationSampleSize";
+	private double simulationSampleSize;
 
 	private Boolean analyseScreenline = false;
 	private String shapefileScreenline = null;
@@ -48,6 +50,16 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
 	public PostProcessingConfigGroup() {
 		super(GROUP_NAME);
+	}
+
+	@StringGetter(SIMULATION_SAMPLE_SIZE)
+	public double getSimulationSampleSize() {
+		return simulationSampleSize;
+	}
+
+	@StringSetter(SIMULATION_SAMPLE_SIZE)
+	public void setSimulationSampleSize(double simulationSampleSize) {
+		this.simulationSampleSize = simulationSampleSize;
 	}
 
 	@StringGetter(WRITE_RAIL_MATRIX)

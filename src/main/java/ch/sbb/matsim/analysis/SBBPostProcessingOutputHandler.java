@@ -70,7 +70,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 	}
 
 	static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
-		double scaleFactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
+		double scaleFactor = 1.0 / ppConfig.getSimulationSampleSize();
 		List<EventsAnalysis> analyses = new LinkedList<>();
 
 		if (ppConfig.getPtVolumes()) {
@@ -151,7 +151,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
 	@Override
 	public void notifyIterationEnds(IterationEndsEvent event) {
-		double scalefactor = 1.0 / scenario.getConfig().qsim().getFlowCapFactor();
+		double scalefactor = 1.0 / ppConfig.getSimulationSampleSize();
 		for (EventsAnalysis analysis : this.analyses) {
 			analysis.writeResults(event.getIteration() == this.config.getLastIteration());
 			this.eventsManager.removeHandler(analysis);

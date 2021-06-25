@@ -102,6 +102,7 @@ public class EventsToTravelDiaries implements
 	private String zoneAttribute = null;
 	private Config config;
 	private Scenario scenario;
+	private final double sampleSize;
 
 	public EventsToTravelDiaries(Scenario scenario, String filename, ZonesCollection allZones) {
 		this.filename = filename;
@@ -124,6 +125,7 @@ public class EventsToTravelDiaries implements
 		if (ppConfig.getWriteVisumPuTSurvey()) {
 			this.writeVisumPuTSurvey = true;
 		}
+		this.sampleSize = ppConfig.getSimulationSampleSize();
 	}
 
 	private static String id2string(Id<?> id) {
@@ -579,7 +581,8 @@ public class EventsToTravelDiaries implements
 		}
 
 		if (this.writeVisumPuTSurvey) {
-			Double scaleFactor = 1.0 / this.config.qsim().getFlowCapFactor();
+			Double scaleFactor = 1.0 / sampleSize;
+
 			VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(this.getChains(), this.scenario, this.zones, scaleFactor);
 			visumPuTSurvey.write(this.filename);
 		}

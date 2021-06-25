@@ -24,6 +24,7 @@ import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.SamplesizeFactors;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
@@ -101,6 +102,7 @@ public class RunSBB {
 	}
 
 	public static void run(Config config) {
+
 		new S3Downloader(config);
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
@@ -203,6 +205,7 @@ public class RunSBB {
 			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
 		}
 		ActivityParamsBuilder.buildActivityParams(config);
+		SamplesizeFactors.setFlowAndStorageCapacities(config);
 	}
 
 	public static void createInitialEndTimeAttribute(Population population) {
