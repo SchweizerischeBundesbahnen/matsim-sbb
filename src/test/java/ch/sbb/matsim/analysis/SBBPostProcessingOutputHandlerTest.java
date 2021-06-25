@@ -75,6 +75,8 @@ public class SBBPostProcessingOutputHandlerTest {
 		EventsManagerStub eventsManager = new EventsManagerStub();
 		Config config = ConfigUtils.createConfig();
 		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, true, true, true, true, true, true);
+		ppConfig.setSimulationSampleSize(1.0);
+
 		config.addModule(ppConfig);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
@@ -109,6 +111,7 @@ public class SBBPostProcessingOutputHandlerTest {
 		EventsManagerStub eventsManager = new EventsManagerStub();
 		Config config = ConfigUtils.createConfig();
 		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, true, true, true, true, true, true);
+		ppConfig.setSimulationSampleSize(1.0);
 		config.addModule(ppConfig);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
@@ -144,6 +147,7 @@ public class SBBPostProcessingOutputHandlerTest {
 		EventsManagerStub eventsManager = new EventsManagerStub();
 		Config config = ConfigUtils.createConfig();
 		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, true, true, true, true, true, true);
+		ppConfig.setSimulationSampleSize(1.0);
 		config.addModule(ppConfig);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
@@ -180,6 +184,7 @@ public class SBBPostProcessingOutputHandlerTest {
 		EventsManagerStub eventsManager = new EventsManagerStub();
 		Config config = ConfigUtils.createConfig();
 		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, true, true, true, true, true, true);
+		ppConfig.setSimulationSampleSize(1.0);
 		config.addModule(ppConfig);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
@@ -214,6 +219,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
 		Config config = ConfigUtils.createConfig();
 		PostProcessingConfigGroup ppConfig = new PostProcessingConfigGroup();
+		ppConfig.setSimulationSampleSize(1.0);
 		ppConfig.setSimulationSampleSize(1.0);
 		ppConfig.setFinalDailyVolumes(true);
 		ppConfig.setPtVolumes(true);
@@ -273,6 +279,8 @@ public class SBBPostProcessingOutputHandlerTest {
 
 		Config config = ConfigUtils.createConfig();
 		PostProcessingConfigGroup ppConfig = new PostProcessingConfigGroup();
+		ppConfig.setSimulationSampleSize(1.0);
+
 		ppConfig.setVisumNetFile(true);
 		ppConfig.setFinalDailyVolumes(true);
 		ppConfig.setTravelDiaries(false);
