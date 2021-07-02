@@ -18,7 +18,7 @@ public class SamplesizeFactorsTest {
             config.addModule(pp);
             SamplesizeFactors.setFlowAndStorageCapacities(config);
 
-            Assert.assertEquals(0.11, config.hermes().getFlowCapacityFactor(), 0.001);
+            Assert.assertEquals(0.1075, config.hermes().getFlowCapacityFactor(), 0.001);
             Assert.assertEquals(0.20, config.hermes().getStorageCapacityFactor(), 0.001);
             Assert.assertEquals(0.10, config.qsim().getFlowCapFactor(), 0.001);
             Assert.assertEquals(0.40, config.qsim().getStorageCapFactor(), 0.001);
