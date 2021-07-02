@@ -17,14 +17,17 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.preparation.bruggen;
+package ch.sbb.matsim.preparation.casestudies;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import org.apache.commons.lang3.mutable.MutableInt;
+import java.util.Set;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.ConfigUtils;
@@ -32,55 +35,59 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.population.io.StreamingPopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.io.IOUtils;
 
-public class SlicePlansBruggen {
+public class SlicePlansAccordingToRef {
 
+    /*
+     * extracts the same agents as in a reference case
+     */
     public static void main(String[] args) {
         String inputPlansCase = args[0];
-        String inputPlansRef = args[1];
-        String outputDirCase = args[2];
-        String outputDirRef = args[3];
-        int partitions = Integer.parseInt(args[4]);
-        Random random = MatsimRandom.getRandom();
-        //first, read the case (more plans than ref)
-        List<StreamingPopulationWriter> writersCase = new ArrayList<>();
+        String outputDirCase = args[1];
         Map<Id<Person>, Integer> personPartition = new HashMap<>();
+        List<StreamingPopulationWriter> writersCase = new ArrayList<>();
+        Random r = MatsimRandom.getRandom();
+
+        int partitions = args.length - 2;
+        for (int i = 2; i < args.length; i++) {
+            Set<Id<Person>> personsPerPartition = readPersonsCSV(args[3]);
+            int partition = i - 2;
+            personsPerPartition.stream().forEach(p -> personPartition.put(p, partition));
+
+        }
+
         for (int i = 0; i < partitions; i++) {
             StreamingPopulationWriter writer = new StreamingPopulationWriter();
             writer.startStreaming(outputDirCase + "/population_" + i + ".xml.gz");
             writersCase.add(writer);
         }
         StreamingPopulationReader streamingPopulationReaderCase = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
-        MutableInt ii = new MutableInt();
         streamingPopulationReaderCase.addAlgorithm(p -> {
-            int r = ii.toInteger() % partitions;
-            personPartition.put(p.getId(), r);
-            writersCase.get(r).run(p);
-            ii.increment();
+            Integer part = personPartition.get(p.getId());
+            if (part == null) {
+                //random selection for newly added persons
+                part = r.nextInt(partitions);
+            }
+            writersCase.get(part).run(p);
         });
         streamingPopulationReaderCase.readFile(inputPlansCase);
+
         writersCase.forEach(w -> w.closeStreaming());
 
-        //now read reference and put person *if existing* into same partition
-        List<StreamingPopulationWriter> writersRef = new ArrayList<>();
+    }
 
-        for (int i = 0; i < partitions; i++) {
-            StreamingPopulationWriter writer = new StreamingPopulationWriter();
-            writer.startStreaming(outputDirRef + "/population_" + i + ".xml.gz");
-            writersRef.add(writer);
+    private static Set<Id<Person>> readPersonsCSV(String filename) {
+        Set<Id<Person>> personIds = new HashSet<>();
+        BufferedReader br = IOUtils.getBufferedReader(filename);
+        try {
+            String[] line = br.readLine().split(";");
+            personIds.add(Id.createPersonId(line[0]));
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        StreamingPopulationReader streamingPopulationReaderRef = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
-        streamingPopulationReaderRef.addAlgorithm(person -> {
-            Integer r = personPartition.get(person.getId());
-            if (r != null) {
-                writersRef.get(r).run(person);
-            } else {
-                writersRef.get(random.nextInt(partitions)).run(person);
-                System.out.println(person.getId() + " not part of case population");
-            }
-        });
-        streamingPopulationReaderRef.readFile(inputPlansRef);
-        writersRef.forEach(w -> w.closeStreaming());
+        return personIds;
     }
 
 }
