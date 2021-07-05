@@ -17,7 +17,7 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.preparation.bruggen;
+package ch.sbb.matsim.preparation.casestudies;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,7 +36,7 @@ import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
 
-public class MergeAndRemovePlansBruggen {
+public class MergeAndRemovePlans {
 
     String inputPlans;
     String blackListCsv;
@@ -47,7 +47,10 @@ public class MergeAndRemovePlansBruggen {
     String outputFacilities;
     Set<Id<Person>> blacklist;
 
-    public MergeAndRemovePlansBruggen(String[] args) {
+    /**
+     * @param args inputplans = original plans file, blackListCSV = List of plans that needs to be deleted, additionalPlans = newly generated plans
+     */
+    public MergeAndRemovePlans(String[] args) {
         inputPlans = args[0];
         blackListCsv = args[1];
         additionalPlans = args[2];
@@ -58,7 +61,7 @@ public class MergeAndRemovePlansBruggen {
     }
 
     public static void main(String[] args) throws IOException {
-        new MergeAndRemovePlansBruggen(args).run();
+        new MergeAndRemovePlans(args).run();
     }
 
     private void run() throws IOException {

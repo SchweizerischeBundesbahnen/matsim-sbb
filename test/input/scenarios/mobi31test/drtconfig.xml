@@ -54,6 +54,8 @@
     </module>
 
     <module name="PostProcessing">
+        <param name="simulationSampleSize" value="0.1"/>
+
         <!-- Run Screenline Analysis -->
         <param name="analyseScreenline" value="false"/>
         <param name="eventsPerPerson" value="false"/>

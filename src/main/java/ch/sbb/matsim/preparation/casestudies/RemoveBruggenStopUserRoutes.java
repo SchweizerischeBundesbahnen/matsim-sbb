@@ -17,7 +17,7 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.preparation.bruggen;
+package ch.sbb.matsim.preparation.casestudies;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.utils.SBBTripsToLegsAlgorithm;

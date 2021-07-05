@@ -17,13 +17,13 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
-import ch.sbb.matsim.config.SBBPopulationSamplerConfigGroup;
 import ch.sbb.matsim.config.SBBS3ConfigGroup;
 import ch.sbb.matsim.config.SBBSupplyConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.SamplesizeFactors;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
@@ -33,7 +33,6 @@ import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import ch.sbb.matsim.preparation.LinkToFacilityAssigner;
 import ch.sbb.matsim.preparation.LinkToStationsAssigner;
 import ch.sbb.matsim.preparation.NetworkMerger;
-import ch.sbb.matsim.preparation.PopulationSampler.SBBPopulationSampler;
 import ch.sbb.matsim.preparation.PrepareActivitiesInPlans;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
@@ -81,7 +80,7 @@ import org.matsim.core.utils.misc.OptionalTime;
 public class RunSBB {
 
 	public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-			new SBBBehaviorGroupsConfigGroup(), new SBBPopulationSamplerConfigGroup(), new SwissRailRaptorConfigGroup(),
+			new SBBBehaviorGroupsConfigGroup(), new SwissRailRaptorConfigGroup(),
 			new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
 			new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup()};
 	private static final Logger log = Logger.getLogger(RunSBB.class);
@@ -101,6 +100,7 @@ public class RunSBB {
 	}
 
 	public static void run(Config config) {
+
 		new S3Downloader(config);
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
@@ -127,11 +127,6 @@ public class RunSBB {
 				scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
 		scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
-		SBBPopulationSamplerConfigGroup samplerConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBPopulationSamplerConfigGroup.class);
-		if (samplerConfig.getDoSample()) {
-			SBBPopulationSampler sbbPopulationSampler = new SBBPopulationSampler();
-			sbbPopulationSampler.sample(scenario.getPopulation(), samplerConfig.getFraction());
-		}
 
 	}
 
@@ -203,6 +198,7 @@ public class RunSBB {
 			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
 		}
 		ActivityParamsBuilder.buildActivityParams(config);
+		SamplesizeFactors.setFlowAndStorageCapacities(config);
 	}
 
 	public static void createInitialEndTimeAttribute(Population population) {
