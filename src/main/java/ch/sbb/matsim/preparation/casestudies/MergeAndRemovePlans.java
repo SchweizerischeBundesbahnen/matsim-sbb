@@ -73,10 +73,12 @@ public class MergeAndRemovePlans {
         for (Person p : scenario.getPopulation().getPersons().values()) {
             spw.run(p);
         }
-        var spr = new StreamingPopulationReader(scenario);
+        var spr = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
         spr.addAlgorithm(person -> {
-            if (!this.blacklist.contains(person.getId())) {
-                spw.run(person);
+            if (!(this.blacklist.contains(person.getId()))) {
+                if (!(scenario.getPopulation().getPersons().containsKey(person.getId()))) {
+                    spw.run(person);
+                }
             }
         });
         spr.readFile(inputPlans);

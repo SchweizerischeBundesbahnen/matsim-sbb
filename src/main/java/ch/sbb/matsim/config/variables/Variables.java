@@ -7,24 +7,33 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class Variables {
 
-	public static final String SUBPOPULATION = "subpopulation";
-	public static final String REGULAR = "regular";
+    public static final String SUBPOPULATION = "subpopulation";
+    public static final String REGULAR = "regular";
+    public static final String NO_REPLANNING = "no_replanning";
+    public static final String AIRPORT_RAIL = "airport_rail";
+    public static final String AIRPORT_ROAD = "airport_road";
+    public static final String CB_ROAD = "cb_road";
+    public static final String CB_RAIL = "cb_rail";
+    public static final String TOURISM_RAIL = "tourism_rail";
+    public static final String FREIGHT_ROAD = "freight_road";
+    public static final List<String> EXOGENEOUS_DEMAND = List.of(AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
 
-	public static final String PT_SUBSCRIPTION = "pt_subscr";
-	public static final String GA = "GA";
-	public static final String VA = "VA";
-	public static final String HTA = "HTA";
+    public static final String PT_SUBSCRIPTION = "pt_subscr";
+    public static final String GA = "GA";
+    public static final String VA = "VA";
+    public static final String HTA = "HTA";
 
-	public static final String MS_REGION = "ms_region";
-	public static final String T_ZONE = "tZone";
+    public static final String ZONE_ID = "zone_id";
+    public static final String MS_REGION = "ms_region";
+    public static final String T_ZONE = "tZone";
 
-	public static final String INIT_END_TIMES = "initialActivityEndTimes";
-	public static final String NO_INIT_END_TIME = "NONE";
+    public static final String INIT_END_TIMES = "initialActivityEndTimes";
+    public static final String NO_INIT_END_TIME = "NONE";
 
-	public static final String DEFAULT_ZONE = "999999999";
+    public static final String DEFAULT_ZONE = "999999999";
 
-	public static final String INTERMODAL_ACCESS_LINK_ID = "accessLinkId";
-	public static final String PERSONID = "personId";
+    public static final String INTERMODAL_ACCESS_LINK_ID = "accessLinkId";
+    public static final String PERSONID = "personId";
 
 	public static final String CAR_AVAIL = "car_available";
 	public static final String CAR_AVAL_TRUE = "1";
