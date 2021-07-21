@@ -24,7 +24,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>14.0-PR1565</matsim.version>
+        <matsim.version>14.0-PR1601</matsim.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>
@@ -65,7 +65,7 @@
             <artifactId>sbb-extensions</artifactId>
             <version>${matsim.version}</version>
         </dependency>
-        <dependency> <!-- MATSim uses Guice 4.1.0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
+        <dependency> <!-- MATSim uses Guice .0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>29.0-jre</version>
