@@ -55,7 +55,7 @@ public class ActivityParamsBuilder {
 		}
 
 		// work
-		for (long ii = 30; ii <= 720; ii += 30) {
+		for (long ii = 30; ii <= 900; ii += 30) {
 			String type = SBBActivities.work + "_" + ii;
 			final ActivityParams params = new ActivityParams(type);
 			params.setTypicalDuration(ii * 60.0);
@@ -65,7 +65,7 @@ public class ActivityParamsBuilder {
 			config.planCalcScore().addActivityParams(params);
 		}
 
-		for (long ii = 30; ii <= 720; ii += 30) {
+		for (long ii = 30; ii <= 900; ii += 30) {
 			// morning peak is assumed to be between 7am and 8am
 			String type = SBBActivities.work + "_" + ii + "_mp";
 			final ActivityParams params = new ActivityParams(type);
@@ -77,7 +77,7 @@ public class ActivityParamsBuilder {
 			config.planCalcScore().addActivityParams(params);
 		}
 
-		for (long ii = 30; ii <= 720; ii += 30) {
+		for (long ii = 30; ii <= 900; ii += 30) {
 			// noon peak is assumed to be between 12pm and 2pm
 			String type = SBBActivities.work + "_" + ii + "_np";
 			final ActivityParams params = new ActivityParams(type);
@@ -90,7 +90,7 @@ public class ActivityParamsBuilder {
 		}
 
 		// education
-		for (long ii = 30; ii <= 720; ii += 30) {
+		for (long ii = 30; ii <= 900; ii += 30) {
 			String type = SBBActivities.education + "_" + ii;
 			final ActivityParams params = new ActivityParams(type);
 			params.setTypicalDuration(ii * 60.0);
@@ -100,7 +100,7 @@ public class ActivityParamsBuilder {
 			config.planCalcScore().addActivityParams(params);
 		}
 
-		for (long ii = 30; ii <= 720; ii += 30) {
+		for (long ii = 30; ii <= 900; ii += 30) {
 			// morning peak is assumed to be between 7am and 9am
 			String type = SBBActivities.education + "_" + ii + "_mp";
 			final ActivityParams params = new ActivityParams(type);
@@ -112,7 +112,7 @@ public class ActivityParamsBuilder {
 			config.planCalcScore().addActivityParams(params);
 		}
 
-		for (long ii = 30; ii <= 720; ii += 30) {
+		for (long ii = 30; ii <= 900; ii += 30) {
 			// noon peak is assumed to be between 12.5pm and 2pm
 			String type = SBBActivities.education + "_" + ii + "_np";
 			final ActivityParams params = new ActivityParams(type);
