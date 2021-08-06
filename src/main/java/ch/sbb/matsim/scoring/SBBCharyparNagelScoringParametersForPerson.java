@@ -176,7 +176,11 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 		// make sure we re-use activity params when possible
 		Map<String, ActivityUtilityParameters> actParams = sbbParams.getMatsimScoringParameters().utilParams;
 		for (String actType : usedActTypes) {
-			ActivityUtilityParameters params = this.actParamCache.computeIfAbsent(new ComparableActivityParams(actParams.get(actType)), k -> k).params;
+			final ActivityUtilityParameters activityUtilityParameters = actParams.get(actType);
+			if (activityUtilityParameters == null) {
+				throw new RuntimeException("No parameters found for activity type " + actType);
+			}
+			ActivityUtilityParameters params = this.actParamCache.computeIfAbsent(new ComparableActivityParams(activityUtilityParameters), k -> k).params;
 			actParams.replace(actType, params);
 		}
 

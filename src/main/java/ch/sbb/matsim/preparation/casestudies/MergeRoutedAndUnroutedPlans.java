@@ -81,7 +81,7 @@ public class MergeRoutedAndUnroutedPlans {
      * T
      *
      * @param unroutedPlans MATSim plans which will have full replanning
-     * @param routedPlans MATSim plans where last selected plan is performed
+     * @param routedPlans MATSim plans where last selected plan is performed (can be left out by "-")
      * @param unroutedPlansFacilities Facilities belongig to the fully replanned scenario
      * @param routedPlansFacilities Facilities belongig to the  scenario without replanning (use "-" if not applicable)
      * @param whiteListZonesFiles A text file containing zone IDs (line by line) with zones. Any agent performing at least one activity here will be fully replanned.

@@ -51,24 +51,35 @@ public class GenerateNetworkChangeEvents {
 
     private final int ENDTIME = 32 * 3600;
     private final int TIMESTEP = 15 * 60;
-    private final String NETWORKFILE = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20210623_Agy\\streets\\output\\network.xml.gz";
-    private final String EVENTSFILE = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_3.1.LFP\\2040\\sim\\3.40.53\\output_slice0\\MOBI34053.output_events.xml.gz";
-    private final String CHANGEFILE = "C:\\devsbb\\changeEvents.xml.gz";
-    private final String BLACKLISTZONES = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20210623_Agy\\sim\\reduce\\fribourgzones.txt";
-    private final String MOBIZONES = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20210623_Agy\\plans\\mobi-zones.shp";
+
     private final double MINIMUMFREESPEED = 3;
+    private final String networkFile;
+    private final String eventsFile;
+    private final String outputChangeEventsFile;
+    private final String blacklistZones;
+    private final String zonesFile;
     private Scenario sc;
     private TravelTimeCalculator tcc;
     private List<NetworkChangeEvent> networkChangeEvents;
     private Set<Id<Link>> blacklistlinks;
 
-    public GenerateNetworkChangeEvents() {
+    public GenerateNetworkChangeEvents(String networkFile, String eventsFile, String outputChangeEventsFile, String blacklistZones, String zonesFile) {
+        this.networkFile = networkFile;
+        this.eventsFile = eventsFile;
+        this.outputChangeEventsFile = outputChangeEventsFile;
+        this.blacklistZones = blacklistZones;
+        this.zonesFile = zonesFile;
         this.networkChangeEvents = new ArrayList<>();
 
     }
 
     public static void main(String[] args) {
-        GenerateNetworkChangeEvents ncg = new GenerateNetworkChangeEvents();
+        String networkFile = args[0];
+        String eventsFile = args[1];
+        String outputChangeEvents = args[2];
+        String blacklistZones = args[3];
+        String zonesFile = args[4];
+        GenerateNetworkChangeEvents ncg = new GenerateNetworkChangeEvents(networkFile, eventsFile, outputChangeEvents, blacklistZones, zonesFile);
         ncg.run();
 
     }
@@ -77,11 +88,12 @@ public class GenerateNetworkChangeEvents {
         prepareScen();
         tcc = readEvents();
         createNetworkChangeEvents(sc.getNetwork(), tcc);
-        new NetworkChangeEventsWriter().write(CHANGEFILE, networkChangeEvents);
+        new NetworkChangeEventsWriter().write(outputChangeEventsFile, networkChangeEvents);
     }
 
     public void createNetworkChangeEvents(Network network, TravelTimeCalculator tcc2) {
         for (Link l : network.getLinks().values()) {
+
             if ((l.getAllowedModes().size() == 1) && l.getAllowedModes().contains("pt")) {
                 continue;
             }
@@ -114,9 +126,9 @@ public class GenerateNetworkChangeEvents {
 
         try {
             sc = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-            new MatsimNetworkReader(sc.getNetwork()).readFile(NETWORKFILE);
-            Zones zones = ZonesLoader.loadZones("zones", MOBIZONES, Variables.ZONE_ID);
-            Set<Id<Zone>> whitelistZones = Files.lines(Path.of(BLACKLISTZONES)).map(s -> Id.create(s, Zone.class)).collect(Collectors.toSet());
+            new MatsimNetworkReader(sc.getNetwork()).readFile(networkFile);
+            Zones zones = ZonesLoader.loadZones("zones", zonesFile, Variables.ZONE_ID);
+            Set<Id<Zone>> whitelistZones = Files.lines(Path.of(blacklistZones)).map(s -> Id.create(s, Zone.class)).collect(Collectors.toSet());
             this.blacklistlinks = sc.getNetwork().getLinks().values().parallelStream().filter(l -> {
                 var z = zones.findZone(l.getFromNode().getCoord());
                 if (z != null) {
@@ -139,7 +151,7 @@ public class GenerateNetworkChangeEvents {
         TravelTimeCalculatorConfigGroup ttccg = new TravelTimeCalculatorConfigGroup();
         TravelTimeCalculator tc = new TravelTimeCalculator(sc.getNetwork(), ttccg);
         manager.addHandler(tc);
-        new MatsimEventsReader(manager).readFile(EVENTSFILE);
+        new MatsimEventsReader(manager).readFile(eventsFile);
         return tc;
     }
 
