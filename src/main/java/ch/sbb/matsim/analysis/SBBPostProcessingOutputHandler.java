@@ -7,6 +7,7 @@ package ch.sbb.matsim.analysis;
 import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
@@ -47,6 +48,9 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 
 	@Inject
 	private RailDemandReporting railDemandReporting;
+
+	@Inject
+	private PutSurveyWriter putSurveyWriter;
 
 	@Inject
 	private PtLinkVolumeAnalyzer ptLinkVolumeAnalyzer;
@@ -158,6 +162,8 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 		}
 		String railTripsFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandReport.csv")
 				: controlerIO.getIterationFilename(event.getIteration(), "railDemandReport.csv");
+		String putSurveyNew = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("putSurvey.csv")
+				: controlerIO.getIterationFilename(event.getIteration(), "putSurvey.csv");
 		if (railDemandReporting != null) {
 			railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, scalefactor);
 		}
@@ -170,6 +176,8 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 				String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.csv")
 						: controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.csv");
 				ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scenario.getConfig().controler().getRunId(), scalefactor);
+				putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
+
 			}
 		}
 
