@@ -12,6 +12,7 @@ import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
+import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
 import java.util.LinkedList;
@@ -126,6 +127,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
 	@Override
 	public void notifyStartup(StartupEvent event) {
 		String outputDirectory = this.controlerIO.getOutputFilename("");
+		ScenarioConsistencyChecker.writeLog(controlerIO.getOutputFilename("scenarioCheck.log"));
 
 		if (this.ppConfig.getWriteAgentsCSV() || this.ppConfig.getWritePlanElementsCSV()) {
 			new PopulationToCSV(scenario).write(outputDirectory);

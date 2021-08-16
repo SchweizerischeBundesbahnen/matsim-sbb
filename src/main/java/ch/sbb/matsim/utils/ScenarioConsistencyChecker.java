@@ -23,12 +23,15 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -42,11 +45,22 @@ import org.matsim.vehicles.Vehicle;
 public class ScenarioConsistencyChecker {
 
 	public static final Logger LOGGER = Logger.getLogger(ScenarioConsistencyChecker.class);
+	private static String logmessage = "";
 
 	public static void checkScenarioConsistency(Scenario scenario) {
 		checkExogeneousShares(scenario);
 		if (!(checkVehicles(scenario) && checkPlans(scenario) && checkIntermodalAttributesAtStops(scenario))) {
 			throw new RuntimeException(" Error found while checking consistency of plans. Check log!");
+		}
+
+	}
+
+	public static void writeLog(String path) {
+		try {
+			LOGGER.info("Writing scenario log check to " + path);
+			FileUtils.writeStringToFile(new File(path), logmessage);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -57,12 +71,18 @@ public class ScenarioConsistencyChecker {
 		LOGGER.info("Found the following subpopulations: " + subpops.keySet().toString());
 		Map<String, Double> shares = Map.of("regular", 0.65, "freight_road", 0.25, "cb_road", 0.08, "cb_rail", 0.0067, "airport_road", 0.0033, "airport_rail", 0.0024);
 
-		LOGGER.info("Persons per Subpopulation");
+		final String persons_per_subpopulation = "Persons per Subpopulation";
+		LOGGER.info(persons_per_subpopulation);
+		logmessage = logmessage + persons_per_subpopulation + "\n";
 		LOGGER.info("Subpopulation\tAbsolute\tShare\tShare in MOBi 3.1");
+		logmessage = logmessage + "Subpopulation\tAbsolute\tShare\tShare in MOBi 3.1\n";
 		for (Entry<String, Integer> e : subpops.entrySet()) {
 			Double m31share = shares.get(e.getKey());
-			LOGGER.info(e.getKey() + "\t" + e.getValue() + "\t" + e.getValue() / sum + "\t" + m31share);
+			final String message = e.getKey() + "\t" + e.getValue() + "\t" + e.getValue() / sum + "\t" + m31share;
+			LOGGER.info(message);
+			logmessage = logmessage + message + "\n";
 		}
+		logmessage = logmessage + "\n";
 
 	}
 
@@ -156,7 +176,9 @@ public class ScenarioConsistencyChecker {
 					checkPassed = false;
 					LOGGER.error("No stop has a value defined for  " + att);
 				} else {
-					LOGGER.info("Found " + count + " stops with intermodal access attribute " + att);
+					final String message = "Found " + count + " stops with intermodal access attribute " + att;
+					logmessage = logmessage + message + "\n";
+					LOGGER.info(message);
 				}
 			}
 		}
@@ -172,10 +194,14 @@ public class ScenarioConsistencyChecker {
 			int count = scenario.getPopulation().getPersons().values().stream().map(p -> p.getAttributes().getAttribute(att)).filter(Objects::nonNull).mapToInt(a -> Integer.parseInt(a.toString()))
 					.sum();
 			if (count == 0) {
-				LOGGER.error("No person has a value defined for  " + att);
+				final String s = "No person has a value defined for  " + att;
+				LOGGER.error(s);
+				logmessage = logmessage + s + "\n";
 
 			} else {
-				LOGGER.info("Found " + count + " persons with intermodal access attribute " + att);
+				final String message = "Found " + count + " persons with intermodal access attribute " + att;
+				LOGGER.info(message);
+				logmessage = logmessage + message + "\n";
 			}
 		}
 
