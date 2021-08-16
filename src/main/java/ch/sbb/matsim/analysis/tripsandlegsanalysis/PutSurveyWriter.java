@@ -26,10 +26,12 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -40,16 +42,23 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 public class PutSurveyWriter {
 
@@ -85,12 +94,12 @@ public class PutSurveyWriter {
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
-    private static final String STOP_NO = "02_Stop_No";
-    private static final String TSYS_CODE = "09_TSysCode";
-    private static final String DIRECTION_CODE = "04_DirectionCode";
-    private static final String TRANSITLINE = "02_TransitLine";
-    private static final String LINEROUTENAME = "03_LineRouteName";
-    private static final String FZPNAME = "05_Name";
+    public static final String STOP_NO = "02_Stop_No";
+    public static final String TSYS_CODE = "09_TSysCode";
+    public static final String DIRECTION_CODE = "04_DirectionCode";
+    public static final String TRANSITLINE = "02_TransitLine";
+    public static final String LINEROUTENAME = "03_LineRouteName";
+    public static final String FZPNAME = "05_Name";
     private final Zones zones;
     private final double scaleFactor;
     private final TransitSchedule schedule;
@@ -108,9 +117,98 @@ public class PutSurveyWriter {
 
     }
 
+    public static void writePutSurvey(String filename, List<List<PutSurveyEntry>> entries) {
+
+        try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filename)) {
+            entries.stream().flatMap(l -> l.stream()).forEach(e -> {
+                writer.set(COL_PATH_ID, e.path_id);
+                writer.set(COL_LEG_ID, e.leg_id);
+                writer.set(COL_FROM_STOP, e.from_stop);
+                writer.set(COL_TO_STOP, e.to_stop);
+                writer.set(COL_VSYSCODE, e.vsyscode);
+                writer.set(COL_LINNAME, e.linname);
+                writer.set(COL_LINROUTENAME, e.linroutename);
+                writer.set(COL_RICHTUNGSCODE, e.richtungscode);
+                writer.set(COL_FZPROFILNAME, e.fzprofilname);
+                writer.set(COL_TEILWEG_KENNUNG, e.teilweg_kennung);
+                writer.set(COL_EINHSTNR, e.einhstnr);
+                writer.set(COL_EINHSTABFAHRTSTAG, e.einhstabfahrtstag);
+                writer.set(COL_EINHSTABFAHRTSZEIT, e.einhstabfahrtszeit);
+                writer.set(COL_PFAHRT, Double.toString(e.pfahrt));
+                writer.set(COL_SUBPOP, e.subpop);
+                writer.set(COL_ORIG_GEM, e.orig_gem);
+                writer.set(COL_DEST_GEM, e.dest_gem);
+                writer.set(COL_ACCESS_TO_RAIL_MODE, e.access_to_rail_mode);
+                writer.set(COL_EGRESS_FROM_RAIL_MODE, e.egress_from_rail_mode);
+                writer.set(COL_ACCESS_TO_RAIL_DIST, Integer.toString(e.access_to_rail_dist));
+                writer.set(COL_EGRESS_FROM_RAIL_DIST, Integer.toString(e.egress_from_rail_dist));
+                writer.set(COL_TO_ACT, e.to_act);
+                writer.set(COL_FROM_ACT, e.from_act);
+                writer.set(COL_PERS_ID, e.personId);
+                writer.writeRow();
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static String getDayIndex(double time) {
+        int day = (int) Math.ceil(time / (24 * 60 * 60.0));
+        assert day > 0;
+        return Integer.toString(day);
+    }
+
+    public static String getTime(double time) {
+        double sec = time % (24 * 60 * 60);
+        return Time.writeTime(sec);
+    }
+
+    private Coord findCoord(Activity originActivity) {
+        Id<ActivityFacility> facId = originActivity.getFacilityId();
+        if (facId != null) {
+            return this.scenario.getActivityFacilities().getFacilities().get(facId).getCoord();
+        } else if (originActivity.getCoord() != null) {
+            return originActivity.getCoord();
+        } else if (originActivity.getLinkId() != null) {
+            return scenario.getNetwork().getLinks().get(originActivity.getLinkId()).getToNode().getCoord();
+        } else {
+            throw new RuntimeException(" No coordinate found for activity " + originActivity);
+        }
+    }
+
+    public static void main(String[] args) {
+        String experiencedPlansFile = args[0];
+        String zonesFile = args[1];
+        String transitScheduleFile = args[2];
+        String facilityFile = args[3];
+        String networkFile = args[4];
+        String outputFile = args[5];
+
+        double samplesize = Double.parseDouble(args[6]);
+        Zones zones = ZonesLoader.loadZones("z", zonesFile, "zone_id");
+        ZonesCollection collection = new ZonesCollection();
+        collection.addZones(zones);
+        PostProcessingConfigGroup ppc = new PostProcessingConfigGroup();
+        ppc.setSimulationSampleSize(samplesize);
+        ppc.setZonesId("z");
+        final Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
+        new MatsimFacilitiesReader(scenario).readFile(facilityFile);
+        new TransitScheduleReader(scenario).readFile(transitScheduleFile);
+        new PopulationReader(scenario).readFile(experiencedPlansFile);
+        PutSurveyWriter putSurveyWriter = new PutSurveyWriter(scenario, collection, ppc);
+        putSurveyWriter.collectAndWritePUTSurvey(outputFile, scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(p -> p.getId(), p -> p.getSelectedPlan())));
+
+    }
+
     public void collectAndWritePUTSurvey(String filename) {
+        collectAndWritePUTSurvey(filename, experiencedPlansService.getExperiencedPlans());
+    }
+
+    private void collectAndWritePUTSurvey(String filename, Map<Id<Person>, Plan> experiencedPlans) {
         AtomicInteger teilwegNr = new AtomicInteger();
-        List<List<PutSurveyEntry>> entries = experiencedPlansService.getExperiencedPlans().entrySet().parallelStream()
+        List<List<PutSurveyEntry>> entries = experiencedPlans.entrySet().parallelStream()
                 .map(e -> TripStructureUtils
                         .getTrips(e.getValue()).stream()
                         .filter(t -> t.getLegsOnly().stream().anyMatch(l -> l.getMode().equals(SBBModes.PT)))
@@ -151,9 +249,9 @@ public class PutSurveyWriter {
                                     String linname = String.valueOf(transitRoute.getAttributes().getAttribute(TRANSITLINE));
                                     String linroutename = String.valueOf(transitRoute.getAttributes().getAttribute(LINEROUTENAME));
                                     String richtungscode = String.valueOf(transitRoute.getAttributes().getAttribute(DIRECTION_CODE));
-                                    ;
+
                                     String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
-                                    ;
+
                                     String teilweg_kennung = leg_id > 1 ? "N" : "E";
                                     String einhstnr = from_stop;
                                     String einhstabfahrtstag = getDayIndex(r.getBoardingTime().seconds());
@@ -208,67 +306,7 @@ public class PutSurveyWriter {
         writePutSurvey(filename, entries);
     }
 
-    private void writePutSurvey(String filename, List<List<PutSurveyEntry>> entries) {
-
-        try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filename)) {
-            entries.stream().flatMap(l -> l.stream()).forEach(e -> {
-                writer.set(COL_PATH_ID, e.path_id);
-                writer.set(COL_LEG_ID, e.leg_id);
-                writer.set(COL_FROM_STOP, e.from_stop);
-                writer.set(COL_TO_STOP, e.to_stop);
-                writer.set(COL_VSYSCODE, e.vsyscode);
-                writer.set(COL_LINNAME, e.linname);
-                writer.set(COL_LINROUTENAME, e.linroutename);
-                writer.set(COL_RICHTUNGSCODE, e.richtungscode);
-                writer.set(COL_FZPROFILNAME, e.fzprofilname);
-                writer.set(COL_TEILWEG_KENNUNG, e.teilweg_kennung);
-                writer.set(COL_EINHSTNR, e.einhstnr);
-                writer.set(COL_EINHSTABFAHRTSTAG, e.einhstabfahrtstag);
-                writer.set(COL_EINHSTABFAHRTSZEIT, e.einhstabfahrtszeit);
-                writer.set(COL_PFAHRT, Double.toString(e.pfahrt));
-                writer.set(COL_SUBPOP, e.subpop);
-                writer.set(COL_ORIG_GEM, e.orig_gem);
-                writer.set(COL_DEST_GEM, e.dest_gem);
-                writer.set(COL_ACCESS_TO_RAIL_MODE, e.access_to_rail_mode);
-                writer.set(COL_EGRESS_FROM_RAIL_MODE, e.egress_from_rail_mode);
-                writer.set(COL_ACCESS_TO_RAIL_DIST, Integer.toString(e.access_to_rail_dist));
-                writer.set(COL_EGRESS_FROM_RAIL_DIST, Integer.toString(e.egress_from_rail_dist));
-                writer.set(COL_TO_ACT, e.to_act);
-                writer.set(COL_FROM_ACT, e.from_act);
-                writer.set(COL_PERS_ID, e.personId);
-                writer.writeRow();
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private Coord findCoord(Activity originActivity) {
-        Id<ActivityFacility> facId = originActivity.getFacilityId();
-        if (facId != null) {
-            return this.scenario.getActivityFacilities().getFacilities().get(facId).getCoord();
-        } else if (originActivity.getCoord() != null) {
-            return originActivity.getCoord();
-        } else if (originActivity.getLinkId() != null) {
-            return scenario.getNetwork().getLinks().get(originActivity.getLinkId()).getToNode().getCoord();
-        } else {
-            throw new RuntimeException(" No coordinate found for activity " + originActivity);
-        }
-    }
-
-    private String getDayIndex(double time) {
-        int day = (int) Math.ceil(time / (24 * 60 * 60.0));
-        assert day > 0;
-        return Integer.toString(day);
-    }
-
-    private String getTime(double time) {
-        double sec = time % (24 * 60 * 60);
-        return Time.writeTime(sec);
-    }
-
-    static class PutSurveyEntry {
+    public static class PutSurveyEntry {
 
         private final String path_id;
         private final String leg_id;
@@ -291,9 +329,9 @@ public class PutSurveyWriter {
         private String egress_from_rail_mode = "";
         private int access_to_rail_dist = 0;
         private int egress_from_rail_dist = 0;
-        private String personId;
-        private String from_act;
-        private String to_act;
+        private String personId = "";
+        private String from_act = "";
+        private String to_act = "";
 
         public PutSurveyEntry(String path_id, String leg_id, String from_stop, String to_stop, String vsyscode, String linname, String linroutename, String richtungscode, String fzprofilname,
                 String teilweg_kennung, String einhstnr, String einhstabfahrtstag, String einhstabfahrtszeit, double pfahrt, String subpop, String orig_gem, String dest_gem) {
