@@ -1,13 +1,15 @@
-package ch.sbb.matsim.analysis;
+package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
-import ch.sbb.matsim.analysis.EventsToTravelDiaries;
 import ch.sbb.matsim.analysis.TestFixtures.PtTestFixture;
-import ch.sbb.matsim.analysis.VisumPuTSurvey.VisumPuTSurvey;
-import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
+import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesImpl;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,31 +31,28 @@ public class VisumPuTSurveyIntegrationTest {
 	public void test() throws IOException {
 		PtTestFixture fixture = new PtTestFixture();
 
-		EventsToTravelDiaries eventsToTravelDiaries = new EventsToTravelDiaries(fixture.scenario, "", null);
-		fixture.eventsManager.addHandler(eventsToTravelDiaries);
-
 		fixture.addSingleTransitDemand();
-		fixture.addEvents();
+		fixture.scenario.getPopulation();
+		Zones zones = new ZonesImpl(Id.create("zones", Zones.class));
+		ZonesCollection c = new ZonesCollection();
+		c.addZones(zones);
+		PostProcessingConfigGroup ppc = new PostProcessingConfigGroup();
+		ppc.setSimulationSampleSize(1.0);
+		ppc.setZonesId("zones");
 
-		VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(eventsToTravelDiaries.getChains(), fixture.scenario, null, 10.0);
-
-		TravellerChain chain = eventsToTravelDiaries.getChains().get(Id.createPersonId("1"));
-		Assert.assertNotNull("TravellerChain for person 1 not found.", chain);
-
-		//Element ID is runtime dependent
-		int elementId = chain.getLastTrip().getElementId();
+		PutSurveyWriter putSurveyWriter = new PutSurveyWriter(fixture.scenario, c, ppc);
 
 		String expected = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n" +
 				"* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT" +
-				"\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege" +
+				"\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: Ã–V-Teilwege" +
 				"\n$OEVTEILWEG:DATENSATZNR;TWEGIND;VONHSTNR;NACHHSTNR;VSYSCODE;" +
 				"LINNAME;LINROUTENAME;RICHTUNGSCODE;FZPNAME;TEILWEG-KENNUNG;EINHSTNR;EINHSTABFAHRTSTAG;" +
 				"EINHSTABFAHRTSZEIT;PFAHRT;SUBPOP;ORIG_GEM;DEST_GEM;ACCESS_TO_RAIL_MODE;EGRESS_FROM_RAIL_MODE;" +
-				"ACCESS_TO_RAIL_DIST;EGRESS_FROM_RAIL_DIST\n" +
-				elementId + ";1;B;D;code;code;code;code;code;E;B;1;08:22:00;10;regular;999999999;999999999;;;0;0\n";
-		System.out.println(chain.getTrips().get(0).getLegs().size());
+				"ACCESS_TO_RAIL_DIST;EGRESS_FROM_RAIL_DIST;PERSONID;FROM_ACT;TO_ACT\n" +
+				"1;1;B;D;code;code;code;code;code;E;B;1;08:11:40;1.0;regular;999999999;999999999;;;0;0;1;home;work\n";
 
-		visumPuTSurvey.write(this.utils.getOutputDirectory());
+		putSurveyWriter.collectAndWritePUTSurvey(this.utils.getOutputDirectory() + "matsim_put_survey.att",
+				fixture.scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(p -> p.getId(), p -> p.getSelectedPlan())));
 
 		// Add Assert
 		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.utils.getOutputDirectory() + "matsim_put_survey.att"), "Cp1252"));

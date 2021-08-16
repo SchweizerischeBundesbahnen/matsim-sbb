@@ -206,7 +206,7 @@ public class PutSurveyWriter {
         collectAndWritePUTSurvey(filename, experiencedPlansService.getExperiencedPlans());
     }
 
-    private void collectAndWritePUTSurvey(String filename, Map<Id<Person>, Plan> experiencedPlans) {
+    public void collectAndWritePUTSurvey(String filename, Map<Id<Person>, Plan> experiencedPlans) {
         AtomicInteger teilwegNr = new AtomicInteger();
         List<List<PutSurveyEntry>> entries = experiencedPlans.entrySet().parallelStream()
                 .map(e -> TripStructureUtils
