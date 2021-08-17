@@ -632,6 +632,8 @@
             <param name="searchExtensionRadius" value="500.0"/>
             <param name="stopFilterAttribute" value="bikeFeederAccessible"/>
             <param name="stopFilterValue" value="1"/>
+            <param name="personFilterAttribute" value="bike2pt"/>
+            <param name="personFilterValue" value="1"/>
         </parameterset>
         <parameterset type="intermodalAccessEgress">
             <param name="initialSearchRadius" value="5000.0"/>
@@ -641,6 +643,8 @@
             <param name="searchExtensionRadius" value="10000.0"/>
             <param name="stopFilterAttribute" value="carFeederAccessible"/>
             <param name="stopFilterValue" value="1"/>
+            <param name="personFilterAttribute" value="car2pt"/>
+            <param name="personFilterValue" value="1"/>
         </parameterset>
         <parameterset type="intermodalAccessEgress">
             <param name="initialSearchRadius" value="5000.0"/>
@@ -650,6 +654,8 @@
             <param name="searchExtensionRadius" value="10000.0"/>
             <param name="stopFilterAttribute" value="rideFeederAccessible"/>
             <param name="stopFilterValue" value="1"/>
+            <param name="personFilterAttribute" value="ride2pt"/>
+            <param name="personFilterValue" value="1"/>
         </parameterset>
     </module>
     <module name="transit">

@@ -12,7 +12,6 @@ import ch.sbb.matsim.routing.pt.raptor.AccessEgressRouteCache;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
-import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -61,13 +60,6 @@ public class IntermodalModule extends AbstractModule {
 
 	public static void prepareIntermodalScenario(Scenario scenario) {
         SBBIntermodalConfiggroup configGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBIntermodalConfiggroup.class);
-
-        URL csvPath = configGroup.getAttributesCSVPathURL(scenario.getConfig().getContext());
-        if (csvPath != null) {
-            preparePopulation(scenario.getPopulation(), csvPath);
-        }
-        ScenarioConsistencyChecker.checkIntermodalPopulationExists(scenario);
-
         for (SBBIntermodalModeParameterSet mode : configGroup.getModeParameterSets()) {
             if (mode.isRoutedOnNetwork()) {
                 SBBNetworkRoutingModule.addNetworkMode(scenario.getNetwork(), mode.getMode(), SBBModes.CAR);

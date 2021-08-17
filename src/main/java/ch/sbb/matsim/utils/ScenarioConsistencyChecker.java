@@ -48,12 +48,12 @@ public class ScenarioConsistencyChecker {
 	private static String logmessage = "";
 
 	public static void checkScenarioConsistency(Scenario scenario) {
-		checkExogeneousShares(scenario);
-		if (!(checkVehicles(scenario) && checkPlans(scenario) && checkIntermodalAttributesAtStops(scenario))) {
-			throw new RuntimeException(" Error found while checking consistency of plans. Check log!");
-		}
+        checkExogeneousShares(scenario);
+        if (!(checkVehicles(scenario) && checkPlans(scenario) && checkIntermodalAttributesAtStops(scenario) && checkIntermodalPopulationExists(scenario))) {
+            throw new RuntimeException(" Error found while checking consistency of plans. Check log!");
+        }
 
-	}
+    }
 
 	public static void writeLog(String path) {
 		try {
@@ -176,34 +176,41 @@ public class ScenarioConsistencyChecker {
 					checkPassed = false;
 					LOGGER.error("No stop has a value defined for  " + att);
 				} else {
-					final String message = "Found " + count + " stops with intermodal access attribute " + att;
-					logmessage = logmessage + message + "\n";
-					LOGGER.info(message);
-				}
-			}
-		}
-		return checkPassed;
+                    final String message = "Found " + count + " stops with intermodal access attribute " + att;
+                    logmessage = logmessage + message + "\n";
+                    LOGGER.info(message);
+                }
+            }
+        }
+        return checkPassed;
 
-	}
+    }
 
-	//TODO: once we remove the intermodal attribute CSV, add this checker to the others.
-	public static void checkIntermodalPopulationExists(Scenario scenario) {
-		SwissRailRaptorConfigGroup swissRailRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
-		Set<String> modeAtts = swissRailRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().map(s -> s.getPersonFilterAttribute()).filter(Objects::nonNull).collect(Collectors.toSet());
-		for (String att : modeAtts) {
-			int count = scenario.getPopulation().getPersons().values().stream().map(p -> p.getAttributes().getAttribute(att)).filter(Objects::nonNull).mapToInt(a -> Integer.parseInt(a.toString()))
-					.sum();
-			if (count == 0) {
-				final String s = "No person has a value defined for  " + att;
-				LOGGER.error(s);
-				logmessage = logmessage + s + "\n";
+    public static boolean checkIntermodalPopulationExists(Scenario scenario) {
+        SwissRailRaptorConfigGroup swissRailRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
+        Set<String> modeAtts = swissRailRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().map(s -> s.getPersonFilterAttribute()).filter(Objects::nonNull).collect(Collectors.toSet());
+        double persons = scenario.getPopulation().getPersons().values().stream().filter(p -> PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)).count();
+        Map<String, Double> mobi32values = Map.of("car2pt", 0.52, "bike2pt", 0.34, "ride2pt", 0.23);
+        logmessage = logmessage + "\nMode\tCount\tShare\tShareInMobi3.2\n";
+        boolean checkPassed = true;
 
-			} else {
-				final String message = "Found " + count + " persons with intermodal access attribute " + att;
-				LOGGER.info(message);
-				logmessage = logmessage + message + "\n";
-			}
-		}
+        for (String att : modeAtts) {
+            int count = scenario.getPopulation().getPersons().values().stream().map(p -> p.getAttributes().getAttribute(att)).filter(Objects::nonNull).mapToInt(a -> Integer.parseInt(a.toString()))
+                    .sum();
+            if (count == 0) {
+                final String s = "No person has a value defined for  " + att;
+                LOGGER.error(s);
+                logmessage = logmessage + s + "\n";
+                checkPassed = false;
+            } else {
 
-	}
+                LOGGER.info("Found " + count + " persons with intermodal access attribute " + att);
+                double share = count / persons;
+                Double share32 = mobi32values.get(att);
+                final String message = att + "\t" + count + "\t" + share + "\t" + share32;
+                logmessage = logmessage + message + "\n";
+            }
+        }
+        return checkPassed;
+    }
 }
