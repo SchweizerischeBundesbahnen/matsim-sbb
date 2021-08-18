@@ -1,16 +1,20 @@
 package ch.sbb.matsim.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -76,25 +80,39 @@ public class ScenarioConsistencyCheckerTest {
 		createPersons(scenario);
 		scenario.getPopulation().addPerson(personWithLackingAttribute);
 		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
-	}
+    }
 
-	@Test(expected = RuntimeException.class)
-	public void checkHasNoCar() {
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		createPersons(scenario);
-		scenario.getPopulation().addPerson(carlessPersonUsingCar);
-		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
-	}
+    @Test(expected = RuntimeException.class)
+    public void checkHasNoCar() {
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        createPersons(scenario);
+        scenario.getPopulation().addPerson(carlessPersonUsingCar);
+        ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+    }
 
-	private void createPersons(Scenario scenario) {
-		{
-			orderlyPerson = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
-			Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> orderlyPerson.getAttributes().putAttribute(s, "1"));
-			PopulationUtils.putSubpopulation(orderlyPerson, Variables.REGULAR);
-			Plan plan = scenario.getPopulation().getFactory().createPlan();
-			plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(HOME, new Coord(0, 0)));
-			plan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
-			plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(WORK, new Coord(0, 0)));
+    @Test
+    public void checkIntermodalAttributes() {
+        final Config config = ConfigUtils.createConfig();
+        SwissRailRaptorConfigGroup swissRailRaptorConfigGroup = new SwissRailRaptorConfigGroup();
+        IntermodalAccessEgressParameterSet ae = new IntermodalAccessEgressParameterSet();
+        ae.setMode("bike_feeder");
+        ae.setStopFilterAttribute("bikeAccessible");
+        swissRailRaptorConfigGroup.addIntermodalAccessEgress(ae);
+        swissRailRaptorConfigGroup.setUseIntermodalAccessEgress(true);
+        config.addModule(swissRailRaptorConfigGroup);
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        Assert.assertEquals(false, ScenarioConsistencyChecker.checkIntermodalAttributesAtStops(scenario));
+    }
+
+    private void createPersons(Scenario scenario) {
+        {
+            orderlyPerson = scenario.getPopulation().getFactory().createPerson(Id.createPersonId(1));
+            Variables.DEFAULT_PERSON_ATTRIBUTES.forEach(s -> orderlyPerson.getAttributes().putAttribute(s, "1"));
+            PopulationUtils.putSubpopulation(orderlyPerson, Variables.REGULAR);
+            Plan plan = scenario.getPopulation().getFactory().createPlan();
+            plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(HOME, new Coord(0, 0)));
+            plan.addLeg(scenario.getPopulation().getFactory().createLeg(SBBModes.CAR));
+            plan.addActivity(scenario.getPopulation().getFactory().createActivityFromCoord(WORK, new Coord(0, 0)));
 			orderlyPerson.addPlan(plan);
 		}
 		{

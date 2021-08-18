@@ -8,6 +8,7 @@ import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
@@ -145,6 +146,7 @@ public class RunSBB {
 				bind(RailDemandMatrixAggregator.class);
 				bind(RailDemandReporting.class);
 				bind(PtLinkVolumeAnalyzer.class);
+				bind(PutSurveyWriter.class);
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
 				install(new SBBTransitModule());
 				install(new ZonesModule(scenario));

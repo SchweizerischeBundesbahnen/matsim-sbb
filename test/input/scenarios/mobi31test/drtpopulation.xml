@@ -16,6 +16,9 @@
             <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
             <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
             <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="bike2pt" class="java.lang.String">1</attribute>
+            <attribute name="ride2pt" class="java.lang.String">1</attribute>
         </attributes>
         <plan selected="yes">
             <activity type="home" facility="328251" x="2688136.0" y="1166055.0"

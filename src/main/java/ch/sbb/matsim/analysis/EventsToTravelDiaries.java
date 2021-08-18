@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.analysis.VisumPuTSurvey.VisumPuTSurvey;
 import ch.sbb.matsim.analysis.travelcomponents.Activity;
 import ch.sbb.matsim.analysis.travelcomponents.TravelledLeg;
 import ch.sbb.matsim.analysis.travelcomponents.TravellerChain;
@@ -143,7 +142,7 @@ public class EventsToTravelDiaries implements
 					if (ptVehicles.containsKey(vehicleId)) {
 						log.error("vehicleId already in Map!");
 					} else {
-						this.ptVehicles.put(vehicleId, new PTVehicle(tL.getId(), tR.getId()));
+						ptVehicles.put(vehicleId, new PTVehicle(tL.getId(), tR.getId()));
 					}
 				}
 			}
@@ -580,12 +579,7 @@ public class EventsToTravelDiaries implements
 
 		}
 
-		if (this.writeVisumPuTSurvey) {
-			Double scaleFactor = 1.0 / sampleSize;
 
-			VisumPuTSurvey visumPuTSurvey = new VisumPuTSurvey(this.getChains(), this.scenario, this.zones, scaleFactor);
-			visumPuTSurvey.write(this.filename);
-		}
 
 		activityWriter.close();
 		tripsWriter.close();
@@ -616,14 +610,12 @@ public class EventsToTravelDiaries implements
 			EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_ACTIVITIES);
 			EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_TRIPS);
 			EventsAnalysis.copyToOutputFolder(this.filename, FILENAME_LEGS);
-			if (this.writeVisumPuTSurvey) {
-				EventsAnalysis.copyToOutputFolder(this.filename, VisumPuTSurvey.FILENAME);
-			}
+
 		}
 	}
 
 	// Private classes
-	private static class PTVehicle {
+	static class PTVehicle {
 
 		// Attributes
 		private final Id transitLineId;
@@ -634,7 +626,7 @@ public class EventsToTravelDiaries implements
 		private double distance;
 
 		// Constructors
-		PTVehicle(Id transitLineId, Id transitRouteId) {
+		public PTVehicle(Id transitLineId, Id transitRouteId) {
 			this.transitLineId = transitLineId;
 			this.transitRouteId = transitRouteId;
 		}

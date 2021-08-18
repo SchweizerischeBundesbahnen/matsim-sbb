@@ -1,6 +1,5 @@
 package ch.sbb.matsim.analysis.TestFixtures;
 
-import ch.sbb.matsim.analysis.EventsToTravelDiaries;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
@@ -20,7 +19,6 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
-import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -53,7 +51,6 @@ public class PtTestFixture {
 	public Scenario scenario;
 	public Config config;
 	public EventsManager eventsManager;
-	EventsToTravelDiaries eventsToTravelDiaries;
 	TransitStopFacility stopA;
 	TransitStopFacility stopB;
 	TransitStopFacility stopC;
@@ -83,8 +80,10 @@ public class PtTestFixture {
 		Activity act1 = pf.createActivityFromLinkId("home", Id.create(1, Link.class));
 		act1.setEndTime(29500);
 		Leg leg = pf.createLeg("pt");
-		Route route = new DefaultTransitPassengerRoute(this.stopB, this.line1, this.route1, this.stopD);
+		DefaultTransitPassengerRoute route = new DefaultTransitPassengerRoute(this.stopB, this.line1, this.route1, this.stopD);
+		route.setBoardingTime(29500);
 		leg.setRoute(route);
+
 		Activity act2 = pf.createActivityFromLinkId("work", Id.create(3, Link.class));
 
 		plan.addActivity(act1);
