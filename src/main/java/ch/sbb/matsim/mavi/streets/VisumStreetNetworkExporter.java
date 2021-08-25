@@ -38,10 +38,14 @@ public class VisumStreetNetworkExporter {
 	public static void main(String[] args) throws IOException {
 		String inputvisum = args[0];
 		String outputPath = args[1];
-		int visumVersion = 18;
+		int visumVersion = 21;
+		boolean exportCounts = true;
+		if (args.length > 2) {
+			exportCounts = Boolean.parseBoolean(args[2]);
+		}
 
 		VisumStreetNetworkExporter exp = new VisumStreetNetworkExporter();
-		exp.run(inputvisum, outputPath, visumVersion);
+		exp.run(inputvisum, outputPath, visumVersion, exportCounts);
 	}
 
 	public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
@@ -49,7 +53,7 @@ public class VisumStreetNetworkExporter {
 		return id;
 	}
 
-	public void run(String inputvisum, String outputPath, int visumVersion) throws IOException {
+	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts) throws IOException {
 		ActiveXComponent visum = new ActiveXComponent("Visum.Visum." + visumVersion);
 		log.info("VISUM Client gestartet.");
 		Dispatch.call(visum, "LoadVersion", inputvisum);
@@ -61,9 +65,9 @@ public class VisumStreetNetworkExporter {
 
 		Dispatch filters = Dispatch.get(visum, "Filters").toDispatch();
 		Dispatch.call(filters, "InitAll");
-
-		this.exportCountStations(visum, outputPath);
-
+		if (exportCounts) {
+			this.exportCountStations(visum, outputPath);
+		}
 		String[][] nodes = importNodes(net, "No", "XCoord", "YCoord");
 		String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
 				"NumLanes", "TSysSet", "accessControlled", "WKTPoly", "No");
