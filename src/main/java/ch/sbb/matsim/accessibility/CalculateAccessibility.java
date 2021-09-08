@@ -200,7 +200,7 @@ public class CalculateAccessibility {
 
 		BiPredicate<TransitLine, TransitRoute> trainDetector = (line, route) -> route.getTransportMode().equals(SBBModes.PTSubModes.RAIL);
 
-		Zones zones = new ZonesQueryCache(ZonesLoader.loadZones("mobi", zonesFilename, "ID"));
+		Zones zones = new ZonesQueryCache(ZonesLoader.loadZones("mobi", zonesFilename, "zone_id"));
 
 		log.info("calculate accessibility...");
 		Accessibility accessibility = new Accessibility(networkFilename, eventsFilename, scheduleFilename, transitNetworkFilename, attractions, carAMDepTimes, carPMDepTimes, ptMinDepTime,

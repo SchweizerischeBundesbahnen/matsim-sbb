@@ -3,6 +3,9 @@ package ch.sbb.matsim.accessibility;
 import ch.sbb.matsim.analysis.skims.RooftopUtils;
 import ch.sbb.matsim.analysis.skims.RooftopUtils.ODConnection;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorInVehicleCostCalculator;
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorStopFinder;
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorTransferCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
@@ -224,7 +227,7 @@ public class Accessibility {
 		log.info("pre-create SwissRailRaptor-instances...");
 		SwissRailRaptor[] raptors = new SwissRailRaptor[this.threadCount];
 		for (int i = 0; i < this.threadCount; i++) {
-			raptors[i] = new SwissRailRaptor(raptorData, null, null, null, null, null);
+			raptors[i] = new SwissRailRaptor(raptorData, null, null, new DefaultRaptorStopFinder(ConfigUtils.createConfig(), null, null), new DefaultRaptorInVehicleCostCalculator(), new DefaultRaptorTransferCostCalculator());
 		}
 
 		Map<Coord, ZoneData> zoneData = new HashMap<>();
@@ -993,7 +996,7 @@ public class Accessibility {
 				}
 
 				Zone fromZone = this.zones.findZone(fromCoord.getX(), fromCoord.getY());
-				carAccessTime = fromZone == null ? 0 : ((Number) fromZone.getAttribute("ACCCAR")).doubleValue(); // in seconds
+				carAccessTime = fromZone == null ? 0 : ((Number) fromZone.getAttribute("at_car")).doubleValue(); // in seconds
 			}
 
 			// WALK, BIKE
@@ -1225,8 +1228,8 @@ public class Accessibility {
 				//                U(walk)= +2.30 + (-0.100)*dist_car/0.078336
 
 				Zone toZone = this.zones.findZone(toCoord.getX(), toCoord.getY());
-				double carEgressTime = toZone == null ? 0 : ((Number) toZone.getAttribute("ACCCAR")).doubleValue(); // in seconds
-				double carParkingCost = toZone == null ? 0 : ((Number) toZone.getAttribute("PCOST")).doubleValue();
+				double carEgressTime = toZone == null ? 0 : ((Number) toZone.getAttribute("at_car")).doubleValue(); // in seconds
+				double carParkingCost = toZone == null ? 0 : ((Number) toZone.getAttribute("pc_car")).doubleValue();
 
 				for (int m = 0; m < this.modes.length; m++) {
 					Modes modes = this.modes[m];
