@@ -50,8 +50,8 @@ public class RideParkingCostTrackerTest {
 		Id<Link> linkWork = Id.create("B", Link.class);
 		Id<Link> linkShop = Id.create("T", Link.class);
 
-		double hourlyParkingCostWork = 20; // this is the value of ACCCAR in zone Bern
-		double hourlyParkingCostShop = 3; // this is the value of ACCCAR in zone Thun
+		double hourlyParkingCostWork = 20; // this is the value of at_car in zone Bern
+		double hourlyParkingCostShop = 3; // this is the value of at_car in zone Thun
 
 		f.events.processEvent(new PersonArrivalEvent(7.25 * 3600, personId, linkWork, "ride"));
 		f.events.processEvent(new ActivityStartEvent(7.25 * 3600, personId, linkWork, null, "work", null));
