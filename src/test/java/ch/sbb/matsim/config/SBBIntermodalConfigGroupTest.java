@@ -40,8 +40,8 @@ public class SBBIntermodalConfigGroupTest {
 		mode1c.setDetourFactor(1.08);
 		mode1c.setSimulatedOnNetwork(true);
 		mode1c.setRoutedOnNetwork(true);
-		mode1c.setAccessTimeZoneId("ACCCAR");
-		mode1c.setEgressTimeZoneId("ACCCAR");
+		mode1c.setAccessTimeZoneId("at_car");
+		mode1c.setEgressTimeZoneId("at_car");
 		mode1c.setUseMinimalTransferTimes(true);
 		intermodal1.addModeParameters(mode1c);
 

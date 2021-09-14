@@ -715,7 +715,7 @@ public class Accessibility {
 			}
 
 			Zone fromZone = this.zones.findZone(fromCoord.getX(), fromCoord.getY());
-			double carAccessTime = fromZone == null ? 0 : ((Number) fromZone.getAttribute("ACCCAR")).doubleValue(); // in seconds
+			double carAccessTime = fromZone == null ? 0 : ((Number) fromZone.getAttribute("at_car")).doubleValue(); // in seconds
 
 			// CALCULATION
 
@@ -872,15 +872,15 @@ public class Accessibility {
 
 				//                U(bike)= -0.25 + (-0.150)*dist_car/0.21667
 				//
-				//                U(car)  = -0.40 + (-0.053)*TT_car + (-0.040)*dist_car_0015 + (-0.040)*dist_car_1550 + 0.015*dist_car_5099 + 0.010*dist_car_100x + (-0.047)*(FROM[ACCCAR]+TO[ACCCAR])/60 + (-0.135)*TO[PCOST]*2
+				//                U(car)  = -0.40 + (-0.053)*TT_car + (-0.040)*dist_car_0015 + (-0.040)*dist_car_1550 + 0.015*dist_car_5099 + 0.010*dist_car_100x + (-0.047)*(FROM[at_car]+TO[at_car])/60 + (-0.135)*TO[pc_car]*2
 				//
 				//                U(pt)  = +0.75 + (-0.042)*TT_bus + (-0.0378)*TT_train + (-0.015)*dist_car_0015 + (-0.015)*dist_car_1550 + 0.005*dist_car_5099 + 0.025*dist_car_100x + (-0.050)*(pt_accTime+pt_egrTime) + (-0.014)*(60/pt_freq) + (-0.227)*transfers
 				//
 				//                U(walk)= +2.30 + (-0.100)*dist_car/0.078336
 
 				Zone toZone = this.zones.findZone(toCoord.getX(), toCoord.getY());
-				double carEgressTime = toZone == null ? 0 : ((Number) toZone.getAttribute("ACCCAR")).doubleValue(); // in seconds
-				double carParkingCost = toZone == null ? 0 : ((Number) toZone.getAttribute("PCOST")).doubleValue();
+				double carEgressTime = toZone == null ? 0 : ((Number) toZone.getAttribute("at_car")).doubleValue(); // in seconds
+				double carParkingCost = toZone == null ? 0 : ((Number) toZone.getAttribute("pc_car")).doubleValue();
 
 				for (int m = 0; m < this.modes.length; m++) {
 					Modes modes = this.modes[m];
@@ -1221,7 +1221,7 @@ public class Accessibility {
 
 				//                U(bike)= -0.25 + (-0.150)*dist_car/0.21667
 				//
-				//                U(car)  = -0.40 + (-0.053)*TT_car + (-0.040)*dist_car_0015 + (-0.040)*dist_car_1550 + 0.015*dist_car_5099 + 0.010*dist_car_100x + (-0.047)*(FROM[ACCCAR]+TO[ACCCAR])/60 + (-0.135)*TO[PCOST]*2
+				//                U(car)  = -0.40 + (-0.053)*TT_car + (-0.040)*dist_car_0015 + (-0.040)*dist_car_1550 + 0.015*dist_car_5099 + 0.010*dist_car_100x + (-0.047)*(FROM[at_car]+TO[at_car])/60 + (-0.135)*TO[pc_car]*2
 				//
 				//                U(pt)  = +0.75 + (-0.042)*TT_bus + (-0.0378)*TT_train + (-0.015)*dist_car_0015 + (-0.015)*dist_car_1550 + 0.005*dist_car_5099 + 0.025*dist_car_100x + (-0.050)*(pt_accTime+pt_egrTime) + (-0.014)*(60/pt_freq) + (-0.227)*transfers
 				//
