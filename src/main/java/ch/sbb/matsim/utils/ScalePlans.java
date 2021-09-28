@@ -22,6 +22,7 @@ package ch.sbb.matsim.utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -42,10 +43,23 @@ public class ScalePlans {
         Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(inputPlans);
         List<Id<Person>> pickedPersons = new ArrayList<>(scenario.getPopulation().getPersons().keySet());
-        Collections.shuffle(pickedPersons, MatsimRandom.getRandom());
-        for (int i = 0; i < desiredPlans; i++) {
-            Id<Person> personId = pickedPersons.get(i);
-            scenario2.getPopulation().addPerson(scenario.getPopulation().getPersons().get(personId));
+        final Random random = MatsimRandom.getRandom();
+        Collections.shuffle(pickedPersons, random);
+        if (desiredPlans <= pickedPersons.size()) {
+            for (int i = 0; i < desiredPlans; i++) {
+                Id<Person> personId = pickedPersons.get(i);
+                scenario2.getPopulation().addPerson(scenario.getPopulation().getPersons().get(personId));
+            }
+        } else {
+            scenario.getPopulation().getPersons().values().forEach(p -> scenario2.getPopulation().addPerson(p));
+            for (int i = 0; i < desiredPlans - pickedPersons.size(); i++) {
+                Id<Person> personId = pickedPersons.get(random.nextInt(pickedPersons.size()));
+                Person p = scenario.getPopulation().getPersons().get(personId);
+                Person clone = scenario2.getPopulation().getFactory().createPerson(Id.createPersonId(p.getId().toString() + "_clone_" + i));
+                clone.addPlan(p.getSelectedPlan());
+                p.getAttributes().getAsMap().forEach((k, v) -> clone.getAttributes().putAttribute(k, v));
+                scenario2.getPopulation().addPerson(clone);
+            }
         }
         new PopulationWriter(scenario2.getPopulation()).write(outputPlans);
 

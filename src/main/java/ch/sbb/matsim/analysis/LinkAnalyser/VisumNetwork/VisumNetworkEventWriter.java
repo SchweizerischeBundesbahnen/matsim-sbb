@@ -86,7 +86,7 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnaly
 				this.linkVolumesPerIterationWriter.write(String.valueOf(iteration));
 				for (int vol : this.linkVolumes.values()) {
 					this.linkVolumesPerIterationWriter.write(CSV_SEP);
-					this.linkVolumesPerIterationWriter.write(String.valueOf(vol));
+					this.linkVolumesPerIterationWriter.write(String.valueOf(vol * scale));
 				}
 				this.linkVolumesPerIterationWriter.write(IOUtils.NATIVE_NEWLINE);
 			} catch (IOException e) {
@@ -94,6 +94,8 @@ public class VisumNetworkEventWriter extends LinkAnalyser implements EventsAnaly
 			}
 			this.linkVolumes.replaceAll((k, v) -> 0);
 		}
+		this.passengers.clear();
+		this.transitDrivers.clear();
 	}
 
 }

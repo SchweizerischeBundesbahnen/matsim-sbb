@@ -42,7 +42,9 @@ public class PopulationSlicer {
 		String inputFacilities = args[1];
 		int slices = Integer.parseInt(args[2]);
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		new MatsimFacilitiesReader(scenario).readFile(inputFacilities);
+		if (!"-".equals(inputFacilities)) {
+			new MatsimFacilitiesReader(scenario).readFile(inputFacilities);
+		}
 		BetterPopulationReader.readSelectedPlansOnly(scenario, new File(inputPopulation));
 
 		var outputDir = Paths.get(inputPopulation.replace(".xml.gz", "_" + slices));
@@ -61,7 +63,7 @@ public class PopulationSlicer {
 
 		for (int i = 0; i < slices; i++) {
 			StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();
-			streamingPopulationWriter.startStreaming(outputFolder + "/population_" + i + ".xml.gz");
+			streamingPopulationWriter.startStreaming(outputFolder + "/plans_" + i + ".xml.gz");
 			Set<Id<ActivityFacility>> usedFacilities = new HashSet<>();
 			for (int j = 0; j < partitionsize; j++) {
 				int personNo = i * partitionsize + j;
@@ -77,7 +79,9 @@ public class PopulationSlicer {
 			for (var facId : usedFacilities) {
 				newfacilities.getActivityFacilities().addActivityFacility(scenario.getActivityFacilities().getFacilities().get(facId));
 			}
-			new FacilitiesWriter(newfacilities.getActivityFacilities()).write(outputFolder + "/facilities_" + i + ".xml.gz");
+			if (newfacilities.getActivityFacilities().getFacilities().size() > 0) {
+				new FacilitiesWriter(newfacilities.getActivityFacilities()).write(outputFolder + "/facilities_" + i + ".xml.gz");
+			}
 			streamingPopulationWriter.closeStreaming();
 		}
 
