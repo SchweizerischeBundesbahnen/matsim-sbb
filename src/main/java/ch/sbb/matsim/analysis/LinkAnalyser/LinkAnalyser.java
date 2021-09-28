@@ -32,7 +32,7 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
 	protected Scenario scenario;
 	protected LinkedHashMap<Id, Integer> linkVolumes;
 	protected HashMap<Id<Vehicle>, Integer> passengers;
-	HashSet<Id> transitDrivers;
+	protected HashSet<Id> transitDrivers;
 
 	public LinkAnalyser(Scenario scenario) {
 		this.scenario = scenario;
@@ -100,6 +100,8 @@ public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleE
 	@Override
 	public void reset(int iteration) {
 		this.linkVolumes.clear();
+		this.linkVolumes.putAll(scenario.getNetwork().getLinks().keySet()
+				.stream().collect(Collectors.toMap(Functions.identity(), i -> 0)));
 		this.passengers.clear();
 		this.transitDrivers.clear();
 	}
