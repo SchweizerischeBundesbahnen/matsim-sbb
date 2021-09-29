@@ -20,13 +20,16 @@
 package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -37,10 +40,15 @@ import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.router.TripStructureUtils.Trip;
+import org.matsim.core.utils.collections.CollectionUtils;
+import org.matsim.core.utils.collections.Tuple;
+import org.matsim.pt.routes.TransitPassengerRoute;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 @Singleton
 public class SBBTripsExtension implements CustomTripsWriterExtension {
@@ -69,7 +77,8 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             tripIds.put(p.getId(), ids);
         }
 
-        return new String[]{"tourId_tripId", "from_zone", "to_zone", "first_rail_stop", "last_rail_stop", "rail_pkm"};
+        return new String[]{"tourId_tripId", "from_zone", "to_zone", "first_rail_stop", "last_rail_stop", "rail_pkm", "rail_access_modes", "rail_access_distance", "rail_egress_modes",
+                "rail_egress_distance"};
     }
 
     @Override
@@ -95,8 +104,65 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             }
         }
         String rail_pkm = calcRailPkm(trip);
-        final List<String> result = List.of(tourTripId, fromZoneString, toZoneString, fromStation, toStation, rail_pkm);
+        String accessModes = "";
+        String egressModes = "";
+        String accessDistance = "";
+        String egressDistance = "";
+        if (railOd != null) {
+            var access = findAccessMode(trip, railOd.getFirst());
+            var egress = findEgressMode(trip, railOd.getSecond());
+            accessModes = access.getFirst();
+            accessDistance = Integer.toString(access.getSecond());
+            egressModes = egress.getFirst();
+            egressDistance = Integer.toString(egress.getSecond());
+        }
+
+        final List<String> result = List.of(tourTripId, fromZoneString, toZoneString, fromStation, toStation, rail_pkm, accessModes, accessDistance, egressModes, egressDistance);
         return result;
+    }
+
+    private Tuple<String, Integer> findAccessMode(Trip trip, Id<TransitStopFacility> accessStop) {
+        Set<String> accessModes = new HashSet<>();
+        double accesDistance = 0.;
+
+        for (Leg leg : trip.getLegsOnly()) {
+            if (leg.getRoute() instanceof TransitPassengerRoute) {
+                TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                if (accessStop.equals(route.getAccessStopId())) {
+                    break;
+                }
+            }
+            accessModes.add(leg.getMode());
+            accesDistance += leg.getRoute().getDistance();
+        }
+        if (accessModes.size() > 1) {
+            accessModes.remove(SBBModes.ACCESS_EGRESS_WALK);
+        }
+
+        return new Tuple<>(CollectionUtils.setToString(accessModes), (int) Math.round(accesDistance));
+    }
+
+    private Tuple<String, Integer> findEgressMode(Trip trip, Id<TransitStopFacility> egressStop) {
+        Set<String> egressModes = new HashSet<>();
+        double egressDistance = 0.;
+        boolean startCount = false;
+        for (Leg leg : trip.getLegsOnly()) {
+            if (startCount) {
+                egressModes.add(leg.getMode());
+                egressDistance += leg.getRoute().getDistance();
+            }
+            if (leg.getRoute() instanceof TransitPassengerRoute) {
+                TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                if (egressStop.equals(route.getEgressStopId())) {
+                    startCount = true;
+                }
+            }
+        }
+
+        if (egressModes.size() > 1) {
+            egressModes.remove(SBBModes.ACCESS_EGRESS_WALK);
+        }
+        return new Tuple<>(CollectionUtils.setToString(egressModes), (int) Math.round(egressDistance));
     }
 
     private String calcRailPkm(Trip trip) {
