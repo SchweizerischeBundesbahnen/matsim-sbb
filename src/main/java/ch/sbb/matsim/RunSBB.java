@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim;
 
+import ch.sbb.matsim.analysis.SBBDefaultAnalysisListener;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
@@ -140,6 +141,7 @@ public class RunSBB {
 			@Override
 			public void install() {
 				addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
+				addControlerListenerBinding().to(SBBDefaultAnalysisListener.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
 				bind(RailTripsAnalyzer.class);
