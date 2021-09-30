@@ -8,6 +8,9 @@ import org.locationtech.jts.util.Assert;
 
 public class CalculateAccessibilityTest {
 
+    /**
+     * this test may fail on Windows machines due to different line endings.
+     */
     @Test
     public void main() throws IOException {
         final String folder = "test/input/scenarios/mobi31test/";
@@ -34,8 +37,8 @@ public class CalculateAccessibilityTest {
         var modes = "mm;car;pt";
 
         CalculateAccessibility.main(new String[]{
-            coordinatesFile, zones, facilities, population, personWeight, network, schedule,
-            network, events, outputDirectory, gridSize, threads, detectTrainLines, modes, calcString, car1, car2});
+                coordinatesFile, zones, facilities, population, personWeight, network, schedule,
+                network, events, outputDirectory, gridSize, threads, detectTrainLines, modes, calcString, car1, car2});
 
         Assert.equals(true, Files.equal(new File(inputDirectory + "/accessibility.csv"), new File(outputDirectory + "/accessibility.csv")));
         Assert.equals(true, Files.equal(new File(inputDirectory + "/attractions_10.csv"), new File(outputDirectory + "/attractions_10.csv")));
