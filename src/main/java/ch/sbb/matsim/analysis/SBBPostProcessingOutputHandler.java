@@ -5,7 +5,6 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
-import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetworkEventWriter;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
 import ch.sbb.matsim.zones.ZonesCollection;
@@ -79,11 +78,6 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
             analyses.add(linkVolumeWriter);
         }
 
-        if (ppConfig.getVisumNetFile()) {
-            VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, scaleFactor, ppConfig.getVisumNetworkMode(), filename, false);
-            analyses.add(visumNetworkEventWriter);
-        }
-
         if (ppConfig.getAnalyseScreenline()) {
             ScreenLineEventWriter screenLineEventWriter = new ScreenLineEventWriter(scenario, scaleFactor, ppConfig.getShapefileScreenline(), filename);
             analyses.add(screenLineEventWriter);
@@ -98,9 +92,6 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
         PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, true);
         persistentAnalyses.add(ptVolumeWriter);
 
-        VisumNetworkEventWriter visumNetworkEventWriter = new VisumNetworkEventWriter(scenario, 1.0 / ppConfig.getSimulationSampleSize(),
-                ppConfig.getVisumNetworkMode(), filename, true);
-        persistentAnalyses.add(visumNetworkEventWriter);
 
         return persistentAnalyses;
     }

@@ -1,6 +1,5 @@
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.analysis.TestFixtures.LinkTestFixture;
 import ch.sbb.matsim.analysis.TestFixtures.PtTestFixture;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import java.io.BufferedReader;
@@ -135,7 +134,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
+        Assert.assertEquals(4, eventsManager.getEventHandlers().size());
     }
 
 	/*
@@ -172,7 +171,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
+		Assert.assertEquals(4, eventsManager.getEventHandlers().size());
     }
 
 	/*
@@ -209,7 +208,7 @@ public class SBBPostProcessingOutputHandlerTest {
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(5, eventsManager.getEventHandlers().size());
+		Assert.assertEquals(4, eventsManager.getEventHandlers().size());
     }
 
 	@Test
@@ -272,64 +271,6 @@ public class SBBPostProcessingOutputHandlerTest {
 				readResult(this.utils.getOutputDirectory() + "matsim_vehjourneys.csv.gz"));
 	}
 
-	@Test
-	public void test_persistentVisumNetworkEventWriter() throws IOException {
-		LinkTestFixture testFixture = new LinkTestFixture();
-		testFixture.addDemand();
-
-		Config config = ConfigUtils.createConfig();
-		PostProcessingConfigGroup ppConfig = new PostProcessingConfigGroup();
-		ppConfig.setSimulationSampleSize(1.0);
-
-		ppConfig.setVisumNetFile(true);
-		ppConfig.setFinalDailyVolumes(true);
-		ppConfig.setTravelDiaries(false);
-		ppConfig.setWriteRailMatrix(false);
-		config.addModule(ppConfig);
-
-		Scenario scenario = ScenarioUtils.createScenario(config);
-		Controler controler = new Controler(scenario);
-		String outputPath = this.utils.getOutputDirectory();
-		OutputDirectoryHierarchy controlerIO = new OutputDirectoryHierarchy(outputPath, OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, CompressionType.gzip);
-		ControlerConfigGroup configGroup = new ControlerConfigGroup();
-		int lastIteration = 2;
-		configGroup.setLastIteration(lastIteration);
-		ppConfig.setWriteOutputsInterval(1);
-
-		SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-				testFixture.eventsManager,
-				testFixture.scenario,
-				controlerIO,
-				configGroup,
-				ppConfig,
-				null
-		);
-
-		StartupEvent startupEvent = new StartupEvent(controler);
-		outputHandler.notifyStartup(startupEvent);
-		for (int i = 0; i <= lastIteration; i++) {
-            System.out.println("### Iteration " + i + " ###");
-            controlerIO.createIterationDirectory(i);
-            BeforeMobsimEvent beforeMobsimEvent = new BeforeMobsimEvent(controler, i, false);
-            IterationEndsEvent iterationEndsEvent = new IterationEndsEvent(controler, i, false);
-
-            outputHandler.notifyBeforeMobsim(beforeMobsimEvent);
-            testFixture.addEvents();
-            testFixture.eventsManager.resetHandlers(i);
-            outputHandler.notifyIterationEnds(iterationEndsEvent);
-        }
-        ShutdownEvent shutdownEvent = new ShutdownEvent(startupEvent.getServices(), false, 0);
-        outputHandler.notifyShutdown(shutdownEvent);
-
-        String expectedLinksDaily = "it;2;3;4\n0;0;1;1\n1;0;1;1\n2;0;1;1\n";
-        String expectedLinks = "LINK_ID_SIM;FROMNODENO;TONODENO;VOLUME_SIM\n3;3;4;1.0\n4;4;5;1.0\n";
-
-        Assert.assertEquals(expectedLinks, readResult(this.utils.getOutputDirectory() + "visum_volumes.csv.gz"));
-       // Assert.assertEquals(expectedLinksDaily, readResult(this.utils.getOutputDirectory() + "visum_volumes_daily.csv.gz"));
-        Assert.assertEquals(
-                readResult(this.utils.getOutputDirectory() + "ITERS/it." + lastIteration + "/" + lastIteration + ".visum_volumes.csv.gz"),
-                readResult(this.utils.getOutputDirectory() + "visum_volumes.csv.gz"));
-	}
 
 	private String readResult(String filePath) throws IOException {
 		BufferedReader br = IOUtils.getBufferedReader(filePath);
