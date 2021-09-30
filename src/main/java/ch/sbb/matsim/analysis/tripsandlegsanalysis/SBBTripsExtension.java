@@ -187,3 +187,4 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
     }
 
 }
+
