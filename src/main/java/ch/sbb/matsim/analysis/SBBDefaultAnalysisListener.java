@@ -4,13 +4,14 @@
 
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.analysis.LinkAnalyser.CarLinkAnalysis;
+import ch.sbb.matsim.analysis.LinkAnalyser.IterationLinkAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
-import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -28,7 +29,6 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     private OutputDirectoryHierarchy controlerIO;
     private ControlerConfigGroup config;
     private PostProcessingConfigGroup ppConfig;
-    private ZonesCollection zones;
 
     @Inject
     private RailDemandMatrixAggregator railDemandMatrixAggregator;
@@ -42,6 +42,8 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     @Inject
     private PtLinkVolumeAnalyzer ptLinkVolumeAnalyzer;
 
+    private final CarLinkAnalysis carLinkAnalysis;
+
     @Inject
     public SBBDefaultAnalysisListener(
             final EventsManager eventsManager,
@@ -49,15 +51,14 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
             final OutputDirectoryHierarchy controlerIO,
             final ControlerConfigGroup config,
             final PostProcessingConfigGroup ppConfig,
-            final ZonesCollection zones
+            IterationLinkAnalyzer iterationLinkAnalyzer
     ) {
         this.eventsManager = eventsManager;
         this.scenario = scenario;
         this.controlerIO = controlerIO;
         this.config = config;
         this.ppConfig = ppConfig;
-        this.zones = zones;
-
+        this.carLinkAnalysis = new CarLinkAnalysis(ppConfig, scenario.getNetwork(), iterationLinkAnalyzer);
     }
 
     @Override
@@ -86,9 +87,14 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.csv");
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scenario.getConfig().controler().getRunId(), scalefactor);
                 putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
+                String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("carlinkvolumes.csv.gz")
+                        : controlerIO.getIterationFilename(event.getIteration(), "car_volumes.csv");
+                carLinkAnalysis.writeSingleIterationCarStats(carVolumesName);
 
             }
         }
+        String carVolumesFile = controlerIO.getOutputFilename("car_volumes_daily.csv.gz");
+        carLinkAnalysis.writeMultiIterationCarStats(carVolumesFile, event.getIteration());
 
     }
 

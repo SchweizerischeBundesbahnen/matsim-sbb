@@ -4,6 +4,7 @@
 
 package ch.sbb.matsim;
 
+import ch.sbb.matsim.analysis.LinkAnalyser.IterationLinkAnalyzer;
 import ch.sbb.matsim.analysis.SBBDefaultAnalysisListener;
 import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
@@ -149,6 +150,7 @@ public class RunSBB {
 				bind(RailDemandReporting.class);
 				bind(PtLinkVolumeAnalyzer.class);
 				bind(PutSurveyWriter.class);
+				bind(IterationLinkAnalyzer.class).asEagerSingleton();
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
 				install(new SBBTransitModule());
 				install(new ZonesModule(scenario));
