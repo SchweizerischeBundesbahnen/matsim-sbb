@@ -1,7 +1,7 @@
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.analysis.LinkAnalyser.CarLinkAnalysis;
-import ch.sbb.matsim.analysis.LinkAnalyser.IterationLinkAnalyzer;
+import ch.sbb.matsim.analysis.linkAnalysis.CarLinkAnalysis;
+import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;

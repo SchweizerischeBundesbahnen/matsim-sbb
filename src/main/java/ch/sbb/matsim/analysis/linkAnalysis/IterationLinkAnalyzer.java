@@ -17,7 +17,7 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.analysis.LinkAnalyser;
+package ch.sbb.matsim.analysis.linkAnalysis;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -4,7 +4,7 @@
 
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines.ScreenLineEventWriter;
+import ch.sbb.matsim.analysis.linkAnalysis.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
 import ch.sbb.matsim.zones.ZonesCollection;

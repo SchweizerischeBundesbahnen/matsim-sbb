@@ -4,8 +4,8 @@
 
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.analysis.LinkAnalyser.CarLinkAnalysis;
-import ch.sbb.matsim.analysis.LinkAnalyser.IterationLinkAnalyzer;
+import ch.sbb.matsim.analysis.linkAnalysis.CarLinkAnalysis;
+import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;

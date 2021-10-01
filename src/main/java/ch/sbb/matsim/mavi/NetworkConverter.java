@@ -1,7 +1,7 @@
 package ch.sbb.matsim.mavi;
 
-import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumLink;
-import ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork.VisumNetwork;
+import ch.sbb.matsim.analysis.linkAnalysis.VisumNetwork.VisumLink;
+import ch.sbb.matsim.analysis.linkAnalysis.VisumNetwork.VisumNetwork;
 import ch.sbb.matsim.config.variables.SBBModes;
 import java.util.Collections;
 import org.matsim.api.core.v01.Scenario;

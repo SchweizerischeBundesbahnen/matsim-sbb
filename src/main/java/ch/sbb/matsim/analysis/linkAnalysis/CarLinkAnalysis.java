@@ -17,7 +17,7 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.analysis.LinkAnalyser;
+package ch.sbb.matsim.analysis.linkAnalysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;

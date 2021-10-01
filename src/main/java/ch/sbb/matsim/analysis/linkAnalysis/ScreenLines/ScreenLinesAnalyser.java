@@ -1,4 +1,4 @@
-package ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines;
+package ch.sbb.matsim.analysis.linkAnalysis.ScreenLines;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import java.io.IOException;

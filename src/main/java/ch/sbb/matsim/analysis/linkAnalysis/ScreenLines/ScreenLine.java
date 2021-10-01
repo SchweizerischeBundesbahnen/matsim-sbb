@@ -1,4 +1,4 @@
-package ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines;
+package ch.sbb.matsim.analysis.linkAnalysis.ScreenLines;
 
 import java.util.ArrayList;
 import org.apache.log4j.Logger;

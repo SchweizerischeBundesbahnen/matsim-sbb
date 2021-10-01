@@ -1,4 +1,4 @@
-package ch.sbb.matsim.analysis.LinkAnalyser;
+package ch.sbb.matsim.analysis.linkAnalysis;
 
 import com.google.common.base.Functions;
 import java.util.HashMap;

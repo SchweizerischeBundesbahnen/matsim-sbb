@@ -1,7 +1,7 @@
-package ch.sbb.matsim.analysis.LinkAnalyser.ScreenLines;
+package ch.sbb.matsim.analysis.linkAnalysis.ScreenLines;
 
 import ch.sbb.matsim.analysis.EventsAnalysis;
-import ch.sbb.matsim.analysis.LinkAnalyser.LinkAnalyser;
+import ch.sbb.matsim.analysis.linkAnalysis.LinkAnalyser;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 

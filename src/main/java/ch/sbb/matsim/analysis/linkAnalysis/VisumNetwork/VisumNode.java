@@ -1,4 +1,4 @@
-package ch.sbb.matsim.analysis.LinkAnalyser.VisumNetwork;
+package ch.sbb.matsim.analysis.linkAnalysis.VisumNetwork;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import org.matsim.api.core.v01.Coord;
