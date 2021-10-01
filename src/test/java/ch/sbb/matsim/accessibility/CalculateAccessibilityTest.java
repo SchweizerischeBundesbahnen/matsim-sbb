@@ -1,5 +1,6 @@
 package ch.sbb.matsim.accessibility;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
@@ -8,9 +9,7 @@ import org.locationtech.jts.util.Assert;
 
 public class CalculateAccessibilityTest {
 
-    /**
-     * this test may fail on Windows machines due to different line endings.
-     */
+
     @Test
     public void main() throws IOException {
         final String folder = "test/input/scenarios/mobi31test/";
@@ -39,9 +38,11 @@ public class CalculateAccessibilityTest {
         CalculateAccessibility.main(new String[]{
                 coordinatesFile, zones, facilities, population, personWeight, network, schedule,
                 network, events, outputDirectory, gridSize, threads, detectTrainLines, modes, calcString, car1, car2});
-
-        Assert.equals(true, Files.equal(new File(inputDirectory + "/accessibility.csv"), new File(outputDirectory + "/accessibility.csv")));
-        Assert.equals(true, Files.equal(new File(inputDirectory + "/attractions_10.csv"), new File(outputDirectory + "/attractions_10.csv")));
-
+        File f1 = new File(inputDirectory + "/accessibility.csv");
+        File f2 = new File(outputDirectory + "/accessibility.csv");
+        Assert.equals(true, Files.readLines(f1, Charsets.UTF_8).equals(Files.readLines(f2, Charsets.UTF_8)));
+        File f3 = new File(inputDirectory + "/attractions_10.csv");
+        File f4 = new File(outputDirectory + "/attractions_10.csv");
+        Assert.equals(true, Files.readLines(f3, Charsets.UTF_8).equals(Files.readLines(f4, Charsets.UTF_8)));
     }
 }
