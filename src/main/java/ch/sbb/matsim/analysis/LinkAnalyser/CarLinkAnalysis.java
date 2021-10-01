@@ -104,7 +104,7 @@ public class CarLinkAnalysis {
                         writer.set("FROMNODENO", fromNode);
                         final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
                         writer.set("TONODENO", toNode);
-                        writer.set("VOLUME_SIM", Double.toString(volume / samplesize));
+                        writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
                         writer.writeRow();
                     }
                 }

@@ -48,14 +48,14 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
     @Override
     public void handleEvent(LinkEnterEvent event) {
         var linkId = event.getLinkId();
-        countPerLink.computeIfAbsent(linkId, i -> new AtomicInteger()).incrementAndGet();
+        countPerLink.computeIfAbsent(linkId, i -> new AtomicInteger(0)).incrementAndGet();
 
     }
 
     @Override
     public void handleEvent(VehicleEntersTrafficEvent event) {
         var linkId = event.getLinkId();
-        countPerLink.computeIfAbsent(linkId, i -> new AtomicInteger()).incrementAndGet();
+        countPerLink.computeIfAbsent(linkId, i -> new AtomicInteger(0)).incrementAndGet();
     }
 
     @Override
