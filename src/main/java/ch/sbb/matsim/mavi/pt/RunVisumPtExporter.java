@@ -86,7 +86,7 @@ public class RunVisumPtExporter {
 	private static void createOutputPath(String path) {
 		File outputPath = new File(path);
 		if (!outputPath.exists()) {
-			outputPath.mkdir();
+			outputPath.mkdirs();
 		}
 	}
 
@@ -101,7 +101,7 @@ public class RunVisumPtExporter {
 		VisumPtExporterConfigGroup exporterConfig = ConfigUtils.addOrGetModule(config, VisumPtExporterConfigGroup.class);
 
 		// Start Visum and load version
-		Visum visum = new Visum(20);
+		Visum visum = new Visum(21);
 		visum.loadVersion(exporterConfig.getPathToVisum());
 
 		if (exporterConfig.getAngebotName() != null) {
