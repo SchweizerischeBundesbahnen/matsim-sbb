@@ -23,20 +23,16 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.zip.GZIPOutputStream;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 
 public class CarLinkAnalysis {
@@ -52,6 +48,7 @@ public class CarLinkAnalysis {
     IterationLinkAnalyzer linkAnalyzer;
     private boolean firstcall = true;
     private TreeSet<Id<Link>> carlinks;
+    private BufferedWriter bufferedWriter;
 
     public CarLinkAnalysis(PostProcessingConfigGroup ppConfig, Network network, IterationLinkAnalyzer linkAnalyzer) {
         this.samplesize = ppConfig.getSimulationSampleSize();
@@ -59,27 +56,34 @@ public class CarLinkAnalysis {
         this.linkAnalyzer = linkAnalyzer;
     }
 
-    public void writeMultiIterationCarStats(String filename, int iteration) {
-        try (OutputStream os = new GZIPOutputStream(new FileOutputStream(new File(filename), true))) {
-            BufferedWriter w = new BufferedWriter(new OutputStreamWriter(os));
+    public void writeMultiIterationCarStats(String filename, int iteration, boolean closeWriter) {
+        if (firstcall) {
+            bufferedWriter = IOUtils.getBufferedWriter(filename);
+        }
+        try {
+
             if (firstcall) {
                 carlinks = network.getLinks().values()
                         .stream()
                         .filter(l -> l.getAllowedModes().contains(SBBModes.CAR))
                         .map(l -> l.getId())
                         .collect(Collectors.toCollection(TreeSet::new));
-                w.write("Iteration;" + carlinks.stream().map(Objects::toString).collect(Collectors.joining(";")));
+                bufferedWriter.write("Iteration;" + carlinks.stream().map(Objects::toString).collect(Collectors.joining(";")));
                 firstcall = false;
             }
             var linkVolumes = linkAnalyzer.getIterationCounts();
             String iterationLine = Integer.toString(iteration);
-            w.newLine();
+            bufferedWriter.newLine();
             for (Id<Link> l : carlinks) {
                 double vol = linkVolumes.getOrDefault(l, 0) / samplesize;
                 iterationLine = iterationLine + ";" + (int) vol;
             }
-            w.write(iterationLine);
-            w.flush();
+            bufferedWriter.write(iterationLine);
+            bufferedWriter.flush();
+
+            if (closeWriter) {
+                bufferedWriter.close();
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

@@ -87,14 +87,15 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.csv");
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scenario.getConfig().controler().getRunId(), scalefactor);
                 putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
-                String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("carlinkvolumes.csv.gz")
+                String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("car_volumes.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "car_volumes.csv");
                 carLinkAnalysis.writeSingleIterationCarStats(carVolumesName);
 
             }
         }
         String carVolumesFile = controlerIO.getOutputFilename("car_volumes_daily.csv.gz");
-        carLinkAnalysis.writeMultiIterationCarStats(carVolumesFile, event.getIteration());
+        boolean lastIteration = event.getIteration() == config.getLastIteration();
+        carLinkAnalysis.writeMultiIterationCarStats(carVolumesFile, event.getIteration(), lastIteration);
 
     }
 
