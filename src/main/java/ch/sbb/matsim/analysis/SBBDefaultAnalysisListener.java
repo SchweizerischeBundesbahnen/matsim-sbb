@@ -94,8 +94,8 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
             }
         }
         String carVolumesFile = controlerIO.getOutputFilename("car_volumes_daily.csv.gz");
-        boolean lastIteration = event.getIteration() == config.getLastIteration();
-        carLinkAnalysis.writeMultiIterationCarStats(carVolumesFile, event.getIteration(), lastIteration);
+
+        carLinkAnalysis.writeMultiIterationCarStats(carVolumesFile, event.getIteration());
 
     }
 
