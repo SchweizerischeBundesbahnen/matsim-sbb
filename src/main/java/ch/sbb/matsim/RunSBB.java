@@ -41,9 +41,12 @@ import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.replanning.SimpleAnnealer;
 import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
+import ch.sbb.matsim.routing.SBBCapacityDependentInVehicleCostCalculator;
 import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
+import ch.sbb.matsim.routing.pt.raptor.CapacityDependentInVehicleCostCalculator;
+import ch.sbb.matsim.routing.pt.raptor.RaptorInVehicleCostCalculator;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
@@ -135,6 +138,9 @@ public class RunSBB {
 
 	public static void addSBBDefaultControlerModules(Controler controler) {
 		Config config = controler.getConfig();
+		boolean useServiceQuality = true;
+		final SBBCapacityDependentInVehicleCostCalculator inVehicleCostCalculator = useServiceQuality ? new SBBCapacityDependentInVehicleCostCalculator(0.8D, 0.0D, 0.7D, 1.2D) : null;
+		log.info("SBB use service quality: " + useServiceQuality);
 		Scenario scenario = controler.getScenario();
 		ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
 		controler.setScoringFunctionFactory(scoringFunctionFactory);
@@ -188,6 +194,14 @@ public class RunSBB {
 			}
 		});
 		controler.addOverridingModule(new IntermodalModule());
+		if (useServiceQuality) {
+			controler.addOverridingModule(new AbstractModule() {
+				@Override
+				public void install() {
+					this.bind(RaptorInVehicleCostCalculator.class).toInstance(inVehicleCostCalculator);
+				}
+			});
+		}
 
 	}
 
