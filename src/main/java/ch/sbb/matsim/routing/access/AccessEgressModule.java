@@ -20,6 +20,8 @@ import org.matsim.core.router.NetworkRoutingProvider;
 
 public class AccessEgressModule extends AbstractModule {
 
+	public static final String IS_CH = "isCH";
+
 	public static void prepareAccessEgressTimes(Scenario scenario) {
 		ZonesCollection collection = (ZonesCollection) scenario.getScenarioElement(ZonesModule.SBB_ZONES);
 		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
@@ -35,6 +37,11 @@ public class AccessEgressModule extends AbstractModule {
 				double accessTime = zone != null ? ((Number) zone.getAttribute(attribute)).intValue() : .0;
 				NetworkUtils.setLinkAccessTime(l, mode, accessTime);
 				NetworkUtils.setLinkEgressTime(l, mode, accessTime);
+				boolean isInCH = false;
+				if (zone != null && Integer.parseInt(zone.getId().toString()) < 700000000) {
+					isInCH = true;
+				}
+				l.getAttributes().putAttribute(IS_CH, isInCH);
 			}
 		}
 
