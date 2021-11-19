@@ -46,7 +46,8 @@ public class GenerateEAPDemand {
     private final List<ODDemand> demandData;
     private final double scaleFactorCar;
     private final double scaleFactorPt;
-    private final Coord destinationCoord = new Coord(2607061.18838157, 1272114.54069301);
+    //equidistant between new train station and bus stop
+    private final Coord destinationCoord = new Coord(2607176.8206491300, 1272138.9751427100);
     private final Random r = MatsimRandom.getRandom();
     private WeightedRandomSelection<Integer> departureSelector = new WeightedRandomSelection<>();
     private WeightedRandomSelection<Integer> arrivalSelector = new WeightedRandomSelection<>();
