@@ -46,8 +46,8 @@ public class PopulationSlicer {
 			new MatsimFacilitiesReader(scenario).readFile(inputFacilities);
 		}
 		BetterPopulationReader.readSelectedPlansOnly(scenario, new File(inputPopulation));
-
-		var outputDir = Paths.get(inputPopulation.replace(".xml.gz", "_" + slices));
+		String p = 100 / slices + "pct";
+		var outputDir = Paths.get(inputPopulation.replace("plans.xml.gz", p));
 		Files.createDirectory(outputDir);
 
 		String outputFolder = outputDir.toAbsolutePath().toString();
