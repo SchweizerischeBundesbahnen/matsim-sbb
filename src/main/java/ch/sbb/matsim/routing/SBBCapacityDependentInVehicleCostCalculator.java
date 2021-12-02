@@ -47,8 +47,12 @@ public class SBBCapacityDependentInVehicleCostCalculator implements RaptorInVehi
                 factor = this.minimumCostFactor + (1.0D - this.minimumCostFactor) / this.lowerCapacityLimit * occupancy;
             }
 
-            if (occupancy > this.higherCapacityLimit) {
-                factor = 1.0D + (this.maximumCostFactor - 1.0D) / (standingRoomFactor - this.higherCapacityLimit) * (occupancy - this.higherCapacityLimit);
+            if ((occupancy > this.higherCapacityLimit) && (occupancy < 1.0)) {
+                factor = 1.0D + (this.maximumCostFactor - 1.0D) / (1.0 - this.higherCapacityLimit) * (occupancy - this.higherCapacityLimit);
+            }
+
+            if (occupancy >= 1) {
+                factor = this.maximumCostFactor;
             }
         }
 
