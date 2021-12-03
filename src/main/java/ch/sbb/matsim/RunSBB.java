@@ -15,6 +15,7 @@ import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.SBBTripsExtension;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
@@ -150,6 +151,7 @@ public class RunSBB {
 				bind(RailDemandReporting.class);
 				bind(PtLinkVolumeAnalyzer.class);
 				bind(PutSurveyWriter.class);
+				bind(TripsAndDistanceStats.class);
 				bind(IterationLinkAnalyzer.class).asEagerSingleton();
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
 				install(new SBBTransitModule());

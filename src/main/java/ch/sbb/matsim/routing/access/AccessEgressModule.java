@@ -37,12 +37,12 @@ public class AccessEgressModule extends AbstractModule {
 				double accessTime = zone != null ? ((Number) zone.getAttribute(attribute)).intValue() : .0;
 				NetworkUtils.setLinkAccessTime(l, mode, accessTime);
 				NetworkUtils.setLinkEgressTime(l, mode, accessTime);
-				boolean isInCH = false;
-				if (zone != null && Integer.parseInt(zone.getId().toString()) < 700000000) {
-					isInCH = true;
-				}
-				l.getAttributes().putAttribute(IS_CH, isInCH);
 			}
+			boolean isInCH = false;
+			if (zone != null && Integer.parseInt(zone.getId().toString()) < 700000000) {
+				isInCH = true;
+			}
+			l.getAttributes().putAttribute(IS_CH, isInCH);
 		}
 
 	}
