@@ -149,7 +149,7 @@ public class TestFixture {
 		scenario.getConfig().strategy().addStrategySettings(settings);
 
 		ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
-		zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, null));
+		zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, "ID"));
 
 		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
 		accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
