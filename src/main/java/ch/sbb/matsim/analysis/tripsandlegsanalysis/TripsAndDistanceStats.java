@@ -188,7 +188,7 @@ public class TripsAndDistanceStats {
     }
 
     private void addArtificialAllPaxSubpopulation(Map<String, SubpopulationStats> stats) {
-        SubpopulationStats allPaxTraffic = new SubpopulationStats("allPassengerTraffic");
+        SubpopulationStats allPaxTraffic = new SubpopulationStats("0_allPassengerTraffic");
         for (SubpopulationStats s : stats.values()) {
             if (s.subpopulation.equals("freight_road")) {
                 continue;
