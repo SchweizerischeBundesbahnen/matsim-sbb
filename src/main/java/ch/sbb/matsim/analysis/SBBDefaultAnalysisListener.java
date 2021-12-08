@@ -10,6 +10,7 @@ import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import com.google.inject.Inject;
@@ -41,6 +42,9 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
 
     @Inject
     private PtLinkVolumeAnalyzer ptLinkVolumeAnalyzer;
+
+    @Inject
+    private TripsAndDistanceStats tripsAndDistanceStats;
 
     private final CarLinkAnalysis carLinkAnalysis;
 
@@ -90,6 +94,9 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                 String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("car_volumes.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "car_volumes.csv");
                 carLinkAnalysis.writeSingleIterationCarStats(carVolumesName);
+                String tripsAndDistanceStatsName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("trips_distance_stats.csv")
+                        : controlerIO.getIterationFilename(event.getIteration(), "trips_distance_stats.csv");
+                tripsAndDistanceStats.analyzeAndWriteStats(tripsAndDistanceStatsName);
 
             }
         }
