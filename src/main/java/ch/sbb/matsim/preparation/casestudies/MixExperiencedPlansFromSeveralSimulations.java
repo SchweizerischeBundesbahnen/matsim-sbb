@@ -26,8 +26,10 @@ import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -125,7 +127,7 @@ public class MixExperiencedPlansFromSeveralSimulations {
         StreamingPopulationWriter spw = new StreamingPopulationWriter();
         spw.startStreaming(outputPlansFile);
         Set<Id<Person>> allPersons = new HashSet<>();
-        List<String> persons = new List<String>;
+        List<String> persons = new ArrayList<>();
         persons.add("run;id");
         for (String run : this.runs.keySet()) {
             if (run.equals("base")) {
@@ -160,6 +162,9 @@ public class MixExperiencedPlansFromSeveralSimulations {
         basePopulationReader.readFile(runs.get("base").get("plans"));
 
         spw.closeStreaming();
+
+        Path out = Paths.get(this.outputPlansFile.replace(".csv.gz", "_runids.csv"));
+        Files.write(out ,persons, Charset.defaultCharset());
     }
 
 }
