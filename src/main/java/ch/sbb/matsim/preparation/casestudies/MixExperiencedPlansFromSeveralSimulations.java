@@ -74,9 +74,6 @@ public class MixExperiencedPlansFromSeveralSimulations {
     private final String outputPlansFile;
     private final TransitSchedule schedule;
 
-    private Set<Id<ActivityFacility>> facilityWhiteList = new HashSet<>();
-    private Config config;
-
     /**
      * T
      *
@@ -123,43 +120,51 @@ public class MixExperiencedPlansFromSeveralSimulations {
     }
 
     private void mergePlans() throws IOException  {
-        TripsToLegsAlgorithm tripsToLegsAlgorithm = new TripsToLegsAlgorithm(new IntermodalAwareRouterModeIdentifier(config));
         StreamingPopulationWriter spw = new StreamingPopulationWriter();
         spw.startStreaming(outputPlansFile);
         Set<Id<Person>> allPersons = new HashSet<>();
         List<String> persons = new ArrayList<>();
         persons.add("run;id");
         for (String run : this.runs.keySet()) {
-            if (run.equals("base")) {
+
+            if (!run.equals("base")) {
+                LOG.info("processing run " + run);
                 Set<Id<Person>> whitelist = Files.lines(Path.of(runs.get(run).get("ids"))).map(t -> Id.createPersonId(t)).collect(Collectors.toSet());
+                LOG.info("whitelist contains " + whitelist.size() + " persons");
+                int numPersons = allPersons.size();
                 StreamingPopulationReader populationReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
                 populationReader.addAlgorithm(person -> {
-                    if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
-                        if (whitelist.contains(person.getId())) {
-                            if (!allPersons.contains(person.getId())) {
-                                spw.run(person);
-                                allPersons.add(person.getId());
-                                persons.add(run+";"+person.getId());
-                            }
+                    if (whitelist.contains(person.getId())) {
+                        if (!allPersons.contains(person.getId())) {
+                            spw.run(person);
+                            allPersons.add(person.getId());
+                            persons.add(run+";"+person.getId());
+                        } else {
+                            LOG.warn("person " + person.getId() + "found in more than one whitelist. Ignored in " + run);
                         }
                     }
                 });
 
                 populationReader.readFile(runs.get(run).get("plans"));
+                LOG.info("wrote " + (allPersons.size() - numPersons) + " persons");
             }
         }
         StreamingPopulationReader basePopulationReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
         basePopulationReader.addAlgorithm(person -> {
-            if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
-                if (!allPersons.contains(person.getId())) {
-                    spw.run(person);
-                    allPersons.add(person.getId());
-                    persons.add("base;"+person.getId());
-                }
+            if (!allPersons.contains(person.getId())) {
+                spw.run(person);
+                allPersons.add(person.getId());
+                persons.add("base;"+person.getId());
             }
         });
 
+        LOG.info("processing base");
+
+        int numPersons = allPersons.size();
+
         basePopulationReader.readFile(runs.get("base").get("plans"));
+
+        LOG.info("wrote " + (allPersons.size() - numPersons) + " persons");
 
         spw.closeStreaming();
 
