@@ -125,6 +125,8 @@ public class MixExperiencedPlansFromSeveralSimulations {
         StreamingPopulationWriter spw = new StreamingPopulationWriter();
         spw.startStreaming(outputPlansFile);
         Set<Id<Person>> allPersons = new HashSet<>();
+        List<String> persons = new List<String>;
+        persons.add("run;id");
         for (String run : this.runs.keySet()) {
             if (run.equals("base")) {
                 Set<Id<Person>> whitelist = Files.lines(Path.of(runs.get(run).get("ids"))).map(t -> Id.createPersonId(t)).collect(Collectors.toSet());
@@ -135,6 +137,7 @@ public class MixExperiencedPlansFromSeveralSimulations {
                             if (!allPersons.contains(person.getId())) {
                                 spw.run(person);
                                 allPersons.add(person.getId());
+                                persons.add(run+";"+person.getId());
                             }
                         }
                     }
@@ -143,6 +146,19 @@ public class MixExperiencedPlansFromSeveralSimulations {
                 populationReader.readFile(runs.get(run).get("plans"));
             }
         }
+        StreamingPopulationReader basePopulationReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
+        basePopulationReader.addAlgorithm(person -> {
+            if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
+                if (!allPersons.contains(person.getId())) {
+                    spw.run(person);
+                    allPersons.add(person.getId());
+                    persons.add("base;"+person.getId());
+                }
+            }
+        });
+
+        basePopulationReader.readFile(runs.get("base").get("plans"));
+
         spw.closeStreaming();
     }
 
