@@ -117,8 +117,6 @@ public class MixExperiencedPlansFromSeveralSimulations {
     }
 
     private void run()  throws IOException  {
-        adjustConfig();
-        prepareRelevantFacilities();
         mergePlans();
     }
 
@@ -146,54 +144,6 @@ public class MixExperiencedPlansFromSeveralSimulations {
             }
         }
         spw.closeStreaming();
-    }
-
-    private void prepareRelevantFacilities() {
-
-        try {
-            Set<String> whitelistZones = Files.lines(Path.of(whiteListZonesFiles)).collect(Collectors.toSet());
-            var zones = ZonesLoader.loadZones("zones", zonesFile, Variables.ZONE_ID);
-            List<String> facilityFiles = List.of(routedPlansFacilities, unroutedPlansFacilities);
-            for (String f : facilityFiles) {
-                if (!"-".equals(f)) {
-                    LOG.info("Handling zone matching for facilities file " + f);
-                    Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-                    new MatsimFacilitiesReader(scenario).readFile(f);
-                    for (ActivityFacility facility : scenario.getActivityFacilities().getFacilities().values()) {
-                        var zone = zones.findZone(facility.getCoord());
-                        if (zone != null) {
-                            if (whitelistZones.contains(zone.getId().toString())) {
-                                this.facilityWhiteList.add(facility.getId());
-                            }
-                        }
-                    }
-                    LOG.info("done.");
-                }
-            }
-            LOG.info("Whitelist contains " + facilityWhiteList.size() + " facilities in boundary.");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void adjustConfig() {
-
-        this.config = ConfigUtils.loadConfig(this.inputConfig, RunSBB.sbbDefaultConfigGroups);
-        config.strategy().getStrategySettings().stream().filter(s -> Variables.EXOGENEOUS_DEMAND.contains(s.getSubpopulation())).forEach(s -> s.setWeight(0.0));
-        List<String> subpops = new ArrayList<>();
-        subpops.add(Variables.NO_REPLANNING);
-        subpops.addAll(Variables.EXOGENEOUS_DEMAND);
-        for (var s : subpops) {
-            StrategySettings norep = new StrategySettings();
-            norep.setWeight(1.0);
-            norep.setSubpopulation(s);
-            norep.setStrategyName(DefaultSelector.KeepLastSelected);
-            config.strategy().addStrategySettings(norep);
-        }
-        new ConfigWriter(config).write(outputConfig);
-        LOG.info("wrote new config to " + outputConfig);
     }
 
 }
