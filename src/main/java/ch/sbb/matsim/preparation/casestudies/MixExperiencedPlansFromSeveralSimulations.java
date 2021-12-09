@@ -39,6 +39,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -115,82 +116,36 @@ public class MixExperiencedPlansFromSeveralSimulations {
         return runs;
     }
 
-    private void run() {
+    private void run()  throws IOException  {
         adjustConfig();
         prepareRelevantFacilities();
         mergePlans();
     }
 
-    private void mergePlans() {
+    private void mergePlans() throws IOException  {
         TripsToLegsAlgorithm tripsToLegsAlgorithm = new TripsToLegsAlgorithm(new IntermodalAwareRouterModeIdentifier(config));
         StreamingPopulationWriter spw = new StreamingPopulationWriter();
         spw.startStreaming(outputPlansFile);
         Set<Id<Person>> allPersons = new HashSet<>();
-        StreamingPopulationReader unroutedReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
-        unroutedReader.addAlgorithm(person -> {
-            if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
-                boolean include = TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities)
-                        .stream()
-                        .anyMatch(activity -> this.facilityWhiteList.contains(activity.getFacilityId()));
-                if (include) {
-                    spw.run(person);
-                    allPersons.add(person.getId());
-                }
-
-            }
-        });
-        unroutedReader.readFile(unroutedPlans);
-        MutableInt ttl = new MutableInt();
-        StreamingPopulationReader routedReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
-        routedReader.addAlgorithm(person -> {
-            if (!allPersons.contains(person.getId())) {
-                boolean include;
-                if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
-                    include = !(TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities)
-                            .stream()
-                            .anyMatch(activity
-                                    -> this.facilityWhiteList.contains(activity.getFacilityId())));
-                    if (include) {
-                        PopulationUtils.putSubpopulation(person, Variables.NO_REPLANNING);
-
-                    }
-                } else {
-                    include = true;
-                }
-                if (include) {
-                    PersonUtils.removeUnselectedPlans(person);
-                    var ptroutes = TripStructureUtils.getLegs(person.getSelectedPlan()).stream().filter(leg -> leg.getRoute().getRouteType().equals(DefaultTransitPassengerRoute.ROUTE_TYPE))
-                            .map(leg -> (DefaultTransitPassengerRoute) leg.getRoute()).collect(Collectors.toSet());
-                    for (DefaultTransitPassengerRoute r : ptroutes) {
-                        var transitLine = schedule.getTransitLines().get(r.getLineId());
-                        boolean hasRoute = false;
-                        boolean hasLine = false;
-                        if (transitLine != null) {
-                            hasRoute = transitLine.getRoutes().containsKey(r.getRouteId());
-                            hasLine = true;
-                        }
-                        if (!hasLine || !hasRoute) {
-                            if (PopulationUtils.getSubpopulation(person).equals(Variables.NO_REPLANNING)) {
-                                PopulationUtils.putSubpopulation(person, Variables.REGULAR);
+        for (String run : this.runs.keySet()) {
+            if (run.equals("base")) {
+                Set<Id<Person>> whitelist = Files.lines(Path.of(runs.get(run).get("ids"))).map(t -> Id.createPersonId(t)).collect(Collectors.toSet());
+                StreamingPopulationReader populationReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
+                populationReader.addAlgorithm(person -> {
+                    if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
+                        if (whitelist.contains(person.getId())) {
+                            if (!allPersons.contains(person.getId())) {
+                                spw.run(person);
+                                allPersons.add(person.getId());
                             }
-                            tripsToLegsAlgorithm.run(person.getSelectedPlan());
-                            ttl.increment();
-
                         }
                     }
+                });
 
-                    allPersons.add(person.getId());
-                    spw.run(person);
-                }
+                populationReader.readFile(runs.get(run).get("plans"));
             }
-
-        });
-        if (!"-".equals(routedPlans)) {
-            routedReader.readFile(routedPlans);
         }
-
         spw.closeStreaming();
-        LOG.info(ttl.intValue());
     }
 
     private void prepareRelevantFacilities() {
