@@ -19,37 +19,37 @@ public class FilteredNetwork {
 	private NetworkFactory networkFactory;
 
 	public Network readAndFilterNetwork(String networkFile) {
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
-		final Network carNetwork = NetworkUtils.createNetwork();
-		new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(SBBModes.CAR));
+        final Network carNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
+        new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(SBBModes.CAR));
 
-		this.filteredNetwork = NetworkUtils.createNetwork();
-		this.networkFactory = this.filteredNetwork.getFactory();
+        this.filteredNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
+        this.networkFactory = this.filteredNetwork.getFactory();
 
-		carNetwork.getLinks().values().stream().
-				filter(l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0")).
-				forEach(this::addLinkToNetwork);
+        carNetwork.getLinks().values().stream().
+                filter(l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0")).
+                forEach(this::addLinkToNetwork);
 
-		return this.filteredNetwork;
-	}
+        return this.filteredNetwork;
+    }
 
 	public Network filterNetwork(Network network) {
 
-		final Network carNetwork = NetworkUtils.createNetwork();
-		new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(SBBModes.CAR));
+        final Network carNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
+        new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(SBBModes.CAR));
 
-		this.filteredNetwork = NetworkUtils.createNetwork();
-		this.networkFactory = this.filteredNetwork.getFactory();
+        this.filteredNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
+        this.networkFactory = this.filteredNetwork.getFactory();
 
-		carNetwork.getLinks().values().stream().
-				filter(l -> (!String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("1"))).
-				forEach(this::addLinkToNetwork);
+        carNetwork.getLinks().values().stream().
+                filter(l -> (!String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("1"))).
+                forEach(this::addLinkToNetwork);
 
-		return this.filteredNetwork;
+        return this.filteredNetwork;
 
-	}
+    }
 
 	private void addLinkToNetwork(Link link) {
 		Node origFromNode = link.getFromNode();

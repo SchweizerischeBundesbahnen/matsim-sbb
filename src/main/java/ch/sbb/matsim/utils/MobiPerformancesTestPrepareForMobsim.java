@@ -40,6 +40,7 @@ import org.matsim.core.population.algorithms.PersonPrepareForSim;
 import org.matsim.core.population.algorithms.TripsToLegsAlgorithm;
 import org.matsim.core.router.PlanRouter;
 import org.matsim.core.router.TripRouter;
+import org.matsim.core.utils.timing.TimeInterpretation;
 import org.matsim.facilities.ActivityFacilities;
 
 public final class MobiPerformancesTestPrepareForMobsim implements PrepareForMobsim {
@@ -80,13 +81,13 @@ public final class MobiPerformancesTestPrepareForMobsim implements PrepareForMob
 		 */
 		final Network carOnlyNetwork;
 		if (NetworkUtils.isMultimodal(network)) {
-			log.info("Network seems to be multimodal. Create car-only network which is handed over to PersonPrepareForSim.");
-			TransportModeNetworkFilter filter = new TransportModeNetworkFilter(network);
-			carOnlyNetwork = NetworkUtils.createNetwork();
-			HashSet<String> modes = new HashSet<>();
-			modes.add(TransportMode.car);
-			filter.filter(carOnlyNetwork, modes);
-		} else {
+            log.info("Network seems to be multimodal. Create car-only network which is handed over to PersonPrepareForSim.");
+            TransportModeNetworkFilter filter = new TransportModeNetworkFilter(network);
+            carOnlyNetwork = NetworkUtils.createNetwork(scenario.getConfig());
+            HashSet<String> modes = new HashSet<>();
+            modes.add(TransportMode.car);
+            filter.filter(carOnlyNetwork, modes);
+        } else {
 			carOnlyNetwork = network;
 		}
 
@@ -98,9 +99,9 @@ public final class MobiPerformancesTestPrepareForMobsim implements PrepareForMob
 			// make sure all routes are calculated.
 			var time = System.currentTimeMillis();
 			ParallelPersonAlgorithmUtils.run(population, threads,
-					() -> new PersonPrepareForSim(new PlanRouter(tripRouterProvider.get(), activityFacilities), scenario,
-							carOnlyNetwork)
-			);
+                    () -> new PersonPrepareForSim(new PlanRouter(tripRouterProvider.get(), activityFacilities, TimeInterpretation.create(scenario.getConfig())), scenario,
+                            carOnlyNetwork)
+            );
 			double runTime = (System.currentTimeMillis() - time) / 1000.0;
 			runtimes.put(threads, runTime);
 			Logger.getLogger(getClass()).info("threads " + threads + " runtime " + runTime);

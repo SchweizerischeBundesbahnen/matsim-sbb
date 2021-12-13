@@ -39,6 +39,7 @@ import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.SingleModeNetworksCache;
 import org.matsim.core.router.TripStructureUtils;
@@ -228,7 +229,7 @@ public class AccessEgressRouteCache {
 					TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
 					Set<String> modes = new HashSet<>();
 					modes.add(mode);
-					filteredNetwork = NetworkUtils.createNetwork();
+					filteredNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
 					filter.filter(filteredNetwork, modes);
 					cache.put(mode, filteredNetwork);
 				}
@@ -249,7 +250,7 @@ public class AccessEgressRouteCache {
 		int accessTime = accessTimes.getOrDefault(mode, Collections.emptyMap()).getOrDefault(stopFacilityLinkId, 0);
 		if (value == null) {
 			//we are slightly outside the cached radius
-			List<? extends PlanElement> routeParts = module.calcRoute(stopFacility, actFacility, 3 * 3600, person);
+			List<? extends PlanElement> routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, actFacility, 3 * 3600, person));
 			Leg routedLeg = TripStructureUtils.getLegs(routeParts).stream().filter(leg -> leg.getMode().equals(mode)).findFirst().orElseThrow(RuntimeException::new);
 			int egressTime = getAccessTime(this.intermodalModeParams.get(mode).getAccessTimeZoneId(), scenario.getNetwork().getLinks().get(routedLeg.getRoute().getEndLinkId()).getToNode().getCoord());
 			int distance = (int) routedLeg.getRoute().getDistance();
