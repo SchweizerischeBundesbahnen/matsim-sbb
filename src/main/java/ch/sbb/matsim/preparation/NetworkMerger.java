@@ -31,11 +31,11 @@ public class NetworkMerger {
 	}
 
 	public static Network removePtOnlyLinks(Network network) {
-		Network reducedNetwork = NetworkUtils.createNetwork();
-		new TransportModeNetworkFilter(network).filter(reducedNetwork,
-				CollectionUtils.stringToSet(SBBModes.CAR + "," + SBBModes.RIDE));
-		return reducedNetwork;
-	}
+        Network reducedNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
+        new TransportModeNetworkFilter(network).filter(reducedNetwork,
+                CollectionUtils.stringToSet(SBBModes.CAR + "," + SBBModes.RIDE));
+        return reducedNetwork;
+    }
 
 	public static void mergeTransitNetworkFromSupplyConfig(Scenario scenario) {
 		SBBSupplyConfigGroup sbbSupplyConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBSupplyConfigGroup.class);

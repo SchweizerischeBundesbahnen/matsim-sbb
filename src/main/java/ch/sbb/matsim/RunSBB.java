@@ -202,9 +202,9 @@ public class RunSBB {
 
 	public static void adjustMobiConfig(Config config) {
 		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
-			// MATSim defines ride by default as teleported, which conflicts with the network mode
-			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
-		}
+            // MATSim defines ride by default as teleported, which conflicts with the network mode
+            config.plansCalcRoute().removeTeleportedModeParams(SBBModes.RIDE);
+        }
 		ActivityParamsBuilder.buildActivityParams(config);
 		SamplesizeFactors.setFlowAndStorageCapacities(config);
 	}

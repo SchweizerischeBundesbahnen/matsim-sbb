@@ -14,6 +14,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.NetworkRoutingModule;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
@@ -81,9 +82,9 @@ public class PotentialAnalysisRouter {
 
 	public Leg fetch(Facility fromFacility, Facility toFacility) {
 
-		List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility, this.startTime, this.person);
-		Leg leg = (Leg) pes.get(0);
+        List<? extends PlanElement> pes = this.router.calcRoute(DefaultRoutingRequest.withoutAttributes(fromFacility, toFacility, this.startTime, this.person));
+        Leg leg = (Leg) pes.get(0);
 
-		return leg;
-	}
+        return leg;
+    }
 }

@@ -433,7 +433,7 @@ public class Accessibility {
 		if (predicate == null) {
 			predicate = l -> true;
 		}
-		Network xy2lNetwork = NetworkUtils.createNetwork();
+		Network xy2lNetwork = NetworkUtils.createNetwork(this.config);
 		NetworkFactory nf = xy2lNetwork.getFactory();
 		for (Link link : network.getLinks().values()) {
 			if (predicate.test(link)) {
@@ -495,7 +495,7 @@ public class Accessibility {
 			log.info("not loading events, as no car-accessibility needs to be calculated.");
 		}
 		log.info("extracting car-only network"); // this is used in any case, not only when car is needed.
-		this.carNetwork = NetworkUtils.createNetwork();
+		this.carNetwork = NetworkUtils.createNetwork(this.config);
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.carNetwork, Collections.singleton(SBBModes.CAR));
 
 		log.info("loading schedule from " + this.scheduleFilename);
