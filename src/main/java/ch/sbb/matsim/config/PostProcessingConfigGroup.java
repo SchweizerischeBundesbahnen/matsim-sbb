@@ -4,7 +4,6 @@
 
 package ch.sbb.matsim.config;
 
-import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.zones.Zones;
 import java.util.Map;
 import org.matsim.api.core.v01.Id;
@@ -14,17 +13,13 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
 	static public final String GROUP_NAME = "PostProcessing";
 
-	static private final String PARAM_ANALYSE_SCREENLINE = "analyseScreenline";
-	static private final String PARAM_SHAPEFILE_SCREENLINE = "shapefileScreenline";
-	static private final String PARAM_MODE_VISUM_NETWORK = "visumNetworkMode";
+
 
 	private Id<Zones> zonesId = null;
 	private String zoneAttribute = "GMDNR";
 	private Boolean mapActivitiesToZone = false;
-	private Boolean travelDiaries = true;
 	private Boolean ptVolumes = false;
 	private Boolean linkVolumes = false;
-	private Boolean eventsPerPerson = false;
 	private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
 	private int writeOutputsInterval = 10;
 	private Boolean writeAgentsCSV = false;
@@ -36,16 +31,9 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	static private final String SIMULATION_SAMPLE_SIZE = "simulationSampleSize";
 	private double simulationSampleSize;
 
-	private Boolean analyseScreenline = false;
-	private String shapefileScreenline = null;
-
-	private Boolean visumNetFile = false;
-	private Integer visumNetworkThreshold = 5000;
-	private String visumNetworkMode = SBBModes.CAR;
-
-	static private final String WRITE_RAIL_MATRIX = "writeRailMatrix";
+	static private final String WRITE_ANALYSIS = "writeDefaultAnalysis";
 	static private final String RAIL_DEMAND_MATRIX_AGGREGATE = "railDemandMatrixAggregateAttribute";
-	private boolean writeRailMatrix = true;
+	private boolean writeAnalsysis = true;
 	private String railMatrixAggregate = "amgr_id";
 
 	public PostProcessingConfigGroup() {
@@ -62,14 +50,14 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 		this.simulationSampleSize = simulationSampleSize;
 	}
 
-	@StringGetter(WRITE_RAIL_MATRIX)
-	public boolean isWriteRailMatrix() {
-		return writeRailMatrix;
+	@StringGetter(WRITE_ANALYSIS)
+	public boolean isWriteAnalsysis() {
+		return writeAnalsysis;
 	}
 
-	@StringSetter(WRITE_RAIL_MATRIX)
-	public void setWriteRailMatrix(boolean writeRailMatrix) {
-		this.writeRailMatrix = writeRailMatrix;
+	@StringSetter(WRITE_ANALYSIS)
+	public void setWriteAnalsysis(boolean writeAnalsysis) {
+		this.writeAnalsysis = writeAnalsysis;
 	}
 
 	@StringGetter(RAIL_DEMAND_MATRIX_AGGREGATE)
@@ -82,35 +70,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 		this.railMatrixAggregate = railMatrixAggregate;
 	}
 
-	@StringGetter(PARAM_SHAPEFILE_SCREENLINE)
-	public String getShapefileScreenline() {
-		return shapefileScreenline;
-	}
-
-	@StringSetter(PARAM_SHAPEFILE_SCREENLINE)
-	public void setShapefileScreenline(String shapefileScreenline) {
-		this.shapefileScreenline = shapefileScreenline;
-	}
-
-	@StringGetter(PARAM_MODE_VISUM_NETWORK)
-	public String getVisumNetworkMode() {
-		return visumNetworkMode;
-	}
-
-	@StringSetter(PARAM_MODE_VISUM_NETWORK)
-	public void setVisumNetworkMode(String visumNetworkMode) {
-		this.visumNetworkMode = visumNetworkMode;
-	}
-
-	@StringGetter(PARAM_ANALYSE_SCREENLINE)
-	public Boolean getAnalyseScreenline() {
-		return analyseScreenline;
-	}
-
-	@StringSetter(PARAM_ANALYSE_SCREENLINE)
-	public void setAnalyseScreenline(Boolean write) {
-		this.analyseScreenline = write;
-	}
 
 	@StringGetter("writeVisumPuTSurvey")
 	public Boolean getWriteVisumPuTSurvey() {
@@ -172,26 +131,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 		this.personAttributes = personAttributes;
 	}
 
-	@StringGetter("eventsPerPerson")
-	public Boolean getEventsPerPerson() {
-		return eventsPerPerson;
-	}
-
-	@StringSetter("eventsPerPerson")
-	public void setEventsPerPerson(Boolean eventsPerPerson) {
-		this.eventsPerPerson = eventsPerPerson;
-	}
-
-	@StringGetter("travelDiaries")
-	public Boolean getTravelDiaries() {
-		return travelDiaries;
-	}
-
-	@StringSetter("travelDiaries")
-	public void setTravelDiaries(Boolean travelDiaries) {
-		this.travelDiaries = travelDiaries;
-	}
-
 	@StringGetter("ptVolumes")
 	public Boolean getPtVolumes() {
 		return ptVolumes;
@@ -210,36 +149,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	@StringSetter("linkVolumes")
 	public void setLinkVolumes(Boolean linkVolumes) {
 		this.linkVolumes = linkVolumes;
-	}
-
-	@StringGetter("visumNetFile")
-	public Boolean getVisumNetFile() {
-		return visumNetFile;
-	}
-
-	@StringSetter("visumNetFile")
-	public void setVisumNetFile(Boolean visumNetFile) {
-		this.visumNetFile = visumNetFile;
-	}
-
-	@StringGetter("linkCountDataFile")
-	public String getLinkCountDataFile() {
-		return linkCountDataFile;
-	}
-
-	@StringSetter("linkCountDataFile")
-	public void setLinkCountDataFile(String linkCountDataFile) {
-		this.linkCountDataFile = linkCountDataFile;
-	}
-
-	@StringGetter("stopCountDataFile")
-	public String getStopCountDataFile() {
-		return stopCountDataFile;
-	}
-
-	@StringSetter("stopCountDataFile")
-	public void setStopCountDataFile(String stopCountDataFile) {
-		this.stopCountDataFile = stopCountDataFile;
 	}
 
 	@StringGetter("zoneAttribute")
@@ -270,36 +179,20 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 		this.zonesId = zonesId;
 	}
 
-	@StringGetter("mapActivitiesToZone")
-	public Boolean getMapActivitiesToZone() {
-		return mapActivitiesToZone;
-	}
-
-	@StringSetter("mapActivitiesToZone")
-	public void setMapActivitiesToZone(Boolean mapActivitiesToZone) {
-		this.mapActivitiesToZone = mapActivitiesToZone;
-	}
 
 	@Override
 	public Map<String, String> getComments() {
 		Map<String, String> comments = super.getComments();
-		comments.put(PARAM_ANALYSE_SCREENLINE, "Run Screenline Analysis");
-		comments.put(PARAM_SHAPEFILE_SCREENLINE, "Shapefile for screenline. Contains polylines");
-		comments.put(PARAM_MODE_VISUM_NETWORK, "Mode to consider to export Network with volume to Visum (*.net File");
 		return comments;
 	}
 
 	public void setAllPostProcessingOff() {
-		this.travelDiaries = false;
 		this.ptVolumes = false;
 		this.linkVolumes = false;
-		this.eventsPerPerson = false;
 		this.writeAgentsCSV = false;
 		this.writePlanElementsCSV = false;
 		this.finalDailyVolumes = false;
 		this.writeVisumPuTSurvey = false;
-		this.analyseScreenline = false;
-		this.visumNetFile = false;
 		this.writeOutputsInterval = 0;
 	}
 
