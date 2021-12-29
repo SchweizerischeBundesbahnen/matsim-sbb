@@ -17,7 +17,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
 	private Id<Zones> zonesId = null;
 	private String zoneAttribute = "GMDNR";
-	private Boolean mapActivitiesToZone = false;
 	private Boolean ptVolumes = false;
 	private Boolean linkVolumes = false;
 	private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
@@ -25,8 +24,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	private Boolean writeAgentsCSV = false;
 	private Boolean writePlanElementsCSV = false;
 	private Boolean finalDailyVolumes = false;
-	private String linkCountDataFile = null;
-	private String stopCountDataFile = null;
 	private Boolean writeVisumPuTSurvey = false;
 	static private final String SIMULATION_SAMPLE_SIZE = "simulationSampleSize";
 	private double simulationSampleSize;
