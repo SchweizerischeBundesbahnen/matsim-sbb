@@ -5,10 +5,11 @@
 package ch.sbb.matsim;
 
 import ch.sbb.matsim.analysis.SBBDefaultAnalysisListener;
-import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
+import ch.sbb.matsim.analysis.SBBEventAnalysis;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.ActivityWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
@@ -142,7 +143,7 @@ public class RunSBB {
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
-				addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
+				addControlerListenerBinding().to(SBBEventAnalysis.class);
 				addControlerListenerBinding().to(SBBDefaultAnalysisListener.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
@@ -152,6 +153,7 @@ public class RunSBB {
 				bind(PtLinkVolumeAnalyzer.class);
 				bind(PutSurveyWriter.class);
 				bind(TripsAndDistanceStats.class);
+				bind(ActivityWriter.class).asEagerSingleton();
 				bind(IterationLinkAnalyzer.class).asEagerSingleton();
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
 				install(new SBBTransitModule());
