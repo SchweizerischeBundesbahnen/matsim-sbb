@@ -113,7 +113,7 @@
         <param name="deterministicServiceModes" value="bus,other,rail,tram"/>
     </module>
 
-    <module name="SimpleAnnealer">
+    <module name="ReplanningAnnealer">
         <param name="activateAnnealingModule" value="true"/>
         <parameterset type="AnnealingVariable">
             <!-- list of config parameters that shall be annealed. Currently supported: globalInnovationRate, BrainExpBeta, PathSizeLogitBeta, learningRate. Default is globalInnovationRate -->

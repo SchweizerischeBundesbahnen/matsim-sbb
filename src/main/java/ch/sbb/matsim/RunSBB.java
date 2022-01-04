@@ -41,8 +41,6 @@ import ch.sbb.matsim.preparation.NetworkMerger;
 import ch.sbb.matsim.preparation.PrepareActivitiesInPlans;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
-import ch.sbb.matsim.replanning.SimpleAnnealer;
-import ch.sbb.matsim.replanning.SimpleAnnealerConfigGroup;
 import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
@@ -87,7 +85,7 @@ public class RunSBB {
 	public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
 			new SBBBehaviorGroupsConfigGroup(), new SwissRailRaptorConfigGroup(),
 			new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
-			new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup()};
+			new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup()};
 	private static final Logger log = Logger.getLogger(RunSBB.class);
 
 	public static void main(String[] args) {
@@ -170,10 +168,6 @@ public class RunSBB {
 					addEventHandlerBinding().to(RideParkingCostTracker.class);
 				}
 
-				SimpleAnnealerConfigGroup annealerConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
-				if (annealerConfig.isActivateAnnealingModule()) {
-					addControlerListenerBinding().to(SimpleAnnealer.class);
-				}
 				ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
 				if (convergenceStatsConfig.isActivateConvergenceStats()) {
 					ConvergenceStats convergenceStats = new ConvergenceStats(this.getConfig());
