@@ -28,7 +28,7 @@ public class RunSBBPostProcessing {
 		final String outputPath = args[2];
 		log.info(configFile);
 
-        final Config config = ConfigUtils.loadConfig(configFile, RunSBB.sbbDefaultConfigGroups);
+        final Config config = ConfigUtils.loadConfig(configFile, RunSBB.getSbbDefaultConfigGroups());
         PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
 
         ZonesCollection allZones = new ZonesCollection();

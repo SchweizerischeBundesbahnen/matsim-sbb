@@ -82,10 +82,7 @@ import org.matsim.core.utils.misc.OptionalTime;
  */
 public class RunSBB {
 
-	public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-			new SBBBehaviorGroupsConfigGroup(), new SwissRailRaptorConfigGroup(),
-			new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
-			new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup()};
+
 	private static final Logger log = Logger.getLogger(RunSBB.class);
 
 	public static void main(String[] args) {
@@ -190,7 +187,7 @@ public class RunSBB {
 	}
 
 	public static Config buildConfig(String filepath) {
-		Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
+		Config config = ConfigUtils.loadConfig(filepath, getSbbDefaultConfigGroups());
 		adjustMobiConfig(config);
 		config.checkConsistency();
 		return config;
@@ -229,5 +226,12 @@ public class RunSBB {
 							.map(e -> e.isDefined() ? Double.toString(e.seconds()) : Variables.NO_INIT_END_TIME)
 							.collect(Collectors.joining("_")));
 		}
+	}
+
+	public static ConfigGroup[] getSbbDefaultConfigGroups() {
+		return new ConfigGroup[]{new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+				new SBBBehaviorGroupsConfigGroup(), new SwissRailRaptorConfigGroup(),
+				new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
+				new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup()};
 	}
 }

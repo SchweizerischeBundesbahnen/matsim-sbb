@@ -33,7 +33,7 @@ public class GenerateMiniConfig {
         double sampleSize = Double.parseDouble(args[2]);
         String outputFile = args[3];
 
-        Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.sbbDefaultConfigGroups);
+        Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
         config.controler().setMobsim("qsim");
         config.network().setTimeVariantNetwork(true);
         config.network().setChangeEventsInputFile(changeEventsFile);

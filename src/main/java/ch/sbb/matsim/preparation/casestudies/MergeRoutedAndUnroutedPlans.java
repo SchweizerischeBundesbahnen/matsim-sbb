@@ -237,7 +237,7 @@ public class MergeRoutedAndUnroutedPlans {
 
     private void adjustConfig() {
 
-        this.config = ConfigUtils.loadConfig(this.inputConfig, RunSBB.sbbDefaultConfigGroups);
+        this.config = ConfigUtils.loadConfig(this.inputConfig, RunSBB.getSbbDefaultConfigGroups());
         config.strategy().getStrategySettings().stream().filter(s -> Variables.EXOGENEOUS_DEMAND.contains(s.getSubpopulation())).forEach(s -> s.setWeight(0.0));
         List<String> subpops = new ArrayList<>();
         subpops.add(Variables.NO_REPLANNING);

@@ -47,7 +47,7 @@ public class RunSBBDRTScenario {
 
 	public static ConfigGroup[] getSBBAndDrtConfigGroups() {
 		List<ConfigGroup> configGroupList = new ArrayList<>();
-		configGroupList.addAll(Arrays.asList(RunSBB.sbbDefaultConfigGroups));
+		configGroupList.addAll(Arrays.asList(RunSBB.getSbbDefaultConfigGroups()));
 		configGroupList.add(new MultiModeDrtConfigGroup());
 		configGroupList.add(new DvrpConfigGroup());
 

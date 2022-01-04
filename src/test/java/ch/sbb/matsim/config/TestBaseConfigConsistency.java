@@ -20,37 +20,23 @@
 package ch.sbb.matsim.config;
 
 import ch.sbb.matsim.RunSBB;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 
 public class TestBaseConfigConsistency {
 
-    @Ignore
     @Test
     public void check2017Config() {
-        ConfigGroup[] groups = getSBBConfigGroups();
-        Config config_2017 = ConfigUtils.loadConfig("baseconfigs/config_2017_2030.xml", groups);
+        Config config_2017 = ConfigUtils.loadConfig("baseconfigs/config_2017_2030.xml", RunSBB.getSbbDefaultConfigGroups());
         config_2017.checkConsistency();
 
     }
 
-    /*
-     * Accessing the array directly leads to annoying problems if run on the build server
-     */
-    public ConfigGroup[] getSBBConfigGroups() {
-        ConfigGroup[] groups = new ConfigGroup[RunSBB.sbbDefaultConfigGroups.length];
-        System.arraycopy(RunSBB.sbbDefaultConfigGroups, 0, groups, 0, RunSBB.sbbDefaultConfigGroups.length);
-        return groups;
-    }
 
-    @Ignore
     @Test
     public void check2040Config() {
-        ConfigGroup[] groups = getSBBConfigGroups();
-        Config config_2040 = ConfigUtils.loadConfig("baseconfigs/config_2040_2050.xml", groups);
+        Config config_2040 = ConfigUtils.loadConfig("baseconfigs/config_2040_2050.xml", RunSBB.getSbbDefaultConfigGroups());
         config_2040.checkConsistency();
 
     }
