@@ -17,8 +17,9 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim;
+package ch.sbb.matsim.config;
 
+import ch.sbb.matsim.RunSBB;
 import org.junit.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
