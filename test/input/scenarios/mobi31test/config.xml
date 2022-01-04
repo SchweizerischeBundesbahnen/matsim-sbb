@@ -112,7 +112,10 @@
         <!-- Leg modes used by the created transit drivers that should be simulated strictly according to the schedule. -->
         <param name="deterministicServiceModes" value="bus,other,rail,tram"/>
     </module>
-
+    <module name="SBBSupply">
+        <param name="checkIfTransitNetworkExistsAlready" value="false"/>
+        <param name="inputTransitNetworkFile" value="null"/>
+    </module>
     <module name="ReplanningAnnealer">
         <param name="activateAnnealingModule" value="true"/>
         <parameterset type="AnnealingVariable">
