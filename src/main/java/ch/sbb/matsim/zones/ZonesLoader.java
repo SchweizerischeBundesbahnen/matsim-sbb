@@ -6,6 +6,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Locale;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -35,11 +36,12 @@ public final class ZonesLoader {
     }
 
     public static Zones loadZones(String id, String filename, String idAttribute) {
-        if (filename.toLowerCase(Locale.ROOT).endsWith(".shp")) {
-            return loadZonesFromShapefile(id, filename, idAttribute);
-        }
-        throw new RuntimeException("Unsupported format for zones-file " + filename);
-    }
+		Logger.getLogger(ZonesLoader.class).info(" zones file " + filename);
+		if (filename.toLowerCase(Locale.ROOT).endsWith(".shp")) {
+			return loadZonesFromShapefile(id, filename, idAttribute);
+		}
+		throw new RuntimeException("Unsupported format for zones-file " + filename);
+	}
 
     public static Zones loadZones(String id, String filename) {
         return loadZones(id, filename, Variables.ZONE_ID);

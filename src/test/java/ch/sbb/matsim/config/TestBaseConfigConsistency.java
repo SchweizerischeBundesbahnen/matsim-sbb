@@ -20,6 +20,7 @@
 package ch.sbb.matsim.config;
 
 import ch.sbb.matsim.RunSBB;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
@@ -27,6 +28,7 @@ import org.matsim.core.config.ConfigUtils;
 
 public class TestBaseConfigConsistency {
 
+    @Ignore
     @Test
     public void check2017Config() {
         ConfigGroup[] groups = getSBBConfigGroups();
@@ -44,6 +46,7 @@ public class TestBaseConfigConsistency {
         return groups;
     }
 
+    @Ignore
     @Test
     public void check2040Config() {
         ConfigGroup[] groups = getSBBConfigGroups();
