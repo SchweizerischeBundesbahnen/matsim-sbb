@@ -31,6 +31,7 @@ public class TestBaseConfigConsistency {
         System.setProperty("matsim.preferLocalDtds", "true");
         Config config = ConfigUtils.loadConfig("baseconfigs/config_2017_2030.xml", RunSBB.sbbDefaultConfigGroups);
         config.checkConsistency();
+        config = null;
     }
 
     @Test
@@ -38,6 +39,7 @@ public class TestBaseConfigConsistency {
         System.setProperty("matsim.preferLocalDtds", "true");
         Config config = ConfigUtils.loadConfig("baseconfigs/config_2040_2050.xml", RunSBB.sbbDefaultConfigGroups);
         config.checkConsistency();
+        config = null;
     }
 
 }
