@@ -24,7 +24,7 @@
                value="subpopulation,pt_subscr,car_available,residence_msr_id,age_cat,current_edu,level_of_employment_cat"/>
         <param name="ptVolumes" value="true"/>
         <param name="writeAgentsCSV" value="true"/>
-        <param name="writeFinalDailyVolumes" value="true"/>
+        <param name="writeFinalDailyVolumes" value="false"/>
         <param name="writeOutputsInterval" value="&LASTIT;"/>
         <param name="writeVisumPuTSurvey" value="true"/>
         <param name="writeDefaultAnalysis" value="true"/>
