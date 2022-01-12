@@ -24,20 +24,25 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.preparation.casestudies.MixExperiencedPlansFromSeveralSimulations;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
@@ -48,6 +53,7 @@ import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.core.utils.collections.CollectionUtils;
@@ -61,6 +67,8 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 public class PutSurveyWriter {
+
+    private final static Logger LOG = Logger.getLogger(MixExperiencedPlansFromSeveralSimulations.class);
 
     private static final String GEM_SHAPE_ATTR = "mun_id";
 
@@ -88,9 +96,10 @@ public class PutSurveyWriter {
     private static final String COL_PERS_ID = "PERSONID";
     private static final String COL_FROM_ACT = "FROM_ACT";
     private static final String COL_TO_ACT = "TO_ACT";
+    private static final String COL_TOURID_TRIPID = "TOURID_TRIPID";
     private static final String[] COLUMNS = new String[]{COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
             COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_SUBPOP, COL_ORIG_GEM, COL_DEST_GEM, COL_ACCESS_TO_RAIL_MODE, COL_EGRESS_FROM_RAIL_MODE,
-            COL_ACCESS_TO_RAIL_DIST, COL_EGRESS_FROM_RAIL_DIST, COL_PERS_ID, COL_FROM_ACT, COL_TO_ACT};
+            COL_ACCESS_TO_RAIL_DIST, COL_EGRESS_FROM_RAIL_DIST, COL_PERS_ID, COL_TOURID_TRIPID, COL_FROM_ACT, COL_TO_ACT};
 
     private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
@@ -100,12 +109,12 @@ public class PutSurveyWriter {
     public static final String TRANSITLINE = "02_TransitLine";
     public static final String LINEROUTENAME = "03_LineRouteName";
     public static final String FZPNAME = "05_Name";
+    private static IdMap<Person, LinkedList<String>> tripIds;
     private final Zones zones;
     private final double scaleFactor;
     private final TransitSchedule schedule;
     private final Scenario scenario;
 
-    @Inject
     ExperiencedPlansService experiencedPlansService;
 
     @Inject
@@ -145,6 +154,7 @@ public class PutSurveyWriter {
                 writer.set(COL_TO_ACT, e.to_act);
                 writer.set(COL_FROM_ACT, e.from_act);
                 writer.set(COL_PERS_ID, e.personId);
+                writer.set(COL_TOURID_TRIPID, e.tourIdTripId);
                 writer.writeRow();
             });
         } catch (IOException e) {
@@ -167,8 +177,11 @@ public class PutSurveyWriter {
     private Coord findCoord(Activity originActivity) {
         Id<ActivityFacility> facId = originActivity.getFacilityId();
         if (facId != null) {
-            return this.scenario.getActivityFacilities().getFacilities().get(facId).getCoord();
-        } else if (originActivity.getCoord() != null) {
+            if (this.scenario.getActivityFacilities().getFacilities().get(facId) != null) {
+                return this.scenario.getActivityFacilities().getFacilities().get(facId).getCoord();
+            }
+        }
+        if (originActivity.getCoord() != null) {
             return originActivity.getCoord();
         } else if (originActivity.getLinkId() != null) {
             return scenario.getNetwork().getLinks().get(originActivity.getLinkId()).getToNode().getCoord();
@@ -197,6 +210,14 @@ public class PutSurveyWriter {
         new MatsimFacilitiesReader(scenario).readFile(facilityFile);
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
         new PopulationReader(scenario).readFile(experiencedPlansFile);
+        tripIds = new IdMap<>(Person.class, scenario.getPopulation().getPersons().size());
+        for (var p : scenario.getPopulation().getPersons().values()) {
+            LinkedList<String> ids = TripStructureUtils.getActivities(p.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream()
+                    .map(activity -> activity.getAttributes().getAttribute(Variables.NEXT_TRIP_ID_ATTRIBUTE)).filter(
+                            Objects::nonNull).map(Object::toString).collect(Collectors.toCollection(LinkedList::new));
+            tripIds.put(p.getId(), ids);
+        }
+
         PutSurveyWriter putSurveyWriter = new PutSurveyWriter(scenario, collection, ppc);
         putSurveyWriter.collectAndWritePUTSurvey(outputFile, scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(p -> p.getId(), p -> p.getSelectedPlan())));
 
@@ -224,9 +245,17 @@ public class PutSurveyWriter {
                             String from_act = trip.getOriginActivity().getType().split("_")[0];
                             String to_act = trip.getDestinationActivity().getType().split("_")[0];
                             Person person = this.scenario.getPopulation().getPersons().get(e.getKey());
+
                             String subpop = "null";
+                            String tourTripId = "";
                             if (person != null) {
-                                subpop = String.valueOf(PopulationUtils.getSubpopulation(person));
+                                var visumTripIds = tripIds.get(person.getId());
+                                if (visumTripIds != null) {
+                                    String id = visumTripIds.poll();
+                                    if (id != null) {
+                                        tourTripId = id;
+                                    }
+                                }
                             }
 
                             var origzone = zones.findZone(findCoord(trip.getOriginActivity()));
@@ -262,6 +291,7 @@ public class PutSurveyWriter {
                                     putSurveyEntry.from_act = from_act;
                                     putSurveyEntry.to_act = to_act;
                                     putSurveyEntry.personId = e.getKey().toString();
+                                    putSurveyEntry.tourIdTripId = tourTripId;
                                     tripEntry.add(putSurveyEntry);
                                     if (transitRoute.getTransportMode().equals(PTSubModes.RAIL)) {
                                         isRail = true;
@@ -330,6 +360,7 @@ public class PutSurveyWriter {
         private int access_to_rail_dist = 0;
         private int egress_from_rail_dist = 0;
         private String personId = "";
+        private String tourIdTripId = "";
         private String from_act = "";
         private String to_act = "";
 
