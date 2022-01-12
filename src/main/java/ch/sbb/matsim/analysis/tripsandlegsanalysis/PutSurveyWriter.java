@@ -115,6 +115,7 @@ public class PutSurveyWriter {
     private final TransitSchedule schedule;
     private final Scenario scenario;
 
+    @Inject
     ExperiencedPlansService experiencedPlansService;
 
     @Inject
