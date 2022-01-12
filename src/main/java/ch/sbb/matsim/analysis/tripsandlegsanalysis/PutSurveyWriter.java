@@ -225,6 +225,14 @@ public class PutSurveyWriter {
     }
 
     public void collectAndWritePUTSurvey(String filename) {
+        tripIds = new IdMap<>(Person.class, scenario.getPopulation().getPersons().size());
+        for (var p : scenario.getPopulation().getPersons().values()) {
+            LinkedList<String> ids = TripStructureUtils.getActivities(p.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream()
+                    .map(activity -> activity.getAttributes().getAttribute(Variables.NEXT_TRIP_ID_ATTRIBUTE)).filter(
+                            Objects::nonNull).map(Object::toString).collect(Collectors.toCollection(LinkedList::new));
+            tripIds.put(p.getId(), ids);
+        }
+
         collectAndWritePUTSurvey(filename, experiencedPlansService.getExperiencedPlans());
     }
 
