@@ -211,13 +211,6 @@ public class PutSurveyWriter {
         new MatsimFacilitiesReader(scenario).readFile(facilityFile);
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
         new PopulationReader(scenario).readFile(experiencedPlansFile);
-        tripIds = new IdMap<>(Person.class, scenario.getPopulation().getPersons().size());
-        for (var p : scenario.getPopulation().getPersons().values()) {
-            LinkedList<String> ids = TripStructureUtils.getActivities(p.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream()
-                    .map(activity -> activity.getAttributes().getAttribute(Variables.NEXT_TRIP_ID_ATTRIBUTE)).filter(
-                            Objects::nonNull).map(Object::toString).collect(Collectors.toCollection(LinkedList::new));
-            tripIds.put(p.getId(), ids);
-        }
 
         PutSurveyWriter putSurveyWriter = new PutSurveyWriter(scenario, collection, ppc);
         putSurveyWriter.collectAndWritePUTSurvey(outputFile, scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(p -> p.getId(), p -> p.getSelectedPlan())));
@@ -225,6 +218,10 @@ public class PutSurveyWriter {
     }
 
     public void collectAndWritePUTSurvey(String filename) {
+        collectAndWritePUTSurvey(filename, experiencedPlansService.getExperiencedPlans());
+    }
+
+    public void collectAndWritePUTSurvey(String filename, Map<Id<Person>, Plan> experiencedPlans) {
         tripIds = new IdMap<>(Person.class, scenario.getPopulation().getPersons().size());
         for (var p : scenario.getPopulation().getPersons().values()) {
             LinkedList<String> ids = TripStructureUtils.getActivities(p.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream()
@@ -233,10 +230,6 @@ public class PutSurveyWriter {
             tripIds.put(p.getId(), ids);
         }
 
-        collectAndWritePUTSurvey(filename, experiencedPlansService.getExperiencedPlans());
-    }
-
-    public void collectAndWritePUTSurvey(String filename, Map<Id<Person>, Plan> experiencedPlans) {
         AtomicInteger teilwegNr = new AtomicInteger();
         List<List<PutSurveyEntry>> entries = experiencedPlans.entrySet().parallelStream()
                 .map(e -> TripStructureUtils
