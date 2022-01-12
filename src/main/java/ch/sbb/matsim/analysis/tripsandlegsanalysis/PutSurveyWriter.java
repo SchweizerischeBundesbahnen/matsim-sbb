@@ -268,6 +268,9 @@ public class PutSurveyWriter {
                                 String to_act = trip.getDestinationActivity().getType().split("_")[0];
 
                                 String subpop = "null";
+                                if (person != null) {
+                                    subpop = String.valueOf(PopulationUtils.getSubpopulation(person));
+                                }
 
                                 var origzone = zones.findZone(findCoord(trip.getOriginActivity()));
                                 var destzone = zones.findZone(findCoord(trip.getDestinationActivity()));
