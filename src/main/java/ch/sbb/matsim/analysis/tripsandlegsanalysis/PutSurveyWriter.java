@@ -232,22 +232,9 @@ public class PutSurveyWriter {
         List<List<PutSurveyEntry>> entries = experiencedPlans.entrySet().parallelStream()
                 .map(e -> TripStructureUtils
                         .getTrips(e.getValue()).stream()
-                        .filter(t -> t.getLegsOnly().stream().anyMatch(l -> l.getMode().equals(SBBModes.PT)))
                         .flatMap(trip -> {
-                            List<PutSurveyEntry> tripEntry = new ArrayList<>();
-                            String path_id = String.valueOf(teilwegNr.incrementAndGet());
-                            Set<String> railAccessModes = new HashSet<>();
-                            Set<String> railEgresssModes = new HashSet<>();
-                            PutSurveyEntry firstRailLeg = null;
-                            PutSurveyEntry lastRailLeg = null;
-
-                            int leg_id = 1;
-                            String from_act = trip.getOriginActivity().getType().split("_")[0];
-                            String to_act = trip.getDestinationActivity().getType().split("_")[0];
-                            Person person = this.scenario.getPopulation().getPersons().get(e.getKey());
-
-                            String subpop = "null";
                             String tourTripId = "";
+                            Person person = this.scenario.getPopulation().getPersons().get(e.getKey());
                             if (person != null) {
                                 var visumTripIds = tripIds.get(person.getId());
                                 if (visumTripIds != null) {
@@ -258,79 +245,96 @@ public class PutSurveyWriter {
                                 }
                             }
 
-                            var origzone = zones.findZone(findCoord(trip.getOriginActivity()));
-                            var destzone = zones.findZone(findCoord(trip.getDestinationActivity()));
+                            List<PutSurveyEntry> tripEntry = new ArrayList<>();
 
-                            String orig_gem = origzone != null ? origzone.getAttribute(GEM_SHAPE_ATTR).toString() : Variables.DEFAULT_ZONE;
-                            String dest_gem = destzone != null ? destzone.getAttribute(GEM_SHAPE_ATTR).toString() : Variables.DEFAULT_ZONE;
-                            double railAccessDist = 0.;
-                            double railEgressDist = 0.;
-                            for (Leg leg : trip.getLegsOnly()) {
-                                boolean isRail = false;
-                                if (leg.getRoute() instanceof TransitPassengerRoute) {
-                                    TransitPassengerRoute r = (TransitPassengerRoute) leg.getRoute();
-                                    TransitLine line = schedule.getTransitLines().get(r.getLineId());
-                                    TransitRoute transitRoute = line.getRoutes().get(r.getRouteId());
-                                    String from_stop = String.valueOf(schedule.getFacilities().get(r.getAccessStopId()).getAttributes().getAttribute(STOP_NO));
-                                    String to_stop = String.valueOf(schedule.getFacilities().get(r.getEgressStopId()).getAttributes().getAttribute(STOP_NO));
-                                    ;
-                                    String vsyscode = String.valueOf(transitRoute.getAttributes().getAttribute(TSYS_CODE));
-                                    String linname = String.valueOf(transitRoute.getAttributes().getAttribute(TRANSITLINE));
-                                    String linroutename = String.valueOf(transitRoute.getAttributes().getAttribute(LINEROUTENAME));
-                                    String richtungscode = String.valueOf(transitRoute.getAttributes().getAttribute(DIRECTION_CODE));
+                            if (trip.getLegsOnly().stream().anyMatch(l -> l.getMode().equals(SBBModes.PT) )) {
+                                String path_id = String.valueOf(teilwegNr.incrementAndGet());
+                                Set<String> railAccessModes = new HashSet<>();
+                                Set<String> railEgresssModes = new HashSet<>();
+                                PutSurveyEntry firstRailLeg = null;
+                                PutSurveyEntry lastRailLeg = null;
 
-                                    String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
+                                int leg_id = 1;
+                                String from_act = trip.getOriginActivity().getType().split("_")[0];
+                                String to_act = trip.getDestinationActivity().getType().split("_")[0];
 
-                                    String teilweg_kennung = leg_id > 1 ? "N" : "E";
-                                    String einhstnr = from_stop;
-                                    String einhstabfahrtstag = getDayIndex(r.getBoardingTime().seconds());
-                                    String einhstabfahrtszeit = getTime(r.getBoardingTime().seconds());
+                                String subpop = "null";
 
-                                    PutSurveyEntry putSurveyEntry = new PutSurveyEntry(path_id, String.valueOf(leg_id), from_stop, to_stop, vsyscode, linname, linroutename, richtungscode,
-                                            fzprofilname, teilweg_kennung, einhstnr, einhstabfahrtstag, einhstabfahrtszeit, scaleFactor, subpop, orig_gem, dest_gem);
-                                    putSurveyEntry.from_act = from_act;
-                                    putSurveyEntry.to_act = to_act;
-                                    putSurveyEntry.personId = e.getKey().toString();
-                                    putSurveyEntry.tourIdTripId = tourTripId;
-                                    tripEntry.add(putSurveyEntry);
-                                    if (transitRoute.getTransportMode().equals(PTSubModes.RAIL)) {
-                                        isRail = true;
-                                        lastRailLeg = putSurveyEntry;
-                                        railEgressDist = 0.;
-                                        railEgresssModes.clear();
-                                        if (firstRailLeg == null) {
-                                            firstRailLeg = putSurveyEntry;
+                                var origzone = zones.findZone(findCoord(trip.getOriginActivity()));
+                                var destzone = zones.findZone(findCoord(trip.getDestinationActivity()));
+
+                                String orig_gem = origzone != null ? origzone.getAttribute(GEM_SHAPE_ATTR).toString() : Variables.DEFAULT_ZONE;
+                                String dest_gem = destzone != null ? destzone.getAttribute(GEM_SHAPE_ATTR).toString() : Variables.DEFAULT_ZONE;
+                                double railAccessDist = 0.;
+                                double railEgressDist = 0.;
+                                for (Leg leg : trip.getLegsOnly()) {
+                                    boolean isRail = false;
+                                    if (leg.getRoute() instanceof TransitPassengerRoute) {
+                                        TransitPassengerRoute r = (TransitPassengerRoute) leg.getRoute();
+                                        TransitLine line = schedule.getTransitLines().get(r.getLineId());
+                                        TransitRoute transitRoute = line.getRoutes().get(r.getRouteId());
+                                        String from_stop = String.valueOf(schedule.getFacilities().get(r.getAccessStopId()).getAttributes().getAttribute(STOP_NO));
+                                        String to_stop = String.valueOf(schedule.getFacilities().get(r.getEgressStopId()).getAttributes().getAttribute(STOP_NO));
+                                        ;
+                                        String vsyscode = String.valueOf(transitRoute.getAttributes().getAttribute(TSYS_CODE));
+                                        String linname = String.valueOf(transitRoute.getAttributes().getAttribute(TRANSITLINE));
+                                        String linroutename = String.valueOf(transitRoute.getAttributes().getAttribute(LINEROUTENAME));
+                                        String richtungscode = String.valueOf(transitRoute.getAttributes().getAttribute(DIRECTION_CODE));
+
+                                        String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
+
+                                        String teilweg_kennung = leg_id > 1 ? "N" : "E";
+                                        String einhstnr = from_stop;
+                                        String einhstabfahrtstag = getDayIndex(r.getBoardingTime().seconds());
+                                        String einhstabfahrtszeit = getTime(r.getBoardingTime().seconds());
+
+                                        PutSurveyEntry putSurveyEntry = new PutSurveyEntry(path_id, String.valueOf(leg_id), from_stop, to_stop, vsyscode, linname, linroutename, richtungscode,
+                                                fzprofilname, teilweg_kennung, einhstnr, einhstabfahrtstag, einhstabfahrtszeit, scaleFactor, subpop, orig_gem, dest_gem);
+                                        putSurveyEntry.from_act = from_act;
+                                        putSurveyEntry.to_act = to_act;
+                                        putSurveyEntry.personId = e.getKey().toString();
+                                        putSurveyEntry.tourIdTripId = tourTripId;
+                                        tripEntry.add(putSurveyEntry);
+                                        if (transitRoute.getTransportMode().equals(PTSubModes.RAIL)) {
+                                            isRail = true;
+                                            lastRailLeg = putSurveyEntry;
+                                            railEgressDist = 0.;
+                                            railEgresssModes.clear();
+                                            if (firstRailLeg == null) {
+                                                firstRailLeg = putSurveyEntry;
+                                            }
                                         }
+
+                                        leg_id++;
                                     }
 
-                                    leg_id++;
-                                }
+                                    if (firstRailLeg == null) {
+                                        railAccessModes.add(leg.getMode());
+                                        railAccessDist += leg.getRoute().getDistance();
 
-                                if (firstRailLeg == null) {
-                                    railAccessModes.add(leg.getMode());
-                                    railAccessDist += leg.getRoute().getDistance();
-
+                                    }
+                                    if (lastRailLeg != null && !isRail) {
+                                        railEgresssModes.add(leg.getMode());
+                                        railEgressDist += leg.getRoute().getDistance();
+                                    }
                                 }
-                                if (lastRailLeg != null && !isRail) {
-                                    railEgresssModes.add(leg.getMode());
-                                    railEgressDist += leg.getRoute().getDistance();
+                                if (!railAccessModes.isEmpty() && firstRailLeg != null) {
+                                    if (railAccessModes.size() > 1) {
+                                        railAccessModes.remove(SBBModes.ACCESS_EGRESS_WALK);
+                                    }
+                                    firstRailLeg.access_to_rail_dist = (int) railAccessDist;
+                                    firstRailLeg.access_to_rail_mode = CollectionUtils.setToString(railAccessModes);
                                 }
-                            }
-                            if (!railAccessModes.isEmpty() && firstRailLeg != null) {
-                                if (railAccessModes.size() > 1) {
-                                    railAccessModes.remove(SBBModes.ACCESS_EGRESS_WALK);
+                                if (!railEgresssModes.isEmpty()) {
+                                    if (railEgresssModes.size() > 1) {
+                                        railEgresssModes.remove(SBBModes.ACCESS_EGRESS_WALK);
+                                    }
+                                    lastRailLeg.egress_from_rail_dist = (int) railEgressDist;
+                                    lastRailLeg.egress_from_rail_mode = CollectionUtils.setToString(railEgresssModes);
                                 }
-                                firstRailLeg.access_to_rail_dist = (int) railAccessDist;
-                                firstRailLeg.access_to_rail_mode = CollectionUtils.setToString(railAccessModes);
-                            }
-                            if (!railEgresssModes.isEmpty()) {
-                                if (railEgresssModes.size() > 1) {
-                                    railEgresssModes.remove(SBBModes.ACCESS_EGRESS_WALK);
-                                }
-                                lastRailLeg.egress_from_rail_dist = (int) railEgressDist;
-                                lastRailLeg.egress_from_rail_mode = CollectionUtils.setToString(railEgresssModes);
                             }
                             return tripEntry.stream();
+
                         }).collect(Collectors.toList()))
                 .collect(Collectors.toList());
         writePutSurvey(filename, entries);
