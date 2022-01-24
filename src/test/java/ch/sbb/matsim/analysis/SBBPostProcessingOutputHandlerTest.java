@@ -50,16 +50,16 @@ public class SBBPostProcessingOutputHandlerTest {
 
 		int iteration = 10;
 
-		SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-                eventsManager,
-                scenario,
-                controlerIO,
-                configGroup,
-                ppConfig,
-                null
-        );
+		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
+				eventsManager,
+				scenario,
+				controlerIO,
+				configGroup,
+				ppConfig,
+				null
+		);
 
-        BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
+		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
         outputHandler.notifyBeforeMobsim(event);
 
@@ -85,14 +85,14 @@ public class SBBPostProcessingOutputHandlerTest {
 
 		int iteration = 9;
 
-        SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-                eventsManager,
-                scenario,
-                controlerIO,
-                configGroup,
-                ppConfig,
-                null
-        );
+		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
+				eventsManager,
+				scenario,
+				controlerIO,
+				configGroup,
+				ppConfig,
+				null
+		);
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
@@ -121,20 +121,20 @@ public class SBBPostProcessingOutputHandlerTest {
 		int iteration = 10;
 		controlerIO.createIterationDirectory(iteration);
 
-        SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-                eventsManager,
-                scenario,
-                controlerIO,
-                configGroup,
-                ppConfig,
-                null
-        );
+		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
+				eventsManager,
+				scenario,
+				controlerIO,
+				configGroup,
+				ppConfig,
+				null
+		);
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(4, eventsManager.getEventHandlers().size());
+		Assert.assertEquals(2, eventsManager.getEventHandlers().size());
     }
 
 	/*
@@ -158,21 +158,21 @@ public class SBBPostProcessingOutputHandlerTest {
 		int iteration = 11;
 		controlerIO.createIterationDirectory(iteration);
 
-        SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-                eventsManager,
-                scenario,
-                controlerIO,
-                configGroup,
-                ppConfig,
-                null
-        );
+		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
+				eventsManager,
+				scenario,
+				controlerIO,
+				configGroup,
+				ppConfig,
+				null
+		);
 
-        BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
+		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
-        outputHandler.notifyBeforeMobsim(event);
+		outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(4, eventsManager.getEventHandlers().size());
-    }
+		Assert.assertEquals(2, eventsManager.getEventHandlers().size());
+	}
 
 	/*
 	 * some CSV writers are set, it is the last iteration AND outputs are dumped, so we expect 10 eventHandlers to be configured:
@@ -195,21 +195,21 @@ public class SBBPostProcessingOutputHandlerTest {
 		int iteration = 10;
 		controlerIO.createIterationDirectory(10);
 
-        SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
-                eventsManager,
-                scenario,
-                controlerIO,
-                configGroup,
-                ppConfig,
-                null
-        );
+		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
+				eventsManager,
+				scenario,
+				controlerIO,
+				configGroup,
+				ppConfig,
+				null
+		);
 
-        BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
+		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
-        outputHandler.notifyBeforeMobsim(event);
+		outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(4, eventsManager.getEventHandlers().size());
-    }
+		Assert.assertEquals(2, eventsManager.getEventHandlers().size());
+	}
 
 	@Test
 	public void test_persistentPtVolumesToCSV() throws IOException {
@@ -222,8 +222,7 @@ public class SBBPostProcessingOutputHandlerTest {
 		ppConfig.setSimulationSampleSize(1.0);
 		ppConfig.setFinalDailyVolumes(true);
 		ppConfig.setPtVolumes(true);
-		ppConfig.setTravelDiaries(false);
-		ppConfig.setWriteRailMatrix(false);
+		ppConfig.setWriteAnalsysis(false);
 		config.addModule(ppConfig);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
@@ -235,7 +234,7 @@ public class SBBPostProcessingOutputHandlerTest {
 		configGroup.setLastIteration(lastIteration);
 		ppConfig.setWriteOutputsInterval(1);
 
-		SBBPostProcessingOutputHandler outputHandler = new SBBPostProcessingOutputHandler(
+		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
 				testFixture.eventsManager,
 				testFixture.scenario,
 				controlerIO,
@@ -290,14 +289,10 @@ public class SBBPostProcessingOutputHandlerTest {
 			boolean writePlansCSV, boolean visumNetFile) {
 		PostProcessingConfigGroup ppConfig = new PostProcessingConfigGroup();
 		ppConfig.setWriteOutputsInterval(writeOutputsInterval);
-		ppConfig.setEventsPerPerson(eventPerPerson);
 		ppConfig.setLinkVolumes(linkVolumes);
 		ppConfig.setPtVolumes(ptVolumes);
-		ppConfig.setTravelDiaries(travelDiaries);
-		ppConfig.setMapActivitiesToZone(false);
 		ppConfig.setWriteAgentsCSV(writePlansCSV);
 		ppConfig.setWritePlanElementsCSV(false);
-		ppConfig.setVisumNetFile(visumNetFile);
 
 		return ppConfig;
 	}

@@ -1,10 +1,12 @@
 package ch.sbb.matsim.zones;
 
 import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.config.variables.Variables;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Locale;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -30,25 +32,30 @@ public final class ZonesLoader {
 			String idAttribute = group.getIdAttributeName();
 			Zones zones = loadZones(id, filenameURL, idAttribute);
 			zonesCollection.addZones(zones);
-		}
-	}
+        }
+    }
 
-	public static Zones loadZones(String id, String filename, String idAttribute) {
+    public static Zones loadZones(String id, String filename, String idAttribute) {
+		Logger.getLogger(ZonesLoader.class).info(" zones file " + filename);
 		if (filename.toLowerCase(Locale.ROOT).endsWith(".shp")) {
 			return loadZonesFromShapefile(id, filename, idAttribute);
 		}
 		throw new RuntimeException("Unsupported format for zones-file " + filename);
 	}
 
-	public static Zones loadZones(String id, URL filenameURL, String idAttribute) {
-		try {
-			String filename = new File(filenameURL.toURI()).getAbsolutePath();
-			return loadZones(id, filename, idAttribute);
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+    public static Zones loadZones(String id, String filename) {
+        return loadZones(id, filename, Variables.ZONE_ID);
+    }
 
-	}
+    public static Zones loadZones(String id, URL filenameURL, String idAttribute) {
+        try {
+            String filename = new File(filenameURL.toURI()).getAbsolutePath();
+            return loadZones(id, filename, idAttribute);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 
 	private static Zones loadZonesFromShapefile(String id, String filename, String idAttribute) {
 		boolean noZoneId = idAttribute == null || idAttribute.isEmpty();

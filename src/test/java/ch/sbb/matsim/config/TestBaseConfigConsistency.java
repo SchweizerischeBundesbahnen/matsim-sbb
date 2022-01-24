@@ -17,30 +17,28 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.preparation.casestudies;
+package ch.sbb.matsim.config;
 
 import ch.sbb.matsim.RunSBB;
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import org.junit.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.ConfigWriter;
 
-public class GenerateMiniConfig {
+public class TestBaseConfigConsistency {
 
-    public static void main(String[] args) {
-        String inputConfig = args[0];
-        String changeEventsFile = args[1];
-        double sampleSize = Double.parseDouble(args[2]);
-        String outputFile = args[3];
+    @Test
+    public void check2017Config() {
+        Config config_2017 = ConfigUtils.loadConfig("baseconfigs/config_2017_2030.xml", RunSBB.getSbbDefaultConfigGroups());
+        config_2017.checkConsistency();
 
-        Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
-        config.controler().setMobsim("qsim");
-        config.network().setTimeVariantNetwork(true);
-        config.network().setChangeEventsInputFile(changeEventsFile);
-        PostProcessingConfigGroup ppc = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
-        ppc.setSimulationSampleSize(sampleSize);
+    }
 
-        new ConfigWriter(config).write(outputFile);
+
+    @Test
+    public void check2040Config() {
+        Config config_2040 = ConfigUtils.loadConfig("baseconfigs/config_2040_2050.xml", RunSBB.getSbbDefaultConfigGroups());
+        config_2040.checkConsistency();
+
     }
 
 }

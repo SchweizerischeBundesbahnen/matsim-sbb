@@ -1,6 +1,7 @@
 package ch.sbb.matsim.rideshare.utils;
 
 import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
+import ch.sbb.matsim.config.variables.SBBModes;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,7 +10,6 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
 import org.matsim.core.config.Config;
 import org.matsim.core.router.MainModeIdentifier;
-import org.matsim.core.router.TripRouter;
 
 public class RideshareAwareIntermodalMainModeIdentifier implements MainModeIdentifier {
 
@@ -20,9 +20,9 @@ public class RideshareAwareIntermodalMainModeIdentifier implements MainModeIdent
 	public RideshareAwareIntermodalMainModeIdentifier(Config config) {
 		this.delegate = new IntermodalAwareRouterModeIdentifier(config);
 		MultiModeDrtConfigGroup drtCfg = MultiModeDrtConfigGroup.get(config);
-		this.drtWalkTypes = drtCfg.getModalElements().stream()
-				.map((drtConfigGroup) -> drtConfigGroup.getMode())
-				.collect(Collectors.toMap(s -> TripRouter.getFallbackMode(s), s -> s));
+        this.drtWalkTypes = drtCfg.getModalElements().stream()
+                .map((drtConfigGroup) -> drtConfigGroup.getMode())
+                .collect(Collectors.toMap(s -> SBBModes.WALK_FOR_ANALYSIS, s -> s));
 	}
 
 	@Override

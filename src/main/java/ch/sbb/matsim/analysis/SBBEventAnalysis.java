@@ -4,9 +4,7 @@
 
 package ch.sbb.matsim.analysis;
 
-import ch.sbb.matsim.analysis.linkAnalysis.ScreenLines.ScreenLineEventWriter;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import ch.sbb.matsim.utils.EventsToEventsPerPersonTable;
 import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
 import java.util.LinkedList;
@@ -24,8 +22,7 @@ import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.controler.listener.ShutdownListener;
 import org.matsim.core.controler.listener.StartupListener;
 
-@Deprecated
-public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, IterationEndsListener, StartupListener, ShutdownListener {
+public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsListener, StartupListener, ShutdownListener {
 
     private final Scenario scenario;
     private final EventsManager eventsManager;
@@ -37,7 +34,7 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     private ZonesCollection zones;
 
     @Inject
-    public SBBPostProcessingOutputHandler(
+    public SBBEventAnalysis(
             final EventsManager eventsManager,
             final Scenario scenario,
             final OutputDirectoryHierarchy controlerIO,
@@ -55,44 +52,22 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     }
 
     static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
-        double scaleFactor = 1.0 / ppConfig.getSimulationSampleSize();
         List<EventsAnalysis> analyses = new LinkedList<>();
-
         if (ppConfig.getPtVolumes()) {
             PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, false);
             analyses.add(ptVolumeWriter);
         }
-
-        if (ppConfig.getTravelDiaries()) {
-            EventsToTravelDiaries diariesWriter = new EventsToTravelDiaries(scenario, filename, zones);
-            analyses.add(diariesWriter);
-        }
-
-        if (ppConfig.getEventsPerPerson()) {
-            EventsToEventsPerPersonTable eventsPerPersonWriter = new EventsToEventsPerPersonTable(scenario, filename);
-            analyses.add(eventsPerPersonWriter);
-        }
-
         if (ppConfig.getLinkVolumes()) {
             LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(scenario, filename);
             analyses.add(linkVolumeWriter);
         }
-
-        if (ppConfig.getAnalyseScreenline()) {
-            ScreenLineEventWriter screenLineEventWriter = new ScreenLineEventWriter(scenario, scaleFactor, ppConfig.getShapefileScreenline(), filename);
-            analyses.add(screenLineEventWriter);
-        }
-
         return analyses;
     }
 
     static List<EventsAnalysis> buildPersistentEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
         List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
-
         PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, true);
         persistentAnalyses.add(ptVolumeWriter);
-
-
         return persistentAnalyses;
     }
 
@@ -114,11 +89,9 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
         int iteration = event.getIteration();
         int interval = this.ppConfig.getWriteOutputsInterval();
-
         if (((interval > 0) && (iteration % interval == 0)) || iteration == this.config.getLastIteration()) {
             this.analyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""), this.zones);
         }
-
         for (EventsAnalysis analysis : this.analyses) {
             eventsManager.addHandler(analysis);
         }
@@ -131,7 +104,6 @@ public class SBBPostProcessingOutputHandler implements BeforeMobsimListener, Ite
             analysis.writeResults(event.getIteration() == this.config.getLastIteration());
             this.eventsManager.removeHandler(analysis);
         }
-
         this.analyses.clear();
     }
 

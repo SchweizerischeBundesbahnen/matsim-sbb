@@ -54,28 +54,19 @@
     </module>
 
     <module name="PostProcessing">
-        <param name="simulationSampleSize" value="0.1"/>
-
         <!-- Run Screenline Analysis -->
-        <param name="analyseScreenline" value="false"/>
-        <param name="eventsPerPerson" value="false"/>
-        <param name="linkCountDataFile" value="null"/>
+
+        <param name="simulationSampleSize" value="0.1"/>
         <param name="linkVolumes" value="true"/>
-        <param name="mapActivitiesToZone" value="true"/>
         <param name="personAttributes"
                value="subpopulation,pt_subscr,car_available,residence_msr_id,age_cat,current_edu,level_of_employment_cat"/>
-        <param name="ptVolumes" value="true"/>
-        <!-- Shapefile for screenline. Contains polylines -->
-        <param name="shapefileScreenline" value="null"/>
-        <param name="stopCountDataFile" value="null"/>
-        <param name="travelDiaries" value="true"/>
-        <param name="visumNetFile" value="true"/>
-        <!-- Mode to consider to export Network with volume to Visum (*.net File -->
-        <param name="visumNetworkMode" value="car"/>
         <param name="writeAgentsCSV" value="true"/>
-        <param name="writeFinalDailyVolumes" value="true"/>
+
+        <!-- To reduce heap use on build server (1Gig limit)-->
+        <param name="ptVolumes" value="false"/>
+        <param name="writeFinalDailyVolumes" value="false"/>
+
         <param name="writeOutputsInterval" value="1"/>
-        <param name="writePlanElementsCSV" value="false"/>
         <param name="writeVisumPuTSurvey" value="true"/>
         <param name="zoneAttribute" value="zone_id"/>
         <param name="zonesId" value="zones"/>
@@ -164,7 +155,7 @@
         <param name="deterministicServiceModes" value="bus,other,rail,tram"/>
     </module>
 
-    <module name="SimpleAnnealer">
+    <module name="ReplanningAnnealer">
         <param name="activateAnnealingModule" value="true"/>
         <parameterset type="AnnealingVariable">
             <!-- list of config parameters that shall be annealed. Currently supported: globalInnovationRate, BrainExpBeta, PathSizeLogitBeta, learningRate. Default is globalInnovationRate -->
@@ -188,6 +179,10 @@
         <param name="mutationAffectsDuration" value="true"/>
         <!-- Default:1800.0; Defines how many seconds a time mutation can maximally shift a time. -->
         <param name="mutationRange" value="1800.0"/>
+    </module>
+    <module name="SBBSupply">
+        <param name="checkIfTransitNetworkExistsAlready" value="false"/>
+        <param name="inputTransitNetworkFile" value="null"/>
     </module>
     <module name="changeMode">
         <!-- Defines whether car availability is considered be considered or not. An agent has no car only if it has no license, or never access to a car. Default: true -->

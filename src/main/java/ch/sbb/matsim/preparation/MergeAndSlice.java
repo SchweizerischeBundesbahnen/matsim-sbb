@@ -17,30 +17,26 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.preparation.casestudies;
+package ch.sbb.matsim.preparation;
 
-import ch.sbb.matsim.RunSBB;
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.ConfigWriter;
+import java.io.IOException;
+import java.util.Set;
 
-public class GenerateMiniConfig {
+public class MergeAndSlice {
 
-    public static void main(String[] args) {
-        String inputConfig = args[0];
-        String changeEventsFile = args[1];
-        double sampleSize = Double.parseDouble(args[2]);
-        String outputFile = args[3];
+    public static void main(String[] args) throws IOException {
+        Set<String> folders = Set.of("\\\\wsbbrz0283\\mobi\\40_Projekte\\20210407_Prognose_2050\\2050\\plans_exogeneous\\make_plans\\road\\Liechtenstein\\merge\\2050",
+                "\\\\wsbbrz0283\\mobi\\40_Projekte\\20210407_Prognose_2050\\2050\\plans_exogeneous\\make_plans\\road\\Liechtenstein\\merge\\2030",
+                "\\\\wsbbrz0283\\mobi\\40_Projekte\\20210407_Prognose_2050\\2050\\plans_exogeneous\\make_plans\\road\\Liechtenstein\\merge\\2040",
+                "\\\\wsbbrz0283\\mobi\\40_Projekte\\20210407_Prognose_2050\\2050\\plans_exogeneous\\make_plans\\road\\Liechtenstein\\merge\\2017");
+        Set<Integer> toCut = Set.of(10, 4, 2);
 
-        Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
-        config.controler().setMobsim("qsim");
-        config.network().setTimeVariantNetwork(true);
-        config.network().setChangeEventsInputFile(changeEventsFile);
-        PostProcessingConfigGroup ppc = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
-        ppc.setSimulationSampleSize(sampleSize);
+        for (var s : folders) {
+            SimplePlansMerger.main(new String[]{s});
+            for (var d : toCut) {
+                PopulationSlicer.main(new String[]{s + "\\plans.xml.gz", "-", Integer.toString(d)});
 
-        new ConfigWriter(config).write(outputFile);
+            }
+        }
     }
-
 }

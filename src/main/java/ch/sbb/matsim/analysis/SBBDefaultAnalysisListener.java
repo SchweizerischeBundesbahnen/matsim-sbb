@@ -6,10 +6,12 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.linkAnalysis.CarLinkAnalysis;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.ActivityWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import com.google.inject.Inject;
@@ -41,6 +43,11 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
 
     @Inject
     private PtLinkVolumeAnalyzer ptLinkVolumeAnalyzer;
+
+    @Inject
+    private TripsAndDistanceStats tripsAndDistanceStats;
+    @Inject
+    private ActivityWriter activityWriter;
 
     private final CarLinkAnalysis carLinkAnalysis;
 
@@ -78,7 +85,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
             railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, scalefactor);
         }
         int interval = this.ppConfig.getWriteOutputsInterval();
-        if (ppConfig.isWriteRailMatrix()) {
+        if (ppConfig.isWriteAnalsysis()) {
             if (((interval > 0) && (event.getIteration() % interval == 0)) || event.getIteration() == this.config.getLastIteration()) {
                 String railDemandAggregateFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
@@ -90,6 +97,13 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                 String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("car_volumes.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "car_volumes.csv");
                 carLinkAnalysis.writeSingleIterationCarStats(carVolumesName);
+                String tripsAndDistanceStatsName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("trips_distance_stats.csv")
+                        : controlerIO.getIterationFilename(event.getIteration(), "trips_distance_stats.csv");
+                tripsAndDistanceStats.analyzeAndWriteStats(tripsAndDistanceStatsName);
+
+                String activityFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("matsim_activities.csv.gz")
+                        : controlerIO.getIterationFilename(event.getIteration(), "matsim_activities.csv.gz");
+                activityWriter.writeActivities(activityFilename);
 
             }
         }

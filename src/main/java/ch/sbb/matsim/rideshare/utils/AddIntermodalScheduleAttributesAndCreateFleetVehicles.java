@@ -54,22 +54,22 @@ public class AddIntermodalScheduleAttributesAndCreateFleetVehicles {
 	//    );
 
 	public static void main(String[] args) {
-		Zones zones = ZonesLoader.loadZones("id", INPUT_SHAPE, "ID");
-		//Envelope envelope = zones.getZone(Id.create("648701006", Zone.class)).getEnvelope();
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		new TransitScheduleReader(scenario).readFile(INPUT_SCHEDULE);
-		new MatsimNetworkReader(scenario.getNetwork()).readFile(INPUT_NETWORK);
-		NetworkFilterManager networkFilterManager = new NetworkFilterManager(scenario.getNetwork());
-		networkFilterManager.addLinkFilter(f -> f.getAllowedModes().contains(SBBModes.CAR));
-		Network filteredNet = networkFilterManager.applyFilters();
-		Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
-		final int[] i = {0};
-		scenario.getTransitSchedule().getFacilities().values().stream()
-				.filter(transitStopFacility -> stops.contains(transitStopFacility.getId()))
-				.forEach(transitStopFacility ->
-				{
-					transitStopFacility.getAttributes().putAttribute(DRTFEEDER, 1);
-					Id<Link> stopLink = NetworkUtils.getNearestLink(filteredNet, transitStopFacility.getCoord()).getId();
+        Zones zones = ZonesLoader.loadZones("id", INPUT_SHAPE, "ID");
+        //Envelope envelope = zones.getZone(Id.create("648701006", Zone.class)).getEnvelope();
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new TransitScheduleReader(scenario).readFile(INPUT_SCHEDULE);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(INPUT_NETWORK);
+        NetworkFilterManager networkFilterManager = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
+        networkFilterManager.addLinkFilter(f -> f.getAllowedModes().contains(SBBModes.CAR));
+        Network filteredNet = networkFilterManager.applyFilters();
+        Set<DvrpVehicleSpecification> vehicleSpecifications = new HashSet<>();
+        final int[] i = {0};
+        scenario.getTransitSchedule().getFacilities().values().stream()
+                .filter(transitStopFacility -> stops.contains(transitStopFacility.getId()))
+                .forEach(transitStopFacility ->
+                {
+                    transitStopFacility.getAttributes().putAttribute(DRTFEEDER, 1);
+                    Id<Link> stopLink = NetworkUtils.getNearestLink(filteredNet, transitStopFacility.getCoord()).getId();
 					transitStopFacility.getAttributes().putAttribute(DRTFEEDER_LINK_ID, stopLink.toString());
 
 					for (int z = 0; z < numberOfVehiclesPerStop; z++) {

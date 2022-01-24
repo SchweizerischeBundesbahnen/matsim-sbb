@@ -9,6 +9,7 @@ import org.matsim.core.replanning.PlanStrategyImpl;
 import org.matsim.core.replanning.modules.ReRoute;
 import org.matsim.core.replanning.selectors.RandomPlanSelector;
 import org.matsim.core.router.TripRouter;
+import org.matsim.core.utils.timing.TimeInterpretation;
 import org.matsim.facilities.ActivityFacilities;
 
 /**
@@ -18,16 +19,17 @@ import org.matsim.facilities.ActivityFacilities;
  */
 public class SBBTimeAllocationMutatorReRoute implements Provider<PlanStrategy> {
 
-	@Inject private Provider<TripRouter> tripRouterProvider;
-	@Inject private GlobalConfigGroup globalConfigGroup;
-	@Inject private TimeAllocationMutatorConfigGroup timeAllocationMutatorConfigGroup;
-	@Inject private ActivityFacilities activityFacilities;
+    @Inject private Provider<TripRouter> tripRouterProvider;
+    @Inject private GlobalConfigGroup globalConfigGroup;
+    @Inject private TimeInterpretation timeInterpretation;
+    @Inject private TimeAllocationMutatorConfigGroup timeAllocationMutatorConfigGroup;
+    @Inject private ActivityFacilities activityFacilities;
 
-	@Override
-	public PlanStrategy get() {
-		PlanStrategyImpl.Builder builder = new PlanStrategyImpl.Builder(new RandomPlanSelector());
-		builder.addStrategyModule(new SBBTimeAllocationMutator(this.timeAllocationMutatorConfigGroup, this.globalConfigGroup));
-		builder.addStrategyModule(new ReRoute(this.activityFacilities, this.tripRouterProvider, this.globalConfigGroup));
-		return builder.build();
-	}
+    @Override
+    public PlanStrategy get() {
+        PlanStrategyImpl.Builder builder = new PlanStrategyImpl.Builder(new RandomPlanSelector());
+        builder.addStrategyModule(new SBBTimeAllocationMutator(this.timeAllocationMutatorConfigGroup, this.globalConfigGroup));
+        builder.addStrategyModule(new ReRoute(this.activityFacilities, this.tripRouterProvider, this.globalConfigGroup, this.timeInterpretation));
+        return builder.build();
+    }
 }

@@ -52,6 +52,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
+import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.pt.routes.TransitPassengerRoute;
@@ -95,7 +96,7 @@ public class RouteODRelations {
             if (endFacility.getCoord() == null) {
                 System.out.println(relation.toId + " stop not found");
             }
-            var route = raptor.calcRoute(startFacility, endFacility, 8 * 3600, null);
+            var route = raptor.calcRoute(DefaultRoutingRequest.withoutAttributes(startFacility, endFacility, 8 * 3600, null));
             String path_id = Integer.toString(i.incrementAndGet());
             AtomicInteger leg_id = new AtomicInteger(1);
             List<PutSurveyEntry> putSurveyEntries = new ArrayList<>();
