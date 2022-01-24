@@ -5,14 +5,14 @@
 package ch.sbb.matsim.config;
 
 import ch.sbb.matsim.zones.Zones;
-import java.util.Map;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.ReflectiveConfigGroup;
+
+import java.util.Map;
 
 public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
 	static public final String GROUP_NAME = "PostProcessing";
-
 
 
 	private Id<Zones> zonesId = null;
@@ -32,6 +32,7 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	static private final String RAIL_DEMAND_MATRIX_AGGREGATE = "railDemandMatrixAggregateAttribute";
 	private boolean writeAnalsysis = true;
 	private String railMatrixAggregate = "amgr_id";
+	private Boolean dailylinkVolumes = false;
 
 	public PostProcessingConfigGroup() {
 		super(GROUP_NAME);
@@ -147,6 +148,17 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	public void setLinkVolumes(Boolean linkVolumes) {
 		this.linkVolumes = linkVolumes;
 	}
+
+	@StringGetter("dailylinkVolumes")
+	public Boolean getDailyLinkVolumes() {
+		return dailylinkVolumes;
+	}
+
+	@StringSetter("dailylinkVolumes")
+	public void setDailyLinkVolumes(Boolean linkVolumes) {
+		this.dailylinkVolumes = linkVolumes;
+	}
+
 
 	@StringGetter("zoneAttribute")
 	public String getZoneAttribute() {

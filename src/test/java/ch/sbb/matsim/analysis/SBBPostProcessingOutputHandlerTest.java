@@ -1,11 +1,8 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.TestFixtures.PtTestFixture;
+import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,6 +24,11 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.testcases.MatsimTestUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class SBBPostProcessingOutputHandlerTest {
 
 	@Rule
@@ -40,6 +42,7 @@ public class SBBPostProcessingOutputHandlerTest {
 		EventsManagerStub eventsManager = new EventsManagerStub();
 		Config config = ConfigUtils.createConfig();
 		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, false, false, false, false, false, false);
+		ppConfig.setDailyLinkVolumes(false);
 		ppConfig.setSimulationSampleSize(1.0);
 		config.addModule(ppConfig);
 
@@ -56,14 +59,14 @@ public class SBBPostProcessingOutputHandlerTest {
 				controlerIO,
 				configGroup,
 				ppConfig,
-				null
+				null, new IterationLinkAnalyzer()
 		);
 
 		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
         outputHandler.notifyBeforeMobsim(event);
 
-        Assert.assertEquals(0, eventsManager.getEventHandlers().size());
+		Assert.assertEquals(1, eventsManager.getEventHandlers().size());
     }
 
 	/*
@@ -91,7 +94,7 @@ public class SBBPostProcessingOutputHandlerTest {
 				controlerIO,
 				configGroup,
 				ppConfig,
-				null
+				null, new IterationLinkAnalyzer()
 		);
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
@@ -127,14 +130,14 @@ public class SBBPostProcessingOutputHandlerTest {
 				controlerIO,
 				configGroup,
 				ppConfig,
-				null
+				null, new IterationLinkAnalyzer()
 		);
 
         BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
         outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(2, eventsManager.getEventHandlers().size());
+		Assert.assertEquals(3, eventsManager.getEventHandlers().size());
     }
 
 	/*
@@ -164,14 +167,14 @@ public class SBBPostProcessingOutputHandlerTest {
 				controlerIO,
 				configGroup,
 				ppConfig,
-				null
+				null, new IterationLinkAnalyzer()
 		);
 
 		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
 		outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(2, eventsManager.getEventHandlers().size());
+		Assert.assertEquals(3, eventsManager.getEventHandlers().size());
 	}
 
 	/*
@@ -201,14 +204,14 @@ public class SBBPostProcessingOutputHandlerTest {
 				controlerIO,
 				configGroup,
 				ppConfig,
-				null
+				null, new IterationLinkAnalyzer()
 		);
 
 		BeforeMobsimEvent event = new BeforeMobsimEvent(controler, iteration, false);
 
 		outputHandler.notifyBeforeMobsim(event);
 
-		Assert.assertEquals(2, eventsManager.getEventHandlers().size());
+		Assert.assertEquals(3, eventsManager.getEventHandlers().size());
 	}
 
 	@Test
@@ -223,6 +226,7 @@ public class SBBPostProcessingOutputHandlerTest {
 		ppConfig.setFinalDailyVolumes(true);
 		ppConfig.setPtVolumes(true);
 		ppConfig.setWriteAnalsysis(false);
+		ppConfig.setDailyLinkVolumes(true);
 		config.addModule(ppConfig);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
@@ -240,7 +244,7 @@ public class SBBPostProcessingOutputHandlerTest {
 				controlerIO,
 				configGroup,
 				ppConfig,
-				null
+				null, new IterationLinkAnalyzer()
 		);
 
 		StartupEvent startupEvent = new StartupEvent(controler);

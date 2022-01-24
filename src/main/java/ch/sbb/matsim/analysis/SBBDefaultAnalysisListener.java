@@ -6,12 +6,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.linkAnalysis.CarLinkAnalysis;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.ActivityWriter;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import com.google.inject.Inject;
@@ -107,10 +102,10 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
 
             }
         }
-        String carVolumesFile = controlerIO.getOutputFilename("car_volumes_daily.csv.gz");
-
-        carLinkAnalysis.writeMultiIterationCarStats(carVolumesFile, event.getIteration());
-
+        if (ppConfig.getDailyLinkVolumes()) {
+            String carVolumesFile = controlerIO.getOutputFilename("car_volumes_daily.csv.gz");
+            carLinkAnalysis.writeMultiIterationCarStats(carVolumesFile, event.getIteration());
+        }
     }
 
 }

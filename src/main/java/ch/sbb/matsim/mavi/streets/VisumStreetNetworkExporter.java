@@ -6,26 +6,19 @@ import ch.sbb.matsim.mavi.PolylinesCreator;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.SafeArray;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.network.NetworkFactory;
-import org.matsim.api.core.v01.network.NetworkWriter;
-import org.matsim.api.core.v01.network.Node;
+import org.matsim.api.core.v01.network.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class VisumStreetNetworkExporter {
 
@@ -72,6 +65,7 @@ public class VisumStreetNetworkExporter {
 		String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
 				"NumLanes", "TSysSet", "accessControlled", "WKTPoly", "No");
 		createNetwork(nodes, links);
+
 		writeNetwork(outputPath);
 
 		// Export Polylines

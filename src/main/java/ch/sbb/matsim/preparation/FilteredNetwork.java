@@ -1,7 +1,7 @@
 package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import java.util.Collections;
+import ch.sbb.matsim.config.variables.Variables;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -13,14 +13,16 @@ import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import java.util.Collections;
+
 public class FilteredNetwork {
 
 	private Network filteredNetwork;
 	private NetworkFactory networkFactory;
 
 	public Network readAndFilterNetwork(String networkFile) {
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
         final Network carNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
         new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton(SBBModes.CAR));
@@ -28,9 +30,9 @@ public class FilteredNetwork {
         this.filteredNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
         this.networkFactory = this.filteredNetwork.getFactory();
 
-        carNetwork.getLinks().values().stream().
-                filter(l -> l.getAttributes().getAttribute("accessControlled").toString().equals("0")).
-                forEach(this::addLinkToNetwork);
+		carNetwork.getLinks().values().stream().
+				filter(l -> l.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED).toString().equals("0")).
+				forEach(this::addLinkToNetwork);
 
         return this.filteredNetwork;
     }

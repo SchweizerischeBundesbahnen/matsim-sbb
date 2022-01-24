@@ -17,18 +17,19 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.preparation;
+package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.util.List;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
+
+import java.util.List;
 
 public class ReduceNetworkSpeeds {
 

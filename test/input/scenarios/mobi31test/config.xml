@@ -16,6 +16,8 @@
 
         <param name="simulationSampleSize" value="0.1"/>
         <param name="linkVolumes" value="true"/>
+        <param name="dailylinkVolumes" value="true"/>
+
         <param name="personAttributes"
                value="subpopulation,pt_subscr,car_available,residence_msr_id,age_cat,current_edu,level_of_employment_cat"/>
         <param name="writeAgentsCSV" value="true"/>
