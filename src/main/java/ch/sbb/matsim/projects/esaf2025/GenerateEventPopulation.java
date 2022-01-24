@@ -1,6 +1,5 @@
 package ch.sbb.matsim.projects.esaf2025;
 
-import ch.sbb.matsim.analysis.LinkVolumeToCSV;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
@@ -23,21 +22,34 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
-import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.ActivityFacility;
 import java.util.Random;
 
-public final class GenerateESAFPopulation {
+public final class GenerateEventPopulation {
 
-    private GenerateESAFPopulation() {
+    private GenerateEventPopulation() {
     }
 
-    private final static Logger log = Logger.getLogger(GenerateESAFPopulation.class);
+    private final static Logger log = Logger.getLogger(GenerateEventPopulation.class);
 
     public static void main(String[] args) throws IOException {
+
+        // csv: list of eligible persons,
+        // 'PERSONNO',
+        // 'XCOORD',
+        // 'YCOORD',
+        // 'HOUSEHOLD\\RESIDENCE\\LOCATION\\ZONE\\NO',
+        // 'HOUSEHOLD\\RESIDENCE\\LOCATION\\ZONE\\MSR_ID',
+        // 'HOUSEHOLD\\RESIDENCE\\LOCATION\\ZONE\\KT_ID',
+        // 'CAR_AVAILABLE'
+        // 'BIKE_2PT'
+        // 'BIKE_2PT_ACT'
+        // 'CAR_2PT'
+        // 'CAR_2PT_ACT'
+        // 'RIDE_2PT'
+        // 'RIDE_2PT_ACT'
 
         String path = args[0];
         String part = args[1];
@@ -49,12 +61,18 @@ public final class GenerateESAFPopulation {
         int departureFrom = Integer.parseInt(args[5]);
         int departureTo = Integer.parseInt(args[6]);
         int minDuration = Integer.parseInt(args[7]);
+        String facilityID = args[8];
+        int xCoord = Integer.parseInt(args[9]);
+        int yCoord = Integer.parseInt(args[10]);
+
         Zones zones = ZonesLoader.loadZones("zones", zonesFile, Variables.ZONE_ID);
         CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus);
         CSVReader csvReader = new CSVReader(csv, ";");
-        Id<ActivityFacility> workFacilityId = Id.create("894334", ActivityFacility.class);
+        // Id<ActivityFacility> workFacilityId = Id.create("894334", ActivityFacility.class);
+        Id<ActivityFacility> eventFacilityId = Id.create(facilityID, ActivityFacility.class);
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        Coord workcoord = new Coord(2723602.000000, 1215454.000000);
+        //Coord workcoord = new Coord(2723602.000000, 1215454.000000);
+        Coord workcoord = new Coord(xCoord, yCoord);
         var entry = csvReader.readLine();
         var fac = scenario.getPopulation().getFactory();
         Random random = new Random();
@@ -89,7 +107,7 @@ public final class GenerateESAFPopulation {
             scenario.getPopulation().addPerson(person);
             persons.add(person);
 
-            createPlan(workFacilityId, workcoord, fac, mode, homeCoord, workStart, workEnd, travelTime, person);
+            createPlan(eventFacilityId, workcoord, fac, mode, homeCoord, workStart, workEnd, travelTime, person);
 
             boolean b2pt = random.nextBoolean();
             Integer dummy = b2pt ? 1 : 0;
@@ -118,7 +136,7 @@ public final class GenerateESAFPopulation {
 
     }
 
-    public static void createPlan(Id<ActivityFacility> workFacilityId, Coord workcoord, PopulationFactory fac, String mode, Coord homeCoord, double work_start,
+    public static void createPlan(Id<ActivityFacility> eventFacilityId, Coord workcoord, PopulationFactory fac, String mode, Coord homeCoord, double work_start,
             double work_end, double travelTime, Person person) {
         if (mode.equals(SBBModes.WALK_FOR_ANALYSIS)) {
             mode = SBBModes.WALK_MAIN_MAINMODE;
@@ -128,7 +146,7 @@ public final class GenerateESAFPopulation {
         Activity home1 = fac.createActivityFromCoord(SBBActivities.home, homeCoord);
 
         home1.setEndTime(Math.max(0, work_start - travelTime));
-        Activity work = fac.createActivityFromActivityFacilityId(SBBActivities.work, workFacilityId);
+        Activity work = fac.createActivityFromActivityFacilityId(SBBActivities.work, eventFacilityId);
         work.setCoord(workcoord);
         work.setEndTime(work_end);
         work.setStartTime(work_start);
