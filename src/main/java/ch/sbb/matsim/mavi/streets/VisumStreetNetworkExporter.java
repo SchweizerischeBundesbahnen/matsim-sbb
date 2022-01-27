@@ -45,7 +45,9 @@ public class VisumStreetNetworkExporter {
 		}
 
 		VisumStreetNetworkExporter exp = new VisumStreetNetworkExporter();
-		exp.run(inputvisum, outputPath, visumVersion, exportCounts);
+		exp.run(inputvisum, outputPath, visumVersion, exportCounts, true);
+		exp.writeNetwork(outputPath, Filenames.STREET_NETWORK + "withPolylines.xml.gz");
+
 	}
 
 	public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
@@ -53,7 +55,7 @@ public class VisumStreetNetworkExporter {
 		return id;
 	}
 
-	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts) throws IOException {
+	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {
 		ActiveXComponent visum = new ActiveXComponent("Visum.Visum." + visumVersion);
 		log.info("VISUM Client gestartet.");
 		Dispatch.call(visum, "LoadVersion", inputvisum);
@@ -72,10 +74,12 @@ public class VisumStreetNetworkExporter {
 		String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
 				"NumLanes", "TSysSet", "accessControlled", "WKTPoly", "No");
 		createNetwork(nodes, links);
-		writeNetwork(outputPath);
 
 		// Export Polylines
-		new PolylinesCreator().runStreets(this.scenario.getNetwork(), wktLineStringPerVisumLink, "polylines.csv", outputPath);
+		if (exportPolylines) {
+			new PolylinesCreator().runStreets(this.scenario.getNetwork(), wktLineStringPerVisumLink, "polylines.csv", outputPath);
+		}
+
 	}
 
 	private void exportCountStations(Dispatch net, String outputFolder) throws IOException {
@@ -161,8 +165,11 @@ public class VisumStreetNetworkExporter {
 		}
 		Set<String> modeset = new HashSet<>(Arrays.asList("car", "ride"));
 		Link link = nf.createLink(id, fnode, tnode);
-		if (length == 0.0) {
-			length = 0.0001;
+		if (length < 0.01) {
+			length = 0.01;
+		}
+		if (numlanes < 1) {
+			numlanes = 1;
 		}
 		length *= 1000.;
 		double beelineDistance = CoordUtils.calcEuclideanDistance(fnode.getCoord(), tnode.getCoord());
@@ -180,11 +187,15 @@ public class VisumStreetNetworkExporter {
 		return link;
 	}
 
-	private void writeNetwork(String outputFolder) {
+	private void writeNetwork(String outputFolder, String filename) {
 		org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
 		cleaner.run(scenario.getNetwork());
 
-		File file = new File(outputFolder, Filenames.STREET_NETWORK);
+		File file = new File(outputFolder, filename);
 		new NetworkWriter(this.scenario.getNetwork()).write(file.getAbsolutePath());
+	}
+
+	public Network getNetwork() {
+		return scenario.getNetwork();
 	}
 }

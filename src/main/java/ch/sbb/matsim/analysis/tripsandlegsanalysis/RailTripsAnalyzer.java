@@ -127,8 +127,48 @@ public class RailTripsAnalyzer {
             return calcDomesticDistanceFromBorder(transitPassengerRoute.getRouteId(), transitPassengerRoute.getLineId(), egressStopId);
         } else {
             //entirely international or non-rail pt leg
-            return 0;
+            return calcSwissSectionofInternationalJourney(transitPassengerRoute.getRouteId(), transitPassengerRoute.getLineId(), accessStopId, egressStopId);
         }
+    }
+
+    /**
+     * @param routeId
+     * @param transitLineId
+     * @param accessStopId
+     * @param egressStopId
+     * @return the swiss section of a train passing through Switzerland, e.g. Frankfurt-Milano
+     */
+    private double calcSwissSectionofInternationalJourney(Id<TransitRoute> routeId, Id<TransitLine> transitLineId, Id<TransitStopFacility> accessStopId, Id<TransitStopFacility> egressStopId) {
+        TransitRoute transitRoute = this.schedule.getTransitLines().get(transitLineId).getRoutes().get(routeId);
+        Gbl.assertNotNull(transitRoute);
+        if (!transitRoute.getTransportMode().equals(PTSubModes.RAIL)) {
+            return 0.0;
+        }
+        int startIndex = transitRoute.getStops().stream().map(s -> s.getStopFacility().getId()).collect(Collectors.toList()).indexOf(accessStopId);
+        TransitStopFacility lastDomesticStop = null;
+        for (int i = startIndex + 1; i < transitRoute.getStops().size(); i++) {
+            var currentStop = transitRoute.getStops().get(i);
+            if (isSwissRailStop(currentStop.getStopFacility().getId())) {
+                lastDomesticStop = currentStop.getStopFacility();
+            }
+
+        }
+
+        int endIndex = transitRoute.getStops().stream().map(s -> s.getStopFacility().getId()).collect(Collectors.toList()).indexOf(egressStopId);
+        TransitStopFacility firstDomesticStop = null;
+        for (int i = 0; i < endIndex; i++) {
+            var currentStop = transitRoute.getStops().get(i);
+            if (isSwissRailStop(currentStop.getStopFacility().getId())) {
+                firstDomesticStop = currentStop.getStopFacility();
+            }
+
+        }
+        if (firstDomesticStop != null && lastDomesticStop != null) {
+            return RouteUtils.calcDistance(transitRoute, firstDomesticStop, lastDomesticStop, this.network);
+        } else {
+            return 0.0;
+        }
+
     }
 
     private double calcDomesticDistanceToBorder(Id<TransitRoute> routeId, Id<TransitLine> transitLineId, Id<TransitStopFacility> accessStopId) {
@@ -207,6 +247,11 @@ public class RailTripsAnalyzer {
                 return routes.stream().mapToDouble(route -> route.getDistance()).sum();
             }
         }
+        //the lines below would be technically correct, but we ignore this value for the time being.
+        //else if (isSwissRailOrFQStop(railAccessStop) || isSwissRailOrFQStop(railEgressStop)) {
+        // no need to check whether legs are fq relevant, as all rail border crossing train stations are FQ relevant, thus is the journey
+        //    return routes.stream().mapToDouble(r-> getDomesticRailDistance_m(r)).sum();
+        //}
         return 0.0;
     }
 

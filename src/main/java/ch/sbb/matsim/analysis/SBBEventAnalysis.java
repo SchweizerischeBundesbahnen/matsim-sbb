@@ -4,11 +4,10 @@
 
 package ch.sbb.matsim.analysis;
 
+import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
-import java.util.LinkedList;
-import java.util.List;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.groups.ControlerConfigGroup;
@@ -22,10 +21,14 @@ import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.controler.listener.ShutdownListener;
 import org.matsim.core.controler.listener.StartupListener;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsListener, StartupListener, ShutdownListener {
 
     private final Scenario scenario;
     private final EventsManager eventsManager;
+    private final IterationLinkAnalyzer iterationLinkAnalyzer;
     private OutputDirectoryHierarchy controlerIO;
     private List<EventsAnalysis> analyses = new LinkedList<>();
     private List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
@@ -40,7 +43,8 @@ public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsList
             final OutputDirectoryHierarchy controlerIO,
             final ControlerConfigGroup config,
             final PostProcessingConfigGroup ppConfig,
-            final ZonesCollection zones
+            final ZonesCollection zones,
+            IterationLinkAnalyzer iterationLinkAnalyzer
     ) {
         this.eventsManager = eventsManager;
         this.scenario = scenario;
@@ -48,6 +52,7 @@ public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsList
         this.config = config;
         this.ppConfig = ppConfig;
         this.zones = zones;
+        this.iterationLinkAnalyzer = iterationLinkAnalyzer;
 
     }
 
@@ -66,8 +71,10 @@ public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsList
 
     static List<EventsAnalysis> buildPersistentEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
         List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
-        PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, true);
-        persistentAnalyses.add(ptVolumeWriter);
+        if (ppConfig.getDailyLinkVolumes()) {
+            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, true);
+            persistentAnalyses.add(ptVolumeWriter);
+        }
         return persistentAnalyses;
     }
 
@@ -89,8 +96,15 @@ public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsList
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
         int iteration = event.getIteration();
         int interval = this.ppConfig.getWriteOutputsInterval();
+
+        if (ppConfig.getDailyLinkVolumes()) {
+            eventsManager.addHandler(iterationLinkAnalyzer);
+        }
         if (((interval > 0) && (iteration % interval == 0)) || iteration == this.config.getLastIteration()) {
             this.analyses = buildEventWriters(this.scenario, this.ppConfig, this.controlerIO.getIterationFilename(event.getIteration(), ""), this.zones);
+            if (!ppConfig.getDailyLinkVolumes()) {
+                eventsManager.addHandler(iterationLinkAnalyzer);
+            }
         }
         for (EventsAnalysis analysis : this.analyses) {
             eventsManager.addHandler(analysis);
@@ -104,6 +118,7 @@ public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsList
             analysis.writeResults(event.getIteration() == this.config.getLastIteration());
             this.eventsManager.removeHandler(analysis);
         }
+        eventsManager.removeHandler(iterationLinkAnalyzer);
         this.analyses.clear();
     }
 

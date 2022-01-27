@@ -1,9 +1,10 @@
 package ch.sbb.matsim.config.variables;
 
-import java.util.List;
-import java.util.Set;
 import org.matsim.api.core.v01.Id;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import java.util.List;
+import java.util.Set;
 
 public class Variables {
 
@@ -51,5 +52,6 @@ public class Variables {
 	public static final List<Id<TransitStopFacility>> EXCEPTIONAL_CH_STOPS = List.of(Id.create("1618", TransitStopFacility.class));
 
 	public static final Set<String> DEFAULT_PERSON_ATTRIBUTES = Set.of("age_cat", CAR_AVAIL, "current_edu", "level_of_employment_cat", PT_SUBSCRIPTION, "residence_msr_id", "residence_zone_id");
-	public static final String MUN_NAME = "mun_name";
+    public static final String MUN_NAME = "mun_name";
+    public static final String ACCESS_CONTROLLED = "accessControlled";
 }

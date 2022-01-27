@@ -29,16 +29,17 @@ import org.matsim.core.utils.misc.Counter;
  */
 public class PolylinesCreator {
 
-	private final Network network;
-	private final Map<String, double[]> polylinePerVisumLink = new HashMap<>();
-	private final Map<String, String[]> linkSequencePerMatsimLink = new HashMap<>();
+    public static final String WKT_ATTRIBUTE = "WKT";
+    private final Network network;
+    private final Map<String, double[]> polylinePerVisumLink = new HashMap<>();
+    private final Map<String, String[]> linkSequencePerMatsimLink = new HashMap<>();
 
-	public PolylinesCreator() {
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		this.network = scenario.getNetwork();
-	}
+    public PolylinesCreator() {
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        this.network = scenario.getNetwork();
+    }
 
-	public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException {
 		String networkFilename = "C:\\devsbb\\codes\\_data\\polylines\\links_geo\\transit\\transitNetwork.xml.gz";
 		String visumPolylinesFilename = "C:\\devsbb\\codes\\_data\\polylines\\links_geo\\transit\\polylines.csv";
 		String linkSequencesFilename = "C:\\devsbb\\codes\\_data\\polylines\\links_geo\\transit\\link_sequences.csv";
@@ -62,13 +63,12 @@ public class PolylinesCreator {
 	}
 
 	public void runStreets(Network network, Map<Id<Link>, String> wktLineStringPerVisumLink, String matsimPolylinesFilename, String outputPath) throws IOException {
-		for (Id<Link> link_id : wktLineStringPerVisumLink.keySet()) {
-			this.polylinePerVisumLink.put(link_id.toString(), parseWktLinestring(wktLineStringPerVisumLink.get(link_id)));
-		}
+        for (Id<Link> link_id : wktLineStringPerVisumLink.keySet()) {
+            this.polylinePerVisumLink.put(link_id.toString(), parseWktLinestring(wktLineStringPerVisumLink.get(link_id)));
+        }
 
-		String matsimPolylinesFilePath = String.format("%s\\%s", outputPath, matsimPolylinesFilename);
-		processNetworkStreets(network, matsimPolylinesFilePath);
-	}
+        processNetworkStreets(network);
+    }
 
 	private void loadVisumPolylines(Visum visum) {
 		Visum.ComObject links = visum.getNetObject("Links");
@@ -128,32 +128,28 @@ public class PolylinesCreator {
 
 	private void loadLinkSequences(String linkSequencesFilename) throws IOException {
 		try (CSVReader in = new CSVReader(linkSequencesFilename, ";")) {
-			Map<String, String> row;
-			while ((row = in.readLine()) != null) {
-				String matsimLinkId = row.get("matsim_link");
-				String linkSequence = row.get("link_sequence_visum");
-				String[] links = linkSequence.split(", *");
-				this.linkSequencePerMatsimLink.put(matsimLinkId, links);
-			}
-		}
-	}
+            Map<String, String> row;
+            while ((row = in.readLine()) != null) {
+                String matsimLinkId = row.get("matsim_link");
+                String linkSequence = row.get("link_sequence_visum");
+                String[] links = linkSequence.split(", *");
+                this.linkSequencePerMatsimLink.put(matsimLinkId, links);
+            }
+        }
+    }
 
-	private void processNetworkStreets(Network network, String outputFilename) throws IOException {
-		try (CSVWriter out = new CSVWriter(null, new String[]{"LINK", "WKT"}, outputFilename)) {
-			Counter cnter = new Counter("#", " / " + network.getLinks().size());
-			for (Link link : network.getLinks().values()) {
-				cnter.incCounter();
-				String linkId = link.getId().toString();
-				double[] xys = this.polylinePerVisumLink.get(linkId);
-				out.set("LINK", linkId);
-				out.set("WKT", xyToWkt(xys));
-				out.writeRow();
-			}
-		}
-	}
+    private void processNetworkStreets(Network network) throws IOException {
+        for (Link link : network.getLinks().values()) {
+            String linkId = link.getId().toString();
+            double[] xys = this.polylinePerVisumLink.get(linkId);
+            String value = xyToWkt(xys);
+            link.getAttributes().putAttribute("WKT", value);
+        }
 
-	private void processNetwork(Network network, String outputFilename) throws IOException {
-		try (CSVWriter out = new CSVWriter(null, new String[]{"LINK", "WKT"}, outputFilename)) {
+    }
+
+    private void processNetwork(Network network, String outputFilename) throws IOException {
+        try (CSVWriter out = new CSVWriter(null, new String[]{"LINK", "WKT"}, outputFilename)) {
 			Counter cnter = new Counter("#", " / " + network.getLinks().size());
 			for (Link link : network.getLinks().values()) {
 				cnter.incCounter();
@@ -167,10 +163,10 @@ public class PolylinesCreator {
 
 					}
 					if (xys != null && xys.length > 0) {
-						out.set("LINK", linkId);
-						out.set("WKT", xyToWkt(xys));
-						out.writeRow();
-					}
+                        out.set("LINK", linkId);
+                        out.set(WKT_ATTRIBUTE, xyToWkt(xys));
+                        out.writeRow();
+                    }
 				}
 			}
 		}
