@@ -210,8 +210,7 @@ public class RailDemandReporting {
     }
 
     private void aggregateFQValues(Collection<Plan> plans) {
-        plans
-                .stream()
+            plans.stream()
                 .flatMap(plan -> TripStructureUtils.getTrips(plan).stream())
                 .forEach(trip -> {
                     double tripFQDistance = railTripsAnalyzer.getFQDistance(trip);
