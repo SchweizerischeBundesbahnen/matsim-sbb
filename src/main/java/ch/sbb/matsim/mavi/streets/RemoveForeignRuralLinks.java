@@ -21,32 +21,25 @@ package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
-import ch.sbb.matsim.zones.ZonesLoader;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.network.NetworkWriter;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.network.io.MatsimNetworkReader;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.core.network.NetworkUtils;
 
-public class RemoveRuralLinks {
+public class RemoveForeignRuralLinks {
 
-    private final String ouputfile;
     private final Set<Integer> irrelevantTypes = new HashSet<>();
     Zones zones;
 
     private Network network;
 
-    public RemoveRuralLinks(String networkfile, String outputfile, String shapeFile) {
-        this.ouputfile = outputfile;
-        this.network = NetworkUtils.createNetwork(ConfigUtils.createConfig());
-        zones = ZonesLoader.loadZones("1", shapeFile, "zone_id");
-        new MatsimNetworkReader(network).readFile(networkfile);
+    public RemoveForeignRuralLinks(Network network, Zones zones) {
+
+        this.network = network;
+        this.zones = zones;
         for (int i = 38; i < 62; i++) {
             irrelevantTypes.add(i);
         }
@@ -60,23 +53,7 @@ public class RemoveRuralLinks {
 
     }
 
-    public static void main(String[] args) {
-        String networkfile = args[0];
-        String outputfile = args[1];
-        String shapeFile = args[2];
-
-        RemoveRuralLinks removeRuralLinks = new RemoveRuralLinks(networkfile, outputfile, shapeFile);
-        removeRuralLinks.reduce();
-        removeRuralLinks.writeNetwork();
-    }
-
-    private void writeNetwork() {
-        org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
-        cleaner.run(network);
-        new NetworkWriter(network).write(this.ouputfile);
-    }
-
-    private void reduce() {
+    public void removeLinks() {
         List<Link> toRemove = new ArrayList<>();
         for (Link link : network.getLinks().values()) {
             int t = Integer.parseInt(NetworkUtils.getType(link));

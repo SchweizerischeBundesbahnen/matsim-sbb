@@ -20,65 +20,45 @@
 package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
-import ch.sbb.matsim.zones.ZonesLoader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.network.NetworkWriter;
 import org.matsim.api.core.v01.network.Node;
-import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.utils.geometry.CoordUtils;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class MergeRuralLinks {
 
-    private final String ouputfile;
+    public static final String VNODES = "vnodes";
     Zones zones;
 
     private Network network;
     private int merged = 0;
-    private List<Link> linksToAdd = new ArrayList<>();
+    private Map<Id<Link>, Link> linksToAdd = new HashMap<>();
     private List<Link> linksToRemove = new ArrayList<>();
 
-    public MergeRuralLinks(String networkfile, String outputfile, String shapeFile) {
-        this.ouputfile = outputfile;
-        this.network = NetworkUtils.createNetwork(ConfigUtils.createConfig());
-        zones = ZonesLoader.loadZones("1", shapeFile, "zone_id");
-        new MatsimNetworkReader(network).readFile(networkfile);
-
-
+    public MergeRuralLinks(Network network, Zones zones) {
+        this.network = network;
+        this.zones = zones;
     }
 
-    public static void main(String[] args) {
-        String networkfile = args[0];
-        String outputfile = args[1];
-        String shapeFile = args[2];
-
-        MergeRuralLinks removeRuralLinks = new MergeRuralLinks(networkfile, outputfile, shapeFile);
-        removeRuralLinks.reduce();
-        removeRuralLinks.writeNetwork();
-    }
-
-    private void writeNetwork() {
-        org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
-        cleaner.run(network);
-        new NetworkWriter(network).write(this.ouputfile);
-    }
-
-    private void reduce() {
+    public void mergeRuralLinks() {
 
         for (Node node : network.getNodes().values()) {
 
-            if (node.getOutLinks().size() < 2) continue;
+            if (node.getOutLinks().size() < 2) {
+                continue;
+            }
 
             Zone zone = zones.findZone(node.getCoord());
             boolean rural = true;
@@ -114,7 +94,7 @@ public class MergeRuralLinks {
         for (Link l : linksToRemove) {
             network.removeLink(l.getId());
         }
-        for (Link l : linksToAdd) {
+        for (Link l : linksToAdd.values()) {
             network.addLink(l);
         }
         System.out.println(linksToRemove.size() + " removed");
@@ -136,11 +116,17 @@ public class MergeRuralLinks {
             String type = NetworkUtils.getType(link0);
             Integer accessControl = Integer.parseInt(String.valueOf(link0.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED)));
             double length = linksToMerge.stream().mapToDouble(link -> link.getLength()).sum();
-            if (beelineDist > length) length = beelineDist;
+            if (beelineDist > length) {
+                length = beelineDist;
+            }
             double capacity = linksToMerge.stream().mapToDouble(link -> link.getCapacity() * link.getLength()).sum() / length;
             double speed = linksToMerge.stream().mapToDouble(link -> link.getFreespeed() * link.getLength()).sum() / length;
 
-            Link newLink = network.getFactory().createLink(Id.createLinkId("m" + merged), fromNode, toNode);
+            Id<Link> linkId = Id.createLinkId(fromNode.getId().toString() + "_m_" + toNode.getId().toString());
+            if (linksToAdd.containsKey(linkId)) {
+                linkId = Id.createLinkId(fromNode.getId().toString() + "_m_" + toNode.getId().toString() + "_m" + merged);
+            }
+            Link newLink = network.getFactory().createLink(linkId, fromNode, toNode);
             merged++;
             newLink.setFreespeed(speed);
             newLink.setCapacity(capacity);
@@ -150,10 +136,30 @@ public class MergeRuralLinks {
             newLink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, accessControl);
             List<String> intermediateNodes = linksToMerge.stream().map(l -> l.getToNode().getId().toString()).collect(Collectors.toList());
             intermediateNodes.remove(toNode.getId().toString());
-            newLink.getAttributes().putAttribute("vnodes", String.join(",", intermediateNodes));
-            linksToAdd.add(newLink);
+            newLink.getAttributes().putAttribute(VNODES, String.join(",", intermediateNodes));
+            String wkt = mergeWKTPolygons(linksToMerge);
+            if (wkt != null) {
+                newLink.getAttributes().putAttribute(PolylinesCreator.WKT_ATTRIBUTE, wkt);
+            }
+            linksToAdd.put(newLink.getId(), newLink);
             linksToRemove.addAll(linksToMerge);
         }
+    }
+
+    private String mergeWKTPolygons(List<Link> linksToMerge) {
+        StringBuilder wkt = new StringBuilder(128);
+        wkt.append("LINESTRING(");
+        boolean hasAtleastOneWKT = false;
+        for (Link l : linksToMerge) {
+            String s = (String) l.getAttributes().getAttribute(PolylinesCreator.WKT_ATTRIBUTE);
+            if (s != null) {
+                wkt.append(s, 11, s.length() - 2);
+                wkt.append(" ");
+                hasAtleastOneWKT = true;
+            }
+        }
+        wkt.append(')');
+        return hasAtleastOneWKT ? wkt.toString() : null;
     }
 
     private Link findRealOutLink(Link nextLink) {
@@ -163,7 +169,9 @@ public class MergeRuralLinks {
                 continue;
             } else if (outlink == null) {
                 outlink = l;
-            } else return null;
+            } else {
+                return null;
+            }
         }
         return outlink;
     }

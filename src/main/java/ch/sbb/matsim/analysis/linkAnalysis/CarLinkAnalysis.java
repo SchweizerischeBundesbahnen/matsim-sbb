@@ -22,6 +22,7 @@ package ch.sbb.matsim.analysis.linkAnalysis;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.mavi.streets.MergeRuralLinks;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -101,12 +102,38 @@ public class CarLinkAnalysis {
                         double volume = entry.getValue();
                         String id = link.getId().toString();
                         writer.set("LINK_ID_SIM", id);
+                        String vnodes = (String) link.getAttributes().getAttribute(MergeRuralLinks.VNODES);
                         final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
-                        writer.set("FROMNODENO", fromNode);
                         final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
-                        writer.set("TONODENO", toNode);
-                        writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
-                        writer.writeRow();
+
+                        if (vnodes != null) {
+                            String currentFromNode = fromNode;
+                            String[] nodes = vnodes.split(",");
+                            for (int i = 0; i < nodes.length; i++) {
+                                String currentToNode = nodes[i];
+                                currentToNode = currentToNode.startsWith("C_") ? currentToNode.substring(2) : currentToNode;
+                                writer.set("LINK_ID_SIM", id);
+                                writer.set("FROMNODENO", currentFromNode);
+                                writer.set("TONODENO", currentToNode);
+                                writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
+                                writer.writeRow();
+                                currentFromNode = currentToNode;
+
+                            }
+                            writer.set("LINK_ID_SIM", id);
+                            writer.set("FROMNODENO", currentFromNode);
+                            writer.set("TONODENO", toNode);
+                            writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
+                            writer.writeRow();
+
+                        } else {
+                            writer.set("LINK_ID_SIM", id);
+                            writer.set("FROMNODENO", fromNode);
+                            writer.set("TONODENO", toNode);
+                            writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
+                            writer.writeRow();
+                        }
+
                     }
                 }
             }

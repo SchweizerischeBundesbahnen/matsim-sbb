@@ -22,6 +22,7 @@ package ch.sbb.matsim.mavi.streets;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
+import java.util.List;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
@@ -29,11 +30,9 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 
-import java.util.List;
-
 public class ReduceNetworkSpeeds {
 
-    private final String ouputfile;
+    private String ouputfile;
     private final double capslow;
     private final double capnormal;
     Zones zones;
@@ -52,6 +51,15 @@ public class ReduceNetworkSpeeds {
 
     }
 
+    public ReduceNetworkSpeeds(Network network, Zones zones, double capslow, double capnormal) {
+
+        this.network = network;
+        this.zones = zones;
+        this.capslow = capslow;
+        this.capnormal = capnormal;
+
+    }
+
     public static void main(String[] args) {
         String networkfile = args[0];
         String outputfile = args[1];
@@ -61,7 +69,7 @@ public class ReduceNetworkSpeeds {
         double capnormal = Double.parseDouble(args[4]);
 
         ReduceNetworkSpeeds reduceNetworkSpeeds = new ReduceNetworkSpeeds(networkfile, outputfile, shapeFile, capslowcitystreets, capnormal);
-        reduceNetworkSpeeds.reduce();
+        reduceNetworkSpeeds.reduceSpeeds();
         reduceNetworkSpeeds.writeNetwork();
     }
 
@@ -69,7 +77,7 @@ public class ReduceNetworkSpeeds {
         new NetworkWriter(network).write(this.ouputfile);
     }
 
-    private void reduce() {
+    public void reduceSpeeds() {
         for (Link link : network.getLinks().values()) {
             String t = NetworkUtils.getType(link);
             if (hvs.contains(t)) {
