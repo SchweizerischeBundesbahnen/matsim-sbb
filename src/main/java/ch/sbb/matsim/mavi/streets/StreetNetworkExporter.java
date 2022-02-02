@@ -23,10 +23,6 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
@@ -36,15 +32,24 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
 public class StreetNetworkExporter {
 
     public static void main(String[] args) throws IOException {
         final StreetsExporterConfigGroup streetsExporterConfigGroup = new StreetsExporterConfigGroup();
         Config config = ConfigUtils.loadConfig(args[0], streetsExporterConfigGroup);
         Zones zones = ZonesLoader.loadZones("1", streetsExporterConfigGroup.getZonesFile());
-        new File(streetsExporterConfigGroup.getOutputDir()).mkdirs();
+        String outputDir = streetsExporterConfigGroup.getOutputDirURL(config.getContext()).getPath();
+        new File(outputDir).mkdirs();
         VisumStreetNetworkExporter vse = new VisumStreetNetworkExporter();
-        vse.run(streetsExporterConfigGroup.getVisumFile(), streetsExporterConfigGroup.getOutputDir(), Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
+        String visumFile = streetsExporterConfigGroup.getVisumVersionURL(config.getContext()).getPath()
+                .replace("////", "//")
+                .replace("/", "\\");
+        vse.run(visumFile, outputDir, Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
                 streetsExporterConfigGroup.isExportCounts(), true);
         Network network = vse.getNetwork();
         if (streetsExporterConfigGroup.getSmallRoadSpeedFactor() != 1.0 && streetsExporterConfigGroup.getMainRoadSpeedFactor() != 1.0) {
@@ -53,7 +58,7 @@ public class StreetNetworkExporter {
             reduceNetworkSpeeds.reduceSpeeds();
         }
 
-        if (streetsExporterConfigGroup.reduceForeignLinks) {
+        if (streetsExporterConfigGroup.isReduceForeignLinks()) {
             Logger.getLogger(StreetNetworkExporter.class).info("Removing foreign rural links.");
             RemoveForeignRuralLinks r = new RemoveForeignRuralLinks(network, zones);
             r.removeLinks();
@@ -70,10 +75,10 @@ public class StreetNetworkExporter {
         }
         adjustRoundaboutLinks(network);
         Logger.getLogger(StreetNetworkExporter.class).info("Writing Network with polylines.");
-        new NetworkWriter(network).write(streetsExporterConfigGroup.getOutputDir() + "/" + Filenames.STREET_NETWORK_WITH_POLYLINES);
+        new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK_WITH_POLYLINES);
         removePolylines(network);
         Logger.getLogger(StreetNetworkExporter.class).info("Writing Network without polylines.");
-        new NetworkWriter(network).write(streetsExporterConfigGroup.getOutputDir() + "/" + Filenames.STREET_NETWORK);
+        new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK);
 
     }
 

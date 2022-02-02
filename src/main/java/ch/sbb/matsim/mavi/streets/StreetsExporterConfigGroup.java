@@ -19,10 +19,9 @@
 
 package ch.sbb.matsim.mavi.streets;
 
-import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.ConfigWriter;
-import org.matsim.core.config.ReflectiveConfigGroup;
+import org.matsim.core.config.*;
+
+import java.net.URL;
 
 public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
 
@@ -100,6 +99,11 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
         return visumVersion;
     }
 
+    public URL getVisumVersionURL(URL context) {
+        return ConfigGroup.getInputFileURL(context, visumVersion);
+    }
+
+
     @StringSetter(DESC_visumVersion)
     public void setVisumVersion(String visumVersion) {
         this.visumVersion = visumVersion;
@@ -108,6 +112,11 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
     @StringGetter(DESC_outputDir)
     public String getOutputDir() {
         return outputDir;
+    }
+
+
+    public URL getOutputDirURL(URL context) {
+        return ConfigGroup.getInputFileURL(context, outputDir);
     }
 
     @StringSetter(DESC_outputDir)
