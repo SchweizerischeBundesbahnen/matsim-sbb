@@ -19,6 +19,10 @@
 
 package ch.sbb.matsim.analysis.linkAnalysis;
 
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
@@ -27,16 +31,12 @@ import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.events.handler.VehicleEntersTrafficEventHandler;
 import org.matsim.api.core.v01.network.Link;
 
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
 /**
  * Counts the vehicles per iteration on all links
  */
 public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEntersTrafficEventHandler {
 
-    private IdMap<Link, Integer> countPerLink = new IdMap(Link.class);
+    private final IdMap<Link, Integer> countPerLink = new IdMap<>(Link.class);
 
     @Override
     public void handleEvent(LinkEnterEvent event) {
@@ -63,7 +63,7 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
     }
 
     public Map<Id<Link>, Integer> getIterationCounts() {
-        return countPerLink.entrySet().stream().collect(Collectors.toMap(k -> k.getKey(), k -> k.getValue(), (k, k2) -> k, TreeMap::new));
+        return countPerLink.entrySet().stream().collect(Collectors.toMap(Entry::getKey, Entry::getValue, (k, k2) -> k, TreeMap::new));
 
     }
 }

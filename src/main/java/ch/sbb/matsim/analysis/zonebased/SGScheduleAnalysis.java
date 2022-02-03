@@ -108,8 +108,8 @@ public class SGScheduleAnalysis {
                 }
                 if (hasDiffs) {
                     String diffs = "";
-                    for (int j = 0; j < comp.length; j++) {
-                        diffs = diffs + ";" + comp[j];
+                    for (int value : comp) {
+                        diffs = diffs + ";" + value;
                     }
                     String com = (String) zone.getAttribute("N_Gem");
                     result.add(lid.toString() + ";" + com + ";" + zoneId.toString() + ";" + base + diffs);

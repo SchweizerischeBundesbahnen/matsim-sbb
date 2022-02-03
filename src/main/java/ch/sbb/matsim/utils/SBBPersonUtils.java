@@ -1,6 +1,7 @@
 package ch.sbb.matsim.utils;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
+import java.util.Objects;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
@@ -44,6 +45,6 @@ public class SBBPersonUtils {
 
 	public static ActivityFacility getHomeFacility(Person person, ActivityFacilities facilities) {
 		Activity homeActivity = getHomeActivity(person);
-		return facilities.getFacilities().get(homeActivity.getFacilityId());
+		return facilities.getFacilities().get(Objects.requireNonNull(homeActivity).getFacilityId());
 	}
 }

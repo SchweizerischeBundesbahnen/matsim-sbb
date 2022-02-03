@@ -146,18 +146,16 @@ public class ZonebasedRideshareAnalysis implements DrtRequestSubmittedEventHandl
 
 	private static class PendingDRTTrip {
 
-		private final Id<Person> personId;
-		private final String mode;
-		private final double departureTime;
+        private final String mode;
+        private final double departureTime;
 		private final Id<Zone> startZone;
 		private double directTraveltime;
 		private double boardingTime;
 		private double arrivalTime;
 
 		private PendingDRTTrip(Id<Person> personId, String mode, double departureTime, Id<Zone> startZone) {
-			this.personId = personId;
-			this.mode = mode;
-			this.departureTime = departureTime;
+            this.mode = mode;
+            this.departureTime = departureTime;
 			this.startZone = startZone;
 
 		}

@@ -32,9 +32,9 @@ import org.matsim.core.network.NetworkUtils;
 public class RemoveForeignRuralLinks {
 
     private final Set<Integer> irrelevantTypes = new HashSet<>();
-    Zones zones;
+    final Zones zones;
 
-    private Network network;
+    private final Network network;
 
     public RemoveForeignRuralLinks(Network network, Zones zones) {
 

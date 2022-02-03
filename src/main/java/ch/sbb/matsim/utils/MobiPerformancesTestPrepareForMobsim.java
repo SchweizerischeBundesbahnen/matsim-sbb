@@ -50,9 +50,8 @@ public final class MobiPerformancesTestPrepareForMobsim implements PrepareForMob
 	// bind( PrepareForSimImpl.class ) ;
 	// bind( PrepareForSim.class ).to( MyPrepareForSimImpl.class ) ;
 
-	private static Logger log = Logger.getLogger(MobiPerformancesTestPrepareForMobsim.class);
+	private static final Logger log = Logger.getLogger(MobiPerformancesTestPrepareForMobsim.class);
 
-	private final GlobalConfigGroup globalConfigGroup;
 	private final Scenario scenario;
 	private final Network network;
 	private final Population population;
@@ -62,7 +61,6 @@ public final class MobiPerformancesTestPrepareForMobsim implements PrepareForMob
 	@Inject
 	MobiPerformancesTestPrepareForMobsim(GlobalConfigGroup globalConfigGroup, Scenario scenario, Network network,
 			Population population, ActivityFacilities activityFacilities, Provider<TripRouter> tripRouterProvider) {
-		this.globalConfigGroup = globalConfigGroup;
 		this.scenario = scenario;
 		this.network = network;
 		this.population = population;
@@ -99,18 +97,16 @@ public final class MobiPerformancesTestPrepareForMobsim implements PrepareForMob
 			// make sure all routes are calculated.
 			var time = System.currentTimeMillis();
 			ParallelPersonAlgorithmUtils.run(population, threads,
-                    () -> new PersonPrepareForSim(new PlanRouter(tripRouterProvider.get(), activityFacilities, TimeInterpretation.create(scenario.getConfig())), scenario,
-                            carOnlyNetwork)
-            );
+					() -> new PersonPrepareForSim(new PlanRouter(tripRouterProvider.get(), activityFacilities, TimeInterpretation.create(scenario.getConfig())), scenario,
+							carOnlyNetwork)
+			);
 			double runTime = (System.currentTimeMillis() - time) / 1000.0;
 			runtimes.put(threads, runTime);
 			Logger.getLogger(getClass()).info("threads " + threads + " runtime " + runTime);
 			scenario.getPopulation().getPersons().values().parallelStream().forEach(p -> tripsToLegsAlgorithm.run(p.getSelectedPlan()));
 		}
 		Logger.getLogger("Threads\tRuntime");
-		runtimes.entrySet().forEach(e -> {
-			Logger.getLogger(getClass()).info(e.getKey() + "\t" + e.getValue());
-		});
+		runtimes.forEach((key, value) -> Logger.getLogger(getClass()).info(key + "\t" + value));
 		System.exit(0);
 
 	}

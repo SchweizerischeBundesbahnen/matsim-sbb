@@ -10,26 +10,26 @@ import org.matsim.core.utils.collections.CollectionUtils;
 
 public class SBBAccessTimeConfigGroup extends ReflectiveConfigGroup {
 
-	static public final String GROUP_NAME = "SBBAccessTime";
+    static public final String GROUP_NAME = "SBBAccessTime";
 
-	static private final String PARAM_MODES_WITH_ACCESS_TIME = "modesWithAccessTime";
-	static private final String PARAM_ZONES_ID = "zonesId";
-	static private final String PARAM_PREFIX = "attributePrefix";
-	static private final String PARAM_IS_INSERTING = "isInsertingAccessEgressWalk";
+    static private final String PARAM_MODES_WITH_ACCESS_TIME = "modesWithAccessTime";
+    static private final String PARAM_ZONES_ID = "zonesId";
+    static private final String PARAM_PREFIX = "attributePrefix";
+    static private final String PARAM_IS_INSERTING = "isInsertingAccessEgressWalk";
 
-	private Id<Zones> zonesId = null;
-	private String attributePrefix = "at_";
-	private Boolean isInsertingAccessEgressWalk = false;
-	private Set<String> modesWithAccessTime = new HashSet<>();
+    private Id<Zones> zonesId = null;
+    private String attributePrefix = "at_";
+    private Boolean isInsertingAccessEgressWalk = false;
+    private final Set<String> modesWithAccessTime = new HashSet<>();
 
-	public SBBAccessTimeConfigGroup() {
-		super(GROUP_NAME);
-	}
+    public SBBAccessTimeConfigGroup() {
+        super(GROUP_NAME);
+    }
 
-	@StringGetter(PARAM_PREFIX)
-	public String getAttributePrefix() {
-		return attributePrefix;
-	}
+    @StringGetter(PARAM_PREFIX)
+    public String getAttributePrefix() {
+        return attributePrefix;
+    }
 
 	@StringSetter(PARAM_PREFIX)
 	public void setAttributePrefix(String attributePrefix) {

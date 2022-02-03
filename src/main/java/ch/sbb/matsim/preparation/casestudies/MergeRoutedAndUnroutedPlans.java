@@ -74,7 +74,7 @@ public class MergeRoutedAndUnroutedPlans {
     private final String outputPlansFile;
     private final TransitSchedule schedule;
 
-    private Set<Id<ActivityFacility>> facilityWhiteList = new HashSet<>();
+    private final Set<Id<ActivityFacility>> facilityWhiteList = new HashSet<>();
     private Config config;
 
     /**
@@ -158,10 +158,10 @@ public class MergeRoutedAndUnroutedPlans {
             if (!allPersons.contains(person.getId())) {
                 boolean include;
                 if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
-                    include = !(TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities)
+                    include = TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities)
                             .stream()
-                            .anyMatch(activity
-                                    -> this.facilityWhiteList.contains(activity.getFacilityId())));
+                            .noneMatch(activity
+                                    -> this.facilityWhiteList.contains(activity.getFacilityId()));
                     if (include) {
                         PopulationUtils.putSubpopulation(person, Variables.NO_REPLANNING);
 

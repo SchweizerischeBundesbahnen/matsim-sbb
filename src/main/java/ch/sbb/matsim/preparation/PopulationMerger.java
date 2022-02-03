@@ -19,19 +19,19 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 public class PopulationMerger {
 
-	private final static Logger log = Logger.getLogger(PopulationMerger.class);
-	private Scenario scenario;
-	private PopulationMergerConfigGroup config;
+    private final static Logger log = Logger.getLogger(PopulationMerger.class);
+    private final Scenario scenario;
+    private final PopulationMergerConfigGroup config;
 
-	public PopulationMerger(PopulationMergerConfigGroup config) {
-		this.config = config;
+    public PopulationMerger(PopulationMergerConfigGroup config) {
+        this.config = config;
 
-		this.scenario = this.loadScenario(this.config.getInputPlansFiles());
-	}
+        this.scenario = this.loadScenario(this.config.getInputPlansFiles());
+    }
 
-	public static void main(final String[] args) {
-		Config config = ConfigUtils.loadConfig(args[0], new PopulationMergerConfigGroup());
-		PopulationMergerConfigGroup mergerConfig = ConfigUtils.addOrGetModule(config, PopulationMergerConfigGroup.class);
+    public static void main(final String[] args) {
+        Config config = ConfigUtils.loadConfig(args[0], new PopulationMergerConfigGroup());
+        PopulationMergerConfigGroup mergerConfig = ConfigUtils.addOrGetModule(config, PopulationMergerConfigGroup.class);
 
 		PopulationMerger merger = new PopulationMerger(mergerConfig);
 		merger.run();

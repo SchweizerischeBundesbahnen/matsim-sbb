@@ -22,21 +22,20 @@ package ch.sbb.matsim.mavi.streets;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class CountLinksbySL3 {
 
-    Zones zones;
+    final Zones zones;
 
-    private Network network;
+    private final Network network;
 
     public CountLinksbySL3(String networkfile, String shapeFile) {
         this.network = NetworkUtils.createNetwork(ConfigUtils.createConfig());

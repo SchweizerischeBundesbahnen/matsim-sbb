@@ -92,11 +92,10 @@ public class ZonesQueryCacheTest {
 
 	private static class TestZones implements Zones {
 
-		private final Id<Zones> id;
-		private final List<Zone> zones = new ArrayList<>();
+        private final List<Zone> zones = new ArrayList<>();
 
 		public TestZones(String id) {
-			this.id = Id.create(id, Zones.class);
+            Id<Zones> id1 = Id.create(id, Zones.class);
 		}
 
 		@Override

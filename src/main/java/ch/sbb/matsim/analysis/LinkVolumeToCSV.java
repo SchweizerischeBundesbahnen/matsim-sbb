@@ -17,25 +17,25 @@ import org.matsim.counts.Counts;
 
 public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysis {
 
-	public static final String FILENAME_VOLUMES = "matsim_linkvolumes.csv.gz";
-	public static final String COL_LINK_ID = "link_id";
-	public static final String COL_MODE = "mode";
-	public static final String COL_BIN = "bin";
-	public static final String COL_VOLUME = "volume";
-	public static final String[] COLUMNS = {COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME};
-	private final static Logger log = Logger.getLogger(LinkVolumeToCSV.class);
-	private final String filename;
-	private Network network;
+    public static final String FILENAME_VOLUMES = "matsim_linkvolumes.csv.gz";
+    public static final String COL_LINK_ID = "link_id";
+    public static final String COL_MODE = "mode";
+    public static final String COL_BIN = "bin";
+    public static final String COL_VOLUME = "volume";
+    public static final String[] COLUMNS = {COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME};
+    private final static Logger log = Logger.getLogger(LinkVolumeToCSV.class);
+    private final String filename;
+    private final Network network;
 
-	public LinkVolumeToCSV(Scenario scenario, String filename) {
-		super(3600, 24 * 3600 - 1, scenario.getNetwork());
-		Counts<Link> counts = (Counts<Link>) scenario.getScenarioElement(Counts.ELEMENT_NAME);
-		if (counts != null && !counts.getCounts().isEmpty()) { // by default, an empty counts is registered, even if no inputCountsFile was specified
-			Set<Id<Link>> linkIds = new HashSet<>(counts.getCounts().keySet());
-			super.setLinkFilter(linkIds);
-		}
-		this.filename = filename;
-		this.network = scenario.getNetwork();
+    public LinkVolumeToCSV(Scenario scenario, String filename) {
+        super(3600, 24 * 3600 - 1, scenario.getNetwork());
+        Counts<Link> counts = (Counts<Link>) scenario.getScenarioElement(Counts.ELEMENT_NAME);
+        if (counts != null && !counts.getCounts().isEmpty()) { // by default, an empty counts is registered, even if no inputCountsFile was specified
+            Set<Id<Link>> linkIds = new HashSet<>(counts.getCounts().keySet());
+            super.setLinkFilter(linkIds);
+        }
+        this.filename = filename;
+        this.network = scenario.getNetwork();
 	}
 
 	// Methods

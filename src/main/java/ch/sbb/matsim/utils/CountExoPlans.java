@@ -19,36 +19,36 @@
 
 package ch.sbb.matsim.utils;
 
-import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.csv.CSVWriter;
+import java.io.IOException;
+import java.util.Set;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.io.PopulationWriter;
-import org.matsim.core.population.io.StreamingPopulationReader;
-import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 
-public class PlanAnalyserMobi3 {
+public class CountExoPlans {
 
-	public static void main(String[] args) {
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        StreamingPopulationReader streamingPopulationReader = new StreamingPopulationReader(scenario);
-        streamingPopulationReader.addAlgorithm(person -> {
-            //				String edu = (String) person.getAttributes().getAttribute("current_edu");
-            //				if (edu!=null){
-            //					if (edu.equalsIgnoreCase(""))
-            //				}
-            Integer car = (Integer) person.getAttributes().getAttribute(Variables.CAR_AVAIL);
-            if (car != null) {
-                if (car == 0) {
-                    if (TripStructureUtils.getLegs(person.getSelectedPlan()).stream().anyMatch(leg -> leg.getMode().equals(SBBModes.CAR))) {
-                        scenario2.getPopulation().addPerson(person);
-                    }
+    public static void main(String[] args) {
+        String basepath = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220114_MOBi_3.3\\";
+        Set<String> years = Set.of("2017", "2030", "2040", "2050");
+        Set<String> segments = Set.of("airport_rail", "airport_road", "cb_rail", "cb_road", "tourism_rail", "freight_road");
+        try (CSVWriter writer = new CSVWriter(null, new String[]{"year", "segment", "agents"}, basepath + "\\plans_exogeneous\\stats.csv")) {
+            for (var s : segments) {
+                for (var y : years) {
+                    String path = basepath + y + "\\plans_exogeneous\\" + s + "\\100pct\\plans.xml.gz";
+                    Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+                    new PopulationReader(scenario).readFile(path);
+                    writer.set("year", y);
+                    writer.set("segment", s);
+                    writer.set("agents", Integer.toString(scenario.getPopulation().getPersons().size()));
+                    writer.writeRow();
                 }
             }
-        });
-        streamingPopulationReader.readFile("\\\\k13536\\mobi\\40_Projekte\\20200330_MOBi_3.0\\sim\\2.9.x\\2.9.3\\qsim\\prepared\\populationMerged\\plans.xml.gz");
-		new PopulationWriter(scenario2.getPopulation()).write("faultycarplans.xml.gz");
-	}
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

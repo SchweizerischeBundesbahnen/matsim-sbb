@@ -62,7 +62,7 @@ public class ScalePlans {
                 scaledPopulation.addPerson(basePopulation.getPersons().get(personId));
             }
         } else {
-            basePopulation.getPersons().values().forEach(p -> scaledPopulation.addPerson(p));
+            basePopulation.getPersons().values().forEach(scaledPopulation::addPerson);
             for (int i = 0; i < desiredPlans - pickedPersons.size(); i++) {
                 Id<Person> personId = pickedPersons.get(random.nextInt(pickedPersons.size()));
                 Person p = basePopulation.getPersons().get(personId);

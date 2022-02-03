@@ -38,6 +38,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.MatsimFacilitiesReader;
 
+@SuppressWarnings("ConstantConditions")
 public class GenerateEAPDemand {
 
     public static final String CB_HOME = "cbHome";
@@ -49,9 +50,9 @@ public class GenerateEAPDemand {
     //equidistant between new train station and bus stop
     private final Coord destinationCoord = new Coord(2607176.8206491300, 1272138.9751427100);
     private final Random r = MatsimRandom.getRandom();
-    private WeightedRandomSelection<Integer> departureSelector = new WeightedRandomSelection<>();
-    private WeightedRandomSelection<Integer> arrivalSelector = new WeightedRandomSelection<>();
-    private Map<String, List<Id<ActivityFacility>>> facilitiesPerMunId = new HashMap<>();
+    private final WeightedRandomSelection<Integer> departureSelector = new WeightedRandomSelection<>();
+    private final WeightedRandomSelection<Integer> arrivalSelector = new WeightedRandomSelection<>();
+    private final Map<String, List<Id<ActivityFacility>>> facilitiesPerMunId = new HashMap<>();
 
     GenerateEAPDemand(String facilitiesFile, String demandMatrixFile, String zonesFile, String dailyDistribution, double scaleFactorPt, double scaleFactorCar) {
         this.scaleFactorPt = scaleFactorPt;
@@ -119,7 +120,7 @@ public class GenerateEAPDemand {
         WeightedRandomSelection<String> zoneSelector = new WeightedRandomSelection<>();
         PopulationFactory factory = scenario.getPopulation().getFactory();
 
-        demandData.stream().forEach(d -> zoneSelector.add(d.destinationZone, d.getDemand(mode)));
+        demandData.forEach(d -> zoneSelector.add(d.destinationZone, d.getDemand(mode)));
         for (int i = 0; i < desiredPassengers; i++) {
             int departureTime = departureSelector.select() * 3600 + r.nextInt(3600);
             int desiredArrivalTime = departureTime - 50 * 60 - r.nextInt(80 * 60);
@@ -228,10 +229,10 @@ public class GenerateEAPDemand {
 
     private static class ODDemand {
 
-        String destinationZone;
-        String munID;
-        double ptDemand;
-        double carDemand;
+        final String destinationZone;
+        final String munID;
+        final double ptDemand;
+        final double carDemand;
 
         public ODDemand(String destinationZone, String munID, double ptDemand, double carDemand) {
             this.destinationZone = destinationZone;

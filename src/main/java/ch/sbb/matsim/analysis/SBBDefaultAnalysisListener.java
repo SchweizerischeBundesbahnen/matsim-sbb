@@ -6,7 +6,12 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.linkAnalysis.CarLinkAnalysis;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.ActivityWriter;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import com.google.inject.Inject;
@@ -22,10 +27,9 @@ import org.matsim.core.controler.listener.StartupListener;
 public class SBBDefaultAnalysisListener implements IterationEndsListener, StartupListener {
 
     private final Scenario scenario;
-    private final EventsManager eventsManager;
-    private OutputDirectoryHierarchy controlerIO;
-    private ControlerConfigGroup config;
-    private PostProcessingConfigGroup ppConfig;
+    private final OutputDirectoryHierarchy controlerIO;
+    private final ControlerConfigGroup config;
+    private final PostProcessingConfigGroup ppConfig;
 
     @Inject
     private RailDemandMatrixAggregator railDemandMatrixAggregator;
@@ -55,7 +59,6 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
             final PostProcessingConfigGroup ppConfig,
             IterationLinkAnalyzer iterationLinkAnalyzer
     ) {
-        this.eventsManager = eventsManager;
         this.scenario = scenario;
         this.controlerIO = controlerIO;
         this.config = config;

@@ -118,8 +118,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             egressDistance = Integer.toString(egress.getSecond());
         }
 
-        final List<String> result = List.of(tourTripId, fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, accessModes, accessDistance, egressModes, egressDistance);
-        return result;
+        return List.of(tourTripId, fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, accessModes, accessDistance, egressModes, egressDistance);
     }
 
     private Tuple<String, Integer> findAccessMode(Trip trip, Id<TransitStopFacility> accessStop) {

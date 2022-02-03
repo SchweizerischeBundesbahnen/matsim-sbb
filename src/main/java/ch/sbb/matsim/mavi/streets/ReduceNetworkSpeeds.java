@@ -35,11 +35,11 @@ public class ReduceNetworkSpeeds {
     private String ouputfile;
     private final double capslow;
     private final double capnormal;
-    Zones zones;
-    List<String> communities = List.of("261", "6621", "2701", "351", "5586", "230", "1061", "3203", "5226", "371");
-    List<String> hvs = List.of("29", "30", "31", "32");
-    List<String> nvs = List.of("50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61");
-    private Network network;
+    final Zones zones;
+    final List<String> communities = List.of("261", "6621", "2701", "351", "5586", "230", "1061", "3203", "5226", "371");
+    final List<String> hvs = List.of("29", "30", "31", "32");
+    final List<String> nvs = List.of("50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61");
+    private final Network network;
 
     public ReduceNetworkSpeeds(String networkfile, String outputfile, String shapeFile, double capslow, double capnormal) {
         this.ouputfile = outputfile;

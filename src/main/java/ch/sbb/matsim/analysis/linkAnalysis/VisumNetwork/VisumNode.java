@@ -6,18 +6,18 @@ import org.matsim.api.core.v01.network.Node;
 
 public class VisumNode {
 
-	private static final AtomicInteger count = new AtomicInteger(100000000);
-	private final Node node;
-	private int id;
+    private static final AtomicInteger count = new AtomicInteger(100000000);
+    private final Node node;
+    private final int id;
 
-	public VisumNode(Node node) {
-		this.id = count.incrementAndGet();
-		this.node = node;
-	}
+    public VisumNode(Node node) {
+        this.id = count.incrementAndGet();
+        this.node = node;
+    }
 
-	public int getId() {
-		return id;
-	}
+    public int getId() {
+        return id;
+    }
 
 	public Coord getCoord() {
 		return this.node.getCoord();

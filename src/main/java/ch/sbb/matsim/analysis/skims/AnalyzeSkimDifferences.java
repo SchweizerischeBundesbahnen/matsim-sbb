@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -23,7 +24,7 @@ public class AnalyzeSkimDifferences {
 	private final String inputfile1;
 	private final String outputFile;
 	private final List<String> compareFiles;
-	Map<Integer, Map<Integer, SkimsValue>> skimsCache = new HashMap<>();
+	final Map<Integer, Map<Integer, SkimsValue>> skimsCache = new HashMap<>();
 
 	public AnalyzeSkimDifferences(String inputfile1, String outputFile, List<String> compareFiles) {
 		this.inputfile1 = inputfile1;
@@ -63,7 +64,7 @@ public class AnalyzeSkimDifferences {
 		for (final MutableInt i = new MutableInt(0); i.intValue() < compareFiles.size(); i.increment()) {
 			Map<Integer, Double> zoneDiff = this.skimsCache.entrySet().parallelStream()
 					.collect(Collectors.toMap(
-							z -> z.getKey(),
+							Entry::getKey,
 							z ->
 									z.getValue().values().stream().mapToDouble(s -> Double.isNaN(s.diffs[i.intValue()]) ? 0 : Math.abs(s.diffs[i.intValue()])).sum())
 
@@ -184,9 +185,9 @@ public class AnalyzeSkimDifferences {
 
 	private static class SkimsValue {
 
-		double origValue;
-		double[] compareValues;
-		double[] diffs;
+		final double origValue;
+		final double[] compareValues;
+		final double[] diffs;
 
 		public SkimsValue(double origValue, double[] compareValues, double[] diffs) {
 			this.origValue = origValue;

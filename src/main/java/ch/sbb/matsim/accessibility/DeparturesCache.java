@@ -15,17 +15,17 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 class DeparturesCache {
 
-	Map<Id<TransitStopFacility>, double[]> cache;
+    final Map<Id<TransitStopFacility>, double[]> cache;
 
-	public DeparturesCache(TransitSchedule schedule) {
-		Map<Id<TransitStopFacility>, ArrayList<Double>> tmpCache = new ConcurrentHashMap<>(schedule.getFacilities().size());
+    public DeparturesCache(TransitSchedule schedule) {
+        Map<Id<TransitStopFacility>, ArrayList<Double>> tmpCache = new ConcurrentHashMap<>(schedule.getFacilities().size());
 
-		for (TransitLine line : schedule.getTransitLines().values()) {
-			for (TransitRoute route : line.getRoutes().values()) {
-				for (TransitRouteStop routeStop : route.getStops()) {
-					TransitStopFacility stop = routeStop.getStopFacility();
-					OptionalTime offset = routeStop.getDepartureOffset();
-					if (offset.isDefined()) {
+        for (TransitLine line : schedule.getTransitLines().values()) {
+            for (TransitRoute route : line.getRoutes().values()) {
+                for (TransitRouteStop routeStop : route.getStops()) {
+                    TransitStopFacility stop = routeStop.getStopFacility();
+                    OptionalTime offset = routeStop.getDepartureOffset();
+                    if (offset.isDefined()) {
 						Id<TransitStopFacility> stopId = stop.getId();
 						ArrayList<Double> departures = tmpCache.computeIfAbsent(stopId, k -> new ArrayList<>());
 						for (Departure dep : route.getDepartures().values()) {

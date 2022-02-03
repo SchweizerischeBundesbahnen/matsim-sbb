@@ -20,6 +20,7 @@
 package ch.sbb.matsim.utils;
 
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
@@ -35,6 +36,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
@@ -66,7 +68,7 @@ public class ScenarioConsistencyChecker {
 
 	private static void checkExogeneousShares(Scenario scenario) {
 		double sum = scenario.getPopulation().getPersons().size();
-		Map<String, Integer> subpops = scenario.getPopulation().getPersons().values().stream().map(p -> PopulationUtils.getSubpopulation(p)).filter(Objects::nonNull)
+		Map<String, Integer> subpops = scenario.getPopulation().getPersons().values().stream().map(PopulationUtils::getSubpopulation).filter(Objects::nonNull)
 				.collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
 		LOGGER.info("Found the following subpopulations: " + subpops.keySet().toString());
 		Map<String, Double> shares = Map.of("regular", 0.65, "freight_road", 0.25, "cb_road", 0.08, "cb_rail", 0.0067, "airport_road", 0.0033, "airport_rail", 0.0024);
@@ -108,7 +110,7 @@ public class ScenarioConsistencyChecker {
 
 		Set<String> modes = regularPopulation.stream()
 				.flatMap(person -> TripStructureUtils.getLegs(person.getSelectedPlan()).stream())
-				.map(a->a.getMode())
+				.map(Leg::getMode)
 				.collect(Collectors.toSet());
 		Set<String> permissiblemodes = new HashSet<>(SBBModes.mode2HierarchalNumber.keySet());
 		permissiblemodes.add(Variables.OUTSIDE);
@@ -164,7 +166,8 @@ public class ScenarioConsistencyChecker {
 		SwissRailRaptorConfigGroup swissRailRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
 		boolean checkPassed = true;
 		if (swissRailRaptorConfigGroup.isUseIntermodalAccessEgress()) {
-			Set<String> intermodalModesAtt = swissRailRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().map(s -> s.getStopFilterAttribute()).collect(Collectors.toSet());
+			Set<String> intermodalModesAtt = swissRailRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().map(IntermodalAccessEgressParameterSet::getStopFilterAttribute)
+					.collect(Collectors.toSet());
 			intermodalModesAtt.remove(null);
 			for (String att : intermodalModesAtt) {
 				int count = scenario.getTransitSchedule().getFacilities().values().stream().map(transitStopFacility -> transitStopFacility.getAttributes().getAttribute(att))
@@ -187,9 +190,10 @@ public class ScenarioConsistencyChecker {
     }
 
     public static boolean checkIntermodalPopulationExists(Scenario scenario) {
-        SwissRailRaptorConfigGroup swissRailRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
-        Set<String> modeAtts = swissRailRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().map(s -> s.getPersonFilterAttribute()).filter(Objects::nonNull).collect(Collectors.toSet());
-        double persons = scenario.getPopulation().getPersons().values().stream().filter(p -> PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)).count();
+		SwissRailRaptorConfigGroup swissRailRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
+		Set<String> modeAtts = swissRailRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().map(IntermodalAccessEgressParameterSet::getPersonFilterAttribute).filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+		double persons = scenario.getPopulation().getPersons().values().stream().filter(p -> PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)).count();
         Map<String, Double> mobi32values = Map.of("car2pt", 0.52, "bike2pt", 0.34, "ride2pt", 0.23);
         logmessage = logmessage + "\nMode\tCount\tShare\tShareInMobi3.2\n";
         boolean checkPassed = true;

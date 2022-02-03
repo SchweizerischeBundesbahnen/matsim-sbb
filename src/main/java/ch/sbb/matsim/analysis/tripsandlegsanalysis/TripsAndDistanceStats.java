@@ -147,7 +147,7 @@ public class TripsAndDistanceStats {
                 bw.write("Domestic Trips");
                 bw.newLine();
                 bw.write("Mode;Trips;Share");
-                double domesticTripsSum = stat.domesticTrips.values().stream().mapToInt(a -> a.intValue()).sum();
+                double domesticTripsSum = stat.domesticTrips.values().stream().mapToInt(MutableInt::intValue).sum();
                 for (Entry<String, MutableInt> e : stat.domesticTrips.entrySet()) {
                     bw.newLine();
                     bw.write(e.getKey() + ";" + e.getValue().doubleValue() / sampleSize + ";" + e.getValue().doubleValue() / domesticTripsSum);
@@ -156,7 +156,7 @@ public class TripsAndDistanceStats {
                 bw.write("All Trips");
                 bw.newLine();
                 bw.write("Mode;Trips;Share");
-                double tripsSum = stat.tripsTotal.values().stream().mapToInt(a -> a.intValue()).sum();
+                double tripsSum = stat.tripsTotal.values().stream().mapToInt(MutableInt::intValue).sum();
                 for (Entry<String, MutableInt> e : stat.tripsTotal.entrySet()) {
                     bw.newLine();
                     bw.write(e.getKey() + ";" + e.getValue().doubleValue() / sampleSize + ";" + e.getValue().doubleValue() / tripsSum);
@@ -166,7 +166,7 @@ public class TripsAndDistanceStats {
                 bw.write("Domestic Distances [km]");
                 bw.newLine();
                 bw.write("Mode;Distance;Share");
-                double domesticDistanceSum = stat.domesticDistance.values().stream().mapToDouble(a -> a.doubleValue()).sum();
+                double domesticDistanceSum = stat.domesticDistance.values().stream().mapToDouble(MutableDouble::doubleValue).sum();
                 for (Entry<String, MutableDouble> e : stat.domesticDistance.entrySet()) {
                     bw.newLine();
                     bw.write(e.getKey() + ";" + (int) ((e.getValue().doubleValue() / 1000) / sampleSize) + ";" + e.getValue().doubleValue() / domesticDistanceSum);
@@ -175,7 +175,7 @@ public class TripsAndDistanceStats {
                 bw.write("Overall Distances");
                 bw.newLine();
                 bw.write("Mode;Distance;Share");
-                double distanceSum = stat.overallDistance.values().stream().mapToDouble(a -> a.doubleValue()).sum();
+                double distanceSum = stat.overallDistance.values().stream().mapToDouble(MutableDouble::doubleValue).sum();
                 for (Entry<String, MutableDouble> e : stat.overallDistance.entrySet()) {
                     bw.newLine();
                     bw.write(e.getKey() + ";" + (int) ((e.getValue().doubleValue() / 1000) / sampleSize) + ";" + e.getValue().doubleValue() / distanceSum);
@@ -299,8 +299,7 @@ public class TripsAndDistanceStats {
             if (count) {
                 Link l = network.getLinks().get(linkId);
                 if (l == null) {
-                }
-                if (isSwiss(l)) {
+                } else if (isSwiss(l)) {
                     distDomestic += l.getLength();
                 }
                 dist += l.getLength();
@@ -349,14 +348,10 @@ public class TripsAndDistanceStats {
     private class SubpopulationStats {
 
         final String subpopulation;
-        ;
-        Map<String, MutableDouble> domesticDistance = new TreeMap<>();
-        ;
-        Map<String, MutableDouble> overallDistance = new TreeMap<>();
-        ;
-        Map<String, MutableInt> domesticTrips = new TreeMap<>();
-        ;
-        Map<String, MutableInt> tripsTotal = new TreeMap<>();
+        final Map<String, MutableDouble> domesticDistance = new TreeMap<>();
+        final Map<String, MutableDouble> overallDistance = new TreeMap<>();
+        final Map<String, MutableInt> domesticTrips = new TreeMap<>();
+        final Map<String, MutableInt> tripsTotal = new TreeMap<>();
 
         public SubpopulationStats(String subpopulation) {
             this.subpopulation = subpopulation;

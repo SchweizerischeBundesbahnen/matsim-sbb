@@ -25,7 +25,6 @@ import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.streets.MergeRuralLinks;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,6 +35,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.utils.io.UncheckedIOException;
@@ -50,7 +50,7 @@ public class CarLinkAnalysis {
     };
     private final Network network;
     private final double samplesize;
-    IterationLinkAnalyzer linkAnalyzer;
+    final IterationLinkAnalyzer linkAnalyzer;
     private boolean firstcall = true;
     private TreeSet<Id<Link>> carlinks;
 
@@ -67,7 +67,7 @@ public class CarLinkAnalysis {
                 carlinks = network.getLinks().values()
                         .stream()
                         .filter(l -> l.getAllowedModes().contains(SBBModes.CAR))
-                        .map(l -> l.getId())
+                        .map(Identifiable::getId)
                         .collect(Collectors.toCollection(TreeSet::new));
                 w.write("Iteration;" + carlinks.stream().map(Objects::toString).collect(Collectors.joining(";")));
                 firstcall = false;
@@ -82,8 +82,6 @@ public class CarLinkAnalysis {
             }
 
             w.flush();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -109,8 +107,8 @@ public class CarLinkAnalysis {
                         if (vnodes != null) {
                             String currentFromNode = fromNode;
                             String[] nodes = vnodes.split(",");
-                            for (int i = 0; i < nodes.length; i++) {
-                                String currentToNode = nodes[i];
+                            for (String node : nodes) {
+                                String currentToNode = node;
                                 currentToNode = currentToNode.startsWith("C_") ? currentToNode.substring(2) : currentToNode;
                                 writer.set("LINK_ID_SIM", id);
                                 writer.set("FROMNODENO", currentFromNode);
@@ -122,17 +120,14 @@ public class CarLinkAnalysis {
                             }
                             writer.set("LINK_ID_SIM", id);
                             writer.set("FROMNODENO", currentFromNode);
-                            writer.set("TONODENO", toNode);
-                            writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
-                            writer.writeRow();
 
                         } else {
                             writer.set("LINK_ID_SIM", id);
                             writer.set("FROMNODENO", fromNode);
-                            writer.set("TONODENO", toNode);
-                            writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
-                            writer.writeRow();
                         }
+                        writer.set("TONODENO", toNode);
+                        writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
+                        writer.writeRow();
 
                     }
                 }

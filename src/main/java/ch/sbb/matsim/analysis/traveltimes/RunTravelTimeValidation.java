@@ -40,19 +40,19 @@ import org.matsim.facilities.Facility;
 
 public class RunTravelTimeValidation {
 
-	private static final Logger log = Logger.getLogger(RunTravelTimeValidation.class);
-	private final double startTime;
-	private Network network;
-	private NetworkRoutingModule router;
+    private static final Logger log = Logger.getLogger(RunTravelTimeValidation.class);
+    private final double startTime;
+    private final Network network;
+    private final NetworkRoutingModule router;
 
-	//use this method for free flow travel time evaluation
-	public RunTravelTimeValidation(Network network, double startTime) {
-		this.network = network;
-		this.startTime = startTime;
+    //use this method for free flow travel time evaluation
+    public RunTravelTimeValidation(Network network, double startTime) {
+        this.network = network;
+        this.startTime = startTime;
 
-		DijkstraFactory factory = new DijkstraFactory();
-		TravelTime tt = new FreeSpeedTravelTime();
-		TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
+        DijkstraFactory factory = new DijkstraFactory();
+        TravelTime tt = new FreeSpeedTravelTime();
+        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
 		LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
 		this.router = new NetworkRoutingModule(
@@ -178,7 +178,6 @@ public class RunTravelTimeValidation {
 
         List<? extends PlanElement> pes = this.router.calcRoute(DefaultRoutingRequest.withoutAttributes(fromFacility, toFacility,
                 this.startTime * 60 * 60, null));
-        Leg leg = (Leg) pes.get(0);
-        return leg;
+        return (Leg) pes.get(0);
     }
 }

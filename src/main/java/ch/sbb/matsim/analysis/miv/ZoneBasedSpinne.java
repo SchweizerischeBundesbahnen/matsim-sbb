@@ -29,18 +29,18 @@ import org.matsim.core.utils.io.UncheckedIOException;
 
 public class ZoneBasedSpinne {
 
-	private static final Logger log = Logger.getLogger(ZoneBasedSpinne.class);
-	private ConcurrentHashMap<Id<Link>, LinkVolumes> linkVolumes = new ConcurrentHashMap<>();
+    private static final Logger log = Logger.getLogger(ZoneBasedSpinne.class);
+    private final ConcurrentHashMap<Id<Link>, LinkVolumes> linkVolumes = new ConcurrentHashMap<>();
 
-	public static void main(String[] args) {
-		new ZoneBasedSpinne().run("\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\",
-				"\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output\\CH.10pct.2016.output_network.xml.gz",
-				"\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\zones\\v6\\output\\epsg_21781\\mobi_zones.shp",
-				args[0], args[1], args[2], args[3]);
-	}
+    public static void main(String[] args) {
+        new ZoneBasedSpinne().run("\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\",
+                "\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\sim\\2.0.0_10pct_release\\output\\CH.10pct.2016.output_network.xml.gz",
+                "\\\\k13536\\mobi\\50_Ergebnisse\\MOBi_2.0\\zones\\v6\\output\\epsg_21781\\mobi_zones.shp",
+                args[0], args[1], args[2], args[3]);
+    }
 
-	private static HashSet<Id<Link>> getLinksInZone(String networkFile, ZonesQueryCache zonesCache, String attName,
-			String attValue) {
+    private static HashSet<Id<Link>> getLinksInZone(String networkFile, ZonesQueryCache zonesCache, String attName,
+            String attValue) {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
 
@@ -150,14 +150,14 @@ public class ZoneBasedSpinne {
 		}
 	}
 
-	private static class InputFiles {
+    private static class InputFiles {
 
-		private String plans;
+        private final String plans;
 
-		private InputFiles(String plans) {
-			this.plans = plans;
-		}
-	}
+        private InputFiles(String plans) {
+            this.plans = plans;
+        }
+    }
 
 	private static class LinkVolumes {
 

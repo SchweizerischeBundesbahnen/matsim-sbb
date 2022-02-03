@@ -30,7 +30,7 @@ public class VisumStopExporter {
 	private final NetworkFactory networkBuilder;
 	private final TransitScheduleFactory scheduleBuilder;
 
-	private HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints = new HashMap<>();
+	private final HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints = new HashMap<>();
 
 	public VisumStopExporter(Scenario scenario) {
 		this.network = scenario.getNetwork();
@@ -43,6 +43,7 @@ public class VisumStopExporter {
 		if (!value.isEmpty() && !value.equals("null")) {
 			switch (dataType) {
 				case "java.lang.String":
+				case "java.lang.Boolean":
 					attributes.putAttribute(name, value);
 					break;
 				case "java.lang.Double":
@@ -50,9 +51,6 @@ public class VisumStopExporter {
 					break;
 				case "java.lang.Integer":
 					attributes.putAttribute(name, (int) Double.parseDouble(value));
-					break;
-				case "java.lang.Boolean":
-					attributes.putAttribute(name, value);
 					break;
 
 				default:

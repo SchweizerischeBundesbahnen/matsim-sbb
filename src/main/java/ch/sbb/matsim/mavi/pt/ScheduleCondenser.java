@@ -23,7 +23,6 @@ import ch.sbb.matsim.csv.CSVReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -33,6 +32,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -127,7 +127,7 @@ public class ScheduleCondenser {
     public void condenseSchedule() {
         //sort links by length
         List<Link> linksLongestToShortest = new ArrayList<>(network.getLinks().values());
-        Collections.sort(linksLongestToShortest, (l1, l2) -> Double.compare(l2.getLength(), l1.getLength()));
+        linksLongestToShortest.sort((l1, l2) -> Double.compare(l2.getLength(), l1.getLength()));
         Iterator<Link> links = linksLongestToShortest.iterator();
         while (links.hasNext()) {
             Link link = links.next();
@@ -192,7 +192,7 @@ public class ScheduleCondenser {
                 List<Id<Link>> newRoute = new ArrayList<>();
                 for (var linkId : networkRoute.getLinkIds()) {
                     if (linkId.equals(link.getId())) {
-                        newRoute.addAll(replacement.stream().map(l -> l.getId()).collect(Collectors.toList()));
+                        newRoute.addAll(replacement.stream().map(Identifiable::getId).collect(Collectors.toList()));
 
                     } else {
                         newRoute.add(linkId);

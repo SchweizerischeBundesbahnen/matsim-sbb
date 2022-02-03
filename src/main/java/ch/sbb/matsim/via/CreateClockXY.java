@@ -18,24 +18,24 @@ import org.matsim.core.utils.misc.Time;
  */
 public class CreateClockXY {
 
-	private static final double deg2rad = Math.PI / 180;
+    private static final double deg2rad = Math.PI / 180;
 
-	private boolean showSeconds = true;
-	private boolean fixSecondsAt12 = false;
-	private boolean jump2go = false; // include 2-second stop for second digit at 12
-	private double startTime = 0.0;
-	private double endTime = 30 * 3600;
-	private double x[] = new double[60];
-	private double y[] = new double[60];
+    private boolean showSeconds = true;
+    private boolean fixSecondsAt12 = false;
+    private boolean jump2go = false; // include 2-second stop for second digit at 12
+    private double startTime = 0.0;
+    private double endTime = 30 * 3600;
+    private final double[] x = new double[60];
+    private final double[] y = new double[60];
 
-	public CreateClockXY() {
-		for (int i = 0; i < 60; i++) {
-			double deg = i * 6;
-			double rad = deg * deg2rad;
-			this.x[i] = Math.sin(rad);
-			this.y[i] = Math.cos(rad);
-		}
-	}
+    public CreateClockXY() {
+        for (int i = 0; i < 60; i++) {
+            double deg = i * 6;
+            double rad = deg * deg2rad;
+            this.x[i] = Math.sin(rad);
+            this.y[i] = Math.cos(rad);
+        }
+    }
 
 	public static void main(String[] args) {
 		CreateClockXY clock = new CreateClockXY();

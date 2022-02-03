@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -92,9 +93,7 @@ public class PreparePlansBypassLuzern {
                 copy = TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities).stream().anyMatch(activity -> {
                     Zone zone = zones.findZone(activity.getCoord());
                     if (zone != null) {
-                        if (relevantZones.contains(zone.getId())) {
-                            return true;
-                        }
+                        return relevantZones.contains(zone.getId());
                     }
                     return false;
                 });
@@ -116,13 +115,11 @@ public class PreparePlansBypassLuzern {
                 .filter(l -> {
                     var zone = zones.findZone(l.getCoord());
                     if (zone != null) {
-                        if (relevantZones.contains(zone.getId())) {
-                            return true;
-                        }
+                        return relevantZones.contains(zone.getId());
                     }
                     return false;
                 })
-                .map(l -> l.getId())
+                .map(Identifiable::getId)
                 .collect(Collectors.toSet());
     }
 

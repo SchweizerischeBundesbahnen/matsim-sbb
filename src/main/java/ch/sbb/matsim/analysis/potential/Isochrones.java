@@ -52,16 +52,16 @@ public class Isochrones {
     private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
 
     private Scenario scenario;
-    private String eventsFilename;
-    private Config config;
+    private final String eventsFilename;
+    private final Config config;
     private Network network;
     private Network filteredNetwork;
     private SpeedyGraph graph;
-    private Collection<SimpleFeature> collection = new ArrayList<>();
+    private final Collection<SimpleFeature> collection = new ArrayList<>();
     private TravelTime travelTime;
     private TravelTime travelTimeWithLoad;
     private TravelDisutility travelDisutility;
-    private PolygonFeatureFactory pff;
+    private final PolygonFeatureFactory pff;
 
     public Isochrones(String configFile, String eventsFilename) {
         this.config = ConfigUtils.loadConfig(configFile);
@@ -157,27 +157,27 @@ public class Isochrones {
 		TravelTime tt = this.travelTime;
 		if (withLoad) {
 			tt = this.travelTimeWithLoad;
-		}
+        }
 
-		Node node = NetworkUtils.getNearestNode(this.filteredNetwork, coord);
-		LeastCostPathTree leastCostPathTree = new LeastCostPathTree(this.graph, tt, this.travelDisutility);
+        Node node = NetworkUtils.getNearestNode(this.filteredNetwork, coord);
+        LeastCostPathTree leastCostPathTree = new LeastCostPathTree(this.graph, tt, this.travelDisutility);
 
-		int startTime = 7 * 60 * 60;
-		leastCostPathTree.calculate(node.getId().index(), startTime, PERSON, VEHICLE);
+        int startTime = 7 * 60 * 60;
+        leastCostPathTree.calculate(node.getId().index(), startTime, PERSON, VEHICLE);
 
-		final int bucketCount = 2;
-		final double bucketSize = threshold / bucketCount;
-		List<List<Coordinate>> buckets = this.createBuckets(bucketCount);
+        final int bucketCount = 2;
+        final double bucketSize = threshold / bucketCount;
+        List<List<Coordinate>> buckets = this.createBuckets();
 
-		for (Node n : this.network.getNodes().values()) {
-			Id<Node> id = n.getId();
-			OptionalTime time1 = leastCostPathTree.getTime(id.index());
-			if (time1.isUndefined()) {
-				continue;
-			}
-			double time2 = time1.seconds() - startTime;
+        for (Node n : this.network.getNodes().values()) {
+            Id<Node> id = n.getId();
+            OptionalTime time1 = leastCostPathTree.getTime(id.index());
+            if (time1.isUndefined()) {
+                continue;
+            }
+            double time2 = time1.seconds() - startTime;
 
-			int bucketIndex = (int) (time2 / bucketSize);
+            int bucketIndex = (int) (time2 / bucketSize);
 
 			if (bucketIndex < bucketCount) {
 				Coord nodeCoord = this.network.getNodes().get(id).getCoord();
@@ -206,29 +206,29 @@ public class Isochrones {
 				lastF = f;
 			}
 
-			//not really nice but do the trick
-			if (lastF != null) {
-				collection.remove(lastF);
-			}
+            //not really nice but do the trick
+            if (lastF != null) {
+                collection.remove(lastF);
+            }
 
-		} catch (Exception e) {
-			log.error(e);
-		}
-	}
+        } catch (Exception e) {
+            log.error(e);
+        }
+    }
 
-	private List<List<Coordinate>> createBuckets(int bucketCount) {
-		List<List<Coordinate>> buckets = new ArrayList<>(bucketCount);
-		for (int i = 0; i < bucketCount + 1; i++) {
-			buckets.add(new ArrayList<>());
-		}
+    private List<List<Coordinate>> createBuckets() {
+        List<List<Coordinate>> buckets = new ArrayList<>(2);
+        for (int i = 0; i < 2 + 1; i++) {
+            buckets.add(new ArrayList<>());
+        }
 
-		return buckets;
-	}
+        return buckets;
+    }
 
-	private void write(String filename) throws SchemaException, IOException {
+    private void write(String filename) {
 
-		ShapeFileWriter.writeGeometries(collection, filename);
+        ShapeFileWriter.writeGeometries(collection, filename);
 
-	}
+    }
 
 }

@@ -53,35 +53,29 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
 	@Override
 	public ConfigGroup createParameterSet(final String type) {
-		switch (type) {
-			case BehaviorGroupParams.SET_TYPE:
-				return new BehaviorGroupParams();
-			default:
-				throw new IllegalArgumentException(type);
+		if (BehaviorGroupParams.SET_TYPE.equals(type)) {
+			return new BehaviorGroupParams();
 		}
+		throw new IllegalArgumentException(type);
 	}
 
 	@Override
 	protected void checkParameterSet(final ConfigGroup module) {
-		switch (module.getName()) {
-			case BehaviorGroupParams.SET_TYPE:
-				if (!(module instanceof BehaviorGroupParams)) {
-					throw new RuntimeException("unexpected class for module " + module);
-				}
-				break;
-			default:
-				throw new IllegalArgumentException(module.getName());
+		if (BehaviorGroupParams.SET_TYPE.equals(module.getName())) {
+			if (!(module instanceof BehaviorGroupParams)) {
+				throw new RuntimeException("unexpected class for module " + module);
+			}
+		} else {
+			throw new IllegalArgumentException(module.getName());
 		}
 	}
 
 	@Override
 	public void addParameterSet(final ConfigGroup set) {
-		switch (set.getName()) {
-			case BehaviorGroupParams.SET_TYPE:
-				addBehaviorGroupParams((BehaviorGroupParams) set);
-				break;
-			default:
-				throw new IllegalArgumentException(set.getName());
+		if (BehaviorGroupParams.SET_TYPE.equals(set.getName())) {
+			addBehaviorGroupParams((BehaviorGroupParams) set);
+		} else {
+			throw new IllegalArgumentException(set.getName());
 		}
 	}
 
@@ -233,30 +227,26 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
 		@Override
 		public ConfigGroup createParameterSet(final String type) {
-			switch (type) {
-				case PersonGroupValues.SET_TYPE:
-					return new PersonGroupValues();
-				default:
-					throw new IllegalArgumentException(type);
+			if (PersonGroupValues.SET_TYPE.equals(type)) {
+				return new PersonGroupValues();
 			}
+			throw new IllegalArgumentException(type);
 		}
 
 		@Override
 		protected void checkParameterSet(final ConfigGroup module) {
-			switch (module.getName()) {
-				case PersonGroupValues.SET_TYPE:
-					if (!(module instanceof PersonGroupValues)) {
-						throw new RuntimeException("wrong class for " + module);
+			if (PersonGroupValues.SET_TYPE.equals(module.getName())) {
+				if (!(module instanceof PersonGroupValues)) {
+					throw new RuntimeException("wrong class for " + module);
+				}
+				final Set<String> t = ((PersonGroupValues) module).getPersonGroupAttributeValues();
+				for (String value : t) {
+					if (getPersonGroupByAttribute(value) != null) {
+						throw new IllegalStateException("already a parameter set for attribute value " + t);
 					}
-					final Set<String> t = ((PersonGroupValues) module).getPersonGroupAttributeValues();
-					for (String value : t) {
-						if (getPersonGroupByAttribute(value) != null) {
-							throw new IllegalStateException("already a parameter set for attribute value " + t);
-						}
-					}
-					break;
-				default:
-					throw new IllegalArgumentException(module.getName());
+				}
+			} else {
+				throw new IllegalArgumentException(module.getName());
 			}
 		}
 
@@ -301,7 +291,7 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
 		public static final String SET_TYPE = PARAMSET_PERSONGROUPATTRIBUTE;
 
-		private Set<String> attributeValues = new HashSet<>();
+		private final Set<String> attributeValues = new HashSet<>();
 
 		private double deltaMarginalUtilityOfParkingPrice = 0.0;
 		private double deltaTransferUtilityBase = 0.0;
@@ -384,28 +374,24 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
 		@Override
 		public ConfigGroup createParameterSet(final String mode) {
-			switch (mode) {
-				case ModeCorrection.SET_TYPE:
-					return new ModeCorrection();
-				default:
-					throw new IllegalArgumentException(mode);
+			if (ModeCorrection.SET_TYPE.equals(mode)) {
+				return new ModeCorrection();
 			}
+			throw new IllegalArgumentException(mode);
 		}
 
 		@Override
 		protected void checkParameterSet(final ConfigGroup module) {
-			switch (module.getName()) {
-				case ModeCorrection.SET_TYPE:
-					if (!(module instanceof ModeCorrection)) {
-						throw new RuntimeException("wrong class for " + module);
-					}
-					final String t = ((ModeCorrection) module).getMode();
-					if (getModeCorrectionsForMode(t) != null) {
-						throw new IllegalStateException("already a parameter set for mode " + t);
-					}
-					break;
-				default:
-					throw new IllegalArgumentException(module.getName());
+			if (ModeCorrection.SET_TYPE.equals(module.getName())) {
+				if (!(module instanceof ModeCorrection)) {
+					throw new RuntimeException("wrong class for " + module);
+				}
+				final String t = ((ModeCorrection) module).getMode();
+				if (getModeCorrectionsForMode(t) != null) {
+					throw new IllegalStateException("already a parameter set for mode " + t);
+				}
+			} else {
+				throw new IllegalArgumentException(module.getName());
 			}
 		}
 

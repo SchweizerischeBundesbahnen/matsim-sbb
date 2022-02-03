@@ -120,11 +120,10 @@ public class RouteODRelations {
                 String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
 
                 String teilweg_kennung = leg_id.getAndIncrement() > 1 ? "N" : "E";
-                String einhstnr = from_stop;
                 String einhstabfahrtstag = getDayIndex(r.getBoardingTime().seconds());
                 String einhstabfahrtszeit = getTime(r.getBoardingTime().seconds());
                 putSurveyEntries.add(new PutSurveyEntry(path_id, String.valueOf(leg_id), from_stop, to_stop, vsyscode, linname, linroutename, richtungscode,
-                        fzprofilname, teilweg_kennung, einhstnr, einhstabfahrtstag, einhstabfahrtszeit, relation.demand, "regular", "", ""));
+                        fzprofilname, teilweg_kennung, from_stop, einhstabfahrtstag, einhstabfahrtszeit, relation.demand, "regular", "", ""));
             }
             if (!putSurveyEntries.isEmpty()) {
                 entries.add(putSurveyEntries);
@@ -136,9 +135,9 @@ public class RouteODRelations {
 
     static class DemandRelation {
 
-        Id<TransitStopFacility> fromId;
-        Id<TransitStopFacility> toId;
-        double demand;
+        final Id<TransitStopFacility> fromId;
+        final Id<TransitStopFacility> toId;
+        final double demand;
 
         public DemandRelation(Id<TransitStopFacility> fromId, Id<TransitStopFacility> toId, double demand) {
             this.fromId = fromId;

@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.StreamingPopulationReader;
@@ -48,7 +49,7 @@ public class RemoveCurrentAndMergeNewRocheEmployees {
         streamingPopulationWriter.startStreaming(outputPlans);
         StreamingPopulationReader streamingPopulationReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
         streamingPopulationReader.addAlgorithm(person -> {
-            boolean filterout = TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream().map(activity -> activity.getFacilityId()
+            boolean filterout = TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream().map(Activity::getFacilityId
             ).filter(Objects::nonNull).anyMatch(f -> blacklistFacilities.contains(f.toString()));
             if (!filterout) {
                 PopulationUtils.putSubpopulation(person, Variables.NO_REPLANNING);

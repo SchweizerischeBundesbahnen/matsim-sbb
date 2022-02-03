@@ -8,6 +8,8 @@ import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
+import java.util.LinkedList;
+import java.util.List;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.groups.ControlerConfigGroup;
@@ -21,20 +23,17 @@ import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.controler.listener.ShutdownListener;
 import org.matsim.core.controler.listener.StartupListener;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsListener, StartupListener, ShutdownListener {
 
     private final Scenario scenario;
     private final EventsManager eventsManager;
     private final IterationLinkAnalyzer iterationLinkAnalyzer;
-    private OutputDirectoryHierarchy controlerIO;
+    private final OutputDirectoryHierarchy controlerIO;
     private List<EventsAnalysis> analyses = new LinkedList<>();
     private List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
-    private ControlerConfigGroup config;
-    private PostProcessingConfigGroup ppConfig;
-    private ZonesCollection zones;
+    private final ControlerConfigGroup config;
+    private final PostProcessingConfigGroup ppConfig;
+    private final ZonesCollection zones;
 
     @Inject
     public SBBEventAnalysis(

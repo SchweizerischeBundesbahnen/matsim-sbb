@@ -59,7 +59,7 @@ public class SlicePlansBruggen {
             ii.increment();
         });
         streamingPopulationReaderCase.readFile(inputPlansCase);
-        writersCase.forEach(w -> w.closeStreaming());
+        writersCase.forEach(StreamingPopulationWriter::closeStreaming);
 
         //now read reference and put person *if existing* into same partition
         List<StreamingPopulationWriter> writersRef = new ArrayList<>();
@@ -80,7 +80,7 @@ public class SlicePlansBruggen {
             }
         });
         streamingPopulationReaderRef.readFile(inputPlansRef);
-        writersRef.forEach(w -> w.closeStreaming());
+        writersRef.forEach(StreamingPopulationWriter::closeStreaming);
     }
 
 }
