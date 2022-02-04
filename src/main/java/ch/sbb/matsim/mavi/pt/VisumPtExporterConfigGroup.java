@@ -5,12 +5,14 @@
 package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.mavi.visum.Visum;
+import org.matsim.core.config.ConfigGroup;
+import org.matsim.core.config.ReflectiveConfigGroup;
+
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.matsim.core.config.ConfigGroup;
-import org.matsim.core.config.ReflectiveConfigGroup;
 
 /**
  * @author pmanser / SBB
@@ -30,6 +32,7 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 	static private final String PARAM_NETWORK_MODE = "NetworkMode";
 	static private final String PARAM_TRANSFERTIMES = "ExportTransferTimes";
 	static private final String PARAM_ANGEBOT = "AngebotName";
+	static private final String PARAM_VISUMVERSION = "visumVersion";
 
 	private String pathToVisum = null;
 	private String pathToVisumAttributeFile = null;
@@ -37,6 +40,7 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 	private String networkMode = null;
 	private boolean exportTransferTimes = false;
 	private String angebot = null;
+	private int visumVersion = 21;
 
 	public VisumPtExporterConfigGroup() {
 		super(GROUP_NAME);
@@ -45,6 +49,20 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 	@StringGetter(PARAM_PATHTOVISUM)
 	public String getPathToVisum() {
 		return this.pathToVisum;
+	}
+
+	@StringGetter(PARAM_VISUMVERSION)
+	public int getVisumVersion() {
+		return visumVersion;
+	}
+
+	@StringSetter(PARAM_VISUMVERSION)
+	public void setVisumVersion(int visumVersion) {
+		this.visumVersion = visumVersion;
+	}
+
+	public URL getPathToVisumURL(URL context) {
+		return ConfigGroup.getInputFileURL(context, pathToVisum);
 	}
 
 	@StringSetter(PARAM_PATHTOVISUM)
@@ -95,6 +113,10 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 	@StringGetter(PARAM_OUTPUT_PATH)
 	public String getOutputPath() {
 		return this.outputPath;
+	}
+
+	public URL getOutputPathURL(URL context) {
+		return ConfigGroup.getInputFileURL(context, this.outputPath);
 	}
 
 	@StringSetter(PARAM_OUTPUT_PATH)

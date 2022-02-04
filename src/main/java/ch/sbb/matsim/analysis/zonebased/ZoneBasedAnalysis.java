@@ -17,6 +17,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
@@ -32,6 +33,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -48,13 +50,13 @@ public class ZoneBasedAnalysis {
 	final private MainModeIdentifier identifier;
 	private final Scenario scenario;
 	private final Map<Id<Zone>, ZoneStats> zoneStatsMap;
-	Map<Id<TransitRoute>, String> modePerRoute;
+	final Map<Id<TransitRoute>, String> modePerRoute;
 
 	ZoneBasedAnalysis(Zones zones, RunZonebasedAnalysis.ZonebasedAnalysisConfig config, MainModeIdentifier identifier) {
 		this.zones = zones;
 		this.config = config;
 		this.identifier = identifier;
-		zoneStatsMap = ((ZonesImpl) zones).getZones().stream().collect(Collectors.toMap(zone -> zone.getId(), zone -> new ZoneStats()));
+		zoneStatsMap = ((ZonesImpl) zones).getZones().stream().collect(Collectors.toMap(Zone::getId, zone -> new ZoneStats()));
 		scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new TransitScheduleReader(scenario).readFile(config.transitScheduleFile);
 		new MatsimFacilitiesReader(scenario).readFile(config.facilitiesFile);
@@ -62,7 +64,7 @@ public class ZoneBasedAnalysis {
 		prepareSchedule(zones, scenario.getTransitSchedule());
 		modePerRoute = scenario.getTransitSchedule().getTransitLines().values().stream()
 				.flatMap(l -> l.getRoutes().values().stream())
-				.collect(Collectors.toMap(r -> r.getId(), r -> r.getTransportMode()));
+				.collect(Collectors.toMap(Identifiable::getId, TransitRoute::getTransportMode));
 
 		ptModes = new HashSet<>(modePerRoute.values());
 
@@ -121,7 +123,7 @@ public class ZoneBasedAnalysis {
 			for (TransitRoute route : modeRoutes) {
 				int departures = route.getDepartures().size();
 				Set<Id<Zone>> zonesServed = route.getStops().stream()
-						.map(s -> s.getStopFacility())
+						.map(TransitRouteStop::getStopFacility)
 						.map(s -> ((Id<Zone>) s.getAttributes().getAttribute(ZONE_ID)))
 						.filter(Objects::nonNull)
 						.collect(Collectors.toSet());
@@ -160,7 +162,7 @@ public class ZoneBasedAnalysis {
 		Map<String, MutableInt> ptdeBoardings;
 		Map<String, DescriptiveStatistics> travelTimes;
 		Map<String, DescriptiveStatistics> travelDistance;
-		DescriptiveStatistics transfers = new DescriptiveStatistics();
+		final DescriptiveStatistics transfers = new DescriptiveStatistics();
 
 	}
 

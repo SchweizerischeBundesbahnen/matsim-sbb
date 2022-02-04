@@ -1,10 +1,8 @@
 package ch.sbb.matsim.utils;
 
 import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
-import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.algorithms.PersonAlgorithm;
 import org.matsim.core.population.algorithms.TripsToLegsAlgorithm;
 import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.population.io.StreamingPopulationWriter;
@@ -21,17 +19,14 @@ public class RemoveRoutesAndLinksFromPlans {
 		StreamingPopulationWriter spw = new StreamingPopulationWriter();
 		TripsToLegsAlgorithm tripsToLegsAlgorithm = new TripsToLegsAlgorithm(new IntermodalAwareRouterModeIdentifier(ConfigUtils.createConfig()));
 		spw.startStreaming(args[1]);
-		spr.addAlgorithm(new PersonAlgorithm() {
-			@Override
-			public void run(Person person) {
-				Plan plan = person.getSelectedPlan();
-				tripsToLegsAlgorithm.run(plan);
-				TripStructureUtils.getActivities(plan, TripStructureUtils.StageActivityHandling.ExcludeStageActivities).forEach(activity -> {
-					activity.setLinkId(null);
+		spr.addAlgorithm(person -> {
+			Plan plan = person.getSelectedPlan();
+			tripsToLegsAlgorithm.run(plan);
+			TripStructureUtils.getActivities(plan, TripStructureUtils.StageActivityHandling.ExcludeStageActivities).forEach(activity -> {
+				activity.setLinkId(null);
 
-				});
-				spw.run(person);
-			}
+			});
+			spw.run(person);
 		});
 		spr.readFile(args[0]);
 		spw.closeStreaming();

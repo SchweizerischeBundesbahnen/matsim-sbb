@@ -39,6 +39,7 @@ import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.SingleModeNetworksCache;
 import org.matsim.core.router.TripStructureUtils;
@@ -64,23 +65,22 @@ public class AccessEgressRouteCache {
 	private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
 	private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
 	private final Map<String, SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
-	private final Map<String, SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet> raptorIntermodalModeParams;
-	private final TransitSchedule transitSchedule;
 	private final Zones zonesCollection;
 	private final Scenario scenario;
-	private Map<String, Map<Id<Link>, Integer>> accessTimes = new HashMap<>();
-	private Map<String, Map<Id<Link>, Map<Id<Link>, int[]>>> travelTimesDistances = new HashMap<>();
-	private SingleModeNetworksCache singleModeNetworksCache;
+	private final Map<String, Map<Id<Link>, Integer>> accessTimes = new HashMap<>();
+	private final Map<String, Map<Id<Link>, Map<Id<Link>, int[]>>> travelTimesDistances = new HashMap<>();
+	private final SingleModeNetworksCache singleModeNetworksCache;
 
 	@Inject
 	public AccessEgressRouteCache(ZonesCollection allZones, SingleModeNetworksCache singleModeNetworksCache, Config config, Scenario scenario) {
 		LOGGER.info("Access Egress Route cache.");
 		this.scenario = scenario;
-		this.transitSchedule = scenario.getTransitSchedule();
+		TransitSchedule transitSchedule = scenario.getTransitSchedule();
 		this.singleModeNetworksCache = singleModeNetworksCache;
 		SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
 		SwissRailRaptorConfigGroup railRaptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
-		raptorIntermodalModeParams = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().collect(Collectors.toMap(m -> m.getMode(), m -> m, (m, n) -> m));
+		Map<String, IntermodalAccessEgressParameterSet> raptorIntermodalModeParams = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream()
+				.collect(Collectors.toMap(IntermodalAccessEgressParameterSet::getMode, m -> m, (m, n) -> m));
 		this.zonesCollection = allZones.getZones(intermodalConfigGroup.getZonesId());
 		for (SBBIntermodalModeParameterSet paramset : intermodalConfigGroup.getModeParameterSets()) {
 			if (paramset.isRoutedOnNetwork() && !paramset.isSimulatedOnNetwork()) {
@@ -228,7 +228,7 @@ public class AccessEgressRouteCache {
 					TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
 					Set<String> modes = new HashSet<>();
 					modes.add(mode);
-					filteredNetwork = NetworkUtils.createNetwork();
+					filteredNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
 					filter.filter(filteredNetwork, modes);
 					cache.put(mode, filteredNetwork);
 				}
@@ -249,7 +249,7 @@ public class AccessEgressRouteCache {
 		int accessTime = accessTimes.getOrDefault(mode, Collections.emptyMap()).getOrDefault(stopFacilityLinkId, 0);
 		if (value == null) {
 			//we are slightly outside the cached radius
-			List<? extends PlanElement> routeParts = module.calcRoute(stopFacility, actFacility, 3 * 3600, person);
+			List<? extends PlanElement> routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, actFacility, 3 * 3600, person));
 			Leg routedLeg = TripStructureUtils.getLegs(routeParts).stream().filter(leg -> leg.getMode().equals(mode)).findFirst().orElseThrow(RuntimeException::new);
 			int egressTime = getAccessTime(this.intermodalModeParams.get(mode).getAccessTimeZoneId(), scenario.getNetwork().getLinks().get(routedLeg.getRoute().getEndLinkId()).getToNode().getCoord());
 			int distance = (int) routedLeg.getRoute().getDistance();

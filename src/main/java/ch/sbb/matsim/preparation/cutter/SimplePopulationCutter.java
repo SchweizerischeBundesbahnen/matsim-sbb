@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.StreamingPopulationReader;
@@ -65,7 +66,7 @@ public class SimplePopulationCutter {
                     TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities).stream().anyMatch(a -> z.findZone(a.getCoord()) != null);
 
             if (keep) {
-                facilitiesToKeep.addAll(TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities).stream().map(activity -> activity.getFacilityId()).filter(Objects::nonNull)
+                facilitiesToKeep.addAll(TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities).stream().map(Activity::getFacilityId).filter(Objects::nonNull)
                         .collect(Collectors.toSet()));
                 if (deleteAttributes) {
                     person.getAttributes().getAsMap().keySet().forEach(p -> person.getAttributes().removeAttribute(p));

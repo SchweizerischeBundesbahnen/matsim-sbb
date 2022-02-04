@@ -24,6 +24,7 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.LinkWrapperFacility;
 import org.matsim.core.router.NetworkRoutingModule;
@@ -39,19 +40,19 @@ import org.matsim.facilities.Facility;
 
 public class RunTravelTimeValidation {
 
-	private static final Logger log = Logger.getLogger(RunTravelTimeValidation.class);
-	private final double startTime;
-	private Network network;
-	private NetworkRoutingModule router;
+    private static final Logger log = Logger.getLogger(RunTravelTimeValidation.class);
+    private final double startTime;
+    private final Network network;
+    private final NetworkRoutingModule router;
 
-	//use this method for free flow travel time evaluation
-	public RunTravelTimeValidation(Network network, double startTime) {
-		this.network = network;
-		this.startTime = startTime;
+    //use this method for free flow travel time evaluation
+    public RunTravelTimeValidation(Network network, double startTime) {
+        this.network = network;
+        this.startTime = startTime;
 
-		DijkstraFactory factory = new DijkstraFactory();
-		TravelTime tt = new FreeSpeedTravelTime();
-		TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
+        DijkstraFactory factory = new DijkstraFactory();
+        TravelTime tt = new FreeSpeedTravelTime();
+        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
 		LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
 		this.router = new NetworkRoutingModule(
@@ -169,15 +170,14 @@ public class RunTravelTimeValidation {
 
 	public Leg fetch(float fromX, float fromY, float toX, float toY) {
 
-		Activity fromAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(fromX, fromY)));
-		Facility fromFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, fromAct.getCoord()));
+        Activity fromAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(fromX, fromY)));
+        Facility fromFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, fromAct.getCoord()));
 
-		Activity toAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(toX, toY)));
-		Facility toFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, toAct.getCoord()));
+        Activity toAct = PopulationUtils.createActivityFromCoord("h", this.transformCoord(new Coord(toX, toY)));
+        Facility toFacility = new LinkWrapperFacility(NetworkUtils.getNearestLink(this.network, toAct.getCoord()));
 
-		List<? extends PlanElement> pes = this.router.calcRoute(fromFacility, toFacility,
-				this.startTime * 60 * 60, null);
-		Leg leg = (Leg) pes.get(0);
-		return leg;
-	}
+        List<? extends PlanElement> pes = this.router.calcRoute(DefaultRoutingRequest.withoutAttributes(fromFacility, toFacility,
+                this.startTime * 60 * 60, null));
+        return (Leg) pes.get(0);
+    }
 }

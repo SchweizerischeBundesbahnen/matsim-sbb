@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.router.TripStructureUtils;
@@ -50,7 +51,7 @@ public class PtLinkVolumeAnalyzer {
         this.ptlinks = network.getLinks().values()
                 .stream()
                 .filter(l -> l.getAllowedModes().stream().anyMatch(m -> PTSubModes.submodes.contains(m) || m.equals(SBBModes.PT)))
-                .map(l -> l.getId())
+                .map(Identifiable::getId)
                 .collect(Collectors.toSet());
 
     }
@@ -64,7 +65,7 @@ public class PtLinkVolumeAnalyzer {
                 .map(l -> (TransitPassengerRoute) l.getRoute())
                 .flatMap(r -> railTripsAnalyzer.getPtLinkIdsTraveledOn(r).stream())
                 .forEach(linkId -> ptUsage.get(linkId).increment());
-        return ptUsage.entrySet().stream().collect(Collectors.toMap(k -> k.getKey(), k -> k.getValue().toDouble()));
+        return ptUsage.entrySet().stream().collect(Collectors.toMap(Entry::getKey, k -> k.getValue().toDouble()));
 
     }
 

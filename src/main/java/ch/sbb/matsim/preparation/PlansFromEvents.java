@@ -67,13 +67,13 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 		LinkEnterEventHandler {
 
 	private final static Logger log = Logger.getLogger(PlansFromEvents.class);
-	private HashSet<Id> transitDrivers = new HashSet<>();
-	private Population population;
-	private Network network;
-	private Map<Id<Vehicle>, List<Person>> personsPerVehicleIds = new HashMap<>();
-	private Map<Person, LinkedList<Id<Link>>> actLinkIdsPerPerson = new HashMap<>();
-	private Map<Person, Double> actDistancePerPerson = new HashMap<>();
-	private List<String> toIgnore = Arrays.asList("vehicle_interaction", "vehicle_parking", "non_network_walk");
+	private final HashSet<Id> transitDrivers = new HashSet<>();
+	private final Population population;
+	private final Network network;
+	private final Map<Id<Vehicle>, List<Person>> personsPerVehicleIds = new HashMap<>();
+	private final Map<Person, LinkedList<Id<Link>>> actLinkIdsPerPerson = new HashMap<>();
+	private final Map<Person, Double> actDistancePerPerson = new HashMap<>();
+	private final List<String> toIgnore = Arrays.asList("vehicle_interaction", "vehicle_parking", "non_network_walk");
 
 	public PlansFromEvents(Network network) {
 		this.population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
@@ -225,11 +225,7 @@ public class PlansFromEvents implements PersonArrivalEventHandler, PersonDepartu
 
 	@Override
 	public void handleEvent(PersonEntersVehicleEvent event) {
-		List<Person> personsInVehicle = personsPerVehicleIds.get(event.getVehicleId());
-		if (personsInVehicle == null) {
-			personsInVehicle = new ArrayList<>();
-			personsPerVehicleIds.put(event.getVehicleId(), personsInVehicle);
-		}
+		List<Person> personsInVehicle = personsPerVehicleIds.computeIfAbsent(event.getVehicleId(), k -> new ArrayList<>());
 		Person person = createPersonIfNecessary(event.getPersonId());
 		if (person != null) {
 			personsInVehicle.add(person);

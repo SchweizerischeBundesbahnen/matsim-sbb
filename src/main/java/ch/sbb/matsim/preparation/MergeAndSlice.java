@@ -17,39 +17,30 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.preparation.PopulationSampler;
+package ch.sbb.matsim.preparation;
 
-import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.io.PopulationReader;
-import org.matsim.core.population.io.PopulationWriter;
-import org.matsim.core.router.TripStructureUtils;
-import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
-import org.matsim.core.scenario.ScenarioUtils;
+import java.io.IOException;
+import java.util.Set;
 
-public class FixExogeneousPlans {
+public class MergeAndSlice {
 
     public static void main(String[] args) {
-        String file = args[0];
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new PopulationReader(scenario).readFile(file);
-        for (Person p : scenario.getPopulation().getPersons().values()) {
-            for (Plan plan : p.getPlans()) {
-                for (Activity activity : TripStructureUtils.getActivities(plan, StageActivityHandling.StagesAsNormalActivities)) {
-                    Coord coord = activity.getCoord();
-                    if (coord != null) {
-                        activity.setCoord(new Coord(coord.getX() + 650, coord.getY() + 4450));
+        Set<String> folders = Set.of("C:\\devsbb\\fr2040");
+        Set<Integer> toCut = Set.of(10, 4, 2);
+
+        for (var s : folders) {
+            //SimplePlansMerger.main(new String[]{s});
+            toCut.parallelStream().forEach(d ->
+                    {
+                        try {
+                            PopulationSlicer.
+                                    main(new String[]{s + "\\plans.xml.gz", "-", Integer.toString(d)});
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
-            }
+            );
+
         }
-        new PopulationWriter(scenario.getPopulation()).write(file);
     }
-
 }
-
-

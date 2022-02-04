@@ -34,10 +34,12 @@ import org.matsim.vehicles.Vehicle;
  */
 public class CarLinkAnalysisTest {
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test
     public void testLinkVolumeTracking() throws IOException {
         Fixture f = new Fixture();
-        IterationLinkAnalyzer iterationLinkAnalyzer = new IterationLinkAnalyzer(f.events);
+        IterationLinkAnalyzer iterationLinkAnalyzer = new IterationLinkAnalyzer();
+        f.events.addHandler(iterationLinkAnalyzer);
         CarLinkAnalysis carLinkAnalysis = new CarLinkAnalysis(ConfigUtils.addOrGetModule(f.config, PostProcessingConfigGroup.class), f.scenario.getNetwork(), iterationLinkAnalyzer);
 
         Id<Person> personId = Id.create(1, Person.class);
@@ -85,8 +87,8 @@ public class CarLinkAnalysisTest {
      */
     private static class Fixture {
 
-        Config config;
-        Scenario scenario;
+        final Config config;
+        final Scenario scenario;
         EventsManager events;
 
         public Fixture() {

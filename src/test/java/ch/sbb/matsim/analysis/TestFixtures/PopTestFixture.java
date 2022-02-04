@@ -12,18 +12,18 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 public class PopTestFixture {
 
-	public Scenario scenario;
-	public Config config;
+    public final Scenario scenario;
+    public final Config config;
 
-	public PopTestFixture(int size, boolean addAttributes) {
+    public PopTestFixture(int size, boolean addAttributes) {
 
-		this.config = ConfigUtils.createConfig(new PostProcessingConfigGroup());
+        this.config = ConfigUtils.createConfig(new PostProcessingConfigGroup());
 
-		this.scenario = ScenarioUtils.createScenario(config);
+        this.scenario = ScenarioUtils.createScenario(config);
 
-		Population population = this.scenario.getPopulation();
+        Population population = this.scenario.getPopulation();
 
-		PopulationFactory pf = population.getFactory();
+        PopulationFactory pf = population.getFactory();
 		int i = 0;
 		while (population.getPersons().size() < size) {
 			i += 1;

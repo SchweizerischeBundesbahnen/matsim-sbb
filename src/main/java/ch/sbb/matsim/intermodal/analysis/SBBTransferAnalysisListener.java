@@ -2,6 +2,7 @@ package ch.sbb.matsim.intermodal.analysis;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.csv.CSVWriter;
@@ -28,6 +29,7 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Plan;
@@ -47,7 +49,6 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 public class SBBTransferAnalysisListener implements IterationEndsListener {
 
-    private final Set<String> monitoredAccessEgressModes;
     private final Set<String> monitoredPtModes;
     private final boolean writePng;
     private final HashSet<String> monitoredModes;
@@ -67,10 +68,10 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
     @Inject
     public SBBTransferAnalysisListener(Scenario scenario) {
         Config config = scenario.getConfig();
-        monitoredAccessEgressModes = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class)
+        Set<String> monitoredAccessEgressModes = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class)
                 .getIntermodalAccessEgressParameterSets()
                 .stream()
-                .map(c -> c.getMode())
+                .map(IntermodalAccessEgressParameterSet::getMode)
                 .collect(Collectors.toSet());
         monitoredAccessEgressModes.remove(SBBModes.ACCESS_EGRESS_WALK);
         monitoredPtModes = config.transit().getTransitModes();
@@ -79,7 +80,7 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
                 .stream()
                 .flatMap(l -> l.getRoutes().values().stream())
                 .filter(transitRoute -> transitRoute.getTransportMode().equals(PTSubModes.RAIL))
-                .map(transitRoute -> transitRoute.getId())
+                .map(Identifiable::getId)
                 .collect(Collectors.toSet());
         monitoredModes = new HashSet<>(monitoredAccessEgressModes);
         monitoredModes.addAll(monitoredPtModes);

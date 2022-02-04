@@ -49,18 +49,13 @@ import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 
 public class GenerateNetworkChangeEvents {
 
-    private final int ENDTIME = 32 * 3600;
-    private final int TIMESTEP = 15 * 60;
-
-    private final double MINIMUMFREESPEED = 3;
     private final String networkFile;
     private final String eventsFile;
     private final String outputChangeEventsFile;
     private final String blacklistZones;
     private final String zonesFile;
     private Scenario sc;
-    private TravelTimeCalculator tcc;
-    private List<NetworkChangeEvent> networkChangeEvents;
+    private final List<NetworkChangeEvent> networkChangeEvents;
     private Set<Id<Link>> blacklistlinks;
 
     public GenerateNetworkChangeEvents(String networkFile, String eventsFile, String outputChangeEventsFile, String blacklistZones, String zonesFile) {
@@ -86,7 +81,7 @@ public class GenerateNetworkChangeEvents {
 
     private void run() {
         prepareScen();
-        tcc = readEvents();
+        TravelTimeCalculator tcc = readEvents();
         createNetworkChangeEvents(sc.getNetwork(), tcc);
         new NetworkChangeEventsWriter().write(outputChangeEventsFile, networkChangeEvents);
     }
@@ -103,6 +98,8 @@ public class GenerateNetworkChangeEvents {
             double length = l.getLength();
             double previousTravelTime = l.getLength() / l.getFreespeed();
 
+            int TIMESTEP = 15 * 60;
+            int ENDTIME = 32 * 3600;
             for (double time = 0; time < ENDTIME; time = time + TIMESTEP) {
 
                 double newTravelTime = tcc2.getLinkTravelTimes().getLinkTravelTime(l, time, null, null);
@@ -110,6 +107,7 @@ public class GenerateNetworkChangeEvents {
                     NetworkChangeEvent nce = new NetworkChangeEvent(time);
                     nce.addLink(l);
                     double newFreespeed = length / newTravelTime;
+                    double MINIMUMFREESPEED = 3;
                     if (newFreespeed < MINIMUMFREESPEED) {
                         newFreespeed = MINIMUMFREESPEED;
                     }
@@ -132,9 +130,7 @@ public class GenerateNetworkChangeEvents {
             this.blacklistlinks = sc.getNetwork().getLinks().values().parallelStream().filter(l -> {
                 var z = zones.findZone(l.getFromNode().getCoord());
                 if (z != null) {
-                    if (whitelistZones.contains(z.getId())) {
-                        return true;
-                    }
+                    return whitelistZones.contains(z.getId());
                 }
                 return false;
             }).map(Link::getId).collect(Collectors.toSet());

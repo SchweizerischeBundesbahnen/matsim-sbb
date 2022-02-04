@@ -26,7 +26,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.testcases.utils.EventsCollector;
 import org.matsim.testcases.utils.EventsLogger;
-import org.matsim.vehicles.Vehicle;
 
 /**
  * @author mrieser
@@ -45,86 +44,85 @@ public class RideParkingCostTrackerTest {
 		f.events.addHandler(collector);
 
 		Id<Person> personId = Id.create(1, Person.class);
-		Id<Vehicle> vehicleId = Id.create(2, Vehicle.class);
 		Id<Link> linkHome = Id.create("L", Link.class);
-		Id<Link> linkWork = Id.create("B", Link.class);
-		Id<Link> linkShop = Id.create("T", Link.class);
+        Id<Link> linkWork = Id.create("B", Link.class);
+        Id<Link> linkShop = Id.create("T", Link.class);
 
-		double hourlyParkingCostWork = 20; // this is the value of at_car in zone Bern
-		double hourlyParkingCostShop = 3; // this is the value of at_car in zone Thun
+        double hourlyParkingCostWork = 20; // this is the value of at_car in zone Bern
+        double hourlyParkingCostShop = 3; // this is the value of at_car in zone Thun
 
-		f.events.processEvent(new PersonArrivalEvent(7.25 * 3600, personId, linkWork, "ride"));
-		f.events.processEvent(new ActivityStartEvent(7.25 * 3600, personId, linkWork, null, "work", null));
-		Assert.assertEquals(2, collector.getEvents().size());
+        f.events.processEvent(new PersonArrivalEvent(7.25 * 3600, personId, linkWork, "ride"));
+        f.events.processEvent(new ActivityStartEvent(7.25 * 3600, personId, linkWork, null, "work", null));
+        Assert.assertEquals(2, collector.getEvents().size());
 
-		f.events.processEvent(new ActivityEndEvent(12.00 * 3600, personId, linkWork, null, "work"));
-		Assert.assertEquals(4, collector.getEvents().size());
+        f.events.processEvent(new ActivityEndEvent(12.00 * 3600, personId, linkWork, null, "work", new Coord(0, 0)));
+        Assert.assertEquals(4, collector.getEvents().size());
 
-		Assert.assertEquals(ParkingCostEvent.class, collector.getEvents().get(2).getClass());
-		ParkingCostEvent parkingEvent1 = (ParkingCostEvent) collector.getEvents().get(2);
-		Assert.assertEquals(personId, parkingEvent1.getPersonId());
-		Assert.assertNull(parkingEvent1.getVehicleId());
-		Assert.assertEquals(12.00 * 3600, parkingEvent1.getTime(), 1e-8);
-		Assert.assertEquals((12 - 7.25) * hourlyParkingCostWork, parkingEvent1.getMonetaryAmount(), 1e-8);
+        Assert.assertEquals(ParkingCostEvent.class, collector.getEvents().get(2).getClass());
+        ParkingCostEvent parkingEvent1 = (ParkingCostEvent) collector.getEvents().get(2);
+        Assert.assertEquals(personId, parkingEvent1.getPersonId());
+        Assert.assertNull(parkingEvent1.getVehicleId());
+        Assert.assertEquals(12.00 * 3600, parkingEvent1.getTime(), 1e-8);
+        Assert.assertEquals((12 - 7.25) * hourlyParkingCostWork, parkingEvent1.getMonetaryAmount(), 1e-8);
 
-		f.events.processEvent(new PersonArrivalEvent(12.25 * 3600, personId, linkShop, "ride"));
-		f.events.processEvent(new ActivityStartEvent(12.25 * 3600, personId, linkShop, null, "shop", null));
-		Assert.assertEquals(6, collector.getEvents().size());
+        f.events.processEvent(new PersonArrivalEvent(12.25 * 3600, personId, linkShop, "ride"));
+        f.events.processEvent(new ActivityStartEvent(12.25 * 3600, personId, linkShop, null, "shop", null));
+        Assert.assertEquals(6, collector.getEvents().size());
 
-		f.events.processEvent(new ActivityEndEvent(13.00 * 3600, personId, linkShop, null, "shop"));
-		Assert.assertEquals(8, collector.getEvents().size());
+        f.events.processEvent(new ActivityEndEvent(13.00 * 3600, personId, linkShop, null, "shop", new Coord(0, 0)));
+        Assert.assertEquals(8, collector.getEvents().size());
 
-		Assert.assertEquals(ParkingCostEvent.class, collector.getEvents().get(6).getClass());
-		ParkingCostEvent parkingEvent2 = (ParkingCostEvent) collector.getEvents().get(6);
-		Assert.assertEquals(personId, parkingEvent2.getPersonId());
-		Assert.assertNull(parkingEvent2.getVehicleId());
-		Assert.assertEquals(13.00 * 3600, parkingEvent2.getTime(), 1e-8);
-		Assert.assertEquals((13 - 12.25) * hourlyParkingCostShop, parkingEvent2.getMonetaryAmount(), 1e-8);
+        Assert.assertEquals(ParkingCostEvent.class, collector.getEvents().get(6).getClass());
+        ParkingCostEvent parkingEvent2 = (ParkingCostEvent) collector.getEvents().get(6);
+        Assert.assertEquals(personId, parkingEvent2.getPersonId());
+        Assert.assertNull(parkingEvent2.getVehicleId());
+        Assert.assertEquals(13.00 * 3600, parkingEvent2.getTime(), 1e-8);
+        Assert.assertEquals((13 - 12.25) * hourlyParkingCostShop, parkingEvent2.getMonetaryAmount(), 1e-8);
 
-		f.events.processEvent(new PersonArrivalEvent(13.25 * 3600, personId, linkHome, "ride"));
-		f.events.processEvent(new ActivityStartEvent(13.25 * 3600, personId, linkHome, null, "home", null));
-		Assert.assertEquals(10, collector.getEvents().size());
+        f.events.processEvent(new PersonArrivalEvent(13.25 * 3600, personId, linkHome, "ride"));
+        f.events.processEvent(new ActivityStartEvent(13.25 * 3600, personId, linkHome, null, "home", null));
+        Assert.assertEquals(10, collector.getEvents().size());
 
-		f.events.processEvent(new ActivityEndEvent(15.00 * 3600, personId, linkShop, null, "home"));
-		Assert.assertEquals(11, collector.getEvents().size()); // there should be no parking cost event at home
+        f.events.processEvent(new ActivityEndEvent(15.00 * 3600, personId, linkShop, null, "home", new Coord(0, 0)));
+        Assert.assertEquals(11, collector.getEvents().size()); // there should be no parking cost event at home
 
-		f.events.processEvent(new PersonArrivalEvent(15.25 * 3600, personId, linkWork, "ride"));
-		f.events.processEvent(new ActivityStartEvent(13.25 * 3600, personId, linkWork, null, "shop", null));
-		Assert.assertEquals(13, collector.getEvents().size());
+        f.events.processEvent(new PersonArrivalEvent(15.25 * 3600, personId, linkWork, "ride"));
+        f.events.processEvent(new ActivityStartEvent(13.25 * 3600, personId, linkWork, null, "shop", null));
+        Assert.assertEquals(13, collector.getEvents().size());
 
-		f.events.processEvent(new ActivityEndEvent(18.00 * 3600, personId, linkWork, null, "shop"));
-		Assert.assertEquals(15, collector.getEvents().size());
+        f.events.processEvent(new ActivityEndEvent(18.00 * 3600, personId, linkWork, null, "shop", new Coord(0, 0)));
+        Assert.assertEquals(15, collector.getEvents().size());
 
-		Assert.assertEquals(ParkingCostEvent.class, collector.getEvents().get(13).getClass());
-		ParkingCostEvent parkingEvent3 = (ParkingCostEvent) collector.getEvents().get(13);
-		Assert.assertEquals(personId, parkingEvent3.getPersonId());
-		Assert.assertNull(parkingEvent3.getVehicleId());
-		Assert.assertEquals(18.00 * 3600, parkingEvent3.getTime(), 1e-8);
-		Assert.assertEquals((18 - 15.25) * hourlyParkingCostWork, parkingEvent3.getMonetaryAmount(), 1e-8);
+        Assert.assertEquals(ParkingCostEvent.class, collector.getEvents().get(13).getClass());
+        ParkingCostEvent parkingEvent3 = (ParkingCostEvent) collector.getEvents().get(13);
+        Assert.assertEquals(personId, parkingEvent3.getPersonId());
+        Assert.assertNull(parkingEvent3.getVehicleId());
+        Assert.assertEquals(18.00 * 3600, parkingEvent3.getTime(), 1e-8);
+        Assert.assertEquals((18 - 15.25) * hourlyParkingCostWork, parkingEvent3.getMonetaryAmount(), 1e-8);
 
-		f.events.processEvent(new PersonArrivalEvent(18.50 * 3600, personId, linkHome, "ride"));
+        f.events.processEvent(new PersonArrivalEvent(18.50 * 3600, personId, linkHome, "ride"));
 		f.events.processEvent(new ActivityStartEvent(18.00 * 3600, personId, linkHome, null, "shop", null));
 		Assert.assertEquals(17, collector.getEvents().size());
 	}
 
 	/**
-	 * Creates a simple test scenario matching the accesstime_zone.SHP test file.
-	 */
-	private static class Fixture {
+     * Creates a simple test scenario matching the accesstime_zone.SHP test file.
+     */
+    private static class Fixture {
 
-		Config config;
-		Scenario scenario;
-		ZonesCollection zones = new ZonesCollection();
-		EventsManager events;
+        final Config config;
+        final Scenario scenario;
+        final ZonesCollection zones = new ZonesCollection();
+        EventsManager events;
 
-		public Fixture() {
-			this.config = ConfigUtils.createConfig();
-			prepareConfig();
-			this.scenario = ScenarioUtils.createScenario(this.config);
-			createNetwork();
-			loadZones();
-			prepareEvents();
-		}
+        public Fixture() {
+            this.config = ConfigUtils.createConfig();
+            prepareConfig();
+            this.scenario = ScenarioUtils.createScenario(this.config);
+            createNetwork();
+            loadZones();
+            prepareEvents();
+        }
 
 		private void prepareConfig() {
 			ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);

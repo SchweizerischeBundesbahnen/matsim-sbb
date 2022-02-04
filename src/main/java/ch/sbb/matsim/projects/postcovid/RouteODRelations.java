@@ -52,6 +52,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
+import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.pt.routes.TransitPassengerRoute;
@@ -95,7 +96,7 @@ public class RouteODRelations {
             if (endFacility.getCoord() == null) {
                 System.out.println(relation.toId + " stop not found");
             }
-            var route = raptor.calcRoute(startFacility, endFacility, 8 * 3600, null);
+            var route = raptor.calcRoute(DefaultRoutingRequest.withoutAttributes(startFacility, endFacility, 8 * 3600, null));
             String path_id = Integer.toString(i.incrementAndGet());
             AtomicInteger leg_id = new AtomicInteger(1);
             List<PutSurveyEntry> putSurveyEntries = new ArrayList<>();
@@ -119,11 +120,10 @@ public class RouteODRelations {
                 String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
 
                 String teilweg_kennung = leg_id.getAndIncrement() > 1 ? "N" : "E";
-                String einhstnr = from_stop;
                 String einhstabfahrtstag = getDayIndex(r.getBoardingTime().seconds());
                 String einhstabfahrtszeit = getTime(r.getBoardingTime().seconds());
                 putSurveyEntries.add(new PutSurveyEntry(path_id, String.valueOf(leg_id), from_stop, to_stop, vsyscode, linname, linroutename, richtungscode,
-                        fzprofilname, teilweg_kennung, einhstnr, einhstabfahrtstag, einhstabfahrtszeit, relation.demand, "regular", "", ""));
+                        fzprofilname, teilweg_kennung, from_stop, einhstabfahrtstag, einhstabfahrtszeit, relation.demand, "regular", "", ""));
             }
             if (!putSurveyEntries.isEmpty()) {
                 entries.add(putSurveyEntries);
@@ -135,9 +135,9 @@ public class RouteODRelations {
 
     static class DemandRelation {
 
-        Id<TransitStopFacility> fromId;
-        Id<TransitStopFacility> toId;
-        double demand;
+        final Id<TransitStopFacility> fromId;
+        final Id<TransitStopFacility> toId;
+        final double demand;
 
         public DemandRelation(Id<TransitStopFacility> fromId, Id<TransitStopFacility> toId, double demand) {
             this.fromId = fromId;

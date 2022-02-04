@@ -19,29 +19,29 @@ import org.matsim.core.scoring.functions.ScoringParameters;
 
 public class ScoringFixture {
 
-	private final static String GROUP1 = "Abobesitz";
-	private final static String ATTRIBUTEGROUP1 = "season_ticket";
-	private final static String VALUEGROUP1 = "Generalabo";
-	private final static String GROUP2 = "Raumtypen";
-	private final static String ATTRIBUTEGROUP2 = "raumtyp";
-	private final static String VALUESGROUP2 = "2,5,6";
-	private final static int VALUEGROUP2 = 2;
-	private final static String GROUP3 = "Alter";
-	private final static String ATTRIBUTEGROUP3 = "alter";
-	private final static String VALUEGROUP3 = "25";
-	Config config;
-	SBBBehaviorGroupsConfigGroup sbbConfig;
-	Scenario scenario;
+    private final static String GROUP1 = "Abobesitz";
+    private final static String ATTRIBUTEGROUP1 = "season_ticket";
+    private final static String VALUEGROUP1 = "Generalabo";
+    private final static String GROUP2 = "Raumtypen";
+    private final static String ATTRIBUTEGROUP2 = "raumtyp";
+    private final static String VALUESGROUP2 = "2,5,6";
+    private final static int VALUEGROUP2 = 2;
+    private final static String GROUP3 = "Alter";
+    private final static String ATTRIBUTEGROUP3 = "alter";
+    private final static String VALUEGROUP3 = "25";
+    final Config config;
+    final SBBBehaviorGroupsConfigGroup sbbConfig;
+    final Scenario scenario;
 
-	ScoringFixture() {
-		this.config = ConfigUtils.createConfig();
-		this.config.planCalcScore().getModes().get(SBBModes.PT).setConstant(-1.0);
-		this.config.planCalcScore().getModes().get(SBBModes.PT).setMarginalUtilityOfTraveling(1.14);
-		this.config.planCalcScore().getModes().get(SBBModes.PT).setMarginalUtilityOfDistance(0.0);
-		this.config.planCalcScore().getModes().get(SBBModes.PT).setMonetaryDistanceRate(-0.000300);
-		this.scenario = ScenarioUtils.createScenario(this.config);
-		this.sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
-		addStageInteractionScoring(this.config);
+    ScoringFixture() {
+        this.config = ConfigUtils.createConfig();
+        this.config.planCalcScore().getModes().get(SBBModes.PT).setConstant(-1.0);
+        this.config.planCalcScore().getModes().get(SBBModes.PT).setMarginalUtilityOfTraveling(1.14);
+        this.config.planCalcScore().getModes().get(SBBModes.PT).setMarginalUtilityOfDistance(0.0);
+        this.config.planCalcScore().getModes().get(SBBModes.PT).setMonetaryDistanceRate(-0.000300);
+        this.scenario = ScenarioUtils.createScenario(this.config);
+        this.sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
+        addStageInteractionScoring(this.config);
 	}
 
 	static void addStageInteractionScoring(Config config) {
@@ -50,8 +50,7 @@ public class ScoringFixture {
 
 	ScoringParameters buildDefaultScoringParams(Id<Person> personId) {
 		SBBCharyparNagelScoringParametersForPerson psf = new SBBCharyparNagelScoringParametersForPerson(this.scenario);
-		ScoringParameters params = psf.getScoringParameters(this.scenario.getPopulation().getPersons().get(personId));
-		return params;
+        return psf.getScoringParameters(this.scenario.getPopulation().getPersons().get(personId));
 	}
 
 	void addCustomScoringParams() {

@@ -35,6 +35,7 @@ import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.HasPlansAndId;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
@@ -87,7 +88,8 @@ public class RailDemandReporting {
         new PopulationReader(scenario).readFile(experiencedPlansFile);
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
         RailDemandReporting railDemandReporting = new RailDemandReporting(railTripsAnalyzer, scenario.getTransitSchedule());
-        railDemandReporting.calcAndWriteDistanceReporting(outputFile, scenario.getPopulation().getPersons().values().stream().map(p -> p.getSelectedPlan()).collect(Collectors.toSet()), scaleFactor);
+        railDemandReporting
+                .calcAndWriteDistanceReporting(outputFile, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(Collectors.toSet()), scaleFactor);
     }
 
     private void reset() {
@@ -210,8 +212,7 @@ public class RailDemandReporting {
     }
 
     private void aggregateFQValues(Collection<Plan> plans) {
-        plans
-                .stream()
+            plans.stream()
                 .flatMap(plan -> TripStructureUtils.getTrips(plan).stream())
                 .forEach(trip -> {
                     double tripFQDistance = railTripsAnalyzer.getFQDistance(trip);

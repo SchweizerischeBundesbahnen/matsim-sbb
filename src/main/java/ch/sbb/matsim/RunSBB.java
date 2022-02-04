@@ -5,16 +5,18 @@
 package ch.sbb.matsim;
 
 import ch.sbb.matsim.analysis.SBBDefaultAnalysisListener;
-import ch.sbb.matsim.analysis.SBBPostProcessingOutputHandler;
+import ch.sbb.matsim.analysis.SBBEventAnalysis;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.ActivityWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.SBBTripsExtension;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
@@ -86,10 +88,7 @@ import org.matsim.core.utils.misc.OptionalTime;
  */
 public class RunSBB {
 
-	public static final ConfigGroup[] sbbDefaultConfigGroups = {new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
-			new SBBBehaviorGroupsConfigGroup(), new SwissRailRaptorConfigGroup(),
-			new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
-			new SBBNetworkRoutingConfigGroup(), new SimpleAnnealerConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup()};
+
 	private static final Logger log = Logger.getLogger(RunSBB.class);
 
 	public static void main(String[] args) {
@@ -150,7 +149,7 @@ public class RunSBB {
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
-				addControlerListenerBinding().to(SBBPostProcessingOutputHandler.class);
+				addControlerListenerBinding().to(SBBEventAnalysis.class);
 				addControlerListenerBinding().to(SBBDefaultAnalysisListener.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
@@ -159,6 +158,8 @@ public class RunSBB {
 				bind(RailDemandReporting.class);
 				bind(PtLinkVolumeAnalyzer.class);
 				bind(PutSurveyWriter.class);
+				bind(TripsAndDistanceStats.class);
+				bind(ActivityWriter.class).asEagerSingleton();
 				bind(IterationLinkAnalyzer.class).asEagerSingleton();
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
 				install(new SBBTransitModule());
@@ -175,10 +176,6 @@ public class RunSBB {
 					addEventHandlerBinding().to(RideParkingCostTracker.class);
 				}
 
-				SimpleAnnealerConfigGroup annealerConfig = ConfigUtils.addOrGetModule(config, SimpleAnnealerConfigGroup.class);
-				if (annealerConfig.isActivateAnnealingModule()) {
-					addControlerListenerBinding().to(SimpleAnnealer.class);
-				}
 				ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
 				if (convergenceStatsConfig.isActivateConvergenceStats()) {
 					ConvergenceStats convergenceStats = new ConvergenceStats(this.getConfig());
@@ -209,7 +206,7 @@ public class RunSBB {
 	}
 
 	public static Config buildConfig(String filepath) {
-		Config config = ConfigUtils.loadConfig(filepath, sbbDefaultConfigGroups);
+		Config config = ConfigUtils.loadConfig(filepath, getSbbDefaultConfigGroups());
 		adjustMobiConfig(config);
 		config.checkConsistency();
 		return config;
@@ -217,9 +214,9 @@ public class RunSBB {
 
 	public static void adjustMobiConfig(Config config) {
 		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
-			// MATSim defines ride by default as teleported, which conflicts with the network mode
-			config.plansCalcRoute().removeModeRoutingParams(SBBModes.RIDE);
-		}
+            // MATSim defines ride by default as teleported, which conflicts with the network mode
+            config.plansCalcRoute().removeTeleportedModeParams(SBBModes.RIDE);
+        }
 		ActivityParamsBuilder.buildActivityParams(config);
 		SamplesizeFactors.setFlowAndStorageCapacities(config);
 	}
@@ -248,5 +245,12 @@ public class RunSBB {
 							.map(e -> e.isDefined() ? Double.toString(e.seconds()) : Variables.NO_INIT_END_TIME)
 							.collect(Collectors.joining("_")));
 		}
+	}
+
+	public static ConfigGroup[] getSbbDefaultConfigGroups() {
+		return new ConfigGroup[]{new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
+				new SBBBehaviorGroupsConfigGroup(), new SwissRailRaptorConfigGroup(),
+				new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
+				new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup()};
 	}
 }

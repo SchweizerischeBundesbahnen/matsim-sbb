@@ -41,7 +41,7 @@ public class SimplePlansMerger {
         String folder = args[0];
 
         File f = new File(folder);
-        List<String> filestomerge = Arrays.stream(f.listFiles((file, s) -> s.endsWith(".xml"))).map(file -> file.getAbsolutePath()).collect(Collectors.toList());
+        List<String> filestomerge = Arrays.stream(f.listFiles((file, s) -> s.contains(".xml"))).map(File::getAbsolutePath).collect(Collectors.toList());
 
         String outputfile = folder + "/plans.xml.gz";
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());

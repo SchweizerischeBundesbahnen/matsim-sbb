@@ -65,31 +65,31 @@ public class TransferScoringTest {
 		double score1;
 		double score2;
 		{
-			Fixture f1 = new Fixture(this.helper.getOutputDirectory() + "/run1/");
-			f1.setLineSwitchConfig(-3.0);
+            Fixture f1 = new Fixture(this.helper.getOutputDirectory() + "/run1/");
+            f1.setLineSwitchConfig();
 
-			f1.config.controler().setLastIteration(0);
+            f1.config.controler().setLastIteration(0);
 
-			Controler controler = new Controler(f1.scenario);
-			controler.run();
+            Controler controler = new Controler(f1.scenario);
+            controler.run();
 
-			Person p1 = f1.scenario.getPopulation().getPersons().get(Id.create(1, Person.class));
-			Plan plan1 = p1.getSelectedPlan();
-			score1 = plan1.getScore();
-		}
-		{
-			Fixture f2 = new Fixture(this.helper.getOutputDirectory() + "/run2/");
-			f2.setSBBTransferUtility(-1.0, -2.0, -12.0, -2.0);
+            Person p1 = f1.scenario.getPopulation().getPersons().get(Id.create(1, Person.class));
+            Plan plan1 = p1.getSelectedPlan();
+            score1 = plan1.getScore();
+        }
+        {
+            Fixture f2 = new Fixture(this.helper.getOutputDirectory() + "/run2/");
+            f2.setSBBTransferUtility();
 
-			f2.config.controler().setLastIteration(0);
+            f2.config.controler().setLastIteration(0);
 
-			Controler controler = new Controler(f2.scenario);
-			controler.setScoringFunctionFactory(new SBBScoringFunctionFactory(f2.scenario));
-			controler.run();
+            Controler controler = new Controler(f2.scenario);
+            controler.setScoringFunctionFactory(new SBBScoringFunctionFactory(f2.scenario));
+            controler.run();
 
-			Person p1 = f2.scenario.getPopulation().getPersons().get(Id.create(1, Person.class));
-			Plan plan1 = p1.getSelectedPlan();
-			score2 = plan1.getScore();
+            Person p1 = f2.scenario.getPopulation().getPersons().get(Id.create(1, Person.class));
+            Plan plan1 = p1.getSelectedPlan();
+            score2 = plan1.getScore();
 		}
 
 		log.info("score with default scoring: " + score1);
@@ -103,89 +103,89 @@ public class TransferScoringTest {
 		Assert.assertEquals(expectedScoreDiff, actualScoreDiff, 1e-7);
 	}
 
-	private static class Fixture {
+    private static class Fixture {
 
-		Config config;
-		Scenario scenario;
+        final Config config;
+        final Scenario scenario;
 
-		Fixture(String outputDirectory) {
-			this.config = ConfigUtils.createConfig();
-			prepareConfig(outputDirectory);
-			this.scenario = ScenarioUtils.createScenario(this.config);
-			createNetwork();
-			createTransitSchedule();
-			createPopulation();
-		}
+        Fixture(String outputDirectory) {
+            this.config = ConfigUtils.createConfig();
+            prepareConfig(outputDirectory);
+            this.scenario = ScenarioUtils.createScenario(this.config);
+            createNetwork();
+            createTransitSchedule();
+            createPopulation();
+        }
 
 		private void prepareConfig(String outputDirectory) {
 			PlanCalcScoreConfigGroup scoringConfig = this.config.planCalcScore();
 			PlanCalcScoreConfigGroup.ActivityParams homeScoring = new PlanCalcScoreConfigGroup.ActivityParams("home");
 			homeScoring.setTypicalDuration(12 * 3600);
-			scoringConfig.addActivityParams(homeScoring);
+            scoringConfig.addActivityParams(homeScoring);
 
-			this.config.controler().setOutputDirectory(outputDirectory);
-			this.config.controler().setCreateGraphs(false);
-			this.config.controler().setDumpDataAtEnd(false);
+            this.config.controler().setOutputDirectory(outputDirectory);
+            this.config.controler().setCreateGraphs(false);
+            this.config.controler().setDumpDataAtEnd(false);
 
-			this.config.transit().setUseTransit(true);
-			ActivityParamsBuilder.buildStageActivityModeParams(config);
-		}
+            this.config.transit().setUseTransit(true);
+            ActivityParamsBuilder.buildStageActivityModeParams(config);
+        }
 
-		void setLineSwitchConfig(double lineSwitchUtility) {
-			this.config.planCalcScore().setUtilityOfLineSwitch(lineSwitchUtility);
-		}
+        void setLineSwitchConfig() {
+            this.config.planCalcScore().setUtilityOfLineSwitch(-3.0);
+        }
 
-		void setSBBTransferUtility(double baseTransferUtility, double marginalTransferUtility, double minTransferUtility, double maxTransferUtility) {
-			SBBBehaviorGroupsConfigGroup sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
+        void setSBBTransferUtility() {
+            SBBBehaviorGroupsConfigGroup sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
 
-			sbbConfig.setBaseTransferUtility(baseTransferUtility);
-			sbbConfig.setTransferUtilityPerTravelTime_utils_hr(marginalTransferUtility);
-			sbbConfig.setMinimumTransferUtility(minTransferUtility);
-			sbbConfig.setMaximumTransferUtility(maxTransferUtility);
-		}
+            sbbConfig.setBaseTransferUtility(-1.0);
+            sbbConfig.setTransferUtilityPerTravelTime_utils_hr(-2.0);
+            sbbConfig.setMinimumTransferUtility(-12.0);
+            sbbConfig.setMaximumTransferUtility(-2.0);
+        }
 
-		private void createNetwork() {
-			Network network = this.scenario.getNetwork();
+        private void createNetwork() {
+            Network network = this.scenario.getNetwork();
 			NetworkFactory nf = network.getFactory();
 
 			Node n1 = nf.createNode(Id.create("1", Node.class), new Coord(1000, 1000));
 			Node n2 = nf.createNode(Id.create("2", Node.class), new Coord(3000, 1000));
 			Node n3 = nf.createNode(Id.create("3", Node.class), new Coord(5000, 1000));
 			Node n4 = nf.createNode(Id.create("4", Node.class), new Coord(7000, 1000));
-			Node n5 = nf.createNode(Id.create("5", Node.class), new Coord(9000, 1000));
-			Node n6 = nf.createNode(Id.create("6", Node.class), new Coord(9900, 1000));
+            Node n5 = nf.createNode(Id.create("5", Node.class), new Coord(9000, 1000));
+            Node n6 = nf.createNode(Id.create("6", Node.class), new Coord(9900, 1000));
 
-			network.addNode(n1);
-			network.addNode(n2);
-			network.addNode(n3);
-			network.addNode(n4);
-			network.addNode(n5);
-			network.addNode(n6);
+            network.addNode(n1);
+            network.addNode(n2);
+            network.addNode(n3);
+            network.addNode(n4);
+            network.addNode(n5);
+            network.addNode(n6);
 
-			Link l1 = createLink(nf, "1", n1, n2, 4000, 1000, 25);
-			Link l2 = createLink(nf, "2", n2, n3, 4000, 1000, 25);
-			Link l3 = createLink(nf, "3", n3, n4, 4000, 1000, 25);
-			Link l4 = createLink(nf, "4", n4, n5, 4000, 1000, 25);
-			Link l5 = createLink(nf, "5", n5, n6, 4000, 1000, 25);
+            Link l1 = createLink(nf, "1", n1, n2);
+            Link l2 = createLink(nf, "2", n2, n3);
+            Link l3 = createLink(nf, "3", n3, n4);
+            Link l4 = createLink(nf, "4", n4, n5);
+            Link l5 = createLink(nf, "5", n5, n6);
 
-			network.addLink(l1);
-			network.addLink(l2);
-			network.addLink(l3);
-			network.addLink(l4);
-			network.addLink(l5);
-		}
+            network.addLink(l1);
+            network.addLink(l2);
+            network.addLink(l3);
+            network.addLink(l4);
+            network.addLink(l5);
+        }
 
-		private Link createLink(NetworkFactory nf, String id, Node fromNode, Node toNode, double length, double capacity, double freespeed) {
-			Link l = nf.createLink(Id.create(id, Link.class), fromNode, toNode);
-			l.setLength(length);
-			l.setCapacity(capacity);
-			l.setFreespeed(freespeed);
-			l.setAllowedModes(CollectionUtils.stringToSet("car"));
-			l.setNumberOfLanes(1);
-			return l;
-		}
+        private Link createLink(NetworkFactory nf, String id, Node fromNode, Node toNode) {
+            Link l = nf.createLink(Id.create(id, Link.class), fromNode, toNode);
+            l.setLength(4000);
+            l.setCapacity(1000);
+            l.setFreespeed(25);
+            l.setAllowedModes(CollectionUtils.stringToSet("car"));
+            l.setNumberOfLanes(1);
+            return l;
+        }
 
-		private void createTransitSchedule() {
+        private void createTransitSchedule() {
 			Vehicles vehicles = this.scenario.getTransitVehicles();
 			VehiclesFactory vf = vehicles.getFactory();
 			VehicleType vt = vf.createVehicleType(Id.create("train", VehicleType.class));

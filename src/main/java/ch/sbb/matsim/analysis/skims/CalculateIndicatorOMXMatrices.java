@@ -28,7 +28,7 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
  */
 public class CalculateIndicatorOMXMatrices {
 
-    static Logger log = Logger.getLogger(CalculateIndicatorOMXMatrices.class);
+    static final Logger log = Logger.getLogger(CalculateIndicatorOMXMatrices.class);
 
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");

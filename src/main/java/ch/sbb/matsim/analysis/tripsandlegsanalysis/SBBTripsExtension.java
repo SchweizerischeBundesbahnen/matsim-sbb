@@ -77,7 +77,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             tripIds.put(p.getId(), ids);
         }
 
-        return new String[]{"tourId_tripId", "from_zone", "to_zone", "first_rail_stop", "last_rail_stop", "rail_pkm", "rail_access_modes", "rail_access_distance", "rail_egress_modes",
+        return new String[]{"tourId_tripId", "from_zone", "to_zone", "first_rail_stop", "last_rail_stop", "rail_pkm", "fq_rail_pkm", "rail_access_modes", "rail_access_distance", "rail_egress_modes",
                 "rail_egress_distance"};
     }
 
@@ -104,6 +104,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             }
         }
         String rail_pkm = calcRailPkm(trip);
+        String fq_rail_pkm = calcfqRailPkm(trip);
         String accessModes = "";
         String egressModes = "";
         String accessDistance = "";
@@ -117,8 +118,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             egressDistance = Integer.toString(egress.getSecond());
         }
 
-        final List<String> result = List.of(tourTripId, fromZoneString, toZoneString, fromStation, toStation, rail_pkm, accessModes, accessDistance, egressModes, egressDistance);
-        return result;
+        return List.of(tourTripId, fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, accessModes, accessDistance, egressModes, egressDistance);
     }
 
     private Tuple<String, Integer> findAccessMode(Trip trip, Id<TransitStopFacility> accessStop) {
@@ -167,6 +167,11 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
 
     private String calcRailPkm(Trip trip) {
         var rail_pm = railTripsAnalyzer.calcRailDistance(trip);
+        return String.valueOf(rail_pm / 1000);
+    }
+
+    private String calcfqRailPkm(Trip trip) {
+        var rail_pm = railTripsAnalyzer.getFQDistance(trip);
         return String.valueOf(rail_pm / 1000);
     }
 

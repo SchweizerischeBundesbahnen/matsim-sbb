@@ -36,7 +36,7 @@ public class CountSubpops {
         new PopulationReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_3.1\\sim\\3.1.3_25pct\\prepared\\plans_10\\population_0.xml.gz");
         double sum = scenario.getPopulation().getPersons().size();
 
-        Map<String, Integer> subpops = scenario.getPopulation().getPersons().values().stream().map(p -> PopulationUtils.getSubpopulation(p)).filter(Objects::nonNull).collect(
+        Map<String, Integer> subpops = scenario.getPopulation().getPersons().values().stream().map(PopulationUtils::getSubpopulation).filter(Objects::nonNull).collect(
                 Collectors.toMap(s -> s, s -> 1, Integer::sum));
         System.out.println("Found the following subpopulations: " + subpops.keySet().toString());
 

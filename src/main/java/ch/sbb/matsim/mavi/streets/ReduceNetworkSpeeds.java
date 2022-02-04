@@ -17,7 +17,7 @@
  *                                                                         *
  * *********************************************************************** */
 
-package ch.sbb.matsim.preparation;
+package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -26,25 +26,35 @@ import java.util.List;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 
 public class ReduceNetworkSpeeds {
 
-    private final String ouputfile;
+    private String ouputfile;
     private final double capslow;
     private final double capnormal;
-    Zones zones;
-    List<String> communities = List.of("261", "6621", "2701", "351", "5586", "230", "1061", "3203", "5226", "371");
-    List<String> hvs = List.of("29", "30", "31", "32");
-    List<String> nvs = List.of("50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61");
-    private Network network;
+    final Zones zones;
+    final List<String> communities = List.of("261", "6621", "2701", "351", "5586", "230", "1061", "3203", "5226", "371");
+    final List<String> hvs = List.of("29", "30", "31", "32");
+    final List<String> nvs = List.of("50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61");
+    private final Network network;
 
     public ReduceNetworkSpeeds(String networkfile, String outputfile, String shapeFile, double capslow, double capnormal) {
         this.ouputfile = outputfile;
-        this.network = NetworkUtils.createNetwork();
+        this.network = NetworkUtils.createNetwork(ConfigUtils.createConfig());
         zones = ZonesLoader.loadZones("1", shapeFile, "zone_id");
         new MatsimNetworkReader(network).readFile(networkfile);
+        this.capslow = capslow;
+        this.capnormal = capnormal;
+
+    }
+
+    public ReduceNetworkSpeeds(Network network, Zones zones, double capslow, double capnormal) {
+
+        this.network = network;
+        this.zones = zones;
         this.capslow = capslow;
         this.capnormal = capnormal;
 
@@ -59,7 +69,7 @@ public class ReduceNetworkSpeeds {
         double capnormal = Double.parseDouble(args[4]);
 
         ReduceNetworkSpeeds reduceNetworkSpeeds = new ReduceNetworkSpeeds(networkfile, outputfile, shapeFile, capslowcitystreets, capnormal);
-        reduceNetworkSpeeds.reduce();
+        reduceNetworkSpeeds.reduceSpeeds();
         reduceNetworkSpeeds.writeNetwork();
     }
 
@@ -67,7 +77,7 @@ public class ReduceNetworkSpeeds {
         new NetworkWriter(network).write(this.ouputfile);
     }
 
-    private void reduce() {
+    public void reduceSpeeds() {
         for (Link link : network.getLinks().values()) {
             String t = NetworkUtils.getType(link);
             if (hvs.contains(t)) {

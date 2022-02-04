@@ -35,28 +35,27 @@ import org.matsim.testcases.utils.EventsCollector;
 
 public class TestFixture {
 
-	Scenario scenario;
-	Population population;
-	Controler controler;
-	List<Event> allEvents;
-	PlanCalcScoreConfigGroup.ModeParams accessParams;
-	PlanCalcScoreConfigGroup.ModeParams egressParams;
-	Activity home;
-	Activity work;
-	Person person;
-	private String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP";
+    final Scenario scenario;
+    final Population population;
+    Controler controler;
+    List<Event> allEvents;
+    final PlanCalcScoreConfigGroup.ModeParams accessParams;
+    final PlanCalcScoreConfigGroup.ModeParams egressParams;
+    final Activity home;
+    final Activity work;
+    final Person person;
 
-	TestFixture(Coord start, Coord end, String mode, boolean withAccess, double constant, String modesWithAccess) {
+    TestFixture(Coord start, Coord end, String mode, boolean withAccess, double constant, String modesWithAccess) {
 
-		Config config = ConfigUtils.createConfig(new SBBAccessTimeConfigGroup());
-		scenario = ScenarioUtils.createScenario(config);
-		population = scenario.getPopulation();
-		Network network = scenario.getNetwork();
+        Config config = ConfigUtils.createConfig(new SBBAccessTimeConfigGroup());
+        scenario = ScenarioUtils.createScenario(config);
+        population = scenario.getPopulation();
+        Network network = scenario.getNetwork();
 
-		double delta_x = end.getX() - start.getX();
-		double delta_y = end.getY() - start.getY();
-		Node nodeA = network.getFactory().createNode(Id.createNodeId("a"), start);
-		Node nodeB = network.getFactory().createNode(Id.createNodeId("b"), new Coord(start.getX() + delta_x / 2.0, start.getY() + delta_y / 2.0));
+        double delta_x = end.getX() - start.getX();
+        double delta_y = end.getY() - start.getY();
+        Node nodeA = network.getFactory().createNode(Id.createNodeId("a"), start);
+        Node nodeB = network.getFactory().createNode(Id.createNodeId("b"), new Coord(start.getX() + delta_x / 2.0, start.getY() + delta_y / 2.0));
 		Node nodeC = network.getFactory().createNode(Id.createNodeId("c"), new Coord(start.getX() + delta_x / 2.0 * 3.0, start.getY() + delta_y / 2.0 * 3.0));
 		Node nodeD = network.getFactory().createNode(Id.createNodeId("d"), end);
 
@@ -139,27 +138,28 @@ public class TestFixture {
 		var rideParams = scenario.getConfig().plansCalcRoute().getModeRoutingParams().get(SBBModes.RIDE);
 		scenario.getConfig().plansCalcRoute().removeParameterSet(rideParams);
 		egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-		egressParams.setConstant(constant);
-		accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-		accessParams.setConstant(constant);
+        egressParams.setConstant(constant);
+        accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
+        accessParams.setConstant(constant);
 
-		StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
-		settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);
-		settings.setWeight(1.0);
-		scenario.getConfig().strategy().addStrategySettings(settings);
+        StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
+        settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);
+        settings.setWeight(1.0);
+        scenario.getConfig().strategy().addStrategySettings(settings);
 
-		ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
-		zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, null));
+        ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
+        String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP";
+        zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, "ID"));
 
-		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
-		accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
-		accessTimeConfigGroup.setModesWithAccessTime(modesWithAccess);
-		accessTimeConfigGroup.setZonesId("zones");
+        SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
+        accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
+        accessTimeConfigGroup.setModesWithAccessTime(modesWithAccess);
+        accessTimeConfigGroup.setZonesId("zones");
 
-		config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
-		config.controler().setLastIteration(0);
-		config.controler().setWriteEventsUntilIteration(1);
-		config.controler().setWritePlansInterval(1);
+        config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
+        config.controler().setLastIteration(0);
+        config.controler().setWriteEventsUntilIteration(1);
+        config.controler().setWritePlansInterval(1);
 		config.qsim().setEndTime(10 * 60 * 60);
 		//config.plansCalcRoute().setNetworkModes(List.of(SBBModes.CAR,SBBModes.RIDE));
 		SBBNetworkRoutingModule.prepareScenario(scenario);

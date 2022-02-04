@@ -44,9 +44,9 @@ public class TimeProfileExporter {
 	private final TransitScheduleFactory scheduleBuilder;
 	private final Vehicles vehicles;
 	private final VehiclesFactory vehicleBuilder;
-	public Map<Id<Link>, String> linkToVisumSequence = new HashMap<>();
-	private Network network;
-	private TransitSchedule schedule;
+	public final Map<Id<Link>, String> linkToVisumSequence = new HashMap<>();
+	private final Network network;
+	private final TransitSchedule schedule;
 
 	public TimeProfileExporter(Scenario scenario) {
 		this.network = scenario.getNetwork();
@@ -57,17 +57,16 @@ public class TimeProfileExporter {
 		this.vehicleBuilder = scenario.getVehicles().getFactory();
 	}
 
-	private static class LineRouteItem {
-		int index;
-		String node;
-		String outLink;
-
-		public LineRouteItem(int index, String node, String outLink) {
-			this.index = index;
-			this.node = node;
-			this.outLink = outLink;
-		}
+	private void createLink(Id<Link> linkId, Node fromNode, Node toNode, String mode, double length) {
+		Link link = this.networkBuilder.createLink(linkId, fromNode, toNode);
+		link.setLength(length * 1000);
+		link.setFreespeed(10000);
+		link.setCapacity(10000);
+		link.setNumberOfLanes(10000);
+		link.setAllowedModes(Collections.singleton(mode));
+		this.network.addLink(link);
 	}
+
 	private static HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum, VisumPtExporterConfigGroup config) {
 		HashMap<Integer, TimeProfile> timeProfileMap = new HashMap<>();
 
@@ -223,17 +222,6 @@ public class TimeProfileExporter {
 		}
 	}
 
-	private Link createLink(Id<Link> linkId, Node fromNode, Node toNode, String mode, double length) {
-		Link link = this.networkBuilder.createLink(linkId, fromNode, toNode);
-		link.setLength(length * 1000);
-		link.setFreespeed(10000);
-		link.setCapacity(10000);
-		link.setNumberOfLanes(10000);
-		link.setAllowedModes(Collections.singleton(mode));
-		this.network.addLink(link);
-		return link;
-	}
-
 	public void createTransitLines(Visum visum, VisumPtExporterConfigGroup config) {
 		log.info("Loading all informations about transit lines...");
 		HashMap<Integer, TimeProfile> timeProfileMap = loadTimeProfileInfos(visum, config);
@@ -254,10 +242,9 @@ public class TimeProfileExporter {
 			String mode = tp.tSysMOBi.toLowerCase();
 			final TransitLine finalLine = line;
 			tp.vehicleJourneys.forEach(vj -> {
-				int routeName = tpId;
 				int from_tp_index = vj.fromTProfItemIndex;
 				int to_tp_index = vj.toTProfItemIndex;
-				Id<TransitRoute> routeID = Id.create(routeName + "_" + from_tp_index + "_" + to_tp_index, TransitRoute.class);
+				Id<TransitRoute> routeID = Id.create(tpId + "_" + from_tp_index + "_" + to_tp_index, TransitRoute.class);
 				TransitRoute route = finalLine.getRoutes().get(routeID);
 
 				if (route == null) {
@@ -378,6 +365,19 @@ public class TimeProfileExporter {
 			});
 		}
 		log.info("Loading transit routes finished");
+	}
+
+	private static class LineRouteItem {
+
+		final int index;
+		final String node;
+		final String outLink;
+
+		public LineRouteItem(int index, String node, String outLink) {
+			this.index = index;
+			this.node = node;
+			this.outLink = outLink;
+		}
 	}
 
 	private VehicleType getVehicleType(String tSysCode, int capacity, int standingRoom) {

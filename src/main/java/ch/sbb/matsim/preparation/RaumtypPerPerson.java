@@ -20,23 +20,23 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 /**
  * @author jlie/pmanser / SBB
- * 		<p>
- * 		assigns the Raumtyp to each person as a custom attribute. The categorization is based on the shape file containing the UVEK-zones
+ *         <p>
+ *         assigns the Raumtyp to each person as a custom attribute. The categorization is based on the shape file containing the UVEK-zones
  */
 
 public class RaumtypPerPerson {
 
-	public static String RAUMTYP = "raumtyp";
-	// pmanser: I'm not sure if we actually need Typ 4, since this type just uses the standard scoring parameters.
-	public static String DEFAULT_RAUMTYP = "4";
+    public static final String RAUMTYP = "raumtyp";
+    // pmanser: I'm not sure if we actually need Typ 4, since this type just uses the standard scoring parameters.
+    public static final String DEFAULT_RAUMTYP = "4";
 
-	public static void main(final String[] args) {
-		if (args.length != 4) {
-			System.err.println("Wrong number of arguments.");
-		}
-		final String planFile = args[0];
-		final String shapeFile = args[1];
-		final String outputLog = args[2];
+    public static void main(final String[] args) {
+        if (args.length != 4) {
+            System.err.println("Wrong number of arguments.");
+        }
+        final String planFile = args[0];
+        final String shapeFile = args[1];
+        final String outputLog = args[2];
 		final String outputPopulation = args[3];
 
 		Logger log = Logger.getLogger(RaumtypPerPerson.class);

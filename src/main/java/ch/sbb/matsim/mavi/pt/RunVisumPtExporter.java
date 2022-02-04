@@ -8,11 +8,6 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import ch.sbb.matsim.preparation.MobiTransitScheduleVerifiyer;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -20,14 +15,15 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.vehicles.MatsimVehicleWriter;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /***
  *
@@ -83,11 +79,10 @@ public class RunVisumPtExporter {
 		}
 	}
 
-	private static void createOutputPath(String path) {
-		File outputPath = new File(path);
-		if (!outputPath.exists()) {
-			outputPath.mkdirs();
-		}
+	private static void createOutputPath(URL path) {
+		File outputPath = new File(path.getPath());
+		outputPath.mkdirs();
+
 	}
 
 	private static void writeFiles(Scenario scenario, String outputPath) {
@@ -101,8 +96,11 @@ public class RunVisumPtExporter {
 		VisumPtExporterConfigGroup exporterConfig = ConfigUtils.addOrGetModule(config, VisumPtExporterConfigGroup.class);
 
 		// Start Visum and load version
-		Visum visum = new Visum(21);
-		visum.loadVersion(exporterConfig.getPathToVisum());
+		Visum visum = new Visum(exporterConfig.getVisumVersion());
+
+		visum.loadVersion(exporterConfig.getPathToVisumURL(config.getContext()).getPath()
+				.replace("////", "//")
+				.replace("/", "\\"));
 
 		if (exporterConfig.getAngebotName() != null) {
 			visum.filterForAngebot(exporterConfig.getAngebotName());
@@ -130,9 +128,9 @@ public class RunVisumPtExporter {
 		ScheduleCondenser.cleanNetwork(scenario.getTransitSchedule(), scenario.getNetwork());
 
 		// write outputs
-		createOutputPath(exporterConfig.getOutputPath());
-		tpe.writeLinkSequence(exporterConfig.getOutputPath(), scenario.getNetwork());
-		writeFiles(scenario, exporterConfig.getOutputPath());
+		createOutputPath(exporterConfig.getOutputPathURL(config.getContext()));
+		tpe.writeLinkSequence(exporterConfig.getOutputPathURL(config.getContext()).getPath(), scenario.getNetwork());
+		writeFiles(scenario, exporterConfig.getOutputPathURL(config.getContext()).getPath());
 		MobiTransitScheduleVerifiyer.verifyTransitSchedule(scenario.getTransitSchedule());
 
 		// write polyline file

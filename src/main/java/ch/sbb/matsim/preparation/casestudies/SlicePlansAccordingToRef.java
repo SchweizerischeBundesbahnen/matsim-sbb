@@ -53,7 +53,7 @@ public class SlicePlansAccordingToRef {
         for (int i = 2; i < args.length; i++) {
             Set<Id<Person>> personsPerPartition = readPersonsCSV(args[3]);
             int partition = i - 2;
-            personsPerPartition.stream().forEach(p -> personPartition.put(p, partition));
+            personsPerPartition.forEach(p -> personPartition.put(p, partition));
 
         }
 
@@ -73,7 +73,7 @@ public class SlicePlansAccordingToRef {
         });
         streamingPopulationReaderCase.readFile(inputPlansCase);
 
-        writersCase.forEach(w -> w.closeStreaming());
+        writersCase.forEach(StreamingPopulationWriter::closeStreaming);
 
     }
 

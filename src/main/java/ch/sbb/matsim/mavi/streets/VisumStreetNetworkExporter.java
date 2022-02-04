@@ -1,6 +1,5 @@
 package ch.sbb.matsim.mavi.streets;
 
-import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.counts.VisumToCounts;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import com.jacob.activeX.ActiveXComponent;
@@ -29,31 +28,32 @@ import org.matsim.core.utils.geometry.CoordUtils;
 
 public class VisumStreetNetworkExporter {
 
-	private final static Logger log = Logger.getLogger(VisumStreetNetworkExporter.class);
+    private final static Logger log = Logger.getLogger(VisumStreetNetworkExporter.class);
 
-	private Scenario scenario;
-	private NetworkFactory nf;
-	private Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
+    private Scenario scenario;
+    private NetworkFactory nf;
+    private final Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
 
-	public static void main(String[] args) throws IOException {
-		String inputvisum = args[0];
-		String outputPath = args[1];
-		int visumVersion = 21;
-		boolean exportCounts = true;
-		if (args.length > 2) {
-			exportCounts = Boolean.parseBoolean(args[2]);
-		}
+    public static void main(String[] args) throws IOException {
+        String inputvisum = args[0];
+        String outputPath = args[1];
+        int visumVersion = 21;
+        boolean exportCounts = true;
+        if (args.length > 2) {
+            exportCounts = Boolean.parseBoolean(args[2]);
+        }
 
-		VisumStreetNetworkExporter exp = new VisumStreetNetworkExporter();
-		exp.run(inputvisum, outputPath, visumVersion, exportCounts);
-	}
+        VisumStreetNetworkExporter exp = new VisumStreetNetworkExporter();
+        exp.run(inputvisum, outputPath, visumVersion, exportCounts, true);
+        exp.writeNetwork(outputPath);
+
+    }
 
 	public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
-		Id<Link> id = Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
-		return id;
+        return Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
 	}
 
-	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts) throws IOException {
+	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {
 		ActiveXComponent visum = new ActiveXComponent("Visum.Visum." + visumVersion);
 		log.info("VISUM Client gestartet.");
 		Dispatch.call(visum, "LoadVersion", inputvisum);
@@ -72,10 +72,12 @@ public class VisumStreetNetworkExporter {
 		String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
 				"NumLanes", "TSysSet", "accessControlled", "WKTPoly", "No");
 		createNetwork(nodes, links);
-		writeNetwork(outputPath);
 
 		// Export Polylines
-		new PolylinesCreator().runStreets(this.scenario.getNetwork(), wktLineStringPerVisumLink, "polylines.csv", outputPath);
+		if (exportPolylines) {
+			new PolylinesCreator().runStreets(this.scenario.getNetwork(), wktLineStringPerVisumLink, "polylines.csv", outputPath);
+		}
+
 	}
 
 	private void exportCountStations(Dispatch net, String outputFolder) throws IOException {
@@ -161,8 +163,11 @@ public class VisumStreetNetworkExporter {
 		}
 		Set<String> modeset = new HashSet<>(Arrays.asList("car", "ride"));
 		Link link = nf.createLink(id, fnode, tnode);
-		if (length == 0.0) {
-			length = 0.0001;
+		if (length < 0.01) {
+			length = 0.01;
+		}
+		if (numlanes < 1) {
+			numlanes = 1;
 		}
 		length *= 1000.;
 		double beelineDistance = CoordUtils.calcEuclideanDistance(fnode.getCoord(), tnode.getCoord());
@@ -170,21 +175,25 @@ public class VisumStreetNetworkExporter {
 			if (beelineDistance - length > 1.0) {
 				log.warn(link.getId() + " has a length (" + length + ") shorter than its beeline distance (" + beelineDistance + "). Will not correct this.");
 			}
-		}
-		link.setLength(length);
-		link.setCapacity(cap);
-		link.setFreespeed(v / 3.6);
-		link.setNumberOfLanes(numlanes);
-		link.setAllowedModes(modeset);
+        }
+        link.setLength(length);
+        link.setCapacity(cap);
+        link.setFreespeed(v / 3.6);
+        link.setNumberOfLanes(numlanes);
+        link.setAllowedModes(modeset);
 
-		return link;
-	}
+        return link;
+    }
 
-	private void writeNetwork(String outputFolder) {
-		org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
-		cleaner.run(scenario.getNetwork());
+    private void writeNetwork(String outputFolder) {
+        org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
+        cleaner.run(scenario.getNetwork());
 
-		File file = new File(outputFolder, Filenames.STREET_NETWORK);
-		new NetworkWriter(this.scenario.getNetwork()).write(file.getAbsolutePath());
-	}
+        File file = new File(outputFolder, "network.xml.gzwithPolylines.xml.gz");
+        new NetworkWriter(this.scenario.getNetwork()).write(file.getAbsolutePath());
+    }
+
+    public Network getNetwork() {
+        return scenario.getNetwork();
+    }
 }

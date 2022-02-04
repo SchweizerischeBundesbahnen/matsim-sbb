@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.sbb</groupId>
     <artifactId>matsim-sbb</artifactId>
-    <version>3.2.2-SNAPSHOT</version>
+    <version>3.2.7-SNAPSHOT</version>
     <name>MATSim SBB Project</name>
     <description>MATSim for SIMBA MOBi</description>
 
@@ -24,7 +24,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>14.0-PR1601</matsim.version>
+        <matsim.version>14.0-PR1838</matsim.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>

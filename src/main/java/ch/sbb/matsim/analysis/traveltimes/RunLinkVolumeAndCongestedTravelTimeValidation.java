@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -74,17 +73,14 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 		final Map<Id<Link>, int[]> countsLinks = counts.getCounts().keySet().stream().collect(Collectors.toMap(p -> p, p -> new int[24]));
 		EventsManager eventsManager = EventsUtils.createEventsManager(ConfigUtils.createConfig());
 		eventsManager.addHandler(ttc);
-		eventsManager.addHandler(new LinkEnterEventHandler() {
-			@Override
-			public void handleEvent(LinkEnterEvent event) {
-				int[] counts = countsLinks.get(event.getLinkId());
-				if (counts != null) {
-					int hour = (int) (event.getTime() / 3600.0);
-					while (hour > 23) {
-						hour = hour - 24;
-					}
-					counts[hour]++;
+		eventsManager.addHandler((LinkEnterEventHandler) event -> {
+			int[] counts1 = countsLinks.get(event.getLinkId());
+			if (counts1 != null) {
+				int hour = (int) (event.getTime() / 3600.0);
+				while (hour > 23) {
+					hour = hour - 24;
 				}
+				counts1[hour]++;
 			}
 		});
 		new MatsimEventsReader(eventsManager).readFile(simFolder + "/" + runId + ".output_events.xml.gz");
@@ -131,7 +127,7 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 				}
 
 			}
-		} catch (IOException e) {
+		} catch (IOException ignored) {
 
 		}
 

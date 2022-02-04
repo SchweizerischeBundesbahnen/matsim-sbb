@@ -82,26 +82,16 @@ public class VolumesAnalyzerSBB implements LinkLeaveEventHandler, VehicleEntersT
 		}
 		int timeslot = getTimeSlotIndex(event.getTime());
 
-		int[] nbVehicles = this.linksNbVehicles.get(event.getLinkId());
-		if (nbVehicles == null) {
-			nbVehicles = new int[this.maxSlotIndex + 1]; // initialized to 0 by default, according to JVM specs
-			this.linksNbVehicles.put(event.getLinkId(), nbVehicles);
-		}
+		int[] nbVehicles = this.linksNbVehicles.computeIfAbsent(event.getLinkId(), k -> new int[this.maxSlotIndex + 1]);
+		// initialized to 0 by default, according to JVM specs
 		nbVehicles[timeslot]++;
 
 		if (observeModes) {
-			Map<String, int[]> modeNbVehicles = this.linksNbVehiclesPerMode.get(event.getLinkId());
-			if (modeNbVehicles == null) {
-				modeNbVehicles = new HashMap<>();
-				this.linksNbVehiclesPerMode.put(event.getLinkId(), modeNbVehicles);
-			}
+			Map<String, int[]> modeNbVehicles = this.linksNbVehiclesPerMode.computeIfAbsent(event.getLinkId(), k -> new HashMap<>());
 
 			String mode = enRouteModes.get(event.getVehicleId());
-			nbVehicles = modeNbVehicles.get(mode);
-			if (nbVehicles == null) {
-				nbVehicles = new int[this.maxSlotIndex + 1]; // initialized to 0 by default, according to JVM specs
-				modeNbVehicles.put(mode, nbVehicles);
-			}
+			nbVehicles = modeNbVehicles.computeIfAbsent(mode, k -> new int[this.maxSlotIndex + 1]);
+			// initialized to 0 by default, according to JVM specs
 			nbVehicles[timeslot]++;
 		}
 	}

@@ -11,6 +11,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.api.experimental.events.EventsManager;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsManagerImpl;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.network.NetworkUtils;
@@ -40,7 +41,7 @@ public class Network2OSMExporter {
     }
 
     private void run(String networkFile, String osmOutputfileCongested, String osmOutputfileUncongested, String eventsFile) throws IOException {
-        Network network = NetworkUtils.createNetwork();
+        Network network = NetworkUtils.createNetwork(ConfigUtils.createConfig());
         new MatsimNetworkReader(network).readFile(networkFile);
         TravelTimeCalculator tc = readEvents(eventsFile, network);
         BufferedWriter bw = IOUtils.getBufferedWriter(osmOutputfileCongested);

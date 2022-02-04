@@ -25,7 +25,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 public class Cleaner {
 
 	private static final Logger log = Logger.getLogger(Cleaner.class);
-	private Population population;
+	private final Population population;
 
 	public Cleaner(Population population) {
 		this.population = population;

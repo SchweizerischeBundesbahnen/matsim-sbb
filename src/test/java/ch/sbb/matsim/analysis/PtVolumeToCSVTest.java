@@ -11,30 +11,30 @@ import org.matsim.testcases.MatsimTestUtils;
 
 public class PtVolumeToCSVTest {
 
-	static String expectedStops =
-			"index;stop_id;boarding;alighting;line;lineroute;departure_id;vehicle_id;departure;arrival\n" +
-					"0;A;0.0;0.0;S2016_1;A2E;1;train1;30000.0;30000.0\n" +
-					"1;B;1.0;0.0;S2016_1;A2E;1;train1;30120.0;30100.0\n" +
-					"2;C;0.0;0.0;S2016_1;A2E;1;train1;30300.0;30300.0\n" +
-					"3;D;0.0;1.0;S2016_1;A2E;1;train1;30600.0;30570.0\n" +
-					"4;E;0.0;0.0;S2016_1;A2E;1;train1;30720.0;30720.0\n";
-	static String expectedVehJourneys =
-			"index;from_stop_id;to_stop_id;passengers;line;lineroute;departure_id;vehicle_id;departure;arrival\n" +
-					"1;A;B;0.0;S2016_1;A2E;1;train1;30000.0;30100.0\n" +
-					"2;B;C;1.0;S2016_1;A2E;1;train1;30120.0;30300.0\n" +
-					"3;C;D;1.0;S2016_1;A2E;1;train1;30300.0;30570.0\n" +
-					"4;D;E;0.0;S2016_1;A2E;1;train1;30600.0;30720.0\n";
-	static String expectedStopsDaily =
-			"it;A;B;C;D;E\n" +
-					"0;0;1;0;1;0\n" +
-					"1;0;1;0;1;0\n" +
-					"2;0;1;0;1;0\n";
-	@Rule
-	public MatsimTestUtils utils = new MatsimTestUtils();
+    static final String expectedStops =
+            "index;stop_id;boarding;alighting;line;lineroute;departure_id;vehicle_id;departure;arrival\n" +
+                    "0;A;0.0;0.0;S2016_1;A2E;1;train1;30000.0;30000.0\n" +
+                    "1;B;1.0;0.0;S2016_1;A2E;1;train1;30120.0;30100.0\n" +
+                    "2;C;0.0;0.0;S2016_1;A2E;1;train1;30300.0;30300.0\n" +
+                    "3;D;0.0;1.0;S2016_1;A2E;1;train1;30600.0;30570.0\n" +
+                    "4;E;0.0;0.0;S2016_1;A2E;1;train1;30720.0;30720.0\n";
+    static final String expectedVehJourneys =
+            "index;from_stop_id;to_stop_id;passengers;line;lineroute;departure_id;vehicle_id;departure;arrival\n" +
+                    "1;A;B;0.0;S2016_1;A2E;1;train1;30000.0;30100.0\n" +
+                    "2;B;C;1.0;S2016_1;A2E;1;train1;30120.0;30300.0\n" +
+                    "3;C;D;1.0;S2016_1;A2E;1;train1;30300.0;30570.0\n" +
+                    "4;D;E;0.0;S2016_1;A2E;1;train1;30600.0;30720.0\n";
+    static final String expectedStopsDaily =
+            "it;A;B;C;D;E\n" +
+                    "0;0;1;0;1;0\n" +
+                    "1;0;1;0;1;0\n" +
+                    "2;0;1;0;1;0\n";
+    @Rule
+    public MatsimTestUtils utils = new MatsimTestUtils();
 
-	// tests whether the files are written correctly for one iteration
-	@Test
-	public void test_writeResults() throws IOException {
+    // tests whether the files are written correctly for one iteration
+    @Test
+    public void test_writeResults() throws IOException {
 
 		PtTestFixture testFixture = new PtTestFixture();
 		PtVolumeToCSV ptVolumeToCSV = new PtVolumeToCSV(testFixture.scenario, this.utils.getOutputDirectory(), false);

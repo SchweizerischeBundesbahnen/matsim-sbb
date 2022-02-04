@@ -32,6 +32,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
@@ -39,6 +40,7 @@ import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.utils.objectattributes.attributable.Attributes;
 
 /**
  * @author mrieser / Simunto GmbH
@@ -64,7 +66,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		this.accessEgressRouteCache = accessEgressRouteCache;
 
 		SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
-		this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(set -> set.getMode(), set -> set, (a, b) -> a));
+		this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(SBBIntermodalModeParameterSet::getMode, set -> set, (a, b) -> a));
 		SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
 		walkParameterset = srrConfig.getIntermodalAccessEgressParameterSets().stream().filter(l -> l.getMode().equals(TransportMode.walk)).findFirst().orElseThrow(RuntimeException::new);
 		this.routingModules = new HashMap<>();
@@ -76,20 +78,21 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 			}
 		}
 
-    }
+	}
 
-    @Override
-    public List<InitialStop> findStops(Facility fromFacility, Facility toFacility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data, Direction type) {
-        if (type == Direction.ACCESS) {
-            return findAccessStops(fromFacility, person, departureTime, parameters, data);
-        }
-        if (type == Direction.EGRESS) {
-            return findEgressStops(toFacility, person, departureTime, parameters, data);
-        }
-        return Collections.emptyList();
-    }
+	@Override
+	public List<InitialStop> findStops(Facility fromFacility, Facility toFacility, Person person, double departureTime, Attributes routingAttributes, RaptorParameters parameters,
+			SwissRailRaptorData data, Direction type) {
+		if (type == Direction.ACCESS) {
+			return findAccessStops(fromFacility, person, departureTime, parameters, data);
+		}
+		if (type == Direction.EGRESS) {
+			return findEgressStops(toFacility, person, departureTime, parameters, data);
+		}
+		return Collections.emptyList();
+	}
 
-    private List<InitialStop> findAccessStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data) {
+	private List<InitialStop> findAccessStops(Facility facility, Person person, double departureTime, RaptorParameters parameters, SwissRailRaptorData data) {
         SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
         if (srrCfg.isUseIntermodalAccessEgress()) {
             return findIntermodalStops(facility, person, departureTime, Direction.ACCESS, parameters, data);
@@ -179,7 +182,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		}
 		if (personDoesMatch) {
 			Optional<String> actType = TripStructureUtils.getActivities(person.getSelectedPlan(), TripStructureUtils.StageActivityHandling.ExcludeStageActivities).stream()
-					.filter(activity -> activity.getCoord().equals(facility.getCoord())).map(a -> a.getType()).findAny();
+					.filter(activity -> activity.getCoord().equals(facility.getCoord())).map(Activity::getType).findAny();
 			if (actType.isPresent()) {
 				final String activityType = actType.get();
 				List<SBBIntermodalModeParameterSet> filtered = intermodalModeParams.values().stream().filter(a -> a.getMode().equals(paramset.getMode()))
@@ -246,7 +249,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 					if (params != null && params.isRoutedOnNetwork() && (!params.isSimulatedOnNetwork())) {
 						routeParts = getCachedTravelTime(stopFacility, facility, departureTime, person, mode, module, true);
 					} else {
-						routeParts = module.calcRoute(facility, stopFacility, departureTime, person);
+						routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(facility, stopFacility, departureTime, person));
 					}
 
 				} else { // it's Egress
@@ -255,7 +258,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 					if (params != null && params.isRoutedOnNetwork() && (!params.isSimulatedOnNetwork())) {
 						routeParts = getCachedTravelTime(stopFacility, facility, departureTime, person, mode, module, false);
 					} else {
-						routeParts = module.calcRoute(stopFacility, facility, departureTime, person);
+						routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, facility, departureTime, person));
 					}
 					// clear the (wrong) departureTime so users don't get confused
 					for (PlanElement pe : routeParts) {

@@ -25,21 +25,21 @@ import org.matsim.counts.CountsWriter;
 
 public class VisumToCounts {
 
-	private static String[] visumColumns = {"NAME", "ZW_DWV_FZG", "FROMNODENO", "LINKNO", "ADDVAL1", "ZW_0_FZG", "ZW_1_FZG", "ZW_2_FZG", "ZW_3_FZG"
-			, "ZW_4_FZG", "ZW_5_FZG", "ZW_6_FZG", "ZW_7_FZG", "ZW_8_FZG", "ZW_9_FZG", "ZW_10_FZG", "ZW_11_FZG", "ZW_12_FZG", "ZW_13_FZG", "ZW_14_FZG", "ZW_15_FZG"
-			, "ZW_16_FZG", "ZW_17_FZG", "ZW_18_FZG", "ZW_19_FZG", "ZW_20_FZG", "ZW_21_FZG", "ZW_22_FZG", "ZW_23_FZG", "XCOORD", "YCOORD"};
+    private static final String[] visumColumns = {"NAME", "ZW_DWV_FZG", "FROMNODENO", "LINKNO", "ADDVAL1", "ZW_0_FZG", "ZW_1_FZG", "ZW_2_FZG", "ZW_3_FZG"
+            , "ZW_4_FZG", "ZW_5_FZG", "ZW_6_FZG", "ZW_7_FZG", "ZW_8_FZG", "ZW_9_FZG", "ZW_10_FZG", "ZW_11_FZG", "ZW_12_FZG", "ZW_13_FZG", "ZW_14_FZG", "ZW_15_FZG"
+            , "ZW_16_FZG", "ZW_17_FZG", "ZW_18_FZG", "ZW_19_FZG", "ZW_20_FZG", "ZW_21_FZG", "ZW_22_FZG", "ZW_23_FZG", "XCOORD", "YCOORD"};
 
-	private static String[] csvColumns = {"link_id", "mode", "bin", "volume", "zaehlstellen_bezeichnung", "road_type"};
+    private static final String[] csvColumns = {"link_id", "mode", "bin", "volume", "zaehlstellen_bezeichnung", "road_type"};
 
-	public void run(String visumAttributePath, String countsFilename, String csv) throws IOException {
-		Counts<Link> counts = new Counts<>();
-		Counts<Link> countshourly = new Counts<>();
-		counts.setYear(1000); // prevent a bug in MATSim...
-		countshourly.setYear(1000); // prevent a bug in MATSim...
+    public void run(String visumAttributePath, String countsFilename, String csv) throws IOException {
+        Counts<Link> counts = new Counts<>();
+        Counts<Link> countshourly = new Counts<>();
+        counts.setYear(1000); // prevent a bug in MATSim...
+        countshourly.setYear(1000); // prevent a bug in MATSim...
 
-		int skip = 13;
-		int j = 0;
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        int skip = 13;
+        int j = 0;
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		try (BufferedReader in = new BufferedReader(new FileReader(visumAttributePath))) {
 			String line;
 			while ((line = in.readLine()) != null) {
@@ -82,17 +82,17 @@ public class VisumToCounts {
 						}
 					}
 
-					writer.set("link_id", linkId.toString());
-					writer.set("mode", "car");
-					writer.set("bin", "");
-					writer.set("volume", map.get("ZW_DWV_FZG"));
-					writer.set("zaehlstellen_bezeichnung", stationName);
-					writer.set("road_type", "");
-					writer.writeRow();
-				}
-			}
-		} catch (IOException e) {
-		}
+                    writer.set("link_id", linkId.toString());
+                    writer.set("mode", "car");
+                    writer.set("bin", "");
+                    writer.set("volume", map.get("ZW_DWV_FZG"));
+                    writer.set("zaehlstellen_bezeichnung", stationName);
+                    writer.set("road_type", "");
+                    writer.writeRow();
+                }
+            }
+        } catch (IOException ignored) {
+        }
 
 		new CountsWriter(counts).write(countsFilename + "_daily.xml");
 		new CountsWriter(countshourly).write(countsFilename + "_hourly.xml");

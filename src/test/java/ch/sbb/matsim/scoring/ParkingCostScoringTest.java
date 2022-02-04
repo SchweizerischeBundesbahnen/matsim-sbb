@@ -124,22 +124,22 @@ public class ParkingCostScoringTest {
 	}
 
 	/**
-	 * Creates a simple test scenario matching the accesstime_zone.SHP test file.
-	 */
-	private static class Fixture {
+     * Creates a simple test scenario matching the accesstime_zone.SHP test file.
+     */
+    private static class Fixture {
 
-		Config config;
-		Scenario scenario;
-		ZonesCollection zones = new ZonesCollection();
+        final Config config;
+        final Scenario scenario;
+        ZonesCollection zones = new ZonesCollection();
 
-		Fixture() {
-			this.config = ConfigUtils.createConfig();
-			prepareConfig();
-			this.scenario = ScenarioUtils.createScenario(this.config);
-			createNetwork();
-			createPopulation();
-			ZonesModule.addZonestoScenario(scenario);
-		}
+        Fixture() {
+            this.config = ConfigUtils.createConfig();
+            prepareConfig();
+            this.scenario = ScenarioUtils.createScenario(this.config);
+            createNetwork();
+            createPopulation();
+            ZonesModule.addZonestoScenario(scenario);
+        }
 
 		private void prepareConfig() {
 			ActivityParamsBuilder.buildStageActivityModeParams(this.config);

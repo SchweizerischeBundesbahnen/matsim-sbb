@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
@@ -32,7 +33,7 @@ import org.matsim.facilities.MatsimFacilitiesReader;
  */
 public class PopulationSlicer {
 
-	Random random = MatsimRandom.getRandom();
+	final Random random = MatsimRandom.getRandom();
 
 	/*
 	Randomly slices a population in n parts
@@ -46,8 +47,8 @@ public class PopulationSlicer {
 			new MatsimFacilitiesReader(scenario).readFile(inputFacilities);
 		}
 		BetterPopulationReader.readSelectedPlansOnly(scenario, new File(inputPopulation));
-
-		var outputDir = Paths.get(inputPopulation.replace(".xml.gz", "_" + slices));
+		String p = 100 / slices + "pct";
+		var outputDir = Paths.get(inputPopulation.replace("plans.xml.gz", p));
 		Files.createDirectory(outputDir);
 
 		String outputFolder = outputDir.toAbsolutePath().toString();
@@ -70,7 +71,7 @@ public class PopulationSlicer {
 				Person person = population.getPersons().get(personIds.get(personNo));
 				streamingPopulationWriter.run(person);
 				usedFacilities.addAll(TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities).stream()
-						.map(activity -> activity.getFacilityId())
+						.map(Activity::getFacilityId)
 						.filter(Objects::nonNull)
 						.collect(Collectors.toSet()));
 

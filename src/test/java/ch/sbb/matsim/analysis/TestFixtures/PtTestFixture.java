@@ -48,19 +48,19 @@ import org.matsim.vehicles.VehiclesFactory;
 
 public class PtTestFixture {
 
-	public Scenario scenario;
-	public Config config;
-	public EventsManager eventsManager;
-	TransitStopFacility stopA;
-	TransitStopFacility stopB;
-	TransitStopFacility stopC;
-	TransitStopFacility stopD;
-	TransitStopFacility stopE;
-	TransitLine line1;
-	TransitRoute route1;
+    public final Scenario scenario;
+    public final Config config;
+    public final EventsManager eventsManager;
+    TransitStopFacility stopA;
+    TransitStopFacility stopB;
+    TransitStopFacility stopC;
+    TransitStopFacility stopD;
+    TransitStopFacility stopE;
+    TransitLine line1;
+    TransitRoute route1;
 
-	public PtTestFixture() {
-		this.config = ConfigUtils.createConfig(new PostProcessingConfigGroup());
+    public PtTestFixture() {
+        this.config = ConfigUtils.createConfig(new PostProcessingConfigGroup());
 		this.config.transit().setUseTransit(true);
 		SBBTransitConfigGroup sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBTransitConfigGroup.class);
 		sbbConfig.setDeterministicServiceModes(Collections.singleton("train"));
@@ -167,34 +167,34 @@ public class PtTestFixture {
 		stops.add(f.createTransitRouteStop(this.stopD, 570, 600.0));
 		stops.add(f.createTransitRouteStopBuilder(this.stopE).arrivalOffset(720.).build());
 
-		this.route1 = f.createTransitRoute(Id.create("A2E", TransitRoute.class), networkRoute, stops, "train");
+        this.route1 = f.createTransitRoute(Id.create("A2E", TransitRoute.class), networkRoute, stops, "train");
 
-		Departure departure1 = f.createDeparture(Id.create(1, Departure.class), 30000.0);
-		departure1.setVehicleId(veh1.getId());
-		this.route1.addDeparture(departure1);
+        Departure departure1 = f.createDeparture(Id.create(1, Departure.class), 30000.0);
+        departure1.setVehicleId(veh1.getId());
+        this.route1.addDeparture(departure1);
 
-		this.line1.addRoute(this.route1);
-		schedule.addTransitLine(this.line1);
+        this.line1.addRoute(this.route1);
+        schedule.addTransitLine(this.line1);
 
-		addRouteAttributes(this.line1.getId(), this.route1.getId(), "route1");
-		addStopsAttributes(this.stopA.getId(), "A");
-		addStopsAttributes(this.stopB.getId(), "B");
-		addStopsAttributes(this.stopC.getId(), "C");
-		addStopsAttributes(this.stopD.getId(), "D");
-		addStopsAttributes(this.stopE.getId(), "E");
-	}
+        addRouteAttributes(this.line1.getId(), this.route1.getId());
+        addStopsAttributes(this.stopA.getId(), "A");
+        addStopsAttributes(this.stopB.getId(), "B");
+        addStopsAttributes(this.stopC.getId(), "C");
+        addStopsAttributes(this.stopD.getId(), "D");
+        addStopsAttributes(this.stopE.getId(), "E");
+    }
 
-	private void addRouteAttributes(Id lineId, Id routeId, String name) {
-		scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("04_DirectionCode", "code");
-		scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("09_TSysCode", "code");
-		scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("02_TransitLine", "code");
-		scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("03_LineRouteName", "code");
-		scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("05_Name", "code");
-	}
+    private void addRouteAttributes(Id lineId, Id routeId) {
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("04_DirectionCode", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("09_TSysCode", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("02_TransitLine", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("03_LineRouteName", "code");
+        scenario.getTransitSchedule().getTransitLines().get(lineId).getRoutes().get(routeId).getAttributes().putAttribute("05_Name", "code");
+    }
 
-	private void addStopsAttributes(Id stopId, String name) {
-		scenario.getTransitSchedule().getFacilities().get(stopId).getAttributes().putAttribute("02_Stop_No", name);
-	}
+    private void addStopsAttributes(Id stopId, String name) {
+        scenario.getTransitSchedule().getFacilities().get(stopId).getAttributes().putAttribute("02_Stop_No", name);
+    }
 
 	private Link createLink(NetworkFactory nf, int id, double length, Node fromNode, Node toNode) {
 		Link link = nf.createLink(Id.create(id, Link.class), fromNode, toNode);

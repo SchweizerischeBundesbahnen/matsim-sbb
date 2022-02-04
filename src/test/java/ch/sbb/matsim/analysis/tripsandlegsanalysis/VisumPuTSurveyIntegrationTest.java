@@ -14,6 +14,8 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
+import org.matsim.api.core.v01.population.HasPlansAndId;
 import org.matsim.testcases.MatsimTestUtils;
 
 public class VisumPuTSurveyIntegrationTest {
@@ -48,11 +50,11 @@ public class VisumPuTSurveyIntegrationTest {
 				"\n$OEVTEILWEG:DATENSATZNR;TWEGIND;VONHSTNR;NACHHSTNR;VSYSCODE;" +
 				"LINNAME;LINROUTENAME;RICHTUNGSCODE;FZPNAME;TEILWEG-KENNUNG;EINHSTNR;EINHSTABFAHRTSTAG;" +
 				"EINHSTABFAHRTSZEIT;PFAHRT;SUBPOP;ORIG_GEM;DEST_GEM;ACCESS_TO_RAIL_MODE;EGRESS_FROM_RAIL_MODE;" +
-				"ACCESS_TO_RAIL_DIST;EGRESS_FROM_RAIL_DIST;PERSONID;FROM_ACT;TO_ACT\n" +
-				"1;1;B;D;code;code;code;code;code;E;B;1;08:11:40;1.0;regular;999999999;999999999;;;0;0;1;home;work\n";
+				"ACCESS_TO_RAIL_DIST;EGRESS_FROM_RAIL_DIST;PERSONID;TOURID_TRIPID;FROM_ACT;TO_ACT\n" +
+				"1;1;B;D;code;code;code;code;code;E;B;1;08:11:40;1.0;regular;999999999;999999999;;;0;0;1;;home;work\n";
 
 		putSurveyWriter.collectAndWritePUTSurvey(this.utils.getOutputDirectory() + "matsim_put_survey.att",
-				fixture.scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(p -> p.getId(), p -> p.getSelectedPlan())));
+				fixture.scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(Identifiable::getId, HasPlansAndId::getSelectedPlan)));
 
 		// Add Assert
 		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.utils.getOutputDirectory() + "matsim_put_survey.att"), "Cp1252"));

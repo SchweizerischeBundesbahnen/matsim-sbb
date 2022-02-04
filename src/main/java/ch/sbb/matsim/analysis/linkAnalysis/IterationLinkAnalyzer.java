@@ -19,43 +19,42 @@
 
 package ch.sbb.matsim.analysis.linkAnalysis;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.VehicleEntersTrafficEvent;
 import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.events.handler.VehicleEntersTrafficEventHandler;
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.core.api.experimental.events.EventsManager;
 
 /**
  * Counts the vehicles per iteration on all links
  */
 public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEntersTrafficEventHandler {
 
-    private Map<Id<Link>, AtomicInteger> countPerLink = new HashMap<>();
-
-    @Inject
-    public IterationLinkAnalyzer(EventsManager eventsManager) {
-        eventsManager.addHandler(this);
-    }
+    private final IdMap<Link, Integer> countPerLink = new IdMap<>(Link.class);
 
     @Override
     public void handleEvent(LinkEnterEvent event) {
         var linkId = event.getLinkId();
-        countPerLink.computeIfAbsent(linkId, i -> new AtomicInteger(0)).incrementAndGet();
+
+        int count = countPerLink.getOrDefault(linkId, 0);
+        count++;
+        countPerLink.put(linkId, count);
 
     }
 
     @Override
     public void handleEvent(VehicleEntersTrafficEvent event) {
         var linkId = event.getLinkId();
-        countPerLink.computeIfAbsent(linkId, i -> new AtomicInteger(0)).incrementAndGet();
+
+        int count = countPerLink.getOrDefault(linkId, 0);
+        count++;
+        countPerLink.put(linkId, count);
     }
 
     @Override
@@ -64,7 +63,7 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
     }
 
     public Map<Id<Link>, Integer> getIterationCounts() {
-        return countPerLink.entrySet().stream().collect(Collectors.toMap(k -> k.getKey(), k -> k.getValue().intValue(), (k, k2) -> k, TreeMap::new));
+        return countPerLink.entrySet().stream().collect(Collectors.toMap(Entry::getKey, Entry::getValue, (k, k2) -> k, TreeMap::new));
 
     }
 }

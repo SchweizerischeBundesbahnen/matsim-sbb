@@ -8,6 +8,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.speedy.SpeedyGraph;
 import org.matsim.core.router.speedy.SpeedyGraph.LinkIterator;
@@ -155,48 +156,48 @@ public class GraphTest {
 
 	private static class Fixture {
 
-		Node node1;
-		Node node2;
-		Node node3;
-		Node node4;
-		Node node5;
-		Node node6;
+        final Node node1;
+        final Node node2;
+        final Node node3;
+        final Node node4;
+        final Node node5;
+        final Node node6;
 
-		Network network;
+        final Network network;
 
-		Link link12;
-		Link link21;
-		Link link13;
-		Link link14;
-		Link link34;
-		Link link35;
-		Link link46;
-		Link link56;
-		Link link65;
-		Link link62;
+        final Link link12;
+        final Link link21;
+        final Link link13;
+        final Link link14;
+        final Link link34;
+        final Link link35;
+        final Link link46;
+        final Link link56;
+        final Link link65;
+        final Link link62;
 
-		public Fixture() {
+        public Fixture() {
 
-			/*
-			 *   (1)==================(2)
-			 *    | \_____             ^
-			 *    v       \            |
-			 *   (3)-------(4)________ |
-			 *    v                   \^
-			 *   (5)==================(6)
-			 */
+            /*
+             *   (1)==================(2)
+             *    | \_____             ^
+             *    v       \            |
+             *   (3)-------(4)________ |
+             *    v                   \^
+             *   (5)==================(6)
+             */
 
-			this.network = NetworkUtils.createNetwork();
-			NetworkFactory nf = this.network.getFactory();
+            this.network = NetworkUtils.createNetwork(ConfigUtils.createConfig());
+            NetworkFactory nf = this.network.getFactory();
 
-			this.node1 = nf.createNode(Id.create("1", Node.class), new Coord(0, 1000));
-			this.node2 = nf.createNode(Id.create("2", Node.class), new Coord(5000, 1000));
-			this.node3 = nf.createNode(Id.create("3", Node.class), new Coord(0, 300));
-			this.node4 = nf.createNode(Id.create("4", Node.class), new Coord(2000, 300));
-			this.node5 = nf.createNode(Id.create("5", Node.class), new Coord(0, 0));
-			this.node6 = nf.createNode(Id.create("6", Node.class), new Coord(5000, 0));
+            this.node1 = nf.createNode(Id.create("1", Node.class), new Coord(0, 1000));
+            this.node2 = nf.createNode(Id.create("2", Node.class), new Coord(5000, 1000));
+            this.node3 = nf.createNode(Id.create("3", Node.class), new Coord(0, 300));
+            this.node4 = nf.createNode(Id.create("4", Node.class), new Coord(2000, 300));
+            this.node5 = nf.createNode(Id.create("5", Node.class), new Coord(0, 0));
+            this.node6 = nf.createNode(Id.create("6", Node.class), new Coord(5000, 0));
 
-			this.network.addNode(this.node1);
+            this.network.addNode(this.node1);
 			this.network.addNode(this.node2);
 			this.network.addNode(this.node3);
 			this.network.addNode(this.node4);
