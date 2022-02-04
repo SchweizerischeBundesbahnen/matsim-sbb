@@ -30,6 +30,7 @@ import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,8 +44,10 @@ import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.HasPlansAndId;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
@@ -130,7 +133,7 @@ public class PutSurveyWriter {
     public static void writePutSurvey(String filename, List<List<PutSurveyEntry>> entries) {
 
         try (CSVWriter writer = new CSVWriter(HEADER, COLUMNS, filename)) {
-            entries.stream().flatMap(l -> l.stream()).forEach(e -> {
+            entries.stream().flatMap(Collection::stream).forEach(e -> {
                 writer.set(COL_PATH_ID, e.path_id);
                 writer.set(COL_LEG_ID, e.leg_id);
                 writer.set(COL_FROM_STOP, e.from_stop);
@@ -213,7 +216,7 @@ public class PutSurveyWriter {
         new PopulationReader(scenario).readFile(experiencedPlansFile);
 
         PutSurveyWriter putSurveyWriter = new PutSurveyWriter(scenario, collection, ppc);
-        putSurveyWriter.collectAndWritePUTSurvey(outputFile, scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(p -> p.getId(), p -> p.getSelectedPlan())));
+        putSurveyWriter.collectAndWritePUTSurvey(outputFile, scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(Identifiable::getId, HasPlansAndId::getSelectedPlan)));
 
     }
 
@@ -280,7 +283,6 @@ public class PutSurveyWriter {
                                         TransitRoute transitRoute = line.getRoutes().get(r.getRouteId());
                                         String from_stop = String.valueOf(schedule.getFacilities().get(r.getAccessStopId()).getAttributes().getAttribute(STOP_NO));
                                         String to_stop = String.valueOf(schedule.getFacilities().get(r.getEgressStopId()).getAttributes().getAttribute(STOP_NO));
-                                        ;
                                         String vsyscode = String.valueOf(transitRoute.getAttributes().getAttribute(TSYS_CODE));
                                         String linname = String.valueOf(transitRoute.getAttributes().getAttribute(TRANSITLINE));
                                         String linroutename = String.valueOf(transitRoute.getAttributes().getAttribute(LINEROUTENAME));
@@ -289,12 +291,11 @@ public class PutSurveyWriter {
                                         String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
 
                                         String teilweg_kennung = leg_id > 1 ? "N" : "E";
-                                        String einhstnr = from_stop;
                                         String einhstabfahrtstag = getDayIndex(r.getBoardingTime().seconds());
                                         String einhstabfahrtszeit = getTime(r.getBoardingTime().seconds());
 
                                         PutSurveyEntry putSurveyEntry = new PutSurveyEntry(path_id, String.valueOf(leg_id), from_stop, to_stop, vsyscode, linname, linroutename, richtungscode,
-                                                fzprofilname, teilweg_kennung, einhstnr, einhstabfahrtstag, einhstabfahrtszeit, scaleFactor, subpop, orig_gem, dest_gem);
+                                                fzprofilname, teilweg_kennung, from_stop, einhstabfahrtstag, einhstabfahrtszeit, scaleFactor, subpop, orig_gem, dest_gem);
                                         putSurveyEntry.from_act = from_act;
                                         putSurveyEntry.to_act = to_act;
                                         putSurveyEntry.personId = e.getKey().toString();

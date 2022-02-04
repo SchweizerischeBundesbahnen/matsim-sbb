@@ -5,6 +5,8 @@ import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
 import org.junit.Test;
 import org.locationtech.jts.util.Assert;
 import org.matsim.api.core.v01.Coord;
@@ -27,14 +29,12 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.vehicles.Vehicle;
 
-import java.io.File;
-import java.io.IOException;
-
 /**
  * @author mrieser
  */
 public class CarLinkAnalysisTest {
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test
     public void testLinkVolumeTracking() throws IOException {
         Fixture f = new Fixture();
@@ -87,8 +87,8 @@ public class CarLinkAnalysisTest {
      */
     private static class Fixture {
 
-        Config config;
-        Scenario scenario;
+        final Config config;
+        final Scenario scenario;
         EventsManager events;
 
         public Fixture() {

@@ -13,7 +13,6 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.population.algorithms.PersonAlgorithm;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.router.TripStructureUtils;
@@ -31,7 +30,7 @@ public class CreateCloneAgents {
 	private static final int NOOFAGENTS = 1385;
 	private static final Id<ActivityFacility> FACILITYID = Id.create("B_309093", ActivityFacility.class);
 
-	private Random random = MatsimRandom.getRandom();
+	private final Random random = MatsimRandom.getRandom();
 
 	public static void main(String[] args) {
 		new CreateCloneAgents().run();
@@ -48,6 +47,7 @@ public class CreateCloneAgents {
 				personQueue = new LinkedList<>(sourcepersons);
 			}
 			Person p = personQueue.poll();
+			assert p != null;
 			copyPerson(population, p, i);
 		}
 		new PopulationWriter(population).write(DESTINATIONPOP);
@@ -67,16 +67,13 @@ public class CreateCloneAgents {
 	private Population readSourcePopulation() {
 		Population population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
 		StreamingPopulationReader spr = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
-		spr.addAlgorithm(new PersonAlgorithm() {
-			@Override
-			public void run(Person person) {
-				Plan plan = person.getSelectedPlan();
-				if (TripStructureUtils.getActivities(plan, TripStructureUtils.StageActivityHandling.ExcludeStageActivities).stream().filter(a -> a.getFacilityId() != null).anyMatch(a ->
-						(a.getFacilityId().equals(FACILITYID) && a.getType().startsWith(ACTIVITYTYPE)))) {
-					population.addPerson(person);
-				}
-
+		spr.addAlgorithm(person -> {
+			Plan plan = person.getSelectedPlan();
+			if (TripStructureUtils.getActivities(plan, TripStructureUtils.StageActivityHandling.ExcludeStageActivities).stream().filter(a -> a.getFacilityId() != null).anyMatch(a ->
+					(a.getFacilityId().equals(FACILITYID) && a.getType().startsWith(ACTIVITYTYPE)))) {
+				population.addPerson(person);
 			}
+
 		});
 		spr.readFile(SOURCEPOP);
 		return population;

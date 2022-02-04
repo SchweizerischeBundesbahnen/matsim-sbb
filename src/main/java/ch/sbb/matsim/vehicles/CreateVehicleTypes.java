@@ -28,17 +28,17 @@ public class CreateVehicleTypes {
 	}
 
 	private static void createVehicleTypes(Vehicles vehicles, Map<String, Double> typeToPCE) {
-		VehiclesFactory vf = vehicles.getFactory();
-		for (Map.Entry<String, Double> typeStr : typeToPCE.entrySet()) {
-			Id<VehicleType> typeId = Id.create(typeStr.getKey(), VehicleType.class);
-			VehicleType type = vf.createVehicleType(typeId);
-			type.setPcuEquivalents(typeStr.getValue());
+        VehiclesFactory vf = vehicles.getFactory();
+        for (Map.Entry<String, Double> typeStr : typeToPCE.entrySet()) {
+            Id<VehicleType> typeId = Id.create(typeStr.getKey(), VehicleType.class);
+            VehicleType type = vf.createVehicleType(typeId);
+            type.setPcuEquivalents(typeStr.getValue());
 
-			vehicles.addVehicleType(type);
-		}
-	}
+            vehicles.addVehicleType(type);
+        }
+    }
 
-	private static void writeVehicleTypes(Vehicles vehicles, String output) throws IOException {
-		new MatsimVehicleWriter(vehicles).writeFile(output);
-	}
+    private static void writeVehicleTypes(Vehicles vehicles, String output) {
+        new MatsimVehicleWriter(vehicles).writeFile(output);
+    }
 }

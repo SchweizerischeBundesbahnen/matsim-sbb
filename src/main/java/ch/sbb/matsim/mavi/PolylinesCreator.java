@@ -138,15 +138,15 @@ public class PolylinesCreator {
         }
     }
 
-    private void processNetworkStreets(Network network) throws IOException {
-        for (Link link : network.getLinks().values()) {
-            String linkId = link.getId().toString();
-            double[] xys = this.polylinePerVisumLink.get(linkId);
-            String value = xyToWkt(xys);
-            link.getAttributes().putAttribute("WKT", value);
-        }
+    private void processNetworkStreets(Network network) {
+		for (Link link : network.getLinks().values()) {
+			String linkId = link.getId().toString();
+			double[] xys = this.polylinePerVisumLink.get(linkId);
+			String value = xyToWkt(xys);
+			link.getAttributes().putAttribute("WKT", value);
+		}
 
-    }
+	}
 
     private void processNetwork(Network network, String outputFilename) throws IOException {
         try (CSVWriter out = new CSVWriter(null, new String[]{"LINK", "WKT"}, outputFilename)) {
@@ -159,7 +159,7 @@ public class PolylinesCreator {
 					double[] xys = null;
 					try {
 						xys = processLink(link, sequence);
-					} catch (NullPointerException e) {
+					} catch (NullPointerException ignored) {
 
 					}
 					if (xys != null && xys.length > 0) {

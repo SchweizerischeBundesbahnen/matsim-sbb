@@ -40,12 +40,12 @@ import org.matsim.core.utils.geometry.CoordUtils;
 public class MergeRuralLinks {
 
     public static final String VNODES = "vnodes";
-    Zones zones;
+    final Zones zones;
 
-    private Network network;
+    private final Network network;
     private int merged = 0;
-    private Map<Id<Link>, Link> linksToAdd = new HashMap<>();
-    private List<Link> linksToRemove = new ArrayList<>();
+    private final Map<Id<Link>, Link> linksToAdd = new HashMap<>();
+    private final List<Link> linksToRemove = new ArrayList<>();
 
     public MergeRuralLinks(Network network, Zones zones) {
         this.network = network;
@@ -71,7 +71,7 @@ public class MergeRuralLinks {
             if (rural) {
                 for (Link l : node.getOutLinks().values()) {
                     Link nextLink = l;
-                    List<Link> linksToMerge = new ArrayList();
+                    List<Link> linksToMerge = new ArrayList<>();
                     linksToMerge.add(l);
                     while (nextLink.getToNode().getOutLinks().size() < 3) {
                         Link outLink = findRealOutLink(nextLink);
@@ -115,7 +115,7 @@ public class MergeRuralLinks {
             double beelineDist = CoordUtils.calcEuclideanDistance(fromNode.getCoord(), toNode.getCoord());
             String type = NetworkUtils.getType(link0);
             Integer accessControl = Integer.parseInt(String.valueOf(link0.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED)));
-            double length = linksToMerge.stream().mapToDouble(link -> link.getLength()).sum();
+            double length = linksToMerge.stream().mapToDouble(Link::getLength).sum();
             if (beelineDist > length) {
                 length = beelineDist;
             }

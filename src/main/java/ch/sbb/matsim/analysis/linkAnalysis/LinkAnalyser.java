@@ -27,21 +27,21 @@ import org.matsim.vehicles.Vehicle;
 
 public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler, TransitDriverStartsEventHandler {
 
-	private final static Logger log = Logger.getLogger(LinkAnalyser.class);
+    private final static Logger log = Logger.getLogger(LinkAnalyser.class);
 
-	protected Scenario scenario;
-	protected LinkedHashMap<Id, Integer> linkVolumes;
-	protected HashMap<Id<Vehicle>, Integer> passengers;
-	protected HashSet<Id> transitDrivers;
+    protected final Scenario scenario;
+    protected final LinkedHashMap<Id, Integer> linkVolumes;
+    protected final HashMap<Id<Vehicle>, Integer> passengers;
+    protected final HashSet<Id> transitDrivers;
 
-	public LinkAnalyser(Scenario scenario) {
-		this.scenario = scenario;
-		this.passengers = new HashMap<>();
-		this.transitDrivers = new HashSet<>();
-		this.linkVolumes = new LinkedHashMap<>();
-		this.linkVolumes.putAll(scenario.getNetwork().getLinks().keySet()
-				.stream().collect(Collectors.toMap(Functions.identity(), i -> 0)));
-	}
+    public LinkAnalyser(Scenario scenario) {
+        this.scenario = scenario;
+        this.passengers = new HashMap<>();
+        this.transitDrivers = new HashSet<>();
+        this.linkVolumes = new LinkedHashMap<>();
+        this.linkVolumes.putAll(scenario.getNetwork().getLinks().keySet()
+                .stream().collect(Collectors.toMap(Functions.identity(), i -> 0)));
+    }
 
 	public static void main(String[] args) {
 		Config config = ConfigUtils.createConfig();

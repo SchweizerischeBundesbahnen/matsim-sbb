@@ -24,19 +24,23 @@ import java.util.Set;
 
 public class MergeAndSlice {
 
-    public static void main(String[] args) throws IOException {
-        Set<String> folders = Set.of("\\\\wsbbrz0283\\mobi\\40_Projekte\\20210407_Prognose_2050\\2050\\plans_exogeneous\\make_plans\\road\\Liechtenstein\\merge\\2050",
-                "\\\\wsbbrz0283\\mobi\\40_Projekte\\20210407_Prognose_2050\\2050\\plans_exogeneous\\make_plans\\road\\Liechtenstein\\merge\\2030",
-                "\\\\wsbbrz0283\\mobi\\40_Projekte\\20210407_Prognose_2050\\2050\\plans_exogeneous\\make_plans\\road\\Liechtenstein\\merge\\2040",
-                "\\\\wsbbrz0283\\mobi\\40_Projekte\\20210407_Prognose_2050\\2050\\plans_exogeneous\\make_plans\\road\\Liechtenstein\\merge\\2017");
+    public static void main(String[] args) {
+        Set<String> folders = Set.of("C:\\devsbb\\fr2040");
         Set<Integer> toCut = Set.of(10, 4, 2);
 
         for (var s : folders) {
-            SimplePlansMerger.main(new String[]{s});
-            for (var d : toCut) {
-                PopulationSlicer.main(new String[]{s + "\\plans.xml.gz", "-", Integer.toString(d)});
+            //SimplePlansMerger.main(new String[]{s});
+            toCut.parallelStream().forEach(d ->
+                    {
+                        try {
+                            PopulationSlicer.
+                                    main(new String[]{s + "\\plans.xml.gz", "-", Integer.toString(d)});
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+            );
 
-            }
         }
     }
 }

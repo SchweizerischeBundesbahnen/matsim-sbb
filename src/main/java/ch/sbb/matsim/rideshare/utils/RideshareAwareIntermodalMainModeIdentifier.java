@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
 import org.matsim.core.config.Config;
 import org.matsim.core.router.MainModeIdentifier;
@@ -21,7 +22,7 @@ public class RideshareAwareIntermodalMainModeIdentifier implements MainModeIdent
 		this.delegate = new IntermodalAwareRouterModeIdentifier(config);
 		MultiModeDrtConfigGroup drtCfg = MultiModeDrtConfigGroup.get(config);
         this.drtWalkTypes = drtCfg.getModalElements().stream()
-                .map((drtConfigGroup) -> drtConfigGroup.getMode())
+				.map(DrtConfigGroup::getMode)
                 .collect(Collectors.toMap(s -> SBBModes.WALK_FOR_ANALYSIS, s -> s));
 	}
 

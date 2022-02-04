@@ -96,7 +96,8 @@ public class CalculateAccessibility {
 	public static Map<Coord, Double> loadAttractions(File file) throws IOException {
 		Map<Coord, Double> attractions = new HashMap<>();
 		try (CSVReader csv = new CSVReader(new String[]{"x", "y", "attraction"}, file.getAbsolutePath(), ";")) {
-			Map<String, String> data = csv.readLine(); // header
+			csv.readLine();
+			Map<String, String> data; // header
 			while ((data = csv.readLine()) != null) {
 				attractions.put(new Coord(Double.parseDouble(data.get("x")), Double.parseDouble(data.get("y"))), Double.parseDouble(data.get("attraction")));
 			}
@@ -104,6 +105,7 @@ public class CalculateAccessibility {
 		return attractions;
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public static void main(String[] args) throws IOException {
 		System.setProperty("matsim.preferLocalDtds", "true");
 
@@ -174,7 +176,7 @@ public class CalculateAccessibility {
 		}
 
 		Set<String> modesSet = new HashSet<>();
-        modesSet.addAll(Arrays.asList(modesStr));
+		modesSet.addAll(Arrays.asList(modesStr));
 		List<Accessibility.Modes> modesList = new ArrayList<>();
 		if (modesSet.contains("mm")) {
 			modesList.add(new Accessibility.Modes("mm", true, true, true, true));
@@ -187,7 +189,7 @@ public class CalculateAccessibility {
 		}
 		Accessibility.Modes[] modes = modesList.toArray(new Modes[0]);
 
-		Map<Coord, Double> attractions = null;
+		Map<Coord, Double> attractions;
 		if (attractionsFile.exists()) {
 			log.info("loading attractions from " + attractionsFile.getAbsolutePath());
 			attractions = loadAttractions(attractionsFile);

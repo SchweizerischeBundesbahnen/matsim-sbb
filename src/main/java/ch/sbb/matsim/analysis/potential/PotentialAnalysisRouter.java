@@ -27,21 +27,21 @@ import org.matsim.facilities.Facility;
 
 public class PotentialAnalysisRouter {
 
-	private static final Logger log = Logger.getLogger(PotentialAnalysisRouter.class);
-	private final double startTime;
-	private Network network;
-	private NetworkRoutingModule router;
-	private Person person;
+    private static final Logger log = Logger.getLogger(PotentialAnalysisRouter.class);
+    private final double startTime;
+    private final Network network;
+    private final NetworkRoutingModule router;
+    private final Person person;
 
-	//use this method for free flow travel time evaluation
-	public PotentialAnalysisRouter(Network network, double startTime) {
-		this.person = PopulationUtils.getFactory().createPerson(Id.create(1, Person.class));
-		this.network = network;
-		this.startTime = startTime;
+    //use this method for free flow travel time evaluation
+    public PotentialAnalysisRouter(Network network, double startTime) {
+        this.person = PopulationUtils.getFactory().createPerson(Id.create(1, Person.class));
+        this.network = network;
+        this.startTime = startTime;
 
-		DijkstraFactory factory = new DijkstraFactory();
-		TravelTime tt = new FreeSpeedTravelTime();
-		TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
+        DijkstraFactory factory = new DijkstraFactory();
+        TravelTime tt = new FreeSpeedTravelTime();
+        TravelDisutility td = new OnlyTimeDependentTravelDisutility(tt);
 
 		LeastCostPathCalculator routeAlgo = factory.createPathCalculator(network, td, tt);
 		this.router = new NetworkRoutingModule(
@@ -83,8 +83,7 @@ public class PotentialAnalysisRouter {
 	public Leg fetch(Facility fromFacility, Facility toFacility) {
 
         List<? extends PlanElement> pes = this.router.calcRoute(DefaultRoutingRequest.withoutAttributes(fromFacility, toFacility, this.startTime, this.person));
-        Leg leg = (Leg) pes.get(0);
 
-        return leg;
+        return (Leg) pes.get(0);
     }
 }

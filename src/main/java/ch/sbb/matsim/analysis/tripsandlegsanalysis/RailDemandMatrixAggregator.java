@@ -38,6 +38,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.HasPlansAndId;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
@@ -140,7 +141,7 @@ public class RailDemandMatrixAggregator {
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
         RailDemandMatrixAggregator railDemandMatrixAggregator = new RailDemandMatrixAggregator(scenario.getTransitSchedule(), zonesCollection, ppcg, railTripsAnalyzer);
         railDemandMatrixAggregator
-                .writeMatrix(railDemandMatrixAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(p -> p.getSelectedPlan()).collect(
+                .writeMatrix(railDemandMatrixAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(
                         Collectors.toSet())), outputFile);
 
     }
@@ -153,11 +154,11 @@ public class RailDemandMatrixAggregator {
             int s1 = Integer.MAX_VALUE;
             try {
                 s0 = Integer.parseInt(s);
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException ignored) {
             }
             try {
                 s1 = Integer.parseInt(t1);
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException ignored) {
             }
             if (s0 != s1) {
                 return Integer.compare(s0, s1);

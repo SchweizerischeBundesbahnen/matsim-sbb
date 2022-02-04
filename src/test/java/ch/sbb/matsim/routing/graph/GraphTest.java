@@ -156,27 +156,27 @@ public class GraphTest {
 
 	private static class Fixture {
 
-		Node node1;
-		Node node2;
-		Node node3;
-		Node node4;
-		Node node5;
-		Node node6;
+        final Node node1;
+        final Node node2;
+        final Node node3;
+        final Node node4;
+        final Node node5;
+        final Node node6;
 
-		Network network;
+        final Network network;
 
-		Link link12;
-		Link link21;
-		Link link13;
-		Link link14;
-		Link link34;
-		Link link35;
-		Link link46;
-		Link link56;
-		Link link65;
-		Link link62;
+        final Link link12;
+        final Link link21;
+        final Link link13;
+        final Link link14;
+        final Link link34;
+        final Link link35;
+        final Link link46;
+        final Link link56;
+        final Link link65;
+        final Link link62;
 
-		public Fixture() {
+        public Fixture() {
 
             /*
              *   (1)==================(2)

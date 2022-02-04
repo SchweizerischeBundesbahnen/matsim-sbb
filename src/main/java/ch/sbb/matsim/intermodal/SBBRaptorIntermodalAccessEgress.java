@@ -16,6 +16,7 @@ import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesQueryCache;
 import java.util.List;
+import java.util.Objects;
 import javax.inject.Inject;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -102,7 +103,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
 	private double getDetourFactor(Id<Link> startLinkId, String mode) {
 		SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
-		if (parameterSet.getDetourFactor() != null) {
+		if (Objects.requireNonNull(parameterSet).getDetourFactor() != null) {
 			return parameterSet.getDetourFactor();
 		} else if (parameterSet.getDetourFactorZoneId() != null) {
 			Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());

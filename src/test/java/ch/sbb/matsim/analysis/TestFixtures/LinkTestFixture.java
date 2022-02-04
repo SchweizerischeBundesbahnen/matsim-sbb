@@ -32,24 +32,23 @@ import org.matsim.testcases.utils.EventsCollector;
 
 public class LinkTestFixture {
 
-	public Scenario scenario;
-	public Config config;
-	public EventsManager eventsManager;
-	private Link link1;
-	private Link link2;
-	private Link link3;
-	private boolean qsimPrepared = false;
+    public final Scenario scenario;
+    public final Config config;
+    public final EventsManager eventsManager;
+    private final Link link1;
+    private final Link link2;
+    private final Link link3;
 
-	public LinkTestFixture() {
-		config = ConfigUtils.createConfig();
-		config.qsim().setEndTime(35000);
-		Scenario scenario = ScenarioUtils.createScenario(config);
-		this.scenario = scenario;
-		this.eventsManager = EventsUtils.createEventsManager(config);
+    public LinkTestFixture() {
+        config = ConfigUtils.createConfig();
+        config.qsim().setEndTime(35000);
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        this.scenario = scenario;
+        this.eventsManager = EventsUtils.createEventsManager(config);
 
-		Network network = scenario.getNetwork();
+        Network network = scenario.getNetwork();
 
-		NetworkFactory nf = network.getFactory();
+        NetworkFactory nf = network.getFactory();
 
 		Node node2 = nf.createNode(Id.create(2, Node.class), new Coord(15000, 0));
 		Node node3 = nf.createNode(Id.create(3, Node.class), new Coord(25000, 0));
@@ -83,16 +82,17 @@ public class LinkTestFixture {
 	}
 
 	public void addEvents() {
-		if (!this.qsimPrepared) {
-			PrepareForSimUtils.createDefaultPrepareForSim(this.scenario).run();
-		}
-		QSim qSim = new QSimBuilder(this.config).useDefaults().build(scenario, this.eventsManager);
+        boolean qsimPrepared = false;
+        if (!qsimPrepared) {
+            PrepareForSimUtils.createDefaultPrepareForSim(this.scenario).run();
+        }
+        QSim qSim = new QSimBuilder(this.config).useDefaults().build(scenario, this.eventsManager);
 
-		EventsCollector collector = new EventsCollector();
-		this.eventsManager.addHandler(collector);
+        EventsCollector collector = new EventsCollector();
+        this.eventsManager.addHandler(collector);
 
-		qSim.run();
-		List<Event> allEvents = collector.getEvents();
+        qSim.run();
+        List<Event> allEvents = collector.getEvents();
 
 		for (Event event : allEvents) {
 			System.out.println(event.toString());

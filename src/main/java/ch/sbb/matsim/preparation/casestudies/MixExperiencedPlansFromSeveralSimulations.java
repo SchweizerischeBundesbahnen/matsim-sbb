@@ -19,11 +19,7 @@
 
 package ch.sbb.matsim.preparation.casestudies;
 
-import ch.sbb.matsim.RunSBB;
-import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
-import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
-import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -37,28 +33,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.ConfigWriter;
-import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
-import org.matsim.core.population.PersonUtils;
-import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.population.algorithms.TripsToLegsAlgorithm;
 import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.population.io.StreamingPopulationWriter;
-import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule.DefaultSelector;
-import org.matsim.core.router.TripStructureUtils;
-import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.facilities.ActivityFacility;
-import org.matsim.facilities.MatsimFacilitiesReader;
-import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
@@ -72,7 +54,6 @@ public class MixExperiencedPlansFromSeveralSimulations {
     private final static Logger LOG = Logger.getLogger(MixExperiencedPlansFromSeveralSimulations.class);
     private final Map<String, Map<String, String>> runs;
     private final String outputPlansFile;
-    private final TransitSchedule schedule;
 
     /**
      * T
@@ -86,7 +67,7 @@ public class MixExperiencedPlansFromSeveralSimulations {
         this.outputPlansFile = outputPlansFile;
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(transitSchedulePath);
-        this.schedule = scenario.getTransitSchedule();
+        TransitSchedule schedule = scenario.getTransitSchedule();
     }
 
     /**
@@ -129,7 +110,7 @@ public class MixExperiencedPlansFromSeveralSimulations {
 
             if (!run.equals("base")) {
                 LOG.info("processing run " + run);
-                Set<Id<Person>> whitelist = Files.lines(Path.of(runs.get(run).get("ids"))).map(t -> Id.createPersonId(t)).collect(Collectors.toSet());
+                Set<Id<Person>> whitelist = Files.lines(Path.of(runs.get(run).get("ids"))).map(Id::createPersonId).collect(Collectors.toSet());
                 LOG.info("whitelist contains " + whitelist.size() + " persons");
                 int numPersons = allPersons.size();
                 StreamingPopulationReader populationReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));

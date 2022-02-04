@@ -3,36 +3,11 @@ package ch.sbb.matsim.accessibility;
 import ch.sbb.matsim.analysis.skims.RooftopUtils;
 import ch.sbb.matsim.analysis.skims.RooftopUtils.ODConnection;
 import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorInVehicleCostCalculator;
-import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorStopFinder;
-import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorTransferCostCalculator;
-import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
-import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
+import ch.sbb.matsim.routing.pt.raptor.*;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
-import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
-import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.TravelInfo;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -64,12 +39,18 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
 import org.matsim.core.utils.misc.OptionalTime;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.vehicles.Vehicle;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 /**
  * Calculates high-resolution accessibility.
@@ -561,15 +542,14 @@ public class Accessibility {
 		final List<TransitStopFacility> stops = new ArrayList<>();
 
 		public String toString(BlockKey key, int blockSize) {
-			StringBuilder str = new StringBuilder(50);
-			str.append(key.xKey * blockSize);
-			str.append('/');
-			str.append(key.yKey * blockSize);
-			str.append(" #coordinates = ");
-			str.append(this.coords.size());
-			str.append(" #stops = ");
-			str.append(this.stops.size());
-			return str.toString();
+			String str = String.valueOf(key.xKey * blockSize)
+					+ '/'
+					+ key.yKey * blockSize
+					+ " #coordinates = "
+					+ this.coords.size()
+					+ " #stops = "
+					+ this.stops.size();
+			return str;
 		}
 	}
 
@@ -616,14 +596,13 @@ public class Accessibility {
 		private final RaptorParameters parameters;
 		private final double ptMinDepartureTime;
 		private final double ptMaxDepartureTime;
-		private final double stepSize = 120;
 		private final BiPredicate<TransitLine, TransitRoute> trainDetector;
 		private final Map<Coord, ZoneData> zoneData;
 		private final Modes[] modes;
 		private final Counter counter;
 		private final Queue<Coord> coordinates;
 		private final Queue<Tuple<Coord, double[]>> results;
-		private Zones zones;
+		private final Zones zones;
 
 		RowWorker(Network carNetwork, SpeedyGraph carGraph, Network xy2linksNetwork, TravelTime tt, TravelDisutility td, double[] carAMDepTimes, double[] carPMDepTimes,
 				SwissRailRaptor raptor, RaptorParameters parameters, double ptMinDepartureTime, double ptMaxDepartureTime, BiPredicate<TransitLine, TransitRoute> trainDetector,
@@ -708,7 +687,8 @@ public class Accessibility {
 
 			double timeWindow = this.ptMaxDepartureTime - this.ptMinDepartureTime;
 			double endTime = this.ptMaxDepartureTime + timeWindow;
-			for (double time = this.ptMinDepartureTime - timeWindow; time < endTime; time += this.stepSize) {
+			double stepSize = 120;
+			for (double time = this.ptMinDepartureTime - timeWindow; time < endTime; time += stepSize) {
 
 				Map<Id<TransitStopFacility>, TravelInfo> tree = this.raptor.calcTree(fromStops, time, this.parameters, null);
 				trees.add(tree);
@@ -835,7 +815,7 @@ public class Accessibility {
 								// it's a non-transfer part, an actual pt stage
 
 								boolean isTrain = this.trainDetector.test(part.line, part.route);
-								double inVehicleTime = isFirstLeg ? (part.arrivalTime - part.boardingTime) : (part.arrivalTime - part.boardingTime);
+								double inVehicleTime = (part.arrivalTime - part.boardingTime);
 								isFirstLeg = false;
 
 								connTotalDistance += part.distance;
@@ -926,7 +906,7 @@ public class Accessibility {
 		private final Counter counter;
 		private final Queue<Coord> coordinates;
 		private final Queue<Tuple<Coord, double[]>> results;
-		private Zones zones;
+		private final Zones zones;
 
 		OptimizedRowWorker(Network carNetwork, SpeedyGraph carGraph, Network xy2linksNetwork, TravelTime tt, TravelDisutility td, double[] carAMDepTimes, double[] carPMDepTimes,
 				ConcurrentHashMap<Id<TransitStopFacility>, IdMap<TransitStopFacility, List<ODConnection>>> cache, TransitSchedule transitSchedule, DeparturesCache departuresCache,
@@ -1183,7 +1163,7 @@ public class Accessibility {
 									// it's a non-transfer part, an actual pt stage
 
 									boolean isTrain = this.trainDetector.test(part.line, part.route);
-									double inVehicleTime = isFirstLeg ? (part.arrivalTime - part.boardingTime) : (part.arrivalTime - part.boardingTime);
+									double inVehicleTime = (part.arrivalTime - part.boardingTime);
 									isFirstLeg = false;
 
 									connTotalDistance += part.distance;
@@ -1332,13 +1312,13 @@ public class Accessibility {
 
 	public static class Modes {
 
-		private String id;
-		private boolean car;
-		private boolean pt;
-		private boolean walk;
-		private boolean bike;
-		private double missingModeUtility = -9999;
-		private double theta = 1;
+		private final String id;
+		private final boolean car;
+		private final boolean pt;
+		private final boolean walk;
+		private final boolean bike;
+		private final double missingModeUtility = -9999;
+		private final double theta = 1;
 
 		public Modes(String id, boolean car, boolean pt, boolean walk, boolean bike) {
 			this.id = id;

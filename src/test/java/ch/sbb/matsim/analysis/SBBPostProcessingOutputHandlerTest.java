@@ -3,6 +3,10 @@ package ch.sbb.matsim.analysis;
 import ch.sbb.matsim.analysis.TestFixtures.PtTestFixture;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,11 +28,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.testcases.MatsimTestUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 public class SBBPostProcessingOutputHandlerTest {
 
 	@Rule
@@ -39,19 +38,19 @@ public class SBBPostProcessingOutputHandlerTest {
 	 * */
 	@Test
 	public void testNotifyBeforeMobsimNoListeners() {
-		EventsManagerStub eventsManager = new EventsManagerStub();
-		Config config = ConfigUtils.createConfig();
-		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, false, false, false, false, false, false);
-		ppConfig.setDailyLinkVolumes(false);
-		ppConfig.setSimulationSampleSize(1.0);
-		config.addModule(ppConfig);
+        EventsManagerStub eventsManager = new EventsManagerStub();
+        Config config = ConfigUtils.createConfig();
+        PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(false, false, false, false, false, false);
+        ppConfig.setDailyLinkVolumes(false);
+        ppConfig.setSimulationSampleSize(1.0);
+        config.addModule(ppConfig);
 
-		Scenario scenario = ScenarioUtils.createScenario(config);
-		Controler controler = new Controler(scenario);
-		OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
-		ControlerConfigGroup configGroup = new ControlerConfigGroup();
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        Controler controler = new Controler(scenario);
+        OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
+        ControlerConfigGroup configGroup = new ControlerConfigGroup();
 
-		int iteration = 10;
+        int iteration = 10;
 
 		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
 				eventsManager,
@@ -74,19 +73,19 @@ public class SBBPostProcessingOutputHandlerTest {
 	 * */
 	@Test
 	public void testNotifyBeforeMobsimAllListenersWrongIt() {
-		EventsManagerStub eventsManager = new EventsManagerStub();
-		Config config = ConfigUtils.createConfig();
-		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, true, true, true, true, true, true);
-		ppConfig.setSimulationSampleSize(1.0);
+        EventsManagerStub eventsManager = new EventsManagerStub();
+        Config config = ConfigUtils.createConfig();
+        PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(true, true, true, true, true, true);
+        ppConfig.setSimulationSampleSize(1.0);
 
-		config.addModule(ppConfig);
+        config.addModule(ppConfig);
 
-		Scenario scenario = ScenarioUtils.createScenario(config);
-		Controler controler = new Controler(scenario);
-		OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
-		ControlerConfigGroup configGroup = new ControlerConfigGroup();
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        Controler controler = new Controler(scenario);
+        OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
+        ControlerConfigGroup configGroup = new ControlerConfigGroup();
 
-		int iteration = 9;
+        int iteration = 9;
 
 		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
 				eventsManager,
@@ -110,19 +109,19 @@ public class SBBPostProcessingOutputHandlerTest {
 	 * */
 	@Test
 	public void testNotifyBeforeMobsimAllListeners() {
-		EventsManagerStub eventsManager = new EventsManagerStub();
-		Config config = ConfigUtils.createConfig();
-		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, true, true, true, true, true, true);
-		ppConfig.setSimulationSampleSize(1.0);
-		config.addModule(ppConfig);
+        EventsManagerStub eventsManager = new EventsManagerStub();
+        Config config = ConfigUtils.createConfig();
+        PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(true, true, true, true, true, true);
+        ppConfig.setSimulationSampleSize(1.0);
+        config.addModule(ppConfig);
 
-		Scenario scenario = ScenarioUtils.createScenario(config);
-		Controler controler = new Controler(scenario);
-		OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
-		ControlerConfigGroup configGroup = new ControlerConfigGroup();
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        Controler controler = new Controler(scenario);
+        OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
+        ControlerConfigGroup configGroup = new ControlerConfigGroup();
 
-		int iteration = 10;
-		controlerIO.createIterationDirectory(iteration);
+        int iteration = 10;
+        controlerIO.createIterationDirectory(iteration);
 
 		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
 				eventsManager,
@@ -146,19 +145,19 @@ public class SBBPostProcessingOutputHandlerTest {
 	 * */
 	@Test
 	public void testNotifyBeforeMobsimLastIt() {
-		EventsManagerStub eventsManager = new EventsManagerStub();
-		Config config = ConfigUtils.createConfig();
-		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, true, true, true, true, true, true);
-		ppConfig.setSimulationSampleSize(1.0);
-		config.addModule(ppConfig);
+        EventsManagerStub eventsManager = new EventsManagerStub();
+        Config config = ConfigUtils.createConfig();
+        PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(true, true, true, true, true, true);
+        ppConfig.setSimulationSampleSize(1.0);
+        config.addModule(ppConfig);
 
-		Scenario scenario = ScenarioUtils.createScenario(config);
-		Controler controler = new Controler(scenario);
-		OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
-		ControlerConfigGroup configGroup = new ControlerConfigGroup();
-		configGroup.setLastIteration(11);
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        Controler controler = new Controler(scenario);
+        OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
+        ControlerConfigGroup configGroup = new ControlerConfigGroup();
+        configGroup.setLastIteration(11);
 
-		int iteration = 11;
+        int iteration = 11;
 		controlerIO.createIterationDirectory(iteration);
 
 		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
@@ -183,19 +182,19 @@ public class SBBPostProcessingOutputHandlerTest {
 	 * */
 	@Test
 	public void testNotifyBeforeMobsimAllListenersLastIt() {
-		EventsManagerStub eventsManager = new EventsManagerStub();
-		Config config = ConfigUtils.createConfig();
-		PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(10, true, true, true, true, true, true);
-		ppConfig.setSimulationSampleSize(1.0);
-		config.addModule(ppConfig);
+        EventsManagerStub eventsManager = new EventsManagerStub();
+        Config config = ConfigUtils.createConfig();
+        PostProcessingConfigGroup ppConfig = this.getPostProcessingConfigGroup(true, true, true, true, true, true);
+        ppConfig.setSimulationSampleSize(1.0);
+        config.addModule(ppConfig);
 
-		Scenario scenario = ScenarioUtils.createScenario(config);
-		Controler controler = new Controler(scenario);
-		OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
-		ControlerConfigGroup configGroup = new ControlerConfigGroup();
-		configGroup.setLastIteration(10);
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        Controler controler = new Controler(scenario);
+        OutputDirectoryHierarchy controlerIO = this.getOutputDirectoryHierarchy();
+        ControlerConfigGroup configGroup = new ControlerConfigGroup();
+        configGroup.setLastIteration(10);
 
-		int iteration = 10;
+        int iteration = 10;
 		controlerIO.createIterationDirectory(10);
 
 		SBBEventAnalysis outputHandler = new SBBEventAnalysis(
@@ -280,47 +279,46 @@ public class SBBPostProcessingOutputHandlerTest {
 		StringBuilder sb = new StringBuilder();
 		String line = br.readLine();
 
-		while (line != null) {
-			sb.append(line);
-			sb.append("\n");
-			line = br.readLine();
-		}
+        while (line != null) {
+            sb.append(line);
+            sb.append("\n");
+            line = br.readLine();
+        }
 
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
-	private PostProcessingConfigGroup getPostProcessingConfigGroup(int writeOutputsInterval, boolean eventPerPerson, boolean linkVolumes, boolean ptVolumes, boolean travelDiaries,
-			boolean writePlansCSV, boolean visumNetFile) {
-		PostProcessingConfigGroup ppConfig = new PostProcessingConfigGroup();
-		ppConfig.setWriteOutputsInterval(writeOutputsInterval);
-		ppConfig.setLinkVolumes(linkVolumes);
-		ppConfig.setPtVolumes(ptVolumes);
-		ppConfig.setWriteAgentsCSV(writePlansCSV);
-		ppConfig.setWritePlanElementsCSV(false);
+    private PostProcessingConfigGroup getPostProcessingConfigGroup(boolean eventPerPerson, boolean linkVolumes, boolean ptVolumes, boolean travelDiaries,
+            boolean writePlansCSV, boolean visumNetFile) {
+        PostProcessingConfigGroup ppConfig = new PostProcessingConfigGroup();
+        ppConfig.setWriteOutputsInterval(10);
+        ppConfig.setLinkVolumes(linkVolumes);
+        ppConfig.setPtVolumes(ptVolumes);
+        ppConfig.setWriteAgentsCSV(writePlansCSV);
+        ppConfig.setWritePlanElementsCSV(false);
 
-		return ppConfig;
-	}
+        return ppConfig;
+    }
 
 	private OutputDirectoryHierarchy getOutputDirectoryHierarchy() {
 		String outputPath = this.utils.getOutputDirectory();
-		OutputDirectoryHierarchy outputDirectoryHierarchy = new OutputDirectoryHierarchy(outputPath, OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, CompressionType.gzip);
 
-		return outputDirectoryHierarchy;
+        return new OutputDirectoryHierarchy(outputPath, OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, CompressionType.gzip);
 	}
 
-	private static class EventsManagerStub implements EventsManager {
+    private static class EventsManagerStub implements EventsManager {
 
-		List<EventHandler> eventHandlers = new ArrayList<>();
+        final List<EventHandler> eventHandlers = new ArrayList<>();
 
-		public List<EventHandler> getEventHandlers() {
-			return this.eventHandlers;
-		}
+        public List<EventHandler> getEventHandlers() {
+            return this.eventHandlers;
+        }
 
-		@Override
-		public void processEvent(final Event event) {
-		}
+        @Override
+        public void processEvent(final Event event) {
+        }
 
-		@Override
+        @Override
 		public void addHandler(final EventHandler handler) {
 			this.eventHandlers.add(handler);
 		}

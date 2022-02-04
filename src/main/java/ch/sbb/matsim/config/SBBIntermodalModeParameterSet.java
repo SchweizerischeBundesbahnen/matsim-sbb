@@ -1,5 +1,6 @@
 package ch.sbb.matsim.config;
 
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import java.net.URL;
 import java.util.Map;
 import java.util.Set;
@@ -207,7 +208,7 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 
 		Set<String> modesInRaptorConfig = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets()
 				.stream()
-				.map(p -> p.getMode())
+				.map(IntermodalAccessEgressParameterSet::getMode)
 				.collect(Collectors.toSet());
 		if (!modesInRaptorConfig.contains(mode)) {
 			throw new RuntimeException("Mode " + mode + "is defined in SBBIntermodalConfigGroup, but not in SwissRailRaptorConfigGroup. " +

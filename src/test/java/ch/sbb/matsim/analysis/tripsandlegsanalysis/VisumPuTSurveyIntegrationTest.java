@@ -14,6 +14,8 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
+import org.matsim.api.core.v01.population.HasPlansAndId;
 import org.matsim.testcases.MatsimTestUtils;
 
 public class VisumPuTSurveyIntegrationTest {
@@ -52,7 +54,7 @@ public class VisumPuTSurveyIntegrationTest {
 				"1;1;B;D;code;code;code;code;code;E;B;1;08:11:40;1.0;regular;999999999;999999999;;;0;0;1;;home;work\n";
 
 		putSurveyWriter.collectAndWritePUTSurvey(this.utils.getOutputDirectory() + "matsim_put_survey.att",
-				fixture.scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(p -> p.getId(), p -> p.getSelectedPlan())));
+				fixture.scenario.getPopulation().getPersons().values().stream().collect(Collectors.toMap(Identifiable::getId, HasPlansAndId::getSelectedPlan)));
 
 		// Add Assert
 		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.utils.getOutputDirectory() + "matsim_put_survey.att"), "Cp1252"));

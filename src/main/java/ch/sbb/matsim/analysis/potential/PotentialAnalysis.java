@@ -39,27 +39,27 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 public class PotentialAnalysis {
 
 	private static final Logger log = Logger.getLogger(PotentialAnalysis.class);
-	private static final String COL_X = "X";
-	private static final String COL_Y = "Y";
-	private static final String COL_ID = "ID";
-	private static final String COL_ACC_CAR = "ACCESSIBILITY_CAR";
-	private static final String COL_ACC_RATIO = "ACCESSIBILITY_RATIO";
-	private static final String COL_ACC_PT = "ACCESSIBILITY_PT";
-	private static final String COL_ACC_MULTI = "ACCESSIBILITY_MULTI";
-	private static final String COL_TIME_TO_STATION = "time_to_closest_station";
-	private static final String[] COLUMNS = {COL_X, COL_Y, COL_ID, COL_ACC_CAR, COL_ACC_MULTI, COL_ACC_PT, COL_TIME_TO_STATION, COL_ACC_RATIO};
+    private static final String COL_X = "X";
+    private static final String COL_Y = "Y";
+    private static final String COL_ID = "ID";
+    private static final String COL_ACC_CAR = "ACCESSIBILITY_CAR";
+    private static final String COL_ACC_RATIO = "ACCESSIBILITY_RATIO";
+    private static final String COL_ACC_PT = "ACCESSIBILITY_PT";
+    private static final String COL_ACC_MULTI = "ACCESSIBILITY_MULTI";
+    private static final String COL_TIME_TO_STATION = "time_to_closest_station";
+    private static final String[] COLUMNS = {COL_X, COL_Y, COL_ID, COL_ACC_CAR, COL_ACC_MULTI, COL_ACC_PT, COL_TIME_TO_STATION, COL_ACC_RATIO};
 
-	public static void main(String[] args) throws IOException {
-		System.setProperty("matsim.preferLocalDtds", "true");
+    public static void main(String[] args) {
+        System.setProperty("matsim.preferLocalDtds", "true");
 
-		String zonesShapeFilename = args[0];
-		String facilitiesFilename = "\\\\Filer16L\\P-V160L\\SIMBA.A11244\\90_Persoenlich\\u222223\\facilities_to_stations.xml.gz"; //args[1];
-		String networkFilename = args[2];
-		String transitScheduleFilename = args[3];
-		//String eventsFilename = args[3].equals("-") ? null : args[3];
-		//String outputDirectory = args[4];
+        String zonesShapeFilename = args[0];
+        String facilitiesFilename = "\\\\Filer16L\\P-V160L\\SIMBA.A11244\\90_Persoenlich\\u222223\\facilities_to_stations.xml.gz"; //args[1];
+        String networkFilename = args[2];
+        String transitScheduleFilename = args[3];
+        //String eventsFilename = args[3].equals("-") ? null : args[3];
+        //String outputDirectory = args[4];
 
-		PotentialAnalysis potentialAnalysis = new PotentialAnalysis();
+        PotentialAnalysis potentialAnalysis = new PotentialAnalysis();
 		potentialAnalysis.run(transitScheduleFilename, networkFilename, facilitiesFilename, zonesShapeFilename);
 
 	}

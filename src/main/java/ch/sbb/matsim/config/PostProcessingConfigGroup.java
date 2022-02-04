@@ -5,10 +5,9 @@
 package ch.sbb.matsim.config;
 
 import ch.sbb.matsim.zones.Zones;
+import java.util.Map;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.ReflectiveConfigGroup;
-
-import java.util.Map;
 
 public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
@@ -191,9 +190,8 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
 	@Override
 	public Map<String, String> getComments() {
-		Map<String, String> comments = super.getComments();
-		return comments;
-	}
+        return super.getComments();
+    }
 
 	public void setAllPostProcessingOff() {
 		this.ptVolumes = false;

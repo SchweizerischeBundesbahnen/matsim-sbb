@@ -38,13 +38,13 @@ import org.matsim.facilities.MatsimFacilitiesReader;
 
 public class MergeAndRemovePlans {
 
-    String inputPlans;
-    String blackListCsv;
-    String additionalPlans;
-    String outputPlans;
-    String inputFacilities;
-    String additionalFacilities;
-    String outputFacilities;
+    final String inputPlans;
+    final String blackListCsv;
+    final String additionalPlans;
+    final String outputPlans;
+    final String inputFacilities;
+    final String additionalFacilities;
+    final String outputFacilities;
     Set<Id<Person>> blacklist;
 
     /**
@@ -65,7 +65,7 @@ public class MergeAndRemovePlans {
     }
 
     private void run() throws IOException {
-        blacklist = Files.lines(Path.of(blackListCsv)).map(t -> Id.createPersonId(t)).collect(Collectors.toSet());
+        blacklist = Files.lines(Path.of(blackListCsv)).map(Id::createPersonId).collect(Collectors.toSet());
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(additionalPlans);
         var spw = new StreamingPopulationWriter();

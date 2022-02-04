@@ -57,7 +57,7 @@ public class ConvergenceStats implements IterationStartsListener {
 	private final Test[] testsToRun;
 	private Map<Test, CSVWriter> writers;
 	private List<String> columns;
-	private ConvergenceConfigGroup csConfig;
+	private final ConvergenceConfigGroup csConfig;
 	private double currentConvergenceFunctionResults = 0.0;
 	private CSVWriter convergenceFunctionWriter;
 

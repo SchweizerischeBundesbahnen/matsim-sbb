@@ -66,7 +66,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		this.accessEgressRouteCache = accessEgressRouteCache;
 
 		SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
-		this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(set -> set.getMode(), set -> set, (a, b) -> a));
+		this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(SBBIntermodalModeParameterSet::getMode, set -> set, (a, b) -> a));
 		SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
 		walkParameterset = srrConfig.getIntermodalAccessEgressParameterSets().stream().filter(l -> l.getMode().equals(TransportMode.walk)).findFirst().orElseThrow(RuntimeException::new);
 		this.routingModules = new HashMap<>();
@@ -182,7 +182,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		}
 		if (personDoesMatch) {
 			Optional<String> actType = TripStructureUtils.getActivities(person.getSelectedPlan(), TripStructureUtils.StageActivityHandling.ExcludeStageActivities).stream()
-					.filter(activity -> activity.getCoord().equals(facility.getCoord())).map(a -> a.getType()).findAny();
+					.filter(activity -> activity.getCoord().equals(facility.getCoord())).map(Activity::getType).findAny();
 			if (actType.isPresent()) {
 				final String activityType = actType.get();
 				List<SBBIntermodalModeParameterSet> filtered = intermodalModeParams.values().stream().filter(a -> a.getMode().equals(paramset.getMode()))

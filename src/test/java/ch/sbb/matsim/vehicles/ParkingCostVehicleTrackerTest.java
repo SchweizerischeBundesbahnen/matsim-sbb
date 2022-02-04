@@ -109,23 +109,23 @@ public class ParkingCostVehicleTrackerTest {
 	}
 
 	/**
-	 * Creates a simple test scenario matching the accesstime_zone.SHP test file.
-	 */
-	private static class Fixture {
+     * Creates a simple test scenario matching the accesstime_zone.SHP test file.
+     */
+    private static class Fixture {
 
-		Config config;
-		Scenario scenario;
-		ZonesCollection zones = new ZonesCollection();
-		EventsManager events;
+        final Config config;
+        final Scenario scenario;
+        final ZonesCollection zones = new ZonesCollection();
+        EventsManager events;
 
-		public Fixture() {
-			this.config = ConfigUtils.createConfig();
-			prepareConfig();
-			this.scenario = ScenarioUtils.createScenario(this.config);
-			createNetwork();
-			loadZones();
-			prepareEvents();
-		}
+        public Fixture() {
+            this.config = ConfigUtils.createConfig();
+            prepareConfig();
+            this.scenario = ScenarioUtils.createScenario(this.config);
+            createNetwork();
+            loadZones();
+            prepareEvents();
+        }
 
 		private void prepareConfig() {
 			ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);

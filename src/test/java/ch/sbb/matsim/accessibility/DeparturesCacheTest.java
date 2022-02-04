@@ -41,18 +41,18 @@ public class DeparturesCacheTest {
 
 	private static class Fixture {
 
-		Config config = ConfigUtils.createConfig();
-		Scenario scenario = ScenarioUtils.createScenario(config);
+        final Config config = ConfigUtils.createConfig();
+        final Scenario scenario = ScenarioUtils.createScenario(config);
 
-		public Fixture() {
-			TransitSchedule schedule = scenario.getTransitSchedule();
-			TransitScheduleFactory f = schedule.getFactory();
+        public Fixture() {
+            TransitSchedule schedule = scenario.getTransitSchedule();
+            TransitScheduleFactory f = schedule.getFactory();
 
-			TransitStopFacility stop1 = f.createTransitStopFacility(Id.create("1", TransitStopFacility.class), new Coord(0, 0), false);
-			TransitStopFacility stop2 = f.createTransitStopFacility(Id.create("2", TransitStopFacility.class), new Coord(500, 500), false);
-			TransitStopFacility stop3 = f.createTransitStopFacility(Id.create("3", TransitStopFacility.class), new Coord(1000, 1000), false);
-			TransitStopFacility stop4 = f.createTransitStopFacility(Id.create("4", TransitStopFacility.class), new Coord(0, 1000), false);
-			TransitStopFacility stop5 = f.createTransitStopFacility(Id.create("5", TransitStopFacility.class), new Coord(1000, 0), false);
+            TransitStopFacility stop1 = f.createTransitStopFacility(Id.create("1", TransitStopFacility.class), new Coord(0, 0), false);
+            TransitStopFacility stop2 = f.createTransitStopFacility(Id.create("2", TransitStopFacility.class), new Coord(500, 500), false);
+            TransitStopFacility stop3 = f.createTransitStopFacility(Id.create("3", TransitStopFacility.class), new Coord(1000, 1000), false);
+            TransitStopFacility stop4 = f.createTransitStopFacility(Id.create("4", TransitStopFacility.class), new Coord(0, 1000), false);
+            TransitStopFacility stop5 = f.createTransitStopFacility(Id.create("5", TransitStopFacility.class), new Coord(1000, 0), false);
 
 			schedule.addStopFacility(stop1);
 			schedule.addStopFacility(stop2);

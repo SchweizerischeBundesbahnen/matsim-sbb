@@ -55,22 +55,22 @@ public class SBBScoringParameters {
 
 	public static final class Builder {
 
-		private ScoringParameters.Builder matsimBuilder;
-		private double marginalUtilityOfParkingPrice;
-		private double transferUtilityPerTravelTime;
-		private double transferUtilityBase;
-		private double transferUtilityMinimum;
-		private double transferUtilityMaximum;
+        private final ScoringParameters.Builder matsimBuilder;
+        private double marginalUtilityOfParkingPrice;
+        private double transferUtilityPerTravelTime;
+        private double transferUtilityBase;
+        private final double transferUtilityMinimum;
+        private final double transferUtilityMaximum;
 
-		public Builder(final PlanCalcScoreConfigGroup configGroup,
-				final PlanCalcScoreConfigGroup.ScoringParameterSet scoringParameterSet,
-				final ScenarioConfigGroup scenarioConfig,
-				final SBBBehaviorGroupsConfigGroup sbbConfig) {
-			this.matsimBuilder = new ScoringParameters.Builder(configGroup, scoringParameterSet, scenarioConfig);
-			this.marginalUtilityOfParkingPrice = sbbConfig.getMarginalUtilityOfParkingPrice();
-			this.transferUtilityPerTravelTime = sbbConfig.getTransferUtilityPerTravelTime_utils_hr();
-			this.transferUtilityBase = sbbConfig.getBaseTransferUtility();
-			this.transferUtilityMinimum = Math.min(sbbConfig.getMinimumTransferUtility(), sbbConfig.getMaximumTransferUtility());
+        public Builder(final PlanCalcScoreConfigGroup configGroup,
+                final PlanCalcScoreConfigGroup.ScoringParameterSet scoringParameterSet,
+                final ScenarioConfigGroup scenarioConfig,
+                final SBBBehaviorGroupsConfigGroup sbbConfig) {
+            this.matsimBuilder = new ScoringParameters.Builder(configGroup, scoringParameterSet, scenarioConfig);
+            this.marginalUtilityOfParkingPrice = sbbConfig.getMarginalUtilityOfParkingPrice();
+            this.transferUtilityPerTravelTime = sbbConfig.getTransferUtilityPerTravelTime_utils_hr();
+            this.transferUtilityBase = sbbConfig.getBaseTransferUtility();
+            this.transferUtilityMinimum = Math.min(sbbConfig.getMinimumTransferUtility(), sbbConfig.getMaximumTransferUtility());
 			this.transferUtilityMaximum = Math.max(sbbConfig.getMinimumTransferUtility(), sbbConfig.getMaximumTransferUtility());
 		}
 

@@ -35,28 +35,28 @@ public class VisumNetwork {
 			"VOLUME_SIM"
 	};
 	private static final String[] LINKS_COLUMNS = new String[]{
-			"$STRECKE:NR",
-			"VONKNOTNR",
-			"NACHKNOTNR",
-			"VSYSSET",
-			"LAENGE",
-			"NBVEHICLES",
-			"CAPACITY",
-			"FREESPEED",
-			"MATSIMID"
-	};
-	private HashMap<Tuple<Id<Node>, Id<Node>>, VisumLink> links;
-	private HashMap<Id<Node>, VisumNode> nodes;
+            "$STRECKE:NR",
+            "VONKNOTNR",
+            "NACHKNOTNR",
+            "VSYSSET",
+            "LAENGE",
+            "NBVEHICLES",
+            "CAPACITY",
+            "FREESPEED",
+            "MATSIMID"
+    };
+    private final HashMap<Tuple<Id<Node>, Id<Node>>, VisumLink> links;
+    private final HashMap<Id<Node>, VisumNode> nodes;
 
-	public VisumNetwork() {
-		links = new HashMap<>();
-		nodes = new HashMap<>();
-	}
+    public VisumNetwork() {
+        links = new HashMap<>();
+        nodes = new HashMap<>();
+    }
 
-	public VisumLink getOrCreateLink(Link link) {
-		Tuple<Id<Node>, Id<Node>> key = this.getLinkKey(link, false);
-		Tuple<Id<Node>, Id<Node>> reverseKey = this.getLinkKey(link, true);
-		VisumLink visumLink = this.links.get(key);
+    public VisumLink getOrCreateLink(Link link) {
+        Tuple<Id<Node>, Id<Node>> key = this.getLinkKey(link, false);
+        Tuple<Id<Node>, Id<Node>> reverseKey = this.getLinkKey(link, true);
+        VisumLink visumLink = this.links.get(key);
 		if (visumLink == null) {
 			final VisumNode fromNode = this.getNode(link.getFromNode());
 			final VisumNode toNode = this.getNode(link.getToNode());

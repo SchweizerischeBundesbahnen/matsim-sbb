@@ -36,32 +36,32 @@ import org.matsim.vehicles.Vehicle;
 
 public class PTMerger {
 
-	private final static Logger log = Logger.getLogger(PTMerger.class);
+    private final static Logger log = Logger.getLogger(PTMerger.class);
 
-	private Scenario scenario;
+    private final Scenario scenario;
 
-	private PTMerger(Config config) {
-		log.info("Running Public Transport Merger. Enjoy :)");
+    private PTMerger(Config config) {
+        log.info("Running Public Transport Merger. Enjoy :)");
 
-		this.scenario = ScenarioUtils.createScenario(config);
-		new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
-		new TransitScheduleReader(this.scenario).readFile(config.transit().getTransitScheduleFile());
-		new MatsimVehicleReader(this.scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
+        this.scenario = ScenarioUtils.createScenario(config);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(config.network().getInputFile());
+        new TransitScheduleReader(this.scenario).readFile(config.transit().getTransitScheduleFile());
+        new MatsimVehicleReader(this.scenario.getTransitVehicles()).readFile(config.transit().getVehiclesFile());
 
-		final PtMergerConfigGroup mergerConfig = ConfigUtils.addOrGetModule(config, PtMergerConfigGroup.class);
-		Config config2 = ConfigUtils.createConfig();
-		Scenario scenario2 = ScenarioUtils.createScenario(config2);
-		config2.transit().setTransitScheduleFile(mergerConfig.getScheduleFile());
-		config2.transit().setVehiclesFile(mergerConfig.getVehiclesFile());
+        final PtMergerConfigGroup mergerConfig = ConfigUtils.addOrGetModule(config, PtMergerConfigGroup.class);
+        Config config2 = ConfigUtils.createConfig();
+        Scenario scenario2 = ScenarioUtils.createScenario(config2);
+        config2.transit().setTransitScheduleFile(mergerConfig.getScheduleFile());
+        config2.transit().setVehiclesFile(mergerConfig.getVehiclesFile());
 
-		new MatsimNetworkReader(scenario2.getNetwork()).readFile(mergerConfig.getNetworkFile());
-		new TransitScheduleReader(scenario2).readFile(config2.transit().getTransitScheduleFile());
-		new MatsimVehicleReader(scenario2.getTransitVehicles()).readFile(config2.transit().getVehiclesFile());
+        new MatsimNetworkReader(scenario2.getNetwork()).readFile(mergerConfig.getNetworkFile());
+        new TransitScheduleReader(scenario2).readFile(config2.transit().getTransitScheduleFile());
+        new MatsimVehicleReader(scenario2.getTransitVehicles()).readFile(config2.transit().getVehiclesFile());
 
-		removePt("pt", mergerConfig.getLineToDeleteFile());
-		addPt(scenario2);
-		write(mergerConfig.getOutput());
-	}
+        removePt(mergerConfig.getLineToDeleteFile());
+        addPt(scenario2);
+        write(mergerConfig.getOutput());
+    }
 
 	public static void main(final String[] args) {
 
@@ -136,26 +136,26 @@ public class PTMerger {
 			}
 
 			if (!usedLinkId.contains(link.getId())) {
-				toDelete.add(link.getId());
-			}
-		}
+                toDelete.add(link.getId());
+            }
+        }
 
-		for (Id<Link> linkId : toDelete) {
-			this.scenario.getNetwork().removeLink(linkId);
-		}
-		log.info("Network contains " + this.scenario.getNetwork().getLinks().size() + " links");
-	}
+        for (Id<Link> linkId : toDelete) {
+            this.scenario.getNetwork().removeLink(linkId);
+        }
+        log.info("Network contains " + this.scenario.getNetwork().getLinks().size() + " links");
+    }
 
-	private void removePt(String networkMode, String csvFile) {
-		HashMap<Id<TransitLine>, String> toKeep = new HashMap<>();
-		try (CSVReader lineReader = new CSVReader(new String[]{"line", "is_simba_perimeter"}, csvFile, ";")) {
-			Map<String, String> row;
-			while ((row = lineReader.readLine()) != null) {
-				toKeep.put(Id.create(row.get("line"), TransitLine.class), row.get("is_simba_perimeter"));
-			}
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
+    private void removePt(String csvFile) {
+        HashMap<Id<TransitLine>, String> toKeep = new HashMap<>();
+        try (CSVReader lineReader = new CSVReader(new String[]{"line", "is_simba_perimeter"}, csvFile, ";")) {
+            Map<String, String> row;
+            while ((row = lineReader.readLine()) != null) {
+                toKeep.put(Id.create(row.get("line"), TransitLine.class), row.get("is_simba_perimeter"));
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
 		ArrayList<TransitLine> lineToDelete = new ArrayList<>();
 
@@ -164,7 +164,6 @@ public class PTMerger {
 
 			String marker = toKeep.get(tl.getId());
 			if (marker == null) {
-				remove = false;
 				log.info("Not in file but keeping " + tl.getId());
 			} else if (marker.equals("1")) {
 				remove = true;
@@ -173,19 +172,19 @@ public class PTMerger {
 				log.info("Keeping " + tl.getId());
 			}
 
-			if (remove) {
-				lineToDelete.add(tl);
-			}
-		}
+            if (remove) {
+                lineToDelete.add(tl);
+            }
+        }
 
-		for (TransitLine tl : lineToDelete) {
-			this.scenario.getTransitSchedule().removeTransitLine(tl);
-		}
+        for (TransitLine tl : lineToDelete) {
+            this.scenario.getTransitSchedule().removeTransitLine(tl);
+        }
 
-		removeUnusedStopFacilities();
-		removeUnusedTransitLinks(networkMode);
-		removeUnusedNodes();
-	}
+        removeUnusedStopFacilities();
+        removeUnusedTransitLinks("pt");
+        removeUnusedNodes();
+    }
 
 	private void addLink(Network network, Link link) {
 		if (!network.getNodes().containsKey(link.getFromNode().getId())) {

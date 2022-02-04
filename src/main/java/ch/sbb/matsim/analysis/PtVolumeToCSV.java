@@ -54,34 +54,34 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
 	private static final String COL_ALIGHTING = "alighting";
 	private static final String COL_LINE = "line";
 	private static final String COL_LINEROUTE = "lineroute";
-	private static final String COL_DEPARTURE_ID = "departure_id";
-	private static final String COL_VEHICLE_ID = "vehicle_id";
-	private static final String COL_ARRIVAL = "arrival";
-	private static final String COL_DEPARTURE = "departure";
-	private static final String COL_PASSENGERS = "passengers";
+    private static final String COL_DEPARTURE_ID = "departure_id";
+    private static final String COL_VEHICLE_ID = "vehicle_id";
+    private static final String COL_ARRIVAL = "arrival";
+    private static final String COL_DEPARTURE = "departure";
+    private static final String COL_PASSENGERS = "passengers";
 
-	private static final String[] COLS_STOPS = new String[]{COL_INDEX, COL_STOP_ID, COL_BOARDING, COL_ALIGHTING, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
-	private static final String[] COLS_VEHJOURNEYS = new String[]{COL_INDEX, COL_FROM_STOP_ID, COL_TO_STOP_ID, COL_PASSENGERS, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE,
-			COL_ARRIVAL};
+    private static final String[] COLS_STOPS = new String[]{COL_INDEX, COL_STOP_ID, COL_BOARDING, COL_ALIGHTING, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE, COL_ARRIVAL};
+    private static final String[] COLS_VEHJOURNEYS = new String[]{COL_INDEX, COL_FROM_STOP_ID, COL_TO_STOP_ID, COL_PASSENGERS, COL_LINE, COL_LINEROUTE, COL_DEPARTURE_ID, COL_VEHICLE_ID, COL_DEPARTURE,
+            COL_ARRIVAL};
 
-	private Map<Id, PTVehicle> ptVehicles = new HashMap<>();
-	private HashSet<Id> ptAgents = new HashSet<>();
-	private CSVWriter stopsWriter = null;
-	private CSVWriter vehJourneyWriter = null;
-	private BufferedWriter stopsVolumesPerIterationWriter = null;
+    private final Map<Id, PTVehicle> ptVehicles = new HashMap<>();
+    private final HashSet<Id> ptAgents = new HashSet<>();
+    private CSVWriter stopsWriter = null;
+    private CSVWriter vehJourneyWriter = null;
+    private BufferedWriter stopsVolumesPerIterationWriter = null;
 
-	private String filename;
-	private boolean writeFinalDailyVolumes;
-	private Map<Id<TransitStopFacility>, Integer> dailyStopVolumes = new LinkedHashMap<>();
+    private final String filename;
+    private final boolean writeFinalDailyVolumes;
+    private Map<Id<TransitStopFacility>, Integer> dailyStopVolumes = new LinkedHashMap<>();
 
-	public PtVolumeToCSV(Scenario scenario, String filename, boolean writeFinalDailyVolumes) {
-		this.filename = filename;
-		this.writeFinalDailyVolumes = writeFinalDailyVolumes;
-		if (!writeFinalDailyVolumes) {
-			try {
-				this.stopsWriter = new CSVWriter("", COLS_STOPS, this.filename + FILENAME_STOPS);
-				this.vehJourneyWriter = new CSVWriter("", COLS_VEHJOURNEYS, this.filename + FILENAME_VEHJOURNEYS);
-			} catch (IOException e) {
+    public PtVolumeToCSV(Scenario scenario, String filename, boolean writeFinalDailyVolumes) {
+        this.filename = filename;
+        this.writeFinalDailyVolumes = writeFinalDailyVolumes;
+        if (!writeFinalDailyVolumes) {
+            try {
+                this.stopsWriter = new CSVWriter("", COLS_STOPS, this.filename + FILENAME_STOPS);
+                this.vehJourneyWriter = new CSVWriter("", COLS_VEHJOURNEYS, this.filename + FILENAME_VEHJOURNEYS);
+            } catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}
 		} else {

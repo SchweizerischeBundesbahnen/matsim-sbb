@@ -36,7 +36,7 @@ public class Visum {
 
 	public void loadVersion(String path) {
 		log.info("loading version " + path);
-		Dispatch.call(this.visum, "LoadVersion", new Object[]{new Variant(path)});
+		Dispatch.call(this.visum, "LoadVersion", new Variant(path));
 		log.info("finished loading version");
 	}
 
@@ -140,12 +140,12 @@ public class Visum {
 
 	public static class FilterCondition {
 
-		private int position;
-		private String op;
-		private boolean complement;
-		private String attribute;
-		private int comparator;
-		private String val;
+		private final int position;
+		private final String op;
+		private final boolean complement;
+		private final String attribute;
+		private final int comparator;
+		private final String val;
 
 		public FilterCondition(int position, String op, boolean complement, String attribute, int comparator, String val) {
 			this.position = position;

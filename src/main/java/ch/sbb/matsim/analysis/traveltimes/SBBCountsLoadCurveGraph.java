@@ -45,9 +45,8 @@ public final class SBBCountsLoadCurveGraph {
 	private final int linkCapacity;
 	private final String title;
 	private String linkId;
-	private JFreeChart chart;
 
-	public SBBCountsLoadCurveGraph(int linkCapacity, String title) {
+    public SBBCountsLoadCurveGraph(int linkCapacity, String title) {
 		this.linkCapacity = linkCapacity;
 		this.title = title;
 		this.dataset0 = new DefaultCategoryDataset();
@@ -63,13 +62,14 @@ public final class SBBCountsLoadCurveGraph {
 	}
 
 	public JFreeChart createChart() {
-		this.chart = ChartFactory.createBarChart(this.title, "Hour", "Volumes [veh/h]", this.dataset0,
+		// legend?
+		JFreeChart chart = ChartFactory.createBarChart(this.title, "Hour", "Volumes [veh/h]", this.dataset0,
 				PlotOrientation.VERTICAL, true, // legend?
 				true,
 				false
 		);
 
-		CategoryPlot plot = this.chart.getCategoryPlot();
+		CategoryPlot plot = chart.getCategoryPlot();
 
 		final Marker marker = new ValueMarker(linkCapacity);
 		marker.setPaint(Color.red);
@@ -93,7 +93,7 @@ public final class SBBCountsLoadCurveGraph {
 
 		renderer.setShadowVisible(false);
 		renderer.setBarPainter(new StandardBarPainter());
-		this.chart.setBackgroundPaint(Color.getHSBColor((float) 0.0, (float) 0.0, (float) 0.93));
+		chart.setBackgroundPaint(Color.getHSBColor((float) 0.0, (float) 0.0, (float) 0.93));
 		plot.setBackgroundPaint(Color.white);
 		plot.setRangeGridlinePaint(Color.gray);
 		plot.setRangeGridlinesVisible(true);
@@ -105,7 +105,7 @@ public final class SBBCountsLoadCurveGraph {
 		final CategoryAxis axis1 = plot.getDomainAxis();
 		axis1.setCategoryMargin(0.25); // leave a gap of 25% between categories
 
-		return this.chart;
+		return chart;
 	}
 
 	/**

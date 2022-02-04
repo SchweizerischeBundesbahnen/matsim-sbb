@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
@@ -58,12 +59,12 @@ public class RailTripsAnalyzer {
         railLines = schedule.getTransitLines().values()
                 .stream()
                 .filter(l -> l.getRoutes().values().stream().anyMatch(transitRoute -> transitRoute.getTransportMode().equals(PTSubModes.RAIL)))
-                .map(transitLine -> transitLine.getId())
+                .map(Identifiable::getId)
                 .collect(Collectors.toSet());
         fqStops = schedule.getFacilities().values()
                 .stream()
                 .filter(transitStopFacility -> String.valueOf(transitStopFacility.getAttributes().getAttribute(Variables.FQ_RELEVANT)).equals("1"))
-                .map(transitStopFacility -> transitStopFacility.getId())
+                .map(Identifiable::getId)
                 .collect(Collectors.toSet());
     }
 
@@ -72,12 +73,11 @@ public class RailTripsAnalyzer {
     }
 
     public double calcRailDistance(Trip trip) {
-        double rail_pm = getRailRouteSegmentsofTrip(trip).stream()
+
+        return getRailRouteSegmentsofTrip(trip).stream()
                 .map(Route::getDistance)
                 .mapToDouble(Double::doubleValue)
                 .sum();
-
-        return rail_pm;
     }
 
     public List<TransitPassengerRoute> getRailRouteSegmentsofTrip(Trip trip) {
@@ -214,11 +214,7 @@ public class RailTripsAnalyzer {
         var stopFacility = this.schedule.getFacilities().get(stopId);
         Gbl.assertNotNull(stopFacility);
         var perim = String.valueOf(stopFacility.getAttributes().getAttribute(Variables.SIMBA_CH_PERIMETER));
-        if (perim.equals("1")) {
-            return true;
-        } else {
-            return false;
-        }
+        return perim.equals("1");
     }
 
     public boolean isSwissRailOrFQStop(Id<TransitStopFacility> stopId) {
@@ -244,7 +240,7 @@ public class RailTripsAnalyzer {
         if (isSwissRailOrFQStop(railAccessStop) && isSwissRailOrFQStop(railEgressStop)) {
             boolean hasFQRelevantLeg = routes.stream().anyMatch(route -> (fqStops.contains(route.getAccessStopId()) && fqStops.contains(route.getEgressStopId())));
             if (hasFQRelevantLeg) {
-                return routes.stream().mapToDouble(route -> route.getDistance()).sum();
+                return routes.stream().mapToDouble(Route::getDistance).sum();
             }
         }
         //the lines below would be technically correct, but we ignore this value for the time being.

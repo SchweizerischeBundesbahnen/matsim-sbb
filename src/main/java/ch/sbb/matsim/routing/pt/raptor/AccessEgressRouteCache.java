@@ -65,23 +65,22 @@ public class AccessEgressRouteCache {
 	private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
 	private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
 	private final Map<String, SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();
-	private final Map<String, SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet> raptorIntermodalModeParams;
-	private final TransitSchedule transitSchedule;
 	private final Zones zonesCollection;
 	private final Scenario scenario;
-	private Map<String, Map<Id<Link>, Integer>> accessTimes = new HashMap<>();
-	private Map<String, Map<Id<Link>, Map<Id<Link>, int[]>>> travelTimesDistances = new HashMap<>();
-	private SingleModeNetworksCache singleModeNetworksCache;
+	private final Map<String, Map<Id<Link>, Integer>> accessTimes = new HashMap<>();
+	private final Map<String, Map<Id<Link>, Map<Id<Link>, int[]>>> travelTimesDistances = new HashMap<>();
+	private final SingleModeNetworksCache singleModeNetworksCache;
 
 	@Inject
 	public AccessEgressRouteCache(ZonesCollection allZones, SingleModeNetworksCache singleModeNetworksCache, Config config, Scenario scenario) {
 		LOGGER.info("Access Egress Route cache.");
 		this.scenario = scenario;
-		this.transitSchedule = scenario.getTransitSchedule();
+		TransitSchedule transitSchedule = scenario.getTransitSchedule();
 		this.singleModeNetworksCache = singleModeNetworksCache;
 		SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
 		SwissRailRaptorConfigGroup railRaptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
-		raptorIntermodalModeParams = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().collect(Collectors.toMap(m -> m.getMode(), m -> m, (m, n) -> m));
+		Map<String, IntermodalAccessEgressParameterSet> raptorIntermodalModeParams = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream()
+				.collect(Collectors.toMap(IntermodalAccessEgressParameterSet::getMode, m -> m, (m, n) -> m));
 		this.zonesCollection = allZones.getZones(intermodalConfigGroup.getZonesId());
 		for (SBBIntermodalModeParameterSet paramset : intermodalConfigGroup.getModeParameterSets()) {
 			if (paramset.isRoutedOnNetwork() && !paramset.isSimulatedOnNetwork()) {

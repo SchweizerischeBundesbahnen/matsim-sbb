@@ -16,21 +16,21 @@ import org.matsim.core.config.ConfigUtils;
 
 public class S3Downloader {
 
-	private static Logger log = Logger.getLogger(S3Downloader.class);
+    private static final Logger log = Logger.getLogger(S3Downloader.class);
 
-	private AmazonS3 s3;
-	private String downloadFolder;
-	private Config config;
+    private AmazonS3 s3;
+    private String downloadFolder;
+    private final Config config;
 
-	public S3Downloader(Config config) {
+    public S3Downloader(Config config) {
 
-		this.config = config;
-		SBBS3ConfigGroup s3Config = ConfigUtils.addOrGetModule(config, SBBS3ConfigGroup.GROUP_NAME, SBBS3ConfigGroup.class);
+        this.config = config;
+        SBBS3ConfigGroup s3Config = ConfigUtils.addOrGetModule(config, SBBS3ConfigGroup.GROUP_NAME, SBBS3ConfigGroup.class);
 
-		if (!s3Config.getUseS3Downloader()) {
-			log.info("Skipping S3 Downloader");
-			return;
-		}
+        if (!s3Config.getUseS3Downloader()) {
+            log.info("Skipping S3 Downloader");
+            return;
+        }
 
 		System.setProperty("org.apache.commons.logging.Log",
 				"org.apache.commons.logging.impl.NoOpLog");

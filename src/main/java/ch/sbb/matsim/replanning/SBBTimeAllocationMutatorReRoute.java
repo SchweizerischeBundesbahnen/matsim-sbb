@@ -27,7 +27,7 @@ public class SBBTimeAllocationMutatorReRoute implements Provider<PlanStrategy> {
 
     @Override
     public PlanStrategy get() {
-        PlanStrategyImpl.Builder builder = new PlanStrategyImpl.Builder(new RandomPlanSelector());
+        PlanStrategyImpl.Builder builder = new PlanStrategyImpl.Builder(new RandomPlanSelector<>());
         builder.addStrategyModule(new SBBTimeAllocationMutator(this.timeAllocationMutatorConfigGroup, this.globalConfigGroup));
         builder.addStrategyModule(new ReRoute(this.activityFacilities, this.tripRouterProvider, this.globalConfigGroup, this.timeInterpretation));
         return builder.build();
