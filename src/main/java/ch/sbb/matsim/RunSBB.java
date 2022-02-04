@@ -19,6 +19,7 @@ import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBS3ConfigGroup;
 import ch.sbb.matsim.config.SBBSupplyConfigGroup;
@@ -138,8 +139,10 @@ public class RunSBB {
 
 	public static void addSBBDefaultControlerModules(Controler controler) {
 		Config config = controler.getConfig();
-		boolean useServiceQuality = true;
-		final SBBCapacityDependentInVehicleCostCalculator inVehicleCostCalculator = useServiceQuality ? new SBBCapacityDependentInVehicleCostCalculator(0.8D, 0.0D, 0.7D, 1.2D) : null;
+		SBBCapacityDependentRoutingConfigGroup capacityDependentRoutingConfigGroup = ConfigUtils.addOrGetModule(config, ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup.class);
+		boolean useServiceQuality = capacityDependentRoutingConfigGroup.getUseServiceQuality();
+
+		final SBBCapacityDependentInVehicleCostCalculator inVehicleCostCalculator = useServiceQuality ? new SBBCapacityDependentInVehicleCostCalculator(capacityDependentRoutingConfigGroup.getMinimumCostFactor(), capacityDependentRoutingConfigGroup.getLowerCapacityLimit(), capacityDependentRoutingConfigGroup.getHighercapacitylimit(), capacityDependentRoutingConfigGroup.getMaximumCostFactor()) : null;
 		log.info("SBB use service quality: " + useServiceQuality);
 		Scenario scenario = controler.getScenario();
 		ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
