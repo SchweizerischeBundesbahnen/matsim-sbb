@@ -25,7 +25,9 @@ public class SBBCapacityDependentRoutingConfigGroup extends ReflectiveConfigGrou
     static private final String PARAM_LOWERCAPACITYLIMIT_DESC = "limit of capacity below which cost factor is < 1.0 ";
     static private final String PARAM_HIGHERCAPACITYLIMIT = "higherCapacityLimit";
     static private final String PARAM_HIGHERCAPACITYLIMIT_DESC = "limit of capacity above which cost factor is > 1.0";
+
     private static Logger logger = Logger.getLogger(SBBCapacityDependentRoutingConfigGroup.class);
+
     private boolean useServiceQuality = false;
     private double minimumCostFactor = 1.0;
     private double maximumCostFactor = 1.0;
@@ -37,89 +39,51 @@ public class SBBCapacityDependentRoutingConfigGroup extends ReflectiveConfigGrou
     }
 
     @StringGetter(PARAM_USESERVICEQUALITY)
-    public String getUseServiceQuality_asString() {
-        return Boolean.toString(this.useServiceQuality);
-    }
-
     public boolean getUseServiceQuality() {
         return this.useServiceQuality;
     }
 
     @StringSetter(PARAM_USESERVICEQUALITY)
-    public void setUseServiceQuality(String useServiceQuality) {this.useServiceQuality = Boolean.parseBoolean(useServiceQuality); }
-
     public void setUseServiceQuality(boolean useServiceQuality) {
         this.useServiceQuality = useServiceQuality;
     }
 
     @StringGetter(PARAM_MINIMUMCOSTFACTOR)
-    public String getMinimumCostFactor_asString() {
-        return Double.toString(this.minimumCostFactor);
-    }
-
     public double getMinimumCostFactor() {
         return this.minimumCostFactor;
     }
 
     @StringSetter(PARAM_MINIMUMCOSTFACTOR)
-    public void setMinimumCostFactor(String minimumCostFactor) {
-        this.minimumCostFactor = Double.parseDouble(minimumCostFactor);
-    }
-
     public void setMinimumCostFactor(double minimumCostFactor) {
         this.minimumCostFactor = minimumCostFactor;
     }
 
     @StringGetter(PARAM_MAXIMUMCOSTFACTOR)
-    public String getMaximumCostFactor_asString() {
-        return Double.toString(this.maximumCostFactor);
-    }
-
     public double getMaximumCostFactor() {
         return this.maximumCostFactor;
     }
 
     @StringSetter(PARAM_MAXIMUMCOSTFACTOR)
-    public void setMaximumCostFactor(String maximumCostFactor) {
-        this.maximumCostFactor = Double.parseDouble(maximumCostFactor);
-    }
-
     public void setMaximumCostFactor(double maximumCostFactor) {
         this.maximumCostFactor = maximumCostFactor;
     }
 
     @StringGetter(PARAM_LOWERCAPACITYLIMIT)
-    public String getLowerCapacityLimit_asString() {
-        return Double.toString(this.lowerCapacityLimit);
-    }
-
     public double getLowerCapacityLimit() {
         return this.lowerCapacityLimit;
     }
 
     @StringSetter(PARAM_LOWERCAPACITYLIMIT)
-    public void setLowerCapacityLimit(String lowerCapacityLimit) {
-        this.lowerCapacityLimit = Double.parseDouble(lowerCapacityLimit);
-    }
-
     public void setLowerCapacityLimit(double lowerCapacityLimit) {
         this.lowerCapacityLimit = lowerCapacityLimit;
     }
 
     @StringGetter(PARAM_HIGHERCAPACITYLIMIT)
-    public String getHighercapacitylimit_asString() {
-        return Double.toString(this.higherCapacityLimit);
-    }
-
     public double getHighercapacitylimit() {
         return this.higherCapacityLimit;
     }
 
     @StringSetter(PARAM_HIGHERCAPACITYLIMIT)
-    public void setHighercapacitylimit(String higherCapacityLimit) {
-        this.higherCapacityLimit = Double.parseDouble(higherCapacityLimit);
-    }
-
     public void setHighercapacitylimit(double higherCapacityLimit) {
         this.higherCapacityLimit = higherCapacityLimit;
     }
