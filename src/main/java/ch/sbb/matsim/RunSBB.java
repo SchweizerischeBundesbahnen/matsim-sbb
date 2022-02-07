@@ -21,6 +21,7 @@ import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBS3ConfigGroup;
 import ch.sbb.matsim.config.SBBSupplyConfigGroup;
@@ -41,9 +42,12 @@ import ch.sbb.matsim.preparation.NetworkMerger;
 import ch.sbb.matsim.preparation.PrepareActivitiesInPlans;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
+import ch.sbb.matsim.routing.SBBCapacityDependentInVehicleCostCalculator;
 import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
+import ch.sbb.matsim.routing.pt.raptor.CapacityDependentInVehicleCostCalculator;
+import ch.sbb.matsim.routing.pt.raptor.RaptorInVehicleCostCalculator;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
@@ -132,6 +136,11 @@ public class RunSBB {
 
 	public static void addSBBDefaultControlerModules(Controler controler) {
 		Config config = controler.getConfig();
+		SBBCapacityDependentRoutingConfigGroup capacityDependentRoutingConfigGroup = ConfigUtils.addOrGetModule(config, ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup.class);
+		boolean useServiceQuality = capacityDependentRoutingConfigGroup.getUseServiceQuality();
+
+		final SBBCapacityDependentInVehicleCostCalculator inVehicleCostCalculator = useServiceQuality ? new SBBCapacityDependentInVehicleCostCalculator(capacityDependentRoutingConfigGroup.getMinimumCostFactor(), capacityDependentRoutingConfigGroup.getLowerCapacityLimit(), capacityDependentRoutingConfigGroup.getHighercapacitylimit(), capacityDependentRoutingConfigGroup.getMaximumCostFactor()) : null;
+		log.info("SBB use service quality: " + useServiceQuality);
 		Scenario scenario = controler.getScenario();
 		ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
 		controler.setScoringFunctionFactory(scoringFunctionFactory);
@@ -183,6 +192,14 @@ public class RunSBB {
 			}
 		});
 		controler.addOverridingModule(new IntermodalModule());
+		if (useServiceQuality) {
+			controler.addOverridingModule(new AbstractModule() {
+				@Override
+				public void install() {
+					this.bind(RaptorInVehicleCostCalculator.class).toInstance(inVehicleCostCalculator);
+				}
+			});
+		}
 
 	}
 
@@ -232,6 +249,6 @@ public class RunSBB {
 		return new ConfigGroup[]{new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
 				new SBBBehaviorGroupsConfigGroup(), new SwissRailRaptorConfigGroup(),
 				new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
-				new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup()};
+				new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup(), new SBBCapacityDependentRoutingConfigGroup()};
 	}
 }

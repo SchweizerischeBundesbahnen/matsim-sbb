@@ -727,4 +727,12 @@
         </parameterset>
     </module>
 
+    <module name="SBBCapacityDependentRouting">
+        <param name="useServiceQuality" value="true"/>
+        <param name="minimumCostFactor" value="0.8"/>
+        <param name="maximumCostFactor" value="1.2"/>
+        <param name="lowerCapacityLimit" value="0.0"/>
+        <param name="higherCapacityLimit" value="0.7"/>
+    </module>
+
 </config>
