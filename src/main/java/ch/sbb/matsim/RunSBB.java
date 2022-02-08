@@ -9,25 +9,8 @@ import ch.sbb.matsim.analysis.SBBEventAnalysis;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.ActivityWriter;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.SBBTripsExtension;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
-import ch.sbb.matsim.config.ParkingCostConfigGroup;
-import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
-import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
-import ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup;
-import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
-import ch.sbb.matsim.config.SBBS3ConfigGroup;
-import ch.sbb.matsim.config.SBBSupplyConfigGroup;
-import ch.sbb.matsim.config.SBBTransitConfigGroup;
-import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
-import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
+import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SamplesizeFactors;
 import ch.sbb.matsim.config.variables.Variables;
@@ -35,18 +18,13 @@ import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
-import ch.sbb.matsim.preparation.ActivityParamsBuilder;
-import ch.sbb.matsim.preparation.LinkToFacilityAssigner;
-import ch.sbb.matsim.preparation.LinkToStationsAssigner;
-import ch.sbb.matsim.preparation.NetworkMerger;
-import ch.sbb.matsim.preparation.PrepareActivitiesInPlans;
+import ch.sbb.matsim.preparation.*;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.routing.SBBCapacityDependentInVehicleCostCalculator;
 import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
-import ch.sbb.matsim.routing.pt.raptor.CapacityDependentInVehicleCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.RaptorInVehicleCostCalculator;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
@@ -56,9 +34,6 @@ import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.vehicles.RideParkingCostTracker;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.analysis.TripsAndLegsCSVWriter.CustomTripsWriterExtension;
 import org.matsim.api.core.v01.Scenario;
@@ -80,6 +55,10 @@ import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.utils.misc.OptionalTime;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author denism
@@ -136,11 +115,7 @@ public class RunSBB {
 
 	public static void addSBBDefaultControlerModules(Controler controler) {
 		Config config = controler.getConfig();
-		SBBCapacityDependentRoutingConfigGroup capacityDependentRoutingConfigGroup = ConfigUtils.addOrGetModule(config, ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup.class);
-		boolean useServiceQuality = capacityDependentRoutingConfigGroup.getUseServiceQuality();
 
-		final SBBCapacityDependentInVehicleCostCalculator inVehicleCostCalculator = useServiceQuality ? new SBBCapacityDependentInVehicleCostCalculator(capacityDependentRoutingConfigGroup.getMinimumCostFactor(), capacityDependentRoutingConfigGroup.getLowerCapacityLimit(), capacityDependentRoutingConfigGroup.getHighercapacitylimit(), capacityDependentRoutingConfigGroup.getMaximumCostFactor()) : null;
-		log.info("SBB use service quality: " + useServiceQuality);
 		Scenario scenario = controler.getScenario();
 		ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(scenario);
 		controler.setScoringFunctionFactory(scoringFunctionFactory);
@@ -166,6 +141,14 @@ public class RunSBB {
 				install(new AccessEgressModule());
 				addControlerListenerBinding().to(SBBTransferAnalysisListener.class).asEagerSingleton();
 				Config config = getConfig();
+
+				SBBCapacityDependentRoutingConfigGroup capacityDependentRoutingConfigGroup = ConfigUtils.addOrGetModule(config, ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup.class);
+				boolean useServiceQuality = capacityDependentRoutingConfigGroup.getUseServiceQuality();
+				final SBBCapacityDependentInVehicleCostCalculator inVehicleCostCalculator = useServiceQuality ? new SBBCapacityDependentInVehicleCostCalculator(capacityDependentRoutingConfigGroup.getMinimumCostFactor(), capacityDependentRoutingConfigGroup.getLowerCapacityLimit(), capacityDependentRoutingConfigGroup.getHighercapacitylimit(), capacityDependentRoutingConfigGroup.getMaximumCostFactor()) : null;
+				log.info("SBB use service quality: " + useServiceQuality);
+				if (useServiceQuality) {
+					bind(RaptorInVehicleCostCalculator.class).toInstance(inVehicleCostCalculator);
+				}
 				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
 				if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
 					addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
@@ -182,7 +165,6 @@ public class RunSBB {
 
 			}
 
-
 			@Provides
 			QSimComponentsConfig provideQSimComponentsConfig() {
 				QSimComponentsConfig components = new QSimComponentsConfig();
@@ -192,14 +174,7 @@ public class RunSBB {
 			}
 		});
 		controler.addOverridingModule(new IntermodalModule());
-		if (useServiceQuality) {
-			controler.addOverridingModule(new AbstractModule() {
-				@Override
-				public void install() {
-					this.bind(RaptorInVehicleCostCalculator.class).toInstance(inVehicleCostCalculator);
-				}
-			});
-		}
+
 
 	}
 
