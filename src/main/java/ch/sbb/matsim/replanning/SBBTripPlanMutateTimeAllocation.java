@@ -1,16 +1,17 @@
 package ch.sbb.matsim.replanning;
 
 import ch.sbb.matsim.config.variables.Variables;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.population.algorithms.PlanAlgorithm;
 import org.matsim.core.utils.misc.OptionalTime;
+
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * SBB version of the default TripPlanMutateTimeAllocation. It strongly relies on the person attribute initialActivityEndTimes and works with this attribute only. In contrast the original mutation
@@ -113,7 +114,8 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 	private double mutateTime(final OptionalTime t, final double mutationRange) {
 		double newTime;
 		if (t.isDefined()) {
-			newTime = t.seconds() + (int) ((this.random.nextDouble() * 2.0 - 1.0) * mutationRange);
+			int mutation = 120 * ((int) ((random.nextDouble() * 2.0 - 1.0) * mutationRange) / 120);
+			newTime = t.seconds() + mutation;
 			if (t.seconds() < 0) {
 				newTime = 0;
 			}
