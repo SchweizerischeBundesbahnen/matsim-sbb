@@ -29,10 +29,10 @@ public class SBBCapacityDependentRoutingConfigGroup extends ReflectiveConfigGrou
     private static Logger logger = Logger.getLogger(SBBCapacityDependentRoutingConfigGroup.class);
 
     private boolean useServiceQuality = false;
-    private double minimumCostFactor = 1.0;
-    private double maximumCostFactor = 1.0;
+    private double minimumCostFactor = 0.8;
+    private double maximumCostFactor = 1.2;
     private double lowerCapacityLimit = 0.0;
-    private double higherCapacityLimit = 9999.0;
+    private double higherCapacityLimit = 0.7;
 
     public SBBCapacityDependentRoutingConfigGroup() {
         super(GROUP_NAME);
