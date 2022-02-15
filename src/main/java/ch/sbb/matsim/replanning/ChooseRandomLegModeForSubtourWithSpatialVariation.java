@@ -60,8 +60,8 @@ public final class ChooseRandomLegModeForSubtourWithSpatialVariation implements 
 	private final Random rng;
 	private final PermissibleModesCalculator permissibleModesCalculator;
 	private final double probaForChangeSingleTripMode;
-	private final double maxWalkDistancePerTour = 10000;
-	private final double maxBikeDistancePerTour = 50000;
+	private final double maxWalkDistancePerTour = 12500;
+	private final double maxBikeDistancePerTour = 45000;
 	private Collection<String> singleTripSubtourModes;
 	private TripsToLegsAlgorithm tripsToLegs = null;
 	private ChooseRandomSingleLegMode changeSingleLegMode = null;
