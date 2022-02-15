@@ -22,8 +22,6 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.util.Collections;
-import java.util.List;
 import org.matsim.analysis.TripsAndLegsCSVWriter;
 import org.matsim.analysis.TripsAndLegsCSVWriter.CustomLegsWriterExtension;
 import org.matsim.api.core.v01.IdMap;
@@ -38,6 +36,9 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+
+import java.util.Collections;
+import java.util.List;
 
 public class CreateTripTableFromPostprocessing {
 
@@ -64,7 +65,7 @@ public class CreateTripTableFromPostprocessing {
 
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
         SBBTripsExtension sbbTripsExtension = new SBBTripsExtension(railTripsAnalyzer, postProcessingConfigGroup, zonesCollection, scenario);
-        TripsAndLegsCSVWriter tripsAndLegsCSVWriter = new TripsAndLegsCSVWriter(scenario, sbbTripsExtension, new NoLegsWriterExtension(), null);
+        TripsAndLegsCSVWriter tripsAndLegsCSVWriter = new TripsAndLegsCSVWriter(scenario, sbbTripsExtension, new NoLegsWriterExtension(), null, v -> Long.toString((long) v));
         IdMap<Person, Plan> plans = new IdMap<>(Person.class);
         for (Person p : scenario.getPopulation().getPersons().values()) {
             plans.put(p.getId(), p.getSelectedPlan());
