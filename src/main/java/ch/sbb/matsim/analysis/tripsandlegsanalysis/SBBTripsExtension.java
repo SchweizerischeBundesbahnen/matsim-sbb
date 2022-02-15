@@ -64,7 +64,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
     public String[] getAdditionalTripHeader() {
         //this is always called before a new file is written, so the reset is added here.
         tripAttributes = Variables.MOBiTripAttributes.extractTripAttributes(scenario.getPopulation());
-        return new String[]{"from_zone", "to_zone", "first_rail_stop", "last_rail_stop", "rail_pkm", "fq_rail_pkm", "rail_access_modes", "rail_access_distance", "rail_egress_modes",
+        return new String[]{"from_zone", "to_zone", "first_rail_stop", "last_rail_stop", "rail_pkm", "fq_rail_pkm", "rail_legs", "rail_access_modes", "rail_access_distance", "rail_egress_modes",
                 "rail_egress_distance", Variables.MOBiTripAttributes.TOUR_ID, Variables.MOBiTripAttributes.TRIP_ID, Variables.MOBiTripAttributes.PURPOSE, Variables.MOBiTripAttributes.DIRECTION};
     }
 
@@ -96,13 +96,18 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
                 purpose = tripAttributes.getTripPurpose();
             }
         }
-        String rail_pkm = calcRailPkm(trip);
-        String fq_rail_pkm = calcfqRailPkm(trip);
+        String rail_legs = "";
+        String rail_pkm = "";
+        String fq_rail_pkm = "";
+
         String accessModes = "";
         String egressModes = "";
         String accessDistance = "";
         String egressDistance = "";
         if (railOd != null) {
+            rail_pkm = calcRailPkm(trip);
+            fq_rail_pkm = calcfqRailPkm(trip);
+            rail_legs = Integer.toString(railTripsAnalyzer.getRailRouteSegmentsofTrip(trip).size());
             var access = findAccessMode(trip, railOd.getFirst());
             var egress = findEgressMode(trip, railOd.getSecond());
             accessModes = access.getFirst();
@@ -111,7 +116,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             egressDistance = Integer.toString(egress.getSecond());
         }
 
-        return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction);
+        return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, rail_legs, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction);
     }
 
     private Tuple<String, Integer> findAccessMode(Trip trip, Id<TransitStopFacility> accessStop) {
