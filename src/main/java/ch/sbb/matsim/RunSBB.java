@@ -35,6 +35,7 @@ import ch.sbb.matsim.vehicles.RideParkingCostTracker;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import org.apache.log4j.Logger;
+import org.matsim.analysis.TripsAndLegsCSVWriter;
 import org.matsim.analysis.TripsAndLegsCSVWriter.CustomTripsWriterExtension;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
@@ -135,6 +136,7 @@ public class RunSBB {
 				bind(ActivityWriter.class).asEagerSingleton();
 				bind(IterationLinkAnalyzer.class).asEagerSingleton();
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
+				bind(TripsAndLegsCSVWriter.CustomTimeWriter.class).toInstance(v -> Long.toString((long) v));
 				install(new SBBTransitModule());
 				install(new ZonesModule(scenario));
 				install(new SBBNetworkRoutingModule());

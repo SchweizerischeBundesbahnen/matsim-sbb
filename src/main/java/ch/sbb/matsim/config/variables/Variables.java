@@ -1,10 +1,17 @@
 package ch.sbb.matsim.config.variables;
 
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.IdMap;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.router.TripStructureUtils;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Variables {
 
@@ -36,22 +43,87 @@ public class Variables {
     public static final String INTERMODAL_ACCESS_LINK_ID = "accessLinkId";
     public static final String PERSONID = "personId";
 
-	public static final String CAR_AVAIL = "car_available";
-	public static final String CAR_AVAL_TRUE = "1";
+    public static final String CAR_AVAIL = "car_available";
+    public static final String CAR_AVAL_TRUE = "1";
 
-	public static final String OUTSIDE = "outside";
-	public static final String NEXT_TRIP_ID_ATTRIBUTE = "next_trip_id";
+    public static final String OUTSIDE = "outside";
+    public static final String NEXT_TRIP_ID_ATTRIBUTE = "next_trip_id";
 
-	public static final String SIMBA_CH_PERIMETER = "08_SIMBA_CH_Perimeter";
-	public static final String FQ_RELEVANT = "07_FQ_relevant";
+    public static final String SIMBA_CH_PERIMETER = "08_SIMBA_CH_Perimeter";
+    public static final String FQ_RELEVANT = "07_FQ_relevant";
 
-	public static final String ABGRENZGRUPPE = "ABGRENZGRUPPE";
-	public static final String BETREIBERAGGRLFP = "BETREIBERAGGRLFP";
-	public static final String SPARTE = "Sparte";
+    public static final String ABGRENZGRUPPE = "ABGRENZGRUPPE";
+    public static final String BETREIBERAGGRLFP = "BETREIBERAGGRLFP";
+    public static final String SPARTE = "Sparte";
 
-	public static final List<Id<TransitStopFacility>> EXCEPTIONAL_CH_STOPS = List.of(Id.create("1618", TransitStopFacility.class));
+    public static final List<Id<TransitStopFacility>> EXCEPTIONAL_CH_STOPS = List.of(Id.create("1618", TransitStopFacility.class));
 
-	public static final Set<String> DEFAULT_PERSON_ATTRIBUTES = Set.of("age_cat", CAR_AVAIL, "current_edu", "level_of_employment_cat", PT_SUBSCRIPTION, "residence_msr_id", "residence_zone_id");
+    public static final Set<String> DEFAULT_PERSON_ATTRIBUTES = Set.of("age_cat", CAR_AVAIL, "current_edu", "level_of_employment_cat", PT_SUBSCRIPTION, "residence_msr_id", "residence_zone_id");
     public static final String MUN_NAME = "mun_name";
     public static final String ACCESS_CONTROLLED = "accessControlled";
+
+
+    public static class MOBiTripAttributes {
+        public static final String TOUR_ID = "tour_id";
+        public static final String TRIP_ID = "trip_id";
+        public static final String PURPOSE = "purpose";
+        public static final String DIRECTION = "direction";
+
+        private final int tourId;
+        private final int tripId;
+        private final String tripPurpose;
+        private final String tripDirection;
+
+        public MOBiTripAttributes(int tourId, int tripId, String tripPurpose, String tripDirection) {
+            this.tourId = tourId;
+            this.tripId = tripId;
+            this.tripPurpose = tripPurpose;
+            this.tripDirection = tripDirection;
+        }
+
+        public static IdMap<Person, LinkedList<MOBiTripAttributes>> extractTripAttributes(Population population) {
+            IdMap<Person, LinkedList<MOBiTripAttributes>> tripAttributes = new IdMap<>(Person.class, population.getPersons().size());
+            for (var p : population.getPersons().values()) {
+                LinkedList<MOBiTripAttributes> personTripAttributes = TripStructureUtils.getActivities(p.getSelectedPlan(), TripStructureUtils.StageActivityHandling.ExcludeStageActivities).stream()
+                        .map(activity -> {
+                            Integer tourId = (Integer) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.TOUR_ID);
+                            Integer tripId = (Integer) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.TRIP_ID);
+                            String purpose = (String) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.PURPOSE);
+                            String direction = (String) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.DIRECTION);
+
+                            String tour_id_trip_id = (String) activity.getAttributes().getAttribute(Variables.NEXT_TRIP_ID_ATTRIBUTE);
+                            if (tourId != null) {
+                                return new Variables.MOBiTripAttributes(tourId, tripId, purpose, direction);
+                            } else if (tour_id_trip_id != null) {
+                                //backwards compatibility
+                                var split = tour_id_trip_id.split("_");
+                                tripId = Integer.parseInt(split[0]);
+                                tourId = Integer.parseInt(split[1].split("\"")[0]);
+                                return new Variables.MOBiTripAttributes(tourId, tripId, "", "");
+                            } else return null;
+
+                        }).filter(
+                                Objects::nonNull).collect(Collectors.toCollection(LinkedList::new));
+                tripAttributes.put(p.getId(), personTripAttributes);
+            }
+            return tripAttributes;
+        }
+
+        public int getTourId() {
+            return tourId;
+        }
+
+        public int getTripId() {
+            return tripId;
+        }
+
+        public String getTripPurpose() {
+            return tripPurpose;
+        }
+
+        public String getTripDirection() {
+            return tripDirection;
+        }
+    }
+
 }
