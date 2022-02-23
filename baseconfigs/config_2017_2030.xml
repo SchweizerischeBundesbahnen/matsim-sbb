@@ -3,7 +3,7 @@
 		<!ENTITY PT_PATH "">
 		<!ENTITY STREETS_PATH "">
 		<!ENTITY RUNID "">
-		<!ENTITY LASTIT "300">
+		<!ENTITY LASTIT "200">
 		<!ENTITY ZONES "">
 		<!ENTITY POPULATIONSAMPLESIZE "0.1">
 		]
@@ -13,8 +13,15 @@
 	<module name="SBBSupply">
 		<param name="inputTransitNetworkFile" value="&PT_PATH;/transitNetwork.xml.gz"/>
 	</module>
+
 	<module name="ConvergenceStats">
 		<param name="activateConvergenceStats" value="true"/>
+	</module>
+
+	<module name="SBBReplanning">
+		<param name="maximumBikeTourDistance_m" value="45000"/>
+		<param name="maximumWalkTourDistance_m" value="12500"/>
+		<param name="minimumTimeMutationStep_s" value="120"/>
 	</module>
 
 	<module name="PostProcessing">
@@ -116,13 +123,13 @@
 			<!-- subpopulation to have the global innovation rate adjusted. Not applicable when annealing with other parameters. -->
 			<param name="defaultSubpopulation" value="regular"/>
 			<!-- final annealing value. When the annealing function reaches this value, further results remain constant. -->
-			<param name="endValue" value="0.03"/>
+			<param name="endValue" value="0.01"/>
 			<!-- this parameter enters the exponential and sigmoid formulas. May be an iteration or a share, i.e. 0.5 for halfLife at 50% of iterations. Exponential: startValue / exp(it/halfLife) -->
-			<param name="halfLife" value="150"/>
+			<param name="halfLife" value="0.425"/>
 			<!-- sigmoid: 1/(1+e^(shapeFactor*(it - halfLife))); geometric: startValue * shapeFactor^it; msa: startValue / it^shapeFactor -->
 			<param name="shapeFactor" value="0.05"/>
 			<!-- start value for annealing. -->
-			<param name="startValue" value="0.6"/>
+			<param name="startValue" value="0.65"/>
 		</parameterset>
 	</module>
 
