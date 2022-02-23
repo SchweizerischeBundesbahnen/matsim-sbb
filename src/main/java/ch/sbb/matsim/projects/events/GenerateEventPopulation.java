@@ -1,4 +1,4 @@
-package ch.sbb.matsim.projects.esaf2025;
+package ch.sbb.matsim.projects.events;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
@@ -78,16 +78,18 @@ public final class GenerateEventPopulation {
         Random random = new Random();
         while (entry != null) {
             Id<Person> personId = Id.createPersonId("r_" + part + "_" + entry.get("PERSONNO"));
-            int carAvailable = Integer.parseInt(entry.get("caravail"));
+            int carAvailable = Integer.parseInt(entry.get("CAR_AVAILABLE"));
             double homex = Double.parseDouble(entry.get("XCOORD"));
             double homey = Double.parseDouble(entry.get("YCOORD"));
             double travelTime = Double.parseDouble(entry.get("travel_time"));
+            int car2pt = Integer.parseInt(entry.get("CAR2PT"));
+            int bike2pt = Integer.parseInt(entry.get("BIKE2PT"));
+            int ride2pt = Integer.parseInt(entry.get("RIDE2PT"));
             Coord homeCoord = new Coord(homex, homey);
             double workStart = -1;
             double workEnd = -1;
             if (minDuration == 0) {
                 workStart = random.nextDouble() * (arrivalTo - arrivalFrom) + arrivalFrom;
-                log.info (workStart);
                 workEnd = random.nextDouble() * (departureTo - departureFrom) + departureFrom;
             } else {
                 workStart = random.nextDouble() * (arrivalTo - arrivalFrom) + arrivalFrom;
@@ -95,6 +97,9 @@ public final class GenerateEventPopulation {
                 workEnd = workStart + workDuration;
             }
             String mode = SBBModes.CAR;
+            if (carAvailable == 0) {
+                mode = SBBModes.PT;
+            }
             if (workEnd - workStart < 0) {
                 throw new RuntimeException(personId + " has work end before start");
             }
@@ -121,12 +126,12 @@ public final class GenerateEventPopulation {
                 p.getAttributes().putAttribute("pt_subscr", "VA");
                 p.getAttributes().putAttribute("age_cat", "45_to_64");
                 p.getAttributes().putAttribute("current_edu", "null");
-                p.getAttributes().putAttribute("bike2pt", dummy);
-                p.getAttributes().putAttribute("bike2pt_act", "home");
-                p.getAttributes().putAttribute("ride2pt", dummy);
-                p.getAttributes().putAttribute("ride2pt_act", "home");
-                p.getAttributes().putAttribute("car2pt_act", "home");
-                p.getAttributes().putAttribute("car2pt", dummy);
+                p.getAttributes().putAttribute("bike2pt", bike2pt);
+                p.getAttributes().putAttribute("bike2pt_act", "home, leisure");
+                p.getAttributes().putAttribute("ride2pt", ride2pt);
+                p.getAttributes().putAttribute("ride2pt_act", "home, leisure");
+                p.getAttributes().putAttribute("car2pt_act", "home, leisure");
+                p.getAttributes().putAttribute("car2pt", car2pt);
             }
 
             entry = csvReader.readLine();
@@ -141,22 +146,22 @@ public final class GenerateEventPopulation {
         if (mode.equals(SBBModes.WALK_FOR_ANALYSIS)) {
             mode = SBBModes.WALK_MAIN_MAINMODE;
         }
-        Leg workleg = fac.createLeg(mode);
+        Leg leisureleg = fac.createLeg(mode);
         Leg homeleg = fac.createLeg(mode);
         Activity home1 = fac.createActivityFromCoord(SBBActivities.home, homeCoord);
 
         home1.setEndTime(Math.max(0, work_start - travelTime));
-        Activity work = fac.createActivityFromActivityFacilityId(SBBActivities.work, eventFacilityId);
-        work.setCoord(workcoord);
-        work.setEndTime(work_end);
-        work.setStartTime(work_start);
+        Activity leisure = fac.createActivityFromActivityFacilityId(SBBActivities.leisure, eventFacilityId);
+        leisure.setCoord(workcoord);
+        leisure.setEndTime(work_end);
+        leisure.setStartTime(work_start);
         Activity home2 = fac.createActivityFromCoord(SBBActivities.home, homeCoord);
         home2.setStartTime(Math.min(work_end + travelTime, 24 * 3600));
         Plan plan = fac.createPlan();
         person.addPlan(plan);
         plan.addActivity(home1);
-        plan.addLeg(workleg);
-        plan.addActivity(work);
+        plan.addLeg(leisureleg);
+        plan.addActivity(leisure);
         plan.addLeg(homeleg);
         plan.addActivity(home2);
     }
