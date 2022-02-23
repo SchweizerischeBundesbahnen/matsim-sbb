@@ -60,8 +60,8 @@ public final class ChooseRandomLegModeForSubtourWithSpatialVariation implements 
 	private final Random rng;
 	private final PermissibleModesCalculator permissibleModesCalculator;
 	private final double probaForChangeSingleTripMode;
-	private final double maxWalkDistancePerTour = 12500;
-	private final double maxBikeDistancePerTour = 45000;
+	private final double maxWalkDistancePerTour;
+	private final double maxBikeDistancePerTour;
 	private Collection<String> singleTripSubtourModes;
 	private TripsToLegsAlgorithm tripsToLegs = null;
 	private ChooseRandomSingleLegMode changeSingleLegMode = null;
@@ -71,7 +71,7 @@ public final class ChooseRandomLegModeForSubtourWithSpatialVariation implements 
 			final PermissibleModesCalculator permissibleModesCalculator,
 			final String[] modes,
 			final String[] chainBasedModes,
-			final Random rng, SubtourModeChoice.Behavior behavior, double probaForChooseRandomSingleTripMode) {
+			final Random rng, SubtourModeChoice.Behavior behavior, double probaForChooseRandomSingleTripMode, double maxWalkDistancePerTour, double maxBikeDistancePerTour) {
 		this.mainModeIdentifier = mainModeIdentifier;
 		this.permissibleModesCalculator = permissibleModesCalculator;
 		this.modes = Arrays.asList(modes);
@@ -79,7 +79,8 @@ public final class ChooseRandomLegModeForSubtourWithSpatialVariation implements 
 		this.behavior = behavior;
 		this.probaForChangeSingleTripMode = probaForChooseRandomSingleTripMode;
 		this.singleTripSubtourModes = this.chainBasedModes;
-
+		this.maxBikeDistancePerTour = maxBikeDistancePerTour;
+		this.maxWalkDistancePerTour = maxWalkDistancePerTour;
 		this.rng = rng;
 		logger.info("Chain based modes: " + this.chainBasedModes);
 

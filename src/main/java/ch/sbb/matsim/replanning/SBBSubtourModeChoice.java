@@ -19,6 +19,7 @@
 
 package ch.sbb.matsim.replanning;
 
+import ch.sbb.matsim.config.SBBReplanningConfigGroup;
 import org.matsim.core.config.groups.GlobalConfigGroup;
 import org.matsim.core.config.groups.SubtourModeChoiceConfigGroup;
 import org.matsim.core.population.algorithms.PermissibleModesCalculator;
@@ -49,10 +50,13 @@ public class SBBSubtourModeChoice implements Provider<PlanStrategy> {
 	@Inject
 	private TimeInterpretation timeInterpretation;
 
+	@Inject
+	private SBBReplanningConfigGroup sbbReplanningConfigGroup;
+
 	@Override
 	public PlanStrategy get() {
 		PlanStrategyImpl.Builder builder = new Builder(new RandomPlanSelector<>());
-		builder.addStrategyModule(new SBBSubtourModeChoiceModule(globalConfigGroup, subtourModeChoiceConfigGroup, permissibleModesCalculator));
+		builder.addStrategyModule(new SBBSubtourModeChoiceModule(globalConfigGroup, subtourModeChoiceConfigGroup, sbbReplanningConfigGroup, permissibleModesCalculator));
 		builder.addStrategyModule(new ReRoute(facilities, tripRouterProvider, globalConfigGroup, timeInterpretation));
 		return builder.build();
 	}

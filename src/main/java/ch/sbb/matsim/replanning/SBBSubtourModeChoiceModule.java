@@ -20,6 +20,7 @@
 
 package ch.sbb.matsim.replanning;
 
+import ch.sbb.matsim.config.SBBReplanningConfigGroup;
 import org.matsim.core.config.groups.GlobalConfigGroup;
 import org.matsim.core.config.groups.SubtourModeChoiceConfigGroup;
 import org.matsim.core.gbl.MatsimRandom;
@@ -37,14 +38,16 @@ public class SBBSubtourModeChoiceModule extends AbstractMultithreadedModule {
 	private final PermissibleModesCalculator permissibleModesCalculator;
 	private final String[] chainBasedModes;
 	private final String[] modes;
+	private final int maxBikeDistance;
+	private final int maxWalkDistance;
 	private org.matsim.core.replanning.modules.SubtourModeChoice.Behavior behavior = org.matsim.core.replanning.modules.SubtourModeChoice.Behavior.fromSpecifiedModesToSpecifiedModes;
 
 	public SBBSubtourModeChoiceModule(GlobalConfigGroup globalConfigGroup,
-									  SubtourModeChoiceConfigGroup subtourModeChoiceConfigGroup, PermissibleModesCalculator permissibleModesCalculator) {
+									  SubtourModeChoiceConfigGroup subtourModeChoiceConfigGroup, SBBReplanningConfigGroup sbbReplanningConfigGroup, PermissibleModesCalculator permissibleModesCalculator) {
 		this(globalConfigGroup.getNumberOfThreads(),
 				subtourModeChoiceConfigGroup.getModes(),
 				subtourModeChoiceConfigGroup.getChainBasedModes(),
-				subtourModeChoiceConfigGroup.getProbaForRandomSingleTripMode(),
+				subtourModeChoiceConfigGroup.getProbaForRandomSingleTripMode(), sbbReplanningConfigGroup.getMaximumWalkTourDistance_m(), sbbReplanningConfigGroup.getMaximumBikeTourDistance_m(),
 				permissibleModesCalculator
 		);
 		this.setBehavior(subtourModeChoiceConfigGroup.getBehavior());
@@ -54,13 +57,15 @@ public class SBBSubtourModeChoiceModule extends AbstractMultithreadedModule {
 			final int numberOfThreads,
 			final String[] modes,
 			final String[] chainBasedModes,
-			double probaForChangeSingleTripMode,
+			double probaForChangeSingleTripMode, int maxWalkDistance, int maxBikeDistance,
 			PermissibleModesCalculator permissibleModesCalculator) {
 		super(numberOfThreads);
 		this.modes = modes.clone();
 		this.chainBasedModes = chainBasedModes.clone();
 		this.permissibleModesCalculator = permissibleModesCalculator;
 		this.probaForChangeSingleTripMode = probaForChangeSingleTripMode;
+		this.maxBikeDistance = maxBikeDistance;
+		this.maxWalkDistance = maxWalkDistance;
 	}
 
 	@Deprecated // only use when backwards compatibility is needed. kai, may'18
@@ -81,7 +86,7 @@ public class SBBSubtourModeChoiceModule extends AbstractMultithreadedModule {
 						this.permissibleModesCalculator,
 						this.modes,
 						this.chainBasedModes,
-						MatsimRandom.getLocalInstance(), behavior, probaForChangeSingleTripMode);
+						MatsimRandom.getLocalInstance(), behavior, probaForChangeSingleTripMode, this.maxWalkDistance, this.maxBikeDistance);
 		return chooseRandomLegMode;
 	}
 

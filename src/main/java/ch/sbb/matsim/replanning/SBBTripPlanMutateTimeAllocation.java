@@ -22,11 +22,13 @@ import java.util.stream.Stream;
 public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 
 	private final double mutationRange;
+	private final int minimumMutation;
 	private final Random random;
 
-	public SBBTripPlanMutateTimeAllocation(final double mutationRange, final Random random) {
+	public SBBTripPlanMutateTimeAllocation(final double mutationRange, final int minimumMutation, final Random random) {
 		this.mutationRange = mutationRange;
 		this.random = random;
+		this.minimumMutation = minimumMutation;
 	}
 
 	@Override
@@ -114,7 +116,7 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 	private double mutateTime(final OptionalTime t, final double mutationRange) {
 		double newTime;
 		if (t.isDefined()) {
-			int mutation = 120 * ((int) ((random.nextDouble() * 2.0 - 1.0) * mutationRange) / 120);
+			int mutation = minimumMutation * ((int) ((random.nextDouble() * 2.0 - 1.0) * mutationRange) / minimumMutation);
 			newTime = t.seconds() + mutation;
 			if (t.seconds() < 0) {
 				newTime = 0;
