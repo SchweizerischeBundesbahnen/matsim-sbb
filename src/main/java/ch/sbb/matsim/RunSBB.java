@@ -20,6 +20,7 @@ import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.*;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
+import ch.sbb.matsim.replanning.SBBSubtourModeChoice;
 import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.routing.SBBCapacityDependentInVehicleCostCalculator;
 import ch.sbb.matsim.routing.access.AccessEgressModule;
@@ -51,6 +52,7 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
 import org.matsim.core.population.algorithms.PermissibleModesCalculator;
+import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -126,6 +128,7 @@ public class RunSBB {
 				addControlerListenerBinding().to(SBBEventAnalysis.class);
 				addControlerListenerBinding().to(SBBDefaultAnalysisListener.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
+				addPlanStrategyBinding(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice).toProvider(SBBSubtourModeChoice.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
 				bind(RailTripsAnalyzer.class);
 				bind(RailDemandMatrixAggregator.class);
@@ -226,6 +229,6 @@ public class RunSBB {
 		return new ConfigGroup[]{new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
 				new SBBBehaviorGroupsConfigGroup(), new SwissRailRaptorConfigGroup(),
 				new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
-				new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup(), new SBBCapacityDependentRoutingConfigGroup()};
+				new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup(), new SBBCapacityDependentRoutingConfigGroup(), new SBBReplanningConfigGroup()};
 	}
 }
