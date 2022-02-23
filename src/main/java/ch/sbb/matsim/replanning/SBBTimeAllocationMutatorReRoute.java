@@ -21,10 +21,14 @@ import javax.inject.Provider;
  */
 public class SBBTimeAllocationMutatorReRoute implements Provider<PlanStrategy> {
 
-    @Inject private Provider<TripRouter> tripRouterProvider;
-    @Inject private GlobalConfigGroup globalConfigGroup;
-    @Inject private TimeInterpretation timeInterpretation;
-    @Inject private TimeAllocationMutatorConfigGroup timeAllocationMutatorConfigGroup;
+    @Inject
+    private Provider<TripRouter> tripRouterProvider;
+    @Inject
+    private GlobalConfigGroup globalConfigGroup;
+    @Inject
+    private TimeInterpretation timeInterpretation;
+    @Inject
+    private TimeAllocationMutatorConfigGroup timeAllocationMutatorConfigGroup;
     @Inject
     private ActivityFacilities activityFacilities;
     @Inject
