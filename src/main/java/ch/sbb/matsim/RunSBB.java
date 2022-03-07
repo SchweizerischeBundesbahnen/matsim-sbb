@@ -139,6 +139,7 @@ public class RunSBB {
 				bind(ActivityWriter.class).asEagerSingleton();
 				bind(IterationLinkAnalyzer.class).asEagerSingleton();
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
+				bind(TripsAndLegsCSVWriter.CustomLegsWriterExtension.class).to(SBBLegsExtension.class);
 				bind(TripsAndLegsCSVWriter.CustomTimeWriter.class).toInstance(v -> Long.toString((long) v));
 				install(new SBBTransitModule());
 				install(new ZonesModule(scenario));
