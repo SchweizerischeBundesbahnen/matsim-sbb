@@ -21,12 +21,6 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
@@ -43,6 +37,13 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Singleton
 public class RailTripsAnalyzer {
@@ -87,6 +88,7 @@ public class RailTripsAnalyzer {
                 .filter(transitRoute -> railLines.contains(transitRoute.getLineId()))
                 .collect(Collectors.toList());
     }
+
 
     public Tuple<Id<TransitStopFacility>, Id<TransitStopFacility>> getOriginDestination(Trip trip) {
         Tuple<Id<TransitStopFacility>, Id<TransitStopFacility>> tuple = null;
@@ -232,6 +234,11 @@ public class RailTripsAnalyzer {
 
     public double getFQDistance(Trip trip) {
         List<TransitPassengerRoute> routes = getRailRouteSegmentsofTrip(trip);
+        return getFQDistance(routes);
+    }
+
+    public double getFQDistance(List<TransitPassengerRoute> routes) {
+
         if (routes.isEmpty()) {
             return 0.0;
         }
@@ -250,6 +257,7 @@ public class RailTripsAnalyzer {
         //}
         return 0.0;
     }
+
 
     public List<Id<Link>> getPtLinkIdsTraveledOn(TransitPassengerRoute route) {
         TransitRoute transitRoute = this.schedule.getTransitLines().get(route.getLineId()).getRoutes().get(route.getRouteId());

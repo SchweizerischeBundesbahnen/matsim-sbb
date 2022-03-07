@@ -65,7 +65,8 @@ public class CreateTripTableFromPostprocessing {
 
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
         SBBTripsExtension sbbTripsExtension = new SBBTripsExtension(railTripsAnalyzer, postProcessingConfigGroup, zonesCollection, scenario);
-        TripsAndLegsCSVWriter tripsAndLegsCSVWriter = new TripsAndLegsCSVWriter(scenario, sbbTripsExtension, new NoLegsWriterExtension(), null, v -> Long.toString((long) v));
+        SBBLegsExtension sbbLegsExtension = new SBBLegsExtension(railTripsAnalyzer);
+        TripsAndLegsCSVWriter tripsAndLegsCSVWriter = new TripsAndLegsCSVWriter(scenario, sbbTripsExtension, sbbLegsExtension, null, v -> Long.toString((long) v));
         IdMap<Person, Plan> plans = new IdMap<>(Person.class);
         for (Person p : scenario.getPopulation().getPersons().values()) {
             plans.put(p.getId(), p.getSelectedPlan());
