@@ -64,17 +64,17 @@ public class Variables {
 
 
     public static class MOBiTripAttributes {
-        public static final String TOUR_ID = "tour_id";
-        public static final String TRIP_ID = "trip_id";
-        public static final String PURPOSE = "purpose";
-        public static final String DIRECTION = "direction";
+        public static final String TOUR_ID = "next_trip_tour_id";
+        public static final String TRIP_ID = "next_trip_id";
+        public static final String PURPOSE = "next_trip_purpose";
+        public static final String DIRECTION = "next_trip_direction";
 
-        private final int tourId;
-        private final int tripId;
+        private final Integer tourId;
+        private final Integer tripId;
         private final String tripPurpose;
         private final String tripDirection;
 
-        public MOBiTripAttributes(int tourId, int tripId, String tripPurpose, String tripDirection) {
+        public MOBiTripAttributes(Integer tourId, Integer tripId, String tripPurpose, String tripDirection) {
             this.tourId = tourId;
             this.tripId = tripId;
             this.tripPurpose = tripPurpose;
@@ -87,19 +87,17 @@ public class Variables {
                 LinkedList<MOBiTripAttributes> personTripAttributes = TripStructureUtils.getActivities(p.getSelectedPlan(), TripStructureUtils.StageActivityHandling.ExcludeStageActivities).stream()
                         .map(activity -> {
                             Integer tourId = (Integer) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.TOUR_ID);
-                            Integer tripId = (Integer) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.TRIP_ID);
                             String purpose = (String) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.PURPOSE);
                             String direction = (String) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.DIRECTION);
-
-                            String tour_id_trip_id = (String) activity.getAttributes().getAttribute(Variables.NEXT_TRIP_ID_ATTRIBUTE);
-                            if (tourId != null) {
-                                return new Variables.MOBiTripAttributes(tourId, tripId, purpose, direction);
-                            } else if (tour_id_trip_id != null) {
+                            var tripId = activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.TRIP_ID);
+                            if (tripId instanceof Integer) {
+                                return new Variables.MOBiTripAttributes(tourId, (Integer) tripId, purpose, direction);
+                            } else if (tripId instanceof String) {
                                 //backwards compatibility
-                                var split = tour_id_trip_id.split("_");
+                                var split = ((String) tripId).split("_");
                                 tripId = Integer.parseInt(split[0]);
                                 tourId = Integer.parseInt(split[1].split("\"")[0]);
-                                return new Variables.MOBiTripAttributes(tourId, tripId, "", "");
+                                return new Variables.MOBiTripAttributes(tourId, (Integer) tripId, "", "");
                             } else return null;
 
                         }).filter(
