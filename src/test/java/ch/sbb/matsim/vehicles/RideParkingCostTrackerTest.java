@@ -38,29 +38,30 @@ public class RideParkingCostTrackerTest {
 
 		f.events.addHandler(new EventsLogger());
 
-		RideParkingCostTracker tracker = new RideParkingCostTracker(f.scenario, f.zones, f.events);
+		RideParkingCostTracker tracker = new RideParkingCostTracker(f.scenario, f.events);
 		f.events.addHandler(tracker);
 		EventsCollector collector = new EventsCollector();
 		f.events.addHandler(collector);
 
 		Id<Person> personId = Id.create(1, Person.class);
 		Id<Link> linkHome = Id.create("L", Link.class);
-        Id<Link> linkWork = Id.create("B", Link.class);
-        Id<Link> linkShop = Id.create("T", Link.class);
+		Id<Link> linkWork = Id.create("B", Link.class);
+		Id<Link> linkShop = Id.create("T", Link.class);
 
-        double hourlyParkingCostWork = 20; // this is the value of at_car in zone Bern
-        double hourlyParkingCostShop = 3; // this is the value of at_car in zone Thun
+		double hourlyParkingCostWork = 20; // this is the value of at_car in zone Bern
+		double hourlyParkingCostShop = 3; // this is the value of at_car in zone Thun
+		f.scenario.getNetwork().getLinks().get(linkWork).getAttributes().putAttribute("pc_car", hourlyParkingCostWork);
+		f.scenario.getNetwork().getLinks().get(linkShop).getAttributes().putAttribute("pc_car", hourlyParkingCostShop);
+		f.events.processEvent(new PersonArrivalEvent(7.25 * 3600, personId, linkWork, "ride"));
+		f.events.processEvent(new ActivityStartEvent(7.25 * 3600, personId, linkWork, null, "work", null));
+		Assert.assertEquals(2, collector.getEvents().size());
 
-        f.events.processEvent(new PersonArrivalEvent(7.25 * 3600, personId, linkWork, "ride"));
-        f.events.processEvent(new ActivityStartEvent(7.25 * 3600, personId, linkWork, null, "work", null));
-        Assert.assertEquals(2, collector.getEvents().size());
+		f.events.processEvent(new ActivityEndEvent(12.00 * 3600, personId, linkWork, null, "work", new Coord(0, 0)));
+		Assert.assertEquals(4, collector.getEvents().size());
 
-        f.events.processEvent(new ActivityEndEvent(12.00 * 3600, personId, linkWork, null, "work", new Coord(0, 0)));
-        Assert.assertEquals(4, collector.getEvents().size());
-
-        Assert.assertEquals(ParkingCostEvent.class, collector.getEvents().get(2).getClass());
-        ParkingCostEvent parkingEvent1 = (ParkingCostEvent) collector.getEvents().get(2);
-        Assert.assertEquals(personId, parkingEvent1.getPersonId());
+		Assert.assertEquals(ParkingCostEvent.class, collector.getEvents().get(2).getClass());
+		ParkingCostEvent parkingEvent1 = (ParkingCostEvent) collector.getEvents().get(2);
+		Assert.assertEquals(personId, parkingEvent1.getPersonId());
         Assert.assertNull(parkingEvent1.getVehicleId());
         Assert.assertEquals(12.00 * 3600, parkingEvent1.getTime(), 1e-8);
         Assert.assertEquals((12 - 7.25) * hourlyParkingCostWork, parkingEvent1.getMonetaryAmount(), 1e-8);
@@ -134,7 +135,7 @@ public class RideParkingCostTrackerTest {
 
 			ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
 			parkingConfig.setZonesId("parkingZones");
-			parkingConfig.setZonesRideParkingCostAttributeName("at_car"); // yes, we misuse the access times in the test data as parking costs
+			parkingConfig.setZonesRideParkingCostAttributeName("pc_car"); // yes, we misuse the access times in the test data as parking costs
 		}
 
 		private void createNetwork() {

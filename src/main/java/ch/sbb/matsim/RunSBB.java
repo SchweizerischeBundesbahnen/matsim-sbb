@@ -107,7 +107,7 @@ public class RunSBB {
 		ZonesModule.addZonestoScenario(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		IntermodalModule.prepareIntermodalScenario(scenario);
-		AccessEgressModule.prepareAccessEgressTimes(scenario);
+		AccessEgressModule.prepareLinkAttributes(scenario);
 		// vehicle types
 		new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
 				scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();

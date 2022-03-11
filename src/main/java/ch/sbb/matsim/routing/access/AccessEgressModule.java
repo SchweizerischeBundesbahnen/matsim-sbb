@@ -1,14 +1,12 @@
 package ch.sbb.matsim.routing.access;
 
+import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
@@ -18,13 +16,20 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.NetworkRoutingProvider;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 public class AccessEgressModule extends AbstractModule {
 
 	public static final String IS_CH = "isCH";
 
-	public static void prepareAccessEgressTimes(Scenario scenario) {
+	public static void prepareLinkAttributes(Scenario scenario) {
 		ZonesCollection collection = (ZonesCollection) scenario.getScenarioElement(ZonesModule.SBB_ZONES);
 		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
+		ParkingCostConfigGroup parkingCostConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), ParkingCostConfigGroup.class);
+		String car_pc_att = parkingCostConfigGroup.getZonesParkingCostAttributeName();
+		String ride_pc_att = parkingCostConfigGroup.getZonesRideParkingCostAttributeName();
 		Id<Zones> zonesId = accessTimeConfigGroup.getZonesId();
 		Zones zones = collection.getZones(zonesId);
 		String attributePrefix = accessTimeConfigGroup.getAttributePrefix();
@@ -39,9 +44,25 @@ public class AccessEgressModule extends AbstractModule {
 				NetworkUtils.setLinkEgressTime(l, mode, accessTime);
 			}
 			boolean isInCH = false;
-			if (zone != null && Integer.parseInt(zone.getId().toString()) < 700000000) {
-				isInCH = true;
+			if (zone != null) {
+				if (Integer.parseInt(zone.getId().toString()) < 700000000) {
+					isInCH = true;
+				}
+				if (ride_pc_att != null) {
+					double pc_ride = ((Number) zone.getAttribute(ride_pc_att)).doubleValue();
+					if (pc_ride != 0.0) {
+						l.getAttributes().putAttribute(ride_pc_att, pc_ride);
+					}
+				}
+				if (car_pc_att != null) {
+					double pc_car = ((Number) zone.getAttribute(car_pc_att)).doubleValue();
+					if (pc_car != 0.0) {
+						l.getAttributes().putAttribute(car_pc_att, pc_car);
+					}
+				}
+
 			}
+
 			l.getAttributes().putAttribute(IS_CH, isInCH);
 		}
 

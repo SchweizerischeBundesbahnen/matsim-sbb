@@ -39,7 +39,8 @@ public class ParkingCostVehicleTrackerTest {
 
 		f.events.addHandler(new EventsLogger());
 
-		ParkingCostVehicleTracker tracker = new ParkingCostVehicleTracker(f.scenario, f.zones, f.events);
+		ParkingCostVehicleTracker tracker = new ParkingCostVehicleTracker(f.scenario, f.events);
+
 		f.events.addHandler(tracker);
 		EventsCollector collector = new EventsCollector();
 		f.events.addHandler(collector);
@@ -52,7 +53,8 @@ public class ParkingCostVehicleTrackerTest {
 
 		double hourlyParkingCostWork = 20; // this is the value of at_car in zone Bern
 		double hourlyParkingCostShop = 3; // this is the value of at_car in zone Thun
-
+		f.scenario.getNetwork().getLinks().get(linkWork).getAttributes().putAttribute("pc_car", hourlyParkingCostWork);
+		f.scenario.getNetwork().getLinks().get(linkShop).getAttributes().putAttribute("pc_car", hourlyParkingCostShop);
 		f.events.processEvent(new VehicleEntersTrafficEvent(7.00 * 3600, personId, linkHome, vehicleId, "car", 1.0));
 		f.events.processEvent(new VehicleLeavesTrafficEvent(7.25 * 3600, personId, linkWork, vehicleId, "car", 1.0));
 		f.events.processEvent(new ActivityStartEvent(7.25 * 3600, personId, linkWork, null, "work", null));
@@ -137,7 +139,7 @@ public class ParkingCostVehicleTrackerTest {
 
 			ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
 			parkingConfig.setZonesId("parkingZones");
-			parkingConfig.setZonesParkingCostAttributeName("at_car"); // yes, we misuse the access times in the test data as parking costs
+			parkingConfig.setZonesParkingCostAttributeName("pc_car");
 		}
 
 		private void createNetwork() {

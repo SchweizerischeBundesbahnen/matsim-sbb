@@ -2,12 +2,6 @@ package ch.sbb.matsim.vehicles;
 
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.events.ParkingCostEvent;
-import ch.sbb.matsim.zones.Zone;
-import ch.sbb.matsim.zones.ZonesCollection;
-import ch.sbb.matsim.zones.ZonesQueryCache;
-import java.util.HashMap;
-import java.util.Map;
-import javax.inject.Inject;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -23,6 +17,10 @@ import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.vehicles.Vehicle;
 
+import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author mrieser
  */
@@ -33,16 +31,14 @@ public class ParkingCostVehicleTracker implements ActivityStartEventHandler, Veh
 	private final Map<Id<Vehicle>, ParkingInfo> parkingPerVehicle = new HashMap<>();
 	private final Map<Id<Person>, Id<Vehicle>> lastVehiclePerDriver = new HashMap<>();
 	private final Scenario scenario;
-	private final ZonesQueryCache zonesQuery;
 	private final EventsManager events;
 	private final String parkingCostAttributeName;
 	private boolean badAttributeTypeWarningShown = false;
 
 	@Inject
-	public ParkingCostVehicleTracker(Scenario scenario, ZonesCollection zones, EventsManager events) {
+	public ParkingCostVehicleTracker(Scenario scenario, EventsManager events) {
 		this.scenario = scenario;
 		ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), ParkingCostConfigGroup.class);
-		this.zonesQuery = new ZonesQueryCache(zones.getZones(parkCostConfig.getZonesId()));
 		this.parkingCostAttributeName = parkCostConfig.getZonesParkingCostAttributeName();
 		this.events = events;
 	}
@@ -54,11 +50,11 @@ public class ParkingCostVehicleTracker implements ActivityStartEventHandler, Veh
 			return;
 		}
 		Link link = this.scenario.getNetwork().getLinks().get(pi.parkingLinkId);
-		Zone zone = this.zonesQuery.findZone(link.getCoord().getX(), link.getCoord().getY());
-		if (zone == null) {
+
+		Object value = link.getAttributes().getAttribute(this.parkingCostAttributeName);
+		if (value == null) {
 			return;
 		}
-		Object value = zone.getAttribute(this.parkingCostAttributeName);
 		if (value instanceof Number) {
 			double parkDuration = event.getTime() - pi.startParkingTime;
 			double hourlyParkingCost = ((Number) value).doubleValue();
