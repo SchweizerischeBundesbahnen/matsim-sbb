@@ -20,25 +20,21 @@
 package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.preparation.cutter.BetterPopulationReader;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
+import java.io.File;
 import org.matsim.analysis.TripsAndLegsCSVWriter;
-import org.matsim.analysis.TripsAndLegsCSVWriter.CustomLegsWriterExtension;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
-import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-
-import java.util.Collections;
-import java.util.List;
 
 public class CreateTripTableFromPostprocessing {
 
@@ -47,12 +43,14 @@ public class CreateTripTableFromPostprocessing {
         String networkFile = args[0];
         String facilitiesFile = args[1];
         String transitScheduleFile = args[2];
-        String experiencedPlansFile = args[3];
-        String zonesFile = args[4];
-        String outputTripsFile = args[5];
-        String outputLegsFile = args[6];
+        String populationFile = args[3];
+        String experiencedPlansFile = args[4];
+        String zonesFile = args[5];
+        String outputTripsFile = args[6];
+        String outputLegsFile = args[7];
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         PostProcessingConfigGroup postProcessingConfigGroup = new PostProcessingConfigGroup();
         postProcessingConfigGroup.setZonesId("zones");
 
@@ -61,29 +59,17 @@ public class CreateTripTableFromPostprocessing {
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         new MatsimFacilitiesReader(scenario).readFile(facilitiesFile);
-        new PopulationReader(scenario).readFile(experiencedPlansFile);
-
+        new PopulationReader(scenario2).readFile(experiencedPlansFile);
+        BetterPopulationReader.readSelectedPlansOnly(scenario, new File(populationFile));
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
         SBBTripsExtension sbbTripsExtension = new SBBTripsExtension(railTripsAnalyzer, postProcessingConfigGroup, zonesCollection, scenario);
         SBBLegsExtension sbbLegsExtension = new SBBLegsExtension(railTripsAnalyzer);
         TripsAndLegsCSVWriter tripsAndLegsCSVWriter = new TripsAndLegsCSVWriter(scenario, sbbTripsExtension, sbbLegsExtension, null, v -> Long.toString((long) v));
         IdMap<Person, Plan> plans = new IdMap<>(Person.class);
-        for (Person p : scenario.getPopulation().getPersons().values()) {
+        for (Person p : scenario2.getPopulation().getPersons().values()) {
             plans.put(p.getId(), p.getSelectedPlan());
         }
         tripsAndLegsCSVWriter.write(plans, outputTripsFile, outputLegsFile);
     }
 
-    static class NoLegsWriterExtension implements CustomLegsWriterExtension {
-
-        @Override
-        public String[] getAdditionalLegHeader() {
-            return new String[0];
-        }
-
-        @Override
-        public List<String> getAdditionalLegColumns(TripStructureUtils.Trip experiencedTrip, Leg experiencedLeg) {
-            return Collections.emptyList();
-        }
-    }
 }
