@@ -6,12 +6,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.linkAnalysis.CarLinkAnalysis;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.ActivityWriter;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.PtLinkVolumeAnalyzer;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandMatrixAggregator;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailDemandReporting;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import com.google.inject.Inject;
@@ -88,8 +83,8 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                 String railDemandAggregateFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
                 railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename);
-                String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.csv")
-                        : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.csv");
+                String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes")
+                        : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes");
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scenario.getConfig().controler().getRunId(), scalefactor);
                 putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
                 String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("car_volumes.csv")
