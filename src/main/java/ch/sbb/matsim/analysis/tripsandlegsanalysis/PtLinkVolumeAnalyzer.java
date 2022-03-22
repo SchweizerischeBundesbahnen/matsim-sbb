@@ -22,32 +22,38 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.csv.CSVWriter;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.NetworkWriter;
+import org.matsim.core.config.groups.NetworkConfigGroup;
+import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
+import javax.inject.Inject;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class PtLinkVolumeAnalyzer {
 
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final Set<Id<Link>> ptlinks;
+    private final Network network;
     @Inject
     private ExperiencedPlansService experiencedPlansService;
 
     @Inject
     public PtLinkVolumeAnalyzer(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule, Network network) {
         this.railTripsAnalyzer = railTripsAnalyzer;
+        this.network = network;
         this.ptlinks = network.getLinks().values()
                 .stream()
                 .filter(l -> l.getAllowedModes().stream().anyMatch(m -> PTSubModes.submodes.contains(m) || m.equals(SBBModes.PT)))
@@ -70,19 +76,33 @@ public class PtLinkVolumeAnalyzer {
     }
 
     public void writePtLinkUsage(String outputfile, String runId, double scalefactor) {
+        NetworkFilterManager nfm = new NetworkFilterManager(network, new NetworkConfigGroup());
+        nfm.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
+        Network ptNetwork = nfm.applyFilters();
         final String vol = runId + "_ptVolume";
         final String linkId = "linkId";
         String[] header = {linkId, vol};
         var ptVolumes = analysePtLinkUsage();
-        try (CSVWriter writer = new CSVWriter(null, header, outputfile)) {
+        try (CSVWriter writer = new CSVWriter(null, header, outputfile + ".csv")) {
             for (Entry<Id<Link>, Double> e : ptVolumes.entrySet()) {
-                writer.set(linkId, e.getKey().toString());
-                writer.set(vol, Integer.toString((int) Math.round(e.getValue() * scalefactor)));
+                Id<Link> currentLinkId = e.getKey();
+                writer.set(linkId, currentLinkId.toString());
+                int scaledVolume = (int) Math.round(e.getValue() * scalefactor);
+                writer.set(vol, Integer.toString(scaledVolume));
                 writer.writeRow();
+                Link l = ptNetwork.getLinks().get(currentLinkId);
+                if (l != null) {
+                    l.getAttributes().putAttribute(vol, scaledVolume);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        new NetworkWriter(ptNetwork).write(outputfile + "_network.xml.gz");
+        NetworkFilterManager nfm2 = new NetworkFilterManager(ptNetwork, new NetworkConfigGroup());
+        nfm2.addLinkFilter(link -> link.getAllowedModes().contains(PTSubModes.RAIL));
+        Network railNet = nfm2.applyFilters();
+        new NetworkWriter(railNet).write(outputfile + "_rail_network.xml.gz");
     }
 
 }
