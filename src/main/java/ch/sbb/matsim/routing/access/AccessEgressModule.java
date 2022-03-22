@@ -2,6 +2,7 @@ package ch.sbb.matsim.routing.access;
 
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -40,8 +41,10 @@ public class AccessEgressModule extends AbstractModule {
 			for (var mode : modesWithAccessTime) {
 				String attribute = attributePrefix + mode.toLowerCase();
 				double accessTime = zone != null ? ((Number) zone.getAttribute(attribute)).intValue() : .0;
-				NetworkUtils.setLinkAccessTime(l, mode, accessTime);
-				NetworkUtils.setLinkEgressTime(l, mode, accessTime);
+				if (l.getAllowedModes().contains(mode)) {
+					NetworkUtils.setLinkAccessTime(l, mode, accessTime);
+					NetworkUtils.setLinkEgressTime(l, mode, accessTime);
+				}
 			}
 			boolean isInCH = false;
 			if (zone != null) {
@@ -49,15 +52,20 @@ public class AccessEgressModule extends AbstractModule {
 					isInCH = true;
 				}
 				if (ride_pc_att != null) {
-					double pc_ride = ((Number) zone.getAttribute(ride_pc_att)).doubleValue();
-					if (pc_ride != 0.0) {
-						l.getAttributes().putAttribute(ride_pc_att, pc_ride);
+					if (l.getAllowedModes().contains(SBBModes.RIDE)) {
+						double pc_ride = ((Number) zone.getAttribute(ride_pc_att)).doubleValue();
+						if (pc_ride != 0.0) {
+							l.getAttributes().putAttribute(ride_pc_att, pc_ride);
+						}
 					}
 				}
 				if (car_pc_att != null) {
-					double pc_car = ((Number) zone.getAttribute(car_pc_att)).doubleValue();
-					if (pc_car != 0.0) {
-						l.getAttributes().putAttribute(car_pc_att, pc_car);
+					if (l.getAllowedModes().contains(SBBModes.CAR)) {
+
+						double pc_car = ((Number) zone.getAttribute(car_pc_att)).doubleValue();
+						if (pc_car != 0.0) {
+							l.getAttributes().putAttribute(car_pc_att, pc_car);
+						}
 					}
 				}
 
@@ -72,12 +80,13 @@ public class AccessEgressModule extends AbstractModule {
 		ZonesCollection collection = (ZonesCollection) scenario.getScenarioElement(ZonesModule.SBB_ZONES);
 		Zones zones = collection.getZones(zonesId);
 		for (var l : scenario.getNetwork().getLinks().values()) {
-			Zone zone = zones.findZone(l.getCoord());
-			double accessTime = zone != null ? ((Number) zone.getAttribute(accessTimeZoneId)).intValue() : .0;
-			double egressTime = zone != null ? ((Number) zone.getAttribute(egressTimeZoneId)).intValue() : .0;
-			NetworkUtils.setLinkEgressTime(l, mode, egressTime);
-			NetworkUtils.setLinkAccessTime(l, mode, accessTime);
-
+			if (l.getAllowedModes().contains(mode)) {
+				Zone zone = zones.findZone(l.getCoord());
+				double accessTime = zone != null ? ((Number) zone.getAttribute(accessTimeZoneId)).intValue() : .0;
+				double egressTime = zone != null ? ((Number) zone.getAttribute(egressTimeZoneId)).intValue() : .0;
+				NetworkUtils.setLinkEgressTime(l, mode, egressTime);
+				NetworkUtils.setLinkAccessTime(l, mode, accessTime);
+			}
 		}
 	}
 
