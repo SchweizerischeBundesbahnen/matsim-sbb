@@ -61,7 +61,7 @@ public class ParkingCostVehicleTracker implements ActivityStartEventHandler, Veh
 			double parkingCost = hourlyParkingCost * (parkDuration / 3600.0);
 			this.events.processEvent(new ParkingCostEvent(event.getTime(), pi.driverId, event.getVehicleId(), link.getId(), parkingCost));
 		} else if (!this.badAttributeTypeWarningShown) {
-			log.error("ParkingCost attribute must be of type Double or Integer, but is of type " + (value == null ? null : value.getClass()) + ". This message is only given once.");
+			log.error("ParkingCost attribute must be of type Double or Integer, but is of type " + value.getClass() + ". This message is only given once.");
 			this.badAttributeTypeWarningShown = true;
 		}
 	}

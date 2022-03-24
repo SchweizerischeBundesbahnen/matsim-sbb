@@ -293,12 +293,12 @@ public class TripsAndDistanceStats {
         for (Id<Link> linkId : nr.getLinkIds()) {
             if (count) {
                 Link l = network.getLinks().get(linkId);
-                if (l == null) {
+                if (l != null) {
+                    if (isSwiss(l)) {
+                        distDomestic += l.getLength();
+                    }
+                    dist += l.getLength();
                 }
-                else if (isSwiss(l)) {
-                    distDomestic += l.getLength();
-                }
-                dist += l.getLength();
             }
             if (enterLinkId.equals(linkId)) {
                 count = true;

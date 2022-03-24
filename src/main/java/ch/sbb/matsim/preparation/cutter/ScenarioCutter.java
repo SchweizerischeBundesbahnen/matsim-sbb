@@ -1060,19 +1060,21 @@ public class ScenarioCutter {
 				plan.addActivity(outsideAct);
 			} else if (throughTraffic) {
 				TransitPassengerRoute newRoute = findAvailableRoutePart(ctx, route);
-				Leg newLeg = PopulationUtils.createLeg(leg);
-				newLeg.setRoute(newRoute);
-				if (!isEmptyPlan) {
-					Id<Link> lastLinkId = getLinkId(ctx, getLastActivity(ctx, plan));
-					Leg teleportLeg = createOutsideLeg(ctx, lastLinkId, newRoute.getStartLinkId());
-					plan.addLeg(teleportLeg);
+				if (newRoute != null) {
+					Leg newLeg = PopulationUtils.createLeg(leg);
+					newLeg.setRoute(newRoute);
+					if (!isEmptyPlan) {
+						Id<Link> lastLinkId = getLinkId(ctx, getLastActivity(ctx, plan));
+						Leg teleportLeg = createOutsideLeg(ctx, lastLinkId, newRoute.getStartLinkId());
+						plan.addLeg(teleportLeg);
+					}
+					double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
+					Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime().seconds() + delay);
+					plan.addActivity(outsideAct1);
+					plan.addLeg(newLeg);
+					Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime().seconds());
+					plan.addActivity(outsideAct2);
 				}
-				double delay = newRoute!=null?calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson()):0.0;
-				Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime().seconds() + delay);
-				plan.addActivity(outsideAct1);
-				plan.addLeg(newLeg);
-				Activity outsideAct2 = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime().seconds());
-				plan.addActivity(outsideAct2);
 			} else { // start and end inside, but going outside
 				TransitPassengerRoute routeStart = findAvailableRouteStart(ctx, route);
 				TransitPassengerRoute routeEnd = findAvailableRouteEnd(ctx, route);

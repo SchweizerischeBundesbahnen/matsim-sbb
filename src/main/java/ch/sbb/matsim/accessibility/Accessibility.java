@@ -668,7 +668,7 @@ public class Accessibility {
 
 			// WALK, BIKE
 			{
-				this.shortestLcpTree.calculate(nearestNode.getId().index(), 8 * 3600, null, null);
+				this.shortestLcpTree.calculate(nearestNode.getId().index(), 8 * 3600.0, null, null);
 			}
 
 			// PT
@@ -981,7 +981,7 @@ public class Accessibility {
 
 			// WALK, BIKE
 			{
-				this.shortestLcpTree.calculate(nearestNode.getId().index(), 8 * 3600, null, null);
+				this.shortestLcpTree.calculate(nearestNode.getId().index(), 8 * 3600.0, null, null);
 			}
 
 			// PT

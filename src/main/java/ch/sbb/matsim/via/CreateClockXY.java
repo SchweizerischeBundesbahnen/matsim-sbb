@@ -122,7 +122,7 @@ public class CreateClockXY {
 			double rad = degree * deg2rad;
 			double x = Math.sin(rad);
 			double y = Math.cos(rad);
-			write(writer, minute * 60, "HOUR", -12d * x, -12d * y, 32d * x, 32d * y, "BLACK", 5.7, 0, "LINE");
+			write(writer, minute * 60d, "HOUR", -12d * x, -12d * y, 32d * x, 32d * y, "BLACK", 5.7, 0, "LINE");
 		}
 	}
 
@@ -135,7 +135,7 @@ public class CreateClockXY {
 			int position = minute % 60;
 			double x = this.x[position];
 			double y = this.y[position];
-			write(writer, minute * 60, "MINUTE", -12d * x, -12d * y, 46d * x, 46d * y, "BLACK", 4.2, 0, "LINE");
+			write(writer, minute * 60d, "MINUTE", -12d * x, -12d * y, 46d * x, 46d * y, "BLACK", 4.2, 0, "LINE");
 		}
 	}
 
@@ -157,7 +157,7 @@ public class CreateClockXY {
 			double y = this.y[position];
 			double shownSec = sec;
 			if (this.jump2go) {
-				double minutes = sec / 60;
+				double minutes = sec / 60d;
 				double seconds = sec - (minutes * 60);
 				seconds = seconds * 60.0 / 58.0;
 				if (seconds > 60) {
