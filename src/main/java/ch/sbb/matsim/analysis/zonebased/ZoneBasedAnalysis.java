@@ -4,14 +4,6 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesImpl;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.log4j.Logger;
@@ -32,11 +24,10 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.routes.TransitPassengerRoute;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jbischoff / SBB
@@ -156,7 +147,7 @@ public class ZoneBasedAnalysis {
 		public static final String AVERAGE_TRAVEL_TIME = "_averageTravelTime";
 		public static final String AVERAGE_TRAVEL_DISTANCE = "_averageTravelDistance";
 		public static final String TRANSFERS = "_averagePtTransfers";
-		public static List<String> basicHeader = Arrays.asList(DEPARTURES, BOARDINGS, DEBOARDINGS, TRIPS, AVERAGE_TRAVEL_TIME, AVERAGE_TRAVEL_DISTANCE);
+		protected static final List<String> basicHeader = Arrays.asList(DEPARTURES, BOARDINGS, DEBOARDINGS, TRIPS, AVERAGE_TRAVEL_TIME, AVERAGE_TRAVEL_DISTANCE);
 		Map<String, Integer> modalPtDepartures;
 		Map<String, MutableInt> ptBoardings;
 		Map<String, MutableInt> ptdeBoardings;
@@ -217,7 +208,7 @@ public class ZoneBasedAnalysis {
 						zoneStatsMap.get(deboardingZone).ptdeBoardings.get(mode).increment();
 					}
 				} else {
-					Logger.getLogger(getClass()).warn("unexpected pt-route in leg " + ptleg.toString() + ptleg.getRoute().getClass());
+					Logger.getLogger(getClass()).warn("unexpected pt-route in leg " + ptleg + ptleg.getRoute().getClass());
 				}
 
 			}
