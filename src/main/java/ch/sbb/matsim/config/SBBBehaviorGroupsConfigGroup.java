@@ -4,15 +4,12 @@
 
 package ch.sbb.matsim.config;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 import org.matsim.core.utils.collections.CollectionUtils;
+
+import java.util.*;
 
 /**
  * @author pmanser / SBB
@@ -301,12 +298,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 			super(PARAMSET_PERSONGROUPATTRIBUTE);
 		}
 
-		@Override
-		public void checkConsistency(Config config) {
-			if (this.attributeValues == null) {
-				throw new RuntimeException("behaviour group attribute values for parameter set " + this + " is null!");
-			}
-		}
 
 		@StringGetter(PARAM_ATTRIBUTE)
 		private String getPersonGroupAttributeValuesAsString() {

@@ -6,29 +6,12 @@ import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Random;
-import java.util.stream.Collectors;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.Population;
-import org.matsim.api.core.v01.population.PopulationFactory;
-import org.matsim.api.core.v01.population.PopulationWriter;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.contrib.util.random.WeightedRandomSelection;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
@@ -37,6 +20,14 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.MatsimFacilitiesReader;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("ConstantConditions")
 public class GenerateEAPDemand {
@@ -62,8 +53,8 @@ public class GenerateEAPDemand {
         zones = ZonesLoader.loadZones("zones", zonesFile, Variables.ZONE_ID);
         demandData = readDemandData(demandMatrixFile);
 
-        try {
-            Files.lines(Path.of(dailyDistribution)).forEach(s -> {
+        try (Stream<String> lines = Files.lines(Path.of(dailyDistribution))) {
+            lines.forEach(s -> {
                 String[] distribution = s.split(";");
                 int hour = Integer.parseInt(distribution[0]);
                 double departureWeight = Double.parseDouble(distribution[1]);
@@ -128,7 +119,7 @@ public class GenerateEAPDemand {
             final Zone zone = zones.getZone(Id.create(homeZone, Zone.class));
             if (zone == null) {
                 Logger.getLogger(getClass()).error("Zone " + homeZone + " is not in Shape. ");
-
+                continue;
             }
             var facilities = facilitiesPerMunId.get(String.valueOf(zone.getAttribute("mun_id")));
             Coord homeCoord;
@@ -169,7 +160,7 @@ public class GenerateEAPDemand {
             final Zone zone = zones.getZone(Id.create(homeZone, Zone.class));
             if (zone == null) {
                 Logger.getLogger(getClass()).error("Zone " + homeZone + " is not in Shape. ");
-
+                continue;
             }
             var facilities = facilitiesPerMunId.get(String.valueOf(zone.getAttribute("mun_id")));
             String amr_id = zones.getZone(Id.create(homeZone, Zone.class)).getAttribute("amr_id").toString();
@@ -211,8 +202,8 @@ public class GenerateEAPDemand {
     }
 
     private List<ODDemand> readDemandData(String demandMatrixFile) {
-        try {
-            return Files.lines(Path.of(demandMatrixFile)).map(s -> {
+        try (Stream<String> lines = Files.lines(Path.of(demandMatrixFile))) {
+            List<ODDemand> data = lines.map(s -> {
                 var dem = s.split(";");
                 if (dem.length > 0) {
                     return new ODDemand(dem[0], dem[1], Double.parseDouble(dem[2]) * scaleFactorPt, Double.parseDouble(dem[3]) * scaleFactorCar);
@@ -220,6 +211,7 @@ public class GenerateEAPDemand {
                     return null;
                 }
             }).filter(Objects::nonNull).collect(Collectors.toList());
+            return data;
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException();

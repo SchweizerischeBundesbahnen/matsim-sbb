@@ -19,11 +19,6 @@
 
 package ch.sbb.matsim.preparation.casestudies;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -35,6 +30,13 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MergeAndRemovePlans {
 
@@ -65,7 +67,9 @@ public class MergeAndRemovePlans {
     }
 
     private void run() throws IOException {
-        blacklist = Files.lines(Path.of(blackListCsv)).map(Id::createPersonId).collect(Collectors.toSet());
+        try(Stream<String> lines = Files.lines(Path.of(blackListCsv))) {
+            blacklist = lines.map(Id::createPersonId).collect(Collectors.toSet());
+        }
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(additionalPlans);
         var spw = new StreamingPopulationWriter();

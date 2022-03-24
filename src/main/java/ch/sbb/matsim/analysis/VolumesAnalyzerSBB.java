@@ -4,10 +4,6 @@
 
 package ch.sbb.matsim.analysis;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.LinkLeaveEvent;
@@ -17,6 +13,11 @@ import org.matsim.api.core.v01.events.handler.VehicleEntersTrafficEventHandler;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.vehicles.Vehicle;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Counts the number of vehicles leaving a link, aggregated into time bins of a specified size.
@@ -132,81 +133,6 @@ public class VolumesAnalyzerSBB implements LinkLeaveEventHandler, VehicleEntersT
 	 */
 	public int getVolumesArraySize() {
 		return this.maxSlotIndex + 1;
-	}
-
-	/*
-	 * This procedure is only working if (hour % timeBinSize == 0)
-	 * 
-	 * Example: 15 minutes bins
-	 *  ___________________
-	 * |  0 | 1  | 2  | 3  |
-	 * |____|____|____|____|
-	 * 0   900 1800  2700 3600
-		___________________
-	 * | 	  hour 0	   |
-	 * |___________________|
-	 * 0   				  3600
-	 * 
-	 * hour 0 = bins 0,1,2,3
-	 * hour 1 = bins 4,5,6,7
-	 * ...
-	 * 
-	 * getTimeSlotIndex = (int)time / this.timeBinSize => jumps at 3600.0!
-	 * Thus, starting time = (hour = 0) * 3600.0
-	 */
-	public double[] getVolumesPerHourForLink(final Id<Link> linkId) {
-		if (3600.0 % this.timeBinSize != 0) {
-			log.error("Volumes per hour and per link probably not correct!");
-		}
-
-		double[] volumes = new double[24];
-		for (int hour = 0; hour < 24; hour++) {
-			volumes[hour] = 0.0;
-		}
-
-		int[] volumesForLink = this.getVolumesForLink(linkId);
-		if (volumesForLink == null) {
-			return volumes;
-		}
-
-		int slotsPerHour = (int) (3600.0 / this.timeBinSize);
-		for (int hour = 0; hour < 24; hour++) {
-			double time = hour * 3600.0;
-			for (int i = 0; i < slotsPerHour; i++) {
-				volumes[hour] += volumesForLink[this.getTimeSlotIndex(time)];
-				time += this.timeBinSize;
-			}
-		}
-		return volumes;
-	}
-
-	public double[] getVolumesPerHourForLink(final Id<Link> linkId, String mode) {
-		if (observeModes) {
-			if (3600.0 % this.timeBinSize != 0) {
-				log.error("Volumes per hour and per link probably not correct!");
-			}
-
-			double[] volumes = new double[24];
-			for (int hour = 0; hour < 24; hour++) {
-				volumes[hour] = 0.0;
-			}
-
-			int[] volumesForLink = this.getVolumesForLink(linkId, mode);
-			if (volumesForLink == null) {
-				return volumes;
-			}
-
-			int slotsPerHour = (int) (3600.0 / this.timeBinSize);
-			for (int hour = 0; hour < 24; hour++) {
-				double time = hour * 3600.0;
-				for (int i = 0; i < slotsPerHour; i++) {
-					volumes[hour] += volumesForLink[this.getTimeSlotIndex(time)];
-					time += this.timeBinSize;
-				}
-			}
-			return volumes;
-		}
-		return null;
 	}
 
 	/**

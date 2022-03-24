@@ -1,15 +1,12 @@
 package ch.sbb.matsim.accessibility;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.io.IOUtils;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
 
 public class CreateStartCoords {
 
@@ -39,7 +36,7 @@ public class CreateStartCoords {
 		Collection<Coord> homeCoords = AccessibilityUtils.getHomeCoordinatesFromPopulation("C:\\devsbb\\codes\\_data\\skims2.1\\plans.xml.gz");
 		Collection<Coord> filteredCoords = AccessibilityUtils.filterCoordinatesInArea(homeCoords, 2_520_000, 1_140_000, 2_610_000, 1_205_000);
 		Collection<Coord> extendedCoords = AccessibilityUtils.getGridCoordinates(filteredCoords, gridSize, 500);
-		Collection<Coord> fullHeightStripe = AccessibilityUtils.getGridCoordinates(gridSize, 2_610_000 + gridSize, 1_110_000, 2_625_000, 1_240_000);
+		Collection<Coord> fullHeightStripe = AccessibilityUtils.getGridCoordinates(gridSize, 2_610_000d + gridSize, 1_110_000d, 2_625_000d, 1_240_000d);
 		Set<Coord> allCoords = new HashSet<>();
 		allCoords.addAll(extendedCoords);
 		allCoords.addAll(fullHeightStripe);

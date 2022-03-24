@@ -2,18 +2,11 @@ package ch.sbb.matsim.analysis.potential;
 
 import ch.sbb.matsim.analysis.skims.StreamingFacilities;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
-import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
-import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
+import ch.sbb.matsim.routing.pt.raptor.*;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import ch.sbb.matsim.zones.ZonesQueryCache;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -29,12 +22,11 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Counter;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.MatsimFacilitiesReader;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 
 public class PotentialAnalysis {
 
@@ -172,7 +164,7 @@ public class PotentialAnalysis {
         Network carNetwork = NetworkUtils.createNetwork();
         (new TransportModeNetworkFilter(scenario.getNetwork())).filter(carNetwork, Collections.singleton("car"));
 
-        PotentialAnalysisRouter potentialAnalysisRouter = new PotentialAnalysisRouter(carNetwork, 7 * 60 * 60);
+        PotentialAnalysisRouter potentialAnalysisRouter = new PotentialAnalysisRouter(carNetwork, 7 * 60 * 60.0);
         Counter facCounterProcess = new Counter("#");
         for (ActivityFacility facility : scenario.getActivityFacilities().getFacilities().values()) {
             double minimumTime = 999999999;

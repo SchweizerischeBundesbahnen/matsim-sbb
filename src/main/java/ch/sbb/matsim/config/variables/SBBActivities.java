@@ -39,8 +39,8 @@ public final class SBBActivities {
 	static {
 		matsimActs2abmActs = new HashMap<>();
 
-		for (String key : abmActs2matsimActs.keySet()) {
-			matsimActs2abmActs.put(abmActs2matsimActs.get(key), key);
+		for (Map.Entry<String,String> entry : abmActs2matsimActs.entrySet()) {
+			matsimActs2abmActs.put(entry.getValue(), entry.getKey());
 		}
 	}
 

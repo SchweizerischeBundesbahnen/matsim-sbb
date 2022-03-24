@@ -1,12 +1,5 @@
 package ch.sbb.matsim.rideshare.utils;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -19,6 +12,10 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
 public class FleetGenerator {
 
 	/**
@@ -27,8 +24,8 @@ public class FleetGenerator {
 
 	private static final int numberOfVehicles = 100;
 	private static final int seatsPerVehicle = 2; //this is important for DRT, value is not used by taxi
-	private static final double operationStartTime = 0;
-	private static final double operationEndTime = 30 * 60 * 60; //24h
+	private static final double operationStartTime = 0.0;
+	private static final double operationEndTime = 30d * 60d * 60d; //24h
 	private static final Random random = MatsimRandom.getRandom();
 
 	private static final Path networkFile = Paths.get("\\\\k13536\\mobi\\40_Projekte\\20190913_Ridesharing\\sim\\neuchatel\\input\\network.xml.gz");

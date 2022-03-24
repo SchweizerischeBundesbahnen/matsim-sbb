@@ -52,7 +52,7 @@ public class StreetNetworkExporter {
         vse.run(visumFile, outputDir, Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
                 streetsExporterConfigGroup.isExportCounts(), true);
         Network network = vse.getNetwork();
-        if (streetsExporterConfigGroup.getSmallRoadSpeedFactor() != 1.0 && streetsExporterConfigGroup.getMainRoadSpeedFactor() != 1.0) {
+        if (streetsExporterConfigGroup.getSmallRoadSpeedFactor() < 1.0 || streetsExporterConfigGroup.getMainRoadSpeedFactor() < 1.0) {
             ReduceNetworkSpeeds reduceNetworkSpeeds = new ReduceNetworkSpeeds(network, zones, streetsExporterConfigGroup.getSmallRoadSpeedFactor(),
                     streetsExporterConfigGroup.getMainRoadSpeedFactor());
             reduceNetworkSpeeds.reduceSpeeds();

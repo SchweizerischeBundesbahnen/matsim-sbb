@@ -2,15 +2,6 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.visum.Visum;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.IntStream;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -20,21 +11,14 @@ import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
-import org.matsim.pt.transitSchedule.api.Departure;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.attributable.Attributes;
-import org.matsim.vehicles.Vehicle;
-import org.matsim.vehicles.VehicleCapacity;
-import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.*;
 import org.matsim.vehicles.VehicleType.DoorOperationMode;
-import org.matsim.vehicles.VehicleUtils;
-import org.matsim.vehicles.Vehicles;
-import org.matsim.vehicles.VehiclesFactory;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.IntStream;
 
 public class TimeProfileExporter {
 
@@ -74,7 +58,7 @@ public class TimeProfileExporter {
 		// line route items
 		Visum.ComObject lineRouteItems = visum.getNetObject("LineRouteItems");
 		if (lineRouteItems == null) {
-			log.error("could not get LineRouteItems");
+			throw new NullPointerException("could not get LineRouteItems");
 		}
 		Map<String, List<LineRouteItem>> lrItemsPerLineRoute = new HashMap<>();
 		int nrOfLRItems = lineRouteItems.countActive();
@@ -118,7 +102,8 @@ public class TimeProfileExporter {
 		for (int vj = 0; vj < nrOfVehJourneys; vj++) {
 			TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(vehJourneyAttributes[vj][0]));
 			if (tp == null) {
-				log.info((int) Double.parseDouble(vehJourneyAttributes[vj][0]));
+				log.error((int) Double.parseDouble(vehJourneyAttributes[vj][0]));
+				throw new NullPointerException();
 			}
 			tp.addVehicleJourney(new VehicleJourney((int) Double.parseDouble(vehJourneyAttributes[vj][1]),
 					(int) Double.parseDouble(vehJourneyAttributes[vj][2]),
@@ -210,10 +195,10 @@ public class TimeProfileExporter {
     public void writeLinkSequence(String outputfolder, Network network) {
         try (CSVWriter writer = new CSVWriter("", new String[]{"matsim_link", "link_sequence_visum"},
                 outputfolder + "/link_sequences.csv")) {
-            for (Id<Link> linkId : this.linkToVisumSequence.keySet()) {
-                if (network.getLinks().containsKey(linkId)) {
-                    writer.set("matsim_link", linkId.toString());
-                    writer.set("link_sequence_visum", this.linkToVisumSequence.get(linkId));
+            for (Map.Entry<Id<Link>, String> entry : this.linkToVisumSequence.entrySet()) {
+                if (network.getLinks().containsKey(entry.getKey())) {
+                    writer.set("matsim_link", entry.getKey().toString());
+                    writer.set("link_sequence_visum", entry.getValue());
                     writer.writeRow();
                 }
             }

@@ -19,20 +19,11 @@
 
 package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
-import static ch.sbb.matsim.routing.access.AccessEgressModule.IS_CH;
-
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import javax.inject.Inject;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.matsim.api.core.v01.Id;
@@ -62,6 +53,16 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import javax.inject.Inject;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import static ch.sbb.matsim.routing.access.AccessEgressModule.IS_CH;
 
 public class TripsAndDistanceStats {
 
@@ -102,10 +103,7 @@ public class TripsAndDistanceStats {
         scenario.getNetwork().getLinks().values().forEach(l ->
                 {
                     Zone zone = zones.findZone(l.getCoord());
-                    boolean isInCH = false;
-                    if (zone != null && Integer.parseInt(zone.getId().toString()) < 700000000) {
-                        isInCH = true;
-                    }
+                    boolean isInCH = zone != null && Integer.parseInt(zone.getId().toString()) < 700000000;
                     l.getAttributes().putAttribute(IS_CH, isInCH);
                 }
         );
@@ -291,15 +289,13 @@ public class TripsAndDistanceStats {
         NetworkRoute nr = tr.getRoute();
         double distDomestic = 0;
         double dist = 0;
-        boolean count = false;
-        if (enterLinkId.equals(nr.getStartLinkId())) {
-            count = true;
-        }
+        boolean count = enterLinkId.equals(nr.getStartLinkId());
         for (Id<Link> linkId : nr.getLinkIds()) {
             if (count) {
                 Link l = network.getLinks().get(linkId);
                 if (l == null) {
-                } else if (isSwiss(l)) {
+                }
+                else if (isSwiss(l)) {
                     distDomestic += l.getLength();
                 }
                 dist += l.getLength();
@@ -314,10 +310,12 @@ public class TripsAndDistanceStats {
         }
         if (count) {
             Link l = network.getLinks().get(nr.getEndLinkId());
-            if (isSwiss(l)) {
-                distDomestic += l.getLength();
+            if (l != null){
+                if (isSwiss(l)) {
+                    distDomestic += l.getLength();
+                }
+                dist += l.getLength();
             }
-            dist += l.getLength();
         }
         return new Tuple<>(distDomestic, dist);
     }
@@ -345,7 +343,7 @@ public class TripsAndDistanceStats {
         return (boolean) link.getAttributes().getAttribute(IS_CH);
     }
 
-    private class SubpopulationStats {
+    private static class SubpopulationStats {
 
         final String subpopulation;
         final Map<String, MutableDouble> domesticDistance = new TreeMap<>();

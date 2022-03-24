@@ -20,19 +20,6 @@
 package ch.sbb.matsim.preparation.casestudies;
 
 import ch.sbb.matsim.csv.CSVReader;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -43,6 +30,16 @@ import org.matsim.core.population.io.StreamingPopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A class to merge the routed plans of one finished simulation run with unrouted plans of another run. All agents performing at least one activity in either of the whitelisted zones will be drawn
@@ -106,11 +103,14 @@ public class MixExperiencedPlansFromSeveralSimulations {
         Set<Id<Person>> allPersons = new HashSet<>();
         List<String> persons = new ArrayList<>();
         persons.add("run;id");
-        for (String run : this.runs.keySet()) {
+        for (Map.Entry<String, Map<String, String>> run : this.runs.entrySet()) {
 
-            if (!run.equals("base")) {
-                LOG.info("processing run " + run);
-                Set<Id<Person>> whitelist = Files.lines(Path.of(runs.get(run).get("ids"))).map(Id::createPersonId).collect(Collectors.toSet());
+            if (!run.getKey().equals("base")) {
+                LOG.info("processing run " + run.getKey());
+                Set<Id<Person>> whitelist;
+                try (Stream<String> lines = Files.lines(Path.of(run.getValue().get("ids")))) {
+                    whitelist = lines.map(Id::createPersonId).collect(Collectors.toSet());
+                }
                 LOG.info("whitelist contains " + whitelist.size() + " persons");
                 int numPersons = allPersons.size();
                 StreamingPopulationReader populationReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
@@ -119,14 +119,14 @@ public class MixExperiencedPlansFromSeveralSimulations {
                         if (!allPersons.contains(person.getId())) {
                             spw.run(person);
                             allPersons.add(person.getId());
-                            persons.add(run+";"+person.getId());
+                            persons.add(run.getKey()+";"+person.getId());
                         } else {
-                            LOG.warn("person " + person.getId() + "found in more than one whitelist. Ignored in " + run);
+                            LOG.warn("person " + person.getId() + "found in more than one whitelist. Ignored in " + run.getKey());
                         }
                     }
                 });
 
-                populationReader.readFile(runs.get(run).get("plans"));
+                populationReader.readFile(run.getValue().get("plans"));
                 LOG.info("wrote " + (allPersons.size() - numPersons) + " persons");
             }
         }

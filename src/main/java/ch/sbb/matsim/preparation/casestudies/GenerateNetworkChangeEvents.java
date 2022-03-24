@@ -23,13 +23,6 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -46,6 +39,15 @@ import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkChangeEventsWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GenerateNetworkChangeEvents {
 
@@ -126,7 +128,10 @@ public class GenerateNetworkChangeEvents {
             sc = ScenarioUtils.createScenario(ConfigUtils.createConfig());
             new MatsimNetworkReader(sc.getNetwork()).readFile(networkFile);
             Zones zones = ZonesLoader.loadZones("zones", zonesFile, Variables.ZONE_ID);
-            Set<Id<Zone>> whitelistZones = Files.lines(Path.of(blacklistZones)).map(s -> Id.create(s, Zone.class)).collect(Collectors.toSet());
+            Set<Id<Zone>> whitelistZones;
+            try(Stream<String> lines = Files.lines(Path.of(blacklistZones))){
+                whitelistZones = lines.map(s -> Id.create(s, Zone.class)).collect(Collectors.toSet());
+            }
             this.blacklistlinks = sc.getNetwork().getLinks().values().parallelStream().filter(l -> {
                 var z = zones.findZone(l.getFromNode().getCoord());
                 if (z != null) {

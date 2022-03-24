@@ -20,12 +20,6 @@
 package ch.sbb.matsim.projects.roche;
 
 import ch.sbb.matsim.config.variables.Variables;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.core.config.ConfigUtils;
@@ -36,6 +30,14 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class RemoveCurrentAndMergeNewRocheEmployees {
 
     public static void main(String[] args) throws IOException {
@@ -43,7 +45,10 @@ public class RemoveCurrentAndMergeNewRocheEmployees {
         String outputPlans = args[1];
         String facilitiesblacklist = args[2];
         String rocheplans = args[3];
-        Set<String> blacklistFacilities = Files.lines(Path.of(facilitiesblacklist)).collect(Collectors.toSet());
+        Set<String> blacklistFacilities;
+        try(Stream<String> lines = Files.lines(Path.of(facilitiesblacklist))) {
+            blacklistFacilities = lines.collect(Collectors.toSet());
+        }
         MutableInt i = new MutableInt();
         StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();
         streamingPopulationWriter.startStreaming(outputPlans);
@@ -64,7 +69,7 @@ public class RemoveCurrentAndMergeNewRocheEmployees {
         rochpop.readFile(rocheplans);
 
         streamingPopulationWriter.closeStreaming();
-        System.out.println("Filtered out " + i.toString());
+        System.out.println("Filtered out " + i);
     }
 
 }

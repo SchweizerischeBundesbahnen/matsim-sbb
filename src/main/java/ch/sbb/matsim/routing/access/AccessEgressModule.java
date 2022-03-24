@@ -54,7 +54,7 @@ public class AccessEgressModule extends AbstractModule {
 				if (ride_pc_att != null) {
 					if (l.getAllowedModes().contains(SBBModes.RIDE)) {
 						double pc_ride = ((Number) zone.getAttribute(ride_pc_att)).doubleValue();
-						if (pc_ride != 0.0) {
+						if (pc_ride > 0.0) {
 							l.getAttributes().putAttribute(ride_pc_att, pc_ride);
 						}
 					}
@@ -63,7 +63,7 @@ public class AccessEgressModule extends AbstractModule {
 					if (l.getAllowedModes().contains(SBBModes.CAR)) {
 
 						double pc_car = ((Number) zone.getAttribute(car_pc_att)).doubleValue();
-						if (pc_car != 0.0) {
+						if (pc_car > 0.0) {
 							l.getAttributes().putAttribute(car_pc_att, pc_car);
 						}
 					}

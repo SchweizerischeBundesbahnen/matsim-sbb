@@ -10,19 +10,6 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -54,6 +41,15 @@ import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleUtils;
+
+import javax.inject.Inject;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author jbischoff / SBB
@@ -249,7 +245,7 @@ public class AccessEgressRouteCache {
 		int accessTime = accessTimes.getOrDefault(mode, Collections.emptyMap()).getOrDefault(stopFacilityLinkId, 0);
 		if (value == null) {
 			//we are slightly outside the cached radius
-			List<? extends PlanElement> routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, actFacility, 3 * 3600, person));
+			List<? extends PlanElement> routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, actFacility, 3d * 3600, person));
 			Leg routedLeg = TripStructureUtils.getLegs(routeParts).stream().filter(leg -> leg.getMode().equals(mode)).findFirst().orElseThrow(RuntimeException::new);
 			int egressTime = getAccessTime(this.intermodalModeParams.get(mode).getAccessTimeZoneId(), scenario.getNetwork().getLinks().get(routedLeg.getRoute().getEndLinkId()).getToNode().getCoord());
 			int distance = (int) routedLeg.getRoute().getDistance();

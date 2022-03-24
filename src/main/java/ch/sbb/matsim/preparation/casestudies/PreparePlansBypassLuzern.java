@@ -24,11 +24,6 @@ import ch.sbb.matsim.utils.SBBTripsToLegsAlgorithm;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
@@ -45,6 +40,13 @@ import org.matsim.core.router.RoutingModeMainModeIdentifier;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PreparePlansBypassLuzern {
 
@@ -65,7 +67,10 @@ public class PreparePlansBypassLuzern {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
-        Set<Id<Zone>> relevantZones = Files.lines(Path.of(relevantZonesFile)).map(t -> Id.create(t, Zone.class)).collect(Collectors.toSet());
+        Set<Id<Zone>> relevantZones;
+        try(Stream<String> lines = Files.lines(Path.of(relevantZonesFile))) {
+            relevantZones = lines.map(t -> Id.create(t, Zone.class)).collect(Collectors.toSet());
+        }
         fillRelevantLinkIds(scenario.getNetwork(), zones, relevantZones);
 
         StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();

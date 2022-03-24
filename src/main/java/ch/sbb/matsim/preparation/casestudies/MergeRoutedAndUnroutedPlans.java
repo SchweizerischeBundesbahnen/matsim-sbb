@@ -23,14 +23,6 @@ import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -54,6 +46,16 @@ import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A class to merge the routed plans of one finished simulation run with unrouted plans of another run. All agents performing at least one activity in either of the whitelisted zones will be drawn
@@ -208,7 +210,10 @@ public class MergeRoutedAndUnroutedPlans {
     private void prepareRelevantFacilities() {
 
         try {
-            Set<String> whitelistZones = Files.lines(Path.of(whiteListZonesFiles)).collect(Collectors.toSet());
+            Stream<String> lines = Files.lines(Path.of(whiteListZonesFiles));
+            Set<String> whitelistZones = lines.collect(Collectors.toSet());
+            lines.close();
+
             var zones = ZonesLoader.loadZones("zones", zonesFile, Variables.ZONE_ID);
             List<String> facilityFiles = List.of(routedPlansFacilities, unroutedPlansFacilities);
             for (String f : facilityFiles) {

@@ -370,8 +370,8 @@ public class Accessibility {
 			}
 
 			// check if the stop is also of interest to neighbouring blocks
-			double blockMinX = xKey * blockSize;
-			double blockMinY = yKey * blockSize;
+			double blockMinX = xKey * (double) blockSize;
+			double blockMinY = yKey * (double) blockSize;
 			double blockMaxX = blockMinX + blockSize;
 			double blockMaxY = blockMinY + blockSize;
 

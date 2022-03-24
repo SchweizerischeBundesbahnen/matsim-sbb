@@ -4,34 +4,12 @@ import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.network.NetworkFactory;
-import org.matsim.api.core.v01.network.NetworkWriter;
-import org.matsim.api.core.v01.network.Node;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.PopulationWriter;
-import org.matsim.api.core.v01.population.Route;
+import org.matsim.api.core.v01.network.*;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -60,24 +38,14 @@ import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 import org.matsim.pt.routes.TransitPassengerRoute;
-import org.matsim.pt.transitSchedule.api.Departure;
-import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.attributable.AttributesUtils;
-import org.matsim.vehicles.MatsimVehicleReader;
-import org.matsim.vehicles.MatsimVehicleWriter;
-import org.matsim.vehicles.Vehicle;
-import org.matsim.vehicles.VehicleCapacity;
-import org.matsim.vehicles.VehicleType;
-import org.matsim.vehicles.VehicleUtils;
-import org.matsim.vehicles.Vehicles;
-import org.matsim.vehicles.VehiclesFactory;
+import org.matsim.vehicles.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Code to cut out a smaller area from a bigger area in a scenario.
@@ -1086,7 +1054,7 @@ public class ScenarioCutter {
 				}
 				plan.addLeg(newLeg);
 				if (!ctx.dest.getNetwork().getLinks().containsKey(Objects.requireNonNull(newRoute).getEndLinkId())) {
-					throw new RuntimeException(newRoute.getEndLinkId() + "  is not part of the cut network, but part of transit route:\n " + newRoute.toString());
+					throw new RuntimeException(newRoute.getEndLinkId() + "  is not part of the cut network, but part of transit route:\n " + newRoute);
 				}
 				Activity outsideAct = createOutsideActivity(ctx, newRoute.getEndLinkId(), toAct.getEndTime().seconds());
 				plan.addActivity(outsideAct);
@@ -1099,7 +1067,7 @@ public class ScenarioCutter {
 					Leg teleportLeg = createOutsideLeg(ctx, lastLinkId, newRoute.getStartLinkId());
 					plan.addLeg(teleportLeg);
 				}
-				double delay = calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson());
+				double delay = newRoute!=null?calcDelay(ctx, route, newRoute, fromAct.getEndTime(), plan.getPerson()):0.0;
 				Activity outsideAct1 = createOutsideActivity(ctx, newRoute.getStartLinkId(), fromAct.getEndTime().seconds() + delay);
 				plan.addActivity(outsideAct1);
 				plan.addLeg(newLeg);
@@ -1241,7 +1209,7 @@ public class ScenarioCutter {
 		boolean isPlanEmpty = plan.getPlanElements().isEmpty();
 
 		if (comingInside) {
-			Activity newFromAct = fromActInside ? fromAct : createOutsideActivity(ctx, fromAct);
+			Activity newFromAct = createOutsideActivity(ctx, fromAct);
 			if (!isPlanEmpty) {
 				Id<Link> fromLinkId = getLinkId(ctx, getLastActivity(ctx, plan));
 				Id<Link> toLinkId = getLinkId(ctx, fromAct);
@@ -1350,7 +1318,7 @@ public class ScenarioCutter {
 				int value = values[hour];
 				if (value != lastValue) {
 					double newCapacity = link.getCapacity() - value * missingDemandFactor;
-					NetworkChangeEvent event = new NetworkChangeEvent(hour * 3600);
+					NetworkChangeEvent event = new NetworkChangeEvent(hour * 3600d);
 					event.addLink(link);
 					ChangeValue change = new ChangeValue(ChangeType.ABSOLUTE_IN_SI_UNITS, newCapacity);
 					event.setFlowCapacityChange(change);

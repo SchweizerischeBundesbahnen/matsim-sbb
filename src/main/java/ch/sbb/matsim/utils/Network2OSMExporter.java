@@ -1,10 +1,6 @@
 package ch.sbb.matsim.utils;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
@@ -21,9 +17,14 @@ import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 import org.matsim.core.utils.io.IOUtils;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 public class Network2OSMExporter {
 
-    private final static double TIME = 8 * 3600;
+    private final static double TIME = 8d * 3600;
     private final CoordinateTransformation transformation;
     private final Map<Id<Node>, Integer> nodeMapper = new HashMap<>();
 

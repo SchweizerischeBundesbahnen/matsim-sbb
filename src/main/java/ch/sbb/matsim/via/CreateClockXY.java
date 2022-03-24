@@ -4,12 +4,9 @@
 
 package ch.sbb.matsim.via;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.io.Writer;
 import org.matsim.core.utils.misc.Time;
+
+import java.io.*;
 
 /**
  * Creates various CSV files in order to display the SBB clock in Via.
@@ -24,13 +21,13 @@ public class CreateClockXY {
     private boolean fixSecondsAt12 = false;
     private boolean jump2go = false; // include 2-second stop for second digit at 12
     private double startTime = 0.0;
-    private double endTime = 30 * 3600;
+    private double endTime = 30d * 3600;
     private final double[] x = new double[60];
     private final double[] y = new double[60];
 
     public CreateClockXY() {
         for (int i = 0; i < 60; i++) {
-            double deg = i * 6;
+            double deg = i * 6d;
             double rad = deg * deg2rad;
             this.x[i] = Math.sin(rad);
             this.y[i] = Math.cos(rad);
@@ -125,7 +122,7 @@ public class CreateClockXY {
 			double rad = degree * deg2rad;
 			double x = Math.sin(rad);
 			double y = Math.cos(rad);
-			write(writer, minute * 60, "HOUR", -12 * x, -12 * y, 32 * x, 32 * y, "BLACK", 5.7, 0, "LINE");
+			write(writer, minute * 60, "HOUR", -12d * x, -12d * y, 32d * x, 32d * y, "BLACK", 5.7, 0, "LINE");
 		}
 	}
 
@@ -138,7 +135,7 @@ public class CreateClockXY {
 			int position = minute % 60;
 			double x = this.x[position];
 			double y = this.y[position];
-			write(writer, minute * 60, "MINUTE", -12 * x, -12 * y, 46 * x, 46 * y, "BLACK", 4.2, 0, "LINE");
+			write(writer, minute * 60, "MINUTE", -12d * x, -12d * y, 46d * x, 46d * y, "BLACK", 4.2, 0, "LINE");
 		}
 	}
 
@@ -166,7 +163,7 @@ public class CreateClockXY {
 				if (seconds > 60) {
 					seconds = 60;
 				}
-				shownSec = minutes * 60 + seconds;
+				shownSec = minutes * 60d + seconds;
 			}
 			write(writer, shownSec, "SECOND", 31.2 * x, 31.2 * y, -16.5 * x, -16.5 * y, "RED", 1.4, 5.25, "LINE");
 		}

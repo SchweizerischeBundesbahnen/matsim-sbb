@@ -71,7 +71,7 @@ public class RideParkingCostTracker implements PersonArrivalEventHandler, Activi
 			double parkingCost = hourlyParkingCost * (parkDuration / 3600.0);
 			this.events.processEvent(new ParkingCostEvent(event.getTime(), event.getPersonId(), null, link.getId(), parkingCost));
 		} else if (!this.badAttributeTypeWarningShown) {
-			log.error("Ride-ParkingCost attribute must be of type Double or Integer, but is of type " + (value == null ? null : value.getClass()) + ". This message is only given once.");
+			log.error("Ride-ParkingCost attribute must be of type Double or Integer, but is of type " + value.getClass() + ". This message is only given once.");
 			this.badAttributeTypeWarningShown = true;
 		}
 	}

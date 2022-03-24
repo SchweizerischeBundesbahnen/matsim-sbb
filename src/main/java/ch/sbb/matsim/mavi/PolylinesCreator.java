@@ -4,10 +4,6 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.visum.Visum;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -17,6 +13,11 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.misc.Counter;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * calculates correct polylines between stops for visualization.
@@ -63,8 +64,8 @@ public class PolylinesCreator {
 	}
 
 	public void runStreets(Network network, Map<Id<Link>, String> wktLineStringPerVisumLink, String matsimPolylinesFilename, String outputPath) throws IOException {
-        for (Id<Link> link_id : wktLineStringPerVisumLink.keySet()) {
-            this.polylinePerVisumLink.put(link_id.toString(), parseWktLinestring(wktLineStringPerVisumLink.get(link_id)));
+        for (Map.Entry<Id<Link>, String> entry : wktLineStringPerVisumLink.entrySet()) {
+            this.polylinePerVisumLink.put(entry.getKey().toString(), parseWktLinestring(entry.getValue()));
         }
 
         processNetworkStreets(network);
