@@ -244,7 +244,7 @@ public class RailTripsAnalyzer {
         }
         Id<TransitStopFacility> railAccessStop = routes.get(0).getAccessStopId();
         Id<TransitStopFacility> railEgressStop = routes.get(routes.size() - 1).getEgressStopId();
-        if (isSwissRailOrFQStop(railAccessStop) && isSwissRailOrFQStop(railEgressStop)) {
+        if (isSwissRailStop(railAccessStop) && isSwissRailStop(railEgressStop)) {
             boolean hasFQRelevantLeg = routes.stream().anyMatch(route -> (fqStops.contains(route.getAccessStopId()) && fqStops.contains(route.getEgressStopId())));
             if (hasFQRelevantLeg) {
                 return routes.stream().mapToDouble(Route::getDistance).sum();
