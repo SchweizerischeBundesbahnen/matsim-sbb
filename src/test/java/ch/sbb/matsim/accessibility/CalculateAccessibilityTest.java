@@ -20,7 +20,7 @@ public class CalculateAccessibilityTest {
         final String testpath = "ch/sbb/matsim/accessibility/CalculateAccessibilityTest";
         var outputDirectory = "test/output/" + testpath;
         var inputDirectory = "test/input/" + testpath;
-        var events = folder + "MOBI31.output_events.xml";
+        var events = inputDirectory + "/MOBI31.output_events.xml";
         var detectTrainLines = "true";
         var threads = "1";
         var calcString = "7:00:00;08:00:00";
@@ -31,7 +31,7 @@ public class CalculateAccessibilityTest {
 
         var zones = folder + "zones/andermatt-zones.shp";
         var facilities = folder + "facilities.xml.gz";
-        var population = folder + "population_mobi_33.xml.gz";
+        var population = inputDirectory + "/population.xml.gz";
         var personWeight = "100";
 
         var modes = "mm;car;pt";
