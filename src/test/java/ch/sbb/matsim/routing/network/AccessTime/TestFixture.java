@@ -44,7 +44,8 @@ public class TestFixture {
     TestFixture(Coord start, Coord end, String mode, boolean withAccess, double constant, String modesWithAccess) {
 
         Config config = ConfigUtils.createConfig(new SBBAccessTimeConfigGroup());
-        scenario = ScenarioUtils.createScenario(config);
+		config.controler().setOutputDirectory("test/output/AccessTimeIntegrationTest");
+		scenario = ScenarioUtils.createScenario(config);
         population = scenario.getPopulation();
         Network network = scenario.getNetwork();
 
