@@ -2,10 +2,11 @@ package ch.sbb.matsim.accessibility;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
 import org.junit.Test;
 import org.locationtech.jts.util.Assert;
+
+import java.io.File;
+import java.io.IOException;
 
 public class CalculateAccessibilityTest {
 
@@ -30,7 +31,7 @@ public class CalculateAccessibilityTest {
 
         var zones = folder + "zones/andermatt-zones.shp";
         var facilities = folder + "facilities.xml.gz";
-        var population = folder + "population.xml.gz";
+        var population = folder + "population_mobi_33.xml.gz";
         var personWeight = "100";
 
         var modes = "mm;car;pt";
