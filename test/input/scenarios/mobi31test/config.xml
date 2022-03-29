@@ -171,13 +171,13 @@
         Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
         For 'qsim', add a module 'qsim' to the config. -->
         <param name="mobsim" value="hermes"/>
-        <param name="outputDirectory" value="test/output/mobi-31-test"/>
+        <param name="outputDirectory" value="test/output/mobi-33-test"/>
         <!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
         <param name="overwriteFiles" value="deleteDirectoryIfExists"/>
         <!-- The type of routing (least cost path) algorithm used, may have the values: Dijkstra, FastDijkstra, AStarLandmarks or FastAStarLandmarks -->
         <param name="routingAlgorithmType" value="FastAStarLandmarks"/>
         <!-- An identifier for the current run which is used as prefix for output files and mentioned in output xml files etc. -->
-        <param name="runId" value="MOBI31"/>
+        <param name="runId" value="MOBI33IT"/>
         <!-- Comma-separated list of visualizer output file formats. `transims', `googleearth', and `otfvis'. -->
         <param name="snapshotFormat" value=""/>
         <!-- iterationNumber % writeEventsInterval == 0 defines in which iterations events are written to a file. `0' disables events writing completely. -->
@@ -376,7 +376,7 @@
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
         <param name="inputCRS" value="null"/>
         <param name="inputPersonAttributesFile" value="null"/>
-        <param name="inputPlansFile" value="population.xml.gz"/>
+        <param name="inputPlansFile" value="population_mobi_33.xml.gz"/>
         <param name="insistingOnUsingDeprecatedPersonAttributeFile" value="false"/>
         <!-- Defines how routes are stored in memory. Currently supported: LinkNetworkRoute, CompressedNetworkRoute. -->
         <param name="networkRouteType" value="LinkNetworkRoute"/>
