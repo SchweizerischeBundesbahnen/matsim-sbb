@@ -21,6 +21,7 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
@@ -115,7 +116,7 @@ public class TripsAndDistanceStats {
         TripsAndDistanceStats tripsAndDistanceStats = new TripsAndDistanceStats(scenario);
         IdMap<Person, Plan> experiencedPlans = new IdMap<>(Person.class, scenario2.getPopulation().getPersons().size());
         scenario2.getPopulation().getPersons().values().forEach(p -> experiencedPlans.put(p.getId(), p.getSelectedPlan()));
-        tripsAndDistanceStats.analyzeAndWriteStats(outputFile, experiencedPlans);
+        tripsAndDistanceStats.analyzeAndWriteStats(outputFile + "_full.csv", outputFile + "_condensed.csv", experiencedPlans);
     }
 
     //trips in CH
@@ -124,15 +125,22 @@ public class TripsAndDistanceStats {
     // km in ch
     // km total
     // je subpopulation
-    public void analyzeAndWriteStats(String filename) {
-        analyzeAndWriteStats(filename, experiencedPlansService.getExperiencedPlans());
+    public void analyzeAndWriteStats(String fullFileName, String condensedFilename) {
+        analyzeAndWriteStats(fullFileName, condensedFilename, experiencedPlansService.getExperiencedPlans());
     }
 
-    public void analyzeAndWriteStats(String filename, IdMap<Person, Plan> experiencedPlans) {
+    public void analyzeAndWriteStats(String fullStatsFileName, String condensedStatsFilename, IdMap<Person, Plan> experiencedPlans) {
         Map<String, SubpopulationStats> stats = new TreeMap<>();
         analyze(stats, experiencedPlans);
+        writeFile(fullStatsFileName, stats);
         addArtificialAllPaxSubpopulation(stats);
+        for (String s : Variables.EXOGENEOUS_DEMAND) {
+            stats.remove(s);
+        }
+        writeFile(condensedStatsFilename, stats);
+    }
 
+    private void writeFile(String filename, Map<String, SubpopulationStats> stats) {
         try (BufferedWriter bw = IOUtils.getBufferedWriter(filename)) {
             bw.write("Trips and Distance Stats per Subpopulation");
             bw.newLine();
@@ -186,7 +194,7 @@ public class TripsAndDistanceStats {
     }
 
     private void addArtificialAllPaxSubpopulation(Map<String, SubpopulationStats> stats) {
-        SubpopulationStats allPaxTraffic = new SubpopulationStats("0_allPassengerTraffic");
+        SubpopulationStats allPaxTraffic = new SubpopulationStats("All Passenger Traffic (ARE Style)");
         for (SubpopulationStats s : stats.values()) {
             if (s.subpopulation.equals("freight_road")) {
                 continue;
@@ -194,18 +202,30 @@ public class TripsAndDistanceStats {
             for (Entry<String, MutableInt> e : s.tripsTotal.entrySet()) {
                 allPaxTraffic.tripsTotal.computeIfAbsent(e.getKey(), (a) -> new MutableInt()).add(e.getValue());
             }
-            for (Entry<String, MutableInt> e : s.domesticTrips.entrySet()) {
-                allPaxTraffic.domesticTrips.computeIfAbsent(e.getKey(), (a) -> new MutableInt()).add(e.getValue());
-            }
-            for (Entry<String, MutableDouble> e : s.domesticDistance.entrySet()) {
-                allPaxTraffic.domesticDistance.computeIfAbsent(e.getKey(), (a) -> new MutableDouble()).add(e.getValue());
-            }
+
             for (Entry<String, MutableDouble> e : s.overallDistance.entrySet()) {
                 allPaxTraffic.overallDistance.computeIfAbsent(e.getKey(), (a) -> new MutableDouble()).add(e.getValue());
             }
+            // In the "All Passenger traffic" category, all kilometers traveled by the Regular subpopulation is defined to be domestic,
+            // even if there is transit through foreign territory.
+            if (s.subpopulation.equals(Variables.REGULAR)) {
+                for (Entry<String, MutableInt> e : s.tripsTotal.entrySet()) {
+                    allPaxTraffic.domesticTrips.computeIfAbsent(e.getKey(), (a) -> new MutableInt()).add(e.getValue());
+                }
+                for (Entry<String, MutableDouble> e : s.overallDistance.entrySet()) {
+                    allPaxTraffic.domesticDistance.computeIfAbsent(e.getKey(), (a) -> new MutableDouble()).add(e.getValue());
+                }
+            } else {
+                for (Entry<String, MutableInt> e : s.domesticTrips.entrySet()) {
+                    allPaxTraffic.domesticTrips.computeIfAbsent(e.getKey(), (a) -> new MutableInt()).add(e.getValue());
+                }
+                for (Entry<String, MutableDouble> e : s.domesticDistance.entrySet()) {
+                    allPaxTraffic.domesticDistance.computeIfAbsent(e.getKey(), (a) -> new MutableDouble()).add(e.getValue());
+                }
+            }
 
         }
-        stats.put("allPassengerTraffic", allPaxTraffic);
+        stats.put("xx", allPaxTraffic);
     }
 
     private void analyze(Map<String, SubpopulationStats> statsPerSubpopulation, IdMap<Person, Plan> experiencedPlans) {

@@ -92,7 +92,9 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                 carLinkAnalysis.writeSingleIterationCarStats(carVolumesName);
                 String tripsAndDistanceStatsName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("trips_distance_stats.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "trips_distance_stats.csv");
-                tripsAndDistanceStats.analyzeAndWriteStats(tripsAndDistanceStatsName);
+                String fullTripsAndDistanceStatsName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("trips_distance_stats_full.csv")
+                        : controlerIO.getIterationFilename(event.getIteration(), "trips_distance_stats_full.csv");
+                tripsAndDistanceStats.analyzeAndWriteStats(fullTripsAndDistanceStatsName, tripsAndDistanceStatsName);
 
                 String activityFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("matsim_activities.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "matsim_activities.csv.gz");
