@@ -28,16 +28,29 @@ public class TestBaseConfigConsistency {
 
     @Test
     public void check2017Config() {
-        Config config_2017 = ConfigUtils.loadConfig("baseconfigs/config_2017_2030.xml", RunSBB.getSbbDefaultConfigGroups());
+        Config config_2017 = ConfigUtils.loadConfig("baseconfigs/config_2017.xml", RunSBB.getSbbDefaultConfigGroups());
         config_2017.checkConsistency();
 
     }
 
+    @Test
+    public void check2030Config() {
+        Config config_2030 = ConfigUtils.loadConfig("baseconfigs/config_2030.xml", RunSBB.getSbbDefaultConfigGroups());
+        config_2030.checkConsistency();
+
+    }
 
     @Test
     public void check2040Config() {
-        Config config_2040 = ConfigUtils.loadConfig("baseconfigs/config_2040_2050.xml", RunSBB.getSbbDefaultConfigGroups());
+        Config config_2040 = ConfigUtils.loadConfig("baseconfigs/config_2040.xml", RunSBB.getSbbDefaultConfigGroups());
         config_2040.checkConsistency();
+
+    }
+
+    @Test
+    public void check2050Config() {
+        Config config_2050 = ConfigUtils.loadConfig("baseconfigs/config_2050.xml", RunSBB.getSbbDefaultConfigGroups());
+        config_2050.checkConsistency();
 
     }
 
