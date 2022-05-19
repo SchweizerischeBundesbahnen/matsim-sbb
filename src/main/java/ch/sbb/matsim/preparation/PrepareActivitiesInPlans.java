@@ -3,7 +3,6 @@ package ch.sbb.matsim.preparation;
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.Variables;
-import java.util.List;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
@@ -18,6 +17,8 @@ import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
+
+import java.util.List;
 
 public class PrepareActivitiesInPlans {
 
@@ -139,26 +140,28 @@ public class PrepareActivitiesInPlans {
 	}
 
 	private static void processOvernightAct(Activity firstAct, Activity lastAct) {
-		double lastActStartTime = lastAct.getStartTime().seconds();
-		double totDuration = (firstAct.getEndTime().seconds() + 24 * 3600.0) - lastAct.getStartTime().seconds();
-		if (totDuration <= 0) {
-			totDuration = 1;
-		}
+		if (firstAct.getType().equals(SBBActivities.home) && lastAct.getType().equals(SBBActivities.home)) {
+			double lastActStartTime = lastAct.getStartTime().seconds();
+			double totDuration = (firstAct.getEndTime().seconds() + 24 * 3600.0) - lastAct.getStartTime().seconds();
+			if (totDuration <= 0) {
+				totDuration = 1;
+			}
 
-		if (lastActStartTime >= (16.0 * 3600) && lastActStartTime < (19.0 * 3600)) {
-			long ii = roundSecondsToMinInterval(totDuration, 60);
+			if (lastActStartTime >= (16.0 * 3600) && lastActStartTime < (19.0 * 3600)) {
+				long ii = roundSecondsToMinInterval(totDuration, 60);
 
-			double hours = lastActStartTime / 3600 * 1;
-			double yy = ((int) hours) / 1.0 + 1.0;
+				double hours = lastActStartTime / 3600 * 1;
+				double yy = ((int) hours) / 1.0 + 1.0;
 
-			String type = SBBActivities.home + "_" + ii + "_" + yy;
-			firstAct.setType(type);
-			lastAct.setType(type);
-		} else {
-			long ii = roundSecondsToMinInterval(totDuration, 60);
-			String type = SBBActivities.home + "_" + ii;
-			firstAct.setType(type);
-			lastAct.setType(type);
+				String type = SBBActivities.home + "_" + ii + "_" + yy;
+				firstAct.setType(type);
+				lastAct.setType(type);
+			} else {
+				long ii = roundSecondsToMinInterval(totDuration, 60);
+				String type = SBBActivities.home + "_" + ii;
+				firstAct.setType(type);
+				lastAct.setType(type);
+			}
 		}
 	}
 
