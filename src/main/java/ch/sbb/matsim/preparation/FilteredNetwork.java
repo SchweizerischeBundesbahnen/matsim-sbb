@@ -7,6 +7,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
@@ -37,9 +38,9 @@ public class FilteredNetwork {
         return this.filteredNetwork;
     }
 
-	public Network filterNetwork(Network network) {
+	public Network filterNetwork(Network network, Config config) {
 
-        final Network carNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
+        final Network carNetwork = NetworkUtils.createNetwork(config);
         new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(SBBModes.CAR));
 
         this.filteredNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
