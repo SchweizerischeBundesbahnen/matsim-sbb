@@ -22,6 +22,7 @@ package ch.sbb.matsim.preparation.casestudies;
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.Logger;
@@ -47,6 +48,7 @@ import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -76,7 +78,18 @@ public class MergeRoutedAndUnroutedPlans {
     private final String outputPlansFile;
     private final TransitSchedule schedule;
 
+    private final String varPlans;
+
+    private final String varFacilities;
+
+    private final String varOutputPlansFile;
+
+    private final Set<Id<Person>> varPersons = new HashSet<>();
+
     private final Set<Id<ActivityFacility>> facilityWhiteList = new HashSet<>();
+
+    private final Set<Id<Person>> allPersons = new HashSet<>();
+
     private Config config;
 
     /**
@@ -94,7 +107,7 @@ public class MergeRoutedAndUnroutedPlans {
      * @param transitSchedulePath TransitScheduleFile to check if routes exist.
      */
     public MergeRoutedAndUnroutedPlans(String unroutedPlans, String routedPlans, String unroutedPlansFacilities, String routedPlansFacilities, String whiteListZonesFiles, String zonesFile,
-            String inputConfig, String outputConfig, String outputPlansFile, String transitSchedulePath) {
+            String inputConfig, String outputConfig, String outputPlansFile, String transitSchedulePath, String varPlans, String varFacilities, String varOutputPlansFile) {
         this.unroutedPlans = unroutedPlans;
         this.routedPlans = routedPlans;
         this.unroutedPlansFacilities = unroutedPlansFacilities;
@@ -105,6 +118,9 @@ public class MergeRoutedAndUnroutedPlans {
         this.inputConfig = inputConfig;
         this.outputConfig = outputConfig;
         this.outputPlansFile = outputPlansFile;
+        this.varPlans = varPlans;
+        this.varFacilities = varFacilities;
+        this.varOutputPlansFile = varOutputPlansFile;
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(transitSchedulePath);
         this.schedule = scenario.getTransitSchedule();
@@ -124,28 +140,44 @@ public class MergeRoutedAndUnroutedPlans {
         String outputConfig = args[7];
         String outputPlansFile = args[8];
         String schedule = args[9];
-        new MergeRoutedAndUnroutedPlans(unroutedPlans, routedPlans, unroutedPlansFacilities, routedPlansFacilities, whiteListZonesFiles, zonesFile, inputConfig, outputConfig, outputPlansFile,
-                schedule).run();
+        String varPlans = "-";
+        String varFacilites = "-";
+        String varOutputPlansFile = "-";
+        if (args.length > 10) {
+            varPlans = args[10];
+            varFacilites = args[11];
+            varOutputPlansFile = args[12];
+        }
+        new MergeRoutedAndUnroutedPlans(unroutedPlans, routedPlans, unroutedPlansFacilities, routedPlansFacilities, whiteListZonesFiles, zonesFile,
+                inputConfig, outputConfig, outputPlansFile,
+                            schedule, varPlans, varFacilites, varOutputPlansFile).run();
 
     }
 
-    private void run() {
+    private void run()  {
         adjustConfig();
         prepareRelevantFacilities();
+        prepareVarPersons();
         mergePlans();
+        mergeVarPlans();
     }
 
     private void mergePlans() {
-        TripsToLegsAlgorithm tripsToLegsAlgorithm = new TripsToLegsAlgorithm(new IntermodalAwareRouterModeIdentifier(config));
+        LOG.info("varPersons before mergePlans " + varPersons.size());
+        LOG.info("allPersons before mergePlans " + allPersons.size());
         StreamingPopulationWriter spw = new StreamingPopulationWriter();
         spw.startStreaming(outputPlansFile);
-        Set<Id<Person>> allPersons = new HashSet<>();
         StreamingPopulationReader unroutedReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
         unroutedReader.addAlgorithm(person -> {
             if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
                 boolean include = TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities)
                         .stream()
                         .anyMatch(activity -> this.facilityWhiteList.contains(activity.getFacilityId()));
+                String source = "var";
+                if (include) {
+                    source = "ref";
+                }
+                include = include | varPersons.contains(person.getId());
                 if (include) {
                     spw.run(person);
                     allPersons.add(person.getId());
@@ -154,10 +186,20 @@ public class MergeRoutedAndUnroutedPlans {
             }
         });
         unroutedReader.readFile(unroutedPlans);
+
+        appendRoutedPlans(spw);
+
+        spw.closeStreaming();
+        LOG.info("varPersons after mergePlans " + varPersons.size());
+        LOG.info("allPersons after mergePlans " + allPersons.size());
+    }
+
+    private void appendRoutedPlans(StreamingPopulationWriter spw) {
+        TripsToLegsAlgorithm tripsToLegsAlgorithm = new TripsToLegsAlgorithm(new IntermodalAwareRouterModeIdentifier(config));
         MutableInt ttl = new MutableInt();
         StreamingPopulationReader routedReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
         routedReader.addAlgorithm(person -> {
-            if (!allPersons.contains(person.getId())) {
+            if (!this.allPersons.contains(person.getId())) {
                 boolean include;
                 if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
                     include = TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities)
@@ -193,7 +235,7 @@ public class MergeRoutedAndUnroutedPlans {
                         }
                     }
 
-                    allPersons.add(person.getId());
+                    this.allPersons.add(person.getId());
                     spw.run(person);
                 }
             }
@@ -203,8 +245,6 @@ public class MergeRoutedAndUnroutedPlans {
             routedReader.readFile(routedPlans);
         }
 
-        spw.closeStreaming();
-        LOG.info(ttl.intValue());
     }
 
     private void prepareRelevantFacilities() {
@@ -240,6 +280,46 @@ public class MergeRoutedAndUnroutedPlans {
 
     }
 
+    private void prepareVarPersons()  {
+        /* if there are plans for a variant, take all persons that have activities in the relevant zones either in ref or in var */
+
+        if (varPlans!="-") {
+            StreamingPopulationReader varPlansReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
+            varPlansReader.addAlgorithm(person -> {
+                if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
+                    boolean include = TripStructureUtils.getActivities(person.getSelectedPlan(), StageActivityHandling.ExcludeStageActivities)
+                            .stream()
+                            .anyMatch(activity -> this.facilityWhiteList.contains(activity.getFacilityId()));
+                    if (include) {
+                        varPersons.add(person.getId());
+                    }
+
+                }
+            });
+            varPlansReader.readFile(varPlans);
+        }
+        LOG.info("varPersons after prepareVarPersons " + varPersons.size());
+
+    }
+
+    private void mergeVarPlans()  {
+        StreamingPopulationWriter spw = new StreamingPopulationWriter();
+        spw.startStreaming(this.varOutputPlansFile);
+        StreamingPopulationReader vpr = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
+        vpr.addAlgorithm(person -> {
+            if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
+                boolean include = (allPersons.contains(person.getId()) | varPersons.contains(person.getId()));
+                if (include) {
+                    spw.run(person);
+                }
+            }
+        });
+        vpr.readFile(varPlans);
+
+        appendRoutedPlans(spw);
+
+        spw.closeStreaming();
+    }
     private void adjustConfig() {
 
         this.config = ConfigUtils.loadConfig(this.inputConfig, RunSBB.getSbbDefaultConfigGroups());
