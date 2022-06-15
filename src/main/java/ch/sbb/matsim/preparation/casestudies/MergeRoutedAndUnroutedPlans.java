@@ -22,7 +22,6 @@ package ch.sbb.matsim.preparation.casestudies;
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.config.variables.Variables;
-import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.Logger;
@@ -48,7 +47,6 @@ import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -105,6 +103,9 @@ public class MergeRoutedAndUnroutedPlans {
      * @param outputConfig The output config file
      * @param outputPlansFile The output plans file
      * @param transitSchedulePath TransitScheduleFile to check if routes exist.
+     * @param varPlans MATSim Plans from mobi-plans run with modified skims (var)
+     * @param varFacilities MATSim Facilities from mobi-plans run with modified skims
+     * @param varOutputPlansFile The output file for var plans
      */
     public MergeRoutedAndUnroutedPlans(String unroutedPlans, String routedPlans, String unroutedPlansFacilities, String routedPlansFacilities, String whiteListZonesFiles, String zonesFile,
             String inputConfig, String outputConfig, String outputPlansFile, String transitSchedulePath, String varPlans, String varFacilities, String varOutputPlansFile) {
