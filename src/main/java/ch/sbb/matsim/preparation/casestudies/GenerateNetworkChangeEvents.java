@@ -19,6 +19,7 @@
 
 package ch.sbb.matsim.preparation.casestudies;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -147,13 +149,15 @@ public class GenerateNetworkChangeEvents {
     }
 
     private TravelTimeCalculator readEvents() {
-        EventsManager manager = EventsUtils.createEventsManager();
+        TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(sc.getNetwork());
+        ttBuilder.setAnalyzedModes(Collections.singleton(SBBModes.CAR));
+        ttBuilder.setCalculateLinkTravelTimes(true);
+        TravelTimeCalculator ttCalculator = ttBuilder.build();
+        EventsManager eventsManager = EventsUtils.createEventsManager(sc.getConfig());
+        eventsManager.addHandler(ttCalculator);
+        new MatsimEventsReader(eventsManager).readFile(eventsFile);
 
-        TravelTimeCalculatorConfigGroup ttccg = new TravelTimeCalculatorConfigGroup();
-        TravelTimeCalculator tc = new TravelTimeCalculator(sc.getNetwork(), ttccg);
-        manager.addHandler(tc);
-        new MatsimEventsReader(manager).readFile(eventsFile);
-        return tc;
+        return ttCalculator;
     }
 
     public List<NetworkChangeEvent> getNetworkChangeEvents() {
