@@ -62,6 +62,7 @@ public class PrepareRouteChoiceRun {
         String outputConfig = Paths.get(simFolder, "config_scoring_parsed.xml").toString();
         Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
 
+        config.controler().setLastIteration(60);
         Map<String, Double> strategies = new HashMap<>();
         strategies.put("SBBTimeMutation_ReRoute", 0.25);
         strategies.put("ReRoute", 0.05);
@@ -70,18 +71,10 @@ public class PrepareRouteChoiceRun {
             if (s.getSubpopulation().equals("regular")) {
                 if (strategies.containsKey(s.getStrategyName())) {
                     s.setWeight(strategies.get(s.getStrategyName()));
-                    strategies.remove(s.getStrategyName());
+                } else {
+                    s.setWeight(0.0);
                 }
             }
-        }
-
-        for (Map.Entry<String, Double> e : strategies.entrySet()) {
-            StrategyConfigGroup.StrategySettings s = new StrategyConfigGroup.StrategySettings();
-            s.setWeight(e.getValue());
-            s.setSubpopulation("regular");
-            s.setStrategyName(e.getKey());
-            config.strategy().addStrategySettings(s);
-
         }
 
         if (!transit.equals("-")) {
