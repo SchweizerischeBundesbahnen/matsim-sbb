@@ -74,7 +74,7 @@ public class MergeRoutedAndUnroutedPlans {
     private final String inputConfig;
     private final String outputConfig;
     private final String outputPlansFile;
-    private final TransitSchedule schedule;
+    private final TransitSchedule scheduleVar;
 
     private final String varPlans;
 
@@ -124,7 +124,7 @@ public class MergeRoutedAndUnroutedPlans {
         this.varOutputPlansFile = varOutputPlansFile;
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(transitSchedulePath);
-        this.schedule = scenario.getTransitSchedule();
+        this.scheduleVar = scenario.getTransitSchedule();
     }
 
     /**
@@ -219,7 +219,7 @@ public class MergeRoutedAndUnroutedPlans {
                     var ptroutes = TripStructureUtils.getLegs(person.getSelectedPlan()).stream().filter(leg -> leg.getRoute().getRouteType().equals(DefaultTransitPassengerRoute.ROUTE_TYPE))
                             .map(leg -> (DefaultTransitPassengerRoute) leg.getRoute()).collect(Collectors.toSet());
                     for (DefaultTransitPassengerRoute r : ptroutes) {
-                        var transitLine = schedule.getTransitLines().get(r.getLineId());
+                        var transitLine = scheduleVar.getTransitLines().get(r.getLineId());
                         boolean hasRoute = false;
                         boolean hasLine = false;
                         if (transitLine != null) {
