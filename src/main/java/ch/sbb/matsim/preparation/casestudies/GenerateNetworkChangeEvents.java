@@ -92,8 +92,8 @@ public class GenerateNetworkChangeEvents {
 
     public void createNetworkChangeEvents(Network network, TravelTimeCalculator tcc2) {
         for (Link l : network.getLinks().values()) {
-
-            if ((l.getAllowedModes().size() == 1) && l.getAllowedModes().contains("pt")) {
+            if (l.getCapacity() < 1500) continue;
+            if (!l.getAllowedModes().contains("car")) {
                 continue;
             }
             if (blacklistlinks.contains(l.getId())) {
@@ -114,6 +114,9 @@ public class GenerateNetworkChangeEvents {
                     double MINIMUMFREESPEED = 3;
                     if (newFreespeed < MINIMUMFREESPEED) {
                         newFreespeed = MINIMUMFREESPEED;
+                    }
+                    if (newFreespeed > 130 / 3.6) {
+                        newFreespeed = 130 / 3.6;
                     }
                     ChangeValue freespeedChange = new ChangeValue(ChangeType.ABSOLUTE_IN_SI_UNITS, newFreespeed);
                     nce.setFreespeedChange(freespeedChange);
