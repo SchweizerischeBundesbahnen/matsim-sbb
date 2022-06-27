@@ -25,7 +25,7 @@ public class LinkToStationsAssigner {
 	}
 
 	public static void runAssignment(Scenario scenario) {
-		Network filteredNetwork = new FilteredNetwork().filterNetwork(scenario.getNetwork());
+		Network filteredNetwork = new FilteredNetwork().filterNetwork(scenario.getNetwork(), scenario.getConfig());
 		assignLinkToFacility(filteredNetwork, scenario.getTransitSchedule());
 	}
 

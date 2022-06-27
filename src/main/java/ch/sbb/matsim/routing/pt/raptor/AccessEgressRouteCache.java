@@ -91,7 +91,7 @@ public class AccessEgressRouteCache {
 						.map(f -> Id.createLinkId(String.valueOf(f.getAttributes().getAttribute(linkIdAttribute))))
 						.collect(Collectors.toSet());
 				LOGGER.info("Found " + stopLinkIds.size() + " stops with intermodal access option for this mode.");
-				Network network = getRoutingNetwork(paramset.getMode());
+				Network network = getRoutingNetwork(paramset.getMode(), config);
 				Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeZoneId(), network);
 				accessTimes.put(paramset.getMode(), modeAccessTimes);
 
@@ -213,7 +213,7 @@ public class AccessEgressRouteCache {
 		}
 	}
 
-	private Network getRoutingNetwork(String mode) {
+	private Network getRoutingNetwork(String mode, Config config) {
 		Map<String, Network> cache = this.singleModeNetworksCache.getSingleModeNetworksCache();
 		Network filteredNetwork = cache.get(mode);
 		if (filteredNetwork == null) {
@@ -224,7 +224,7 @@ public class AccessEgressRouteCache {
 					TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
 					Set<String> modes = new HashSet<>();
 					modes.add(mode);
-					filteredNetwork = NetworkUtils.createNetwork(ConfigUtils.createConfig());
+					filteredNetwork = NetworkUtils.createNetwork(config);
 					filter.filter(filteredNetwork, modes);
 					cache.put(mode, filteredNetwork);
 				}

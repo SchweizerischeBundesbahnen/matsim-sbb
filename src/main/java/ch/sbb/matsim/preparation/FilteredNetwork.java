@@ -7,6 +7,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.NetworkConfigGroup;
 import org.matsim.core.network.NetworkUtils;
@@ -38,14 +39,13 @@ public class FilteredNetwork {
         return this.filteredNetwork;
     }
 
-	public Network filterNetwork(Network network) {
-		NetworkConfigGroup ncg = new NetworkConfigGroup();
-		ncg.setTimeVariantNetwork(true);
-		final Network carNetwork = NetworkUtils.createNetwork(ncg);
-		new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(SBBModes.CAR));
+	public Network filterNetwork(Network network, Config config) {
 
-		this.filteredNetwork = NetworkUtils.createNetwork(ncg);
-		this.networkFactory = this.filteredNetwork.getFactory();
+        final Network carNetwork = NetworkUtils.createNetwork(config);
+        new TransportModeNetworkFilter(network).filter(carNetwork, Collections.singleton(SBBModes.CAR));
+
+        this.filteredNetwork = NetworkUtils.createNetwork(config);
+        this.networkFactory = this.filteredNetwork.getFactory();
 
 		carNetwork.getLinks().values().stream().
 				filter(l -> (!String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("1"))).

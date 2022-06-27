@@ -101,7 +101,7 @@ public class Isochrones {
         this.network = NetworkUtils.createNetwork();
         new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.network, Collections.singleton(SBBModes.CAR));
         this.graph = new SpeedyGraph(this.network);
-        this.filteredNetwork = new FilteredNetwork().filterNetwork(this.network);
+        this.filteredNetwork = new FilteredNetwork().filterNetwork(this.network, this.config);
 
         this.travelTime = getTravelTime();
         if (this.eventsFilename != null) {
