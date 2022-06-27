@@ -67,7 +67,7 @@ public class PrepareRouteChoiceRun {
 
     private void run() {
         modifyConfig();
-        selectPtTrips();
+        selectPtPlans();
     }
     private void modifyConfig() {
         String outputConfig = Paths.get(simFolder, "config_scoring_parsed.xml").toString();
@@ -105,7 +105,9 @@ public class PrepareRouteChoiceRun {
         new ConfigWriter(config).write(outputConfig);
 
     }
-    private void selectPtTrips() {
+    private void selectPtPlans() {
+        Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
+
         String prepared = Paths.get(simFolder, "prepared").toString();
         String outputPlansFile = Paths.get(prepared, "plans.xml.gz").toString();
 
