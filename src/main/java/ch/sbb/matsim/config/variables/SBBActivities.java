@@ -53,6 +53,9 @@ public final class SBBActivities {
 		stageActivityTypeList.add("bike interaction");
 		stageActivityTypeList.add("avtaxi interaction");
 		stageActivityTypeList.add("drt interaction");
+		stageActivityTypeList.add("car_feeder interaction");
+		stageActivityTypeList.add("ride_feeder interaction");
+		stageActivityTypeList.add("av_feeder interaction");
 	}
 
 	private SBBActivities() {

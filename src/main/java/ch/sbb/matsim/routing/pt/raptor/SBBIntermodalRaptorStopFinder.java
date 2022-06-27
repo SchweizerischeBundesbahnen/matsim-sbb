@@ -5,28 +5,13 @@ import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Provider;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.Route;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
@@ -41,6 +26,11 @@ import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author mrieser / Simunto GmbH
@@ -214,10 +204,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		String mode = paramset.getMode();
 		SBBIntermodalModeParameterSet params = this.intermodalModeParams.get(mode);
 
-		boolean useMinimalTransferTimes = false;
-		if (this.doUseMinimalTransferTimes(mode)) {
-			useMinimalTransferTimes = true;
-		}
+		boolean useMinimalTransferTimes = this.doUseMinimalTransferTimes(mode);
 		String overrideMode = null;
 		if (mode.equals(SBBModes.WALK_MAIN_MAINMODE) || mode.equals(SBBModes.PT_FALLBACK_MODE)) {
 			overrideMode = SBBModes.ACCESS_EGRESS_WALK;
@@ -251,6 +238,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 					} else {
 						routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(facility, stopFacility, departureTime, person));
 					}
+					if (routeParts == null) continue;
 
 				} else { // it's Egress
 					// We don't know the departure time for the egress trip, so just use the original departureTime,
@@ -260,12 +248,15 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 					} else {
 						routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, facility, departureTime, person));
 					}
+					if (routeParts == null) continue;
 					// clear the (wrong) departureTime so users don't get confused
+
 					for (PlanElement pe : routeParts) {
 						if (pe instanceof Leg) {
 							((Leg) pe).setDepartureTimeUndefined();
 						}
 					}
+
 				}
 				if (overrideMode != null) {
 					for (PlanElement pe : routeParts) {
