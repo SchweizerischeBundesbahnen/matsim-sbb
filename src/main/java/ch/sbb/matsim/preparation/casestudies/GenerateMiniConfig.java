@@ -24,6 +24,7 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SBBSupplyConfigGroup;
+import ch.sbb.matsim.config.ZonesListConfigGroup;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
@@ -46,15 +47,22 @@ public class GenerateMiniConfig {
 
         if (args.length > 4) {
             String transit = args[4];
+            String zoneFile = args[5];
             if (!transit.equals("-")) {
                 config.transit().setTransitScheduleFile(Paths.get(transit, "transitSchedule.xml.gz").toString());
                 config.transit().setVehiclesFile(Paths.get(transit, "transitVehicles.xml.gz").toString());
                 SBBSupplyConfigGroup supp = ConfigUtils.addOrGetModule(config, SBBSupplyConfigGroup.class);
                 supp.setTransitNetworkFile(Paths.get(transit, "transitNetwork.xml.gz").toString());
             }
+            if (!zoneFile.equals("-")) {
+                ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
+                for (ZonesListConfigGroup.ZonesParameterSet group : zonesConfigGroup.getZones()) {
+                    group.setFilename(zoneFile);
+                }
+            }
         }
-        if (args.length > 5) {
-            String cache = args[5];
+        if (args.length > 6) {
+            String cache = args[6];
             for (SBBIntermodalModeParameterSet paramSet : ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class).getModeParameterSets()) {
                 if (paramSet.getMode().toString().equals("car_feeder")) {
                     paramSet.setIntermodalAccessCacheFile(Paths.get(cache, "intermodalCache_car_feeder.csv.gz").toString());
