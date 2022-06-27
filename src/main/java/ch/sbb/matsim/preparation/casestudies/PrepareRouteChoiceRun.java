@@ -28,19 +28,29 @@ public class PrepareRouteChoiceRun {
 
     private final String transit;
 
+    private final String zonesFile;
+
     private final String simFolder;
+
+    private final TransitSchedule schedule;
 
     /**
      * @param inputPlans outputPlans of base run
      * @param inputConfig config of base run
      * @param transit folder containing pt supply
+     * @param zonesFile zones file
      * @param simFolder sim folder for routchoice run
      */
-    public PrepareRouteChoiceRun(String inputPlans, String inputConfig, String transit, String simFolder) {
+    public PrepareRouteChoiceRun(String inputPlans, String inputConfig, String transit, String zonesFile, String simFolder) {
         this.inputPlans = inputPlans;
         this.inputConfig = inputConfig;
         this.transit = transit;
+        this.zonesFile = zonesFile;
         this.simFolder = simFolder;
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new TransitScheduleReader(scenario).readFile(Paths.get(transit, "transitSchedule.xml.gz").toString());
+        this.schedule = scenario.getTransitSchedule();
+
     }
 
     /**
@@ -50,8 +60,9 @@ public class PrepareRouteChoiceRun {
         String inputPlans = args[0];
         String inputConfig = args[1];
         String transit = args[2];
-        String simFolder = args[3];
-        new PrepareRouteChoiceRun(inputPlans, inputConfig, transit, simFolder).run();
+        String zonesFile = args[3];
+        String simFolder = args[4];
+        new PrepareRouteChoiceRun(inputPlans, inputConfig, transit, zonesFile, simFolder).run();
     }
 
     private void run() {
@@ -83,6 +94,14 @@ public class PrepareRouteChoiceRun {
             SBBSupplyConfigGroup supp = ConfigUtils.addOrGetModule(config, SBBSupplyConfigGroup.class);
             supp.setTransitNetworkFile(Paths.get(transit, "transitNetwork.xml.gz").toString());
         }
+
+        if (!zonesFile.equals("-")) {
+            ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
+            for (ZonesListConfigGroup.ZonesParameterSet group : zonesConfigGroup.getZones()) {
+                group.setFilename(zonesFile);
+            }
+        }
+
         new ConfigWriter(config).write(outputConfig);
 
     }
