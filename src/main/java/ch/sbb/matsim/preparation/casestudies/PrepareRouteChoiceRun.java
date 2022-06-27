@@ -109,6 +109,11 @@ public class PrepareRouteChoiceRun {
         String prepared = Paths.get(simFolder, "prepared").toString();
         String outputPlansFile = Paths.get(prepared, "plans.xml.gz").toString();
 
+        Set<String> modesToRemoveRoutes = CollectionUtils.stringToSet("pt");
+
+        SBBTripsToLegsAlgorithm tripsToLegsAlgorithm = new SBBTripsToLegsAlgorithm(new SBBIntermodalAwareRouterModeIdentifier(config), modesToRemoveRoutes);
+
+
         StreamingPopulationWriter spw = new StreamingPopulationWriter();
         spw.startStreaming(outputPlansFile);
 
@@ -116,12 +121,29 @@ public class PrepareRouteChoiceRun {
         routedReader.addAlgorithm(person -> {
             PersonUtils.removeUnselectedPlans(person);
             var ptlegs = TripStructureUtils.getLegs(person.getSelectedPlan());
+            boolean include = false;
             for (Leg l: ptlegs) {
                 if (l.getMode().equals("pt")) {
-                    spw.run(person);
+                    include = true;
                     break;
                 }
             }
+            if (include) {
+                var ptroutes = TripStructureUtils.getLegs(person.getSelectedPlan()).stream().filter(leg -> leg.getRoute().getRouteType().equals(DefaultTransitPassengerRoute.ROUTE_TYPE))
+                        .map(leg -> (DefaultTransitPassengerRoute) leg.getRoute()).collect(Collectors.toSet());
+                for (DefaultTransitPassengerRoute r : ptroutes) {
+                    var transitLine = schedule.getTransitLines().get(r.getLineId());
+                    boolean hasRoute = false;
+                    boolean hasLine = false;
+                    if (transitLine != null) {
+                        hasRoute = transitLine.getRoutes().containsKey(r.getRouteId());
+                        hasLine = true;
+                    }
+                    if (!hasLine || !hasRoute) {
+                        tripsToLegsAlgorithm.run(person.getSelectedPlan());
+                    }
+                }
+                spw.run(person);
         });
         routedReader.readFile(inputPlans);
     }
