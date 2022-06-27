@@ -2,6 +2,10 @@ package ch.sbb.matsim.preparation.casestudies;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBSupplyConfigGroup;
+import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.utils.SBBIntermodalAwareRouterModeIdentifier;
+import ch.sbb.matsim.utils.SBBTripsToLegsAlgorithm;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -12,10 +16,16 @@ import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.population.io.StreamingPopulationWriter;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.collections.CollectionUtils;
+import org.matsim.pt.routes.DefaultTransitPassengerRoute;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A class to prepare a sim folder for a MATSim routechoice run
@@ -146,7 +156,10 @@ public class PrepareRouteChoiceRun {
                     }
                 }
                 spw.run(person);
+            }
         });
         routedReader.readFile(inputPlans);
+
+        spw.closeStreaming();
     }
 }
