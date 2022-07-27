@@ -2,6 +2,7 @@ package ch.sbb.matsim.preparation;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -19,13 +20,13 @@ public class LinkToFacilityAssigner {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new MatsimFacilitiesReader(scenario).readFile(facilityFile);
 		Network filteredNetwork = new FilteredNetwork().readAndFilterNetwork(networkFile);
-		run(scenario.getActivityFacilities(), filteredNetwork);
+		run(scenario.getActivityFacilities(), filteredNetwork, scenario.getConfig());
 		new FacilitiesWriter(scenario.getActivityFacilities()).write(outputFile);
 
 	}
 
-	public static void run(ActivityFacilities facilities, Network network) {
-		Network filteredNetwork = new FilteredNetwork().filterNetwork(network);
+	public static void run(ActivityFacilities facilities, Network network, Config config) {
+		Network filteredNetwork = new FilteredNetwork().filterNetwork(network, config);
 		assignLinkToFacility(facilities, filteredNetwork);
 
 	}
