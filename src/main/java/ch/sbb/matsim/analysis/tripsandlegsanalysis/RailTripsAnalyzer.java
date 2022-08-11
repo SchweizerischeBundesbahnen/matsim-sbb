@@ -232,12 +232,12 @@ public class RailTripsAnalyzer {
     //calculates according to
     //https://confluence.sbb.ch/display/MOBIMANUAL/10.2.1+Filterung+in+MATSim
 
-    public double getFQDistance(Trip trip) {
+    public double getFQDistance(Trip trip, boolean includeForeignTrips) {
         List<TransitPassengerRoute> routes = getRailRouteSegmentsofTrip(trip);
-        return getFQDistance(routes);
+        return getFQDistance(routes, includeForeignTrips);
     }
 
-    public double getFQDistance(List<TransitPassengerRoute> routes) {
+    public double getFQDistance(List<TransitPassengerRoute> routes, boolean includeForeignTrips) {
 
         if (routes.isEmpty()) {
             return 0.0;
@@ -249,12 +249,10 @@ public class RailTripsAnalyzer {
             if (hasFQRelevantLeg) {
                 return routes.stream().mapToDouble(Route::getDistance).sum();
             }
+        } else if (includeForeignTrips && (isSwissRailOrFQStop(railAccessStop) || isSwissRailOrFQStop(railEgressStop))) {
+            // no need to check whether legs are fq relevant, as all rail border crossing train stations are FQ relevant, thus is the journey
+            return routes.stream().mapToDouble(r -> getDomesticRailDistance_m(r)).sum();
         }
-        //the lines below would be technically correct, but we ignore this value for the time being.
-        //else if (isSwissRailOrFQStop(railAccessStop) || isSwissRailOrFQStop(railEgressStop)) {
-        // no need to check whether legs are fq relevant, as all rail border crossing train stations are FQ relevant, thus is the journey
-        //    return routes.stream().mapToDouble(r-> getDomesticRailDistance_m(r)).sum();
-        //}
         return 0.0;
     }
 

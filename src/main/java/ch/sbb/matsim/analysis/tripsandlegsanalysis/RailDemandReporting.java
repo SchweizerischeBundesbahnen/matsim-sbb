@@ -20,17 +20,6 @@
 package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.Variables;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -49,6 +38,14 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
 @Singleton
 public class RailDemandReporting {
 
@@ -64,10 +61,12 @@ public class RailDemandReporting {
     private final Map<Id<TransitLine>, String> lineAbgrenzung = new HashMap<>();
     @Inject
     private ExperiencedPlansService experiencedPlansService;
-    private double fqdistance = 0;
-    private int fqtrips = 0;
+    private double fqDistance = 0;
+    private int fqTrips = 0;
     private double railDistance = 0.0;
     private int railtrips = 0;
+    private int domesticFQTrips = 0;
+    private double domesticFQDistance = 0;
 
     @Inject
     public RailDemandReporting(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule) {
@@ -76,11 +75,14 @@ public class RailDemandReporting {
     }
 
     public static void main(String[] args) {
-        String experiencedPlansFile = args[0];
-        String transitScheduleFile = args[1];
-        String networkFile = args[2];
-        double scaleFactor = Double.parseDouble(args[3]);
-        String outputFile = args[4];
+
+        String folderPrefix = args[0];
+        double scaleFactor = Double.parseDouble(args[1]);
+        String outputFile = args[2];
+
+        String experiencedPlansFile = folderPrefix + "output_experienced_plans.xml.gz";
+        String transitScheduleFile = folderPrefix + "output_transitSchedule.xml.gz";
+        String networkFile = folderPrefix + "output_network.xml.gz";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
@@ -96,8 +98,8 @@ public class RailDemandReporting {
         pkmSparte.values().forEach(d -> d.setValue(0));
         pkmAbgrenzung.values().forEach(d -> d.setValue(0));
         pkmLfpCat.values().forEach(d -> d.setValue(0));
-        fqdistance = .0;
-        fqtrips = 0;
+        fqDistance = .0;
+        fqTrips = 0;
         railtrips = 0;
         railDistance = 0.0;
     }
@@ -126,9 +128,16 @@ public class RailDemandReporting {
             bw.newLine();
             bw.write("FQ-relevante Werte");
             bw.newLine();
-            bw.write("PF;" + fqtrips * scaleFactor);
+            bw.write("PF;" + fqTrips * scaleFactor);
             bw.newLine();
-            bw.write("PKM;" + (int) Math.round(scaleFactor * fqdistance / 1000.));
+            bw.write("PKM;" + (int) Math.round(scaleFactor * fqDistance / 1000.));
+            bw.newLine();
+            bw.newLine();
+            bw.write("FQ-relevante Werte (Nur Inlandsreisen)");
+            bw.newLine();
+            bw.write("PF;" + domesticFQTrips * scaleFactor);
+            bw.newLine();
+            bw.write("PKM;" + (int) Math.round(scaleFactor * domesticFQDistance / 1000.));
             bw.newLine();
             bw.newLine();
             bw.write("PKM je Sparte");
@@ -215,11 +224,17 @@ public class RailDemandReporting {
             plans.stream()
                 .flatMap(plan -> TripStructureUtils.getTrips(plan).stream())
                 .forEach(trip -> {
-                    double tripFQDistance = railTripsAnalyzer.getFQDistance(trip);
+                    double tripFQDistance = railTripsAnalyzer.getFQDistance(trip, true);
                     if (tripFQDistance > 0) {
-                        this.fqdistance += tripFQDistance;
-                        this.fqtrips++;
+                        this.fqDistance += tripFQDistance;
+                        this.fqTrips++;
                     }
+                    double domesticFQDistance = railTripsAnalyzer.getFQDistance(trip, false);
+                    if (domesticFQDistance > 0) {
+                        this.domesticFQDistance += domesticFQDistance;
+                        this.domesticFQTrips++;
+                    }
+
                     final double tripRailDistance = railTripsAnalyzer.calcRailDistance(trip);
                     this.railDistance += tripRailDistance;
                     if (tripRailDistance > 0) {
