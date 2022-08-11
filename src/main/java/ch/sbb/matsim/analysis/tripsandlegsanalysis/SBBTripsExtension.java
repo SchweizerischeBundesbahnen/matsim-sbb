@@ -169,7 +169,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
     }
 
     private String calcfqRailPkm(Trip trip) {
-        var rail_pm = railTripsAnalyzer.getFQDistance(trip);
+        var rail_pm = railTripsAnalyzer.getFQDistance(trip, true);
         return String.valueOf(rail_pm / 1000);
     }
 

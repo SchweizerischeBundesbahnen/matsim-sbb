@@ -30,7 +30,7 @@ public class SBBLegsExtension implements TripsAndLegsCSVWriter.CustomLegsWriterE
         if (leg.getRoute() instanceof TransitPassengerRoute) {
             TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
             if (railTripsAnalyzer.isRailLine(route.getLineId())) {
-                fq_distance = Integer.toString((int) railTripsAnalyzer.getFQDistance(Collections.singletonList(route)));
+                fq_distance = Integer.toString((int) railTripsAnalyzer.getFQDistance(Collections.singletonList(route), true));
             }
         }
         return Collections.singletonList(fq_distance);
