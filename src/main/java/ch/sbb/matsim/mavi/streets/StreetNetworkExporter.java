@@ -46,7 +46,7 @@ public class StreetNetworkExporter {
         String outputDir = streetsExporterConfigGroup.getOutputDirURL(config.getContext()).getPath();
         new File(outputDir).mkdirs();
         VisumStreetNetworkExporter vse = new VisumStreetNetworkExporter();
-        String visumFile = streetsExporterConfigGroup.getVisumVersionURL(config.getContext()).getPath()
+        String visumFile = streetsExporterConfigGroup.getVisumFileURL(config.getContext()).getPath()
                 .replace("////", "//")
                 .replace("/", "\\");
         vse.run(visumFile, outputDir, Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
