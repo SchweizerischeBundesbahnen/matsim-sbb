@@ -99,8 +99,8 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
         return visumVersion;
     }
 
-    public URL getVisumVersionURL(URL context) {
-        return ConfigGroup.getInputFileURL(context, visumVersion);
+    public URL getVisumFileURL(URL context) {
+        return ConfigGroup.getInputFileURL(context, visumFile);
     }
 
 
