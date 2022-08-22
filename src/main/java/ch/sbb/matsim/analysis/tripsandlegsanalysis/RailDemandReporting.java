@@ -100,6 +100,8 @@ public class RailDemandReporting {
         pkmLfpCat.values().forEach(d -> d.setValue(0));
         fqDistance = .0;
         fqTrips = 0;
+        domesticFQDistance = 0;
+        domesticFQTrips = 0;
         railtrips = 0;
         railDistance = 0.0;
     }
