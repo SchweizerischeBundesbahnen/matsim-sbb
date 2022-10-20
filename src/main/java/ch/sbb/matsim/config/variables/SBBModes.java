@@ -1,5 +1,6 @@
 package ch.sbb.matsim.config.variables;
 
+import java.util.List;
 import org.matsim.api.core.v01.TransportMode;
 
 import java.util.HashMap;
@@ -26,6 +27,8 @@ public class SBBModes {
 	public static final int DEFAULT_MODE_HIERARCHY = 99;
 	public final static Map<String, Integer> mode2HierarchalNumber;
 	public final static Map<Integer, String> hierarchalNumber2Mode;
+
+	public static final List<String> MAIN_MODES = List.of(RIDE, CAR, PT, BIKE, AVTAXI, WALK_FOR_ANALYSIS);
 
 	static {
 		mode2HierarchalNumber = new HashMap<>();

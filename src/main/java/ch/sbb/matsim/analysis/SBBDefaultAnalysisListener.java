@@ -104,8 +104,9 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "matsim_activities.csv.gz");
                 activityWriter.writeActivities(activityFilename);
 
-                String modalSpliteFileName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("modal_split.csv")
-                    : controlerIO.getIterationFilename(event.getIteration(), "modal_split.csv");
+                //add if files are needed
+/*                String modalSpliteFileName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("modal_split.csv")
+                    : controlerIO.getIterationFilename(event.getIteration(), "modal_split.csv");*/
                 modalSplitStats.analyzeAndWriteStats();
             }
         }
