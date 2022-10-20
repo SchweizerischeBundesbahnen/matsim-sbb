@@ -35,13 +35,13 @@ public class ModalSplitStats {
     //usesd person attrubutes
     private final String carAvailable1 = Variables.CAR_AVAIL + "_1";
     private final String carAvailable0 = Variables.CAR_AVAIL + "_0";
-
-
+    private final String mode = "mode";
+    private final String all = "all";
 
     private Map<String, Integer> getVariables() {
         Map<String, Integer> variables = new HashMap<>();
-        variables.put("mode", 0);
-        variables.put("all", 1);
+        variables.put(mode, 0);
+        variables.put(all, 1);
         variables.put(carAvailable1, 2);
         variables.put(carAvailable0, 3);
         return variables;
@@ -50,50 +50,59 @@ public class ModalSplitStats {
     public void analyzeAndWriteStats() {
         Map<String, Integer> modesMap = getModes();
         Map<String, Integer> variablesMap = getVariables();
-        int[][] complte = new int[modesMap.size()][variablesMap.size()];
+        Map<String, int[][]> subpopulaionMap = getSubpopulation(modesMap.size(), variablesMap.size());
         double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        analyze(modesMap, variablesMap, complte);
-        write(modesMap, variablesMap, complte);
+        analyze(modesMap, variablesMap, subpopulaionMap);
+        write(modesMap, variablesMap, subpopulaionMap);
     }
 
-    private void analyze(Map<String, Integer> coding, Map<String, Integer> variables, int[][] complte) {
+    private Map<String, int[][]> getSubpopulation(int modeSize, int varSize) {
+        Map<String, int[][]> subpopulaionMap = new HashMap<>();
+        for (String subpopulation : Variables.SUBPOPULATIONS) {
+            subpopulaionMap.put(subpopulation, new int[modeSize][varSize]);
+        }
+        return subpopulaionMap;
+    }
+
+    private void analyze(Map<String, Integer> coding, Map<String, Integer> variables, Map<String, int[][]> subpopulaionMap) {
         for (Entry<Id<Person>, Plan> entry : experiencedPlansService.getExperiencedPlans().entrySet()) {
             Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
-            if (attributes.getAttribute(Variables.SUBPOPULATION).equals(Variables.REGULAR)) {
-                for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
-                    SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
-                    String mode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-                    if (mode.equals("walk_main")) {
-                        mode = "walk";
-                    }
-                    int id = coding.get(mode);
-                    complte[id][variables.get("all")] = complte[id][variables.get("all")] + 1;
-                    if (attributes.getAttribute(Variables.CAR_AVAIL).toString().equals(Variables.CAR_AVAL_TRUE)) {
-                        complte[id][variables.get(carAvailable1)] = complte[id][variables.get(carAvailable1)] + 1;
-                    } else {
-                        complte[id][variables.get(carAvailable0)] = complte[id][variables.get(carAvailable0)] + 1;
-                    }
+            for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+                SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
+                String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
+                if (tmpMode.equals("walk_main")) {
+                    tmpMode = "walk";
+                }
+                int id = coding.get(tmpMode);
+                int[][] subpopulationArray = subpopulaionMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
+                subpopulationArray[id][variables.get(all)] = subpopulationArray[id][variables.get(all)] + 1;
+                if (attributes.getAttribute(Variables.CAR_AVAIL).toString().equals(Variables.CAR_AVAL_TRUE)) {
+                    subpopulationArray[id][variables.get(carAvailable1)] = subpopulationArray[id][variables.get(carAvailable1)] + 1;
+                } else {
+                    subpopulationArray[id][variables.get(carAvailable0)] = subpopulationArray[id][variables.get(carAvailable0)] + 1;
                 }
             }
         }
     }
 
-    private void write(Map<String, Integer> coding, Map<String, Integer> variables, int[][] complte) {
-        String[] columns = {"RunID","subpopulation", "mode", "all", carAvailable1, carAvailable0};
+    private void write(Map<String, Integer> coding, Map<String, Integer> variables, Map<String, int[][]> subpopulationArray) {
+        String[] columns = {"RunID", "subpopulation", mode, all, carAvailable1, carAvailable0};
         try (CSVWriter csvWriter = new CSVWriter("", columns, FILENAME)) {
-            for (Entry<String, Integer> col : coding.entrySet()) {
-                csvWriter.set("RunID", config.controler().getRunId());
-                csvWriter.set("subpopulation", "regular");
-                for (Entry<String, Integer> entry : variables.entrySet()) {
-                    if (entry.getKey().equals("mode")) {
-                        csvWriter.set("mode", col.getKey());
-                    } else {
-                        String key = entry.getKey();
-                        Integer value = entry.getValue();
-                        csvWriter.set(key, Integer.toString(complte[col.getValue()][value]));
+            for (String subpopulation : Variables.SUBPOPULATIONS) {
+                for (Entry<String, Integer> col : coding.entrySet()) {
+                    csvWriter.set("RunID", config.controler().getRunId());
+                    csvWriter.set("subpopulation", subpopulation);
+                    for (Entry<String, Integer> entry : variables.entrySet()) {
+                        if (entry.getKey().equals(mode)) {
+                            csvWriter.set(mode, col.getKey());
+                        } else {
+                            String key = entry.getKey();
+                            Integer value = entry.getValue();
+                            csvWriter.set(key, Integer.toString(subpopulationArray.get(subpopulation)[col.getValue()][value]));
+                        }
                     }
+                    csvWriter.writeRow();
                 }
-               csvWriter.writeRow();
             }
         } catch (IOException e) {
             e.printStackTrace();

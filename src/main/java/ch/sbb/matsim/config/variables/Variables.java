@@ -25,6 +25,7 @@ public class Variables {
     public static final String TOURISM_RAIL = "tourism_rail";
     public static final String FREIGHT_ROAD = "freight_road";
     public static final List<String> EXOGENEOUS_DEMAND = List.of(AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
+    public static final List<String> SUBPOPULATIONS = List.of(REGULAR, AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
 
     public static final String PT_SUBSCRIPTION = "pt_subscr";
     public static final String GA = "GA";
