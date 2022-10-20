@@ -28,6 +28,7 @@ public class Variables {
     public static final List<String> SUBPOPULATIONS = List.of(REGULAR, AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
 
     public static final String PT_SUBSCRIPTION = "pt_subscr";
+    public static final String PT_SUBSCRIPTION_NONE = "none";
     public static final String GA = "GA";
     public static final String VA = "VA";
     public static final String HTA = "HTA";
