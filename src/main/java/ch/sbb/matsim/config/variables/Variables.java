@@ -63,6 +63,16 @@ public class Variables {
     public static final String MUN_NAME = "mun_name";
     public static final String ACCESS_CONTROLLED = "accessControlled";
 
+    public static final String CURRENT_EDUCATION = "current_edu";
+
+    public static final String NOT_IN_EDUCATION = "null";
+
+    public static final String PRIMRY = "";
+
+    public static final String SECONDARY = "pupil_secondary";
+
+    public static final String STUDENT = "";
+
 
     public static class MOBiTripAttributes {
         public static final String TOUR_ID = "next_trip_tour_id";
