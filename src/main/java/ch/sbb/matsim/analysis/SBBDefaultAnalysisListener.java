@@ -105,7 +105,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                 activityWriter.writeActivities(activityFilename);
 
                 String modalSpliteFileName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("modal_split.csv")
-                    : controlerIO.getIterationFilename(event.getIteration(), "modal_split.csv");
+                    : controlerIO.getIterationFilename(event.getIteration(), "");
                 modalSplitStats.analyzeAndWriteStats(modalSpliteFileName);
             }
         }

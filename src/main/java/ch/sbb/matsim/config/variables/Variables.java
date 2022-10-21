@@ -64,14 +64,10 @@ public class Variables {
     public static final String ACCESS_CONTROLLED = "accessControlled";
 
     public static final String CURRENT_EDUCATION = "current_edu";
-
     public static final String NOT_IN_EDUCATION = "null";
-
-    public static final String PRIMRY = "";
-
+    public static final String PRIMRAY = "pupil_primray";
     public static final String SECONDARY = "pupil_secondary";
-
-    public static final String STUDENT = "";
+    public static final String STUDENT = "student";
 
 
     public static class MOBiTripAttributes {
