@@ -69,6 +69,19 @@ public class Variables {
     public static final String SECONDARY = "pupil_secondary";
     public static final String STUDENT = "student";
 
+    public static final String LEVEL_OF_EMPLOYMENT_CAT = "level_of_employment_cat";
+    public static final String LEVEL_OF_EMPLOYMENT_CAT_NONE = "0";
+    public static final String LEVEL_OF_EMPLOYMENT_CAT_01_to_39 = "1_to_39";
+    public static final String LEVEL_OF_EMPLOYMENT_CAT_40_to_79 = "40_to_79";
+    public static final String LEVEL_OF_EMPLOYMENT_CAT_80_to_100 = "80_to_100";
+
+    public static final String AGE_CATEGORIE = "age_cat";
+    public static final String AGE_CATEGORIE_0_17 = "0_to_17";
+    public static final String AGE_CATEGORIE_18_24 = "18_to_24";
+    public static final String AGE_CATEGORIE_25_44 = "25_to_44";
+    public static final String AGE_CATEGORIE_45_64 = "45_to_64";
+    public static final String AGE_CATEGORIE_65_74 = "65_to_74";
+    public static final String AGE_CATEGORIE_75_XX = "75_to_XX";
 
     public static class MOBiTripAttributes {
         public static final String TOUR_ID = "next_trip_tour_id";

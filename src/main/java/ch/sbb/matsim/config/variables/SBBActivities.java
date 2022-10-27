@@ -20,7 +20,7 @@ public final class SBBActivities {
 	public static final String exogeneous = "Exogenous";
 	public static final String freight = "freight";
 
-	public static final List<String> activities = List.of(home,education,work,business,leisure,shopping,accompany,other,cbHome,freight);
+	public static final List<String> activities = List.of(home,education,work,business,leisure,shopping,accompany,other,cbHome,freight,exogeneous);
 
 	public final static Map<String, String> abmActs2matsimActs;
 	public final static Map<String, String> matsimActs2abmActs;
