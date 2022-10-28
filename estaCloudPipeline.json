@@ -3,7 +3,7 @@
   "mainBranch": "master",
   "hotfixBranch": "bugfix",
   "versionIncrementPosition": "patch",
-  "jdkLabel": "OpenJDK 11 64-Bit",
+  "jdkLabel": "OpenJDK 17 64-Bit",
   "mvn": {
     "parentPom": "pom.xml",
     "deployableArtifactsPom": "pom.xml",
@@ -24,7 +24,7 @@
       "isBuildEnabled": true,
       "sonarScanEnabled": true,
       "triggerBuildOnCommitEnabled": true,
-      "junitTestReportPath": "**/target/surefire-reports/*.xml",
+      "junitTestReportPath": "**/target/surefire-reports/*.xml"
     },
     {
       "stepType": "release",
