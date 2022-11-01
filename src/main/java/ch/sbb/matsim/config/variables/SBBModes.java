@@ -29,6 +29,7 @@ public class SBBModes {
 	public final static Map<Integer, String> hierarchalNumber2Mode;
 
 	public static final List<String> MAIN_MODES = List.of(RIDE, CAR, PT, BIKE, AVTAXI, WALK_FOR_ANALYSIS, DRT);
+	public static final List<String> TRAIN_STATION_MODES = List.of(AVFEEDER, CARFEEDER, RIDEFEEDER, BIKEFEEDER, WALK_FOR_ANALYSIS, PT_FALLBACK_MODE, PT, PTSubModes.RAIL, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 
 	static {
 		mode2HierarchalNumber = new HashMap<>();
