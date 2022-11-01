@@ -12,7 +12,6 @@ import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -261,19 +260,20 @@ public class ModalSplitStats {
         }
         try (CSVWriter csvWriterPF = new CSVWriter("", colums, outputLocation + "modal_split_pf.csv")) {
             for (String subpopulation : Variables.SUBPOPULATIONS) {
-                //for
-                csvWriterPF.set(this.runID, config.controler().getRunId());
-                csvWriterPF.set(this.subpopulation, subpopulation);
-                for (Entry<String, Integer> col : this.variablesMSMap.entrySet()) {
-                    if (col.getKey().equals(mode)) {
-                        csvWriterPF.set(mode, modesMap.get(col.getKey()).toString());
-                    } else {
-                        String key = col.getKey();
-                        Integer value = col.getValue();
-                        csvWriterPF.set(key, Integer.toString((int) (this.subpopulaionMSPFMap.get(subpopulation)[col.getValue()][value] / sampleSize)));
+                for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
+                    csvWriterPF.set(this.runID, config.controler().getRunId());
+                    csvWriterPF.set(this.subpopulation, subpopulation);
+                    for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
+                        if (entry.getKey().equals(mode)) {
+                            csvWriterPF.set(mode, modeEntry.getKey());
+                        } else {
+                            String key = entry.getKey();
+                            Integer value = entry.getValue();
+                            csvWriterPF.set(key, Integer.toString((int) (this.subpopulaionMSPFMap.get(subpopulation)[modeEntry.getValue()][value] / sampleSize)));
+                        }
                     }
+                    csvWriterPF.writeRow();
                 }
-                csvWriterPF.writeRow();
             }
         } catch (
             IOException e) {
