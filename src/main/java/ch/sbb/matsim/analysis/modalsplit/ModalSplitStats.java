@@ -1,8 +1,9 @@
 package ch.sbb.matsim.analysis.modalsplit;
 
+import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
+
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
@@ -20,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.inject.Inject;
 import org.matsim.api.core.v01.Id;
@@ -52,86 +52,10 @@ public class ModalSplitStats {
     @Inject private Config config;
     @Inject private TransitSchedule transitSchedule;
 
-    //usesd person attrubutes
-
-    private final String carAvailable1 = Variables.CAR_AVAIL + "_1";
-    private final String carAvailable0 = Variables.CAR_AVAIL + "_0";
-
-    private final String all = "all";
-    private final String ptSubNone = Variables.PT_SUBSCRIPTION + "_" + Variables.PT_SUBSCRIPTION_NONE;
-    private final String ptSubGA = Variables.PT_SUBSCRIPTION + "_" + Variables.GA;
-    private final String ptSubVA = Variables.PT_SUBSCRIPTION + "_" + Variables.VA;
-    private final String ptSubHTA = Variables.PT_SUBSCRIPTION + "_" + Variables.HTA;
-
-    private final String carNone = carAvailable0 + "_" + ptSubNone;
-    private final String carGa = carAvailable0 + "_" + ptSubGA;
-    private final String carHTA = carAvailable0 + "_" + ptSubVA;
-    private final String carVA = carAvailable0 + "_" + ptSubHTA;
-    private final String nocarNone = carAvailable1 + "_" + ptSubNone;
-    private final String nocarGa = carAvailable1 + "_" + ptSubGA;
-    private final String nocarHTA = carAvailable1 + "_" + ptSubVA;
-    private final String nocarVA = carAvailable1 + "_" + ptSubHTA;
-
-    private final String notInEducation = Variables.CURRENT_EDUCATION + "_" + Variables.NOT_IN_EDUCATION;
-    private final String primary = Variables.CURRENT_EDUCATION + "_" + Variables.PRIMRAY;
-    private final String secondary = Variables.CURRENT_EDUCATION + "_" + Variables.SECONDARY;
-    private final String student = Variables.CURRENT_EDUCATION + "_" + Variables.STUDENT;
-
-    private final String employment0 = Variables.LEVEL_OF_EMPLOYMENT_CAT + "_" + Variables.LEVEL_OF_EMPLOYMENT_CAT_NONE;
-    private final String employment39 = Variables.LEVEL_OF_EMPLOYMENT_CAT + "_" + Variables.LEVEL_OF_EMPLOYMENT_CAT_01_to_39;
-    private final String employment79 = Variables.LEVEL_OF_EMPLOYMENT_CAT + "_" + Variables.LEVEL_OF_EMPLOYMENT_CAT_40_to_79;
-    private final String employment100 = Variables.LEVEL_OF_EMPLOYMENT_CAT + "_" + Variables.LEVEL_OF_EMPLOYMENT_CAT_80_to_100;
-
-    private final String ageCat17 = Variables.AGE_CATEGORIE + "_" + Variables.AGE_CATEGORIE_0_17;
-    private final String ageCat24 = Variables.AGE_CATEGORIE + "_" + Variables.AGE_CATEGORIE_18_24;
-    private final String ageCat44 = Variables.AGE_CATEGORIE + "_" + Variables.AGE_CATEGORIE_25_44;
-    private final String ageCat64 = Variables.AGE_CATEGORIE + "_" + Variables.AGE_CATEGORIE_45_64;
-    private final String ageCat74 = Variables.AGE_CATEGORIE + "_" + Variables.AGE_CATEGORIE_65_74;
-    private final String ageCatXX = Variables.AGE_CATEGORIE + "_" + Variables.AGE_CATEGORIE_75_XX;
-
-    private final String toActType = "to_act_type";
-    private final String home = toActType + "_" + SBBActivities.home;
-    private final String cbhome = toActType + "_" + SBBActivities.cbHome;
-    private final String leisure = toActType + "_" + SBBActivities.leisure;
-    private final String other = toActType + "_" + SBBActivities.other;
-    private final String freight = toActType + "_" + SBBActivities.freight;
-    private final String business = toActType + "_" + SBBActivities.business;
-    private final String shopping = toActType + "_" + SBBActivities.shopping;
-    private final String work = toActType + "_" + SBBActivities.work;
-    private final String education = toActType + "_" + SBBActivities.education;
-    private final String exogeneous = toActType + "_" + SBBActivities.exogeneous;
-    private final String accompany = toActType + "_" + SBBActivities.accompany;
-    private final String mode = "mode";
-
-    private final String walk = mode + "_" + SBBModes.WALK_FOR_ANALYSIS;
-    private final String ride = mode + "_" + SBBModes.RIDE;
-    private final String car = mode + "_" + SBBModes.CAR;
-    private final String pt = mode + "_" + SBBModes.PT;
-    private final String bike = mode + "_" + SBBModes.BIKE;
-    private final String avtaxi = mode + "_" + SBBModes.AVTAXI;
-    private final String drt = mode + "_" + SBBModes.DRT;
-
-    private final int timeSplit = 15 * 60;
-    private final int travelTimeSplit = 10 * 60;
-    private final int lastTravelTimeValue = 5 * 60 * 60;
-    private Map<Id<TransitStopFacility>, TrainStation> trainStationsMap = new HashMap<>();
-    private Map<String, Integer> modesMap = new HashMap<>();
-    private Map<String, Integer> variablesMSMap = new HashMap<>();
-    private Map<String, double[][]> subpopulaionDistanceMap = new HashMap<>();
-    private final List<Integer> distanceClassesValue = List.of(0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 40, 50, 100, 150, 200, 300);
-    private final List<String> distanceClassesLable = List.of("0", "0-2", "2-4", "4-6", "6-8", "8-10", "10-15", "15-20", "20-25", "25-30", "30-40", "40-50", "50-100", "100-150", "150-200", "200-300");
-
-    private final List<String> modesMS = List.of(walk, ride, car, pt, bike, avtaxi, drt);
-    private final List<String> carAvailable = List.of(carAvailable1, carAvailable0);
-    private final List<String> ptSubscription = List.of(ptSubNone, ptSubGA, ptSubVA, ptSubHTA);
-    private final List<String> carAndPt = List.of(carNone, carGa, carHTA, carVA, nocarNone, nocarGa, nocarHTA, nocarVA);
-    private final List<String> educationType = List.of(notInEducation, primary, secondary, student);
-    private final List<String> employmentRate = List.of(employment0, employment39, employment79, employment100);
-    private final List<String> ageCategorie = List.of(ageCat17, ageCat24, ageCat44, ageCat64, ageCat74, ageCatXX);
-    private final List<String> toActTypeList = List.of(home, cbhome, leisure, other, freight, business, shopping, work, education, exogeneous, accompany);
-
-    private final List<List<String>> varList = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategorie, toActTypeList);
-    private final List<List<String>> varTimeList = List.of(modesMS, toActTypeList);
+    Map<Id<TransitStopFacility>, TrainStation> trainStationsMap = new HashMap<>();
+    Map<String, Integer> modesMap = new HashMap<>();
+    Map<String, Integer> variablesMSMap = new HashMap<>();
+    Map<String, double[][]> subpopulaionDistanceMap = new HashMap<>();
     private Map<String, double[][]> subpopulaionMSPFMap = new HashMap<>();
     private Map<String, double[][]> subpopulaionMSPKMMap = new HashMap<>();
     private Map<String, double[][]> subpopulationChangeMap = new HashMap<>();
@@ -209,7 +133,7 @@ public class ModalSplitStats {
     public void analyzeAndWriteStats(String outputLocation) {
 
         // prepare necessary information
-        this.outputLocation = outputLocation;
+        this.outputLocation = outputLocation + "SBB_";
         this.trainStationsMap = generateTrainStationMap();
         this.modesMap = getModesMap();
         this.variablesMSMap = createVariablesModalSplitMap();
@@ -281,7 +205,7 @@ public class ModalSplitStats {
 
     private void writeModalSplit() {
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] colums = new String[2 + this.variablesMSMap.size()];
+        String[] colums = new String[2 + variablesMSMap.size()];
         colums[0] = this.runID;
         colums[1] = this.subpopulation;
         int i = 2;
@@ -334,21 +258,21 @@ public class ModalSplitStats {
 
     private void writeDistanceClassesAnalysis() {
         final double sampleSize = ConfigUtils.addOrGetModule(this.config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] columns = new String[3 + this.distanceClassesValue.size()];
-        columns[0] = this.runID;
-        columns[1] = this.subpopulation;
-        columns[2] = this.mode;
-        for (int i = 0; i < this.distanceClassesValue.size(); i++) {
-            columns[i + 3] = this.distanceClassesLable.get(i);
+        String[] columns = new String[3 + distanceClassesValue.size()];
+        columns[0] = runID;
+        columns[1] = subpopulation;
+        columns[2] = mode;
+        for (int i = 0; i < distanceClassesValue.size(); i++) {
+            columns[i + 3] = distanceClassesLable.get(i);
         }
         try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + "distace_classes.csv")) {
             for (String subpopulation : Variables.SUBPOPULATIONS) {
                 for (Entry<String, Integer> col : this.modesMap.entrySet()) {
-                    csvWriter.set(this.runID, this.config.controler().getRunId());
+                    csvWriter.set(runID, this.config.controler().getRunId());
                     csvWriter.set(this.subpopulation, subpopulation);
-                    csvWriter.set(this.mode, col.getKey());
-                    for (int i = 0; i < this.distanceClassesValue.size(); i++) {
-                        csvWriter.set(this.distanceClassesLable.get(i), Integer.toString((int) (this.subpopulaionDistanceMap.get(subpopulation)[col.getValue()][i] / sampleSize)));
+                    csvWriter.set(mode, col.getKey());
+                    for (int i = 0; i < distanceClassesValue.size(); i++) {
+                        csvWriter.set(distanceClassesLable.get(i), Integer.toString((int) (this.subpopulaionDistanceMap.get(subpopulation)[col.getValue()][i] / sampleSize)));
                     }
                     csvWriter.writeRow();
                 }
@@ -449,6 +373,7 @@ public class ModalSplitStats {
             array[2][oev] = array[2][oev] + 1;
         }
     }
+
     private void analyzeModalSplit(Entry<Id<Person>, Plan> entry) {
         Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
@@ -557,7 +482,7 @@ public class ModalSplitStats {
                 distance += leg.getRoute().getDistance() / 1000;
             }
             double[][] disArray = this.subpopulaionDistanceMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
-            for (int disClass : this.distanceClassesValue) {
+            for (int disClass : distanceClassesValue) {
                 if (distance <= disClass) {
                     disArray[modeID][distanceClassesValue.indexOf(disClass)] = disArray[modeID][distanceClassesValue.indexOf(disClass)] + 1;
                     break;
@@ -717,413 +642,6 @@ public class ModalSplitStats {
             e.printStackTrace();
         }
     }
-
-    private void analyzeModalSplit(Map<String, Integer> modesMap, Map<String, Integer> variables, Map<String, int[][]> pfMap, Map<String, double[][]> pkmMap) {
-        for (Entry<Id<Person>, Plan> entry : experiencedPlansService.getExperiencedPlans().entrySet()) {
-            Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
-            for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
-                SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
-                String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-                if (tmpMode.equals("walk_main")) {
-                    tmpMode = "walk";
-                }
-                int id = modesMap.get(tmpMode);
-                double distance = 0;
-                for (Leg leg : trip.getLegsOnly()) {
-                    distance += leg.getRoute().getDistance() / 1000;
-                }
-                int[][] pfArray = pfMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
-                double[][] pkmArray = pkmMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
-                pfArray[id][variables.get(all)] = pfArray[id][variables.get(all)] + 1;
-                pkmArray[id][variables.get(all)] = pkmArray[id][variables.get(all)] + distance;
-                // car available
-                switch (attributes.getAttribute(Variables.CAR_AVAIL).toString()) {
-                    case Variables.CAR_AVAL_TRUE:
-                        pfArray[id][variables.get(carAvailable1)] = pfArray[id][variables.get(carAvailable1)] + 1;
-                        pkmArray[id][variables.get(carAvailable1)] = pkmArray[id][variables.get(carAvailable1)] + distance;
-                        break;
-                    case "0":
-                        pfArray[id][variables.get(carAvailable0)] = pfArray[id][variables.get(carAvailable0)] + 1;
-                        pkmArray[id][variables.get(carAvailable0)] = pkmArray[id][variables.get(carAvailable0)] + distance;
-                        break;
-                    default:
-                        throw new NoSuchElementException("Unknow value " + attributes.getAttribute(Variables.CAR_AVAIL) + " of: " + Variables.CAR_AVAIL);
-                }
-                // pt subscription
-                switch (attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString()) {
-                    case Variables.GA:
-                        pfArray[id][variables.get(ptSubGA)] = pfArray[id][variables.get(ptSubGA)] + 1;
-                        pkmArray[id][variables.get(ptSubGA)] = pkmArray[id][variables.get(ptSubGA)] + distance;
-                        break;
-                    case Variables.VA:
-                        pfArray[id][variables.get(ptSubVA)] = pfArray[id][variables.get(ptSubVA)] + 1;
-                        pkmArray[id][variables.get(ptSubVA)] = pkmArray[id][variables.get(ptSubVA)] + distance;
-                        break;
-                    case Variables.HTA:
-                        pfArray[id][variables.get(ptSubHTA)] = pfArray[id][variables.get(ptSubHTA)] + 1;
-                        pkmArray[id][variables.get(ptSubHTA)] = pkmArray[id][variables.get(ptSubHTA)] + distance;
-                        break;
-                    case Variables.PT_SUBSCRIPTION_NONE:
-                        pfArray[id][variables.get(ptSubNone)] = pfArray[id][variables.get(ptSubNone)] + 1;
-                        pkmArray[id][variables.get(ptSubNone)] = pkmArray[id][variables.get(ptSubNone)] + distance;
-                        break;
-                    default:
-                        throw new NoSuchElementException("Unknow value " + attributes.getAttribute(Variables.PT_SUBSCRIPTION) + " of " + Variables.PT_SUBSCRIPTION);
-                }
-                // combination car and pt
-                switch (attributes.getAttribute(Variables.CAR_AVAIL).toString()) {
-                    case Variables.CAR_AVAL_TRUE:
-                        switch (attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString()) {
-                            case Variables.GA:
-                                pfArray[id][variables.get(carGa)] = pfArray[id][variables.get(carGa)] + 1;
-                                pkmArray[id][variables.get(carGa)] = pkmArray[id][variables.get(carGa)] + distance;
-                                break;
-                            case Variables.VA:
-                                pfArray[id][variables.get(carVA)] = pfArray[id][variables.get(carVA)] + 1;
-                                pkmArray[id][variables.get(carVA)] = pkmArray[id][variables.get(carVA)] + distance;
-                                break;
-                            case Variables.HTA:
-                                pfArray[id][variables.get(carHTA)] = pfArray[id][variables.get(carHTA)] + 1;
-                                pkmArray[id][variables.get(carHTA)] = pkmArray[id][variables.get(carHTA)] + distance;
-                                break;
-                            case Variables.PT_SUBSCRIPTION_NONE:
-                                pfArray[id][variables.get(carNone)] = pfArray[id][variables.get(carNone)] + 1;
-                                pkmArray[id][variables.get(carNone)] = pkmArray[id][variables.get(carNone)] + distance;
-                                break;
-                            default:
-                                throw new NoSuchElementException("Unknow value " + attributes.getAttribute(Variables.PT_SUBSCRIPTION) + " of " + Variables.PT_SUBSCRIPTION);
-                        }
-                        break;
-                    case "0":
-                        switch (attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString()) {
-                            case Variables.GA:
-                                pfArray[id][variables.get(nocarGa)] = pfArray[id][variables.get(nocarGa)] + 1;
-                                pkmArray[id][variables.get(nocarGa)] = pkmArray[id][variables.get(nocarGa)] + distance;
-                                break;
-                            case Variables.VA:
-                                pfArray[id][variables.get(nocarVA)] = pfArray[id][variables.get(nocarVA)] + 1;
-                                pkmArray[id][variables.get(nocarVA)] = pkmArray[id][variables.get(nocarVA)] + distance;
-                                break;
-                            case Variables.HTA:
-                                pfArray[id][variables.get(nocarHTA)] = pfArray[id][variables.get(nocarHTA)] + 1;
-                                pkmArray[id][variables.get(nocarHTA)] = pkmArray[id][variables.get(nocarHTA)] + distance;
-                                break;
-                            case Variables.PT_SUBSCRIPTION_NONE:
-                                pfArray[id][variables.get(nocarNone)] = pfArray[id][variables.get(nocarNone)] + 1;
-                                pkmArray[id][variables.get(nocarNone)] = pkmArray[id][variables.get(nocarNone)] + distance;
-                                break;
-                            default:
-                                throw new NoSuchElementException("Unknow value " + attributes.getAttribute(Variables.PT_SUBSCRIPTION) + " of " + Variables.PT_SUBSCRIPTION);
-                        }
-                        break;
-                    default:
-                        throw new NoSuchElementException("Unknow value " + attributes.getAttribute(Variables.CAR_AVAIL) + " of: " + Variables.CAR_AVAIL);
-                }
-                // education
-                switch (attributes.getAttribute(Variables.CURRENT_EDUCATION).toString()) {
-                    case Variables.NOT_IN_EDUCATION:
-                        pfArray[id][variables.get(notInEducation)] = pfArray[id][variables.get(notInEducation)] + 1;
-                        pkmArray[id][variables.get(notInEducation)] = pkmArray[id][variables.get(notInEducation)] + distance;
-                        break;
-                    case Variables.PRIMRAY:
-                        pfArray[id][variables.get(primary)] = pfArray[id][variables.get(primary)] + 1;
-                        pkmArray[id][variables.get(primary)] = pkmArray[id][variables.get(primary)] + distance;
-                        break;
-                    case Variables.SECONDARY:
-                        pfArray[id][variables.get(secondary)] = pfArray[id][variables.get(secondary)] + 1;
-                        pkmArray[id][variables.get(secondary)] = pkmArray[id][variables.get(secondary)] + distance;
-                        break;
-                    case Variables.STUDENT:
-                        pfArray[id][variables.get(student)] = pfArray[id][variables.get(student)] + 1;
-                        pkmArray[id][variables.get(student)] = pkmArray[id][variables.get(student)] + distance;
-                        break;
-                    default:
-                        throw new NoSuchElementException("Unknow value " + attributes.getAttribute(Variables.CURRENT_EDUCATION) + " of " + Variables.CURRENT_EDUCATION);
-                }
-                // employment level
-                switch (attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT).toString()) {
-                    case Variables.LEVEL_OF_EMPLOYMENT_CAT_NONE:
-                        pfArray[id][variables.get(employment0)] = pfArray[id][variables.get(employment0)] + 1;
-                        pkmArray[id][variables.get(employment0)] = pkmArray[id][variables.get(employment0)] + distance;
-                        break;
-                    case Variables.LEVEL_OF_EMPLOYMENT_CAT_01_to_39:
-                        pfArray[id][variables.get(employment39)] = pfArray[id][variables.get(employment39)] + 1;
-                        pkmArray[id][variables.get(employment39)] = pkmArray[id][variables.get(employment39)] + distance;
-                        break;
-                    case Variables.LEVEL_OF_EMPLOYMENT_CAT_40_to_79:
-                        pfArray[id][variables.get(employment79)] = pfArray[id][variables.get(employment79)] + 1;
-                        pkmArray[id][variables.get(employment79)] = pkmArray[id][variables.get(employment79)] + distance;
-                        break;
-                    case Variables.LEVEL_OF_EMPLOYMENT_CAT_80_to_100:
-                        pfArray[id][variables.get(employment100)] = pfArray[id][variables.get(employment100)] + 1;
-                        pkmArray[id][variables.get(employment100)] = pkmArray[id][variables.get(employment100)] + distance;
-                        break;
-                    default:
-                        throw new NoSuchElementException("Unknow value " + attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT) + " of " + Variables.LEVEL_OF_EMPLOYMENT_CAT);
-                }
-                // age categorie
-                switch (attributes.getAttribute(Variables.AGE_CATEGORIE).toString()) {
-                    case Variables.AGE_CATEGORIE_0_17:
-                        pfArray[id][variables.get(ageCat17)] = pfArray[id][variables.get(ageCat17)] + 1;
-                        pkmArray[id][variables.get(ageCat17)] = pkmArray[id][variables.get(ageCat17)] + distance;
-                        break;
-                    case Variables.AGE_CATEGORIE_18_24:
-                        pfArray[id][variables.get(ageCat24)] = pfArray[id][variables.get(ageCat24)] + 1;
-                        pkmArray[id][variables.get(ageCat24)] = pkmArray[id][variables.get(ageCat24)] + distance;
-                        break;
-                    case Variables.AGE_CATEGORIE_25_44:
-                        pfArray[id][variables.get(ageCat44)] = pfArray[id][variables.get(ageCat44)] + 1;
-                        pkmArray[id][variables.get(ageCat44)] = pkmArray[id][variables.get(ageCat44)] + distance;
-                        break;
-                    case Variables.AGE_CATEGORIE_45_64:
-                        pfArray[id][variables.get(ageCat64)] = pfArray[id][variables.get(ageCat64)] + 1;
-                        pkmArray[id][variables.get(ageCat64)] = pkmArray[id][variables.get(ageCat64)] + distance;
-                        break;
-                    case Variables.AGE_CATEGORIE_65_74:
-                        pfArray[id][variables.get(ageCat74)] = pfArray[id][variables.get(ageCat74)] + 1;
-                        pkmArray[id][variables.get(ageCat74)] = pkmArray[id][variables.get(ageCat74)] + distance;
-                        break;
-                    case Variables.AGE_CATEGORIE_75_XX:
-                        pfArray[id][variables.get(ageCatXX)] = pfArray[id][variables.get(ageCatXX)] + 1;
-                        pkmArray[id][variables.get(ageCatXX)] = pkmArray[id][variables.get(ageCatXX)] + distance;
-                        break;
-                    default:
-                        throw new NoSuchElementException("Unknow value " + attributes.getAttribute(Variables.AGE_CATEGORIE) + " of " + Variables.AGE_CATEGORIE);
-                }
-                // activity
-                String toAct = trip.getDestinationActivity().getType().substring(0, trip.getDestinationActivity().getType().indexOf("_"));
-                switch (toAct) {
-                    case SBBActivities.cbHome:
-                        pfArray[id][variables.get(cbhome)] = pfArray[id][variables.get(cbhome)] + 1;
-                        pkmArray[id][variables.get(cbhome)] = pkmArray[id][variables.get(cbhome)] + distance;
-                        break;
-                    case SBBActivities.other:
-                        pfArray[id][variables.get(other)] = pfArray[id][variables.get(other)] + 1;
-                        pkmArray[id][variables.get(other)] = pkmArray[id][variables.get(other)] + distance;
-                        break;
-                    case SBBActivities.freight:
-                        pfArray[id][variables.get(freight)] = pfArray[id][variables.get(freight)] + 1;
-                        pkmArray[id][variables.get(freight)] = pkmArray[id][variables.get(freight)] + distance;
-                        break;
-                    case SBBActivities.business:
-                        pfArray[id][variables.get(business)] = pfArray[id][variables.get(business)] + 1;
-                        pkmArray[id][variables.get(business)] = pkmArray[id][variables.get(business)] + distance;
-                        break;
-                    case SBBActivities.shopping:
-                        pfArray[id][variables.get(shopping)] = pfArray[id][variables.get(shopping)] + 1;
-                        pkmArray[id][variables.get(shopping)] = pkmArray[id][variables.get(shopping)] + distance;
-                        break;
-                    case SBBActivities.work:
-                        pfArray[id][variables.get(work)] = pfArray[id][variables.get(work)] + 1;
-                        pkmArray[id][variables.get(work)] = pkmArray[id][variables.get(work)] + distance;
-                        break;
-                    case SBBActivities.education:
-                        pfArray[id][variables.get(education)] = pfArray[id][variables.get(education)] + 1;
-                        pkmArray[id][variables.get(education)] = pkmArray[id][variables.get(education)] + distance;
-                        break;
-                    case SBBActivities.leisure:
-                        pfArray[id][variables.get(leisure)] = pfArray[id][variables.get(leisure)] + 1;
-                        pkmArray[id][variables.get(leisure)] = pkmArray[id][variables.get(leisure)] + distance;
-                        break;
-                    case SBBActivities.home:
-                        pfArray[id][variables.get(home)] = pfArray[id][variables.get(home)] + 1;
-                        pkmArray[id][variables.get(home)] = pkmArray[id][variables.get(home)] + distance;
-                        break;
-                    case SBBActivities.exogeneous:
-                        pfArray[id][variables.get(exogeneous)] = pfArray[id][variables.get(exogeneous)] + 1;
-                        pkmArray[id][variables.get(exogeneous)] = pkmArray[id][variables.get(exogeneous)] + distance;
-                        break;
-                    case SBBActivities.accompany:
-                        pfArray[id][variables.get(accompany)] = pfArray[id][variables.get(accompany)] + 1;
-                        pkmArray[id][variables.get(accompany)] = pkmArray[id][variables.get(accompany)] + distance;
-                        break;
-                    default:
-                        throw new NoSuchElementException("Unknow value " + toAct + " of Activity");
-                }
-            }
-        }
-    }
-
-    private void writeModalSplit1(String filename, Map<String, Integer> coding, Map<String, Integer> variables, Map<String, int[][]> pfMap, Map<String, double[][]> pkmMap) {
-        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] columns = {"RunID", "subpopulation", mode, all, carAvailable1, carAvailable0, ptSubNone, ptSubGA, ptSubVA, ptSubHTA, carNone, carGa, carHTA, carVA, nocarNone, nocarGa, nocarHTA,
-            nocarVA, notInEducation, primary, secondary, student, employment0, employment39, employment79, employment100, ageCat17, ageCat24, ageCat44, ageCat64, ageCat74, ageCatXX, cbhome, other,
-            freight, business, shopping, work, education, leisure, home, exogeneous, accompany};
-        try (CSVWriter csvWriterPF = new CSVWriter("", columns, filename + "modal_split_pf.csv")) {
-            try (CSVWriter csvWriterPKM = new CSVWriter("", columns, filename + "modal_split_pkm.csv")) {
-                for (String subpopulation : Variables.SUBPOPULATIONS) {
-                    for (Entry<String, Integer> col : coding.entrySet()) {
-                        csvWriterPF.set("RunID", config.controler().getRunId());
-                        csvWriterPKM.set("RunID", config.controler().getRunId());
-                        csvWriterPF.set("subpopulation", subpopulation);
-                        csvWriterPKM.set("subpopulation", subpopulation);
-                        for (Entry<String, Integer> entry : variables.entrySet()) {
-                            if (entry.getKey().equals(mode)) {
-                                csvWriterPF.set(mode, col.getKey());
-                                csvWriterPKM.set(mode, col.getKey());
-                            } else {
-                                String key = entry.getKey();
-                                Integer value = entry.getValue();
-                                csvWriterPF.set(key, Integer.toString((int) (pfMap.get(subpopulation)[col.getValue()][value] / sampleSize)));
-                                csvWriterPKM.set(key, Integer.toString((int) pkmMap.get(subpopulation)[col.getValue()][value]));
-                            }
-                        }
-                        csvWriterPF.writeRow();
-                        csvWriterPKM.writeRow();
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void analyzeTimeSteps(Map<String, Integer> variablesTime, Map<String, int[][]> timeMap, Map<String, int[][]> travelTimeMap) {
-        for (Entry<Id<Person>, Plan> entry : experiencedPlansService.getExperiencedPlans().entrySet()) {
-            Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
-            for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
-                SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
-                String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-                if (tmpMode.equals("walk_main")) {
-                    tmpMode = "walk";
-                }
-                int middle = (int) ((trip.getOriginActivity().getEndTime().seconds() + trip.getDestinationActivity().getStartTime().seconds()) / 2);
-                int time = (middle - (middle % timeSplit)) / timeSplit;
-                int[][] subpopulationArrray = timeMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
-                subpopulationArrray[time][variablesTime.get(all)] = subpopulationArrray[time][variablesTime.get(all)] + 1;
-                int travelTime = (int) ((trip.getDestinationActivity().getStartTime().seconds() - trip.getOriginActivity().getEndTime().seconds()));
-                int timeArray = (travelTime - (travelTime % travelTimeSplit)) / travelTimeSplit;
-                int[][] subpopulationTravelTime = travelTimeMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
-                if (timeArray >= subpopulationTravelTime.length) {
-                    timeArray = subpopulationTravelTime.length - 1;
-                }
-                subpopulationTravelTime[timeArray][variablesTime.get(all)] = subpopulationTravelTime[timeArray][variablesTime.get(all)] + 1;
-                switch (tmpMode) {
-                    case SBBModes.WALK_FOR_ANALYSIS:
-                        subpopulationArrray[time][variablesTime.get(walk)] = subpopulationArrray[time][variablesTime.get(walk)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(walk)] = subpopulationTravelTime[timeArray][variablesTime.get(walk)] + 1;
-                        break;
-                    case SBBModes.RIDE:
-                        subpopulationArrray[time][variablesTime.get(ride)] = subpopulationArrray[time][variablesTime.get(ride)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(ride)] = subpopulationTravelTime[timeArray][variablesTime.get(ride)] + 1;
-                        break;
-                    case SBBModes.CAR:
-                        subpopulationArrray[time][variablesTime.get(car)] = subpopulationArrray[time][variablesTime.get(car)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(car)] = subpopulationTravelTime[timeArray][variablesTime.get(car)] + 1;
-                        break;
-                    case SBBModes.PT:
-                        subpopulationArrray[time][variablesTime.get(bike)] = subpopulationArrray[time][variablesTime.get(bike)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(bike)] = subpopulationTravelTime[timeArray][variablesTime.get(bike)] + 1;
-                        break;
-                    case SBBModes.BIKE:
-                        subpopulationArrray[time][variablesTime.get(pt)] = subpopulationArrray[time][variablesTime.get(pt)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(pt)] = subpopulationTravelTime[timeArray][variablesTime.get(pt)] + 1;
-                        break;
-                    case SBBModes.AVTAXI:
-                        subpopulationArrray[time][variablesTime.get(drt)] = subpopulationArrray[time][variablesTime.get(drt)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(drt)] = subpopulationTravelTime[timeArray][variablesTime.get(drt)] + 1;
-                        break;
-                    case SBBModes.DRT:
-                        subpopulationArrray[time][variablesTime.get(avtaxi)] = subpopulationArrray[time][variablesTime.get(avtaxi)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(avtaxi)] = subpopulationTravelTime[timeArray][variablesTime.get(avtaxi)] + 1;
-                        break;
-                    default:
-                        throw new NoSuchElementException("Unknow value " + tmpMode + " of: mode");
-                }
-                String toAct = trip.getDestinationActivity().getType().substring(0, trip.getDestinationActivity().getType().indexOf("_"));
-                switch (toAct) {
-                    case SBBActivities.cbHome:
-                        subpopulationArrray[time][variablesTime.get(cbhome)] = subpopulationArrray[time][variablesTime.get(cbhome)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(cbhome)] = subpopulationTravelTime[timeArray][variablesTime.get(cbhome)] + 1;
-                        break;
-                    case SBBActivities.other:
-                        subpopulationArrray[time][variablesTime.get(other)] = subpopulationArrray[time][variablesTime.get(other)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(other)] = subpopulationTravelTime[timeArray][variablesTime.get(other)] + 1;
-                        break;
-                    case SBBActivities.freight:
-                        subpopulationArrray[time][variablesTime.get(freight)] = subpopulationArrray[time][variablesTime.get(freight)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(freight)] = subpopulationTravelTime[timeArray][variablesTime.get(freight)] + 1;
-                        break;
-                    case SBBActivities.business:
-                        subpopulationArrray[time][variablesTime.get(business)] = subpopulationArrray[time][variablesTime.get(business)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(business)] = subpopulationTravelTime[timeArray][variablesTime.get(business)] + 1;
-                        break;
-                    case SBBActivities.shopping:
-                        subpopulationArrray[time][variablesTime.get(shopping)] = subpopulationArrray[time][variablesTime.get(shopping)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(shopping)] = subpopulationTravelTime[timeArray][variablesTime.get(shopping)] + 1;
-                        break;
-                    case SBBActivities.work:
-                        subpopulationArrray[time][variablesTime.get(work)] = subpopulationArrray[time][variablesTime.get(work)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(work)] = subpopulationTravelTime[timeArray][variablesTime.get(work)] + 1;
-                        break;
-                    case SBBActivities.education:
-                        subpopulationArrray[time][variablesTime.get(education)] = subpopulationArrray[time][variablesTime.get(education)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(education)] = subpopulationTravelTime[timeArray][variablesTime.get(education)] + 1;
-                        break;
-                    case SBBActivities.leisure:
-                        subpopulationArrray[time][variablesTime.get(leisure)] = subpopulationArrray[time][variablesTime.get(leisure)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(leisure)] = subpopulationTravelTime[timeArray][variablesTime.get(leisure)] + 1;
-                        break;
-                    case SBBActivities.home:
-                        subpopulationArrray[time][variablesTime.get(home)] = subpopulationArrray[time][variablesTime.get(home)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(home)] = subpopulationTravelTime[timeArray][variablesTime.get(home)] + 1;
-                        break;
-                    case SBBActivities.exogeneous:
-                        subpopulationArrray[time][variablesTime.get(exogeneous)] = subpopulationArrray[time][variablesTime.get(exogeneous)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(exogeneous)] = subpopulationTravelTime[timeArray][variablesTime.get(exogeneous)] + 1;
-                        break;
-                    case SBBActivities.accompany:
-                        subpopulationArrray[time][variablesTime.get(accompany)] = subpopulationArrray[time][variablesTime.get(accompany)] + 1;
-                        subpopulationTravelTime[timeArray][variablesTime.get(accompany)] = subpopulationTravelTime[timeArray][variablesTime.get(accompany)] + 1;
-                        break;
-                    default:
-                        throw new NoSuchElementException("Unknow value " + toAct + " of Activity");
-                }
-            }
-        }
-    }
-
-    private void writeTimeSteps(String filename, Map<String, Integer> variablesTime, Map<String, int[][]> timeMap, Map<String, int[][]> travelTimeMap) {
-        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] columns = {"RunID", "subpopulation", "time", all, pt, walk, bike, car, ride, avtaxi, drt, cbhome, other, freight, business, shopping, work, education, leisure, home, exogeneous,
-            accompany};
-        try (CSVWriter csvWriter = new CSVWriter("", columns, filename + "middle_time_distribution.csv")) {
-            for (Entry<String, int[][]> entry : timeMap.entrySet()) {
-                for (int i = 0; i < config.qsim().getEndTime().seconds() / timeSplit; i++) {
-                    csvWriter.set("RunID", config.controler().getRunId());
-                    csvWriter.set("subpopulation", entry.getKey());
-                    csvWriter.set("time", Integer.toString(i * timeSplit));
-                    for (Entry<String, Integer> var : variablesTime.entrySet()) {
-                        csvWriter.set(var.getKey(), Integer.toString((int) (entry.getValue()[i][var.getValue()] / sampleSize)));
-                    }
-                    csvWriter.writeRow();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        String[] columns2 = {"RunID", "subpopulation", "time", all, pt, walk, bike, car, ride, avtaxi, drt, cbhome, other, freight, business, shopping, work, education, leisure, home, exogeneous,
-            accompany};
-        try (CSVWriter csvWriter = new CSVWriter("", columns2, filename + "travel_time_distribution.csv")) {
-            for (Entry<String, int[][]> entry : travelTimeMap.entrySet()) {
-                for (int i = 0; i < (lastTravelTimeValue / travelTimeSplit) + 2; i++) {
-                    csvWriter.set("RunID", config.controler().getRunId());
-                    csvWriter.set("subpopulation", entry.getKey());
-                    csvWriter.set("time", Integer.toString(i * travelTimeSplit));
-                    if (i == (lastTravelTimeValue / travelTimeSplit) + 1) {
-                        csvWriter.set("time", ">5");
-                    }
-                    for (Entry<String, Integer> var : variablesTime.entrySet()) {
-                        csvWriter.set(var.getKey(), Integer.toString((int) (entry.getValue()[i][var.getValue()] / sampleSize)));
-                    }
-                    csvWriter.writeRow();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private Map<String, Integer> getModesMap() {
         Map<String, Integer> coding = new HashMap<>();
         List<String> modes = SBBModes.MAIN_MODES;
@@ -1131,22 +649,6 @@ public class ModalSplitStats {
             coding.put(modes.get(i), i);
         }
         return coding;
-    }
-
-    private Map<String, int[][]> createPFForSubpopulationMap(int modeSize, int varSize) {
-        Map<String, int[][]> subpopulaionMap = new HashMap<>();
-        for (String subpopulation : Variables.SUBPOPULATIONS) {
-            subpopulaionMap.put(subpopulation, new int[modeSize][varSize]);
-        }
-        return subpopulaionMap;
-    }
-
-    private Map<String, double[][]> createPKMForSubpopulationMap(int modeSize, int varSize) {
-        Map<String, double[][]> subpopulaionMap = new HashMap<>();
-        for (String subpopulation : Variables.SUBPOPULATIONS) {
-            subpopulaionMap.put(subpopulation, new double[modeSize][varSize]);
-        }
-        return subpopulaionMap;
     }
 
     private Map<String, int[][]> createTimeStepsForSubpopulaitonMap(int timeStepsSize, int varSize) {
