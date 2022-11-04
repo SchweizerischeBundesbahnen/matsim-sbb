@@ -13,9 +13,9 @@ public class TrainStation {
     private int exited = 0;
     private final int[] enteredMode = new int[modes.size()];
     private final int[] exitedMode = new int[modes.size()];
-    private int zustiege = 0;
-    private int wegstiege = 0;
-    private int umsteige = 0;
+    private int umsteigeBahnBahn = 0;
+    private int umsteigeAHPBahn = 0;
+    private int umsteigeBahnAHP = 0;
     private final Zone zone;
     private final TransitStopFacility station;
     public TrainStation(TransitStopFacility trainStation, Zone zone) {
@@ -30,17 +30,16 @@ public class TrainStation {
         return zone.getId().toString();
     }
 
-    public void addUmstiege() {
-        umsteige++;
+    public void addUmstiegeBahnBahn() {
+        umsteigeBahnBahn++;
+    }
+    public void addUmsteigeAHPBahn() {
+        umsteigeAHPBahn++;
+    }
+    public void addUmsteigeBahnAHP() {
+        umsteigeBahnAHP++;
     }
 
-    public void addZustiege() {
-        zustiege++;
-    }
-
-    public void addWegstiege() {
-        wegstiege++;
-    }
 
     public void addEntred() {
         enteredAndExited++;
@@ -84,16 +83,15 @@ public class TrainStation {
         return exitedMode;
     }
 
-    public int getZustiege() {
-        return zustiege;
+    public int getUmsteigeBahnBahn() {
+        return umsteigeBahnBahn;
     }
 
-    public int getWegstiege() {
-        return wegstiege;
+    public int getUmsteigeAHPBahn() {
+        return umsteigeAHPBahn;
     }
 
-    public int getUmsteige() {
-        return umsteige;
+    public int getUmsteigeBahnAHP() {
+        return umsteigeBahnAHP;
     }
-
 }
