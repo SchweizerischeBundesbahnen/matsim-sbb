@@ -1,97 +1,105 @@
 package ch.sbb.matsim.analysis.modalsplit;
 
-import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.zones.Zone;
+import java.util.ArrayList;
 import java.util.List;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class TrainStation {
 
-    private static final List<String> modes = SBBModes.TRAIN_STATION_MODES;
-    private int enteredAndExited = 0;
-    private int entered = 0;
-    private int exited = 0;
-    private final int[] enteredMode = new int[modes.size()];
-    private final int[] exitedMode = new int[modes.size()];
-    private int umsteigeBahnBahn = 0;
-    private int umsteigeAHPBahn = 0;
-    private int umsteigeBahnAHP = 0;
+    private List<TransitStopFacility> stops = new ArrayList<>();
     private final Zone zone;
-    private final TransitStopFacility station;
-    public TrainStation(TransitStopFacility trainStation, Zone zone) {
-        this.station = trainStation;
+    private final String station;
+
+    private int zielAussteiger = 0;
+    private int quellEinsteiger = 0;
+    private int umsteigerTyp5a = 0;
+    private int umsteigerSimbaSimba = 0;
+    private int umsteigerSimbaAndere = 0;
+    private int umsteigerAndereSimba = 0;
+    private int umsteigerAndereAndere = 0;
+    private int umsteigerTyp5b = 0;
+
+    public TrainStation(String code, Zone zone) {
+        this.station = code;
         this.zone = zone;
     }
 
-    public String getZoneId(){
+    public void addStop(TransitStopFacility transitStopFacility) {
+        stops.add(transitStopFacility);
+    }
+
+    public void addZielAussteiger() {
+        zielAussteiger++;
+    }
+    public void addQuellEinsteiger() {
+        quellEinsteiger++;
+    }
+
+    public void addUmsteigerTyp5a() {
+        umsteigerTyp5a++;
+    }
+
+    public void addUmsteigerSimbaSimba() {
+        umsteigerSimbaSimba++;
+    }
+
+    public void addUmsteigerSimbaAndere() {
+        umsteigerSimbaAndere++;
+    }
+
+    public void addUmsteigerTyp5b() {
+        umsteigerTyp5b++;
+    }
+
+    public void addUmsteigerAndereSimba() {
+        umsteigerAndereSimba++;
+    }
+
+    public void addUmsteigerAndereAndere() {
+        umsteigerAndereAndere++;
+    }
+
+    public String getZoneId() {
         if (zone == null) {
             return "NA";
         }
         return zone.getId().toString();
     }
 
-    public void addUmstiegeBahnBahn() {
-        umsteigeBahnBahn++;
-    }
-    public void addUmsteigeAHPBahn() {
-        umsteigeAHPBahn++;
-    }
-    public void addUmsteigeBahnAHP() {
-        umsteigeBahnAHP++;
-    }
-
-
-    public void addEntred() {
-        enteredAndExited++;
-        entered++;
-    }
-
-    public void addExited() {
-        enteredAndExited++;
-        exited++;
-    }
-
-    public int getEnteredAndExited() {
-        return enteredAndExited;
-    }
-
-    public int getEntered() {
-        return entered;
-    }
-
-    public int getExited() {
-        return exited;
-    }
-
-    public Zone getZone() {
-        return zone;
-    }
-
-    public TransitStopFacility getStation() {
+    public String getStation() {
         return station;
     }
 
-    public static List<String> getModes() {
-        return modes;
+    public int getZielAussteiger() {
+        return zielAussteiger;
     }
 
-    public int[] getEnteredMode() {
-        return enteredMode;
+    public int getQuellEinsteiger() {
+        return quellEinsteiger;
     }
 
-    public int[] getExitedMode() {
-        return exitedMode;
+    public int getUmsteigerTyp5a() {
+        return umsteigerTyp5a;
     }
 
-    public int getUmsteigeBahnBahn() {
-        return umsteigeBahnBahn;
+    public int getUmsteigerSimbaSimba() {
+        return umsteigerSimbaSimba;
     }
 
-    public int getUmsteigeAHPBahn() {
-        return umsteigeAHPBahn;
+    public int getUmsteigerSimbaAndere() {
+        return umsteigerSimbaAndere;
     }
 
-    public int getUmsteigeBahnAHP() {
-        return umsteigeBahnAHP;
+    public int getUmsteigerAndereSimba() {
+        return umsteigerAndereSimba;
+    }
+
+    public int getUmsteigerAndereAndere() {
+        return umsteigerAndereAndere;
+    }
+
+    public int getUmsteigerTyp5b() {
+        return umsteigerTyp5b;
     }
 }

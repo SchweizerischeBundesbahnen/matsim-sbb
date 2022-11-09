@@ -1,17 +1,22 @@
 package ch.sbb.matsim.analysis.modalsplit;
 
 import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
+import static ch.sbb.matsim.routing.access.AccessEgressModule.IS_CH;
 
 import ch.sbb.matsim.RunSBB;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
 import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
+import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesImpl;
+import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,21 +29,26 @@ import java.util.Map.Entry;
 import java.util.Set;
 import javax.inject.Inject;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.io.MatsimNetworkReader;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.Trip;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -47,12 +57,13 @@ import org.matsim.utils.objectattributes.attributable.Attributes;
 public class ModalSplitStats {
 
     private final Zones zones;
+    private final RailTripsAnalyzer railTripsAnalyzer;
     @Inject private ExperiencedPlansService experiencedPlansService;
     @Inject private Population population;
     @Inject private Config config;
     @Inject private TransitSchedule transitSchedule;
 
-    Map<Id<TransitStopFacility>, TrainStation> trainStationsMap = new HashMap<>();
+    Map<Id<TransitStopFacility>, StopStation> stopStationsMap = new HashMap<>();
     Map<String, Integer> modesMap = new HashMap<>();
     Map<String, Integer> variablesMSMap = new HashMap<>();
     Map<String, double[][]> subpopulaionDistanceMap = new HashMap<>();
@@ -63,24 +74,24 @@ public class ModalSplitStats {
     private Map<String, Integer> changesMap = new HashMap<>();
 
     private final List<String> changeOrderList = List.of("train", "opnv", "oev");
-    private final List<String> changeLableList = List.of("0", "1", "2", "3", "4", ">5");
+    private final List<String> changeLableList = List.of("0", "1", "2", "3", "4", ">=5");
 
     Map<String, int[][]> timeMap = new HashMap<>();
     Map<String, int[][]> travelTimeMap = new HashMap<>();
-
 
     // Variables
     private final String runID = "RunID";
     private final String subpopulation = "subpopulation";
     private Map<String, Integer> variablesTimeStepsMap = new HashMap<>();
+    private Map<String, TrainStation> trainStationMap = new HashMap<>();
 
-    private Map<Id<TransitStopFacility>, TrainStation> generateTrainStationMap() {
+    private Map<Id<TransitStopFacility>, StopStation> generateStopStationMap() {
         assert transitSchedule != null;
-        Map<Id<TransitStopFacility>, TrainStation> trainStationsMap = new HashMap<>();
+        Map<Id<TransitStopFacility>, StopStation> stopStationsMap = new HashMap<>();
         for (TransitStopFacility transitStopFacility : transitSchedule.getFacilities().values()) {
-            trainStationsMap.put(transitStopFacility.getId(), new TrainStation(transitStopFacility, zones.findZone(transitStopFacility.getCoord())));
+            stopStationsMap.put(transitStopFacility.getId(), new StopStation(transitStopFacility, zones.findZone(transitStopFacility.getCoord())));
         }
-        return trainStationsMap;
+        return stopStationsMap;
     }
 
     private Map<String, Integer> createVariablesModalSplitMap() {
@@ -111,46 +122,73 @@ public class ModalSplitStats {
     private String outputLocation;
 
     @Inject
-    public ModalSplitStats(ZonesCollection zonesCollection, final PostProcessingConfigGroup ppConfig) {
-        zones = zonesCollection.getZones(ppConfig.getZonesId());
+    public ModalSplitStats(ZonesCollection zonesCollection, final PostProcessingConfigGroup ppConfig, RailTripsAnalyzer railTripsAnalyzer) {
+        this.zones = zonesCollection.getZones(ppConfig.getZonesId());
+        this.railTripsAnalyzer = railTripsAnalyzer;
     }
 
     public static void main(String[] args) {
-        String schedule = args[0];
-        String experiencedPlans = args[1];
-        String config = args[2];
-        String outputfile = args[3];
-        Scenario scenario = ScenarioUtils.createScenario(RunSBB.buildConfig(config));
-        new TransitScheduleReader(scenario).readFile(schedule);
-        SBBTransferAnalysisListener sbbTransferAnalysisListener = new SBBTransferAnalysisListener(scenario);
-        StreamingPopulationReader streamingPopulationReader = new StreamingPopulationReader(scenario);
-        Set<Plan> plans = new HashSet<>();
-        streamingPopulationReader.addAlgorithm(person -> plans.add(person.getSelectedPlan()));
-        streamingPopulationReader.readFile(experiencedPlans);
-        sbbTransferAnalysisListener.analyseTransfers(plans, outputfile);
+        String experiencedPlansFile = args[0];
+        String networkFile = args[1];
+        String transitScheduleFile = args[2];
+        String zonesFile = args[3];
+        String runId = args[4];
+        String plansFile = args[5];
+        double sampleSize = Double.parseDouble(args[6]);
+        String outputFile = args[7];
+
+        final Config config = ConfigUtils.createConfig();
+        config.controler().setRunId(runId);
+        ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).setSimulationSampleSize(sampleSize);
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        Scenario scenario2 = ScenarioUtils.createScenario(config);
+
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
+        new TransitScheduleReader(scenario).readFile(transitScheduleFile);
+        new PopulationReader(scenario).readFile(plansFile);
+        new PopulationReader(scenario2).readFile(experiencedPlansFile);
+
+
+        IdMap<Person, Plan> experiencedPlans = new IdMap<>(Person.class, scenario2.getPopulation().getPersons().size());
+        scenario2.getPopulation().getPersons().values().forEach(p -> experiencedPlans.put(p.getId(), p.getSelectedPlan()));
+
+        Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
+        ZonesCollection zonesCollection = new ZonesCollection();
+        zonesCollection.addZones(zones);
+        RailTripsAnalyzer railTripsAnalyzer1 = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+
+        ModalSplitStats modalSplitStats = new ModalSplitStats(zonesCollection,ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class),  railTripsAnalyzer1);
+        modalSplitStats.analyzeAndWriteStats(outputFile, experiencedPlans);
     }
 
     public void analyzeAndWriteStats(String outputLocation) {
+        analyzeAndWriteStats(outputLocation, experiencedPlansService.getExperiencedPlans());
+    }
+
+
+    public void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
 
         // prepare necessary information
         this.outputLocation = outputLocation + "SBB_";
-        this.trainStationsMap = generateTrainStationMap();
+        this.stopStationsMap = generateStopStationMap();
+        this.trainStationMap = generateTrainStationMap();
         this.modesMap = getModesMap();
         this.variablesMSMap = createVariablesModalSplitMap();
         this.variablesTimeStepsMap = createVariablesTimeStepsMap();
         this.subpopulaionDistanceMap = createArrayForSubpopulationMap(this.modesMap.size(), distanceClassesLable.size());
         this.subpopulaionMSPFMap = createArrayForSubpopulationMap(this.modesMap.size(), variablesMSMap.size());
         this.subpopulaionMSPKMMap = createArrayForSubpopulationMap(this.modesMap.size(), variablesMSMap.size());
-        this.subpopulationChangeMap = createArrayForSubpopulationMap(3, 6);
+        this.subpopulationChangeMap = createArrayForSubpopulationMap(4, 6);
         this.changesMap = getChangesMap();
         this.timeMap = createTimeStepsForSubpopulaitonMap((int) (config.qsim().getEndTime().seconds() / timeSplit), variablesTimeStepsMap.size());
         this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 2, variablesTimeStepsMap.size());
 
         // analyzing
-        startAnalyze();
+        startAnalyze(experiencedPlans);
 
         // writing the different files
-        writeStationAnalysis();
+        writeStopStationAnalysis();
+        writeTrainStationAnalysis();
         writeDistanceClassesAnalysis();
         writeModalSplit();
         writeChanges();
@@ -158,16 +196,70 @@ public class ModalSplitStats {
 
     }
 
-    private void writeTimeSteps() {
+    private void writeTrainStationAnalysis() {
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] columns = {"RunID", "subpopulation", "time", all, pt, walk, bike, car, ride, avtaxi, drt, cbhome, other, freight, business, shopping, work, education, leisure, home, exogeneous,
+        final String stopNumber = "Stop_Nummer";
+        final String zone = "Zone";
+        final String zielAussteiger = "Ziel_Aussteiger";
+        final String quellEinsteiger = "Quell_Einsteiger";
+        final String umsteigerTyp5a = "Umsteiger_Typ_5a";
+        final String umsteigerTyp5b = "Umsteiger_Typ_5b";
+        final String umsteigerSimbaSimba = "Umsteiger_Simba_Simba";
+        final String umsteigerSimbaAndere = "Umsteiger_Simba_Andere";
+        final String umsteigerAndereSimba = "Umsteiger_Andere_Simba";
+        final String umsteigerAndereAndere = "Umsteiger_Andere_Andere";
+        String head = runID + "," + "," + stopNumber + "," + zone + "," + zielAussteiger + "," + quellEinsteiger + "," + umsteigerTyp5a + "," + umsteigerTyp5b + "," +
+            umsteigerSimbaSimba + "," + umsteigerSimbaAndere + "," + umsteigerAndereSimba + "," + umsteigerAndereAndere;
+        String[] columns = head.split(",");
+        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + "train_stations_count.csv")) {
+            for (TrainStation station : trainStationMap.values()) {
+                csvWriter.set(runID, config.controler().getRunId());
+                csvWriter.set(stopNumber, station.getStation());
+                csvWriter.set(zone, station.getZoneId());
+                csvWriter.set(zielAussteiger, Integer.toString((int) (station.getZielAussteiger()/sampleSize)));
+                csvWriter.set(quellEinsteiger, Integer.toString((int) (station.getQuellEinsteiger()/sampleSize)));
+                csvWriter.set(umsteigerTyp5a, Integer.toString((int) (station.getUmsteigerTyp5a()/sampleSize)));
+                csvWriter.set(umsteigerTyp5b, Integer.toString((int) (station.getUmsteigerTyp5b()/sampleSize)));
+                csvWriter.set(umsteigerSimbaSimba, Integer.toString((int) (station.getUmsteigerSimbaSimba()/sampleSize)));
+                csvWriter.set(umsteigerSimbaAndere, Integer.toString((int) (station.getUmsteigerSimbaAndere()/sampleSize)));
+                csvWriter.set(umsteigerAndereSimba, Integer.toString((int) (station.getUmsteigerAndereSimba()/sampleSize)));
+                csvWriter.set(umsteigerAndereAndere, Integer.toString((int) (station.getUmsteigerAndereAndere()/sampleSize)));
+                csvWriter.writeRow();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private Map<String, TrainStation> generateTrainStationMap() {
+        Map<String, TrainStation> trainStationsMap = new HashMap<>();
+        for (TransitStopFacility transitStopFacility : transitSchedule.getFacilities().values()) {
+            String id = transitStopFacility.getAttributes().getAttribute("02_Stop_No").toString();
+            if (trainStationsMap.get(id) == null) {
+                TrainStation trainStation = new TrainStation(id, zones.findZone(transitStopFacility.getCoord()));
+                trainStation.addStop(transitStopFacility);
+                trainStationsMap.put(id, trainStation);
+            } else {
+                TrainStation trainStation = trainStationsMap.get(id);
+                trainStation.addStop(transitStopFacility);
+            }
+        }
+        return trainStationsMap;
+    }
+
+    private void writeTimeSteps() {
+
+        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
+        String time = "time";
+        String[] columns = {runID, subpopulation, time, all, pt, walk, bike, car, ride, avtaxi, drt, cbhome, other, freight, business, shopping, work, education, leisure, home, exogeneous,
             accompany};
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + "middle_time_distribution.csv")) {
             for (Entry<String, int[][]> entry : timeMap.entrySet()) {
                 for (int i = 0; i < config.qsim().getEndTime().seconds() / timeSplit; i++) {
-                    csvWriter.set("RunID", config.controler().getRunId());
-                    csvWriter.set("subpopulation", entry.getKey());
-                    csvWriter.set("time", Integer.toString(i * timeSplit));
+                    csvWriter.set(runID, config.controler().getRunId());
+                    csvWriter.set(subpopulation, entry.getKey());
+                    csvWriter.set(time, Integer.toString(i * timeSplit));
                     for (Entry<String, Integer> var : variablesTimeStepsMap.entrySet()) {
                         csvWriter.set(var.getKey(), Integer.toString((int) (entry.getValue()[i][var.getValue()] / sampleSize)));
                     }
@@ -177,16 +269,14 @@ public class ModalSplitStats {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        String[] columns2 = {"RunID", "subpopulation", "time", all, pt, walk, bike, car, ride, avtaxi, drt, cbhome, other, freight, business, shopping, work, education, leisure, home, exogeneous,
-            accompany};
-        try (CSVWriter csvWriter = new CSVWriter("", columns2, outputLocation + "travel_time_distribution.csv")) {
+        try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + "travel_time_distribution.csv")) {
             for (Entry<String, int[][]> entry : travelTimeMap.entrySet()) {
                 for (int i = 0; i < (lastTravelTimeValue / travelTimeSplit) + 2; i++) {
-                    csvWriter.set("RunID", config.controler().getRunId());
-                    csvWriter.set("subpopulation", entry.getKey());
-                    csvWriter.set("time", Integer.toString(i * travelTimeSplit));
+                    csvWriter.set(runID, config.controler().getRunId());
+                    csvWriter.set(subpopulation, entry.getKey());
+                    csvWriter.set(time, Integer.toString(i * travelTimeSplit));
                     if (i == (lastTravelTimeValue / travelTimeSplit) + 1) {
-                        csvWriter.set("time", ">5");
+                        csvWriter.set(time, ">18000");
                     }
                     for (Entry<String, Integer> var : variablesTimeStepsMap.entrySet()) {
                         csvWriter.set(var.getKey(), Integer.toString((int) (entry.getValue()[i][var.getValue()] / sampleSize)));
@@ -200,7 +290,7 @@ public class ModalSplitStats {
     }
 
     private Map<String, Integer> getChangesMap() {
-    return null;
+        return null;
     }
 
     private void writeModalSplit() {
@@ -282,11 +372,13 @@ public class ModalSplitStats {
         }
     }
 
-    private void startAnalyze() {
-        for (Entry<Id<Person>, Plan> entry : experiencedPlansService.getExperiencedPlans().entrySet()) {
+    private void startAnalyze(IdMap<Person, Plan> experiencedPlans) {
+        for (Entry<Id<Person>, Plan> entry : experiencedPlans.entrySet()) {
 
+            // analysis for access and egress mode for each stop station
+            analyzeStopsStations(entry);
             // analysis for access and egress mode for each train station
-            analyzeTrainStations(entry);
+            analyzeTrainsStations(entry);
             // analysis for distance classes
             analyzeDistanceClasses(entry);
             // analysis modal split for persons trips and person km
@@ -297,6 +389,122 @@ public class ModalSplitStats {
             analyzeTimes(entry);
 
         }
+    }
+
+    private void analyzeTrainsStations(Entry<Id<Person>, Plan> entry) {
+        PopulationFactory pf = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation().getFactory();
+        SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
+        for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+            if (mainModeIdentifier.identifyMainMode(trip.getTripElements()).equals(SBBModes.PT)) {
+                List<Leg> legs = trip.getLegsOnly();
+                Leg legBefore = pf.createLeg("walk");
+                for (Leg leg : legs) {
+                    if (leg.getMode().equals(SBBModes.PT)) {
+                        Route route = leg.getRoute();
+                        TransitStopFacility startTrainStationFacility = getStartTrainFacility(route);
+                        String startTrainStationId = startTrainStationFacility.getAttributes().getAttribute("02_Stop_No").toString();
+                        TransitStopFacility endTrainStationFacility = getEndTrainFacility(route);
+                        String endTrainStationId = endTrainStationFacility.getAttributes().getAttribute("02_Stop_No").toString();
+                        String subMode = getModeOfTransitRoute(leg.getRoute());
+                        Leg legAfter = getLegAfter(legs, legs.indexOf(leg));
+                        if (railTripsAnalyzer.hasFQRelevantLeg(List.of((TransitPassengerRoute) leg.getRoute()))) {
+                            if (legBefore.getMode().equals(SBBModes.PT) && subMode.equals(PTSubModes.RAIL)) {
+                                if (!getEndTrainFacility(legBefore.getRoute()).getAttributes().getAttribute("02_Stop_No").toString().equals(startTrainStationId)) {
+                                    trainStationMap.get(startTrainStationId).addUmsteigerTyp5b();
+                                } else if (railTripsAnalyzer.hasFQRelevantLeg(List.of((TransitPassengerRoute) legBefore.getRoute()))) {
+                                    trainStationMap.get(startTrainStationId).addUmsteigerSimbaSimba();
+                                } else {
+                                    trainStationMap.get(startTrainStationId).addUmsteigerSimbaAndere();
+                                }
+                            } else {
+                                trainStationMap.get(startTrainStationId).addQuellEinsteiger();
+                            }
+                            if (legAfter.getMode().equals(SBBModes.PT) && subMode.equals(PTSubModes.RAIL)) {
+                                if (!getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute("02_Stop_No").toString().equals(endTrainStationId)) {
+                                    trainStationMap.get(endTrainStationId).addUmsteigerTyp5a();
+                                } else if (railTripsAnalyzer.hasFQRelevantLeg(List.of((TransitPassengerRoute) legAfter.getRoute()))) {
+                                    trainStationMap.get(endTrainStationId).addUmsteigerSimbaSimba();
+                                } else {
+                                    trainStationMap.get(endTrainStationId).addUmsteigerAndereSimba();
+                                }
+                            } else {
+                                trainStationMap.get(endTrainStationId).addZielAussteiger();
+                            }
+                        } else {
+                            if (getModeOfTransitRoute(legBefore.getRoute()) != null && getModeOfTransitRoute(legBefore.getRoute()).equals(PTSubModes.RAIL) && subMode.equals(PTSubModes.RAIL)) {
+                                trainStationMap.get(startTrainStationId).addUmsteigerAndereAndere();
+                            }
+                            if (getModeOfTransitRoute(legAfter.getRoute()) != null && getModeOfTransitRoute(legAfter.getRoute()).equals(PTSubModes.RAIL) && subMode.equals(PTSubModes.RAIL)) {
+                                trainStationMap.get(endTrainStationId).addUmsteigerAndereAndere();
+                            }
+                        }
+                    }
+                    if (!leg.getMode().contains("walk")) {
+                        legBefore = leg;
+                    }
+                }
+            }
+        }
+    }
+
+    private void analyzeStopsStations(Entry<Id<Person>, Plan> entry) {
+        SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
+        for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+            if (mainModeIdentifier.identifyMainMode(trip.getTripElements()).equals(SBBModes.PT)) {
+                List<Leg> legs = trip.getLegsOnly();
+                Leg legBefore = null;
+                for (Leg leg : legs) {
+                    if (leg.getMode().equals(SBBModes.PT)) {
+                        Route route = leg.getRoute();
+                        TransitStopFacility startStopStationFacility = getStartTrainFacility(route);
+                        TransitStopFacility endStopStationFacility = getEndTrainFacility(route);
+
+                        StopStation startStopStation = stopStationsMap.get(startStopStationFacility.getId());
+                        startStopStation.addEntred();
+                        if (legBefore != null) {
+                            startStopStation.getEnteredMode()[StopStation.getModes().indexOf(legBefore.getMode())] =
+                                startStopStation.getEnteredMode()[StopStation.getModes().indexOf(legBefore.getMode())] + 1;
+                            if (legBefore.getMode().equals(SBBModes.PT)) {
+                                String subPTMode = getModeOfTransitRoute((TransitPassengerRoute) legBefore.getRoute());
+                                startStopStation.getEnteredMode()[StopStation.getModes().indexOf(subPTMode)] = startStopStation.getEnteredMode()[StopStation.getModes().indexOf(subPTMode)] + 1;
+                                if (subPTMode.equals(PTSubModes.RAIL)) {
+                                    if (getEndTrainFacility(legBefore.getRoute()).equals(startStopStationFacility)) {
+                                        startStopStation.addUmstiegeBahnBahn();
+                                    } else {
+                                        startStopStation.addUmsteigeAHPBahn();
+                                    }
+                                }
+                            }
+                        } else {
+                            startStopStation.getEnteredMode()[StopStation.getModes().indexOf("walk")] = startStopStation.getEnteredMode()[StopStation.getModes().indexOf("walk")] + 1;
+                        }
+
+                        StopStation endStopStation = stopStationsMap.get(endStopStationFacility.getId());
+                        endStopStation.addExited();
+                        int currentLegIndex = legs.indexOf(leg);
+                        Leg legAfter = getLegAfter(legs, currentLegIndex);
+                        endStopStation.getExitedMode()[StopStation.getModes().indexOf(legAfter.getMode())] =
+                            endStopStation.getExitedMode()[StopStation.getModes().indexOf(legAfter.getMode())] + 1;
+                        if (legAfter.getMode().equals(SBBModes.PT)) {
+                            String subPTMode = getModeOfTransitRoute((TransitPassengerRoute) legAfter.getRoute());
+                            endStopStation.getExitedMode()[StopStation.getModes().indexOf(subPTMode)] = endStopStation.getExitedMode()[StopStation.getModes().indexOf(subPTMode)] + 1;
+                            if (subPTMode.equals(PTSubModes.RAIL)) {
+                                if (getStartTrainFacility(legAfter.getRoute()).equals(endStopStationFacility)) {
+                                    endStopStation.addUmstiegeBahnBahn();
+                                } else {
+                                    endStopStation.addUmsteigeBahnAHP();
+                                }
+                            }
+                        }
+                    }
+
+                    if (!leg.getMode().contains("walk")) {
+                        legBefore = leg;
+                    }
+                }
+            }
+        }
+
     }
 
     private void analyzeTimes(Entry<Id<Person>, Plan> entry) {
@@ -371,6 +579,12 @@ public class ModalSplitStats {
             array[2][5] = array[2][5] + 1;
         } else {
             array[2][oev] = array[2][oev] + 1;
+        }
+        int total = train + opnv + oev;
+        if (total > 5) {
+            array[3][5] = array[3][5] + 1;
+        } else {
+            array[3][total] = array[3][total] + 1;
         }
     }
 
@@ -491,7 +705,7 @@ public class ModalSplitStats {
         }
     }
 
-    private void writeStationAnalysis() {
+    private void writeStopStationAnalysis() {
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         final String codeID = "HST_Nummer";
         final String code = "Code";
@@ -506,21 +720,21 @@ public class ModalSplitStats {
         final String zustiege = "Umsteige_AHP_Bahn";
         final String wegstiege = "Umsteige_Bahn_AHP";
         StringBuilder head = new StringBuilder(
-            runID + "," + codeID + "," + stopNumber + "," + code + "," + trainStationName + "," + x + "," + y + "," + zone + "," + "," + einstiege + "," + ausstiege + "," + umstiege + "," + zustiege
+            runID + "," + codeID + "," + stopNumber + "," + code + "," + trainStationName + "," + x + "," + y + "," + zone + "," + einstiege + "," + ausstiege + "," + umstiege + "," + zustiege
                 + ","
                 + wegstiege);
-        for (String mode : TrainStation.getModes()) {
+        for (String mode : StopStation.getModes()) {
             head.append(",").append("Zielaustieg_").append(mode);
             head.append(",").append("Quelleinstieg_").append(mode);
         }
         String[] columns = head.toString().split(",");
-        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + "train_staions_count.csv")) {
-            for (Entry<Id<TransitStopFacility>, TrainStation> entry : trainStationsMap.entrySet()) {
+        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + "stop_staions_count.csv")) {
+            for (Entry<Id<TransitStopFacility>, StopStation> entry : stopStationsMap.entrySet()) {
                 csvWriter.set(runID, config.controler().getRunId());
-                csvWriter.set(codeID, entry.getValue().getStation().getId().toString());
-                csvWriter.set(stopNumber, entry.getValue().getStation().getAttributes().getAttribute("02_Stop_No").toString());
+                csvWriter.set(codeID, entry.getValue().getStop().getId().toString());
+                csvWriter.set(stopNumber, entry.getValue().getStop().getAttributes().getAttribute("02_Stop_No").toString());
                 Id<TransitStopFacility> stopId = Id.create(entry.getKey(), TransitStopFacility.class);
-                Object codeAttribute = entry.getValue().getStation().getAttributes().getAttribute("03_Stop_" + code);
+                Object codeAttribute = entry.getValue().getStop().getAttributes().getAttribute("03_Stop_Code");
                 if (codeAttribute == null) {
                     csvWriter.set(code, "NA");
                 } else {
@@ -528,14 +742,14 @@ public class ModalSplitStats {
                 }
                 String name = transitSchedule.getFacilities().get(stopId).getName();
                 csvWriter.set(trainStationName, name);
-                csvWriter.set(x, Double.toString(entry.getValue().getStation().getCoord().getX()));
-                csvWriter.set(y, Double.toString(entry.getValue().getStation().getCoord().getY()));
+                csvWriter.set(x, Double.toString(entry.getValue().getStop().getCoord().getX()));
+                csvWriter.set(y, Double.toString(entry.getValue().getStop().getCoord().getY()));
                 csvWriter.set(zone, entry.getValue().getZoneId());
                 csvWriter.set(einstiege, Integer.toString((int) (entry.getValue().getEntered() / sampleSize)));
                 csvWriter.set(ausstiege, Integer.toString((int) (entry.getValue().getExited() / sampleSize)));
-                for (String mode : TrainStation.getModes()) {
-                    csvWriter.set("Zielaustieg_" + mode, Integer.toString((int) (entry.getValue().getEnteredMode()[TrainStation.getModes().indexOf(mode)] / sampleSize)));
-                    csvWriter.set("Quelleinstieg_" + mode, Integer.toString((int) (entry.getValue().getExitedMode()[TrainStation.getModes().indexOf(mode)] / sampleSize)));
+                for (String mode : StopStation.getModes()) {
+                    csvWriter.set("Zielaustieg_" + mode, Integer.toString((int) (entry.getValue().getEnteredMode()[StopStation.getModes().indexOf(mode)] / sampleSize)));
+                    csvWriter.set("Quelleinstieg_" + mode, Integer.toString((int) (entry.getValue().getExitedMode()[StopStation.getModes().indexOf(mode)] / sampleSize)));
                 }
                 csvWriter.set(umstiege, Integer.toString((int) (entry.getValue().getUmsteigeBahnBahn() / sampleSize)));
                 csvWriter.set(zustiege, Integer.toString((int) (entry.getValue().getUmsteigeAHPBahn() / sampleSize)));
@@ -545,73 +759,11 @@ public class ModalSplitStats {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-    }
-
-    private void analyzeTrainStations(Entry<Id<Person>, Plan> entry) {
-        SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
-        for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
-            if (mainModeIdentifier.identifyMainMode(trip.getTripElements()).equals("pt")) {
-                List<Leg> legs = trip.getLegsOnly();
-                Leg legBefore = null;
-                for (Leg leg : legs) {
-                    if (leg.getMode().equals("pt")) {
-                        Route route = leg.getRoute();
-                        TransitStopFacility startTrainStationFacility = getStartTrainFacility(route);
-                        TransitStopFacility endTrainStationFacility = getEndTrainFacility(route);
-                        if (trainStationsMap.containsKey(startTrainStationFacility.getId())) {
-                            TrainStation startTrainStation = trainStationsMap.get(startTrainStationFacility.getId());
-                            startTrainStation.addEntred();
-                            if (legBefore != null) {
-                                startTrainStation.getEnteredMode()[TrainStation.getModes().indexOf(legBefore.getMode())] =
-                                    startTrainStation.getEnteredMode()[TrainStation.getModes().indexOf(legBefore.getMode())] + 1;
-                                if (legBefore.getMode().equals(SBBModes.PT)) {
-                                    String subPTMode = getModeOfTransitRoute(legBefore.getRoute());
-                                    startTrainStation.getEnteredMode()[TrainStation.getModes().indexOf(subPTMode)] = startTrainStation.getEnteredMode()[TrainStation.getModes().indexOf(subPTMode)] + 1;
-                                    if (subPTMode.equals(PTSubModes.RAIL)) {
-                                        if (getEndTrainFacility(legBefore.getRoute()).equals(startTrainStationFacility)) {
-                                            startTrainStation.addUmstiegeBahnBahn();
-                                        } else {
-                                            startTrainStation.addUmsteigeAHPBahn();
-                                        }
-                                    }
-                                }
-                            } else {
-                                startTrainStation.getEnteredMode()[TrainStation.getModes().indexOf("walk")] = startTrainStation.getEnteredMode()[TrainStation.getModes().indexOf("walk")] + 1;
-                            }
-                        }
-                        if (trainStationsMap.containsKey(endTrainStationFacility.getId())) {
-                            TrainStation endTrainStation = trainStationsMap.get(endTrainStationFacility.getId());
-                            endTrainStation.addExited();
-                            int currentLegIndex = legs.indexOf(leg);
-                            Leg legAfter = getLegAfter(legs, currentLegIndex);
-                            endTrainStation.getExitedMode()[TrainStation.getModes().indexOf(legAfter.getMode())] =
-                                endTrainStation.getExitedMode()[TrainStation.getModes().indexOf(legAfter.getMode())] + 1;
-                            if (legAfter.getMode().equals(SBBModes.PT)) {
-                                String subPTMode = getModeOfTransitRoute(legAfter.getRoute());
-                                endTrainStation.getExitedMode()[TrainStation.getModes().indexOf(subPTMode)] = endTrainStation.getExitedMode()[TrainStation.getModes().indexOf(subPTMode)] + 1;
-                                if (subPTMode.equals(PTSubModes.RAIL)) {
-                                    if (getStartTrainFacility(legAfter.getRoute()).equals(endTrainStationFacility)) {
-                                        endTrainStation.addUmstiegeBahnBahn();
-                                    } else {
-                                        endTrainStation.addUmsteigeBahnAHP();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (!leg.getMode().contains("walk")) {
-                        legBefore = leg;
-                    }
-                }
-            }
-        }
-
     }
 
     private Leg getLegAfter(List<Leg> legs, int currentLegIndex) {
         Leg legAfter = legs.get(currentLegIndex + 1);
-        for (int i = currentLegIndex + 2; i < legs.size(); i++) {
+        for (int i = currentLegIndex + 1; i < legs.size(); i++) {
             if (!legs.get(i).getMode().contains("walk")) {
                 return legs.get(i);
             }
@@ -620,19 +772,20 @@ public class ModalSplitStats {
     }
 
     private void writeChanges() {
-        String[] columns = {"RunID", "Subpopulation", "Umsteigetyp", "0", "1", "2", "3", "4", ">5"};
+        String[] columns = {"RunID", "Subpopulation", "Umsteigetyp", "0", "1", "2", "3", "4", ">=5"};
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + "changes_count.csv")) {
             for (Entry<String, double[][]> entry : subpopulationChangeMap.entrySet()) {
                 Map<String, Integer> mapChange = new HashMap<>();
                 mapChange.put("changesTrain", 0);
                 mapChange.put("changesOPNV", 1);
                 mapChange.put("changesOEV", 2);
+                mapChange.put("changesTotal", 3);
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
                     csvWriter.set("RunID", config.controler().getRunId());
                     csvWriter.set("Subpopulation", entry.getKey());
                     csvWriter.set("Umsteigetyp", change.getKey());
                     for (int i = 0; i < 6; i++) {
-                            csvWriter.set(changeLableList.get(i), Integer.toString( (int) entry.getValue()[change.getValue()][i]));
+                        csvWriter.set(changeLableList.get(i), Integer.toString((int) entry.getValue()[change.getValue()][i]));
                     }
                     csvWriter.writeRow();
                 }
@@ -642,6 +795,7 @@ public class ModalSplitStats {
             e.printStackTrace();
         }
     }
+
     private Map<String, Integer> getModesMap() {
         Map<String, Integer> coding = new HashMap<>();
         List<String> modes = SBBModes.MAIN_MODES;
@@ -675,14 +829,10 @@ public class ModalSplitStats {
     }
 
     private String getModeOfTransitRoute(Route route) {
-        String description = route.getRouteDescription();
-        int starLineIndex = description.indexOf("\"transitLineId\":\"") + "\"transitLineId\":\"".length();
-        int endLineIndex = description.indexOf("\",\"accessFacilityId");
-        String transitLine = description.substring(starLineIndex, endLineIndex);
-        int startRouteIndex = description.indexOf("\"transitRouteId\":\"") + "\"transitRouteId\":\"".length();
-        int endRouteIndex = description.indexOf("\",\"boardingTime");
-        String routeLine = description.substring(startRouteIndex, endRouteIndex);
-        return transitSchedule.getTransitLines().get(Id.create(transitLine, TransitLine.class)).getRoutes().get(Id.create(routeLine, TransitRoute.class)).getTransportMode();
+        if (route instanceof TransitPassengerRoute) {
+            return transitSchedule.getTransitLines().get(((TransitPassengerRoute) route).getLineId()).getRoutes().get(((TransitPassengerRoute) route).getRouteId()).getTransportMode();
+        }
+        return null;
     }
 
 }

@@ -245,7 +245,7 @@ public class RailTripsAnalyzer {
         Id<TransitStopFacility> railAccessStop = routes.get(0).getAccessStopId();
         Id<TransitStopFacility> railEgressStop = routes.get(routes.size() - 1).getEgressStopId();
         if (isSwissRailStop(railAccessStop) && isSwissRailStop(railEgressStop)) {
-            boolean hasFQRelevantLeg = routes.stream().anyMatch(route -> (fqStops.contains(route.getAccessStopId()) && fqStops.contains(route.getEgressStopId())));
+            boolean hasFQRelevantLeg = hasFQRelevantLeg(routes);
             if (hasFQRelevantLeg) {
                 return routes.stream().mapToDouble(Route::getDistance).sum();
             }
@@ -256,6 +256,9 @@ public class RailTripsAnalyzer {
         return 0.0;
     }
 
+    public boolean hasFQRelevantLeg(List<TransitPassengerRoute> routes) {
+        return routes.stream().anyMatch(route -> (fqStops.contains(route.getAccessStopId()) && fqStops.contains(route.getEgressStopId())));
+    }
 
     public List<Id<Link>> getPtLinkIdsTraveledOn(TransitPassengerRoute route) {
         TransitRoute transitRoute = this.schedule.getTransitLines().get(route.getLineId()).getRoutes().get(route.getRouteId());
