@@ -1,37 +1,29 @@
 package ch.sbb.matsim.analysis.modalsplit;
 
 import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
-import static ch.sbb.matsim.routing.access.AccessEgressModule.IS_CH;
 
-import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.TripsAndDistanceStats;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
-import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
-import ch.sbb.matsim.zones.ZonesImpl;
 import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import javax.inject.Inject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
@@ -51,7 +43,6 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
-import scala.util.control.Exception.Catch;
 
 public class ModalSplitStats {
 
@@ -322,17 +313,17 @@ public class ModalSplitStats {
             e.printStackTrace();
         }
         try (CSVWriter csvWriterPKM = new CSVWriter("", colums, outputLocation + "modal_split_pkm.csv")) {
-            for (String subpopulation : Variables.SUBPOPULATIONS) {
+            for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
                 for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
                     csvWriterPKM.set(runID, config.controler().getRunId());
-                    csvWriterPKM.set(subpopulation, subpopulation);
+                    csvWriterPKM.set(subpopulation, tmpSubpopulation);
                     for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
                         if (entry.getKey().equals(mode)) {
                             csvWriterPKM.set(mode, modeEntry.getKey());
                         } else {
                             String key = entry.getKey();
                             Integer value = entry.getValue();
-                            csvWriterPKM.set(key, Integer.toString((int) (this.subpopulaionMSPKMMap.get(subpopulation)[modeEntry.getValue()][value])));
+                            csvWriterPKM.set(key, Integer.toString((int) (this.subpopulaionMSPKMMap.get(tmpSubpopulation)[modeEntry.getValue()][value])));
                         }
                     }
                     csvWriterPKM.writeRow();
