@@ -152,7 +152,7 @@ public class PrepareRouteChoiceRun {
         StreamingPopulationReader routedReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
         routedReader.addAlgorithm(person -> {
             if ((selectedPersons.size()==0) | selectedPersons.contains(person.getId())) {
-                PersonUtils.SremoveUnselectedPlans(person);
+                PersonUtils.removeUnselectedPlans(person);
                 var ptlegs = TripStructureUtils.getLegs(person.getSelectedPlan());
                 boolean include = false;
                 for (Leg l : ptlegs) {
