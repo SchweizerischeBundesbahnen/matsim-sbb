@@ -22,7 +22,7 @@ public class ExtractStationPlans {
 
     public static void main(String[] args) {
         String inputPlans1 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.6-v100.1-10pct\\output\\v100.1.output_plans.xml.gz";
-//    String inputPlans2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.2-v100-50pct\\output_slice1\\v100.2.output_plans.xml.gz";
+        String inputPlans2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.2-v100-50pct\\output_slice1\\v100.2.output_plans.xml.gz";
         String extractedTrips = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.6-v100.1-10pct\\reporting\\eingaenge\\outputplans-mitte.xml.gz";
         List<String> plans = List.of(inputPlans1);
 
@@ -71,6 +71,8 @@ public class ExtractStationPlans {
                 }
 
             });
+
+
             spr.readFile(s);
         }
         new PopulationWriter(extractedPopulation).write(extractedTrips);
