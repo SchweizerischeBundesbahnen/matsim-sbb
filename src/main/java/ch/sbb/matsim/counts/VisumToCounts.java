@@ -9,13 +9,6 @@ import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter;
 import com.google.common.collect.ObjectArrays;
 import com.jacob.com.Dispatch;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Map;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
@@ -23,11 +16,14 @@ import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsWriter;
 
+import java.io.*;
+import java.util.Map;
+
 public class VisumToCounts {
 
-    private static final String[] visumColumns = {"NAME", "ZW_DWV_FZG", "FROMNODENO", "LINKNO", "ADDVAL1", "ZW_0_FZG", "ZW_1_FZG", "ZW_2_FZG", "ZW_3_FZG"
-            , "ZW_4_FZG", "ZW_5_FZG", "ZW_6_FZG", "ZW_7_FZG", "ZW_8_FZG", "ZW_9_FZG", "ZW_10_FZG", "ZW_11_FZG", "ZW_12_FZG", "ZW_13_FZG", "ZW_14_FZG", "ZW_15_FZG"
-            , "ZW_16_FZG", "ZW_17_FZG", "ZW_18_FZG", "ZW_19_FZG", "ZW_20_FZG", "ZW_21_FZG", "ZW_22_FZG", "ZW_23_FZG", "XCOORD", "YCOORD"};
+	private static final String[] visumColumns = {"NAME", "ZW_DWV_FZG", "ZSTID", "FROMNODENO", "LINKNO", "ADDVAL1", "ZW_0_FZG", "ZW_1_FZG", "ZW_2_FZG", "ZW_3_FZG"
+			, "ZW_4_FZG", "ZW_5_FZG", "ZW_6_FZG", "ZW_7_FZG", "ZW_8_FZG", "ZW_9_FZG", "ZW_10_FZG", "ZW_11_FZG", "ZW_12_FZG", "ZW_13_FZG", "ZW_14_FZG", "ZW_15_FZG"
+			, "ZW_16_FZG", "ZW_17_FZG", "ZW_18_FZG", "ZW_19_FZG", "ZW_20_FZG", "ZW_21_FZG", "ZW_22_FZG", "ZW_23_FZG", "XCOORD", "YCOORD"};
 
     private static final String[] csvColumns = {"link_id", "mode", "bin", "volume", "zaehlstellen_bezeichnung", "road_type"};
 
@@ -60,8 +56,9 @@ public class VisumToCounts {
 				while ((map = reader.readLine()) != null) {
 					String visumLinkId = map.get("LINKNO");
 					String fromNode = map.get("FROMNODENO");
+					String zstId = map.get("ZSTID");
 					Id<Link> linkId = VisumStreetNetworkExporter.createLinkId(fromNode, visumLinkId);
-					String stationName = map.get("NAME") + "_" + map.get("ADDVAL1");
+					String stationName = map.get("NAME") + "_" + map.get("ADDVAL1") + "_ZSTID_" + zstId;
 					double xcoord = Double.parseDouble(map.get("XCOORD"));
 					double ycoord = Double.parseDouble(map.get("YCOORD"));
 					Coord coord = new Coord(xcoord, ycoord);

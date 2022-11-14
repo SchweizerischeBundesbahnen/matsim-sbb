@@ -1,9 +1,10 @@
 package ch.sbb.matsim.config.variables;
 
+import org.matsim.api.core.v01.TransportMode;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.matsim.api.core.v01.TransportMode;
 
 public class SBBModes {
 
@@ -24,23 +25,32 @@ public class SBBModes {
 	public static final String WALK_FOR_ANALYSIS = TransportMode.walk;
 	public static final int DEFAULT_MODE_HIERARCHY = 99;
 	public final static Map<String, Integer> mode2HierarchalNumber;
+	public final static Map<Integer, String> hierarchalNumber2Mode;
 
 	static {
 		mode2HierarchalNumber = new HashMap<>();
+		hierarchalNumber2Mode = new HashMap<>();
+		//main modes
 		mode2HierarchalNumber.put(PT, 0);
 		mode2HierarchalNumber.put(CAR, 10);
 		mode2HierarchalNumber.put(AVTAXI, 11);
 		mode2HierarchalNumber.put(DRT, 12);
 		mode2HierarchalNumber.put(RIDE, 20);
 		mode2HierarchalNumber.put(BIKE, 30);
-		mode2HierarchalNumber.put(AVFEEDER, 31);
-		mode2HierarchalNumber.put(BIKEFEEDER, 32);
-		mode2HierarchalNumber.put(RIDEFEEDER, 33);
-		mode2HierarchalNumber.put(CARFEEDER, 34);
-		mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 40);
-		mode2HierarchalNumber.put(PT_FALLBACK_MODE, 41);
-		mode2HierarchalNumber.put(WALK_MAIN_MAINMODE, 42);
-		mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 50);
+		mode2HierarchalNumber.put(WALK_MAIN_MAINMODE, 40);
+		mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 41);
+
+		//purely pt access-egress
+		mode2HierarchalNumber.put(AVFEEDER, 90);
+		mode2HierarchalNumber.put(BIKEFEEDER, 91);
+		mode2HierarchalNumber.put(RIDEFEEDER, 92);
+		mode2HierarchalNumber.put(CARFEEDER, 93);
+		mode2HierarchalNumber.put(PT_FALLBACK_MODE, 94);
+
+		//access-egress for all kind of modes
+		mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 99);
+
+		mode2HierarchalNumber.forEach((k, v) -> hierarchalNumber2Mode.put(v, k));
 	}
 
 	private SBBModes() {

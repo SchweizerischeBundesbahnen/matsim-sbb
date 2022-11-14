@@ -350,6 +350,9 @@ public class TripsAndDistanceStats {
         if (legsOnly.stream().anyMatch(leg -> leg.getMode().equals(SBBModes.AVTAXI))) {
             return SBBModes.AVTAXI;
         }
+        if (legsOnly.stream().anyMatch(leg -> leg.getMode().equals(SBBModes.DRT))) {
+            return SBBModes.DRT;
+        }
         if (legsOnly.stream().anyMatch(leg -> leg.getMode().equals(SBBModes.RIDE))) {
             return SBBModes.RIDE;
         }
