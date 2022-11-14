@@ -160,7 +160,9 @@ public class MergeRoutedAndUnroutedPlans {
         prepareRelevantFacilities();
         prepareVarPersons();
         mergePlans();
-        mergeVarPlans();
+        if (!varPlans.equals("-")) {
+            mergeVarPlans();
+        }
     }
 
     private void mergePlans() {
