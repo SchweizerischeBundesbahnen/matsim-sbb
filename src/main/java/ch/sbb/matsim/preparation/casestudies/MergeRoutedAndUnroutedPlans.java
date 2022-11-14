@@ -31,8 +31,6 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
-import org.matsim.core.config.groups.CountsConfigGroup;
-import org.matsim.core.config.groups.PlansConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
@@ -159,13 +157,9 @@ public class MergeRoutedAndUnroutedPlans {
 
     private void run()  {
         adjustConfig();
-        LOG.info("config adjusted");
         prepareRelevantFacilities();
-        LOG.info("relevant facilities prepared");
         prepareVarPersons();
-        LOG.info("var persons prepared");
         mergePlans();
-        LOG.info("plans merged");
         mergeVarPlans();
     }
 
@@ -310,26 +304,23 @@ public class MergeRoutedAndUnroutedPlans {
     }
 
     private void mergeVarPlans()  {
-        if (varPlans!="-") {
-            StreamingPopulationWriter spw = new StreamingPopulationWriter();
-            spw.startStreaming(this.varOutputPlansFile);
-            StreamingPopulationReader vpr = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
-            vpr.addAlgorithm(person -> {
-                if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
-                    boolean include = (allPersons.contains(person.getId()) | varPersons.contains(person.getId()));
-                    if (include) {
-                        spw.run(person);
-                    }
+        StreamingPopulationWriter spw = new StreamingPopulationWriter();
+        spw.startStreaming(this.varOutputPlansFile);
+        StreamingPopulationReader vpr = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
+        vpr.addAlgorithm(person -> {
+            if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {
+                boolean include = (allPersons.contains(person.getId()) | varPersons.contains(person.getId()));
+                if (include) {
+                    spw.run(person);
                 }
-            });
-            vpr.readFile(varPlans);
+            }
+        });
+        vpr.readFile(varPlans);
 
-            appendRoutedPlans(spw);
+        appendRoutedPlans(spw);
 
-            spw.closeStreaming();
-        }
+        spw.closeStreaming();
     }
-
     private void adjustConfig() {
 
         this.config = ConfigUtils.loadConfig(this.inputConfig, RunSBB.getSbbDefaultConfigGroups());
@@ -344,9 +335,6 @@ public class MergeRoutedAndUnroutedPlans {
             norep.setStrategyName(DefaultSelector.KeepLastSelected);
             config.strategy().addStrategySettings(norep);
         }
-        PlansConfigGroup plansConfigGroup = ConfigUtils.addOrGetModule(config, PlansConfigGroup.class);
-        plansConfigGroup.setInputFile(outputPlansFile);
-
         new ConfigWriter(config).write(outputConfig);
         LOG.info("wrote new config to " + outputConfig);
     }
