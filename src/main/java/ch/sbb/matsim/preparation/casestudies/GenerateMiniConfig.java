@@ -28,6 +28,8 @@ import ch.sbb.matsim.config.ZonesListConfigGroup;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
+import org.matsim.core.config.groups.PlansConfigGroup;
+
 import java.nio.file.Paths;
 
 public class GenerateMiniConfig {
@@ -37,6 +39,7 @@ public class GenerateMiniConfig {
         String changeEventsFile = args[1];
         double sampleSize = Double.parseDouble(args[2]);
         String outputFile = args[3];
+        String plansFile = args[4];
 
         Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
         config.controler().setMobsim("qsim");
@@ -45,9 +48,12 @@ public class GenerateMiniConfig {
         PostProcessingConfigGroup ppc = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
         ppc.setSimulationSampleSize(sampleSize);
 
-        if (args.length > 4) {
-            String transit = args[4];
-            String zoneFile = args[5];
+        PlansConfigGroup plansConfigGroup = ConfigUtils.addOrGetModule(config, PlansConfigGroup.class);
+        plansConfigGroup.setInputFile(plansFile);
+
+        if (args.length > 5) {
+            String transit = args[5];
+            String zoneFile = args[6];
             if (!transit.equals("-")) {
                 config.transit().setTransitScheduleFile(Paths.get(transit, "transitSchedule.xml.gz").toString());
                 config.transit().setVehiclesFile(Paths.get(transit, "transitVehicles.xml.gz").toString());
@@ -61,8 +67,8 @@ public class GenerateMiniConfig {
                 }
             }
         }
-        if (args.length > 6) {
-            String cache = args[6];
+        if (args.length > 7) {
+            String cache = args[7];
             for (SBBIntermodalModeParameterSet paramSet : ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class).getModeParameterSets()) {
                 if (paramSet.getMode().toString().equals("car_feeder")) {
                     paramSet.setIntermodalAccessCacheFile(Paths.get(cache, "intermodalCache_car_feeder.csv.gz").toString());
