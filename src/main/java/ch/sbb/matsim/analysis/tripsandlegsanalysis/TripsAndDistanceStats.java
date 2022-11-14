@@ -360,7 +360,13 @@ public class TripsAndDistanceStats {
     }
 
     private boolean isSwiss(Link link) {
-        return (boolean) link.getAttributes().getAttribute(IS_CH);
+        try {
+            return (boolean) link.getAttributes().getAttribute(IS_CH);
+        } catch (RuntimeException a) {
+            a.printStackTrace();
+
+            return false;
+        }
     }
 
     private static class SubpopulationStats {
