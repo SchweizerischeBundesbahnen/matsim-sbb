@@ -5,11 +5,14 @@ import ch.sbb.matsim.config.SBBSupplyConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.utils.SBBIntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.utils.SBBTripsToLegsAlgorithm;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
+import org.matsim.core.config.groups.PlansConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.io.StreamingPopulationReader;
@@ -22,9 +25,7 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +44,7 @@ public class PrepareRouteChoiceRun {
     private final String simFolder;
 
     private final TransitSchedule schedule;
+    private final String selectedPlansPath;
 
     /**
      * @param inputPlans outputPlans of base run
@@ -51,12 +53,13 @@ public class PrepareRouteChoiceRun {
      * @param zonesFile zones file
      * @param simFolder sim folder for routchoice run
      */
-    public PrepareRouteChoiceRun(String inputPlans, String inputConfig, String transit, String zonesFile, String simFolder) {
+    public PrepareRouteChoiceRun(String inputPlans, String inputConfig, String transit, String zonesFile, String simFolder, String selectedPlansPath) {
         this.inputPlans = inputPlans;
         this.inputConfig = inputConfig;
         this.transit = transit;
         this.zonesFile = zonesFile;
         this.simFolder = simFolder;
+        this.selectedPlansPath = selectedPlansPath;
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(Paths.get(transit, "transitSchedule.xml.gz").toString());
         this.schedule = scenario.getTransitSchedule();
@@ -72,7 +75,11 @@ public class PrepareRouteChoiceRun {
         String transit = args[2];
         String zonesFile = args[3];
         String simFolder = args[4];
-        new PrepareRouteChoiceRun(inputPlans, inputConfig, transit, zonesFile, simFolder).run();
+        String selectedPlansPath = null;
+        if (args.length>4) {
+            selectedPlansPath = args[5];
+        }
+        new PrepareRouteChoiceRun(inputPlans, inputConfig, transit, zonesFile, simFolder, selectedPlansPath).run();
     }
 
     private void run() {
@@ -112,50 +119,80 @@ public class PrepareRouteChoiceRun {
             }
         }
 
+        PlansConfigGroup plansConfigGroup = ConfigUtils.addOrGetModule(config, PlansConfigGroup.class);
+        plansConfigGroup.setInputFile("prepared/plans.xml.gz");
+
+
         new ConfigWriter(config).write(outputConfig);
 
     }
+
     private void selectPtPlans() {
         Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
 
         String prepared = Paths.get(simFolder, "prepared").toString();
         String outputPlansFile = Paths.get(prepared, "plans.xml.gz").toString();
 
-        Set<String> modesToRemoveRoutes = CollectionUtils.stringToSet("pt");
+        Set<String> modesToRemoveRoutes = CollectionUtils.stringArrayToSet(new String[] {"pt", "car", "ride", "avtaxi", "bike", "walk_main", "walk"});
 
         SBBTripsToLegsAlgorithm tripsToLegsAlgorithm = new SBBTripsToLegsAlgorithm(new SBBIntermodalAwareRouterModeIdentifier(config), modesToRemoveRoutes);
 
+        List<Id<Person>> selectedPersons = new ArrayList<>();
+        if (this.selectedPlansPath != null) {
+            StreamingPopulationReader selectedPersonsReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
+            selectedPersonsReader.addAlgorithm(person -> {
+                selectedPersons.add(person.getId());
+            });
+            selectedPersonsReader.readFile(this.selectedPlansPath);
+        }
 
         StreamingPopulationWriter spw = new StreamingPopulationWriter();
         spw.startStreaming(outputPlansFile);
 
         StreamingPopulationReader routedReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
         routedReader.addAlgorithm(person -> {
-            PersonUtils.removeUnselectedPlans(person);
-            var ptlegs = TripStructureUtils.getLegs(person.getSelectedPlan());
-            boolean include = false;
-            for (Leg l: ptlegs) {
-                if (l.getMode().equals("pt")) {
-                    include = true;
-                    break;
-                }
-            }
-            if (include) {
-                var ptroutes = TripStructureUtils.getLegs(person.getSelectedPlan()).stream().filter(leg -> leg.getRoute().getRouteType().equals(DefaultTransitPassengerRoute.ROUTE_TYPE))
-                        .map(leg -> (DefaultTransitPassengerRoute) leg.getRoute()).collect(Collectors.toSet());
-                for (DefaultTransitPassengerRoute r : ptroutes) {
-                    var transitLine = schedule.getTransitLines().get(r.getLineId());
-                    boolean hasRoute = false;
-                    boolean hasLine = false;
-                    if (transitLine != null) {
-                        hasRoute = transitLine.getRoutes().containsKey(r.getRouteId());
-                        hasLine = true;
-                    }
-                    if (!hasLine || !hasRoute) {
-                        tripsToLegsAlgorithm.run(person.getSelectedPlan());
+            if ((selectedPersons.size()==0) | selectedPersons.contains(person.getId())) {
+                PersonUtils.SremoveUnselectedPlans(person);
+                var ptlegs = TripStructureUtils.getLegs(person.getSelectedPlan());
+                boolean include = false;
+                for (Leg l : ptlegs) {
+                    if (l.getMode().equals("pt")) {
+                        include = true;
+                        break;
                     }
                 }
-                spw.run(person);
+                if (include) {
+                    var ptroutes = TripStructureUtils.getLegs(person.getSelectedPlan()).stream().filter(leg -> leg.getRoute().getRouteType().equals(DefaultTransitPassengerRoute.ROUTE_TYPE))
+                            .map(leg -> (DefaultTransitPassengerRoute) leg.getRoute()).collect(Collectors.toSet());
+                    for (DefaultTransitPassengerRoute r : ptroutes) {
+                        var transitLine = schedule.getTransitLines().get(r.getLineId());
+                        boolean hasRoute = false;
+                        boolean hasLine = false;
+                        if (transitLine != null) {
+                            hasRoute = transitLine.getRoutes().containsKey(r.getRouteId());
+                            hasLine = true;
+                        }
+                        if (!hasLine || !hasRoute) {
+                            tripsToLegsAlgorithm.run(person.getSelectedPlan());
+                        }
+                    }
+                    var trips = TripStructureUtils.getTrips(person.getSelectedPlan());
+                    for (TripStructureUtils.Trip t : trips) {
+                        if (t.getOriginActivity().getLinkId() != null) {
+                            t.getOriginActivity().setLinkId(null);
+                        }
+                        if (t.getDestinationActivity().getLinkId() != null) {
+                            t.getDestinationActivity().setLinkId(null);
+                        }
+                        if (t.getOriginActivity().getFacilityId() != null) {
+                            t.getOriginActivity().setFacilityId(null);
+                        }
+                        if (t.getDestinationActivity().getFacilityId() != null) {
+                            t.getDestinationActivity().setFacilityId(null);
+                        }
+                    }
+                    spw.run(person);
+                }
             }
         });
         routedReader.readFile(inputPlans);
