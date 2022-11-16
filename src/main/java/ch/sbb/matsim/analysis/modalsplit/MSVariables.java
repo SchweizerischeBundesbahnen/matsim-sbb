@@ -64,6 +64,8 @@ public final class MSVariables {
     static final int lastTravelTimeValue = 5 * 60 * 60;
     static final List<Integer> distanceClassesValue = List.of(0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 40, 50, 100, 150, 200, 300);
     static final List<String> distanceClassesLable = List.of("0", "0-2", "2-4", "4-6", "6-8", "8-10", "10-15", "15-20", "20-25", "25-30", "30-40", "40-50", "50-100", "100-150", "150-200", "200-300");
+    static final List<String> changeOrderList = List.of("train", "opnv", "oev", "total");
+    static final List<String> changeLableList = List.of("0", "1", "2", "3", "4", ">=5");
     static final List<String> modesMS = List.of(walk, ride, car, pt, bike, avtaxi, drt);
     static final List<String> carAvailable = List.of(carAvailable1, carAvailable0);
     static final List<String> ptSubscription = List.of(ptSubNone, ptSubGA, ptSubVA, ptSubHTA);
@@ -74,7 +76,14 @@ public final class MSVariables {
     static final List<String> toActTypeList = List.of(home, cbhome, leisure, other, freight, business, shopping, work, education, exogeneous, accompany);
     static final List<List<String>> varList = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategorie, toActTypeList);
     static final List<List<String>> varTimeList = List.of(modesMS, toActTypeList);
-
+    static final String oNMiddleTimeSteps = "middle_time_distribution.csv";
+    static final String oNTravelTimeDistribution = "travel_time_distribution.csv";
+    static final String oNModalSplitPF = "modal_split_pf.csv";
+    static final String oNModalSplitPKM = "modal_split_PKM.csv";
+    static final String oNDistanceClasses = "distace_classes.csv";
+    static final String oNChangesCount = "changes_count.csv";
+    static final String oNStopStationsCount = "stop_stations_count.csv";
+    static final String oNTrainStrationsCount = "train_stations_count.csv";
     private MSVariables() {
     }
 

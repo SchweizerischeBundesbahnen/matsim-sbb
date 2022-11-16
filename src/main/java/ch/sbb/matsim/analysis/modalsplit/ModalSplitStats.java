@@ -8,7 +8,6 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
@@ -52,7 +51,7 @@ public class ModalSplitStats {
     @Inject private TransitSchedule transitSchedule;
     private final Zones zones;
     private final RailTripsAnalyzer railTripsAnalyzer;
-    private final SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
+    private final LongestMainModeIdentifier mainModeIdentifier = new LongestMainModeIdentifier();
     private final PopulationFactory pf = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation().getFactory();
     private String outputLocation;
     private Map<Id<TransitStopFacility>, StopStation> stopStationsMap;
@@ -62,9 +61,6 @@ public class ModalSplitStats {
     private Map<String, double[][]> subpopulaionMSPFMap;
     private Map<String, double[][]> subpopulaionMSPKMMap;
     private Map<String, double[][]> subpopulationChangeMap;
-    private Map<String, Integer> changesMap;
-    private final List<String> changeOrderList = List.of("train", "opnv", "oev", "total");
-    private final List<String> changeLableList = List.of("0", "1", "2", "3", "4", ">=5");
     private Map<String, int[][]> timeMap;
     private Map<String, int[][]> travelTimeMap;
     private Map<String, Integer> variablesTimeStepsMap;
@@ -121,7 +117,7 @@ public class ModalSplitStats {
         analyzeAndWriteStats(outputLocation, experiencedPlansService.getExperiencedPlans());
     }
 
-    public void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
+    private void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
 
         // prepare necessary information
         this.outputLocation = outputLocation + "SBB_";
@@ -131,12 +127,11 @@ public class ModalSplitStats {
         this.variablesMSMap = createVariablesModalSplitMap();
         this.variablesTimeStepsMap = createVariablesTimeStepsMap();
         this.subpopulaionDistanceMap = createArrayForSubpopulationMap(this.modesMap.size(), distanceClassesLable.size());
-        this.subpopulaionMSPFMap = createArrayForSubpopulationMap(this.modesMap.size(), variablesMSMap.size());
-        this.subpopulaionMSPKMMap = createArrayForSubpopulationMap(this.modesMap.size(), variablesMSMap.size());
-        this.subpopulationChangeMap = createArrayForSubpopulationMap(4, 6);
-        this.changesMap = getChangesMap();
-        this.timeMap = createTimeStepsForSubpopulaitonMap((int) (config.qsim().getEndTime().seconds() / timeSplit), variablesTimeStepsMap.size());
-        this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 2, variablesTimeStepsMap.size());
+        this.subpopulaionMSPFMap = createArrayForSubpopulationMap(this.modesMap.size(), this.variablesMSMap.size());
+        this.subpopulaionMSPKMMap = createArrayForSubpopulationMap(this.modesMap.size(), this.variablesMSMap.size());
+        this.subpopulationChangeMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLableList.size());
+        this.timeMap = createTimeStepsForSubpopulaitonMap((int) (this.config.qsim().getEndTime().seconds() / timeSplit), this.variablesTimeStepsMap.size());
+        this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 2, this.variablesTimeStepsMap.size());
 
         // analyzing
         startAnalyze(experiencedPlans);
@@ -149,216 +144,6 @@ public class ModalSplitStats {
         writeChanges();
         writeTimeSteps();
 
-    }
-
-    private Map<Id<TransitStopFacility>, StopStation> generateStopStationMap() {
-        assert transitSchedule != null;
-        Map<Id<TransitStopFacility>, StopStation> stopStationsMap = new HashMap<>();
-        for (TransitStopFacility transitStopFacility : transitSchedule.getFacilities().values()) {
-            stopStationsMap.put(transitStopFacility.getId(), new StopStation(transitStopFacility, zones.findZone(transitStopFacility.getCoord())));
-        }
-        return stopStationsMap;
-    }
-
-    private Map<String, Integer> createVariablesModalSplitMap() {
-        Map<String, Integer> variables = new LinkedHashMap<>();
-        variables.put(mode, 0);
-        variables.put(all, 1);
-        int i = 2;
-        for (List<String> varList : varList) {
-            for (String var : varList) {
-                variables.put(var, i++);
-            }
-        }
-        return variables;
-    }
-
-    private Map<String, Integer> createVariablesTimeStepsMap() {
-        Map<String, Integer> variables = new LinkedHashMap<>();
-        variables.put(all, 0);
-        int i = 1;
-        for (List<String> varList : varTimeList) {
-            for (String var : varList) {
-                variables.put(var, i++);
-            }
-        }
-        return variables;
-    }
-
-    private void writeTrainStationAnalysis() {
-        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        final String stopNumber = "Stop_Nummer";
-        final String zone = "Zone";
-        final String zielAussteiger = "Ziel_Aussteiger";
-        final String quellEinsteiger = "Quell_Einsteiger";
-        final String umsteigerTyp5a = "Umsteiger_Typ_5a";
-        final String umsteigerTyp5b = "Umsteiger_Typ_5b";
-        final String umsteigerSimbaSimba = "Umsteiger_Simba_Simba";
-        final String umsteigerSimbaAndere = "Umsteiger_Simba_Andere";
-        final String umsteigerAndereSimba = "Umsteiger_Andere_Simba";
-        final String umsteigerAndereAndere = "Umsteiger_Andere_Andere";
-        String head = runID + "," + stopNumber + "," + zone + "," + zielAussteiger + "," + quellEinsteiger + "," + umsteigerTyp5a + "," + umsteigerTyp5b + "," +
-            umsteigerSimbaSimba + "," + umsteigerSimbaAndere + "," + umsteigerAndereSimba + "," + umsteigerAndereAndere;
-        String[] columns = head.split(",");
-        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + "train_stations_count.csv")) {
-            for (TrainStation station : trainStationMap.values()) {
-                csvWriter.set(runID, config.controler().getRunId());
-                csvWriter.set(stopNumber, station.getStation());
-                csvWriter.set(zone, station.getZoneId());
-                csvWriter.set(zielAussteiger, Integer.toString((int) (station.getZielAussteiger()/sampleSize)));
-                csvWriter.set(quellEinsteiger, Integer.toString((int) (station.getQuellEinsteiger()/sampleSize)));
-                csvWriter.set(umsteigerTyp5a, Integer.toString((int) (station.getUmsteigerTyp5a()/sampleSize)));
-                csvWriter.set(umsteigerTyp5b, Integer.toString((int) (station.getUmsteigerTyp5b()/sampleSize)));
-                csvWriter.set(umsteigerSimbaSimba, Integer.toString((int) (station.getUmsteigerSimbaSimba()/sampleSize)));
-                csvWriter.set(umsteigerSimbaAndere, Integer.toString((int) (station.getUmsteigerSimbaAndere()/sampleSize)));
-                csvWriter.set(umsteigerAndereSimba, Integer.toString((int) (station.getUmsteigerAndereSimba()/sampleSize)));
-                csvWriter.set(umsteigerAndereAndere, Integer.toString((int) (station.getUmsteigerAndereAndere()/sampleSize)));
-                csvWriter.writeRow();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private Map<String, TrainStation> generateTrainStationMap() {
-        Map<String, TrainStation> trainStationsMap = new HashMap<>();
-        for (TransitStopFacility transitStopFacility : transitSchedule.getFacilities().values()) {
-            String id = transitStopFacility.getAttributes().getAttribute("02_Stop_No").toString();
-            if (trainStationsMap.get(id) == null) {
-                TrainStation trainStation = new TrainStation(id, zones.findZone(transitStopFacility.getCoord()));
-                trainStation.addStop(transitStopFacility);
-                trainStationsMap.put(id, trainStation);
-            } else {
-                TrainStation trainStation = trainStationsMap.get(id);
-                trainStation.addStop(transitStopFacility);
-            }
-        }
-        return trainStationsMap;
-    }
-
-    private void writeTimeSteps() {
-
-        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String time = "time";
-        String[] columns = {runID, subpopulation, time, all, pt, walk, bike, car, ride, avtaxi, drt, cbhome, other, freight, business, shopping, work, education, leisure, home, exogeneous,
-            accompany};
-        try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + "middle_time_distribution.csv")) {
-            for (Entry<String, int[][]> entry : timeMap.entrySet()) {
-                for (int i = 0; i < config.qsim().getEndTime().seconds() / timeSplit; i++) {
-                    csvWriter.set(runID, config.controler().getRunId());
-                    csvWriter.set(subpopulation, entry.getKey());
-                    csvWriter.set(time, Integer.toString(i * timeSplit));
-                    for (Entry<String, Integer> var : variablesTimeStepsMap.entrySet()) {
-                        csvWriter.set(var.getKey(), Integer.toString((int) (entry.getValue()[i][var.getValue()] / sampleSize)));
-                    }
-                    csvWriter.writeRow();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + "travel_time_distribution.csv")) {
-            for (Entry<String, int[][]> entry : travelTimeMap.entrySet()) {
-                for (int i = 0; i < (lastTravelTimeValue / travelTimeSplit) + 2; i++) {
-                    csvWriter.set(runID, config.controler().getRunId());
-                    csvWriter.set(subpopulation, entry.getKey());
-                    csvWriter.set(time, Integer.toString(i * travelTimeSplit));
-                    if (i == (lastTravelTimeValue / travelTimeSplit) + 1) {
-                        csvWriter.set(time, ">18000");
-                    }
-                    for (Entry<String, Integer> var : variablesTimeStepsMap.entrySet()) {
-                        csvWriter.set(var.getKey(), Integer.toString((int) (entry.getValue()[i][var.getValue()] / sampleSize)));
-                    }
-                    csvWriter.writeRow();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private Map<String, Integer> getChangesMap() {
-        return null;
-    }
-
-    private void writeModalSplit() {
-        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] colums = new String[2 + variablesMSMap.size()];
-        colums[0] = runID;
-        colums[1] = subpopulation;
-        int i = 2;
-        for (String var : this.variablesMSMap.keySet()) {
-            colums[i++] = var;
-        }
-        try (CSVWriter csvWriterPF = new CSVWriter("", colums, outputLocation + "modal_split_pf.csv")) {
-            for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
-                for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
-                    csvWriterPF.set(runID, config.controler().getRunId());
-                    csvWriterPF.set(subpopulation, tmpSubpopulation);
-                    for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
-                        if (entry.getKey().equals(mode)) {
-                            csvWriterPF.set(mode, modeEntry.getKey());
-                        } else {
-                            String key = entry.getKey();
-                            Integer value = entry.getValue();
-                            csvWriterPF.set(key, Integer.toString((int) (this.subpopulaionMSPFMap.get(tmpSubpopulation)[modeEntry.getValue()][value] / sampleSize)));
-                        }
-                    }
-                    csvWriterPF.writeRow();
-                }
-            }
-        } catch (
-            IOException e) {
-            e.printStackTrace();
-        }
-        try (CSVWriter csvWriterPKM = new CSVWriter("", colums, outputLocation + "modal_split_pkm.csv")) {
-            for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
-                for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
-                    csvWriterPKM.set(runID, config.controler().getRunId());
-                    csvWriterPKM.set(subpopulation, tmpSubpopulation);
-                    for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
-                        if (entry.getKey().equals(mode)) {
-                            csvWriterPKM.set(mode, modeEntry.getKey());
-                        } else {
-                            String key = entry.getKey();
-                            Integer value = entry.getValue();
-                            csvWriterPKM.set(key, Integer.toString((int) (this.subpopulaionMSPKMMap.get(tmpSubpopulation)[modeEntry.getValue()][value])));
-                        }
-                    }
-                    csvWriterPKM.writeRow();
-                }
-            }
-        } catch (
-            IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void writeDistanceClassesAnalysis() {
-        final double sampleSize = ConfigUtils.addOrGetModule(this.config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] columns = new String[3 + distanceClassesValue.size()];
-        columns[0] = runID;
-        columns[1] = subpopulation;
-        columns[2] = mode;
-        for (int i = 0; i < distanceClassesValue.size(); i++) {
-            columns[i + 3] = distanceClassesLable.get(i);
-        }
-        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + "distace_classes.csv")) {
-            for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
-                for (Entry<String, Integer> col : this.modesMap.entrySet()) {
-                    csvWriter.set(runID, this.config.controler().getRunId());
-                    csvWriter.set(subpopulation, tmpSubpopulation);
-                    csvWriter.set(mode, col.getKey());
-                    for (int i = 0; i < distanceClassesValue.size(); i++) {
-                        csvWriter.set(distanceClassesLable.get(i), Integer.toString((int) (this.subpopulaionDistanceMap.get(tmpSubpopulation)[col.getValue()][i] / sampleSize)));
-                    }
-                    csvWriter.writeRow();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void startAnalyze(IdMap<Person, Plan> experiencedPlans) {
@@ -381,10 +166,10 @@ public class ModalSplitStats {
     }
 
     private void analyzeTrainsStations(Entry<Id<Person>, Plan> entry) {
-       for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+        for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             if (mainModeIdentifier.identifyMainMode(trip.getTripElements()).equals(SBBModes.PT)) {
                 List<Leg> legs = trip.getLegsOnly();
-                Leg legBefore = pf.createLeg("walk");
+                Leg legBefore = pf.createLeg(SBBModes.WALK_FOR_ANALYSIS);
                 for (Leg leg : legs) {
                     if (leg.getMode().equals(SBBModes.PT)) {
                         Route route = leg.getRoute();
@@ -426,7 +211,7 @@ public class ModalSplitStats {
                             }
                         }
                     }
-                    if (!leg.getMode().contains("walk")) {
+                    if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
                         legBefore = leg;
                     }
                 }
@@ -484,7 +269,7 @@ public class ModalSplitStats {
                         }
                     }
 
-                    if (!leg.getMode().contains("walk")) {
+                    if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
                         legBefore = leg;
                     }
                 }
@@ -497,8 +282,8 @@ public class ModalSplitStats {
         Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-            if (tmpMode.equals("walk_main")) {
-                tmpMode = "walk";
+            if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+                tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
             int middle = (int) ((trip.getOriginActivity().getEndTime().seconds() + trip.getDestinationActivity().getStartTime().seconds()) / 2);
             int time = (middle - (middle % timeSplit)) / timeSplit;
@@ -512,7 +297,7 @@ public class ModalSplitStats {
             }
             subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(all)] = subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(all)] + 1;
             for (String mode : modesMS) {
-                if (("mode_" + tmpMode).equals(mode)) {
+                if ((MSVariables.mode + separator + tmpMode).equals(mode)) {
                     subpopulationArrray[time][variablesTimeStepsMap.get(mode)] = subpopulationArrray[time][variablesTimeStepsMap.get(mode)] + 1;
                     subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(mode)] = subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(mode)] + 1;
                     break;
@@ -547,29 +332,30 @@ public class ModalSplitStats {
             } else {
                 oev++;
             }
+            firstMode = secondMode;
         }
         Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
         double[][] array = subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
         if (train > 5) {
-            array[0][5] = array[0][5] + 1;
+            array[changeOrderList.indexOf("train")][5] = array[changeOrderList.indexOf("train")][5] + 1;
         } else {
-            array[0][train] = array[0][train] + 1;
+            array[changeOrderList.indexOf("train")][train] = array[changeOrderList.indexOf("train")][train] + 1;
         }
         if (opnv > 5) {
-            array[1][5] = array[1][5] + 1;
+            array[changeOrderList.indexOf("opnv")][5] = array[changeOrderList.indexOf("opnv")][5] + 1;
         } else {
-            array[1][opnv] = array[1][opnv] + 1;
+            array[changeOrderList.indexOf("opnv")][opnv] = array[changeOrderList.indexOf("opnv")][opnv] + 1;
         }
         if (oev > 5) {
-            array[2][5] = array[2][5] + 1;
+            array[changeOrderList.indexOf("oev")][5] = array[changeOrderList.indexOf("oev")][5] + 1;
         } else {
-            array[2][oev] = array[2][oev] + 1;
+            array[changeOrderList.indexOf("oev")][oev] = array[changeOrderList.indexOf("oev")][oev] + 1;
         }
         int total = train + opnv + oev;
         if (total > 5) {
-            array[3][5] = array[3][5] + 1;
+            array[changeOrderList.indexOf("total")][5] = array[changeOrderList.indexOf("total")][5] + 1;
         } else {
-            array[3][total] = array[3][total] + 1;
+            array[changeOrderList.indexOf("total")][total] = array[changeOrderList.indexOf("total")][total] + 1;
         }
     }
 
@@ -577,8 +363,8 @@ public class ModalSplitStats {
         Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-            if (tmpMode.equals("walk_main")) {
-                tmpMode = "walk";
+            if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+                tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
             int modeId = modesMap.get(tmpMode);
             double distance = 0;
@@ -642,24 +428,16 @@ public class ModalSplitStats {
             // activity type for end activity
             String acttyp = trip.getDestinationActivity().getType();
             for (String act : toActTypeList) {
-                if (acttyp.contains("_")) {
+                if (acttyp.contains(separator)) {
                     acttyp = acttyp.substring(0, acttyp.indexOf("_"));
                 }
-                if ((toActType + "_" + acttyp).equals(act)) {
+                if ((toActType + separator + acttyp).equals(act)) {
                     pfArray[modeId][variablesMSMap.get(act)] = pfArray[modeId][variablesMSMap.get(act)] + 1;
                     pkmArray[modeId][variablesMSMap.get(act)] = pkmArray[modeId][variablesMSMap.get(act)] + distance;
                     break;
                 }
             }
         }
-    }
-
-    private Map<String, double[][]> createArrayForSubpopulationMap(int modeSize, int varSize) {
-        Map<String, double[][]> subpopulaionMap = new HashMap<>();
-        for (String subpopulation : Variables.SUBPOPULATIONS) {
-            subpopulaionMap.put(subpopulation, new double[modeSize][varSize]);
-        }
-        return subpopulaionMap;
     }
 
     private void analyzeDistanceClasses(Entry<Id<Person>, Plan> entry) {
@@ -682,6 +460,168 @@ public class ModalSplitStats {
                 }
             }
         }
+    }
+
+    private void writeDistanceClassesAnalysis() {
+        final double sampleSize = ConfigUtils.addOrGetModule(this.config, PostProcessingConfigGroup.class).getSimulationSampleSize();
+        String[] columns = new String[3 + distanceClassesValue.size()];
+        columns[0] = runID;
+        columns[1] = subpopulation;
+        columns[2] = mode;
+        for (int i = 0; i < distanceClassesValue.size(); i++) {
+            columns[i + 3] = distanceClassesLable.get(i);
+        }
+        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNDistanceClasses)) {
+            for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
+                for (Entry<String, Integer> col : this.modesMap.entrySet()) {
+                    csvWriter.set(runID, this.config.controler().getRunId());
+                    csvWriter.set(subpopulation, tmpSubpopulation);
+                    csvWriter.set(mode, col.getKey());
+                    for (int i = 0; i < distanceClassesValue.size(); i++) {
+                        csvWriter.set(distanceClassesLable.get(i), Integer.toString((int) (this.subpopulaionDistanceMap.get(tmpSubpopulation)[col.getValue()][i] / sampleSize)));
+                    }
+                    csvWriter.writeRow();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeTimeSteps() {
+
+        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
+        String time = "time";
+        String[] columns = new String[3 + variablesMSMap.size()];
+        columns[0] = runID;
+        columns[1] = subpopulation;
+        columns[2] = time;
+        int index = 3;
+        for (String var : variablesTimeStepsMap.keySet()) {
+            columns[index++] = var;
+        }
+        try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNMiddleTimeSteps)) {
+            for (Entry<String, int[][]> entry : timeMap.entrySet()) {
+                for (int i = 0; i < config.qsim().getEndTime().seconds() / timeSplit; i++) {
+                    csvWriter.set(runID, config.controler().getRunId());
+                    csvWriter.set(subpopulation, entry.getKey());
+                    csvWriter.set(time, Integer.toString(i * timeSplit));
+                    for (Entry<String, Integer> var : variablesTimeStepsMap.entrySet()) {
+                        csvWriter.set(var.getKey(), Integer.toString((int) (entry.getValue()[i][var.getValue()] / sampleSize)));
+                    }
+                    csvWriter.writeRow();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNTravelTimeDistribution)) {
+            for (Entry<String, int[][]> entry : travelTimeMap.entrySet()) {
+                for (int i = 0; i < (lastTravelTimeValue / travelTimeSplit) + 2; i++) {
+                    csvWriter.set(runID, config.controler().getRunId());
+                    csvWriter.set(subpopulation, entry.getKey());
+                    csvWriter.set(time, Integer.toString(i * travelTimeSplit));
+                    if (i == (lastTravelTimeValue / travelTimeSplit) + 1) {
+                        csvWriter.set(time, ">18000");
+                    }
+                    for (Entry<String, Integer> var : variablesTimeStepsMap.entrySet()) {
+                        csvWriter.set(var.getKey(), Integer.toString((int) (entry.getValue()[i][var.getValue()] / sampleSize)));
+                    }
+                    csvWriter.writeRow();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeModalSplit() {
+        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
+        String[] colums = new String[2 + variablesMSMap.size()];
+        colums[0] = runID;
+        colums[1] = subpopulation;
+        int i = 2;
+        for (String var : this.variablesMSMap.keySet()) {
+            colums[i++] = var;
+        }
+        try (CSVWriter csvWriterPF = new CSVWriter("", colums, outputLocation + oNModalSplitPF)) {
+            for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
+                for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
+                    csvWriterPF.set(runID, config.controler().getRunId());
+                    csvWriterPF.set(subpopulation, tmpSubpopulation);
+                    for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
+                        if (entry.getKey().equals(mode)) {
+                            csvWriterPF.set(mode, modeEntry.getKey());
+                        } else {
+                            String key = entry.getKey();
+                            Integer value = entry.getValue();
+                            csvWriterPF.set(key, Integer.toString((int) (this.subpopulaionMSPFMap.get(tmpSubpopulation)[modeEntry.getValue()][value] / sampleSize)));
+                        }
+                    }
+                    csvWriterPF.writeRow();
+                }
+            }
+        } catch (
+            IOException e) {
+            e.printStackTrace();
+        }
+        try (CSVWriter csvWriterPKM = new CSVWriter("", colums, outputLocation + oNModalSplitPKM)) {
+            for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
+                for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
+                    csvWriterPKM.set(runID, config.controler().getRunId());
+                    csvWriterPKM.set(subpopulation, tmpSubpopulation);
+                    for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
+                        if (entry.getKey().equals(mode)) {
+                            csvWriterPKM.set(mode, modeEntry.getKey());
+                        } else {
+                            String key = entry.getKey();
+                            Integer value = entry.getValue();
+                            csvWriterPKM.set(key, Integer.toString((int) (this.subpopulaionMSPKMMap.get(tmpSubpopulation)[modeEntry.getValue()][value] / sampleSize)));
+                        }
+                    }
+                    csvWriterPKM.writeRow();
+                }
+            }
+        } catch (
+            IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeTrainStationAnalysis() {
+        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
+        final String stopNumber = "Stop_Nummer";
+        final String zone = "Zone";
+        final String zielAussteiger = "Ziel_Aussteiger";
+        final String quellEinsteiger = "Quell_Einsteiger";
+        final String umsteigerTyp5a = "Umsteiger_Typ_5a";
+        final String umsteigerTyp5b = "Umsteiger_Typ_5b";
+        final String umsteigerSimbaSimba = "Umsteiger_Simba_Simba";
+        final String umsteigerSimbaAndere = "Umsteiger_Simba_Andere";
+        final String umsteigerAndereSimba = "Umsteiger_Andere_Simba";
+        final String umsteigerAndereAndere = "Umsteiger_Andere_Andere";
+        String head = runID + "," + stopNumber + "," + zone + "," + zielAussteiger + "," + quellEinsteiger + "," + umsteigerTyp5a + "," + umsteigerTyp5b + "," +
+            umsteigerSimbaSimba + "," + umsteigerSimbaAndere + "," + umsteigerAndereSimba + "," + umsteigerAndereAndere;
+        String[] columns = head.split(",");
+        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNTrainStrationsCount)) {
+            for (TrainStation station : trainStationMap.values()) {
+                csvWriter.set(runID, config.controler().getRunId());
+                csvWriter.set(stopNumber, station.getStation());
+                csvWriter.set(zone, station.getZoneId());
+                csvWriter.set(zielAussteiger, Integer.toString((int) (station.getZielAussteiger()/sampleSize)));
+                csvWriter.set(quellEinsteiger, Integer.toString((int) (station.getQuellEinsteiger()/sampleSize)));
+                csvWriter.set(umsteigerTyp5a, Integer.toString((int) (station.getUmsteigerTyp5a()/sampleSize)));
+                csvWriter.set(umsteigerTyp5b, Integer.toString((int) (station.getUmsteigerTyp5b()/sampleSize)));
+                csvWriter.set(umsteigerSimbaSimba, Integer.toString((int) (station.getUmsteigerSimbaSimba()/sampleSize)));
+                csvWriter.set(umsteigerSimbaAndere, Integer.toString((int) (station.getUmsteigerSimbaAndere()/sampleSize)));
+                csvWriter.set(umsteigerAndereSimba, Integer.toString((int) (station.getUmsteigerAndereSimba()/sampleSize)));
+                csvWriter.set(umsteigerAndereAndere, Integer.toString((int) (station.getUmsteigerAndereAndere()/sampleSize)));
+                csvWriter.writeRow();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void writeStopStationAnalysis() {
@@ -707,7 +647,7 @@ public class ModalSplitStats {
             head.append(",").append("Quelleinstieg_").append(mode);
         }
         String[] columns = head.toString().split(",");
-        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + "stop_stations_count.csv")) {
+        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNStopStationsCount)) {
             for (Entry<Id<TransitStopFacility>, StopStation> entry : stopStationsMap.entrySet()) {
                 csvWriter.set(runID, config.controler().getRunId());
                 csvWriter.set(codeID, entry.getValue().getStop().getId().toString());
@@ -740,19 +680,9 @@ public class ModalSplitStats {
         }
     }
 
-    private Leg getLegAfter(List<Leg> legs, int currentLegIndex) {
-        Leg legAfter = legs.get(currentLegIndex + 1);
-        for (int i = currentLegIndex + 1; i < legs.size(); i++) {
-            if (!legs.get(i).getMode().contains("walk")) {
-                return legs.get(i);
-            }
-        }
-        return legAfter;
-    }
-
     private void writeChanges() {
         String[] columns = {"RunID", "Subpopulation", "Umsteigetyp", "0", "1", "2", "3", "4", ">=5"};
-        try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + "changes_count.csv")) {
+        try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNChangesCount)) {
             for (Entry<String, double[][]> entry : subpopulationChangeMap.entrySet()) {
                 Map<String, Integer> mapChange = new HashMap<>();
                 mapChange.put("changesTrain", 0);
@@ -775,6 +705,66 @@ public class ModalSplitStats {
         }
     }
 
+    private Map<String, Integer> createVariablesModalSplitMap() {
+        Map<String, Integer> variables = new LinkedHashMap<>();
+        variables.put(mode, 0);
+        variables.put(all, 1);
+        int i = 2;
+        for (List<String> varList : varList) {
+            for (String var : varList) {
+                variables.put(var, i++);
+            }
+        }
+        return variables;
+    }
+
+    private Map<Id<TransitStopFacility>, StopStation> generateStopStationMap() {
+        assert transitSchedule != null;
+        Map<Id<TransitStopFacility>, StopStation> stopStationsMap = new HashMap<>();
+        for (TransitStopFacility transitStopFacility : transitSchedule.getFacilities().values()) {
+            stopStationsMap.put(transitStopFacility.getId(), new StopStation(transitStopFacility, zones.findZone(transitStopFacility.getCoord())));
+        }
+        return stopStationsMap;
+    }
+
+    private Map<String, Integer> createVariablesTimeStepsMap() {
+        Map<String, Integer> variables = new LinkedHashMap<>();
+        variables.put(all, 0);
+        int i = 1;
+        for (List<String> varList : varTimeList) {
+            for (String var : varList) {
+                variables.put(var, i++);
+            }
+        }
+        return variables;
+    }
+
+    private Map<String, TrainStation> generateTrainStationMap() {
+        Map<String, TrainStation> trainStationsMap = new HashMap<>();
+        for (TransitStopFacility transitStopFacility : transitSchedule.getFacilities().values()) {
+            String id = transitStopFacility.getAttributes().getAttribute("02_Stop_No").toString();
+            if (trainStationsMap.get(id) == null) {
+                TrainStation trainStation = new TrainStation(id, zones.findZone(transitStopFacility.getCoord()));
+                trainStation.addStop(transitStopFacility);
+                trainStationsMap.put(id, trainStation);
+            } else {
+                TrainStation trainStation = trainStationsMap.get(id);
+                trainStation.addStop(transitStopFacility);
+            }
+        }
+        return trainStationsMap;
+    }
+
+    private Leg getLegAfter(List<Leg> legs, int currentLegIndex) {
+        Leg legAfter = legs.get(currentLegIndex + 1);
+        for (int i = currentLegIndex + 1; i < legs.size(); i++) {
+            if (!legs.get(i).getMode().contains("walk")) {
+                return legs.get(i);
+            }
+        }
+        return legAfter;
+    }
+
     private Map<String, Integer> getModesMap() {
         Map<String, Integer> coding = new HashMap<>();
         List<String> modes = SBBModes.MAIN_MODES;
@@ -788,6 +778,14 @@ public class ModalSplitStats {
         Map<String, int[][]> subpopulaionMap = new HashMap<>();
         for (String subpopulation : Variables.SUBPOPULATIONS) {
             subpopulaionMap.put(subpopulation, new int[timeStepsSize][varSize]);
+        }
+        return subpopulaionMap;
+    }
+
+    private Map<String, double[][]> createArrayForSubpopulationMap(int modeSize, int varSize) {
+        Map<String, double[][]> subpopulaionMap = new HashMap<>();
+        for (String subpopulation : Variables.SUBPOPULATIONS) {
+            subpopulaionMap.put(subpopulation, new double[modeSize][varSize]);
         }
         return subpopulaionMap;
     }
