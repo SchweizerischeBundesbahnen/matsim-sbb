@@ -492,7 +492,7 @@ public class ModalSplitStats {
 
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         String time = "time";
-        String[] columns = new String[3 + variablesMSMap.size()];
+        String[] columns = new String[3 + variablesTimeStepsMap.size()];
         columns[0] = runID;
         columns[1] = subpopulation;
         columns[2] = time;
@@ -682,6 +682,7 @@ public class ModalSplitStats {
 
     private void writeChanges() {
         String[] columns = {"RunID", "Subpopulation", "Umsteigetyp", "0", "1", "2", "3", "4", ">=5"};
+        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNChangesCount)) {
             for (Entry<String, double[][]> entry : subpopulationChangeMap.entrySet()) {
                 Map<String, Integer> mapChange = new HashMap<>();
@@ -694,7 +695,7 @@ public class ModalSplitStats {
                     csvWriter.set("Subpopulation", entry.getKey());
                     csvWriter.set("Umsteigetyp", change.getKey());
                     for (int i = 0; i < 6; i++) {
-                        csvWriter.set(changeLableList.get(i), Integer.toString((int) entry.getValue()[change.getValue()][i]));
+                        csvWriter.set(changeLableList.get(i), Integer.toString((int) (entry.getValue()[change.getValue()][i] / sampleSize)));
                     }
                     csvWriter.writeRow();
                 }
