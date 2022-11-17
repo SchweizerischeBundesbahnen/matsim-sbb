@@ -307,61 +307,84 @@ public class ModalSplitStats {
     }
 
     private void analyzeChanges(Entry<Id<Person>, Plan> entry) {
+        Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
         List<String> modes = new ArrayList<>();
+        boolean feeder = false;
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             for (Leg leg : trip.getLegsOnly()) {
                 if (leg.getMode().equals(SBBModes.PT)) {
                     modes.add(getModeOfTransitRoute(leg.getRoute()));
+                } else if (SBBModes.TRAIN_FEEDER_MODES.contains(leg.getMode())){
+                    feeder = true;
                 }
             }
         }
         if (modes.size() == 0) {
-            return;
-        }
-        int train = 0;
-        int opnv = 0;
-        int oev = 0;
-        Iterator<String> iterator = modes.iterator();
-        String firstMode = iterator.next();
-        while (iterator.hasNext()) {
-            String secondMode = iterator.next();
-            if (firstMode.equals(PTSubModes.RAIL) && secondMode.equals(PTSubModes.RAIL)) {
-                train++;
-            } else if (!firstMode.equals(PTSubModes.RAIL) && !secondMode.equals(PTSubModes.RAIL)) {
-                opnv++;
-            } else {
-                oev++;
+            if (feeder) {
+                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("opnv")][0]++;
+                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("total")][0]++;
             }
-            firstMode = secondMode;
-        }
-        Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
-        double[][] array = subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
-        if (train > 5) {
-            array[changeOrderList.indexOf("train")][5] = array[changeOrderList.indexOf("train")][5] + 1;
+            return;
+        } else if (modes.size() < 2) {
+            if (modes.get(0).equals(PTSubModes.RAIL)) {
+                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("train")][0]++;
+                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("total")][0]++;
+            } else {
+                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("opnv")][0]++;
+                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("total")][0]++;
+            }
         } else {
-            array[changeOrderList.indexOf("train")][train] = array[changeOrderList.indexOf("train")][train] + 1;
-        }
-        if (opnv > 5) {
-            array[changeOrderList.indexOf("opnv")][5] = array[changeOrderList.indexOf("opnv")][5] + 1;
-        } else {
-            array[changeOrderList.indexOf("opnv")][opnv] = array[changeOrderList.indexOf("opnv")][opnv] + 1;
-        }
-        if (oev > 5) {
-            array[changeOrderList.indexOf("oev")][5] = array[changeOrderList.indexOf("oev")][5] + 1;
-        } else {
-            array[changeOrderList.indexOf("oev")][oev] = array[changeOrderList.indexOf("oev")][oev] + 1;
-        }
-        int total = train + opnv + oev;
-        if (total > 5) {
-            array[changeOrderList.indexOf("total")][5] = array[changeOrderList.indexOf("total")][5] + 1;
-        } else {
-            array[changeOrderList.indexOf("total")][total] = array[changeOrderList.indexOf("total")][total] + 1;
+            int train = -1;
+            int opnv = -1;
+            int oev = -1;
+            int total = -1;
+            Iterator<String> iterator = modes.iterator();
+            String firstMode = iterator.next();
+            while (iterator.hasNext()) {
+                String secondMode = iterator.next();
+                if (firstMode.equals(PTSubModes.RAIL) && secondMode.equals(PTSubModes.RAIL)) {
+                    train++;
+                    total++;
+                } else if (!firstMode.equals(PTSubModes.RAIL) && !secondMode.equals(PTSubModes.RAIL)) {
+                    opnv++;
+                    total++;
+                } else {
+                    oev++;
+                    total++;
+                }
+                firstMode = secondMode;
+            }
+            double[][] array = subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
+            if (train > 5) {
+                array[changeOrderList.indexOf("train")][5]++;
+            } else if (train > -1) {
+                array[changeOrderList.indexOf("train")][train]++;
+            }
+            if (opnv > 5) {
+                array[changeOrderList.indexOf("opnv")][5]++;
+            } else if (opnv > -1) {
+                array[changeOrderList.indexOf("opnv")][opnv+1]++;
+            }
+            if (oev > 5) {
+                array[changeOrderList.indexOf("oev")][5]++;
+            } else if (oev > -1) {
+                array[changeOrderList.indexOf("oev")][oev+1]++;
+            }
+            if (total > 5) {
+                array[changeOrderList.indexOf("total")][5]++;
+            } else if (total > 0) {
+                array[changeOrderList.indexOf("total")][total]++;
+            }
         }
     }
 
     private void analyzeModalSplit(Entry<Id<Person>, Plan> entry) {
         Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+            if (trip.getOriginActivity().getFacilityId() == null || trip.getDestinationActivity().getFacilityId() == null) {
+                continue;
+            }
+
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
             if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
@@ -371,6 +394,7 @@ public class ModalSplitStats {
             for (Leg leg : trip.getLegsOnly()) {
                 distance += leg.getRoute().getDistance() / 1000;
             }
+
             double[][] pfArray = subpopulaionMSPFMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
             pfArray[modeId][variablesMSMap.get(all)] = pfArray[modeId][variablesMSMap.get(all)] + 1;
 
