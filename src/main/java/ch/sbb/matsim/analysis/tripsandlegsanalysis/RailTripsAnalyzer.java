@@ -21,6 +21,14 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
@@ -37,11 +45,6 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Singleton
 public class RailTripsAnalyzer {
@@ -105,7 +108,12 @@ public class RailTripsAnalyzer {
         return result;
     }
 
-
+    /**
+     * Finds the Access and egress Railway Stop of a trip
+     *
+     * @param trip
+     * @return Tuple with access and egress railway stop.
+     */
     public Tuple<Id<TransitStopFacility>, Id<TransitStopFacility>> getOriginDestination(Trip trip) {
         Tuple<Id<TransitStopFacility>, Id<TransitStopFacility>> tuple = null;
         Id<TransitStopFacility> firstStop = null;
@@ -267,7 +275,7 @@ public class RailTripsAnalyzer {
             }
         } else if (includeForeignTrips && (isSwissRailOrFQStop(railAccessStop) || isSwissRailOrFQStop(railEgressStop))) {
             // no need to check whether legs are fq relevant, as all rail border crossing train stations are FQ relevant, thus is the journey
-            return routes.stream().mapToDouble(r -> getDomesticRailDistance_m(r)).sum();
+            return routes.stream().mapToDouble(this::getDomesticRailDistance_m).sum();
         }
         return 0.0;
     }
