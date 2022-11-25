@@ -22,7 +22,6 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.csv.CSVWriter;
-import org.apache.commons.lang3.mutable.MutableDouble;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
@@ -40,6 +39,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PtLinkVolumeAnalyzer {
@@ -62,16 +62,15 @@ public class PtLinkVolumeAnalyzer {
 
     }
 
-    public Map<Id<Link>, Double> analysePtLinkUsage() {
-        Map<Id<Link>, MutableDouble> ptUsage = ptlinks.stream().collect(Collectors.toMap((a -> a), (a -> new MutableDouble())));
-        experiencedPlansService.getExperiencedPlans().values()
+    public Map<Id<Link>, Long> analysePtLinkUsage() {
+        Map<Id<Link>, Long> ptUsage = experiencedPlansService.getExperiencedPlans().values()
                 .stream()
                 .flatMap(p -> TripStructureUtils.getLegs(p).stream())
                 .filter(l -> l.getMode().equals(SBBModes.PT))
                 .map(l -> (TransitPassengerRoute) l.getRoute())
                 .flatMap(r -> railTripsAnalyzer.getPtLinkIdsTraveledOn(r).stream())
-                .forEach(linkId -> ptUsage.get(linkId).increment());
-        return ptUsage.entrySet().stream().collect(Collectors.toMap(Entry::getKey, k -> k.getValue().toDouble()));
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        return ptUsage;
 
     }
 
@@ -84,10 +83,10 @@ public class PtLinkVolumeAnalyzer {
         String[] header = {linkId, vol};
         var ptVolumes = analysePtLinkUsage();
         try (CSVWriter writer = new CSVWriter(null, header, outputfile + ".csv")) {
-            for (Entry<Id<Link>, Double> e : ptVolumes.entrySet()) {
+            for (Entry<Id<Link>, Long> e : ptVolumes.entrySet()) {
                 Id<Link> currentLinkId = e.getKey();
                 writer.set(linkId, currentLinkId.toString());
-                int scaledVolume = (int) Math.round(e.getValue() * scalefactor);
+                int scaledVolume = (int) Math.round((double) e.getValue() * scalefactor);
                 writer.set(vol, Integer.toString(scaledVolume));
                 writer.writeRow();
                 Link l = ptNetwork.getLinks().get(currentLinkId);

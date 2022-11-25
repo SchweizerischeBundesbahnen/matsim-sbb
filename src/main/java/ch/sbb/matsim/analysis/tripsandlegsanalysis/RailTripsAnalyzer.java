@@ -40,9 +40,7 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Singleton
@@ -87,6 +85,24 @@ public class RailTripsAnalyzer {
                 .map(leg -> (TransitPassengerRoute) leg.getRoute())
                 .filter(transitRoute -> railLines.contains(transitRoute.getLineId()))
                 .collect(Collectors.toList());
+    }
+
+    public Map<Id<TransitLine>, Set<Id<TransitRoute>>> getTransitLinesAndRoutesAtStop(Id<TransitStopFacility> stopId) {
+        Map<Id<TransitLine>, Set<Id<TransitRoute>>> result = new HashMap<>();
+        for (TransitLine line : schedule.getTransitLines().values()) {
+            Set<Id<TransitRoute>> routeAtFacilty = line.getRoutes().values()
+                    .stream()
+                    .filter(transitRoute -> transitRoute.getStops()
+                            .stream()
+                            .map(stop -> stop.getStopFacility().getId())
+                            .anyMatch(stopFacilityId -> stopFacilityId.equals(stopId)))
+                    .map(TransitRoute::getId)
+                    .collect(Collectors.toSet());
+            if (!routeAtFacilty.isEmpty()) {
+                result.put(line.getId(), routeAtFacilty);
+            }
+        }
+        return result;
     }
 
 
@@ -256,6 +272,11 @@ public class RailTripsAnalyzer {
         return 0.0;
     }
 
+
+    public List<Id<Link>> getPtLinkIdsTraveledOnExludingAccessEgressStop(TransitPassengerRoute route) {
+        var result = getPtLinkIdsTraveledOn(route);
+        return result.subList(1, result.size() - 1);
+    }
 
     public List<Id<Link>> getPtLinkIdsTraveledOn(TransitPassengerRoute route) {
         TransitRoute transitRoute = this.schedule.getTransitLines().get(route.getLineId()).getRoutes().get(route.getRouteId());
