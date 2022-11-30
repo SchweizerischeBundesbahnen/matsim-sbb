@@ -12,15 +12,12 @@ import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.inject.Inject;
-import org.apache.commons.math3.stat.Frequency;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
@@ -37,7 +34,6 @@ import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.Trip;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.scoring.EventsToLegs;
 import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
@@ -348,7 +344,12 @@ public class ModalSplitStats {
     private void analyzeModalSplit(Entry<Id<Person>, Plan> entry) {
         Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+            // it seems that the facility id can be null
             if (trip.getOriginActivity().getFacilityId() == null || trip.getDestinationActivity().getFacilityId() == null) {
+                continue;
+            }
+            // skip home office activities
+            if (trip.getOriginActivity().getFacilityId().equals(trip.getDestinationActivity().getFacilityId())) {
                 continue;
             }
 
@@ -650,7 +651,7 @@ public class ModalSplitStats {
                 } else {
                     csvWriter.set(code, codeAttribute.toString());
                 }
-                String name = transitSchedule.getFacilities().get(stopId).getName();
+                String name = transitSchedule.getFacilities().get(stopId).getName().replaceAll(",", " ");
                 csvWriter.set(trainStationName, name);
                 csvWriter.set(x, Double.toString(entry.getValue().getStop().getCoord().getX()));
                 csvWriter.set(y, Double.toString(entry.getValue().getStop().getCoord().getY()));
