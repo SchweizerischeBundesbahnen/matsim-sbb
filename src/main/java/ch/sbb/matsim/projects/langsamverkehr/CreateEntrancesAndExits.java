@@ -4,13 +4,18 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.checkerframework.checker.units.qual.C;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
@@ -50,6 +55,9 @@ public class CreateEntrancesAndExits {
     int additionalNodes = 0;
     int count = 0;
     TransitSchedule transitSchedule;
+
+    Coord bernCenter = new Coord(2600074.409087829, 1199814.4754796433);
+    double radius = 10000;
 
     CreateEntrancesAndExits(Network network, Population population, TransitSchedule transitSchedule, String outputPlans, String outputNetwork, String outputCSV) {
         this.network = network;
@@ -103,7 +111,11 @@ public class CreateEntrancesAndExits {
                     csvWriter.set("y", Double.toString(node.getCoord().getY()));
                     csvWriter.set("usage", Integer.toString(station.usageMap.get(node)));
                     csvWriter.set("all", Integer.toString(station.count));
-                    csvWriter.set("percent", Double.toString(station.usageMap.get(node)/(double)station.count));
+                    if (station.count == 0) {
+                        csvWriter.set("percent", "0");
+                    } else {
+                        csvWriter.set("percent", Double.toString(station.usageMap.get(node)/(double)station.count));
+                    }
                     csvWriter.writeRow();
                 }
         } catch (Exception e) {
@@ -118,9 +130,23 @@ public class CreateEntrancesAndExits {
                 stopFacilityLinkId.put(stopFacility.getLinkId(), stopFacility);
             }
         }
+        /*
+        List<Person> notInBern = new ArrayList<>();
+        for (Person p : population.getPersons().values()) {
+            Activity start = (Activity) p.getSelectedPlan().getPlanElements().get(0);
+            Activity end = (Activity) p.getSelectedPlan().getPlanElements().get(2);
+            if (!((CoordUtils.calcEuclideanDistance(start.getCoord(), bernCenter) < radius) && (CoordUtils.calcEuclideanDistance(end.getCoord(), bernCenter) < radius))) {
+                notInBern.add(p);
+            }
+        }
+        for (Person person : notInBern) {
+            population.removePerson(person.getId());
+        }
+        */
         List<Person> removePerson = new ArrayList<>();
         for (Person p : population.getPersons().values()) {
             Plan plan = p.getSelectedPlan();
+
             if (plan.getPlanElements().size() == 3) {
                 Activity sA = (Activity) plan.getPlanElements().get(0);
                 Activity eA = (Activity) plan.getPlanElements().get(2);
@@ -193,6 +219,11 @@ public class CreateEntrancesAndExits {
             if (transitStopFacility.getAttributes().getAttribute("03_Stop_Code") == null) {
                 continue;
             }
+            /*
+            if (CoordUtils.calcEuclideanDistance(transitStopFacility.getCoord(), bernCenter) > (radius * 1.1)) {
+                continue;
+            }
+             */
             Node n0 = create1EntrancesAndExits(transitStopFacility, 0, 20);
             Node n1 = create1EntrancesAndExits(transitStopFacility, 0, -20);
             Node n2 = create1EntrancesAndExits(transitStopFacility, 20, 0);
@@ -294,5 +325,16 @@ public class CreateEntrancesAndExits {
         return node;
     }
 
+    public static void main(String[] args) throws IOException {
+        rokasWalkRoute();
+    }
+
+    static private void rokasWalkRoute() throws IOException {
+        URL url = new URL("https://journey-maps.api.sbb.ch:443");
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("GET");
+        con.addRequestProperty("api_key", "c51ca728f50a17a5439670dd3faf7ead");
+        System.out.println(con.getResponseCode());
+    }
 
 }
