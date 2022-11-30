@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.inject.Inject;
+import org.apache.commons.math3.stat.Frequency;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
@@ -36,6 +37,7 @@ import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.Trip;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.scoring.EventsToLegs;
 import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
@@ -308,72 +310,37 @@ public class ModalSplitStats {
 
     private void analyzeChanges(Entry<Id<Person>, Plan> entry) {
         Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
-        List<String> modes = new ArrayList<>();
-        boolean feeder = false;
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+            int ptLegs = 0;
+            int raillegs = 0;
             for (Leg leg : trip.getLegsOnly()) {
-                if (leg.getMode().equals(SBBModes.PT)) {
-                    modes.add(getModeOfTransitRoute(leg.getRoute()));
-                } else if (SBBModes.TRAIN_FEEDER_MODES.contains(leg.getMode())){
-                    feeder = true;
+                if (SBBModes.PT.contains(leg.getMode())) {
+                    if (leg.getMode().equals(SBBModes.PT)) {
+                        ptLegs++;
+                        TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                        if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                            raillegs++;
+                        }
+                    }
                 }
             }
-        }
-        if (modes.size() == 0) {
-            if (feeder) {
-                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("opnv")][0]++;
-                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("total")][0]++;
-            }
-            return;
-        } else if (modes.size() < 2) {
-            if (modes.get(0).equals(PTSubModes.RAIL)) {
-                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("train")][0]++;
-                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("total")][0]++;
-            } else {
-                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("opnv")][0]++;
-                subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION))[changeOrderList.indexOf("total")][0]++;
-            }
-        } else {
-            int train = -1;
-            int opnv = -1;
-            int oev = -1;
-            int total = -1;
-            Iterator<String> iterator = modes.iterator();
-            String firstMode = iterator.next();
-            while (iterator.hasNext()) {
-                String secondMode = iterator.next();
-                if (firstMode.equals(PTSubModes.RAIL) && secondMode.equals(PTSubModes.RAIL)) {
-                    train++;
-                    total++;
-                } else if (!firstMode.equals(PTSubModes.RAIL) && !secondMode.equals(PTSubModes.RAIL)) {
-                    opnv++;
-                    total++;
-                } else {
-                    oev++;
-                    total++;
+
+            double[][] changeArray = subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
+
+            if (ptLegs > 6) {
+                ptLegs = 6;
+                if (raillegs > 6) {
+                    raillegs = 6;
                 }
-                firstMode = secondMode;
             }
-            double[][] array = subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION));
-            if (train > 5) {
-                array[changeOrderList.indexOf("train")][5]++;
-            } else if (train > -1) {
-                array[changeOrderList.indexOf("train")][train]++;
+
+            if (raillegs > 0) {
+                changeArray[changeOrderList.indexOf(changeTrain)][raillegs -1]++;
+            } else if (ptLegs > 0) {
+                changeArray[changeOrderList.indexOf(changeOPNV)][ptLegs -1]++;
             }
-            if (opnv > 5) {
-                array[changeOrderList.indexOf("opnv")][5]++;
-            } else if (opnv > -1) {
-                array[changeOrderList.indexOf("opnv")][opnv+1]++;
-            }
-            if (oev > 5) {
-                array[changeOrderList.indexOf("oev")][5]++;
-            } else if (oev > -1) {
-                array[changeOrderList.indexOf("oev")][oev+1]++;
-            }
-            if (total > 5) {
-                array[changeOrderList.indexOf("total")][5]++;
-            } else if (total > 0) {
-                array[changeOrderList.indexOf("total")][total]++;
+            if (ptLegs > 0) {
+                changeArray[changeOrderList.indexOf(changeOEV)][ptLegs -1]++;
             }
         }
     }
@@ -409,7 +376,7 @@ public class ModalSplitStats {
                     break;
                 }
             }
-            // pt subscription
+           // pt subscription
             for (String ptSub : ptSubscription) {
                 if (attributes.getAttribute(Variables.PT_SUBSCRIPTION) != null && (Variables.PT_SUBSCRIPTION + "_" + attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString()).equals(ptSub)) {
                     pfArray[modeId][variablesMSMap.get(ptSub)] = pfArray[modeId][variablesMSMap.get(ptSub)] + 1;
@@ -713,7 +680,6 @@ public class ModalSplitStats {
                 mapChange.put("changesTrain", 0);
                 mapChange.put("changesOPNV", 1);
                 mapChange.put("changesOEV", 2);
-                mapChange.put("changesTotal", 3);
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
                     csvWriter.set("RunID", config.controler().getRunId());
                     csvWriter.set("Subpopulation", entry.getKey());

@@ -59,12 +59,15 @@ public final class MSVariables {
     static final String bike = mode + separator + SBBModes.BIKE;
     static final String avtaxi = mode + separator + SBBModes.AVTAXI;
     static final String drt = mode + separator + SBBModes.DRT;
+    static final String changeTrain = "train";
+    static final String changeOEV = "oev";
+    static final String changeOPNV = "opnv";
     static final int timeSplit = 15 * 60;
     static final int travelTimeSplit = 10 * 60;
     static final int lastTravelTimeValue = 5 * 60 * 60;
     static final List<Integer> distanceClassesValue = List.of(0, 2, 4, 6, 8, 10, 15, 20, 25, 30, 40, 50, 100, 150, 200, 300);
     static final List<String> distanceClassesLable = List.of("0", "0-2", "2-4", "4-6", "6-8", "8-10", "10-15", "15-20", "20-25", "25-30", "30-40", "40-50", "50-100", "100-150", "150-200", "200-300");
-    static final List<String> changeOrderList = List.of("train", "opnv", "oev", "total");
+    static final List<String> changeOrderList = List.of(changeTrain, changeOEV, changeOPNV);
     static final List<String> changeLableList = List.of("0", "1", "2", "3", "4", ">=5");
     static final List<String> modesMS = List.of(walk, ride, car, pt, bike, avtaxi, drt);
     static final List<String> carAvailable = List.of(carAvailable1, carAvailable0);
