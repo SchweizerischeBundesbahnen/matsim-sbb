@@ -3,16 +3,8 @@ package ch.sbb.matsim.projects.fourseasons;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.preparation.casestudies.GenerateNetworkChangeEvents;
 import com.google.common.primitives.Ints;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.log4j.Logger;
@@ -23,24 +15,36 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.HasPlansAndId;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.routes.RouteUtils;
-import org.matsim.core.router.DefaultRoutingRequest;
-import org.matsim.core.router.DijkstraFactory;
-import org.matsim.core.router.LinkWrapperFacility;
-import org.matsim.core.router.NetworkRoutingModule;
-import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.router.*;
 import org.matsim.core.router.TripStructureUtils.Trip;
 import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
+import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
+import org.matsim.core.router.util.TravelDisutility;
+import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitRouteStop;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class EstimateRideFeederSubstitution {
 
@@ -53,17 +57,19 @@ public class EstimateRideFeederSubstitution {
     private final Map<Id<TransitStopFacility>, Long> flowsAtStops;
     private final Map<Id<TransitStopFacility>, SubstitionData> substitionDataPerStop = new HashMap<>();
     private final NetworkRoutingModule networkRoutingModule;
+    private final Network carnet;
 
-    public EstimateRideFeederSubstitution(Scenario scenario, List<Id<TransitStopFacility>> stopsCandidateList) {
+    public EstimateRideFeederSubstitution(Scenario scenario, List<Id<TransitStopFacility>> stopsCandidateList, TravelDisutility disutility, TravelTime travelTime) {
         this.railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
         this.stopsCandidateList = stopsCandidateList;
         this.scenario = scenario;
         flowsAtStops = calculateFlowPassingThroughStops();
         NetworkFilterManager nfm = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
         nfm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.CAR));
-        Network carnet = nfm.applyFilters();
-        var disutility = new FreespeedTravelTimeAndDisutility(0.0, 0, -0.01);
-        var lcp = new DijkstraFactory().createPathCalculator(scenario.getNetwork(), disutility, disutility);
+
+        this.carnet = nfm.applyFilters();
+        new NetworkCleaner().run(carnet);
+        var lcp = new DijkstraFactory().createPathCalculator(carnet, disutility, travelTime);
         this.networkRoutingModule = new NetworkRoutingModule(SBBModes.RIDEFEEDER, scenario.getPopulation().getFactory(), carnet, lcp);
     }
 
@@ -74,9 +80,12 @@ public class EstimateRideFeederSubstitution {
         String outputFile = args[2];
         String transitScheduleFile = args[3];
         String networkFile = args[4];
-        String experiencedPlansFile1 = args[5];
-        String experiencedPlansFile2 = args.length > 6 ? args[6] : null;
-        List<Id<TransitStopFacility>> stations = Files.lines(Path.of(stationsList)).filter(s -> s.equals("")).map(s -> Id.create(s, TransitStopFacility.class)).collect(Collectors.toList());
+        String eventsFile = args[5];
+        String experiencedPlansFile1 = args[6];
+        String experiencedPlansFile2 = args.length > 7 ? args[7] : null;
+        List<Id<TransitStopFacility>> stations = Files.lines(Path.of(stationsList)).filter(s -> (!s.equals(""))).map(s -> Id.create(s, TransitStopFacility.class)).collect(Collectors.toList());
+        LOGGER.info(stations);
+
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
@@ -84,7 +93,17 @@ public class EstimateRideFeederSubstitution {
         if (experiencedPlansFile2 != null) {
             new PopulationReader(scenario).readFile(experiencedPlansFile2);
         }
-        EstimateRideFeederSubstitution estimateRideFeederSubstitution = new EstimateRideFeederSubstitution(scenario, stations);
+        EstimateRideFeederSubstitution estimateRideFeederSubstitution;
+        if (!eventsFile.equals("-")) {
+            TravelTimeCalculator travelTimeCalculator = GenerateNetworkChangeEvents.readEvents(scenario, eventsFile);
+            TravelTime travelTime = travelTimeCalculator.getLinkTravelTimes();
+            TravelDisutility disutility = new OnlyTimeDependentTravelDisutility(travelTime);
+            estimateRideFeederSubstitution = new EstimateRideFeederSubstitution(scenario, stations, disutility, travelTime);
+        } else {
+            FreespeedTravelTimeAndDisutility disutility = new FreespeedTravelTimeAndDisutility(0.0, 0, -0.01);
+            estimateRideFeederSubstitution = new EstimateRideFeederSubstitution(scenario, stations, disutility, disutility);
+        }
+
         estimateRideFeederSubstitution.run();
         estimateRideFeederSubstitution.writeStatsTable(outputFile, factor);
 
@@ -125,15 +144,18 @@ public class EstimateRideFeederSubstitution {
                 writer.set(einsteiger, Double.toString(factor * d.startingTrips));
                 writer.set(aussteiger, Double.toString(factor * d.endingTrips));
                 Long flow = this.flowsAtStops.get(d.stopFacilityId);
+                if (flow == null) {
+                    flow = 0L;
+                }
                 writer.set(durchfahrer, Double.toString(factor * flow));
-                writer.set(zeitersparnis, Double.toString(factor * flow * TIMESAVINGS));
+                writer.set(zeitersparnis, Time.writeTime(factor * flow * TIMESAVINGS));
                 writer.set(bahn_pkm_verloren, Double.toString(factor * d.railDistanceLost.getSum() / 1000.0));
                 writer.set(ridesharing_pkm, Double.toString(factor * d.rideshareDistanceNeeded.getSum() / 1000.0));
                 writer.set(zeitdiff, Time.writeTime(d.timeGains.getMean()));
                 writer.set(zeitdiff_sum, Time.writeTime(factor * d.timeGains.getSum()));
                 writer.set(zeitdiff_max, Time.writeTime(d.timeGains.getMax()));
-                writer.set(verteilung_bf, d.substitutionDistribution.entrySet().stream().map(e -> e.getKey().toString() + "-" + e.getValue().toString()).collect(Collectors.joining(",")));
-                writer.set(rideshare_spitz, Integer.toString(Ints.max(d.rideshareTripsPerHour)));
+                writer.set(verteilung_bf, d.substitutionDistribution.entrySet().stream().map(e -> e.getKey().toString() + "-" + factor * e.getValue().doubleValue()).collect(Collectors.joining(",")));
+                writer.set(rideshare_spitz, Double.toString(factor * Ints.max(d.rideshareTripsPerHour)));
 
                 writer.writeRow();
             }
@@ -157,18 +179,17 @@ public class EstimateRideFeederSubstitution {
             TransitPassengerRoute railRoute = (TransitPassengerRoute) railLegStarting.getRoute();
             Tuple<Id<TransitStopFacility>, Double> substitutionStopAndTimeOffsetDifference = findPreviousStop(railRoute);
             Id<TransitStopFacility> substituteStopId = substitutionStopAndTimeOffsetDifference.getFirst();
-            Link substituteToLink = scenario.getNetwork().getLinks()
-                    .get(Id.createLinkId(scenario.getTransitSchedule().getFacilities().get(substituteStopId).getAttributes().getAttribute("accessLinkId").toString()));
-            Link toLink = scenario.getNetwork().getLinks().get(trip.getDestinationActivity().getLinkId());
+            Link substituteFromLink = NetworkUtils.getNearestLink(carnet, scenario.getTransitSchedule().getFacilities().get(substituteStopId).getCoord());
+            Link toLink = carnet.getLinks().get(trip.getDestinationActivity().getLinkId());
             var route = networkRoutingModule.calcRoute(
-                    DefaultRoutingRequest.withoutAttributes(new LinkWrapperFacility(substituteToLink), new LinkWrapperFacility(toLink), trip.getOriginActivity().getEndTime().seconds(), null));
+                    DefaultRoutingRequest.withoutAttributes(new LinkWrapperFacility(substituteFromLink), new LinkWrapperFacility(toLink), trip.getOriginActivity().getEndTime().seconds(), null));
             Leg substituteLeg = (Leg) route.get(0);
 
             double originalTravelTimeToSubstituteStop =
                     trip.getDestinationActivity().getStartTime().seconds() - (substitutionStopAndTimeOffsetDifference.getSecond() + railRoute.getBoardingTime().seconds() + railRoute.getTravelTime()
                             .seconds());
             double substituteTravelTime = TRANSFERWAITTIMELOSS + substituteLeg.getTravelTime().seconds();
-            substitionData.rideshareDistanceNeeded.addValue(substituteLeg.getTravelTime().seconds());
+            substitionData.rideshareDistanceNeeded.addValue(substituteLeg.getRoute().getDistance());
             substitionData.timeGains.addValue(substituteTravelTime - originalTravelTimeToSubstituteStop);
             substitionData.substitutionDistribution.computeIfAbsent(substituteStopId, s -> new MutableInt()).increment();
             int departureHour = (int) Math.floor(trip.getOriginActivity().getEndTime().seconds() / 3600.);
@@ -196,15 +217,15 @@ public class EstimateRideFeederSubstitution {
             TransitPassengerRoute railRoute = (TransitPassengerRoute) railLegStarting.getRoute();
             Tuple<Id<TransitStopFacility>, Double> substitutionStopAndTimeOffsetDifference = findNextStop(railRoute);
             Id<TransitStopFacility> substituteStopId = substitutionStopAndTimeOffsetDifference.getFirst();
-            Link substituteToLink = scenario.getNetwork().getLinks()
-                    .get(Id.createLinkId(scenario.getTransitSchedule().getFacilities().get(substituteStopId).getAttributes().getAttribute("accessLinkId").toString()));
-            Link fromLink = scenario.getNetwork().getLinks().get(trip.getOriginActivity().getLinkId());
+
+            Link substituteToLink = NetworkUtils.getNearestLink(carnet, scenario.getTransitSchedule().getFacilities().get(substituteStopId).getCoord());
+            Link fromLink = carnet.getLinks().get(trip.getOriginActivity().getLinkId());
             var route = networkRoutingModule.calcRoute(
                     DefaultRoutingRequest.withoutAttributes(new LinkWrapperFacility(fromLink), new LinkWrapperFacility(substituteToLink), trip.getOriginActivity().getEndTime().seconds(), null));
             Leg substituteLeg = (Leg) route.get(0);
             double originalTravelTimeToSubstituteStop = substitutionStopAndTimeOffsetDifference.getSecond() + railRoute.getBoardingTime().seconds() - trip.getOriginActivity().getEndTime().seconds();
             double substituteTravelTime = TRANSFERWAITTIMELOSS + substituteLeg.getTravelTime().seconds();
-            substitionData.rideshareDistanceNeeded.addValue(substituteLeg.getTravelTime().seconds());
+            substitionData.rideshareDistanceNeeded.addValue(substituteLeg.getRoute().getDistance());
             substitionData.timeGains.addValue(substituteTravelTime - originalTravelTimeToSubstituteStop);
             substitionData.substitutionDistribution.computeIfAbsent(substituteStopId, s -> new MutableInt()).increment();
             int departureHour = (int) Math.floor(trip.getOriginActivity().getEndTime().seconds() / 3600.);
@@ -298,5 +319,6 @@ public class EstimateRideFeederSubstitution {
             this.stopFacilityId = stopFacilityId;
         }
     }
+
 
 }

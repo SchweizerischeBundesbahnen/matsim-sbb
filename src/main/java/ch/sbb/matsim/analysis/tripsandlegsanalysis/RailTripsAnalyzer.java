@@ -21,14 +21,6 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
@@ -45,6 +37,11 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Singleton
 public class RailTripsAnalyzer {
@@ -283,6 +280,7 @@ public class RailTripsAnalyzer {
 
     public List<Id<Link>> getPtLinkIdsTraveledOnExludingAccessEgressStop(TransitPassengerRoute route) {
         var result = getPtLinkIdsTraveledOn(route);
+        if (result.isEmpty()) return result;
         return result.subList(1, result.size() - 1);
     }
 
