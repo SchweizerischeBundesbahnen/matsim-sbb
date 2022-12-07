@@ -601,62 +601,6 @@ public class ModalSplitStats {
         }
     }
 
-    private void writeModalSplit2() {
-        final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] colums = new String[2 + variablesMSMap.size()];
-        colums[0] = runID;
-        colums[1] = subpopulation;
-        int i = 2;
-        for (String var : this.variablesMSMap.keySet()) {
-            if (var.contains("_")) {
-                colums[i++] = var.substring(0, var.lastIndexOf("_"));
-            } else {
-                colums[i++] = var;
-            }
-        }
-        try (CSVWriter csvWriterPF = new CSVWriter("", colums, outputLocation + oNModalSplitPF)) {
-            for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
-                for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
-                    csvWriterPF.set(runID, config.controler().getRunId());
-                    csvWriterPF.set(subpopulation, tmpSubpopulation);
-                    for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
-                        if (entry.getKey().equals(mode)) {
-                            csvWriterPF.set(mode, modeEntry.getKey());
-                        } else {
-                            String key = entry.getKey();
-                            Integer value = entry.getValue();
-                            csvWriterPF.set(key, Integer.toString((int) (this.subpopulaionMSPFMap.get(tmpSubpopulation)[modeEntry.getValue()][value] / sampleSize)));
-                        }
-                    }
-                    csvWriterPF.writeRow();
-                }
-            }
-        } catch (
-            IOException e) {
-            e.printStackTrace();
-        }
-        try (CSVWriter csvWriterPKM = new CSVWriter("", colums, outputLocation + oNModalSplitPKM)) {
-            for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
-                for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
-                    csvWriterPKM.set(runID, config.controler().getRunId());
-                    csvWriterPKM.set(subpopulation, tmpSubpopulation);
-                    for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
-                        if (entry.getKey().equals(mode)) {
-                            csvWriterPKM.set(mode, modeEntry.getKey());
-                        } else {
-                            String key = entry.getKey();
-                            Integer value = entry.getValue();
-                            csvWriterPKM.set(key, Integer.toString((int) (this.subpopulaionMSPKMMap.get(tmpSubpopulation)[modeEntry.getValue()][value] / sampleSize)));
-                        }
-                    }
-                    csvWriterPKM.writeRow();
-                }
-            }
-        } catch (
-            IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     private void writeModalSplit() {
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
