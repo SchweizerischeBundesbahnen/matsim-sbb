@@ -40,9 +40,7 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Singleton
@@ -89,7 +87,30 @@ public class RailTripsAnalyzer {
                 .collect(Collectors.toList());
     }
 
+    public Map<Id<TransitLine>, Set<Id<TransitRoute>>> getTransitLinesAndRoutesAtStop(Id<TransitStopFacility> stopId) {
+        Map<Id<TransitLine>, Set<Id<TransitRoute>>> result = new HashMap<>();
+        for (TransitLine line : schedule.getTransitLines().values()) {
+            Set<Id<TransitRoute>> routeAtFacilty = line.getRoutes().values()
+                    .stream()
+                    .filter(transitRoute -> transitRoute.getStops()
+                            .stream()
+                            .map(stop -> stop.getStopFacility().getId())
+                            .anyMatch(stopFacilityId -> stopFacilityId.equals(stopId)))
+                    .map(TransitRoute::getId)
+                    .collect(Collectors.toSet());
+            if (!routeAtFacilty.isEmpty()) {
+                result.put(line.getId(), routeAtFacilty);
+            }
+        }
+        return result;
+    }
 
+    /**
+     * Finds the Access and egress Railway Stop of a trip
+     *
+     * @param trip
+     * @return Tuple with access and egress railway stop.
+     */
     public Tuple<Id<TransitStopFacility>, Id<TransitStopFacility>> getOriginDestination(Trip trip) {
         Tuple<Id<TransitStopFacility>, Id<TransitStopFacility>> tuple = null;
         Id<TransitStopFacility> firstStop = null;
@@ -251,11 +272,17 @@ public class RailTripsAnalyzer {
             }
         } else if (includeForeignTrips && (isSwissRailOrFQStop(railAccessStop) || isSwissRailOrFQStop(railEgressStop))) {
             // no need to check whether legs are fq relevant, as all rail border crossing train stations are FQ relevant, thus is the journey
-            return routes.stream().mapToDouble(r -> getDomesticRailDistance_m(r)).sum();
+            return routes.stream().mapToDouble(this::getDomesticRailDistance_m).sum();
         }
         return 0.0;
     }
 
+
+    public List<Id<Link>> getPtLinkIdsTraveledOnExludingAccessEgressStop(TransitPassengerRoute route) {
+        var result = getPtLinkIdsTraveledOn(route);
+        if (result.isEmpty()) return result;
+        return result.subList(1, result.size() - 1);
+    }
 
     public List<Id<Link>> getPtLinkIdsTraveledOn(TransitPassengerRoute route) {
         TransitRoute transitRoute = this.schedule.getTransitLines().get(route.getLineId()).getRoutes().get(route.getRouteId());

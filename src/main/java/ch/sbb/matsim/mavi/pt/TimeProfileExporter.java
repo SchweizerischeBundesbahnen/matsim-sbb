@@ -18,6 +18,7 @@ import org.matsim.vehicles.VehicleType.DoorOperationMode;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class TimeProfileExporter {
@@ -70,7 +71,7 @@ public class TimeProfileExporter {
 			lrItemsPerLineRoute.computeIfAbsent(lrKey, k -> new ArrayList<>()).add(new LineRouteItem(Integer.parseInt(row[3]), row[4], row[5]));
 		}
 		log.info("sorting LineRouteItems");
-		lrItemsPerLineRoute.forEach((key, list) -> list.sort((o1, o2) -> Integer.compare(o1.index, o2.index)));
+		lrItemsPerLineRoute.forEach((key, list) -> list.sort(Comparator.comparingInt(o -> o.index)));
 
 		log.info("loading TimeProfiles");
 		// time profiles
@@ -163,12 +164,17 @@ public class TimeProfileExporter {
 			}
 
 			TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(row[0]));
-			tp.addTimeProfileItem(new TimeProfileItem((int) Double.parseDouble(row[1]),
-					(int) Double.parseDouble(row[2]),
-					Double.parseDouble(row[3]),
-					Double.parseDouble(row[4]),
-					Double.parseDouble(row[5]),
-					linkSequence));
+			try {
+				tp.addTimeProfileItem(new TimeProfileItem((int) Double.parseDouble(row[1]),
+						(int) Double.parseDouble(row[2]),
+						Double.parseDouble(row[3]),
+						Double.parseDouble(row[4]),
+						Double.parseDouble(row[5]),
+						linkSequence));
+			} catch (Exception e) {
+				Logger.getLogger(TimeProfileExporter.class).error(" Could not add TPI for row " + Arrays.stream(row).collect(Collectors.toList()));
+				e.printStackTrace();
+			}
 		}
 
 		return timeProfileMap;
