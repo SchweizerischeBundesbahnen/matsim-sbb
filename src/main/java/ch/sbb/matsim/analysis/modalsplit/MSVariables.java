@@ -81,7 +81,7 @@ public final class MSVariables {
     static final List<List<String>> varTimeList = List.of(modesMS, toActTypeList);
     static final String oNMiddleTimeSteps = "middle_time_distribution.csv";
     static final String oNTravelTimeDistribution = "travel_time_distribution.csv";
-    static final String oNModalSplitPF = "modal_split_pf.csv";
+    static final String oNModalSplitPF = "modal_split_PF.csv";
     static final String oNModalSplitPKM = "modal_split_PKM.csv";
     static final String oNDistanceClasses = "distace_classes.csv";
     static final String oNChangesCount = "changes_count.csv";
