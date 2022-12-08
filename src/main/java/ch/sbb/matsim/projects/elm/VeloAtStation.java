@@ -19,13 +19,16 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-public class VeloAtStation {
+public final class VeloAtStation {
 
     private final static int distance = 300;
     private static String plansFile = "Z:/99_Playgrounds/MD/MOBI33IT.output_experienced_plans.xml.gz";
     private static String transitFile = "Z:/99_Playgrounds/MD/ELM/";
     private static String outputFile = "Z:/99_Playgrounds/MD/ELM/VeloPerStop.csv";
     private static double sampleSize = 0.1;
+
+    private VeloAtStation() {
+    }
 
     public static void main(String[] args) {
 
