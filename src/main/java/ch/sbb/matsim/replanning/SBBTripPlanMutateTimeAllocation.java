@@ -73,8 +73,8 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 				// handle middle activities
 				else if (act != lastAct) {
 					// assume that there will be no delay between arrival time and activity start time
-					act.setStartTime(now);
 					if (!act.getType().endsWith("interaction")) {
+						act.setStartTime(now);
 						if (act.getEndTime().isUndefined()) {
 							throw new IllegalStateException("Can not mutate activity end time because it is not set for Person: " + plan.getPerson().getId());
 						}
