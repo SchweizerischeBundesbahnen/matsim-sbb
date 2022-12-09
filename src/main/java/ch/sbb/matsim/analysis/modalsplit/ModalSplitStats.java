@@ -120,7 +120,7 @@ public class ModalSplitStats {
         analyzeAndWriteStats(outputLocation, experiencedPlansService.getExperiencedPlans());
     }
 
-    private void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
+    public void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
 
         // prepare necessary information
         this.outputLocation = outputLocation + "_SBB_";

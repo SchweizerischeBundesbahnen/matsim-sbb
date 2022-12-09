@@ -64,7 +64,7 @@ public class ModalSplitStatsTest {
         config.qsim().setEndTime(30 * 3600);
         config.controler().setRunId("ModalSplitStatsTest");
 
-        new PopulationReader(scenario).readFile("test/input/scenarios/mobi31test/population_mobi_33.xml.gz");
+        new PopulationReader(scenario).readFile("test/input/scenarios/mobi31test/output_plans.xml");
         new TransitScheduleReader(scenario).readFile("test/input/scenarios/mobi31test/transitSchedule.xml.gz");
         new MatsimNetworkReader(scenario.getNetwork()).readFile("test/input/scenarios/mobi31test/network.xml.gz");
 
