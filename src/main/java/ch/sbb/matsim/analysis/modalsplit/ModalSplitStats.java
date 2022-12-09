@@ -65,9 +65,13 @@ public class ModalSplitStats {
     private Map<String, TrainStation> trainStationMap;
 
     @Inject
-    public ModalSplitStats(ZonesCollection zonesCollection, final PostProcessingConfigGroup ppConfig, RailTripsAnalyzer railTripsAnalyzer) {
-        this.zones = zonesCollection.getZones(ppConfig.getZonesId());
+    public ModalSplitStats(ZonesCollection zonesCollection, Config config, RailTripsAnalyzer railTripsAnalyzer, Scenario scenario) {
+        PostProcessingConfigGroup postProcessingConfigGroup = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
+        this.zones = zonesCollection.getZones(postProcessingConfigGroup.getZonesId());
         this.railTripsAnalyzer = railTripsAnalyzer;
+        this.population = scenario.getPopulation();
+        this.transitSchedule = scenario.getTransitSchedule();
+        this.config = config;
     }
 
     public static void main(String[] args) {
@@ -101,9 +105,9 @@ public class ModalSplitStats {
         Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
         ZonesCollection zonesCollection = new ZonesCollection();
         zonesCollection.addZones(zones);
-        RailTripsAnalyzer railTripsAnalyzer1 = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
 
-        ModalSplitStats modalSplitStats = new ModalSplitStats(zonesCollection, ppConfig,  railTripsAnalyzer1);
+        ModalSplitStats modalSplitStats = new ModalSplitStats(zonesCollection, config,  railTripsAnalyzer, scenario);
         modalSplitStats.config = config;
         modalSplitStats.transitSchedule = scenario.getTransitSchedule();
         modalSplitStats.population = scenario.getPopulation();
@@ -115,10 +119,10 @@ public class ModalSplitStats {
         analyzeAndWriteStats(outputLocation, experiencedPlansService.getExperiencedPlans());
     }
 
-    private void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
+    public void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
 
         // prepare necessary information
-        this.outputLocation = outputLocation + "SBB_";
+        this.outputLocation = outputLocation + "_SBB_";
         this.stopStationsMap = generateStopStationMap();
         this.trainStationMap = generateTrainStationMap();
         this.modesMap = getModesMap();
@@ -129,7 +133,7 @@ public class ModalSplitStats {
         this.subpopulaionMSPKMMap = createArrayForSubpopulationMap(this.modesMap.size(), this.variablesMSMap.size());
         this.subpopulationChangeMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLableList.size());
         this.timeMap = createTimeStepsForSubpopulaitonMap((int) (this.config.qsim().getEndTime().seconds() / timeSplit), this.variablesTimeStepsMap.size());
-        this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 2, this.variablesTimeStepsMap.size());
+        this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 1, this.variablesTimeStepsMap.size());
 
         // analyzing
         startAnalyze(experiencedPlans);
@@ -279,6 +283,7 @@ public class ModalSplitStats {
             if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
+            String tmpActivity = trip.getDestinationActivity().getType();
             int middle = (int) ((trip.getOriginActivity().getEndTime().seconds() + trip.getDestinationActivity().getStartTime().seconds()) / 2);
             int time = (middle - (middle % timeSplit)) / timeSplit;
             int[][] subpopulationArrray = timeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
@@ -294,6 +299,13 @@ public class ModalSplitStats {
                 if ((MSVariables.mode + separator + tmpMode).equals(mode)) {
                     subpopulationArrray[time][variablesTimeStepsMap.get(mode)]++;
                     subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(mode)]++;
+                    break;
+                }
+            }
+            for (String activity : toActTypeList) {
+                if ((MSVariables.toActType + separator + tmpActivity).equals(activity)) {
+                    subpopulationArrray[time][variablesTimeStepsMap.get(activity)]++;
+                    subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(activity)]++;
                     break;
                 }
             }
@@ -340,13 +352,11 @@ public class ModalSplitStats {
     private void analyzeModalSplit(Entry<Id<Person>, Plan> entry) {
         Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
-            // it seems that the facility id can be null
-            if (trip.getOriginActivity().getFacilityId() == null || trip.getDestinationActivity().getFacilityId() == null) {
-                continue;
-            }
-            // skip home office activities
-            if (trip.getOriginActivity().getFacilityId().equals(trip.getDestinationActivity().getFacilityId())) {
-                continue;
+            // skip home office activities, it seems that the facility id can be null
+            if (trip.getOriginActivity().getFacilityId() != null || trip.getDestinationActivity().getFacilityId() != null) {
+                if (trip.getOriginActivity().getFacilityId().equals(trip.getDestinationActivity().getFacilityId())) {
+                    continue;
+                }
             }
 
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
@@ -505,11 +515,11 @@ public class ModalSplitStats {
         }
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNTravelTimeDistribution)) {
             for (Entry<String, int[][]> entry : travelTimeMap.entrySet()) {
-                for (int i = 0; i < (lastTravelTimeValue / travelTimeSplit) + 2; i++) {
+                for (int i = 0; i < (lastTravelTimeValue / travelTimeSplit) + 1; i++) {
                     csvWriter.set(runID, config.controler().getRunId());
                     csvWriter.set(subpopulation, entry.getKey());
                     csvWriter.set(time, Integer.toString(i * travelTimeSplit));
-                    if (i == (lastTravelTimeValue / travelTimeSplit) + 1) {
+                    if (i == (lastTravelTimeValue / travelTimeSplit)) {
                         csvWriter.set(time, ">18000");
                     }
                     for (Entry<String, Integer> var : variablesTimeStepsMap.entrySet()) {
@@ -669,7 +679,7 @@ public class ModalSplitStats {
     }
 
     private void writeChanges() {
-        String[] columns = {"RunID", "Subpopulation", "Umsteigetyp", "0", "1", "2", "3", "4", ">=5"};
+        String[] columns = {runID, subpopulation, "Umsteigetyp", "0", "1", "2", "3", "4", ">=5"};
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNChangesCount)) {
             Map<String, Integer> mapChange = new HashMap<>();

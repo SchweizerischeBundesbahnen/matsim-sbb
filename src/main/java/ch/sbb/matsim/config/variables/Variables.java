@@ -47,6 +47,7 @@ public class Variables {
 
     public static final String CAR_AVAIL = "car_available";
     public static final String CAR_AVAL_TRUE = "1";
+    public static final String CAR_AVAL_FALSE = "0";
 
     public static final String OUTSIDE = "outside";
 
