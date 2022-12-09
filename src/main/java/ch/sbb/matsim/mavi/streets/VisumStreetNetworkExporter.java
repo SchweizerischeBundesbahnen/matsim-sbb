@@ -53,6 +53,10 @@ public class VisumStreetNetworkExporter {
         return Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
 	}
 
+	public static int extractVisumLinkId(Id<Link> linkId) {
+		return Integer.parseInt(linkId.toString().split("_")[1], 36);
+	}
+
 	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {
 		ActiveXComponent visum = new ActiveXComponent("Visum.Visum." + visumVersion);
 		log.info("VISUM Client gestartet.");

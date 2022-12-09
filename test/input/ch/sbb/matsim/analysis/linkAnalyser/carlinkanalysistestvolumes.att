@@ -1,0 +1,16 @@
+$VISION
+* Schweizerische Bundesbahnen SBB Personenverkehr Bern
+* 12/09/22
+* 
+* Table: Version block
+* 
+$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT
+12.00;Att;ENG;KM
+
+* 
+* Table: Links
+* 
+$LINK:NO;FROMNODENO;TONODENO;LINK_ID_SIM;VOLUME_SIM
+2;B1;B2;B_2;3
+1;L1;L2;L_1;1
+3;T1;T2;T_3;2
