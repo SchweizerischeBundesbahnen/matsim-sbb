@@ -3,7 +3,8 @@ package ch.sbb.matsim.vehicles;
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.events.ParkingCostEvent;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
@@ -24,7 +25,7 @@ import java.util.Map;
  */
 public class RideParkingCostTracker implements PersonArrivalEventHandler, ActivityEndEventHandler {
 
-	private final static Logger log = Logger.getLogger(ParkingCostVehicleTracker.class);
+	private final static Logger log = LogManager.getLogger(ParkingCostVehicleTracker.class);
 	private final static String TRACKED_MODE = "ride";
 
 	private final Scenario scenario;

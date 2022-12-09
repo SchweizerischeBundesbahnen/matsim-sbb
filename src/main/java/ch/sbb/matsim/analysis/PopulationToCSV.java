@@ -7,7 +7,8 @@ package ch.sbb.matsim.analysis;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.csv.CSVWriter;
 import java.io.IOException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
@@ -20,7 +21,7 @@ import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 public class PopulationToCSV {
 
-	private final static Logger log = Logger.getLogger(PopulationToCSV.class);
+	private final static Logger log = LogManager.getLogger(PopulationToCSV.class);
 
 	private final Scenario scenario;
 

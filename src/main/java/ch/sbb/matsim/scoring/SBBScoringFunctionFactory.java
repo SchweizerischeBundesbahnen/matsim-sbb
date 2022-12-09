@@ -4,7 +4,8 @@ import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.ConfigUtils;
@@ -21,7 +22,7 @@ import org.matsim.core.scoring.functions.ScoringParameters;
  */
 public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 
-	private final static Logger log = Logger.getLogger(SBBScoringFunctionFactory.class);
+	private final static Logger log = LogManager.getLogger(SBBScoringFunctionFactory.class);
 
 	private final SBBCharyparNagelScoringParametersForPerson paramsForPerson;
 	private final Scenario scenario;

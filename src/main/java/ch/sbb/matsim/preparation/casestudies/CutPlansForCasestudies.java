@@ -3,7 +3,7 @@ package ch.sbb.matsim.preparation.casestudies;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -74,7 +74,7 @@ public class CutPlansForCasestudies {
                 if (p != null) {
                     outPopulation.addPerson(p);
                 } else {
-                    Logger.getLogger(getClass()).warn("Person " + personId + " not found in Population " + plansCase.inputFile);
+                    LogManager.getLogger(getClass()).warn("Person " + personId + " not found in Population " + plansCase.inputFile);
                 }
             }
             new PopulationWriter(outPopulation).write(plansCase.outputFile);

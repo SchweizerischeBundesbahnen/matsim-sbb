@@ -2,7 +2,8 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.visum.Visum;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -23,7 +24,7 @@ import java.util.stream.IntStream;
 
 public class TimeProfileExporter {
 
-	private static final Logger log = Logger.getLogger(TimeProfileExporter.class);
+	private static final Logger log = LogManager.getLogger(TimeProfileExporter.class);
 
 	private final NetworkFactory networkBuilder;
 	private final TransitScheduleFactory scheduleBuilder;
@@ -172,7 +173,7 @@ public class TimeProfileExporter {
 						Double.parseDouble(row[5]),
 						linkSequence));
 			} catch (Exception e) {
-				Logger.getLogger(TimeProfileExporter.class).error(" Could not add TPI for row " + Arrays.stream(row).collect(Collectors.toList()));
+				LogManager.getLogger(TimeProfileExporter.class).error(" Could not add TPI for row " + Arrays.stream(row).collect(Collectors.toList()));
 				e.printStackTrace();
 			}
 		}
@@ -325,7 +326,7 @@ public class TimeProfileExporter {
 					if (routeLinks.size() > 0) {
 						routeLinks.remove(routeLinks.size() - 1);
 					} else {
-						Logger.getLogger(getClass()).warn(routeID + " has no links along route");
+						LogManager.getLogger(getClass()).warn(routeID + " has no links along route");
 					}
 					NetworkRoute netRoute = RouteUtils.createLinkNetworkRouteImpl(startLink, endLink);
 					netRoute.setLinkIds(startLink, routeLinks, endLink);

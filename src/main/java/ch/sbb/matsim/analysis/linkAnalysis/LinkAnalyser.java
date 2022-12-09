@@ -5,7 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
@@ -27,7 +28,7 @@ import org.matsim.vehicles.Vehicle;
 
 public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler, TransitDriverStartsEventHandler {
 
-    private final static Logger log = Logger.getLogger(LinkAnalyser.class);
+    private final static Logger log = LogManager.getLogger(LinkAnalyser.class);
 
     protected final Scenario scenario;
     protected final LinkedHashMap<Id, Integer> linkVolumes;

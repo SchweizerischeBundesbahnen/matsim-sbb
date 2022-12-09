@@ -4,7 +4,8 @@ import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -58,7 +59,7 @@ public class ScenarioCutter {
 	public static final String OUTSIDE_AGENT_SUBPOP = "outsideAgent";
 	public final static String OUTSIDE_LEG_MODE = "outside";
 	public final static String OUTSIDE_ACT_TYPE = "outside";
-	private final static Logger log = Logger.getLogger(ScenarioCutter.class);
+	private final static Logger log = LogManager.getLogger(ScenarioCutter.class);
 	private final static String CHANGE_EVENTS = "NetworkChangeEvents";
 	private final static String MISSING_DEMAND = "HourlyMissingDemand";
 	private final static String RELEVANT_ACT_LOCATIONS = "RelevantActivityLocations";

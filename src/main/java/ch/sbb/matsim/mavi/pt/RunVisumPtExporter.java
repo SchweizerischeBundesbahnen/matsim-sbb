@@ -8,7 +8,8 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import ch.sbb.matsim.preparation.MobiTransitScheduleVerifiyer;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 
 public class RunVisumPtExporter {
 
-	private static final Logger log = Logger.getLogger(RunVisumPtExporter.class);
+	private static final Logger log = LogManager.getLogger(RunVisumPtExporter.class);
 
 	private static final String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
 	private static final String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";

@@ -2,7 +2,8 @@ package ch.sbb.matsim.mavi;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import java.io.IOException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -12,7 +13,7 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 public class ValidateTransferTimes {
 
-	private final static Logger log = Logger.getLogger(ValidateTransferTimes.class);
+	private final static Logger log = LogManager.getLogger(ValidateTransferTimes.class);
 
 	public static void main(String[] args) {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());

@@ -21,7 +21,8 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.Variables;
 import org.apache.commons.lang3.mutable.MutableDouble;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.HasPlansAndId;
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
 public class RailDemandReporting {
 
     public static final String NONE = "none";
-    final Logger logger = Logger.getLogger(getClass());
+    final Logger logger = LogManager.getLogger(getClass());
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final Map<String, MutableDouble> pkmSparte = new TreeMap<>();
     private final Map<String, MutableDouble> pkmLfpCat = new TreeMap<>();

@@ -21,7 +21,8 @@
 package ch.sbb.matsim.replanning;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.BasicLocation;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -52,7 +53,7 @@ import java.util.*;
  */
 public final class ChooseRandomLegModeForSubtourWithSpatialVariation implements PlanAlgorithm {
 
-	private static final Logger logger = Logger.getLogger(ChooseRandomLegModeForSubtourWithSpatialVariation.class);
+	private static final Logger logger = LogManager.getLogger(ChooseRandomLegModeForSubtourWithSpatialVariation.class);
 	private final Collection<String> modes;
 	private final Collection<String> chainBasedModes;
 	private final SubtourModeChoice.Behavior behavior;

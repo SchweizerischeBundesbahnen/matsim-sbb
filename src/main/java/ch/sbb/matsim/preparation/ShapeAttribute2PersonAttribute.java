@@ -7,7 +7,8 @@ import ch.sbb.matsim.zones.ZonesLoader;
 import ch.sbb.matsim.zones.ZonesQueryCache;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
@@ -27,7 +28,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 public class ShapeAttribute2PersonAttribute {
 
-	private final static Logger log = Logger.getLogger(ShapeAttribute2PersonAttribute.class);
+	private final static Logger log = LogManager.getLogger(ShapeAttribute2PersonAttribute.class);
 
 	public static void main(final String[] args) {
 		if (args.length != 5) {

@@ -7,7 +7,8 @@ package ch.sbb.matsim.scoring;
 import static org.junit.Assert.assertEquals;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.junit.Rule;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
@@ -18,7 +19,7 @@ import org.matsim.testcases.MatsimTestUtils;
 
 public class SBBScoringParametersForPersonTest {
 
-	private static final Logger log = Logger.getLogger(SBBScoringParametersForPersonTest.class);
+	private static final Logger log = LogManager.getLogger(SBBScoringParametersForPersonTest.class);
 	@Rule public MatsimTestUtils utils = new MatsimTestUtils();
 
 	@Test

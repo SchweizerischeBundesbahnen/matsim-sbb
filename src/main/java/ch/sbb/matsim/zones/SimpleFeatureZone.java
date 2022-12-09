@@ -1,6 +1,6 @@
 package ch.sbb.matsim.zones;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
@@ -26,7 +26,7 @@ public class SimpleFeatureZone implements Zone {
 	public Object getAttribute(String name) {
 		Object o = this.feature.getAttribute(name);
 		if (o == null) {
-			Logger.getLogger(getClass()).warn("Attribute " + name + " not found in zones. Will return null");
+			LogManager.getLogger(getClass()).warn("Attribute " + name + " not found in zones. Will return null");
 		}
 		return this.feature.getAttribute(name);
 	}

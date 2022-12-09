@@ -25,7 +25,8 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -66,7 +67,7 @@ import java.util.stream.Stream;
  */
 public class MergeRoutedAndUnroutedPlans {
 
-    private final static Logger LOG = Logger.getLogger(MergeRoutedAndUnroutedPlans.class);
+    private final static Logger LOG = LogManager.getLogger(MergeRoutedAndUnroutedPlans.class);
     private final String unroutedPlans;
     private final String routedPlans;
     private final String unroutedPlansFacilities;

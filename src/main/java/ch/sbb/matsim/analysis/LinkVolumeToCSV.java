@@ -5,7 +5,8 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -24,7 +25,7 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysi
     public static final String COL_BIN = "bin";
 	public static final String COL_VOLUME = "volume";
 	protected static final String[] COLUMNS = {COL_LINK_ID, COL_MODE, COL_BIN, COL_VOLUME};
-	private final static Logger log = Logger.getLogger(LinkVolumeToCSV.class);
+	private final static Logger log = LogManager.getLogger(LinkVolumeToCSV.class);
     private final String filename;
     private final Network network;
 
