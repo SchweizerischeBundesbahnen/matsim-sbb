@@ -44,9 +44,9 @@ public class CarLinkAnalysisTest {
 
         Id<Person> personId = Id.create(1, Person.class);
         Id<Vehicle> vehicleId = Id.create(2, Vehicle.class);
-        Id<Link> linkHome = Id.create("L", Link.class);
-        Id<Link> linkWork = Id.create("B", Link.class);
-        Id<Link> linkShop = Id.create("T", Link.class);
+        Id<Link> linkHome = Id.create("L_1", Link.class);
+        Id<Link> linkWork = Id.create("B_2", Link.class);
+        Id<Link> linkShop = Id.create("T_3", Link.class);
 
         f.events.processEvent(new VehicleEntersTrafficEvent(7.00 * 3600, personId, linkHome, vehicleId, "car", 1.0));
 
@@ -76,9 +76,9 @@ public class CarLinkAnalysisTest {
 
         File outputDir = new File("test/output/ch/sbb/matsim/analysis/linkAnalyser");
         outputDir.mkdirs();
-        carLinkAnalysis.writeSingleIterationCarStats(outputDir.getAbsolutePath() + "/test.csv");
-        File f1 = new File(outputDir.getAbsolutePath() + "/test.csv");
-        File f2 = new File("test/input/ch/sbb/matsim/analysis/linkAnalyser/carlinkanalysistestvolumes.csv");
+        carLinkAnalysis.writeSingleIterationCarStats(outputDir.getAbsolutePath() + "/test.att");
+        File f1 = new File(outputDir.getAbsolutePath() + "/test.att");
+        File f2 = new File("test/input/ch/sbb/matsim/analysis/linkAnalyser/carlinkanalysistestvolumes.att");
         Assert.equals(true, Files.readLines(f1, Charsets.UTF_8).equals(Files.readLines(f2, Charsets.UTF_8)));
     }
 
@@ -123,12 +123,12 @@ public class CarLinkAnalysisTest {
             network.addNode(nT1);
             network.addNode(nT2);
 
-            Link lL = createLink(nf, "L", nL1, nL2, 500, 1000, 10);
-            Link lLB = createLink(nf, "LB", nL2, nB1, 5000, 2000, 25);
-            Link lB = createLink(nf, "B", nB1, nB2, 500, 1000, 10);
-            Link lBT = createLink(nf, "BT", nB2, nT1, 5000, 2000, 25);
-            Link lT = createLink(nf, "T", nT1, nT2, 500, 1000, 10);
-            Link lTL = createLink(nf, "TL", nT2, nL1, 5000, 2000, 25);
+            Link lL = createLink(nf, "L_1", nL1, nL2, 500, 1000, 10);
+            Link lLB = createLink(nf, "LB_12", nL2, nB1, 5000, 2000, 25);
+            Link lB = createLink(nf, "B_2", nB1, nB2, 500, 1000, 10);
+            Link lBT = createLink(nf, "BT_23", nB2, nT1, 5000, 2000, 25);
+            Link lT = createLink(nf, "T_3", nT1, nT2, 500, 1000, 10);
+            Link lTL = createLink(nf, "TL_31", nT2, nL1, 5000, 2000, 25);
 
             network.addLink(lL);
             network.addLink(lLB);
