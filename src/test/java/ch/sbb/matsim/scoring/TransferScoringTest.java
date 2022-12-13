@@ -5,7 +5,8 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,7 +56,7 @@ import org.matsim.vehicles.VehiclesFactory;
  */
 public class TransferScoringTest {
 
-	private static final Logger log = Logger.getLogger(TransferScoringTest.class);
+	private static final Logger log = LogManager.getLogger(TransferScoringTest.class);
 
 	@Rule
 	public MatsimTestUtils helper = new MatsimTestUtils();

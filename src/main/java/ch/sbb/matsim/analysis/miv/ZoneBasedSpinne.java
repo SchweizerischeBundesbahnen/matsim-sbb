@@ -13,7 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -29,7 +30,7 @@ import org.matsim.core.utils.io.UncheckedIOException;
 
 public class ZoneBasedSpinne {
 
-    private static final Logger log = Logger.getLogger(ZoneBasedSpinne.class);
+    private static final Logger log = LogManager.getLogger(ZoneBasedSpinne.class);
     private final ConcurrentHashMap<Id<Link>, LinkVolumes> linkVolumes = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {

@@ -6,7 +6,8 @@ import ch.sbb.matsim.rideshare.utils.RideshareAwareIntermodalMainModeIdentifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.run.DrtConfigs;
 import org.matsim.contrib.drt.run.DrtControlerCreator;
@@ -25,7 +26,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 public class RunSBBDRTScenario {
 
-	private final static Logger log = Logger.getLogger(RunSBBDRTScenario.class);
+	private final static Logger log = LogManager.getLogger(RunSBBDRTScenario.class);
 
 	public static void main(String[] args) {
 		System.setProperty("matsim.preferLocalDtds", "true");

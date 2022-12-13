@@ -4,7 +4,8 @@ import ch.sbb.matsim.config.variables.SBBModes;
 
 import java.util.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -19,7 +20,7 @@ import org.matsim.pt.transitSchedule.api.*;
  */
 public class MobiTransitScheduleVerifiyer {
 
-	public static final Logger LOGGER = Logger.getLogger(MobiTransitScheduleVerifiyer.class);
+	public static final Logger LOGGER = LogManager.getLogger(MobiTransitScheduleVerifiyer.class);
 
 	public static void main(String[] args) {
 		String scheduleFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_3.1\\sim\\3.1.3_25pct\\output_slice_0\\MOBI31.output_transitSchedule.xml.gz";

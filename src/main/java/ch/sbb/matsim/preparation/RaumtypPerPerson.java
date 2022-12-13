@@ -6,7 +6,8 @@ import ch.sbb.matsim.zones.ZonesLoader;
 import ch.sbb.matsim.zones.ZonesQueryCache;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
@@ -39,7 +40,7 @@ public class RaumtypPerPerson {
         final String outputLog = args[2];
 		final String outputPopulation = args[3];
 
-		Logger log = Logger.getLogger(RaumtypPerPerson.class);
+		Logger log = LogManager.getLogger(RaumtypPerPerson.class);
 		int nbUndefined = 0;
 		int nbNotHomeType = 0;
 		String notDefinedLog = "\n";

@@ -8,7 +8,8 @@ import ch.sbb.matsim.zones.Zones;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
@@ -19,7 +20,7 @@ public class SBBIntermodalConfiggroup extends ReflectiveConfigGroup {
 
 	static private final String PARAM_ZONESID = "zonesId";
 	static private final String PARAM_ZONESID_DESC = "Zones ID";
-	private static Logger logger = Logger.getLogger(SBBIntermodalConfiggroup.class);
+	private static Logger logger = LogManager.getLogger(SBBIntermodalConfiggroup.class);
 	private final List<SBBIntermodalModeParameterSet> modeParamSets = new ArrayList<>();
 	private Id<Zones> zonesId = null;
 

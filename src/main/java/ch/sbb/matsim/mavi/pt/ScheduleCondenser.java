@@ -30,7 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
@@ -52,7 +53,7 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 
 public class ScheduleCondenser {
 
-    public static final Logger LOGGER = Logger.getLogger(ScheduleCondenser.class);
+    public static final Logger LOGGER = LogManager.getLogger(ScheduleCondenser.class);
     private final Map<Id<Link>, String> linkToVisumSequence;
     private final TransitSchedule transitSchedule;
     private final Network network;

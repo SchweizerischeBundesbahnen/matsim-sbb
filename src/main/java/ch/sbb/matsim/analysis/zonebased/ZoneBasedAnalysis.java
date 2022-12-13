@@ -6,7 +6,7 @@ import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesImpl;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
@@ -208,7 +208,7 @@ public class ZoneBasedAnalysis {
 						zoneStatsMap.get(deboardingZone).ptdeBoardings.get(mode).increment();
 					}
 				} else {
-					Logger.getLogger(getClass()).warn("unexpected pt-route in leg " + ptleg + ptleg.getRoute().getClass());
+					LogManager.getLogger(getClass()).warn("unexpected pt-route in leg " + ptleg + ptleg.getRoute().getClass());
 				}
 
 			}

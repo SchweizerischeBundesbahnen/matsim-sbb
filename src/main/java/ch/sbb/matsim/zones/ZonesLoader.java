@@ -6,7 +6,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Locale;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -36,7 +36,7 @@ public final class ZonesLoader {
     }
 
     public static Zones loadZones(String id, String filename, String idAttribute) {
-		Logger.getLogger(ZonesLoader.class).info(" zones file " + filename);
+		LogManager.getLogger(ZonesLoader.class).info(" zones file " + filename);
 		if (filename.toLowerCase(Locale.ROOT).endsWith(".shp")) {
 			return loadZonesFromShapefile(id, filename, idAttribute);
 		}

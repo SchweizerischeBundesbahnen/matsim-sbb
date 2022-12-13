@@ -18,7 +18,8 @@ import ch.sbb.matsim.zones.ZonesQueryCache;
 import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -32,7 +33,7 @@ import org.matsim.core.utils.misc.OptionalTime;
 
 public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEgress {
 
-	private static final Logger log = Logger.getLogger(SBBRaptorIntermodalAccessEgress.class);
+	private static final Logger log = LogManager.getLogger(SBBRaptorIntermodalAccessEgress.class);
 
 	private final List<SBBIntermodalModeParameterSet> intermodalModeParams;
 	private final Zones zones;

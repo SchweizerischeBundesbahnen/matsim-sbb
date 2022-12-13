@@ -9,14 +9,15 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 
 public class S3Downloader {
 
-    private static final Logger log = Logger.getLogger(S3Downloader.class);
+    private static final Logger log = LogManager.getLogger(S3Downloader.class);
 
     private AmazonS3 s3;
     private String downloadFolder;

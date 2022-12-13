@@ -23,7 +23,7 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -59,7 +59,7 @@ public class StreetNetworkExporter {
         }
 
         if (streetsExporterConfigGroup.isReduceForeignLinks()) {
-            Logger.getLogger(StreetNetworkExporter.class).info("Removing foreign rural links.");
+            LogManager.getLogger(StreetNetworkExporter.class).info("Removing foreign rural links.");
             RemoveForeignRuralLinks r = new RemoveForeignRuralLinks(network, zones);
             r.removeLinks();
             NetworkCleaner cleaner = new NetworkCleaner();
@@ -67,23 +67,23 @@ public class StreetNetworkExporter {
         }
 
         if (streetsExporterConfigGroup.isMergeRuralLinks()) {
-            Logger.getLogger(StreetNetworkExporter.class).info("Merging rural links.");
+            LogManager.getLogger(StreetNetworkExporter.class).info("Merging rural links.");
             MergeRuralLinks l = new MergeRuralLinks(network, zones);
             l.mergeRuralLinks();
             NetworkCleaner cleaner = new NetworkCleaner();
             cleaner.run(network);
         }
         adjustRoundaboutLinks(network);
-        Logger.getLogger(StreetNetworkExporter.class).info("Writing Network with polylines.");
+        LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network with polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK_WITH_POLYLINES);
         removePolylines(network);
-        Logger.getLogger(StreetNetworkExporter.class).info("Writing Network without polylines.");
+        LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network without polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK);
 
     }
 
     public static void adjustRoundaboutLinks(Network network) {
-        Logger.getLogger(StreetNetworkExporter.class).info("Adjusting capacities of roundabouts.");
+        LogManager.getLogger(StreetNetworkExporter.class).info("Adjusting capacities of roundabouts.");
         int i = 0;
         Set<Id<Link>> adjustedLinks = new HashSet<>();
         for (Link l : network.getLinks().values()) {
@@ -112,7 +112,7 @@ public class StreetNetworkExporter {
             }
 
         }
-        Logger.getLogger(StreetNetworkExporter.class).info("Adjusted  " + i + " link capacities in roundabouts.");
+        LogManager.getLogger(StreetNetworkExporter.class).info("Adjusted  " + i + " link capacities in roundabouts.");
         System.out.println(adjustedLinks);
     }
 

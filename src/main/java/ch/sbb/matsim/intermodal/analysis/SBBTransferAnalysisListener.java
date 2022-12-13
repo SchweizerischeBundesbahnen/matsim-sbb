@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.apache.commons.math3.stat.Frequency;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.NumberAxis;
@@ -277,7 +277,7 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
             csvWriter.set(p95TT, Double.toString(ptOnlyTransfers.getPct(4)));
             csvWriter.writeRow();
         } catch (IOException e) {
-            Logger.getLogger(getClass()).error("Error writing transfer stats.");
+            LogManager.getLogger(getClass()).error("Error writing transfer stats.");
         }
 
         if (writePng) {

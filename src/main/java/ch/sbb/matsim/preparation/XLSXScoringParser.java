@@ -16,7 +16,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -70,7 +71,7 @@ public class XLSXScoringParser {
 	private static final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
 	private static final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
 	private static final Set<String> SBB_GENERAL_PARAMS = new HashSet<>(Arrays.asList(SBB_GENERAL_PARAMS_ARRAY));
-	private final static Logger log = Logger.getLogger(XLSXScoringParser.class);
+	private final static Logger log = LogManager.getLogger(XLSXScoringParser.class);
 
 	public static void main(final String[] args) {
 		final String configIn = args[0];

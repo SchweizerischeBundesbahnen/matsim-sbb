@@ -6,7 +6,7 @@ package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import java.util.Set;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
@@ -79,11 +79,11 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 			if (Double.isNaN(dist)) {
 				if (ccc < 10) {
 					ccc++;
-					Logger.getLogger(this.getClass()).warn("distance is NaN. Will make score of this plan NaN. Possible reason: Simulation does not report " +
+					LogManager.getLogger(this.getClass()).warn("distance is NaN. Will make score of this plan NaN. Possible reason: Simulation does not report " +
 							"a distance for this trip. Possible reason for that: mode is teleported and router does not " +
 							"write distance into plan.  Needs to be fixed or these plans will die out.");
 					if (ccc == 10) {
-						Logger.getLogger(this.getClass()).warn(Gbl.FUTURE_SUPPRESSED);
+						LogManager.getLogger(this.getClass()).warn(Gbl.FUTURE_SUPPRESSED);
 					}
 				}
 			}

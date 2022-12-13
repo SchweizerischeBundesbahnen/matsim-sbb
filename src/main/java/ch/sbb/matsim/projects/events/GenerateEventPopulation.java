@@ -7,7 +7,8 @@ import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -29,7 +30,7 @@ public final class GenerateEventPopulation {
     private GenerateEventPopulation() {
     }
 
-    private final static Logger log = Logger.getLogger(GenerateEventPopulation.class);
+    private final static Logger log = LogManager.getLogger(GenerateEventPopulation.class);
 
     public static void main(String[] args) throws IOException {
 
