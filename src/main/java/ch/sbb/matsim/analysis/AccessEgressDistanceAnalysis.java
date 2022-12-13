@@ -13,7 +13,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -39,7 +40,7 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
  */
 public class AccessEgressDistanceAnalysis {
 
-	private static final Logger log = Logger.getLogger(AccessEgressDistanceAnalysis.class);
+	private static final Logger log = LogManager.getLogger(AccessEgressDistanceAnalysis.class);
 
 	private final Map<Id<TransitStopFacility>, List<LegData>> legData = new TreeMap<>();
 	private final Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());

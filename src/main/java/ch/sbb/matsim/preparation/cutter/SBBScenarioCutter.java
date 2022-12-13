@@ -3,7 +3,7 @@ package ch.sbb.matsim.preparation.cutter;
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.zones.ZonesLoader;
 import java.io.IOException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigWriter;
@@ -34,7 +34,7 @@ public class SBBScenarioCutter {
 		boolean cutNetworkAndPlans;
 
 		if (args.length == 12) {
-			Logger.getLogger(SBBScenarioCutter.class).info("Will use input files defined by args!");
+			LogManager.getLogger(SBBScenarioCutter.class).info("Will use input files defined by args!");
 			inputConfig = args[0];
 			newConfig = args[1];
 			newInputRelativeToNewConfig = args[2];
@@ -53,7 +53,7 @@ public class SBBScenarioCutter {
 
 		} else {
 			// define your cut from code, see below:
-			Logger.getLogger(SBBScenarioCutter.class).info("Will use input files defined in code!");
+			LogManager.getLogger(SBBScenarioCutter.class).info("Will use input files defined in code!");
 			inputConfig = "";
 			newConfig = "";
 			newInputRelativeToNewConfig = "input/";
@@ -85,7 +85,7 @@ public class SBBScenarioCutter {
 		Config config = RunSBB.buildConfig(inputConfig);
 
 		String cutterOutputDirectory = ConfigGroup.getInputFileURL(config.getContext(), newInputRelativeToNewConfig.replace("/", "")).getFile();
-		Logger.getLogger(SBBScenarioCutter.class).info("Will write new scenario to " + cutterOutputDirectory);
+		LogManager.getLogger(SBBScenarioCutter.class).info("Will write new scenario to " + cutterOutputDirectory);
 
 		ScenarioCutter.run(originalRunDirectory, originalRunId, cutterOutputDirectory, newScenarioSampleSize, parseEvents, inside, outside, network, cutNetworkAndPlans);
 

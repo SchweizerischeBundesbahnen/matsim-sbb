@@ -8,7 +8,8 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
@@ -24,7 +25,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 public class Cleaner {
 
-	private static final Logger log = Logger.getLogger(Cleaner.class);
+	private static final Logger log = LogManager.getLogger(Cleaner.class);
 	private final Population population;
 
 	public Cleaner(Population population) {

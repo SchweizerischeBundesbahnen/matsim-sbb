@@ -2,7 +2,8 @@ package ch.sbb.matsim.analysis.potential;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
@@ -27,7 +28,7 @@ import org.matsim.facilities.Facility;
 
 public class PotentialAnalysisRouter {
 
-    private static final Logger log = Logger.getLogger(PotentialAnalysisRouter.class);
+    private static final Logger log = LogManager.getLogger(PotentialAnalysisRouter.class);
     private final double startTime;
     private final Network network;
     private final NetworkRoutingModule router;

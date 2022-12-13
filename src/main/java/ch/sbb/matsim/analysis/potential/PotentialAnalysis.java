@@ -7,7 +7,8 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import ch.sbb.matsim.zones.ZonesQueryCache;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -30,7 +31,7 @@ import java.util.Collections;
 
 public class PotentialAnalysis {
 
-	private static final Logger log = Logger.getLogger(PotentialAnalysis.class);
+	private static final Logger log = LogManager.getLogger(PotentialAnalysis.class);
     private static final String COL_X = "X";
     private static final String COL_Y = "Y";
     private static final String COL_ID = "ID";

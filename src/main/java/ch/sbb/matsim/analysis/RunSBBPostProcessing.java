@@ -9,7 +9,8 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
@@ -20,7 +21,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 public class RunSBBPostProcessing {
 
-	private final static Logger log = Logger.getLogger(RunSBBPostProcessing.class);
+	private final static Logger log = LogManager.getLogger(RunSBBPostProcessing.class);
 
 	public static void main(String[] args) {
 		final String configFile = args[0];

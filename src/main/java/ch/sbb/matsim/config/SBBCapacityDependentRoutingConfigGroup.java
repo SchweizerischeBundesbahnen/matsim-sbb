@@ -1,13 +1,9 @@
 package ch.sbb.matsim.config;
 
-import ch.sbb.matsim.zones.Zones;
-import org.matsim.api.core.v01.Id;
-import org.matsim.core.config.ConfigGroup;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
-import org.apache.log4j.Logger;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 
@@ -26,7 +22,7 @@ public class SBBCapacityDependentRoutingConfigGroup extends ReflectiveConfigGrou
     static private final String PARAM_HIGHERCAPACITYLIMIT = "higherCapacityLimit";
     static private final String PARAM_HIGHERCAPACITYLIMIT_DESC = "limit of capacity above which cost factor is > 1.0";
 
-    private static Logger logger = Logger.getLogger(SBBCapacityDependentRoutingConfigGroup.class);
+    private static Logger logger = LogManager.getLogger(SBBCapacityDependentRoutingConfigGroup.class);
 
     private boolean useServiceQuality = false;
     private double minimumCostFactor = 0.8;

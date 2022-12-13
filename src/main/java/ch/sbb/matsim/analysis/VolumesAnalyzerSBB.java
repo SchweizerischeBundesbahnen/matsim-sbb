@@ -4,7 +4,8 @@
 
 package ch.sbb.matsim.analysis;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.LinkLeaveEvent;
 import org.matsim.api.core.v01.events.VehicleEntersTrafficEvent;
@@ -26,7 +27,7 @@ import java.util.TreeSet;
  */
 public class VolumesAnalyzerSBB implements LinkLeaveEventHandler, VehicleEntersTrafficEventHandler {
 
-	private final static Logger log = Logger.getLogger(VolumesAnalyzerSBB.class);
+	private final static Logger log = LogManager.getLogger(VolumesAnalyzerSBB.class);
 	private final int timeBinSize;
 	private final int maxTime;
 	private final int maxSlotIndex;

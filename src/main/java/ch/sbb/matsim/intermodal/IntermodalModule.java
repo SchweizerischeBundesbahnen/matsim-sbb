@@ -18,7 +18,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -28,7 +29,7 @@ import org.matsim.core.controler.AbstractModule;
 
 public class IntermodalModule extends AbstractModule {
 
-	private final static Logger log = Logger.getLogger(IntermodalModule.class);
+	private final static Logger log = LogManager.getLogger(IntermodalModule.class);
 
 	public static void preparePopulation(Population population, URL csvPath) {
 		try (CSVReader reader = new CSVReader(csvPath, ";")) {

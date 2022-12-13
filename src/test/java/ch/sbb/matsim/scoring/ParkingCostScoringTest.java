@@ -8,7 +8,8 @@ import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +40,7 @@ import java.util.List;
  */
 public class ParkingCostScoringTest {
 
-	private static final Logger log = Logger.getLogger(ParkingCostScoringTest.class);
+	private static final Logger log = LogManager.getLogger(ParkingCostScoringTest.class);
 
 	@Rule
 	public MatsimTestUtils helper = new MatsimTestUtils();
