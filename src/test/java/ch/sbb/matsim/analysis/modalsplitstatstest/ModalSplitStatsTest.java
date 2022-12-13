@@ -120,7 +120,6 @@ public class ModalSplitStatsTest {
             while ((line = reader.readLine()) != null) {
                 Assert.assertEquals(0, Long.parseLong(line.split(";")[header.indexOf("all")]));
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -192,7 +191,6 @@ public class ModalSplitStatsTest {
                     }
                 }
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -271,7 +269,6 @@ public class ModalSplitStatsTest {
                     }
                 }
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -353,7 +350,6 @@ public class ModalSplitStatsTest {
                     }
                 }
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -444,10 +440,8 @@ public class ModalSplitStatsTest {
                         Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.ageCat17)]));
                         Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.work)]));
                     }
-
                 }
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -538,10 +532,8 @@ public class ModalSplitStatsTest {
                         Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.ageCat17)]));
                         Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.work)]));
                     }
-
                 }
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -555,13 +547,46 @@ public class ModalSplitStatsTest {
 
         modalSplitStats.analyzeAndWriteStats(output, experiencedPlans);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_modal_split_PKM.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_changes_count.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
             while ((line = reader.readLine()) != null) {
                 var tmpLine = line.split(";");
 
+                if (tmpLine[header.indexOf(MSVariables.subpopulation)].equals(Variables.REGULAR)) {
+                    if (tmpLine[header.indexOf("Umsteigetyp")].equals("changesTrain")) {
+                        Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("0")]));
+                        Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("1")]));
+                    }
+                    if (tmpLine[header.indexOf("Umsteigetyp")].equals("changesOEV")) {
+                        Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("0")]));
+                        Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("1")]));
+                    }
+                    if (tmpLine[header.indexOf("Umsteigetyp")].equals("changesOPNV")) {
+                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf("0")]));
+                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf("1")]));
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_train_stations_count.csv"))) {
+
+            List<String> header = List.of(reader.readLine().split(";"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                var tmpLine = line.split(";");
+
+                if (tmpLine[header.indexOf("Stop_Nummer")].equals("3289")) {
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ziel_Aussteiger")]));
+                    Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("Quell_Einsteiger")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ziel_Aussteiger")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ziel_Aussteiger")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ziel_Aussteiger")]));
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

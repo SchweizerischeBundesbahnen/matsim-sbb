@@ -149,26 +149,26 @@
 			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
 			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
 		</attributes>
-		<plan score="133.4631496200417" selected="yes">
-			<activity type="home_1260" facility="8" x="2683158.50435868" y="1248057.07470594" start_time="06:00:00" end_time="06:00:00" >
+		<plan score="132.66453709421972" selected="yes">
+			<activity type="home_1260" facility="8" x="2666285.06178885" y="1211391.02916481" start_time="06:00:00" end_time="06:00:00" >
 			</activity>
-			<leg mode="walk" dep_time="06:00:00" trav_time="00:00:00">
+			<leg mode="walk" dep_time="06:00:00" trav_time="00:01:34">
 				<attributes>
 					<attribute name="routingMode" class="java.lang.String">pt</attribute>
 				</attributes>
-				<route type="generic" start_link="9xu4_kolu" end_link="pt_3289" trav_time="00:00:00" distance="0.0"></route>
+				<route type="generic" start_link="9ilm_q91k" end_link="pt_2194" trav_time="00:01:34" distance="122.88074242682683"></route>
 			</leg>
-			<activity type="pt interaction" link="pt_3289" x="2683158.50435868" y="1248057.07470594" max_dur="00:00:00" >
+			<activity type="pt interaction" link="pt_2194" x="2666190.91928482" y="1211382.54924912" max_dur="00:00:00" >
 			</activity>
-			<leg mode="pt" dep_time="06:00:00" trav_time="00:46:00">
+			<leg mode="pt" dep_time="06:01:34" trav_time="00:36:26">
 				<attributes>
 					<attribute name="routingMode" class="java.lang.String">pt</attribute>
 				</attributes>
-				<route type="default_pt" start_link="pt_3289" end_link="pt_1800" trav_time="00:46:00" distance="45266.02">{"transitRouteId":"137913_1_7","boardingTime":"06:09:00","transitLineId":"Simba2017_041-B-01133","accessFacilityId":"3289","egressFacilityId":"1800"}</route>
+				<route type="default_pt" start_link="pt_2194" end_link="pt_1800" trav_time="00:36:26" distance="27814.07">{"transitRouteId":"137639_1_11","boardingTime":"06:06:00","transitLineId":"Simba2017_014-D-11708","accessFacilityId":"2194","egressFacilityId":"1800"}</route>
 			</leg>
 			<activity type="pt interaction" link="pt_1800" x="2684408.00188822" y="1211500.0033789" max_dur="00:00:00" >
 			</activity>
-			<leg mode="walk" dep_time="06:46:00" trav_time="00:03:00">
+			<leg mode="walk" dep_time="06:38:00" trav_time="00:03:00">
 				<attributes>
 					<attribute name="routingMode" class="java.lang.String">pt</attribute>
 				</attributes>
@@ -176,21 +176,21 @@
 			</leg>
 			<activity type="pt interaction" link="pt_1800" x="2684408.00188822" y="1211500.0033789" max_dur="00:00:00" >
 			</activity>
-			<leg mode="pt" dep_time="06:49:05" trav_time="00:51:55">
+			<leg mode="pt" dep_time="06:41:05" trav_time="01:09:55">
 				<attributes>
 					<attribute name="routingMode" class="java.lang.String">pt</attribute>
 				</attributes>
-				<route type="default_pt" start_link="pt_1800" end_link="pt_2194" trav_time="00:51:55" distance="34687.01000000001">{"transitRouteId":"137729_1_6","boardingTime":"07:09:00","transitLineId":"Simba2017_041-A-01132","accessFacilityId":"1800","egressFacilityId":"2194"}</route>
+				<route type="default_pt" start_link="pt_1800" end_link="pt_3289" trav_time="01:09:55" distance="45266.01999999999">{"transitRouteId":"137915_1_7","boardingTime":"07:06:00","transitLineId":"Simba2017_041-B-01133","accessFacilityId":"1800","egressFacilityId":"3289"}</route>
 			</leg>
-			<activity type="pt interaction" link="pt_2194" x="2666190.91928482" y="1211382.54924912" max_dur="00:00:00" >
+			<activity type="pt interaction" link="pt_3289" x="2683158.50435868" y="1248057.07470594" max_dur="00:00:00" >
 			</activity>
-			<leg mode="walk" dep_time="07:41:00" trav_time="00:01:34">
+			<leg mode="walk" dep_time="07:51:00" trav_time="00:00:00">
 				<attributes>
 					<attribute name="routingMode" class="java.lang.String">pt</attribute>
 				</attributes>
-				<route type="generic" start_link="pt_2194" end_link="9ilm_q91k" trav_time="00:01:34" distance="122.88074242682683"></route>
+				<route type="generic" start_link="pt_3289" end_link="9xu4_kolu" trav_time="00:00:00" distance="0.0"></route>
 			</leg>
-			<activity type="home_1260" facility="9" x="2666285.06178885" y="1211391.02916481" start_time="09:00:00" end_time="10:00:00" >
+			<activity type="home_1260" facility="9" x="2683158.50435868" y="1248057.07470594" start_time="09:00:00" end_time="10:00:00" >
 			</activity>
 		</plan>
 

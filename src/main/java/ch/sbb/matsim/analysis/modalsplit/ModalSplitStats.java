@@ -193,6 +193,7 @@ public class ModalSplitStats {
                                 trainStationMap.get(startTrainStationId).addQuellEinsteiger();
                             }
                             if (legAfter.getMode().equals(SBBModes.PT) && subMode.equals(PTSubModes.RAIL)) {
+                                var test = getStartTrainFacility(legAfter.getRoute()).getAttributes();
                                 if (!getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute("02_Stop_No").toString().equals(endTrainStationId)) {
                                     trainStationMap.get(endTrainStationId).addUmsteigerTyp5a();
                                 } else if (railTripsAnalyzer.hasFQRelevantLeg(List.of((TransitPassengerRoute) legAfter.getRoute()))) {
