@@ -7,10 +7,6 @@ import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
-import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorParametersForPerson;
-import ch.sbb.matsim.routing.pt.raptor.FakeFacility;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorRoutingModule;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
@@ -21,7 +17,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.DefaultActivityTypes;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
@@ -38,15 +33,9 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.routes.RouteUtils;
-import org.matsim.core.router.DefaultRoutingRequest;
-import org.matsim.core.router.TeleportationRoutingModule;
-import org.matsim.core.router.TransitRouterWrapper;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacility;
-import org.matsim.facilities.Facility;
-import org.matsim.pt.router.TransitRouter;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import smile.data.type.DataType.ID;
 
 public class ModalSplitStatsTest {
 
@@ -72,8 +61,6 @@ public class ModalSplitStatsTest {
         ZonesCollection zonesCollection = new ZonesCollection();
         zonesCollection.addZones(zones);
 
-        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
-
         PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
         ppConfig.setSimulationSampleSize(1);
         ppConfig.setZonesId("zones");
@@ -82,7 +69,7 @@ public class ModalSplitStatsTest {
         this.population = scenario.getPopulation();
         this.output = RunSBB.buildConfig("test/input/scenarios/mobi31test/config.xml").controler().getOutputDirectory();
 
-        this.modalSplitStats = new ModalSplitStats(zonesCollection, config,  railTripsAnalyzer, scenario);
+        this.modalSplitStats = new ModalSplitStats(zonesCollection, config, scenario);
     }
 
 

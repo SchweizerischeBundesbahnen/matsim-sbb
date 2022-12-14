@@ -11,7 +11,6 @@ public class TrainStation {
     private final Zone zone;
     private final String hstNummer;
     private final String stopCode;
-
     private int zielAussteiger = 0;
     private int quellEinsteiger = 0;
     private int umsteigerTyp5a = 0;

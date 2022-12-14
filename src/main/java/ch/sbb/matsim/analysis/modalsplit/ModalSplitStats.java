@@ -65,10 +65,10 @@ public class ModalSplitStats {
     private Map<String, TrainStation> trainStationMap;
 
     @Inject
-    public ModalSplitStats(ZonesCollection zonesCollection, Config config, RailTripsAnalyzer railTripsAnalyzer, Scenario scenario) {
+    public ModalSplitStats(ZonesCollection zonesCollection, Config config, Scenario scenario) {
         PostProcessingConfigGroup postProcessingConfigGroup = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
         this.zones = zonesCollection.getZones(postProcessingConfigGroup.getZonesId());
-        this.railTripsAnalyzer = railTripsAnalyzer;
+        this.railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
         this.population = scenario.getPopulation();
         this.transitSchedule = scenario.getTransitSchedule();
         this.config = config;
@@ -87,10 +87,14 @@ public class ModalSplitStats {
         final Config config = ConfigUtils.createConfig();
         config.controler().setRunId(runId);
         config.qsim().setEndTime(30 * 3600);
-        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
         config.controler().setOutputDirectory(outputFile);
+        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
         ppConfig.setSimulationSampleSize(sampleSize);
         ppConfig.setZonesId("zones");
+        Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
+        ZonesCollection zonesCollection = new ZonesCollection();
+        zonesCollection.addZones(zones);
+
         Scenario scenario = ScenarioUtils.createScenario(config);
         Scenario scenario2 = ScenarioUtils.createScenario(config);
 
@@ -102,17 +106,7 @@ public class ModalSplitStats {
         IdMap<Person, Plan> experiencedPlans = new IdMap<>(Person.class, scenario2.getPopulation().getPersons().size());
         scenario2.getPopulation().getPersons().values().forEach(p -> experiencedPlans.put(p.getId(), p.getSelectedPlan()));
 
-        Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
-        ZonesCollection zonesCollection = new ZonesCollection();
-        zonesCollection.addZones(zones);
-        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
-
-        ModalSplitStats modalSplitStats = new ModalSplitStats(zonesCollection, config, railTripsAnalyzer, scenario);
-
-        modalSplitStats.config = config;
-        modalSplitStats.transitSchedule = scenario.getTransitSchedule();
-        modalSplitStats.population = scenario.getPopulation();
-
+        ModalSplitStats modalSplitStats = new ModalSplitStats(zonesCollection, config, scenario);
         modalSplitStats.analyzeAndWriteStats(config.controler().getOutputDirectory(), experiencedPlans);
     }
 
@@ -340,16 +334,13 @@ public class ModalSplitStats {
                     }
                 }
             }
-
             double[][] changeArray = subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-
             if (ptLegs > 6) {
                 ptLegs = 6;
                 if (raillegs > 6) {
                     raillegs = 6;
                 }
             }
-
             if (raillegs > 0) {
                 changeArray[changeOrderList.indexOf(changeTrain)][raillegs - 1]++;
             } else if (ptLegs > 0) {
@@ -613,8 +604,8 @@ public class ModalSplitStats {
         final String umsteigerSimbaAndere = "Umsteiger_Simba_Andere";
         final String umsteigerAndereSimba = "Umsteiger_Andere_Simba";
         final String umsteigerAndereAndere = "Umsteiger_Andere_Andere";
-        String head = runID + "," + hstNumber + "," + stopCode + "," + zone + "," + zielAussteiger + "," + quellEinsteiger + "," + umsteigerTyp5a + "," + umsteigerTyp5b + "," +
-            umsteigerSimbaSimba + "," + umsteigerSimbaAndere + "," + umsteigerAndereSimba + "," + umsteigerAndereAndere;
+        String head = String.join(",", runID, hstNumber, stopCode, zone, zielAussteiger, quellEinsteiger, umsteigerTyp5a, umsteigerTyp5b,
+            umsteigerSimbaSimba, umsteigerSimbaAndere, umsteigerAndereSimba, umsteigerAndereAndere);
         String[] columns = head.split(",");
         try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNTrainStrationsCount)) {
             for (TrainStation station : trainStationMap.values()) {
@@ -654,9 +645,7 @@ public class ModalSplitStats {
         final String zustiege = "Umsteige_AHP_Bahn";
         final String wegstiege = "Umsteige_Bahn_AHP";
         StringBuilder head = new StringBuilder(
-            runID + "," + hstNummer + "," + stopNumber + "," + code + "," + trainStationName + "," + x + "," + y + "," + zone + "," + einstiege + "," + ausstiege + "," + umstiege + "," + zustiege
-                + ","
-                + wegstiege);
+            String.join(",", runID, hstNummer, stopNumber, code, trainStationName, x, y, zone, einstiege, ausstiege, umstiege, zustiege, wegstiege));
         for (String mode : StopStation.getModes()) {
             head.append(",").append("Zielaustieg_").append(mode);
             head.append(",").append("Quelleinstieg_").append(mode);
@@ -695,7 +684,8 @@ public class ModalSplitStats {
     }
 
     private void writeChanges() {
-        String[] columns = {runID, subpopulation, "Umsteigetyp", "0", "1", "2", "3", "4", ">=5"};
+        final String umsteigetyp = "Umsteigetyp";
+        String[] columns = {runID, subpopulation, umsteigetyp, "0", "1", "2", "3", "4", ">=5"};
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNChangesCount)) {
             Map<String, Integer> mapChange = new HashMap<>();
@@ -706,13 +696,12 @@ public class ModalSplitStats {
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
                     csvWriter.set(runID, config.controler().getRunId());
                     csvWriter.set(subpopulation, entry.getKey());
-                    csvWriter.set("Umsteigetyp", change.getKey());
+                    csvWriter.set(umsteigetyp, change.getKey());
                     for (int i = 0; i < 6; i++) {
                         csvWriter.set(changeLableList.get(i), Integer.toString((int) (entry.getValue()[change.getValue()][i] / sampleSize)));
                     }
                     csvWriter.writeRow();
                 }
-
             }
         } catch (Exception e) {
             e.printStackTrace();
