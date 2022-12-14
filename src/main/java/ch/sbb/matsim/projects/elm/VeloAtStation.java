@@ -47,11 +47,8 @@ public final class VeloAtStation {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
-        PopulationReader populationReader = new PopulationReader(scenario);
-        populationReader.readFile(plansFile);
-
-        TransitScheduleReader transitScheduleReader = new TransitScheduleReader(scenario);
-        transitScheduleReader.readFile(transitFile);
+        new PopulationReader(scenario).readFile(plansFile);
+        new TransitScheduleReader(scenario).readFile(transitFile);
 
         SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
 
@@ -76,7 +73,6 @@ public final class VeloAtStation {
                             veloMap.put(transitStopFacility, veloMap.get(transitStopFacility) + 1);
                         }
                     }
-
                 }
             }
         }
@@ -84,7 +80,7 @@ public final class VeloAtStation {
         String[] header = {"Stop_Nummer", "Velo"};
         try (CSVWriter csvWriter = new CSVWriter("",  header, outputFile)) {
             for (Entry<TransitStopFacility, Integer> entry : veloMap.entrySet()) {
-                csvWriter.set("Stop_Nummer", entry.getKey().getAttributes().getAttribute("02_Stop_No").toString());
+                csvWriter.set("Stop_Nummer", entry.getKey().getAttributes().getAttribute("06_Stop_Area_No").toString());
                 csvWriter.set("Velo", Integer.toString((int) (entry.getValue()/sampleSize)));
                 csvWriter.writeRow();
             }
