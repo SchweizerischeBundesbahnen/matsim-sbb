@@ -8,7 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.geotools.feature.SchemaException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.Coordinate;
@@ -46,7 +47,7 @@ import org.opengis.feature.simple.SimpleFeature;
 
 public class Isochrones {
 
-    private static final Logger log = Logger.getLogger(Isochrones.class);
+    private static final Logger log = LogManager.getLogger(Isochrones.class);
 
     private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
     private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));

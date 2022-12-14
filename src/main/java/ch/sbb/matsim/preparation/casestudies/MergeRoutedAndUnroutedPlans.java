@@ -22,9 +22,12 @@ package ch.sbb.matsim.preparation.casestudies;
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -64,7 +67,7 @@ import java.util.stream.Stream;
  */
 public class MergeRoutedAndUnroutedPlans {
 
-    private final static Logger LOG = Logger.getLogger(MergeRoutedAndUnroutedPlans.class);
+    private final static Logger LOG = LogManager.getLogger(MergeRoutedAndUnroutedPlans.class);
     private final String unroutedPlans;
     private final String routedPlans;
     private final String unroutedPlansFacilities;
@@ -84,7 +87,7 @@ public class MergeRoutedAndUnroutedPlans {
 
     private final Set<Id<Person>> varPersons = new HashSet<>();
 
-    private final Set<Id<ActivityFacility>> facilityWhiteList = new HashSet<>();
+    private Set<Id<ActivityFacility>> facilityWhiteList;
 
     private final Set<Id<Person>> allPersons = new HashSet<>();
 
@@ -151,17 +154,18 @@ public class MergeRoutedAndUnroutedPlans {
         }
         new MergeRoutedAndUnroutedPlans(unroutedPlans, routedPlans, unroutedPlansFacilities, routedPlansFacilities, whiteListZonesFiles, zonesFile,
                 inputConfig, outputConfig, outputPlansFile,
-                            schedule, varPlans, varFacilites, varOutputPlansFile).run();
+                schedule, varPlans, varFacilites, varOutputPlansFile).run();
 
     }
 
-    private void run()  {
-        adjustConfig();
-        prepareRelevantFacilities();
-        prepareVarPersons();
-        mergePlans();
-        if (!varPlans.equals("-")) {
-            mergeVarPlans();
+    public static Set<String> readWhiteListZones(String whiteListZonesFiles) {
+        try {
+            Stream<String> lines = Files.lines(Path.of(whiteListZonesFiles));
+            Set<String> whitelistZones = lines.collect(Collectors.toSet());
+            lines.close();
+            return whitelistZones;
+        } catch (IOException e) {
+            throw new RuntimeException("Whitelist Zone file could not be read: " + whiteListZonesFiles);
         }
     }
 
@@ -250,43 +254,51 @@ public class MergeRoutedAndUnroutedPlans {
 
     }
 
-    private void prepareRelevantFacilities() {
+    public static Set<Id<ActivityFacility>> prepareRelevantFacilities(Set<String> whitelistZones, Zones zones, List<String> facilityFiles) {
 
-        try {
-            Stream<String> lines = Files.lines(Path.of(whiteListZonesFiles));
-            Set<String> whitelistZones = lines.collect(Collectors.toSet());
-            lines.close();
+        Set<Id<ActivityFacility>> facilityWhiteList = new HashSet<>();
+        for (String f : facilityFiles) {
+            if (!"-".equals(f)) {
+                LOG.info("Handling zone matching for facilities file " + f);
+                Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+                new MatsimFacilitiesReader(scenario).readFile(f);
+                Set<Id<ActivityFacility>> whitelist = scenario.getActivityFacilities().getFacilities().values().parallelStream().filter(
+                        facility -> isCoordinWhiteListZone(whitelistZones, zones, facility.getCoord())
+                ).map(activityFacility -> activityFacility.getId()).collect(Collectors.toSet());
+                facilityWhiteList.addAll(whitelist);
 
-            var zones = ZonesLoader.loadZones("zones", zonesFile, Variables.ZONE_ID);
-            List<String> facilityFiles = List.of(routedPlansFacilities, unroutedPlansFacilities);
-            for (String f : facilityFiles) {
-                if (!"-".equals(f)) {
-                    LOG.info("Handling zone matching for facilities file " + f);
-                    Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-                    new MatsimFacilitiesReader(scenario).readFile(f);
-                    for (ActivityFacility facility : scenario.getActivityFacilities().getFacilities().values()) {
-                        var zone = zones.findZone(facility.getCoord());
-                        if (zone != null) {
-                            if (whitelistZones.contains(zone.getId().toString())) {
-                                this.facilityWhiteList.add(facility.getId());
-                            }
-                        }
-                    }
-                    LOG.info("done.");
-                }
+                LOG.info("done.");
             }
-            LOG.info("Whitelist contains " + facilityWhiteList.size() + " facilities in boundary.");
-
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        LOG.info("Whitelist contains " + facilityWhiteList.size() + " facilities in boundary.");
+        return facilityWhiteList;
 
     }
 
-    private void prepareVarPersons()  {
+    public static boolean isCoordinWhiteListZone(Set<String> whitelistZones, Zones zones, Coord coord) {
+        var zone = zones.findZone(coord);
+        if (zone != null) {
+            return whitelistZones.contains(zone.getId().toString());
+        }
+        return false;
+    }
+
+    private void run() {
+        adjustConfig();
+        var zones = ZonesLoader.loadZones("zones", zonesFile, Variables.ZONE_ID);
+        List<String> facilityFiles = List.of(routedPlansFacilities, unroutedPlansFacilities);
+        this.facilityWhiteList = prepareRelevantFacilities(readWhiteListZones(whiteListZonesFiles), zones, facilityFiles);
+        prepareVarPersons();
+        mergePlans();
+        if (!varPlans.equals("-")) {
+            mergeVarPlans();
+        }
+    }
+
+    private void prepareVarPersons() {
         /* if there are plans for a variant, take all persons that have activities in the relevant zones either in ref or in var */
 
-        if (varPlans!="-") {
+        if (varPlans != "-") {
             StreamingPopulationReader varPlansReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
             varPlansReader.addAlgorithm(person -> {
                 if (PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR)) {

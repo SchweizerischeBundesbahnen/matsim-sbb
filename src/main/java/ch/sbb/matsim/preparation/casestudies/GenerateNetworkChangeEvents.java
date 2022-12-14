@@ -30,7 +30,6 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.TravelTimeCalculatorConfigGroup;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.network.NetworkChangeEvent;
@@ -83,11 +82,16 @@ public class GenerateNetworkChangeEvents {
 
     }
 
-    private void run() {
-        prepareScen();
-        TravelTimeCalculator tcc = readEvents();
-        createNetworkChangeEvents(sc.getNetwork(), tcc);
-        new NetworkChangeEventsWriter().write(outputChangeEventsFile, networkChangeEvents);
+    public static TravelTimeCalculator readEvents(Scenario scenario, String eventsFile) {
+        TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(scenario.getNetwork());
+        ttBuilder.setAnalyzedModes(Collections.singleton(SBBModes.CAR));
+        ttBuilder.setCalculateLinkTravelTimes(true);
+        TravelTimeCalculator ttCalculator = ttBuilder.build();
+        EventsManager eventsManager = EventsUtils.createEventsManager(scenario.getConfig());
+        eventsManager.addHandler(ttCalculator);
+        new MatsimEventsReader(eventsManager).readFile(eventsFile);
+
+        return ttCalculator;
     }
 
     public void createNetworkChangeEvents(Network network, TravelTimeCalculator tcc2) {
@@ -151,16 +155,11 @@ public class GenerateNetworkChangeEvents {
 
     }
 
-    private TravelTimeCalculator readEvents() {
-        TravelTimeCalculator.Builder ttBuilder = new TravelTimeCalculator.Builder(sc.getNetwork());
-        ttBuilder.setAnalyzedModes(Collections.singleton(SBBModes.CAR));
-        ttBuilder.setCalculateLinkTravelTimes(true);
-        TravelTimeCalculator ttCalculator = ttBuilder.build();
-        EventsManager eventsManager = EventsUtils.createEventsManager(sc.getConfig());
-        eventsManager.addHandler(ttCalculator);
-        new MatsimEventsReader(eventsManager).readFile(eventsFile);
-
-        return ttCalculator;
+    private void run() {
+        prepareScen();
+        TravelTimeCalculator tcc = readEvents(sc, eventsFile);
+        createNetworkChangeEvents(sc.getNetwork(), tcc);
+        new NetworkChangeEventsWriter().write(outputChangeEventsFile, networkChangeEvents);
     }
 
     public List<NetworkChangeEvent> getNetworkChangeEvents() {

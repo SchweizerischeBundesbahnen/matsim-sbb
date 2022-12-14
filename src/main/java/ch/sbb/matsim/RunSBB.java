@@ -36,7 +36,8 @@ import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
 import ch.sbb.matsim.vehicles.RideParkingCostTracker;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.analysis.TripsAndLegsCSVWriter;
 import org.matsim.analysis.TripsAndLegsCSVWriter.CustomTripsWriterExtension;
 import org.matsim.api.core.v01.Scenario;
@@ -70,7 +71,7 @@ import java.util.stream.Collectors;
 public class RunSBB {
 
 
-	private static final Logger log = Logger.getLogger(RunSBB.class);
+	private static final Logger log = LogManager.getLogger(RunSBB.class);
 
 	public static void main(String[] args) {
 		System.setProperty("matsim.preferLocalDtds", "true");
@@ -177,7 +178,7 @@ public class RunSBB {
 			QSimComponentsConfig provideQSimComponentsConfig() {
 				QSimComponentsConfig components = new QSimComponentsConfig();
 				new StandardQSimComponentConfigurator(config).configure(components);
-				SBBTransitEngineQSimModule.configure(components);
+				new SBBTransitEngineQSimModule().configure(components);
 				return components;
 			}
 		});

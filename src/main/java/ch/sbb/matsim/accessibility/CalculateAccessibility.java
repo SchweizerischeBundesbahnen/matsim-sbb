@@ -22,7 +22,8 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.ToDoubleFunction;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Plan;
@@ -40,7 +41,7 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
 
 public class CalculateAccessibility {
 
-	private final static Logger log = Logger.getLogger(CalculateAccessibility.class);
+	private final static Logger log = LogManager.getLogger(CalculateAccessibility.class);
 
 	private static Map<Coord, Double> calculateAttractions(int gridSize, String facilitiesFilename, String populationFilename, double personWeight) {
 		Map<Coord, Double> attractions = new HashMap<>();

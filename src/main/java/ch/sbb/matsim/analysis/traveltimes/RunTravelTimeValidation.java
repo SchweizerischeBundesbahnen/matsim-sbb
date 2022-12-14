@@ -9,7 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Activity;
@@ -40,7 +41,7 @@ import org.matsim.facilities.Facility;
 
 public class RunTravelTimeValidation {
 
-    private static final Logger log = Logger.getLogger(RunTravelTimeValidation.class);
+    private static final Logger log = LogManager.getLogger(RunTravelTimeValidation.class);
     private final double startTime;
     private final Network network;
     private final NetworkRoutingModule router;

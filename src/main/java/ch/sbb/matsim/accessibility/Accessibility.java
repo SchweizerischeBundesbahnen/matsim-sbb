@@ -8,7 +8,8 @@ import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.TravelInfo;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
@@ -67,7 +68,7 @@ import java.util.function.Predicate;
  */
 public class Accessibility {
 
-	private final static Logger log = Logger.getLogger(Accessibility.class);
+	private final static Logger log = LogManager.getLogger(Accessibility.class);
 
 	private final String networkFilename;
 	private final String eventsFilename;

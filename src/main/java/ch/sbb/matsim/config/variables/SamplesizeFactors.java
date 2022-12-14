@@ -22,7 +22,8 @@ package ch.sbb.matsim.config.variables;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 
@@ -65,7 +66,7 @@ public class SamplesizeFactors {
     }
 
     public static void setFlowAndStorageCapacities(Config config) {
-        var log = Logger.getLogger(SamplesizeFactors.class);
+        var log = LogManager.getLogger(SamplesizeFactors.class);
         double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         log.info("Setting flow and storage capacity factors according to sample size: " + sampleSize);
         config.qsim().setFlowCapFactor(sampleSize);

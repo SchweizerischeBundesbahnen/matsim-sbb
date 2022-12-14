@@ -23,6 +23,7 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.streets.MergeRuralLinks;
+import ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
@@ -38,12 +39,13 @@ import java.util.zip.GZIPOutputStream;
 
 public class CarLinkAnalysis {
 
-    private static final String[] VOLUMES_COLUMNS = new String[]{
-            "LINK_ID_SIM",
-            "FROMNODENO",
-            "TONODENO",
-            "VOLUME_SIM"
-    };
+    private static final String LINK_NO = "$LINK:NO";
+    private static final String FROMNODENO = "FROMNODENO";
+    private static final String TONODENO = "TONODENO";
+    private static final String LINK_ID_SIM = "LINK_ID_SIM";
+    private static final String VOLUME_SIM = "VOLUME_SIM";
+    private static final String[] VOLUMES_COLUMNS = new String[]{LINK_NO, FROMNODENO, TONODENO, LINK_ID_SIM, VOLUME_SIM};
+    private static final String HEADER = "$VISION\n* Schweizerische Bundesbahnen SBB Personenverkehr Bern\n* 12/09/22\n* \n* Table: Version block\n* \n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n12.00;Att;ENG;KM\n\n* \n* Table: Links\n* \n";
     private final Network network;
     private final double samplesize;
     final IterationLinkAnalyzer linkAnalyzer;
@@ -87,15 +89,17 @@ public class CarLinkAnalysis {
     public void writeSingleIterationCarStats(String fileName) {
         var linkVolumes = linkAnalyzer.getIterationCounts();
 
-        try (CSVWriter writer = new CSVWriter("", VOLUMES_COLUMNS, fileName)) {
+        try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, fileName)) {
             for (Map.Entry<Id<Link>, Integer> entry : linkVolumes.entrySet()) {
 
                 Link link = network.getLinks().get(entry.getKey());
                 if (link != null) {
                     if (link.getAllowedModes().contains(SBBModes.CAR)) {
                         double volume = entry.getValue();
+                        String visumNo = String.valueOf(VisumStreetNetworkExporter.extractVisumLinkId(link.getId()));
+                        writer.set(LINK_NO, visumNo);
                         String id = link.getId().toString();
-                        writer.set("LINK_ID_SIM", id);
+                        writer.set(LINK_ID_SIM, id);
                         String vnodes = (String) link.getAttributes().getAttribute(MergeRuralLinks.VNODES);
                         final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
                         final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
@@ -106,23 +110,26 @@ public class CarLinkAnalysis {
                             for (String node : nodes) {
                                 String currentToNode = node;
                                 currentToNode = currentToNode.startsWith("C_") ? currentToNode.substring(2) : currentToNode;
-                                writer.set("LINK_ID_SIM", id);
-                                writer.set("FROMNODENO", currentFromNode);
-                                writer.set("TONODENO", currentToNode);
-                                writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
+                                writer.set(LINK_NO, visumNo);
+                                writer.set(FROMNODENO, currentFromNode);
+                                writer.set(TONODENO, currentToNode);
+                                writer.set(LINK_ID_SIM, id);
+                                writer.set(VOLUME_SIM, Integer.toString((int) (volume / samplesize)));
                                 writer.writeRow();
                                 currentFromNode = currentToNode;
 
                             }
-                            writer.set("LINK_ID_SIM", id);
-                            writer.set("FROMNODENO", currentFromNode);
+                            writer.set(LINK_NO, visumNo);
+                            writer.set(FROMNODENO, currentFromNode);
+                            writer.set(LINK_ID_SIM, id);
 
                         } else {
-                            writer.set("LINK_ID_SIM", id);
-                            writer.set("FROMNODENO", fromNode);
+                            writer.set(LINK_NO, visumNo);
+                            writer.set(FROMNODENO, fromNode);
+                            writer.set(LINK_ID_SIM, id);
                         }
-                        writer.set("TONODENO", toNode);
-                        writer.set("VOLUME_SIM", Integer.toString((int) (volume / samplesize)));
+                        writer.set(TONODENO, toNode);
+                        writer.set(VOLUME_SIM, Integer.toString((int) (volume / samplesize)));
                         writer.writeRow();
 
                     }

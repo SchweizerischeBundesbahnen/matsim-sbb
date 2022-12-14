@@ -28,7 +28,8 @@ import ch.sbb.matsim.preparation.casestudies.MixExperiencedPlansFromSeveralSimul
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.*;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
@@ -56,7 +57,7 @@ import java.util.stream.Collectors;
 
 public class PutSurveyWriter {
 
-    private final static Logger LOG = Logger.getLogger(MixExperiencedPlansFromSeveralSimulations.class);
+    private final static Logger LOG = LogManager.getLogger(MixExperiencedPlansFromSeveralSimulations.class);
 
     private static final String GEM_SHAPE_ATTR = "mun_id";
 

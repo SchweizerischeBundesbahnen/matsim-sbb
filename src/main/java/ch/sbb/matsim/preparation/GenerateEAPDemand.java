@@ -6,8 +6,8 @@ import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.commons.lang.mutable.MutableInt;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -118,7 +118,7 @@ public class GenerateEAPDemand {
             String homeZone = zoneSelector.select();
             final Zone zone = zones.getZone(Id.create(homeZone, Zone.class));
             if (zone == null) {
-                Logger.getLogger(getClass()).error("Zone " + homeZone + " is not in Shape. ");
+                LogManager.getLogger(getClass()).error("Zone " + homeZone + " is not in Shape. ");
                 continue;
             }
             var facilities = facilitiesPerMunId.get(String.valueOf(zone.getAttribute("mun_id")));
@@ -130,7 +130,7 @@ public class GenerateEAPDemand {
                 homeCoord = scenario.getActivityFacilities().getFacilities().get(homefacId).getCoord();
 
             } else {
-                Logger.getLogger(getClass()).error("Zone " + homeZone + " has no facilities. ");
+                LogManager.getLogger(getClass()).error("Zone " + homeZone + " has no facilities. ");
 
                 var c = zone.getEnvelope().centre();
                 homeCoord = new Coord(c.x, c.y);
@@ -159,7 +159,7 @@ public class GenerateEAPDemand {
             Coord homeCoord;
             final Zone zone = zones.getZone(Id.create(homeZone, Zone.class));
             if (zone == null) {
-                Logger.getLogger(getClass()).error("Zone " + homeZone + " is not in Shape. ");
+                LogManager.getLogger(getClass()).error("Zone " + homeZone + " is not in Shape. ");
                 continue;
             }
             var facilities = facilitiesPerMunId.get(String.valueOf(zone.getAttribute("mun_id")));
@@ -170,7 +170,7 @@ public class GenerateEAPDemand {
                 homeCoord = scenario.getActivityFacilities().getFacilities().get(homefacId).getCoord();
 
             } else {
-                Logger.getLogger(getClass()).error("Zone " + homeZone + " has no facilities. ");
+                LogManager.getLogger(getClass()).error("Zone " + homeZone + " has no facilities. ");
                 var c = zone.getEnvelope().centre();
                 homeCoord = new Coord(c.x, c.y);
             }

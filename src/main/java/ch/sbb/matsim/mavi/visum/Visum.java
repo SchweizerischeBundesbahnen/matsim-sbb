@@ -5,12 +5,13 @@ import com.jacob.com.Dispatch;
 import com.jacob.com.SafeArray;
 import com.jacob.com.Variant;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.locationtech.jts.util.Assert;
 
 public class Visum {
 
-	private static final Logger log = Logger.getLogger(Visum.class);
+	private static final Logger log = LogManager.getLogger(Visum.class);
 
 	private final ActiveXComponent visum;
 

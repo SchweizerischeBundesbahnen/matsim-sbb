@@ -13,7 +13,8 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
@@ -38,7 +39,7 @@ public class PtVolumeToCSV implements TransitDriverStartsEventHandler,
 		VehicleDepartsAtFacilityEventHandler,
 		EventsAnalysis {
 
-	private static final Logger log = Logger.getLogger(PtVolumeToCSV.class);
+	private static final Logger log = LogManager.getLogger(PtVolumeToCSV.class);
 
 	private static final String FILENAME_STOPS = "matsim_stops.csv.gz";
 	private static final String FILENAME_VEHJOURNEYS = "matsim_vehjourneys.csv.gz";

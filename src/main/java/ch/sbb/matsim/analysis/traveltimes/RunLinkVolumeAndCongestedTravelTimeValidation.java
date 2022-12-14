@@ -5,12 +5,9 @@ import ch.sbb.matsim.csv.CSVWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.matsim.api.core.v01.Id;
@@ -32,7 +29,7 @@ import org.matsim.counts.CountSimComparison;
 import org.matsim.counts.CountSimComparisonImpl;
 import org.matsim.counts.Counts;
 import org.matsim.counts.MatsimCountsReader;
-import org.matsim.counts.algorithms.CountSimComparisonKMLWriter;
+import org.matsim.counts.algorithms.CountSimComparisonTableWriter;
 
 /**
  * @author jbischoff / SBB
@@ -123,7 +120,7 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 					String chartfilename = link.getId().toString() + "_" + count.getCsLabel().replace(",", "").replace("\\", "-").replace("/", "-").toLowerCase();
 					ChartUtils.writeChartAsPNG(Files.newOutputStream(Paths.get(outputFolder + "/" + chartfilename + ".png")), chart, 1200, 750);
 				} else {
-					Logger.getLogger(getClass()).warn(count.getId() + " , " + count.getCsLabel() + " was not found in network, but is in counts. Skipping.");
+					LogManager.getLogger(getClass()).warn(count.getId() + " , " + count.getCsLabel() + " was not found in network, but is in counts. Skipping.");
 				}
 
 			}
@@ -131,7 +128,7 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 
 		}
 
-		new CountSimComparisonKMLWriter<>(comparisons, counts, new CH1903LV03PlustoWGS84(), "Sim-Counts-Comparison").writeFile(outputFolder + "/counts.kmz");
+		new CountSimComparisonTableWriter(comparisons, Locale.ENGLISH).writeFile(outputFolder + "/counts.csv");
 	}
 
 }

@@ -10,7 +10,8 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -57,7 +58,7 @@ import java.util.stream.Collectors;
 public class AccessEgressRouteCache {
 
 	public static final double FREESPEED_TRAVELTIME_FACTOR = 1.25;
-	private final static Logger LOGGER = Logger.getLogger(AccessEgressRouteCache.class);
+	private final static Logger LOGGER = LogManager.getLogger(AccessEgressRouteCache.class);
 	private final static Vehicle VEHICLE = VehicleUtils.getFactory().createVehicle(Id.create("theVehicle", Vehicle.class), VehicleUtils.getDefaultVehicleType());
 	private final static Person PERSON = PopulationUtils.getFactory().createPerson(Id.create("thePerson", Person.class));
 	private final Map<String, SBBIntermodalModeParameterSet> intermodalModeParams = new HashMap<>();

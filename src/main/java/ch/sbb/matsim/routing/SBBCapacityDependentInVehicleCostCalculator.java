@@ -12,10 +12,10 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.vehicles.Vehicle;
 
 public class SBBCapacityDependentInVehicleCostCalculator implements RaptorInVehicleCostCalculator {
-    double minimumCostFactor = 0.4D;
-    double lowerCapacityLimit = 0.3D;
-    double higherCapacityLimit = 0.6D;
-    double maximumCostFactor = 1.8D;
+    double minimumCostFactor = 0.8D;
+    double lowerCapacityLimit = 0.4D;
+    double higherCapacityLimit = 0.7D;
+    double maximumCostFactor = 1.2D;
 
     public SBBCapacityDependentInVehicleCostCalculator() {
     }

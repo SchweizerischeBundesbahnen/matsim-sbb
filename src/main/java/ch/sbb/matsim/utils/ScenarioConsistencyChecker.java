@@ -33,7 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
@@ -46,7 +47,7 @@ import org.matsim.vehicles.Vehicle;
 
 public class ScenarioConsistencyChecker {
 
-	public static final Logger LOGGER = Logger.getLogger(ScenarioConsistencyChecker.class);
+	public static final Logger LOGGER = LogManager.getLogger(ScenarioConsistencyChecker.class);
 	private static String logmessage = "";
 
 	public static void checkScenarioConsistency(Scenario scenario) {

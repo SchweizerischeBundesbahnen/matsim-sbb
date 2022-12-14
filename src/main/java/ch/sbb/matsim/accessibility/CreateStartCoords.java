@@ -1,6 +1,7 @@
 package ch.sbb.matsim.accessibility;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.io.IOUtils;
 
@@ -10,7 +11,7 @@ import java.util.*;
 
 public class CreateStartCoords {
 
-	private final static Logger LOG = Logger.getLogger(CreateStartCoords.class);
+	private final static Logger LOG = LogManager.getLogger(CreateStartCoords.class);
 
 	public static void main(String[] args) {
 		System.setProperty("matsim.preferLocalDtds", "true");

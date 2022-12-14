@@ -2,7 +2,8 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.visum.Visum;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -18,11 +19,12 @@ import org.matsim.vehicles.VehicleType.DoorOperationMode;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class TimeProfileExporter {
 
-	private static final Logger log = Logger.getLogger(TimeProfileExporter.class);
+	private static final Logger log = LogManager.getLogger(TimeProfileExporter.class);
 
 	private final NetworkFactory networkBuilder;
 	private final TransitScheduleFactory scheduleBuilder;
@@ -70,7 +72,7 @@ public class TimeProfileExporter {
 			lrItemsPerLineRoute.computeIfAbsent(lrKey, k -> new ArrayList<>()).add(new LineRouteItem(Integer.parseInt(row[3]), row[4], row[5]));
 		}
 		log.info("sorting LineRouteItems");
-		lrItemsPerLineRoute.forEach((key, list) -> list.sort((o1, o2) -> Integer.compare(o1.index, o2.index)));
+		lrItemsPerLineRoute.forEach((key, list) -> list.sort(Comparator.comparingInt(o -> o.index)));
 
 		log.info("loading TimeProfiles");
 		// time profiles
@@ -163,12 +165,17 @@ public class TimeProfileExporter {
 			}
 
 			TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(row[0]));
-			tp.addTimeProfileItem(new TimeProfileItem((int) Double.parseDouble(row[1]),
-					(int) Double.parseDouble(row[2]),
-					Double.parseDouble(row[3]),
-					Double.parseDouble(row[4]),
-					Double.parseDouble(row[5]),
-					linkSequence));
+			try {
+				tp.addTimeProfileItem(new TimeProfileItem((int) Double.parseDouble(row[1]),
+						(int) Double.parseDouble(row[2]),
+						Double.parseDouble(row[3]),
+						Double.parseDouble(row[4]),
+						Double.parseDouble(row[5]),
+						linkSequence));
+			} catch (Exception e) {
+				LogManager.getLogger(TimeProfileExporter.class).error(" Could not add TPI for row " + Arrays.stream(row).collect(Collectors.toList()));
+				e.printStackTrace();
+			}
 		}
 
 		return timeProfileMap;
@@ -319,7 +326,7 @@ public class TimeProfileExporter {
 					if (routeLinks.size() > 0) {
 						routeLinks.remove(routeLinks.size() - 1);
 					} else {
-						Logger.getLogger(getClass()).warn(routeID + " has no links along route");
+						LogManager.getLogger(getClass()).warn(routeID + " has no links along route");
 					}
 					NetworkRoute netRoute = RouteUtils.createLinkNetworkRouteImpl(startLink, endLink);
 					netRoute.setLinkIds(startLink, routeLinks, endLink);

@@ -16,7 +16,8 @@ import java.util.stream.Collectors;
 import omx.OmxFile;
 import omx.OmxLookup.OmxIntLookup;
 import omx.OmxMatrix.OmxFloatMatrix;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.misc.Time;
@@ -28,7 +29,7 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
  */
 public class CalculateIndicatorOMXMatrices {
 
-    static final Logger log = Logger.getLogger(CalculateIndicatorOMXMatrices.class);
+    static final Logger log = LogManager.getLogger(CalculateIndicatorOMXMatrices.class);
 
     public static void main(String[] args) throws IOException {
         System.setProperty("matsim.preferLocalDtds", "true");

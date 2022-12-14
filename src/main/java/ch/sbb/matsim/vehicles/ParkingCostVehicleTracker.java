@@ -2,7 +2,8 @@ package ch.sbb.matsim.vehicles;
 
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.events.ParkingCostEvent;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.ActivityStartEvent;
@@ -26,7 +27,7 @@ import java.util.Map;
  */
 public class ParkingCostVehicleTracker implements ActivityStartEventHandler, VehicleEntersTrafficEventHandler, VehicleLeavesTrafficEventHandler {
 
-	private final static Logger log = Logger.getLogger(ParkingCostVehicleTracker.class);
+	private final static Logger log = LogManager.getLogger(ParkingCostVehicleTracker.class);
 
 	private final Map<Id<Vehicle>, ParkingInfo> parkingPerVehicle = new HashMap<>();
 	private final Map<Id<Person>, Id<Vehicle>> lastVehiclePerDriver = new HashMap<>();

@@ -12,7 +12,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -28,7 +29,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 
 public class VisumStreetNetworkExporter {
 
-    private final static Logger log = Logger.getLogger(VisumStreetNetworkExporter.class);
+    private final static Logger log = LogManager.getLogger(VisumStreetNetworkExporter.class);
 
     private Scenario scenario;
     private NetworkFactory nf;
@@ -51,6 +52,10 @@ public class VisumStreetNetworkExporter {
 
 	public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
         return Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
+	}
+
+	public static int extractVisumLinkId(Id<Link> linkId) {
+		return Integer.parseInt(linkId.toString().split("_")[1], 36);
 	}
 
 	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {

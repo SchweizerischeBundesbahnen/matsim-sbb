@@ -25,7 +25,7 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
@@ -363,7 +363,13 @@ public class TripsAndDistanceStats {
     }
 
     private boolean isSwiss(Link link) {
-        return (boolean) link.getAttributes().getAttribute(IS_CH);
+        try {
+            return (boolean) link.getAttributes().getAttribute(IS_CH);
+        } catch (RuntimeException a) {
+            a.printStackTrace();
+
+            return false;
+        }
     }
 
     private static class SubpopulationStats {

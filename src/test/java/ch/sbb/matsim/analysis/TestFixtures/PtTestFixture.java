@@ -212,7 +212,7 @@ public class PtTestFixture {
 				.addQSimModule(new SBBTransitEngineQSimModule())
 				.addQSimModule(new TestQSimModule(config))
 				.configureQSimComponents(configurator -> {
-					SBBTransitEngineQSimModule.configure(configurator);
+					new SBBTransitEngineQSimModule().configure(configurator);
 					configurator.addNamedComponent(ActivityEngineModule.COMPONENT_NAME);
 					configurator.addNamedComponent(PopulationModule.COMPONENT_NAME);
 				})
