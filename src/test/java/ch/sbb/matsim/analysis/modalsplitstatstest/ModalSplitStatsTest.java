@@ -580,12 +580,58 @@ public class ModalSplitStatsTest {
             while ((line = reader.readLine()) != null) {
                 var tmpLine = line.split(";");
 
-                if (tmpLine[header.indexOf("Stop_Nummer")].equals("3289")) {
+                if (tmpLine[header.indexOf("HST_Nummer")].equals("3289")) {
                     Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ziel_Aussteiger")]));
                     Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("Quell_Einsteiger")]));
                     Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ziel_Aussteiger")]));
-                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ziel_Aussteiger")]));
-                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ziel_Aussteiger")]));
+                }
+                if (tmpLine[header.indexOf("HST_Nummer")].equals("1800")) {
+                    Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("Ziel_Aussteiger")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Umsteiger_Simba_Simba")]));
+                }
+                if (tmpLine[header.indexOf("HST_Nummer")].equals("2194")) {
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quell_Einsteiger")]));
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_stop_stations_count.csv"))) {
+
+            List<String> header = List.of(reader.readLine().split(";"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                var tmpLine = line.split(";");
+
+                if (tmpLine[header.indexOf("Stop_Nummer")].equals("3289")) {
+                    Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("Einstiege_Gesamt")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ausstiege_Gesamt")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_walk")]));
+                    Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_walk")]));
+                }
+                if (tmpLine[header.indexOf("Stop_Nummer")].equals("1800")) {
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Einstiege_Gesamt")]));
+                    Assert.assertEquals(3, Long.parseLong(tmpLine[header.indexOf("Ausstiege_Gesamt")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_walk")]));
+                    Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_pt")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_pt")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_rail")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_rail")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_bus")]));
+                }
+                if (tmpLine[header.indexOf("Stop_Nummer")].equals("2194")) {
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Einstiege_Gesamt")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_walk")]));
+                }
+                if (tmpLine[header.indexOf("Stop_Nummer")].equals("485773991")) {
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Einstiege_Gesamt")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_pt")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_rail")]));
+                }
+                if (tmpLine[header.indexOf("Stop_Nummer")].equals("485774092")) {
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ausstiege_Gesamt")]));
+                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_walk")]));
                 }
             }
         } catch (IOException e) {

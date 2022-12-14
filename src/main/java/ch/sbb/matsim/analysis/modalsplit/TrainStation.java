@@ -4,13 +4,12 @@ import ch.sbb.matsim.zones.Zone;
 import java.util.ArrayList;
 import java.util.List;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-import scala.reflect.internal.Trees.This;
 
 public class TrainStation {
 
     private List<TransitStopFacility> stops = new ArrayList<>();
     private final Zone zone;
-    private final String stopNummer;
+    private final String hstNummer;
     private final String stopCode;
 
     private int zielAussteiger = 0;
@@ -23,7 +22,7 @@ public class TrainStation {
     private int umsteigerTyp5b = 0;
 
     public TrainStation(TransitStopFacility transitStopFacility, Zone zone) {
-        this.stopNummer = transitStopFacility.getAttributes().getAttribute("02_Stop_No").toString();
+        this.hstNummer = transitStopFacility.getAttributes().getAttribute("02_Stop_No").toString();
         Object codeAttribute = transitStopFacility.getAttributes().getAttribute("03_Stop_Code");
         if (codeAttribute == null) {
             this.stopCode = "NA";
@@ -75,8 +74,8 @@ public class TrainStation {
         return zone.getId().toString();
     }
 
-    public String getStopNummer() {
-        return stopNummer;
+    public String getHstNummer() {
+        return hstNummer;
     }
     public String getStopCode() {
         return stopCode;
