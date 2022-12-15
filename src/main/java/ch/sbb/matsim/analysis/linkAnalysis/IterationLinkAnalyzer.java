@@ -36,15 +36,15 @@ import org.matsim.api.core.v01.network.Link;
  */
 public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEntersTrafficEventHandler {
 
-    private final IdMap<Link, Integer> countPerLink = new IdMap<>(Link.class);
+    private final IdMap<Link, LinkStorage> countPerLink = new IdMap<>(Link.class);
 
     @Override
     public void handleEvent(LinkEnterEvent event) {
         var linkId = event.getLinkId();
 
-        int count = countPerLink.getOrDefault(linkId, 0);
-        count++;
-        countPerLink.put(linkId, count);
+        var linkStorage = countPerLink.getOrDefault(linkId, new LinkStorage(linkId));
+        linkStorage.simCount++;
+        countPerLink.put(linkId, linkStorage);
 
     }
 
@@ -52,9 +52,9 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
     public void handleEvent(VehicleEntersTrafficEvent event) {
         var linkId = event.getLinkId();
 
-        int count = countPerLink.getOrDefault(linkId, 0);
-        count++;
-        countPerLink.put(linkId, count);
+        var linkStorage = countPerLink.getOrDefault(linkId, new LinkStorage(linkId));
+        linkStorage.simCount++;
+        countPerLink.put(linkId, linkStorage);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
         countPerLink.clear();
     }
 
-    public Map<Id<Link>, Integer> getIterationCounts() {
+    public Map<Id<Link>, LinkStorage> getIterationCounts() {
         return countPerLink.entrySet().stream().collect(Collectors.toMap(Entry::getKey, Entry::getValue, (k, k2) -> k, TreeMap::new));
 
     }

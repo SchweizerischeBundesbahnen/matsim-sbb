@@ -40,7 +40,7 @@ public class CarLinkAnalysisTest {
         Fixture f = new Fixture();
         IterationLinkAnalyzer iterationLinkAnalyzer = new IterationLinkAnalyzer();
         f.events.addHandler(iterationLinkAnalyzer);
-        CarLinkAnalysis carLinkAnalysis = new CarLinkAnalysis(ConfigUtils.addOrGetModule(f.config, PostProcessingConfigGroup.class), f.scenario.getNetwork(), iterationLinkAnalyzer);
+        CarLinkAnalysis carLinkAnalysis = new CarLinkAnalysis(ConfigUtils.addOrGetModule(f.config, PostProcessingConfigGroup.class), f.scenario, iterationLinkAnalyzer);
 
         Id<Person> personId = Id.create(1, Person.class);
         Id<Vehicle> vehicleId = Id.create(2, Vehicle.class);
