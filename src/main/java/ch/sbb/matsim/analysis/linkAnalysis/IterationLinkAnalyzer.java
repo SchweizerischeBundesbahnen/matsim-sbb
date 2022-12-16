@@ -79,14 +79,14 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
         var linkStorage = countPerLink.getOrDefault(linkId, new LinkStorage(linkId));
 
         // Check if the vehicle is a Lkw
-        if (scenario.getPopulation().getPersons().get(event.getPersonId()).getAttributes().getAttribute("subpopulation").toString().contains(Variables.FREIGHT_ROAD)) {
-            linkStorage.increase(VehicleType.freight);
-            countPerLink.put(linkId, linkStorage);
-            identification.put(event.getVehicleId(), VehicleType.freight);
-        } else {
+        if (event.getPersonId().toString().contains("drt") || !scenario.getPopulation().getPersons().get(event.getPersonId()).getAttributes().getAttribute("subpopulation").toString().contains(Variables.FREIGHT_ROAD)) {
             linkStorage.increase(VehicleType.car);
             countPerLink.put(linkId, linkStorage);
             identification.put(event.getVehicleId(), VehicleType.car);
+        } else {
+            linkStorage.increase(VehicleType.freight);
+            countPerLink.put(linkId, linkStorage);
+            identification.put(event.getVehicleId(), VehicleType.freight);
         }
     }
 
