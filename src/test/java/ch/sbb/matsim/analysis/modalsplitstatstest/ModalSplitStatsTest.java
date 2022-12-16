@@ -3,7 +3,6 @@ package ch.sbb.matsim.analysis.modalsplitstatstest;
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.modalsplit.MSVariables;
 import ch.sbb.matsim.analysis.modalsplit.ModalSplitStats;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
@@ -100,7 +99,7 @@ public class ModalSplitStatsTest {
 
         modalSplitStats.analyzeAndWriteStats(output, experiencedPlans);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_modal_split_PF.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "SBB_modal_split_PF.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
@@ -161,7 +160,7 @@ public class ModalSplitStatsTest {
 
         modalSplitStats.analyzeAndWriteStats(output, experiencedPlans);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_distance_classes.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "SBB_distance_classes.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
@@ -232,7 +231,7 @@ public class ModalSplitStatsTest {
 
         modalSplitStats.analyzeAndWriteStats(output, experiencedPlans);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_middle_time_distribution.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "SBB_middle_time_distribution.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
@@ -310,7 +309,7 @@ public class ModalSplitStatsTest {
 
         modalSplitStats.analyzeAndWriteStats(output, experiencedPlans);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_travel_time_distribution.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "SBB_travel_time_distribution.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
@@ -391,7 +390,7 @@ public class ModalSplitStatsTest {
 
         modalSplitStats.analyzeAndWriteStats(output, experiencedPlans);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_modal_split_PF.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "SBB_modal_split_PF.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
@@ -483,7 +482,7 @@ public class ModalSplitStatsTest {
 
         modalSplitStats.analyzeAndWriteStats(output, experiencedPlans);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_modal_split_PKM.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "SBB_modal_split_PKM.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
@@ -534,7 +533,7 @@ public class ModalSplitStatsTest {
 
         modalSplitStats.analyzeAndWriteStats(output, experiencedPlans);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_changes_count.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "SBB_changes_count.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
@@ -560,7 +559,7 @@ public class ModalSplitStatsTest {
             throw new RuntimeException(e);
         }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_train_stations_count.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "SBB_train_stations_count.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
@@ -584,7 +583,7 @@ public class ModalSplitStatsTest {
             throw new RuntimeException(e);
         }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(output + "_SBB_stop_stations_count.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(output + "SBB_stop_stations_count.csv"))) {
 
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
