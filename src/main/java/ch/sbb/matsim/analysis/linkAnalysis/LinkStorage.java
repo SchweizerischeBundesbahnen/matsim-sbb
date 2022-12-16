@@ -10,11 +10,11 @@ public class LinkStorage {
 
     private final static Logger log = LogManager.getLogger(LinkStorage.class);
 
-    Id<Link> linkId;
+    private final Id<Link> linkId;
 
-    int freightCount = 0;
-    int carCount = 0;
-    int rideCount = 0;
+    private int freightCount = 0;
+    private int carCount = 0;
+    private int rideCount = 0;
 
     LinkStorage(Id<Link> linkId){
         this.linkId = linkId;
@@ -28,4 +28,19 @@ public class LinkStorage {
         }
     }
 
+    public Id<Link> getLinkId() {
+        return linkId;
+    }
+
+    public int getFreightCount() {
+        return freightCount;
+    }
+
+    public int getCarCount() {
+        return carCount;
+    }
+
+    public int getRideCount() {
+        return rideCount;
+    }
 }

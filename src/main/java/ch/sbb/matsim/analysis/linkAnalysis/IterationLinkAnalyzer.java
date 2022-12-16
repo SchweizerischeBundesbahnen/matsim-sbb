@@ -44,7 +44,7 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
     @Inject
     private Scenario scenario;
 
-    enum VehicleType {freight, car}
+    enum VehicleType {freight, car, ride}
     private final IdMap<Link, LinkStorage> countPerLink = new IdMap<>(Link.class);
     private Map<Id<Vehicle>, VehicleType> identification = new HashMap<>();
 

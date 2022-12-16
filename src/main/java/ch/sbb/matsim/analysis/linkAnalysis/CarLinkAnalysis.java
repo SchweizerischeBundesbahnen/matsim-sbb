@@ -19,6 +19,7 @@
 
 package ch.sbb.matsim.analysis.linkAnalysis;
 
+import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer.VehicleType;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
@@ -82,7 +83,7 @@ public class CarLinkAnalysis {
             w.newLine();
             w.write(iteration);
             for (Id<Link> l : carlinks) {
-                double vol = linkVolumes.getOrDefault(l, new LinkStorage(l)).freightCount / samplesize;
+                double vol = linkVolumes.getOrDefault(l, new LinkStorage(l)).getCarCount() + linkVolumes.getOrDefault(l, new LinkStorage(l)).getFreightCount() / samplesize;
                 w.write(";");
                 w.write(Integer.toString((int) vol));
             }
@@ -124,7 +125,9 @@ public class CarLinkAnalysis {
                                 writer.set(FROMNODENO, currentFromNode);
                                 writer.set(TONODENO, currentToNode);
                                 writer.set(LINK_ID_SIM, id);
-                                writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.freightCount / samplesize)));
+                                writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
+                                writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
+                                writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
                                 writer.writeRow();
                                 currentFromNode = currentToNode;
 
@@ -139,9 +142,9 @@ public class CarLinkAnalysis {
                             writer.set(LINK_ID_SIM, id);
                         }
                         writer.set(TONODENO, toNode);
-                        writer.set(VOLUME_CAR, Integer.toString((int) (volume.carCount / samplesize)));
-                        writer.set(VOLUME_RIDE, Integer.toString((int) (volume.rideCount / samplesize)));
-                        writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.freightCount / samplesize)));
+                        writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
+                        writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
+                        writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
                         writer.writeRow();
 
                     }
@@ -164,7 +167,7 @@ public class CarLinkAnalysis {
                     for (var link : linkIds) {
                         var linkId = Id.createLinkId(link);
                         var linkStorage = linkVolumes.getOrDefault(linkId, new LinkStorage(linkId));
-                        linkStorage.rideCount++;
+                        linkStorage.increase(VehicleType.ride);
                         linkVolumes.put(linkId, linkStorage);
                     }
                 }
