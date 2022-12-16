@@ -21,6 +21,6 @@ public class LongestMainModeIdentifier implements MainModeIdentifier {
         if (leg == null) {
             throw new NullPointerException("The tripElements schould contain at least one leg");
         }
-        return  new SBBAnalysisMainModeIdentifier().identifyMainMode(List.of(leg));
+        return new SBBAnalysisMainModeIdentifier().identifyMainMode(List.of(leg));
     }
 }

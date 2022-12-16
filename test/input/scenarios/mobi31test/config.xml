@@ -181,7 +181,7 @@
         <!-- Comma-separated list of visualizer output file formats. `transims', `googleearth', and `otfvis'. -->
         <param name="snapshotFormat" value=""/>
         <!-- iterationNumber % writeEventsInterval == 0 defines in which iterations events are written to a file. `0' disables events writing completely. -->
-        <param name="writeEventsInterval" value="0"/>
+        <param name="writeEventsInterval" value="1"/>
         <!-- iterationNumber % writePlansInterval == 0 defines (hopefully) in which iterations plans are written to a file. `0' disables plans writing completely.  Some plans in early iterations are always written -->
         <param name="writePlansInterval" value="1"/>
         <!-- iterationNumber % writeSnapshotsInterval == 0 defines in which iterations snapshots are written to a file. `0' disables snapshots writing completely -->

@@ -117,7 +117,7 @@ public class ModalSplitStats {
     public void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
 
         // prepare necessary information
-        this.outputLocation = outputLocation + "_SBB_";
+        this.outputLocation = outputLocation + "SBB_";
         this.stopStationsMap = generateStopStationMap();
         this.trainStationMap = generateTrainStationMap();
         this.modesMap = getModesMap();
