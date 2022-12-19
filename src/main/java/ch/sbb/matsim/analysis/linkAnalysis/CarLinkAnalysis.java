@@ -25,6 +25,8 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.streets.MergeRuralLinks;
 import ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
@@ -172,6 +174,45 @@ public class CarLinkAnalysis {
                     }
                 }
             }
+        }
+    }
+
+    static class LinkStorage {
+
+        private final static Logger log = LogManager.getLogger(LinkStorage.class);
+
+        private final Id<Link> linkId;
+
+        private int freightCount = 0;
+        private int carCount = 0;
+        private int rideCount = 0;
+
+        LinkStorage(Id<Link> linkId){
+            this.linkId = linkId;
+        }
+
+        public void increase(VehicleType vehicleType) {
+            switch (vehicleType) {
+                case freight -> freightCount++;
+                case car -> carCount++;
+                default -> log.warn("Vehicle type cannot be recognized");
+            }
+        }
+
+        public Id<Link> getLinkId() {
+            return linkId;
+        }
+
+        public int getFreightCount() {
+            return freightCount;
+        }
+
+        public int getCarCount() {
+            return carCount;
+        }
+
+        public int getRideCount() {
+            return rideCount;
         }
     }
 }

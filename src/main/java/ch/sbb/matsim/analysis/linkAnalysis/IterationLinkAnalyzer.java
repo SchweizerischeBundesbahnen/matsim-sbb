@@ -45,7 +45,7 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
     private Scenario scenario;
 
     enum VehicleType {freight, car, ride}
-    private final IdMap<Link, LinkStorage> countPerLink = new IdMap<>(Link.class);
+    private final IdMap<Link, CarLinkAnalysis.LinkStorage> countPerLink = new IdMap<>(Link.class);
     private Map<Id<Vehicle>, VehicleType> identification = new HashMap<>();
 
     public IterationLinkAnalyzer() {
@@ -58,7 +58,7 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
     @Override
     public void handleEvent(LinkEnterEvent event) {
         var linkId = event.getLinkId();
-        var linkStorage = countPerLink.getOrDefault(linkId, new LinkStorage(linkId));
+        var linkStorage = countPerLink.getOrDefault(linkId, new CarLinkAnalysis.LinkStorage(linkId));
         var vehicleType = identification.get(event.getVehicleId());
         // check if the vehicle schould be counted
         if (vehicleType != null) {
@@ -71,12 +71,12 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
     public void handleEvent(VehicleEntersTrafficEvent event) {
         var linkId = event.getLinkId();
 
-        // Skip all other pt vehicles
+        // Skip all pt vehicles
         if (event.getPersonId().toString().contains("pt")) {
             return;
         }
 
-        var linkStorage = countPerLink.getOrDefault(linkId, new LinkStorage(linkId));
+        var linkStorage = countPerLink.getOrDefault(linkId, new CarLinkAnalysis.LinkStorage(linkId));
 
         // Check if the vehicle is a Lkw
         if (event.getPersonId().toString().contains("drt") || !scenario.getPopulation().getPersons().get(event.getPersonId()).getAttributes().getAttribute("subpopulation").toString().contains(Variables.FREIGHT_ROAD)) {
@@ -95,7 +95,7 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
         countPerLink.clear();
     }
 
-    public Map<Id<Link>, LinkStorage> getIterationCounts() {
+    public Map<Id<Link>, CarLinkAnalysis.LinkStorage> getIterationCounts() {
         return countPerLink.entrySet().stream().collect(Collectors.toMap(Entry::getKey, Entry::getValue, (k, k2) -> k, TreeMap::new));
 
     }
