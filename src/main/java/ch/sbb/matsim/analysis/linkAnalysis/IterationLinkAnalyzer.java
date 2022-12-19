@@ -19,42 +19,75 @@
 
 package ch.sbb.matsim.analysis.linkAnalysis;
 
+import ch.sbb.matsim.config.variables.Variables;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.VehicleEntersTrafficEvent;
 import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.events.handler.VehicleEntersTrafficEventHandler;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.vehicles.Vehicle;
 
 /**
  * Counts the vehicles per iteration on all links
  */
 public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEntersTrafficEventHandler {
 
-    private final IdMap<Link, Integer> countPerLink = new IdMap<>(Link.class);
+    @Inject
+    private Scenario scenario;
+
+    enum VehicleType {freight, car, ride}
+    private final IdMap<Link, CarLinkAnalysis.LinkStorage> countPerLink = new IdMap<>(Link.class);
+    private Map<Id<Vehicle>, VehicleType> identification = new HashMap<>();
+
+    public IterationLinkAnalyzer() {
+    }
+
+    public IterationLinkAnalyzer(Scenario scenario) {
+        this.scenario = scenario;
+    }
 
     @Override
     public void handleEvent(LinkEnterEvent event) {
         var linkId = event.getLinkId();
-
-        int count = countPerLink.getOrDefault(linkId, 0);
-        count++;
-        countPerLink.put(linkId, count);
-
+        var linkStorage = countPerLink.getOrDefault(linkId, new CarLinkAnalysis.LinkStorage(linkId));
+        var vehicleType = identification.get(event.getVehicleId());
+        // check if the vehicle schould be counted
+        if (vehicleType != null) {
+            linkStorage.increase(vehicleType);
+            countPerLink.put(linkId, linkStorage);
+        }
     }
 
     @Override
     public void handleEvent(VehicleEntersTrafficEvent event) {
         var linkId = event.getLinkId();
 
-        int count = countPerLink.getOrDefault(linkId, 0);
-        count++;
-        countPerLink.put(linkId, count);
+        // Skip all pt vehicles
+        if (event.getPersonId().toString().contains("pt")) {
+            return;
+        }
+
+        var linkStorage = countPerLink.getOrDefault(linkId, new CarLinkAnalysis.LinkStorage(linkId));
+
+        // Check if the vehicle is a Lkw
+        if (event.getPersonId().toString().contains("drt") || !scenario.getPopulation().getPersons().get(event.getPersonId()).getAttributes().getAttribute("subpopulation").toString().contains(Variables.FREIGHT_ROAD)) {
+            linkStorage.increase(VehicleType.car);
+            countPerLink.put(linkId, linkStorage);
+            identification.put(event.getVehicleId(), VehicleType.car);
+        } else {
+            linkStorage.increase(VehicleType.freight);
+            countPerLink.put(linkId, linkStorage);
+            identification.put(event.getVehicleId(), VehicleType.freight);
+        }
     }
 
     @Override
@@ -62,7 +95,7 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
         countPerLink.clear();
     }
 
-    public Map<Id<Link>, Integer> getIterationCounts() {
+    public Map<Id<Link>, CarLinkAnalysis.LinkStorage> getIterationCounts() {
         return countPerLink.entrySet().stream().collect(Collectors.toMap(Entry::getKey, Entry::getValue, (k, k2) -> k, TreeMap::new));
 
     }

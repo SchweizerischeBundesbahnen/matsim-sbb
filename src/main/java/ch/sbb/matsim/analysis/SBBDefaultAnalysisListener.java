@@ -58,7 +58,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
         this.controlerIO = controlerIO;
         this.config = config;
         this.ppConfig = ppConfig;
-        this.carLinkAnalysis = new CarLinkAnalysis(ppConfig, scenario.getNetwork(), iterationLinkAnalyzer);
+        this.carLinkAnalysis = new CarLinkAnalysis(ppConfig, scenario, iterationLinkAnalyzer);
     }
 
     @Override

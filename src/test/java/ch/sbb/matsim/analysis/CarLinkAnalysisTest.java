@@ -21,6 +21,9 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -38,9 +41,9 @@ public class CarLinkAnalysisTest {
     @Test
     public void testLinkVolumeTracking() throws IOException {
         Fixture f = new Fixture();
-        IterationLinkAnalyzer iterationLinkAnalyzer = new IterationLinkAnalyzer();
+        IterationLinkAnalyzer iterationLinkAnalyzer = new IterationLinkAnalyzer(f.scenario);
         f.events.addHandler(iterationLinkAnalyzer);
-        CarLinkAnalysis carLinkAnalysis = new CarLinkAnalysis(ConfigUtils.addOrGetModule(f.config, PostProcessingConfigGroup.class), f.scenario.getNetwork(), iterationLinkAnalyzer);
+        CarLinkAnalysis carLinkAnalysis = new CarLinkAnalysis(ConfigUtils.addOrGetModule(f.config, PostProcessingConfigGroup.class), f.scenario, iterationLinkAnalyzer);
 
         Id<Person> personId = Id.create(1, Person.class);
         Id<Vehicle> vehicleId = Id.create(2, Vehicle.class);
@@ -95,6 +98,7 @@ public class CarLinkAnalysisTest {
             this.config = ConfigUtils.createConfig();
             prepareConfig();
             this.scenario = ScenarioUtils.createScenario(this.config);
+            prePopulation();
             createNetwork();
             prepareEvents();
         }
@@ -103,6 +107,17 @@ public class CarLinkAnalysisTest {
             PostProcessingConfigGroup postProcessingConfigGroup = new PostProcessingConfigGroup();
             postProcessingConfigGroup.setSimulationSampleSize(1.0);
             config.addModule(postProcessingConfigGroup);
+        }
+
+        private void prePopulation() {
+            Population population = scenario.getPopulation();
+            PopulationFactory populationFactory = population.getFactory();
+            Person person = populationFactory.createPerson(Id.createPersonId(1));
+            population.addPerson(person);
+            person.getAttributes().putAttribute("subpopulation", "regular");
+            Plan plan = populationFactory.createPlan();
+            person.addPlan(plan);
+            person.setSelectedPlan(plan);
         }
 
         private void createNetwork() {
