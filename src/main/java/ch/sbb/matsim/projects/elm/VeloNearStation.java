@@ -19,7 +19,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-public final class VeloAtStation {
+public final class VeloNearStation {
 
     private final static int distance = 300;
     private static String plansFile1 = "Z:/99_Playgrounds/MD/MOBI33IT.output_experienced_plans.xml.gz";
@@ -29,7 +29,7 @@ public final class VeloAtStation {
     private static double sampleSize = 0.1;
     private static String year = "2017";
 
-    private VeloAtStation() {
+    private VeloNearStation() {
     }
 
     public static void main(String[] args) {
