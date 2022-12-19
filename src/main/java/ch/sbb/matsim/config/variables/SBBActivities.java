@@ -2,6 +2,7 @@ package ch.sbb.matsim.config.variables;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,6 +19,8 @@ public final class SBBActivities {
 	public static final String cbHome = "cbHome";
 	public static final String exogeneous = "Exogenous";
 	public static final String freight = "freight";
+
+	public static final List<String> activities = List.of(home,education,work,business,leisure,shopping,accompany,other,cbHome,freight,exogeneous);
 
 	public final static Map<String, String> abmActs2matsimActs;
 	public final static Map<String, String> matsimActs2abmActs;

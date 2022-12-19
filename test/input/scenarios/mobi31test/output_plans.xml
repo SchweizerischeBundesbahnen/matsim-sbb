@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE population SYSTEM "http://www.matsim.org/files/dtd/population_v6.dtd">
+
+<population>
+
+	<attributes>
+		<attribute name="coordinateReferenceSystem" class="java.lang.String">CH1903plus_LV95</attribute>
+	</attributes>
+
+
+<!-- ====================================================================== -->
+
+	<person id="1">
+		<attributes>
+			<attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
+			<attribute name="bike2pt" class="java.lang.String">0</attribute>
+			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
+			<attribute name="car2pt" class="java.lang.String">0</attribute>
+			<attribute name="car2pt_act" class="java.lang.String"></attribute>
+			<attribute name="car_available" class="java.lang.Integer">0</attribute>
+			<attribute name="current_edu" class="java.lang.String">null</attribute>
+			<attribute name="level_of_employment_cat" class="java.lang.String">40_to_79</attribute>
+			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+			<attribute name="ride2pt" class="java.lang.String">0</attribute>
+			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
+			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
+		</attributes>
+		<plan score="138.67823854418486" selected="yes">
+			<activity type="home_1260" facility="2" x="2683158.50435868" y="1248057.07470594" start_time="06:00:00" end_time="06:00:00" >
+			</activity>
+			<leg mode="walk" dep_time="06:00:00" trav_time="00:00:00">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="generic" start_link="9xu4_kolu" end_link="pt_3289" trav_time="00:00:00" distance="0.0"></route>
+			</leg>
+			<activity type="pt interaction" link="pt_3289" x="2683158.50435868" y="1248057.07470594" max_dur="00:00:00" >
+			</activity>
+			<leg mode="pt" dep_time="06:00:00" trav_time="00:46:00">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="default_pt" start_link="pt_3289" end_link="pt_1800" trav_time="00:46:00" distance="45266.02">{"transitRouteId":"137913_1_7","boardingTime":"06:09:00","transitLineId":"Simba2017_041-B-01133","accessFacilityId":"3289","egressFacilityId":"1800"}</route>
+			</leg>
+			<activity type="pt interaction" link="pt_1800" x="2684408.00188822" y="1211500.0033789" max_dur="00:00:00" >
+			</activity>
+			<leg mode="walk" dep_time="06:46:00" trav_time="00:00:00">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="generic" start_link="pt_1800" end_link="9yu9_om3s" trav_time="00:00:00" distance="0.0"></route>
+			</leg>
+			<activity type="home_1260" facility="3" x="2684408.00188822" y="1211500.0033789" start_time="09:00:00" end_time="10:00:00" >
+			</activity>
+		</plan>
+
+	</person>
+
+<!-- ====================================================================== -->
+
+	<person id="4">
+		<attributes>
+			<attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
+			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
+			<attribute name="bike2pt" class="java.lang.String">0</attribute>
+			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
+			<attribute name="car2pt" class="java.lang.String">1</attribute>
+			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.String">null</attribute>
+			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+			<attribute name="ride2pt" class="java.lang.String">0</attribute>
+			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
+			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
+		</attributes>
+		<plan score="136.30893016501463" selected="yes">
+			<activity type="home_1260" facility="5" x="2683158.50435868" y="1248057.07470594" start_time="06:00:00" end_time="06:00:00" >
+			</activity>
+			<leg mode="walk" dep_time="06:00:00" trav_time="00:00:00">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="generic" start_link="9xu4_kolu" end_link="pt_3289" trav_time="00:00:00" distance="0.0"></route>
+			</leg>
+			<activity type="pt interaction" link="pt_3289" x="2683158.50435868" y="1248057.07470594" max_dur="00:00:00" >
+			</activity>
+			<leg mode="pt" dep_time="06:00:00" trav_time="00:46:00">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="default_pt" start_link="pt_3289" end_link="pt_1800" trav_time="00:46:00" distance="45266.02">{"transitRouteId":"137913_1_7","boardingTime":"06:09:00","transitLineId":"Simba2017_041-B-01133","accessFacilityId":"3289","egressFacilityId":"1800"}</route>
+			</leg>
+			<activity type="pt interaction" link="pt_1800" x="2684408.00188822" y="1211500.0033789" max_dur="00:00:00" >
+			</activity>
+			<leg mode="walk" dep_time="06:46:00" trav_time="00:03:28">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="generic" start_link="pt_1800" end_link="pt_485773991" trav_time="00:03:28" distance="278.0"></route>
+			</leg>
+			<activity type="pt interaction" link="pt_485773991" x="2684523.42535886" y="1211679.24550913" max_dur="00:00:00" >
+			</activity>
+			<leg mode="pt" dep_time="06:49:33" trav_time="00:22:27">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="default_pt" start_link="pt_485773991" end_link="pt_485774092" trav_time="00:22:27" distance="3687.7038438042787">{"transitRouteId":"85380_1_20","boardingTime":"07:05:00","transitLineId":"21_000839","accessFacilityId":"485773991","egressFacilityId":"485774092"}</route>
+			</leg>
+			<activity type="pt interaction" link="pt_485774092" x="2682366.43573555" y="1213209.95826697" max_dur="00:00:00" >
+			</activity>
+			<leg mode="walk" dep_time="07:12:00" trav_time="00:00:00">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="generic" start_link="pt_485774092" end_link="9su5_i6fi" trav_time="00:00:00" distance="0.0"></route>
+			</leg>
+			<activity type="home_1260" facility="6" x="2682366.43573555" y="1213209.95826697" start_time="09:00:00" end_time="10:00:00" >
+			</activity>
+		</plan>
+
+	</person>
+
+<!-- ====================================================================== -->
+
+	<person id="7">
+		<attributes>
+			<attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
+			<attribute name="bike2pt" class="java.lang.String">1</attribute>
+			<attribute name="bike2pt_act" class="java.lang.String">home</attribute>
+			<attribute name="car2pt" class="java.lang.String">1</attribute>
+			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+			<attribute name="car_available" class="java.lang.Integer">1</attribute>
+			<attribute name="current_edu" class="java.lang.String">null</attribute>
+			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+			<attribute name="ride2pt" class="java.lang.String">0</attribute>
+			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
+			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
+		</attributes>
+		<plan score="132.66453709421972" selected="yes">
+			<activity type="home_1260" facility="8" x="2666285.06178885" y="1211391.02916481" start_time="06:00:00" end_time="06:00:00" >
+			</activity>
+			<leg mode="walk" dep_time="06:00:00" trav_time="00:01:34">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="generic" start_link="9ilm_q91k" end_link="pt_2194" trav_time="00:01:34" distance="122.88074242682683"></route>
+			</leg>
+			<activity type="pt interaction" link="pt_2194" x="2666190.91928482" y="1211382.54924912" max_dur="00:00:00" >
+			</activity>
+			<leg mode="pt" dep_time="06:01:34" trav_time="00:36:26">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="default_pt" start_link="pt_2194" end_link="pt_1800" trav_time="00:36:26" distance="27814.07">{"transitRouteId":"137639_1_11","boardingTime":"06:06:00","transitLineId":"Simba2017_014-D-11708","accessFacilityId":"2194","egressFacilityId":"1800"}</route>
+			</leg>
+			<activity type="pt interaction" link="pt_1800" x="2684408.00188822" y="1211500.0033789" max_dur="00:00:00" >
+			</activity>
+			<leg mode="walk" dep_time="06:38:00" trav_time="00:03:00">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="generic" start_link="pt_1800" end_link="pt_1800" trav_time="00:03:00" distance="0.0"></route>
+			</leg>
+			<activity type="pt interaction" link="pt_1800" x="2684408.00188822" y="1211500.0033789" max_dur="00:00:00" >
+			</activity>
+			<leg mode="pt" dep_time="06:41:05" trav_time="01:09:55">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="default_pt" start_link="pt_1800" end_link="pt_3289" trav_time="01:09:55" distance="45266.01999999999">{"transitRouteId":"137915_1_7","boardingTime":"07:06:00","transitLineId":"Simba2017_041-B-01133","accessFacilityId":"1800","egressFacilityId":"3289"}</route>
+			</leg>
+			<activity type="pt interaction" link="pt_3289" x="2683158.50435868" y="1248057.07470594" max_dur="00:00:00" >
+			</activity>
+			<leg mode="walk" dep_time="07:51:00" trav_time="00:00:00">
+				<attributes>
+					<attribute name="routingMode" class="java.lang.String">pt</attribute>
+				</attributes>
+				<route type="generic" start_link="pt_3289" end_link="9xu4_kolu" trav_time="00:00:00" distance="0.0"></route>
+			</leg>
+			<activity type="home_1260" facility="9" x="2683158.50435868" y="1248057.07470594" start_time="09:00:00" end_time="10:00:00" >
+			</activity>
+		</plan>
+
+	</person>
+
+<!-- ====================================================================== -->
+
+<person id="mobi-test1">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">0_to_17</attribute>
+            <attribute name="car_available" class="java.lang.Integer">0</attribute>
+            <attribute name="current_edu" class="java.lang.String">pupil_secondary</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan score="120.46234876932293" selected="yes">
+            <activity type="home_960_17.0" link="9qaf_2o48" x="2681622.522142" y="1161336.37470735"
+                      start_time="08:01:27" end_time="08:01:27">
+                <attributes>
+                    <attribute name="next_trip_id" class="java.lang.String">1_1"</attribute>
+                </attributes>
+            </activity>
+        </plan>
+
+    </person>
+
+</population>

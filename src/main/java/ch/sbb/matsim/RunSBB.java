@@ -9,6 +9,7 @@ import ch.sbb.matsim.analysis.SBBEventAnalysis;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
+import ch.sbb.matsim.analysis.modalsplit.ModalSplitStats;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.config.variables.SBBModes;
@@ -138,6 +139,7 @@ public class RunSBB {
 				bind(PutSurveyWriter.class);
 				bind(TripsAndDistanceStats.class);
 				bind(ActivityWriter.class).asEagerSingleton();
+				bind(ModalSplitStats.class);
 				bind(IterationLinkAnalyzer.class).asEagerSingleton();
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
 				bind(TripsAndLegsCSVWriter.CustomLegsWriterExtension.class).to(SBBLegsExtension.class);

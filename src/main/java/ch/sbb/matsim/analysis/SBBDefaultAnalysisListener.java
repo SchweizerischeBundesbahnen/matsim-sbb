@@ -6,6 +6,7 @@ package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.analysis.linkAnalysis.CarLinkAnalysis;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
+import ch.sbb.matsim.analysis.modalsplit.ModalSplitStats;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
@@ -42,6 +43,9 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     private TripsAndDistanceStats tripsAndDistanceStats;
     @Inject
     private ActivityWriter activityWriter;
+
+    @Inject
+    private ModalSplitStats modalSplitStats;
 
     private final CarLinkAnalysis carLinkAnalysis;
 
@@ -100,6 +104,9 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "matsim_activities.csv.gz");
                 activityWriter.writeActivities(activityFilename);
 
+                String modalSpliteFileName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("")
+                    : controlerIO.getIterationFilename(event.getIteration(), "");
+                modalSplitStats.analyzeAndWriteStats(modalSpliteFileName);
             }
         }
         if (ppConfig.getDailyLinkVolumes()) {

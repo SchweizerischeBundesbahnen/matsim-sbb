@@ -25,8 +25,10 @@ public class Variables {
     public static final String TOURISM_RAIL = "tourism_rail";
     public static final String FREIGHT_ROAD = "freight_road";
     public static final List<String> EXOGENEOUS_DEMAND = List.of(AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
+    public static final List<String> SUBPOPULATIONS = List.of(REGULAR, AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
 
     public static final String PT_SUBSCRIPTION = "pt_subscr";
+    public static final String PT_SUBSCRIPTION_NONE = "none";
     public static final String GA = "GA";
     public static final String VA = "VA";
     public static final String HTA = "HTA";
@@ -45,6 +47,7 @@ public class Variables {
 
     public static final String CAR_AVAIL = "car_available";
     public static final String CAR_AVAL_TRUE = "1";
+    public static final String CAR_AVAL_FALSE = "0";
 
     public static final String OUTSIDE = "outside";
 
@@ -61,6 +64,25 @@ public class Variables {
     public static final String MUN_NAME = "mun_name";
     public static final String ACCESS_CONTROLLED = "accessControlled";
 
+    public static final String CURRENT_EDUCATION = "current_edu";
+    public static final String NOT_IN_EDUCATION = "null";
+    public static final String PRIMRAY = "pupil_primray";
+    public static final String SECONDARY = "pupil_secondary";
+    public static final String STUDENT = "student";
+
+    public static final String LEVEL_OF_EMPLOYMENT_CAT = "level_of_employment_cat";
+    public static final String LEVEL_OF_EMPLOYMENT_CAT_NONE = "0";
+    public static final String LEVEL_OF_EMPLOYMENT_CAT_01_to_39 = "1_to_39";
+    public static final String LEVEL_OF_EMPLOYMENT_CAT_40_to_79 = "40_to_79";
+    public static final String LEVEL_OF_EMPLOYMENT_CAT_80_to_100 = "80_to_100";
+
+    public static final String AGE_CATEGORIE = "age_cat";
+    public static final String AGE_CATEGORIE_0_17 = "0_to_17";
+    public static final String AGE_CATEGORIE_18_24 = "18_to_24";
+    public static final String AGE_CATEGORIE_25_44 = "25_to_44";
+    public static final String AGE_CATEGORIE_45_64 = "45_to_64";
+    public static final String AGE_CATEGORIE_65_74 = "65_to_74";
+    public static final String AGE_CATEGORIE_75_XX = "75_to_XX";
 
     public static class MOBiTripAttributes {
         public static final String TOUR_ID = "next_trip_tour_id";
