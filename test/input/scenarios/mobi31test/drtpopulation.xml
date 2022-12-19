@@ -23,33 +23,21 @@
         <plan selected="yes">
             <activity type="home" facility="328251" x="2688136.0" y="1166055.0"
                       start_time="08:01:27" end_time="08:01:27">
-                <attributes>
-                    <attribute name="next_trip_id" class="java.lang.String">1_1"</attribute>
-                </attributes>
             </activity>
             <leg mode="drt">
             </leg>
             <activity type="other" facility="1441145" x="2692123.0" y="1178951.0"
                       start_time="08:24:06" end_time="11:19:56">
-                <attributes>
-                    <attribute name="next_trip_id" class="java.lang.String">2_1"</attribute>
-                </attributes>
             </activity>
             <leg mode="drt">
             </leg>
             <activity type="home" facility="328251" x="2688136.0" y="1166055.0"
                       start_time="11:42:35" end_time="13:36:15">
-                <attributes>
-                    <attribute name="next_trip_id" class="java.lang.String">1_2"</attribute>
-                </attributes>
             </activity>
             <leg mode="walk_main">
             </leg>
             <activity type="leisure" facility="1725808" x="2688500.0" y="1165500.0"
                       start_time="13:45:46" end_time="15:01:53">
-                <attributes>
-                    <attribute name="next_trip_id" class="java.lang.String">2_2"</attribute>
-                </attributes>
             </activity>
             <leg mode="walk_main">
             </leg>

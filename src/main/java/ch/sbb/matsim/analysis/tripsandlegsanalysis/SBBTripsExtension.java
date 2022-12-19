@@ -90,8 +90,8 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
         if (visumTripIds != null) {
             Variables.MOBiTripAttributes tripAttributes = visumTripIds.poll();
             if (tripAttributes != null) {
-                tourId = Integer.toString(tripAttributes.getTourId());
-                tripId = Integer.toString(tripAttributes.getTripId());
+                tourId = tripAttributes.getTourId();
+                tripId = tripAttributes.getTripId();
                 direction = tripAttributes.getTripDirection();
                 purpose = tripAttributes.getTripPurpose();
             }

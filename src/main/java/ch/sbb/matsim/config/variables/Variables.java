@@ -88,15 +88,9 @@ public class Variables {
                             Integer tourId = (Integer) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.TOUR_ID);
                             String purpose = (String) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.PURPOSE);
                             String direction = (String) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.DIRECTION);
-                            var tripId = activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.TRIP_ID);
-                            if (tripId instanceof Integer) {
-                                return new Variables.MOBiTripAttributes(tourId, (Integer) tripId, purpose, direction);
-                            } else if (tripId instanceof String) {
-                                //backwards compatibility
-                                var split = ((String) tripId).split("_");
-                                tripId = Integer.parseInt(split[0]);
-                                tourId = Integer.parseInt(split[1].split("\"")[0]);
-                                return new Variables.MOBiTripAttributes(tourId, (Integer) tripId, "", "");
+                            Integer tripId = (Integer) activity.getAttributes().getAttribute(MOBiTripAttributes.TRIP_ID);
+                            if (tourId != null || purpose != null || direction != null || tripId != null) {
+                                return new Variables.MOBiTripAttributes(tourId, tripId, purpose, direction);
                             } else return null;
 
                         }).filter(
@@ -106,20 +100,20 @@ public class Variables {
             return tripAttributes;
         }
 
-        public int getTourId() {
-            return tourId;
+        public String getTourId() {
+            return tourId != null ? Integer.toString(tourId) : "";
         }
 
-        public int getTripId() {
-            return tripId;
+        public String getTripId() {
+            return tripId != null ? Integer.toString(tripId) : "";
         }
 
         public String getTripPurpose() {
-            return tripPurpose;
+            return tripPurpose != null ? tripPurpose : "";
         }
 
         public String getTripDirection() {
-            return tripDirection;
+            return tripDirection != null ? tripDirection : "";
         }
     }
 
