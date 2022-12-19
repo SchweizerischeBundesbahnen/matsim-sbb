@@ -22,10 +22,12 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 public final class VeloAtStation {
 
     private final static int distance = 300;
-    private static String plansFile = "Z:/99_Playgrounds/MD/MOBI33IT.output_experienced_plans.xml.gz";
+    private static String plansFile1 = "Z:/99_Playgrounds/MD/MOBI33IT.output_experienced_plans.xml.gz";
+    private static String plansFile2 = "Z:/99_Playgrounds/MD/MOBI33IT.output_experienced_plans.xml.gz";
     private static String transitFile = "Z:/99_Playgrounds/MD/ELM/";
     private static String outputFile = "Z:/99_Playgrounds/MD/ELM/VeloPerStop.csv";
     private static double sampleSize = 0.1;
+    private static String year = "2017";
 
     private VeloAtStation() {
     }
@@ -33,10 +35,12 @@ public final class VeloAtStation {
     public static void main(String[] args) {
 
         if (args != null) {
-            plansFile = args[0];
-            transitFile = args[1];
-            outputFile = args[2];
-            sampleSize = Double.parseDouble(args[3]);
+            plansFile1 = args[0];
+            plansFile2 = args[1];
+            transitFile = args[2];
+            outputFile = args[3];
+            sampleSize = Double.parseDouble(args[4]);
+            year = args[5];
         }
 
         readTrips();
@@ -46,8 +50,6 @@ public final class VeloAtStation {
     private static void readTrips() {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-
-        new PopulationReader(scenario).readFile(plansFile);
         new TransitScheduleReader(scenario).readFile(transitFile);
 
         SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
@@ -58,7 +60,10 @@ public final class VeloAtStation {
             veloMap.put(transitStopFacility, 0);
         }
 
-        for (Person person : scenario.getPopulation().getPersons().values()) {
+        Scenario scenario1 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new PopulationReader(scenario1).readFile(plansFile1);
+
+        for (Person person : scenario1.getPopulation().getPersons().values()) {
 
             Plan plan = person.getSelectedPlan();
 
@@ -77,11 +82,33 @@ public final class VeloAtStation {
             }
         }
 
-        String[] header = {"Stop_Nummer", "Velo"};
+        Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new PopulationReader(scenario2).readFile(plansFile2);
+
+        for (Person person : scenario2.getPopulation().getPersons().values()) {
+
+            Plan plan = person.getSelectedPlan();
+
+            for (Trip trip : TripStructureUtils.getTrips(plan)) {
+
+                if (mainModeIdentifier.identifyMainMode(trip.getTripElements()).equals(SBBModes.BIKE)) {
+
+                    Coord endPoint = trip.getDestinationActivity().getCoord();
+
+                    for (TransitStopFacility transitStopFacility : veloMap.keySet()) {
+                        if (CoordUtils.calcEuclideanDistance(endPoint, transitStopFacility.getCoord()) < distance) {
+                            veloMap.put(transitStopFacility, veloMap.get(transitStopFacility) + 1);
+                        }
+                    }
+                }
+            }
+        }
+
+        String[] header = {"Stop_Nummer", "Velos_" + year};
         try (CSVWriter csvWriter = new CSVWriter("",  header, outputFile)) {
             for (Entry<TransitStopFacility, Integer> entry : veloMap.entrySet()) {
                 csvWriter.set("Stop_Nummer", entry.getKey().getAttributes().getAttribute("06_Stop_Area_No").toString());
-                csvWriter.set("Velo", Integer.toString((int) (entry.getValue()/sampleSize)));
+                csvWriter.set("Velos_" + year, Integer.toString((int) (entry.getValue()/sampleSize)));
                 csvWriter.writeRow();
             }
         } catch (Exception e) {
