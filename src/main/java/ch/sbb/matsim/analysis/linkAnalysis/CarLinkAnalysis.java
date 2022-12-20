@@ -195,6 +195,7 @@ public class CarLinkAnalysis {
             switch (vehicleType) {
                 case freight -> freightCount++;
                 case car -> carCount++;
+                case ride -> rideCount++;
                 default -> log.warn("Vehicle type cannot be recognized");
             }
         }

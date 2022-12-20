@@ -20,16 +20,20 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
+import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.CollectionUtils;
+import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.vehicles.Vehicle;
 
 /**
@@ -118,6 +122,16 @@ public class CarLinkAnalysisTest {
             Plan plan = populationFactory.createPlan();
             person.addPlan(plan);
             person.setSelectedPlan(plan);
+
+            Activity activity1 = populationFactory.createActivityFromActivityFacilityId("home", null);
+            Leg leg = populationFactory.createLeg("ride");
+            Activity activity2 = populationFactory.createActivityFromActivityFacilityId("home", null);
+            Route route = populationFactory.getRouteFactories().createRoute(TransitPassengerRoute.class, null,null);
+            route.setRouteDescription("L_1 B_2 T_3");
+            leg.setRoute(route);
+            plan.addActivity(activity1);
+            plan.addLeg(leg);
+            plan.addActivity(activity2);
         }
 
         private void createNetwork() {
