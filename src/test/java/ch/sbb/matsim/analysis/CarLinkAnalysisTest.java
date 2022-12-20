@@ -126,7 +126,7 @@ public class CarLinkAnalysisTest {
             Activity activity1 = populationFactory.createActivityFromActivityFacilityId("home", null);
             Leg leg = populationFactory.createLeg("ride");
             Activity activity2 = populationFactory.createActivityFromActivityFacilityId("home", null);
-            Route route = populationFactory.getRouteFactories().createRoute(TransitPassengerRoute.class, null,null);
+            Route route = populationFactory.getRouteFactories().createRoute(null, null,null);
             route.setRouteDescription("L_1 B_2 T_3");
             leg.setRoute(route);
             plan.addActivity(activity1);
