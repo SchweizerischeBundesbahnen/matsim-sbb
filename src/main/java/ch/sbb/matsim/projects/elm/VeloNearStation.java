@@ -44,11 +44,11 @@ public final class VeloNearStation {
             distance = Integer.parseInt(args[6]);
         }
 
-        readTrips();
+        countVelosNearStations();
 
     }
 
-    private static void readTrips() {
+    private static void countVelosNearStations() {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(transitFile);
