@@ -21,13 +21,13 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public final class VeloNearStation {
 
-    private final static int distance = 300;
-    private static String plansFile1 = "Z:/99_Playgrounds/MD/MOBI33IT.output_experienced_plans.xml.gz";
-    private static String plansFile2 = "Z:/99_Playgrounds/MD/MOBI33IT.output_experienced_plans.xml.gz";
-    private static String transitFile = "Z:/99_Playgrounds/MD/ELM/";
-    private static String outputFile = "Z:/99_Playgrounds/MD/ELM/VeloPerStop.csv";
+    private static int distance = 300;
+    private static String plansFile1 = "";
+    private static String plansFile2 = "";
+    private static String transitFile = "";
+    private static String outputFile = "";
     private static double sampleSize = 0.1;
-    private static String year = "2017";
+    private static String year = "";
 
     private VeloNearStation() {
     }
@@ -41,6 +41,7 @@ public final class VeloNearStation {
             outputFile = args[3];
             sampleSize = Double.parseDouble(args[4]);
             year = args[5];
+            distance = Integer.parseInt(args[6]);
         }
 
         readTrips();
