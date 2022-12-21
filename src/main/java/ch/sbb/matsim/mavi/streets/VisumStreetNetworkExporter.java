@@ -5,27 +5,20 @@ import ch.sbb.matsim.mavi.PolylinesCreator;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.SafeArray;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.network.NetworkFactory;
-import org.matsim.api.core.v01.network.NetworkWriter;
-import org.matsim.api.core.v01.network.Node;
+import org.matsim.api.core.v01.network.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class VisumStreetNetworkExporter {
 
@@ -44,18 +37,24 @@ public class VisumStreetNetworkExporter {
             exportCounts = Boolean.parseBoolean(args[2]);
         }
 
-        VisumStreetNetworkExporter exp = new VisumStreetNetworkExporter();
-        exp.run(inputvisum, outputPath, visumVersion, exportCounts, true);
-        exp.writeNetwork(outputPath);
+		VisumStreetNetworkExporter exp = new VisumStreetNetworkExporter();
+		exp.run(inputvisum, outputPath, visumVersion, exportCounts, true);
+		exp.writeNetwork(outputPath);
 
-    }
-
-	public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
-        return Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
 	}
 
-	public static int extractVisumLinkId(Id<Link> linkId) {
-		return Integer.parseInt(linkId.toString().split("_")[1], 36);
+	public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
+		return Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
+	}
+
+	public static Integer extractVisumLinkId(Id<Link> linkId) {
+		Integer result = null;
+		try {
+			result = Integer.parseInt(linkId.toString().split("_")[1], 36);
+		} catch (NumberFormatException e) {
+
+		}
+		return result;
 	}
 
 	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {

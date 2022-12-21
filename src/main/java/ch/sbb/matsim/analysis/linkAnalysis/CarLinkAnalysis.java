@@ -109,46 +109,48 @@ public class CarLinkAnalysis {
                 if (link != null) {
                     if (link.getAllowedModes().contains(SBBModes.CAR)) {
                         var volume = entry.getValue();
-                        String visumNo = String.valueOf(VisumStreetNetworkExporter.extractVisumLinkId(link.getId()));
-                        writer.set(LINK_NO, visumNo);
-                        String id = link.getId().toString();
-                        writer.set(LINK_ID_SIM, id);
-                        String vnodes = (String) link.getAttributes().getAttribute(MergeRuralLinks.VNODES);
-                        final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
-                        final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+                        Integer visumLinkNo = VisumStreetNetworkExporter.extractVisumLinkId(link.getId());
+                        if (visumLinkNo != null) {
+                            String visumNo = String.valueOf(visumLinkNo);
+                            writer.set(LINK_NO, visumNo);
+                            String id = link.getId().toString();
+                            writer.set(LINK_ID_SIM, id);
+                            String vnodes = (String) link.getAttributes().getAttribute(MergeRuralLinks.VNODES);
+                            final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
+                            final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
 
-                        if (vnodes != null) {
-                            String currentFromNode = fromNode;
-                            String[] nodes = vnodes.split(",");
-                            for (String node : nodes) {
-                                String currentToNode = node;
-                                currentToNode = currentToNode.startsWith("C_") ? currentToNode.substring(2) : currentToNode;
+                            if (vnodes != null) {
+                                String currentFromNode = fromNode;
+                                String[] nodes = vnodes.split(",");
+                                for (String node : nodes) {
+                                    String currentToNode = node;
+                                    currentToNode = currentToNode.startsWith("C_") ? currentToNode.substring(2) : currentToNode;
+                                    writer.set(LINK_NO, visumNo);
+                                    writer.set(FROMNODENO, currentFromNode);
+                                    writer.set(TONODENO, currentToNode);
+                                    writer.set(LINK_ID_SIM, id);
+                                    writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
+                                    writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
+                                    writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
+                                    writer.writeRow();
+                                    currentFromNode = currentToNode;
+
+                                }
                                 writer.set(LINK_NO, visumNo);
                                 writer.set(FROMNODENO, currentFromNode);
-                                writer.set(TONODENO, currentToNode);
                                 writer.set(LINK_ID_SIM, id);
-                                writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
-                                writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
-                                writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
-                                writer.writeRow();
-                                currentFromNode = currentToNode;
 
+                            } else {
+                                writer.set(LINK_NO, visumNo);
+                                writer.set(FROMNODENO, fromNode);
+                                writer.set(LINK_ID_SIM, id);
                             }
-                            writer.set(LINK_NO, visumNo);
-                            writer.set(FROMNODENO, currentFromNode);
-                            writer.set(LINK_ID_SIM, id);
-
-                        } else {
-                            writer.set(LINK_NO, visumNo);
-                            writer.set(FROMNODENO, fromNode);
-                            writer.set(LINK_ID_SIM, id);
+                            writer.set(TONODENO, toNode);
+                            writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
+                            writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
+                            writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
+                            writer.writeRow();
                         }
-                        writer.set(TONODENO, toNode);
-                        writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
-                        writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
-                        writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
-                        writer.writeRow();
-
                     }
                 }
             }
