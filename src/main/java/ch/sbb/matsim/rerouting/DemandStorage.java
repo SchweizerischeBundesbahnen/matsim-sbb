@@ -15,6 +15,12 @@ public class DemandStorage {
         this.visumLink = line;
     }
 
+    DemandStorage(Id<Link> linkId, String visumLink, String wkt) {
+        this.matsimLink = linkId;
+        this.visumLink = visumLink;
+        this.wkt = wkt;
+    }
+
     public void setWkt(String wkt) {
         this.wkt = wkt;
     }
