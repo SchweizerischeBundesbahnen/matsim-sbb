@@ -9,25 +9,19 @@ import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorParametersForPerson;
 import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorTransferCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.LeastCostRaptorRouteSelector;
-import ch.sbb.matsim.routing.pt.raptor.OccupancyData;
 import ch.sbb.matsim.routing.pt.raptor.RaptorInVehicleCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
-import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
-import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.RaptorTransferCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import com.google.inject.Provider;
 import java.util.List;
-import org.locationtech.jts.awt.PointShapeFactory.X;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -39,7 +33,6 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ModeParams;
-import org.matsim.core.mobsim.qsim.pt.TransitVehicle;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.RoutingRequest;
@@ -50,15 +43,13 @@ import org.matsim.facilities.ActivityFacilitiesFactoryImpl;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.vehicles.MatsimVehicleReader.VehicleReader;
 
 public class RoutingWithBestPath {
 
     static String demandFiles = "";
-    static String zoneFile = "Z:/99_Playgrounds/MD/Umlegung/mobi-zones_2056.shp";
-    static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/transitSchedule.xml.gz";
-    static String vehicleFile = "Z:/99_Playgrounds/MD/Umlegung/transitVehicles.xml.gz";
-    static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/transitNetwork.xml.gz";
+    static String zoneFile = "Z:/99_Playgrounds/MD/Umlegung/smallInput/mobi-zones_2056.shp";
+    static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/smallInput/smallTransitSchedule.xml.gz";
+    static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/smallInput//smallTransitNetwork.xml.gz";
 
     public static void main(String[] args) {
 
@@ -83,11 +74,10 @@ public class RoutingWithBestPath {
 
         Scenario scenario = ScenarioUtils.createScenario(config);
         new TransitScheduleReader(scenario).readFile(schedualFile);
-        new VehicleReader(scenario.getVehicles()).readFile(vehicleFile);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(netwoekFile);
 
         RaptorStaticConfig raptorStaticConfig = new RaptorStaticConfig();
-        SwissRailRaptorData data = SwissRailRaptorData.create(scenario.getTransitSchedule(), scenario.getTransitVehicles(), raptorStaticConfig, scenario.getNetwork(), new OccupancyData());
+        SwissRailRaptorData data = SwissRailRaptorData.create(scenario.getTransitSchedule(), null, raptorStaticConfig, scenario.getNetwork(), null);
 
         RaptorIntermodalAccessEgress raptorIntermodalAccessEgress = new DefaultRaptorIntermodalAccessEgress();
         AccessEgressRouteCache accessEgressRouteCache = new AccessEgressRouteCache(zonesCollection, new SingleModeNetworksCache(),config, scenario);
@@ -112,7 +102,6 @@ public class RoutingWithBestPath {
         RoutingRequest request = DefaultRoutingRequest.withoutAttributes(startF, endF, 6 * 3600 , person);
 
         List<? extends PlanElement> route = swissRailRaptor.calcRoute(request);
-
 
         System.out.println("Done");
 

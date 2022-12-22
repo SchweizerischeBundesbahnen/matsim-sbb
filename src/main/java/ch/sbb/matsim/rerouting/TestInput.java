@@ -14,9 +14,9 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class TestInput {
 
-    static String transitFile = "Z:/99_Playgrounds/MD/Umlegung/transitSchedule.xml.gz";
+    static String transitFile = "Z:/99_Playgrounds/MD/Umlegung/smallInput/smalltransitSchedule.xml.gz";
     static List<TransitStopFacility> trainStations = new ArrayList<>();
-    static String output = "Z:/99_Playgrounds/MD/Umlegung/Nachfrage/Test_Nachfrage_";
+    static String output = "C:/devsbb/writeFilePlace/Umlegung/Nachfrage/Test_Nachfrage_";
     static Random random = new Random(1);
 
     public static void main(String[] args) {
@@ -33,6 +33,8 @@ public class TestInput {
         for (TransitStopFacility transitStopFacility : scenario.getTransitSchedule().getFacilities().values()) {
             if (transitStopFacility.getAttributes().getAttribute("03_Stop_Code") != null) {
                 trainStations.add(transitStopFacility);
+            } else {
+                System.out.println(transitStopFacility.getId().toString());
             }
         }
 
