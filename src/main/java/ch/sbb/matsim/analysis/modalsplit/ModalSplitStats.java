@@ -47,6 +47,7 @@ public class ModalSplitStats {
     private final Config config;
     @Inject
     private final TransitSchedule transitSchedule;
+
     private final Zones zones;
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final LongestMainModeIdentifier mainModeIdentifier = new LongestMainModeIdentifier();
