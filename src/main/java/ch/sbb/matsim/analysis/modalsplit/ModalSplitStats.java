@@ -42,11 +42,11 @@ public class ModalSplitStats {
     @Inject
     private ExperiencedPlansService experiencedPlansService;
     @Inject
-    private final Population population;
+    private Population population;
     @Inject
-    private final Config config;
+    private Config config;
     @Inject
-    private final TransitSchedule transitSchedule;
+    private TransitSchedule transitSchedule;
 
     private final Zones zones;
     private final RailTripsAnalyzer railTripsAnalyzer;
