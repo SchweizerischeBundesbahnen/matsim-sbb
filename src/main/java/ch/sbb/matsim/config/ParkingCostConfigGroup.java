@@ -1,9 +1,9 @@
 package ch.sbb.matsim.config;
 
-import ch.sbb.matsim.zones.Zones;
-import java.util.Map;
-import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.ReflectiveConfigGroup;
+import org.matsim.core.utils.collections.CollectionUtils;
+
+import java.util.Set;
 
 /**
  * @author mrieser
@@ -12,62 +12,35 @@ public class ParkingCostConfigGroup extends ReflectiveConfigGroup {
 
 	public static final String GROUP_NAME = "parkingCosts";
 
-	public static final String PARAM_ZONES_ID = "zonesId";
-	public static final String PARAM_ZONES_ATTRIBUTE = "zonesParkingCostAttributeName";
-	public static final String PARAM_ZONES_RIDE_ATTRIBUTE = "zonesRideParkingCostAttributeName";
+	@Parameter
+	@Comment("Enables / disables parkingCost use")
+	public boolean useParkingCost = true;
 
-	private Id<Zones> zonesId = null;
-	private String zonesParkingCostAttributeName = null;
-	private String zonesRideParkingCostAttributeName = null;
+	@Parameter
+	@Comment("Parking Cost link Attribute prefix." +
+			" This needs to be followed by the parking cost for the mode, " +
+			"e.g., \"pc_\" as prefix and \"car\" as mode would " +
+			"require an attribute \"pc_ride\" to be set on every " +
+			"link where parking costs should be considered.")
+	public String linkAttributePrefix = "pc_";
+
+	@Parameter
+	@Comment("Modes that should use parking costs, separated by comma")
+	public String modesWithParkingCosts = null;
+
+	@Parameter
+	@Comment("Activitiy types where no parking costs are charged, e.g., at home. char sequence must be part of the activity.")
+	public String activityTypesWithoutParkingCost = null;
 
 	public ParkingCostConfigGroup() {
 		super(GROUP_NAME);
 	}
 
-	@Override
-	public Map<String, String> getComments() {
-		Map<String, String> map = super.getComments();
-		map.put(PARAM_ZONES_ID, "The id of the zones collection as listed in the zones-configuration.");
-		map.put(PARAM_ZONES_ATTRIBUTE, "The zones' attribute name containing the hourly parking cost for each zone for car mode.");
-		map.put(PARAM_ZONES_RIDE_ATTRIBUTE, "The zones' attribute name containing the hourly parking cost for each zone for ride mode.");
-		return map;
+	public Set<String> getModesWithParkingCosts() {
+		return CollectionUtils.stringToSet(modesWithParkingCosts);
 	}
 
-	@StringGetter(PARAM_ZONES_ID)
-	public String getZonesId_asString() {
-		return this.zonesId == null ? null : this.zonesId.toString();
-	}
-
-	public Id<Zones> getZonesId() {
-		return this.zonesId;
-	}
-
-	@StringSetter(PARAM_ZONES_ID)
-	public void setZonesId(String zonesId) {
-		this.zonesId = zonesId == null ? null : Id.create(zonesId, Zones.class);
-	}
-
-	public void setZonesId(Id<Zones> zonesId) {
-		this.zonesId = zonesId;
-	}
-
-	@StringGetter(PARAM_ZONES_ATTRIBUTE)
-	public String getZonesParkingCostAttributeName() {
-		return this.zonesParkingCostAttributeName;
-	}
-
-	@StringSetter(PARAM_ZONES_ATTRIBUTE)
-	public void setZonesParkingCostAttributeName(String attributeName) {
-		this.zonesParkingCostAttributeName = attributeName;
-	}
-
-	@StringGetter(PARAM_ZONES_RIDE_ATTRIBUTE)
-	public String getZonesRideParkingCostAttributeName() {
-		return this.zonesRideParkingCostAttributeName;
-	}
-
-	@StringSetter(PARAM_ZONES_RIDE_ATTRIBUTE)
-	public void setZonesRideParkingCostAttributeName(String attributeName) {
-		this.zonesRideParkingCostAttributeName = attributeName;
+	public Set<String> getActivityTypesWithoutParkingCost() {
+		return CollectionUtils.stringToSet(activityTypesWithoutParkingCost);
 	}
 }

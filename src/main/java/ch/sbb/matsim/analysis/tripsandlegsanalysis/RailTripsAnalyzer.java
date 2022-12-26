@@ -21,6 +21,10 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.routing.access.AccessEgressModule;
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesCollection;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
@@ -48,11 +52,14 @@ public class RailTripsAnalyzer {
 
     private final Set<Id<TransitLine>> railLines;
     private final Set<Id<TransitStopFacility>> fqStops;
+    private final Set<Id<TransitStopFacility>> swissRailStops;
+    private final Set<Id<TransitStopFacility>> railStops;
     private final TransitSchedule schedule;
     private final Network network;
 
     @Inject
-    public RailTripsAnalyzer(TransitSchedule schedule, Network network) {
+    public RailTripsAnalyzer(TransitSchedule schedule, Network network, ZonesCollection zonesCollection) {
+        var zones = zonesCollection.getZones(Id.create("zones", Zones.class));
         this.network = network;
         this.schedule = schedule;
         railLines = schedule.getTransitLines().values()
@@ -65,6 +72,22 @@ public class RailTripsAnalyzer {
                 .filter(transitStopFacility -> String.valueOf(transitStopFacility.getAttributes().getAttribute(Variables.FQ_RELEVANT)).equals("1"))
                 .map(Identifiable::getId)
                 .collect(Collectors.toSet());
+        railStops = schedule.getFacilities().values()
+                .stream()
+                .filter(transitStopFacility -> getTransitLinesAndRoutesAtStop(transitStopFacility.getId()).keySet().stream().anyMatch(p -> railLines.contains(p)))
+                .map(Identifiable::getId)
+                .collect(Collectors.toSet());
+        swissRailStops = railStops.stream()
+                .map(id -> schedule.getFacilities().get(id))
+                .filter(stop -> {
+                    Zone z = zones.findZone(stop.getCoord());
+                    if (z == null) return false;
+                    else return AccessEgressModule.isSwissZone(z.getId());
+                })
+                .map(Identifiable::getId)
+                .collect(Collectors.toSet());
+        //Mostly Domodossola, as there are swiss domestic trips routed along here
+        swissRailStops.addAll(Variables.EXCEPTIONAL_CH_STOPS);
     }
 
     public boolean isRailLine(Id<TransitLine> transitLineId) {
@@ -132,6 +155,7 @@ public class RailTripsAnalyzer {
 
         return tuple;
     }
+
 
     /**
      * A rail leg between SIMBA/CH-Perimeter stops or to&from Domodossola, or the swiss section of an international rail leg
@@ -231,13 +255,7 @@ public class RailTripsAnalyzer {
     }
 
     public boolean isSwissRailStop(Id<TransitStopFacility> stopId) {
-        if (Variables.EXCEPTIONAL_CH_STOPS.contains(stopId)) {
-            return true;
-        }
-        var stopFacility = this.schedule.getFacilities().get(stopId);
-        Gbl.assertNotNull(stopFacility);
-        var perim = String.valueOf(stopFacility.getAttributes().getAttribute(Variables.SIMBA_CH_PERIMETER));
-        return perim.equals("1");
+        return swissRailStops.contains(stopId);
     }
 
     public boolean isSwissRailOrFQStop(Id<TransitStopFacility> stopId) {

@@ -161,7 +161,7 @@ public class TestFixture {
 		//config.plansCalcRoute().setNetworkModes(List.of(SBBModes.CAR,SBBModes.RIDE));
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		ZonesModule.addZonestoScenario(scenario);
-		AccessEgressModule.prepareLinkAttributes(scenario);
+        AccessEgressModule.prepareLinkAttributes(scenario, false);
 
 	}
 

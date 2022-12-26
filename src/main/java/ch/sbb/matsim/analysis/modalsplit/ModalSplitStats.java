@@ -1,7 +1,5 @@
 package ch.sbb.matsim.analysis.modalsplit;
 
-import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
-
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
@@ -11,22 +9,10 @@ import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import javax.inject.Inject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.Population;
-import org.matsim.api.core.v01.population.PopulationFactory;
-import org.matsim.api.core.v01.population.Route;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
@@ -41,12 +27,26 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 
+import javax.inject.Inject;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
+
 public class ModalSplitStats {
 
-    @Inject private ExperiencedPlansService experiencedPlansService;
-    @Inject private Population population;
-    @Inject private Config config;
-    @Inject private TransitSchedule transitSchedule;
+    @Inject
+    private ExperiencedPlansService experiencedPlansService;
+    @Inject
+    private final Population population;
+    @Inject
+    private final Config config;
+    @Inject
+    private final TransitSchedule transitSchedule;
     private final Zones zones;
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final LongestMainModeIdentifier mainModeIdentifier = new LongestMainModeIdentifier();
@@ -68,7 +68,7 @@ public class ModalSplitStats {
     public ModalSplitStats(ZonesCollection zonesCollection, Config config, Scenario scenario) {
         PostProcessingConfigGroup postProcessingConfigGroup = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
         this.zones = zonesCollection.getZones(postProcessingConfigGroup.getZonesId());
-        this.railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        this.railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         this.population = scenario.getPopulation();
         this.transitSchedule = scenario.getTransitSchedule();
         this.config = config;

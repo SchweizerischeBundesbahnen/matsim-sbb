@@ -3,13 +3,14 @@ package ch.sbb.matsim.scoring;
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.events.ParkingCostEvent;
 import ch.sbb.matsim.preparation.ActivityParamsBuilder;
-import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
+import ch.sbb.matsim.vehicles.MainModeParkingCostVehicleTracker;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -84,11 +85,12 @@ public class ParkingCostScoringTest {
 			Controler controler = new Controler(f.scenario);
 			ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(f.scenario);
 			controler.setScoringFunctionFactory(scoringFunctionFactory);
-
+			ParkingCostConfigGroup parkingCostConfigGroup = new ParkingCostConfigGroup();
+			parkingCostConfigGroup.activityTypesWithoutParkingCost = "home";
 			controler.addOverridingModule(new AbstractModule() {
 				@Override
 				public void install() {
-					addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
+					addEventHandlerBinding().toInstance(new MainModeParkingCostVehicleTracker(SBBModes.CAR, parkingCostConfigGroup));
 					addEventHandlerBinding().toInstance(parkingCostCollectorWith);
 				}
 			});
@@ -150,8 +152,8 @@ public class ParkingCostScoringTest {
 			zonesConfig.addZones(parkingZonesConfig);
 
 			ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
-			parkingConfig.setZonesId("parkingZones");
-			parkingConfig.setZonesParkingCostAttributeName("pc_car");
+
+			parkingConfig.modesWithParkingCosts = SBBModes.CAR;
 
 			SBBBehaviorGroupsConfigGroup sbbScoringConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
 			sbbScoringConfig.setMarginalUtilityOfParkingPrice(-0.1);

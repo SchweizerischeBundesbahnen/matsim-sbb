@@ -1,6 +1,8 @@
 package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesLoader;
 import org.junit.Test;
 import org.locationtech.jts.util.Assert;
 import org.matsim.api.core.v01.Id;
@@ -27,7 +29,9 @@ public class RailTripsAnalyzerTest {
     @Test
     public void runRailTripsAnalyzerTest() {
         Scenario scenario = setupScenario();
-        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        ZonesCollection zonesCollection = new ZonesCollection();
+        zonesCollection.addZones(ZonesLoader.loadZones("zones", "test/input/scenarios/mobi31test/zones/andermatt-zones.shp"));
+        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         var trips = TripStructureUtils.getTrips(scenario.getPopulation().getPersons().get(Id.createPersonId("mobi-test1")).getSelectedPlan());
         var trip0 = trips.get(0);
         var trip1 = trips.get(1);

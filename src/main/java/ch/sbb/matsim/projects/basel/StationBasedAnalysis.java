@@ -65,7 +65,7 @@ public class StationBasedAnalysis {
         //new PopulationReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\2.1-v300-50pct\\output_slice0\\v300.1.output_experienced_plans.xml.gz");
         //new PopulationReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\2.1-v300-50pct\\output_slice1\\v300.1.output_experienced_plans.xml.gz");
 
-        RailTripsAnalyzer analyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        RailTripsAnalyzer analyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), null);
         StationBasedAnalysis stationBasedAnalysis = new StationBasedAnalysis(stations, scenario, 2, analyzer);
         stationBasedAnalysis.prepareStations();
         stationBasedAnalysis.analyse();

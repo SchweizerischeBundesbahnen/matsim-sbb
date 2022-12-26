@@ -2,6 +2,7 @@ package ch.sbb.matsim.vehicles;
 
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.events.ParkingCostEvent;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
@@ -37,8 +38,11 @@ public class RideParkingCostTrackerTest {
 		Fixture f = new Fixture();
 
 		f.events.addHandler(new EventsLogger());
-
-		RideParkingCostTracker tracker = new RideParkingCostTracker(f.scenario, f.events);
+		ParkingCostConfigGroup parkingCostConfigGroup = new ParkingCostConfigGroup();
+		parkingCostConfigGroup.activityTypesWithoutParkingCost = "home";
+		TeleportedModeParkingCostTracker tracker = new TeleportedModeParkingCostTracker(SBBModes.RIDE, parkingCostConfigGroup);
+		tracker.events = f.events;
+		tracker.network = f.scenario.getNetwork();
 		f.events.addHandler(tracker);
 		EventsCollector collector = new EventsCollector();
 		f.events.addHandler(collector);
@@ -50,8 +54,8 @@ public class RideParkingCostTrackerTest {
 
 		double hourlyParkingCostWork = 20; // this is the value of at_car in zone Bern
 		double hourlyParkingCostShop = 3; // this is the value of at_car in zone Thun
-		f.scenario.getNetwork().getLinks().get(linkWork).getAttributes().putAttribute("pc_car", hourlyParkingCostWork);
-		f.scenario.getNetwork().getLinks().get(linkShop).getAttributes().putAttribute("pc_car", hourlyParkingCostShop);
+		f.scenario.getNetwork().getLinks().get(linkWork).getAttributes().putAttribute("pc_ride", hourlyParkingCostWork);
+		f.scenario.getNetwork().getLinks().get(linkShop).getAttributes().putAttribute("pc_ride", hourlyParkingCostShop);
 		f.events.processEvent(new PersonArrivalEvent(7.25 * 3600, personId, linkWork, "ride"));
 		f.events.processEvent(new ActivityStartEvent(7.25 * 3600, personId, linkWork, null, "work", null));
 		Assert.assertEquals(2, collector.getEvents().size());
@@ -134,8 +138,8 @@ public class RideParkingCostTrackerTest {
 			zonesConfig.addZones(parkingZonesConfig);
 
 			ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
-			parkingConfig.setZonesId("parkingZones");
-			parkingConfig.setZonesRideParkingCostAttributeName("pc_car"); // yes, we misuse the access times in the test data as parking costs
+			parkingConfig.modesWithParkingCosts = "ride";
+
 		}
 
 		private void createNetwork() {

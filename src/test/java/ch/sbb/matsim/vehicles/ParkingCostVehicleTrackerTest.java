@@ -2,6 +2,7 @@ package ch.sbb.matsim.vehicles;
 
 import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.events.ParkingCostEvent;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
@@ -38,9 +39,11 @@ public class ParkingCostVehicleTrackerTest {
 		Fixture f = new Fixture();
 
 		f.events.addHandler(new EventsLogger());
-
-		ParkingCostVehicleTracker tracker = new ParkingCostVehicleTracker(f.scenario, f.events);
-
+		ParkingCostConfigGroup parkingCostConfigGroup = new ParkingCostConfigGroup();
+		parkingCostConfigGroup.activityTypesWithoutParkingCost = "home";
+		MainModeParkingCostVehicleTracker tracker = new MainModeParkingCostVehicleTracker(SBBModes.CAR, parkingCostConfigGroup);
+		tracker.events = f.events;
+		tracker.network = f.scenario.getNetwork();
 		f.events.addHandler(tracker);
 		EventsCollector collector = new EventsCollector();
 		f.events.addHandler(collector);
@@ -138,8 +141,7 @@ public class ParkingCostVehicleTrackerTest {
 			zonesConfig.addZones(parkingZonesConfig);
 
 			ParkingCostConfigGroup parkingConfig = ConfigUtils.addOrGetModule(this.config, ParkingCostConfigGroup.class);
-			parkingConfig.setZonesId("parkingZones");
-			parkingConfig.setZonesParkingCostAttributeName("pc_car");
+			parkingConfig.modesWithParkingCosts = SBBModes.CAR;
 		}
 
 		private void createNetwork() {
