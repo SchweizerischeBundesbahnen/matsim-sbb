@@ -25,7 +25,7 @@ public class GenerateAppenzellDRTStops {
         String areaFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area\\service-area-publicar-cut.shp";
         String existingStops = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area\\stops-appenzell-city.csv";
         String networkFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\streets\\output\\network.xml.gz";
-        String stopsFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area\\drt-stops.xml";
+        String stopsFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area\\drt-stops-only-city.xml";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
@@ -41,12 +41,19 @@ public class GenerateAppenzellDRTStops {
                 .stream()
                 .filter(link -> ShpGeometryUtils.isCoordInPreparedGeometries(link.getToNode().getCoord(),
                         preparedGeometries))
-                .map(link -> scenario.getTransitSchedule().getFactory().createTransitStopFacility(Id.create(link.getId(), TransitStopFacility.class), link.getToNode().getCoord(), false))
+                .map(link -> {
+                    var stop = scenario.getTransitSchedule().getFactory().createTransitStopFacility(Id.create(link.getId(), TransitStopFacility.class), link.getToNode().getCoord(), false);
+                    stop.setLinkId(link.getId());
+                    return stop;
+                })
                 .collect(Collectors.toSet());
         var stopsFromCoord = existingStopCoords.stream()
                 .map(coord -> NetworkUtils.getNearestLink(scenario.getNetwork(), coord))
-                .map(link -> scenario.getTransitSchedule().getFactory().createTransitStopFacility(Id.create(link.getId(), TransitStopFacility.class), link.getToNode().getCoord(), false))
-                .collect(Collectors.toSet());
+                .map(link -> {
+                    var stop = scenario.getTransitSchedule().getFactory().createTransitStopFacility(Id.create(link.getId(), TransitStopFacility.class), link.getToNode().getCoord(), false);
+                    stop.setLinkId(link.getId());
+                    return stop;
+                }).collect(Collectors.toSet());
         stopsInArea.forEach(s -> scenario.getTransitSchedule().addStopFacility(s));
         stopsFromCoord.stream().filter(s -> !scenario.getTransitSchedule().getFacilities().containsKey(s.getId())).forEach(s -> scenario.getTransitSchedule().addStopFacility(s));
 
