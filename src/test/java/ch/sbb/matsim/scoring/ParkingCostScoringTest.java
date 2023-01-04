@@ -1,12 +1,9 @@
 package ch.sbb.matsim.scoring;
 
-import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.events.ParkingCostEvent;
 import ch.sbb.matsim.preparation.ActivityParamsBuilder;
-import ch.sbb.matsim.vehicles.MainModeParkingCostVehicleTracker;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
 import org.apache.logging.log4j.LogManager;
@@ -17,17 +14,20 @@ import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.events.PersonMoneyEvent;
+import org.matsim.api.core.v01.events.handler.PersonMoneyEventHandler;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.*;
+import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
+import org.matsim.contrib.parking.parkingcost.eventhandling.MainModeParkingCostVehicleTracker;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.utils.collections.CollectionUtils;
@@ -108,18 +108,13 @@ public class ParkingCostScoringTest {
 
 	}
 
-	public interface ParkingCostEventHandler extends EventHandler {
 
-		@SuppressWarnings("unused")
-		void handleEvent(ParkingCostEvent event);
-	}
+	private static class ParkingCostEventCollector implements PersonMoneyEventHandler {
 
-	private static class ParkingCostEventCollector implements ParkingCostEventHandler {
-
-		final List<ParkingCostEvent> events = new ArrayList<>();
+		final List<PersonMoneyEvent> events = new ArrayList<>();
 
 		@Override
-		public void handleEvent(ParkingCostEvent event) {
+		public void handleEvent(PersonMoneyEvent event) {
 			this.events.add(event);
 		}
 	}
