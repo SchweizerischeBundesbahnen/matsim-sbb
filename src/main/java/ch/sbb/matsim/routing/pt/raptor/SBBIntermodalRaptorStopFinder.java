@@ -340,6 +340,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		route.setDistance(characteristics.getDistance());
 		leg.setTravelTime(travelTime);
 		leg.setRoute(route);
+		leg.setDepartureTime(departureTime);
 		travel.add(leg);
 
 		return travel;
