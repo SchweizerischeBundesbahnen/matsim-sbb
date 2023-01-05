@@ -78,7 +78,11 @@ public class AccessEgressRouteCache {
 		SwissRailRaptorConfigGroup railRaptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
 		Map<String, IntermodalAccessEgressParameterSet> raptorIntermodalModeParams = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream()
 				.collect(Collectors.toMap(IntermodalAccessEgressParameterSet::getMode, m -> m, (m, n) -> m));
-		this.zonesCollection = allZones.getZones(intermodalConfigGroup.getZonesId());
+		if (allZones != null) {
+			this.zonesCollection = allZones.getZones(intermodalConfigGroup.getZonesId());
+		} else {
+			this.zonesCollection = null;
+		}
 		for (SBBIntermodalModeParameterSet paramset : intermodalConfigGroup.getModeParameterSets()) {
 			if (paramset.isRoutedOnNetwork() && !paramset.isSimulatedOnNetwork()) {
 				Gbl.printMemoryUsage();
@@ -205,13 +209,16 @@ public class AccessEgressRouteCache {
 		if (accessTimeZoneId == null) {
 			return 0;
 		}
-		Zone zone = zonesCollection.findZone(coord);
-		if (zone != null) {
-			Object at = zone.getAttribute(accessTimeZoneId);
-			return at != null ? (int) Double.parseDouble(at.toString()) : 0;
-		} else {
-			return 0;
+		if (zonesCollection != null) {
+			Zone zone = zonesCollection.findZone(coord);
+			if (zone != null) {
+				Object at = zone.getAttribute(accessTimeZoneId);
+				return at != null ? (int) Double.parseDouble(at.toString()) : 0;
+			} else {
+				return 0;
+			}
 		}
+		return 0;
 	}
 
 	private Network getRoutingNetwork(String mode, Config config) {
