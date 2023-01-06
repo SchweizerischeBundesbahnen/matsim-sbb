@@ -78,19 +78,6 @@ public class AccessEgressModule extends AbstractModule {
 		return (Integer.parseInt(id.toString()) < 700000000);
 	}
 
-	public static void prepareAccessEgressTimesForMode(String mode, Id<Zones> zonesId, String accessTimeZoneId, String egressTimeZoneId, Scenario scenario) {
-		ZonesCollection collection = (ZonesCollection) scenario.getScenarioElement(ZonesModule.SBB_ZONES);
-		Zones zones = collection.getZones(zonesId);
-		for (var l : scenario.getNetwork().getLinks().values()) {
-			if (l.getAllowedModes().contains(mode)) {
-				Zone zone = zones.findZone(l.getCoord());
-				double accessTime = zone != null ? ((Number) zone.getAttribute(accessTimeZoneId)).intValue() : .0;
-				double egressTime = zone != null ? ((Number) zone.getAttribute(egressTimeZoneId)).intValue() : .0;
-				NetworkUtils.setLinkEgressTime(l, mode, egressTime);
-				NetworkUtils.setLinkAccessTime(l, mode, accessTime);
-			}
-		}
-	}
 
 	@Override
 	public void install() {

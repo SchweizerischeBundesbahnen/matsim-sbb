@@ -53,8 +53,6 @@
         <!-- Zones ID -->
         <param name="zonesId" value="zones"/>
         <parameterset type="mode">
-            <!-- Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers. -->
-            <param name="detourFactor" value="1.0"/>
             <!-- If true, the mode will be added as main-mode to be simulated on the road network. -->
             <param name="isRoutedOnNetwork" value="false"/>
             <!-- If true, the mode will be added as main-mode to be simulated on the road network. -->
@@ -65,42 +63,34 @@
             <param name="personActivityFilterAttribute" value="null"/>
             <!-- use minimal transfer times -->
             <param name="useMinimalTransferTimes" value="false"/>
-            <!-- Additional waiting time in seconds. -->
-            <param name="waitingTime" value="0"/>
         </parameterset>
         <parameterset type="mode">
-            <param name="detourFactor" value="1.0"/>
             <param name="isRoutedOnNetwork" value="false"/>
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="mode" value="bike_feeder"/>
             <param name="personActivityFilterAttribute" value="bike2pt_act"/>
             <param name="useMinimalTransferTimes" value="true"/>
-            <param name="waitingTime" value="0"/>
         </parameterset>
         <parameterset type="mode">
-            <param name="accessTimeZonesAttributeName" value="at_car"/>
-            <param name="detourFactor" value="1.0"/>
+            <param name="accessTimeLinkAttributeName" value="at_car"/>
             <param name="detourFactorZonesAttributeName" value="null"/>
-            <param name="egressTimeZonesAttributeName" value="at_car"/>
+            <param name="egressTimeLinkAttributeName" value="at_car"/>
             <param name="isRoutedOnNetwork" value="true"/>
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="mode" value="car_feeder"/>
             <param name="personActivityFilterAttribute" value="car2pt_act"/>
             <param name="useMinimalTransferTimes" value="true"/>
-            <param name="waitingTime" value="0"/>
             <param name="intermodalAccessCacheFile" value="null"/>
         </parameterset>
         <parameterset type="mode">
-            <param name="accessTimeZonesAttributeName" value="at_ride"/>
-            <param name="detourFactor" value="1.0"/>
+            <param name="accessTimeLinkAttributeName" value="at_ride"/>
             <param name="detourFactorZonesAttributeName" value="null"/>
-            <param name="egressTimeZonesAttributeName" value="at_ride"/>
+            <param name="egressTimeLinkAttributeName" value="at_ride"/>
             <param name="isRoutedOnNetwork" value="true"/>
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="mode" value="ride_feeder"/>
             <param name="personActivityFilterAttribute" value="ride2pt_act"/>
             <param name="useMinimalTransferTimes" value="true"/>
-            <param name="waitingTime" value="0"/>
             <param name="intermodalAccessCacheFile" value="null"/>
         </parameterset>
     </module>

@@ -15,11 +15,8 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesQueryCache;
-import java.util.List;
-import java.util.Objects;
-import javax.inject.Inject;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -30,6 +27,9 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.utils.misc.OptionalTime;
+
+import javax.inject.Inject;
+import java.util.List;
 
 public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEgress {
 
@@ -104,9 +104,7 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 
 	private double getDetourFactor(Id<Link> startLinkId, String mode) {
 		SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
-		if (Objects.requireNonNull(parameterSet).getDetourFactor() != null) {
-			return parameterSet.getDetourFactor();
-		} else if (parameterSet.getDetourFactorZoneId() != null) {
+		if (parameterSet.getDetourFactorZoneId() != null) {
 			Zone zone = zones.findZone(network.getLinks().get(startLinkId).getCoord());
 			if (zone != null) {
 				Object att = zone.getAttribute(parameterSet.getDetourFactorZoneId());

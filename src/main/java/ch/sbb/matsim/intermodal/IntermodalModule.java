@@ -6,26 +6,26 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
-import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.AccessEgressRouteCache;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class IntermodalModule extends AbstractModule {
 
@@ -67,9 +67,6 @@ public class IntermodalModule extends AbstractModule {
                 Set<String> routedModes = new HashSet<>(scenario.getConfig().plansCalcRoute().getNetworkModes());
                 routedModes.add(mode.getMode());
                 scenario.getConfig().plansCalcRoute().setNetworkModes(routedModes);
-                if (mode.getAccessTimeZoneId() != null) {
-                    AccessEgressModule.prepareAccessEgressTimesForMode(mode.getMode(), configGroup.getZonesId(), mode.getAccessTimeZoneId(), mode.getEgressTimeZoneId(), scenario);
-                }
 			}
 			if (mode.isSimulatedOnNetwork()) {
 				Set<String> mainModes = new HashSet<>(scenario.getConfig().qsim().getMainModes());

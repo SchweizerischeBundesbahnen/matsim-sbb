@@ -10,8 +10,8 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -93,7 +93,7 @@ public class AccessEgressRouteCache {
 						.collect(Collectors.toSet());
 				LOGGER.info("Found " + stopLinkIds.size() + " stops with intermodal access option for this mode.");
 				Network network = getRoutingNetwork(paramset.getMode(), config);
-				Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeZoneId(), network);
+				Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeLinkId(), network);
 				accessTimes.put(paramset.getMode(), modeAccessTimes);
 
 				if (paramset.getIntermodalAccessCacheFileString() == null) {
@@ -172,7 +172,7 @@ public class AccessEgressRouteCache {
 				}
 				int travelTime = (int) Math.round(arrivalTime.seconds());
 				int travelDistance = (int) Math.round(tree.getDistance(nodeIndex));
-				int egressTime = getAccessTime(paramset.getAccessTimeZoneId(), node.getCoord());
+				int egressTime = getAccessTime(paramset.getAccessTimeLinkId(), node.getCoord());
 				int[] data = new int[]{travelDistance, travelTime, egressTime};
 				for (Id<Link> inlink : node.getInLinks().keySet()) {
 					travelTimesToLink.put(inlink, data);
@@ -248,7 +248,7 @@ public class AccessEgressRouteCache {
 			//we are slightly outside the cached radius
 			List<? extends PlanElement> routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, actFacility, 3d * 3600, person));
 			Leg routedLeg = TripStructureUtils.getLegs(routeParts).stream().filter(leg -> leg.getMode().equals(mode)).findFirst().orElseThrow(RuntimeException::new);
-			int egressTime = getAccessTime(this.intermodalModeParams.get(mode).getAccessTimeZoneId(), scenario.getNetwork().getLinks().get(routedLeg.getRoute().getEndLinkId()).getToNode().getCoord());
+			int egressTime = getAccessTime(this.intermodalModeParams.get(mode).getAccessTimeLinkId(), scenario.getNetwork().getLinks().get(routedLeg.getRoute().getEndLinkId()).getToNode().getCoord());
 			int distance = (int) routedLeg.getRoute().getDistance();
 			int traveltime = (int) routedLeg.getRoute().getTravelTime().seconds();
 			value = new int[]{distance, traveltime, egressTime};
