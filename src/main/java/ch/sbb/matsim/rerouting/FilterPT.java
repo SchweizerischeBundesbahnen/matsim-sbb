@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -29,7 +28,6 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-import scala.reflect.internal.Trees.This;
 
 public class FilterPT {
 
@@ -37,6 +35,7 @@ public class FilterPT {
     static String networkFile = "Z:/99_Playgrounds/MD/Umlegung/transitNetwork.xml.gz";
     static String outputTransitFile = "C:/devsbb/writeFilePlace/Umlegung/smallTransitSchedule.xml.gz";
     static String outputNetworkFile = "C:/devsbb/writeFilePlace/Umlegung/smallTransitNetwork.xml.gz";
+    static String demandStationsFile = "Z:/99_Playgrounds/MD/Umlegung/Input/ColumNames.csv";
 
     public static void main(String[] args) {
 
@@ -51,6 +50,8 @@ public class FilterPT {
     }
 
     public static void filterSchedual(Scenario scenario) {
+
+        List<Integer> codeList = readDemandStationsFile();
 
         Set<TransitStopFacility> transitStopFacilities = new LinkedHashSet<>();
         List<TransitLine> transitLines = scenario.getTransitSchedule().getTransitLines().values().stream()
@@ -79,6 +80,20 @@ public class FilterPT {
         new NetworkWriter(network).write(outputNetworkFile);
 
         filterMATSimVisumLinks(network);
+    }
+
+    private static List<Integer> readDemandStationsFile() {
+        List<Integer> codeList = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(demandStationsFile))) {
+            List<String> header = List.of(reader.readLine().split(";"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                codeList.add(Integer.parseInt(line.split(";")[header.indexOf("id")]));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return codeList;
     }
 
     private static void removeUnnessesaryMinimalTransferTimes(Scenario scenario, Scenario smallScenario) {

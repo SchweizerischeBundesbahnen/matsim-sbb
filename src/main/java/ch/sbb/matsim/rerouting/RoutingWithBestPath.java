@@ -61,15 +61,32 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class RoutingWithBestPath {
 
-    static String demandFilesLocation = "Z:/99_Playgrounds/MD/Umlegung/Nachfrage/";
-    static String demand = "Z:/99_Playgrounds/MD/Umlegung/smallInput/NachfrageTag.omx";
-    static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/saveFile.csv";
-    static String zoneFile = "Z:/99_Playgrounds/MD/Umlegung/smallInput/mobi-zones_2056.shp";
-    static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/smallInput/smallTransitSchedule.xml.gz";
-    static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/smallInput//smallTransitNetwork.xml.gz";
+    static String columNames = "Z:/99_Playgrounds/MD/Umlegung/Input/ColumNames.csv";
+    static String demand = "Z:/99_Playgrounds/MD/Umlegung/Input/NachfrageTag.omx";
+    static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/saveFile.csv";
+    static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/smallTransitSchedule.xml.gz";
+    static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input//smallTransitNetwork.xml.gz";
     static String output = "C:/devsbb/writeFilePlace/Umlegung/saveFileWithDemand.csv";
 
+    InputDemand inputDemand = new InputDemand(columNames, demand);
+    Map<Id<Link>, DemandStorage> idDemandStorageMap = createLinkDemandStorage(saveFileInpout);
+    ActivityFacilitiesFactory afFactory = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getActivityFacilities().getFactory();
+    Person person = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation().getFactory().createPerson(Id.createPersonId("Person"));
+    Scenario scenario;
+    SwissRailRaptor swissRailRaptor;
+    RailTripsAnalyzer railTripsAnalyzer;
+    private Thread[] threads;
+
+    /*
+    PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
+    ppConfig.setZonesId("zones");
+    Zones zones = ZonesLoader.loadZones("zones", zoneFile, "ID");
+    ZonesCollection zonesCollection = new ZonesCollection();
+    zonesCollection.addZones(zones);
+    */
+
     public static void main(String[] args) {
+        long startTime = System.nanoTime();
 
         /*if (args.length != 0) {
             demandFilesLocation = args[0];
@@ -80,58 +97,13 @@ public class RoutingWithBestPath {
             output = args[5];
         }*/
 
-        Config config = ConfigUtils.createConfig();
+        RoutingWithBestPath routingWithBestPath = new RoutingWithBestPath();
+        routingWithBestPath.calculateRoutes();
 
         /*
-        PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
-        ppConfig.setZonesId("zones");
-        Zones zones = ZonesLoader.loadZones("zones", zoneFile, "ID");
-        ZonesCollection zonesCollection = new ZonesCollection();
-        zonesCollection.addZones(zones);
-        */
-
-        SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
-        List<IntermodalAccessEgressParameterSet> intermodalAccessEgressParameterSets = srrConfig.getIntermodalAccessEgressParameterSets();
-        IntermodalAccessEgressParameterSet intermodalAccessEgressParameterSet = new IntermodalAccessEgressParameterSet();
-        intermodalAccessEgressParameterSet.setMode("walk");
-        intermodalAccessEgressParameterSets.add(intermodalAccessEgressParameterSet);
-
-        PlanCalcScoreConfigGroup pcsConfig = config.planCalcScore();
-        ModeParams modeParams = new ModeParams(TransportMode.non_network_walk);
-        modeParams.setMarginalUtilityOfTraveling(1);
-        pcsConfig.addModeParams(modeParams);
-
-        Scenario scenario = ScenarioUtils.createScenario(config);
-        new TransitScheduleReader(scenario).readFile(schedualFile);
-        new MatsimNetworkReader(scenario.getNetwork()).readFile(netwoekFile);
-
-        RaptorStaticConfig raptorStaticConfig = new RaptorStaticConfig();
-        SwissRailRaptorData data = SwissRailRaptorData.create(scenario.getTransitSchedule(), null, raptorStaticConfig, scenario.getNetwork(), null);
-
-        RaptorIntermodalAccessEgress raptorIntermodalAccessEgress = new DefaultRaptorIntermodalAccessEgress();
-        AccessEgressRouteCache accessEgressRouteCache = new AccessEgressRouteCache(null, new SingleModeNetworksCache(),config, scenario);
-        SBBIntermodalRaptorStopFinder stopFinder = new SBBIntermodalRaptorStopFinder(config, raptorIntermodalAccessEgress, null, scenario.getTransitSchedule(), accessEgressRouteCache);
-
-        RaptorParametersForPerson raptorParametersForPerson = new DefaultRaptorParametersForPerson(config);
-        RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
-        RaptorInVehicleCostCalculator inVehicleCostCalculator = new DefaultRaptorInVehicleCostCalculator();
-        RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
-        SwissRailRaptor swissRailRaptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
-
-        //SwissRailRaptorFactory swissRailRaptorFactory = new SwissRailRaptorFactory(scenario, config, raptorParametersForPerson, routeSelector, stopFinderProvider);
-        Map<Id<Link>, DemandStorage> idDemandStorageMap = createDemandStorage(saveFileInpout);
-        List<String> demandFiles = findAllDemandFiles();
-        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
-        PopulationFactory pFactory = scenario.getPopulation().getFactory();
-        ActivityFacilitiesFactory afFactory = new ActivityFacilitiesFactoryImpl();
-        Person person = pFactory.createPerson(Id.createPersonId("person"));
-
-        ReadOMXMatrciesDayDemand.readOMXMatrciesDayDemand(demand);
-
-        long startTime = System.nanoTime();
         for (String demandSegment : demandFiles) {
             try (BufferedReader reader = new BufferedReader(new FileReader(demandSegment))) {
-                String fileName = demandSegment.split("/")[demandSegment.split("/").length-1];
+                String fileName = demandSegment.split("/")[demandSegment.split("/").length - 1];
                 String endFile = fileName.split("_")[2];
                 int time = Integer.parseInt(endFile.split("\\.")[0]);
                 System.out.println(time);
@@ -154,11 +126,11 @@ public class RoutingWithBestPath {
                         Facility endF = afFactory.createActivityFacility(Id.create(2, ActivityFacility.class), endCoord);
                         RoutingRequest request = DefaultRoutingRequest.withoutAttributes(startF, endF, time * 60, person);
                         List<? extends PlanElement> legs = swissRailRaptor.calcRoute(request);
-                        List<RaptorRoute> routes = swissRailRaptor.calcRoutes(startF, endF, time*60, time*60, time*60+5000, person, null);
+                        List<RaptorRoute> routes = swissRailRaptor.calcRoutes(startF, endF, time * 60, time * 60, time * 60 + 5000, person, null);
                         List<List<? extends PlanElement>> routesLegs = new ArrayList<>();
                         int x = 1;
                         for (RaptorRoute route : routes) {
-                            idDemandStorageMap = createDemandStorage(saveFileInpout);
+                            idDemandStorageMap = createLinkDemandStorage(saveFileInpout);
                             legs = RaptorUtils.convertRouteToLegs(route, raptorStaticConfig.getTransferWalkMargin());
                             routesLegs.add(legs);
                             for (PlanElement pe : legs) {
@@ -199,14 +171,14 @@ public class RoutingWithBestPath {
                 throw new RuntimeException(e);
             }
             break;
-        }
+        }*/
+
         System.out.println("Done");
         String outputSaveFile = output;
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputSaveFile))) {
-
             writer.write("Matsim_Link;Demand;Visum_Link;WKT");
             writer.newLine();
-            for (DemandStorage demandStorage : idDemandStorageMap.values()) {
+            for (DemandStorage demandStorage : routingWithBestPath.idDemandStorageMap.values()) {
                 writer.write(demandStorage.toString());
                 writer.newLine();
                 writer.flush();
@@ -214,32 +186,104 @@ public class RoutingWithBestPath {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("It took " + (System.nanoTime() - startTime) + "s");
+
+        System.out.println("It took " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
     }
 
-    private static Map<Id<Link>, DemandStorage> createDemandStorage(String saveFileInput) {
+    public RoutingWithBestPath() {
+        Config config = ConfigUtils.createConfig();
+
+        SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
+        List<IntermodalAccessEgressParameterSet> intermodalAccessEgressParameterSets = srrConfig.getIntermodalAccessEgressParameterSets();
+        IntermodalAccessEgressParameterSet intermodalAccessEgressParameterSet = new IntermodalAccessEgressParameterSet();
+        intermodalAccessEgressParameterSet.setMode("walk");
+        intermodalAccessEgressParameterSets.add(intermodalAccessEgressParameterSet);
+
+        PlanCalcScoreConfigGroup pcsConfig = config.planCalcScore();
+        ModeParams modeParams = new ModeParams(TransportMode.non_network_walk);
+        modeParams.setMarginalUtilityOfTraveling(1);
+        pcsConfig.addModeParams(modeParams);
+
+        this.scenario = ScenarioUtils.createScenario(config);
+        new TransitScheduleReader(scenario).readFile(schedualFile);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(netwoekFile);
+
+        RaptorStaticConfig raptorStaticConfig = new RaptorStaticConfig();
+        SwissRailRaptorData data = SwissRailRaptorData.create(scenario.getTransitSchedule(), null, raptorStaticConfig, scenario.getNetwork(), null);
+
+        RaptorIntermodalAccessEgress raptorIntermodalAccessEgress = new DefaultRaptorIntermodalAccessEgress();
+        AccessEgressRouteCache accessEgressRouteCache = new AccessEgressRouteCache(null, new SingleModeNetworksCache(), config, scenario);
+        SBBIntermodalRaptorStopFinder stopFinder = new SBBIntermodalRaptorStopFinder(config, raptorIntermodalAccessEgress, null, scenario.getTransitSchedule(), accessEgressRouteCache);
+
+        RaptorParametersForPerson raptorParametersForPerson = new DefaultRaptorParametersForPerson(config);
+        RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
+        RaptorInVehicleCostCalculator inVehicleCostCalculator = new DefaultRaptorInVehicleCostCalculator();
+        RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
+
+        this.swissRailRaptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
+        this.railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+    }
+
+    private void calculateRoutes() {
+        for (; inputDemand.getTime() < inputDemand.getLastDemandSegment(); inputDemand.increaseTime()) {
+            System.out.println("Time " + inputDemand.getTime());
+            var omxMatrix = inputDemand.getOmxFile().getMatrix(String.valueOf(inputDemand.getTime()));
+            double[][] matrix = (double[][]) omxMatrix.getData();
+            for (inputDemand.resetXPosition(); inputDemand.getXPosition() < inputDemand.getLastPosition() - 1; inputDemand.increaseXPosition()) {
+                if (scenario.getTransitSchedule().getFacilities().get(Id.create(inputDemand.getCodeList().get(inputDemand.getXPosition()), TransitStopFacility.class)) == null) {
+                    if (inputDemand.getTime() < 2) {
+                        System.out.println(inputDemand.getCodeList().get(inputDemand.getXPosition()));
+                    }
+                    continue;
+                }
+                for (inputDemand.resetYPosition(); inputDemand.getYPosition() < inputDemand.getLastPosition() - 1; inputDemand.increaseYPosition()) {
+                    if (scenario.getTransitSchedule().getFacilities().get(Id.create(inputDemand.getCodeList().get(inputDemand.getYPosition()), TransitStopFacility.class)) == null) {
+                        continue;
+                    }
+                    double timeDemand = matrix[inputDemand.getXPosition()][inputDemand.getYPosition()];
+                    if (timeDemand != 0) {
+                        Coord startCoord = scenario.getTransitSchedule().getFacilities().get(Id.create(inputDemand.getCodeList().get(inputDemand.getXPosition()), TransitStopFacility.class)).getCoord();
+                        Coord endCoord = scenario.getTransitSchedule().getFacilities().get(Id.create(inputDemand.getCodeList().get(inputDemand.getYPosition()), TransitStopFacility.class)).getCoord();
+                        Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), startCoord);
+                        Facility endF = afFactory.createActivityFacility(Id.create(2, ActivityFacility.class), endCoord);
+                        RoutingRequest request = DefaultRoutingRequest.withoutAttributes(startF, endF, inputDemand.getTime() * 600, person);
+                        List<? extends PlanElement> legs = swissRailRaptor.calcRoute(request);
+                        if (legs == null) {
+                            //System.out.println("No connection found for " + inputDemand.getCodeList().get(inputDemand.getXPosition()) + " to " + inputDemand.getCodeList().get(inputDemand.getYPosition()));
+                            continue;
+                        }
+                        for (PlanElement pe : legs) {
+                            Leg leg = (Leg) pe;
+                            if (leg.getMode().equals("pt")) {
+                                List<Id<Link>> linkIds = railTripsAnalyzer.getPtLinkIdsTraveledOn((TransitPassengerRoute) leg.getRoute());
+                                for (Id<Link> linkId : linkIds) {
+                                    if (scenario.getNetwork().getLinks().get(linkId).getFromNode().equals(scenario.getNetwork().getLinks().get(linkId).getToNode())) {
+                                        continue;
+                                    }
+                                    DemandStorage demandStorage = idDemandStorageMap.get(linkId);
+                                    demandStorage.increaseDemand(timeDemand);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static Map<Id<Link>, DemandStorage> createLinkDemandStorage(String saveFileInput) {
         Map<Id<Link>, DemandStorage> idDemandStorageMap = new HashMap<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(saveFileInput))) {
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
             while ((line = reader.readLine()) != null) {
                 var linkId = Id.createLinkId(line.split(";")[header.indexOf("Matsim_Link")]);
-                idDemandStorageMap.put(linkId, new DemandStorage(linkId, line.split(";")[header.indexOf("Visum_Link")],line.split(";")[header.indexOf("WKT")]));
-
+                idDemandStorageMap.put(linkId, new DemandStorage(linkId, line.split(";")[header.indexOf("Visum_Link")], line.split(";")[header.indexOf("WKT")]));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         return idDemandStorageMap;
-    }
-
-    private static List<String> findAllDemandFiles() {
-        List<String> demandFiles = new ArrayList<>();
-        for (int i = 10; i <= 1440; i += 10) {
-            demandFiles.add(demandFilesLocation + "Test_Nachfrage_" + i + ".csv");
-        }
-        return demandFiles;
     }
 
 }

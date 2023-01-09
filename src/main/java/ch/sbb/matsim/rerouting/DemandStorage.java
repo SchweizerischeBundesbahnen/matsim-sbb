@@ -21,6 +21,10 @@ public class DemandStorage {
         this.wkt = wkt;
     }
 
+    public void increaseDemand(double value) {
+        this.demand += value;
+    }
+
     public void setWkt(String wkt) {
         this.wkt = wkt;
     }
