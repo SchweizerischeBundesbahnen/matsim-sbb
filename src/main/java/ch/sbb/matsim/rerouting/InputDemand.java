@@ -14,6 +14,7 @@ public class InputDemand {
     private final int lastPosition;
     private final int lastDemandSegment;
     private int time = 1;
+    private final List<Integer> timeList = new ArrayList<>();
     private int xPosition = 0;
     private int yPosition = 0;
 
@@ -22,6 +23,9 @@ public class InputDemand {
         this.omxFile = readOMXMatrciesDayDemand(nachfrageTag);
         this.lastPosition = this.codeList.size();
         this.lastDemandSegment = this.omxFile.getMatrixNames().size();
+        for (int i = 1; i < lastDemandSegment; i++) {
+            timeList.add(i);
+        }
     }
 
     private static List<Integer> readColumNames(String file) {
@@ -91,5 +95,9 @@ public class InputDemand {
 
     public void resetYPosition() {
         this.yPosition = 0;
+    }
+
+    public List<Integer> getTimeList() {
+        return timeList;
     }
 }

@@ -61,20 +61,20 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class RoutingWithBestPath {
 
-    static String columNames = "Z:/99_Playgrounds/MD/Umlegung/Input/ColumNames.csv";
-    static String demand = "Z:/99_Playgrounds/MD/Umlegung/Input/NachfrageTag.omx";
-    static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/saveFile.csv";
-    static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/smallTransitSchedule.xml.gz";
-    static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input//smallTransitNetwork.xml.gz";
-    static String output = "C:/devsbb/writeFilePlace/Umlegung/saveFileWithDemand.csv";
+    final static String columNames = "Z:/99_Playgrounds/MD/Umlegung/Input/ColumNames.csv";
+    final static String demand = "Z:/99_Playgrounds/MD/Umlegung/Input/NachfrageTag.omx";
+    final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/saveFile.csv";
+    final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/smallTransitSchedule.xml.gz";
+    final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input//smallTransitNetwork.xml.gz";
+    final static String output = "C:/devsbb/writeFilePlace/Umlegung/saveFileWithDemand.csv";
 
-    InputDemand inputDemand = new InputDemand(columNames, demand);
-    Map<Id<Link>, DemandStorage> idDemandStorageMap = createLinkDemandStorage(saveFileInpout);
-    ActivityFacilitiesFactory afFactory = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getActivityFacilities().getFactory();
-    Person person = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation().getFactory().createPerson(Id.createPersonId("Person"));
-    Scenario scenario;
-    SwissRailRaptor swissRailRaptor;
-    RailTripsAnalyzer railTripsAnalyzer;
+    final InputDemand inputDemand = new InputDemand(columNames, demand);
+    final Map<Id<Link>, DemandStorage> idDemandStorageMap = createLinkDemandStorage(saveFileInpout);
+    final ActivityFacilitiesFactory afFactory = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getActivityFacilities().getFactory();
+    final Person person = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation().getFactory().createPerson(Id.createPersonId("Person"));
+    final Scenario scenario;
+    final SwissRailRaptor swissRailRaptor;
+    final RailTripsAnalyzer railTripsAnalyzer;
     private Thread[] threads;
 
     /*
@@ -174,8 +174,7 @@ public class RoutingWithBestPath {
         }*/
 
         System.out.println("Done");
-        String outputSaveFile = output;
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputSaveFile))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
             writer.write("Matsim_Link;Demand;Visum_Link;WKT");
             writer.newLine();
             for (DemandStorage demandStorage : routingWithBestPath.idDemandStorageMap.values()) {
