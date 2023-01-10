@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -56,14 +57,22 @@ public class MatrixRouter {
     final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/saveFile.csv";
     final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/smallTransitSchedule.xml.gz";
     final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input//smallTransitNetwork.xml.gz";
-    final static String output = "C:/devsbb/writeFilePlace/Umlegung/saveFileWithDemand.csv";
+    final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/saveFileWithDemand.csv";
 
     final InputDemand inputDemand = new InputDemand(columNames, demand);
-    final Map<Id<Link>, DemandStorage> idDemandStorageMap = createLinkDemandStorage();
+    final ConcurrentHashMap<Id<Link>, DemandStorage> idDemandStorageMap = createLinkDemandStorage();
     final ActivityFacilitiesFactory afFactory = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getActivityFacilities().getFactory();
      final Scenario scenario;
     final SwissRailRaptor swissRailRaptor;
     final RailTripsAnalyzer railTripsAnalyzer;
+    SwissRailRaptorData data;
+
+    SBBIntermodalRaptorStopFinder stopFinder;
+    RaptorParametersForPerson raptorParametersForPerson;
+    RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
+    RaptorInVehicleCostCalculator inVehicleCostCalculator = new DefaultRaptorInVehicleCostCalculator();
+    RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
+
 
     public static void main(String[] args) {
         long startTime = System.nanoTime();
@@ -93,12 +102,15 @@ public class MatrixRouter {
 
         RaptorStaticConfig raptorStaticConfig = new RaptorStaticConfig();
         SwissRailRaptorData data = SwissRailRaptorData.create(scenario.getTransitSchedule(), null, raptorStaticConfig, scenario.getNetwork(), null);
+        this.data = data;
 
         RaptorIntermodalAccessEgress raptorIntermodalAccessEgress = new DefaultRaptorIntermodalAccessEgress();
         AccessEgressRouteCache accessEgressRouteCache = new AccessEgressRouteCache(null, new SingleModeNetworksCache(), config, scenario);
         SBBIntermodalRaptorStopFinder stopFinder = new SBBIntermodalRaptorStopFinder(config, raptorIntermodalAccessEgress, null, scenario.getTransitSchedule(), accessEgressRouteCache);
+        this.stopFinder = stopFinder;
 
         RaptorParametersForPerson raptorParametersForPerson = new DefaultRaptorParametersForPerson(config);
+        this.raptorParametersForPerson = raptorParametersForPerson;
         RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
         RaptorInVehicleCostCalculator inVehicleCostCalculator = new DefaultRaptorInVehicleCostCalculator();
         RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
@@ -108,17 +120,19 @@ public class MatrixRouter {
     }
 
     public void routingWithBestPath() {
-       inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
+       inputDemand.getTimeList().stream().forEach(this::calculateMatrix);
        writeLinkCount();
     }
 
     private void calculateMatrix(Integer time) {
-        System.out.println(Thread.currentThread().getName());
+        System.out.println("Matrix: " + time);
+        var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
         double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
         for (int x = 0; x < inputDemand.getLastPosition(); x++) {
             if (scenario.getTransitSchedule().getFacilities().get(Id.create(inputDemand.getCodeList().get(x), TransitStopFacility.class)) == null) {
                 continue;
             }
+
             for (int y = 0; y < inputDemand.getLastPosition(); y++) {
                 if (scenario.getTransitSchedule().getFacilities().get(Id.create(inputDemand.getCodeList().get(y), TransitStopFacility.class)) == null) {
                     continue;
@@ -130,7 +144,7 @@ public class MatrixRouter {
                     Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), startCoord);
                     Facility endF = afFactory.createActivityFacility(Id.create(2, ActivityFacility.class), endCoord);
                     RoutingRequest request = DefaultRoutingRequest.withoutAttributes(startF, endF, inputDemand.getTime() * 600, null);
-                    List<? extends PlanElement> legs = swissRailRaptor.calcRoute(request);
+                    List<? extends PlanElement> legs = raptor.calcRoute(request);
                     if (legs == null) {
                         //System.out.println("No connection found for " + inputDemand.getCodeList().get(inputDemand.getXPosition()) + " to " + inputDemand.getCodeList().get(inputDemand.getYPosition()));
                         continue;
@@ -166,8 +180,8 @@ public class MatrixRouter {
         }
     }
 
-    private static Map<Id<Link>, DemandStorage> createLinkDemandStorage() {
-        Map<Id<Link>, DemandStorage> idDemandStorageMap = new HashMap<>();
+    private static ConcurrentHashMap<Id<Link>, DemandStorage> createLinkDemandStorage() {
+        ConcurrentHashMap<Id<Link>, DemandStorage> idDemandStorageMap = new ConcurrentHashMap<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(saveFileInpout))) {
             List<String> header = List.of(reader.readLine().split(";"));
             String line;

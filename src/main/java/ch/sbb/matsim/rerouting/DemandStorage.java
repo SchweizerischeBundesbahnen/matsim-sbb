@@ -21,7 +21,7 @@ public class DemandStorage {
         this.wkt = wkt;
     }
 
-    public void increaseDemand(double value) {
+    public synchronized void increaseDemand(double value) {
         this.demand += value;
     }
 
