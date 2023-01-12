@@ -1,6 +1,7 @@
 package ch.sbb.matsim.intermodal;
 
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
+import ch.sbb.matsim.preparation.casestudies.AddIntermodalAttributes;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
@@ -22,7 +23,7 @@ public class IntermodalModuleTest {
         Scenario scenario = ScenarioUtils.createScenario(config);
         new PopulationReader(scenario).readFile("test/input/scenarios/mobi20test/population.xml");
         IntermodalModule.prepareIntermodalScenario(scenario);
-        IntermodalModule.preparePopulation(scenario.getPopulation(), ConfigGroup.getInputFileURL(config.getContext(), "test/input/ch/sbb/matsim/intermodal/intermodalParams.csv"));
+        AddIntermodalAttributes.preparePopulation(scenario.getPopulation(), ConfigGroup.getInputFileURL(config.getContext(), "test/input/ch/sbb/matsim/intermodal/intermodalParams.csv"));
         Assert.assertTrue(Boolean.parseBoolean((String) scenario.getPopulation().getPersons().get(Id.createPersonId("P_1072505")).getAttributes().getAttribute("hasBike")));
         // a second call should throw an exception
         IntermodalModule.prepareIntermodalScenario(scenario);

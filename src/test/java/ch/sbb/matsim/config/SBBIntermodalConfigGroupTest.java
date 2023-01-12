@@ -32,8 +32,7 @@ public class SBBIntermodalConfigGroupTest {
 		mode1c.setMode("car_feeder");
 		mode1c.setSimulatedOnNetwork(true);
 		mode1c.setRoutedOnNetwork(true);
-		mode1c.setAccessTimeLinkId("at_car");
-		mode1c.setEgressTimeLinkId("at_car");
+		mode1c.setAccessTimeZoneId("at_car");
 		mode1c.setUseMinimalTransferTimes(true);
 		intermodal1.addModeParameters(mode1c);
 

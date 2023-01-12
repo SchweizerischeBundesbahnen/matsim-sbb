@@ -14,19 +14,16 @@ import java.util.stream.Collectors;
 public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 
 	public static final String PARAM_MODE_DESC = "Mode to use as feeder";
-	public static final String PARAM_DETOUR_FACTOR_DESC = "Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers.";
 	public static final String PARAM_SIMULATION_NETWORKMODE_DESC = "If true, the mode will be added as main-mode to be simulated on the network according to its routing module.";
 	public static final String PARAM_ROUTING_NETWORKMODE_DESC = "If true, the mode will be routed on the network.";
-	public static final String PARAM_ACCESSTIME_LinkATT_DESC = "Link Id field for mode specific access (or wait) time (in seconds).";
-	public static final String PARAM_DETOUR_FACTOR_LinkATT_DESC = "Link Id field for mode specific detour factor.";
-	public static final String PARAM_EGRESSTIME_LinkATT_DESC = "Link Id field for mode specific egress time (in seconds).";
+	public static final String PARAM_ACCESSTIME_ZoneATT_DESC = "Zone Id field for mode specific access (or wait) time (in seconds).";
+	public static final String PARAM_DETOUR_FACTOR_ZoneATT_DESC = "Zone Id field for mode specific detour factor.";
 	static final String TYPE = "mode";
 	static private final String PARAM_MODE = "mode";
 	static private final String PARAM_SIMULATION_NETWORKMODE = "isSimulatedOnNetwork";
 	static private final String PARAM_ROUTING_NETWORKMODE = "isRoutedOnNetwork";
-	static private final String PARAM_ACCESSTIME_LinkATT = "accessTimeLinksAttributeName";
-	static private final String PARAM_DETOUR_FACTOR_LinkATT = "detourFactorLinksAttributeName";
-	static private final String PARAM_EGRESSTIME_LinkATT = "egressTimeLinksAttributeName";
+	static private final String PARAM_ACCESSTIME_ZoneATT = "accessTimeZonesAttributeName";
+	static private final String PARAM_DETOUR_FACTOR_ZoneATT = "detourFactorZonesAttributeName";
 	static private final String PARAM_USEMINIMALTRANSFERTIMES_DESC = "use minimal transfer times";
 	static private final String PARAM_USEMINIMALTRANSFERTIMES = "useMinimalTransferTimes";
 
@@ -40,8 +37,7 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 	private String mode = null;
 	private boolean routedOnNetwork = false;
 	private boolean simulatedOnNetwork = false;
-	private String accessTimeLinkId = null;
-	private String egressTimeLinkId = null;
+	private String accessTimeZoneId = null;
 	private String detourFactorZoneId = null;
 	private boolean useMinimalTransferTimes = false;
 	private String personActivityFilterAttribute = null;
@@ -92,32 +88,23 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 		this.routedOnNetwork = routedOnNetwork;
 	}
 
-	@StringGetter(PARAM_ACCESSTIME_LinkATT)
-	public String getAccessTimeLinkId() {
-		return accessTimeLinkId;
+	@StringGetter(PARAM_ACCESSTIME_ZoneATT)
+	public String getAccessTimeZoneId() {
+		return accessTimeZoneId;
 	}
 
-	@StringSetter(PARAM_ACCESSTIME_LinkATT)
-	public void setAccessTimeLinkId(String accessTimeLinkId) {
-		this.accessTimeLinkId = accessTimeLinkId;
+	@StringSetter(PARAM_ACCESSTIME_ZoneATT)
+	public void setAccessTimeZoneId(String accessTimeZoneId) {
+		this.accessTimeZoneId = accessTimeZoneId;
 	}
 
-	@StringGetter(PARAM_EGRESSTIME_LinkATT)
-	public String getEgressTimeLinkId() {
-		return egressTimeLinkId;
-	}
 
-	@StringSetter(PARAM_EGRESSTIME_LinkATT)
-	public void setEgressTimeLinkId(String egressTimeLinkId) {
-		this.egressTimeLinkId = egressTimeLinkId;
-	}
-
-	@StringGetter(PARAM_DETOUR_FACTOR_LinkATT)
+	@StringGetter(PARAM_DETOUR_FACTOR_ZoneATT)
 	public String getDetourFactorZoneId() {
 		return detourFactorZoneId;
 	}
 
-	@StringSetter(PARAM_DETOUR_FACTOR_LinkATT)
+	@StringSetter(PARAM_DETOUR_FACTOR_ZoneATT)
 	public void setDetourFactorZoneId(String detourFactorZoneId) {
 		this.detourFactorZoneId = detourFactorZoneId;
 	}
@@ -152,9 +139,8 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 		comments.put(PARAM_MODE, PARAM_MODE_DESC);
 		comments.put(PARAM_SIMULATION_NETWORKMODE, PARAM_SIMULATION_NETWORKMODE_DESC);
 		comments.put(PARAM_ROUTING_NETWORKMODE, PARAM_ROUTING_NETWORKMODE_DESC);
-		comments.put(PARAM_DETOUR_FACTOR_LinkATT, PARAM_DETOUR_FACTOR_LinkATT_DESC);
-		comments.put(PARAM_EGRESSTIME_LinkATT, PARAM_EGRESSTIME_LinkATT_DESC);
-		comments.put(PARAM_ACCESSTIME_LinkATT, PARAM_ACCESSTIME_LinkATT_DESC);
+		comments.put(PARAM_DETOUR_FACTOR_ZoneATT, PARAM_DETOUR_FACTOR_ZoneATT_DESC);
+		comments.put(PARAM_ACCESSTIME_ZoneATT, PARAM_ACCESSTIME_ZoneATT_DESC);
 		comments.put(PARAM_USEMINIMALTRANSFERTIMES, PARAM_USEMINIMALTRANSFERTIMES_DESC);
 		comments.put(PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE, PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE_DESC);
 		comments.put(PARAM_CACHE_FILE, PARAM_CACHE_FILE_DESC);

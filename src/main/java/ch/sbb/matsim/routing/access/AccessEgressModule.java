@@ -1,7 +1,7 @@
 package ch.sbb.matsim.routing.access;
 
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
-import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -17,9 +17,8 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.NetworkRoutingProvider;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class AccessEgressModule extends AbstractModule {
 
@@ -27,19 +26,35 @@ public class AccessEgressModule extends AbstractModule {
 
 	public static void prepareLinkAttributes(Scenario scenario, boolean includeParkingCosts) {
 		ZonesCollection collection = (ZonesCollection) scenario.getScenarioElement(ZonesModule.SBB_ZONES);
-		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
-		ParkingCostConfigGroup parkingCostConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), ParkingCostConfigGroup.class);
-		String car_pc_att = parkingCostConfigGroup.linkAttributePrefix + SBBModes.CAR;
-		String ride_pc_att = parkingCostConfigGroup.linkAttributePrefix + SBBModes.RIDE;
+		var accessTimeConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
+		var parkingCostConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), ParkingCostConfigGroup.class);
+		var sbbIntermodalConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBIntermodalConfiggroup.class);
+
 		Id<Zones> zonesId = accessTimeConfigGroup.getZonesId();
 		Zones zones = collection.getZones(zonesId);
 		String attributePrefix = accessTimeConfigGroup.getAttributePrefix();
+		Map<String, String> accessTimeParameters = new HashMap<>();
+		accessTimeConfigGroup.getModesWithAccessTime().forEach(m -> accessTimeParameters.put(m, attributePrefix + m.toLowerCase()));
+		sbbIntermodalConfigGroup.getModeParameterSets().stream()
+				.filter(sbbIntermodalModeParameterSet -> sbbIntermodalModeParameterSet.isRoutedOnNetwork())
+				.forEach(sbbIntermodalModeParameterSet -> accessTimeParameters.put(sbbIntermodalModeParameterSet.getMode(), sbbIntermodalModeParameterSet.getAccessTimeZoneId()));
+		Set<String> detourParams = sbbIntermodalConfigGroup.getModeParameterSets().stream()
+				.map(sbbIntermodalModeParameterSet -> sbbIntermodalModeParameterSet.getDetourFactorZoneId())
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+
+		Map<String, String> parkingCostParameters = new HashMap<>();
+		if (includeParkingCosts) {
+			parkingCostConfigGroup.getModesWithParkingCosts()
+					.forEach(mode -> parkingCostParameters.put(mode, parkingCostConfigGroup.linkAttributePrefix + mode));
+		}
 
 		for (var l : scenario.getNetwork().getLinks().values()) {
-			Set<String> modesWithAccessTime = accessTimeConfigGroup.getModesWithAccessTime();
 			Zone zone = zones.findZone(l.getCoord());
-			for (var mode : modesWithAccessTime) {
-				String attribute = attributePrefix + mode.toLowerCase();
+
+			for (var entry : accessTimeParameters.entrySet()) {
+				String mode = entry.getKey();
+				String attribute = entry.getValue();
 				double accessTime = zone != null ? ((Number) zone.getAttribute(attribute)).intValue() : .0;
 				if (l.getAllowedModes().contains(mode)) {
 					NetworkUtils.setLinkAccessTime(l, mode, accessTime);
@@ -51,22 +66,19 @@ public class AccessEgressModule extends AbstractModule {
 				if (isSwissZone(zone.getId())) {
 					isInCH = true;
 				}
-				if (includeParkingCosts) {
-					if (l.getAllowedModes().contains(SBBModes.RIDE)) {
-						double pc_ride = ((Number) zone.getAttribute(ride_pc_att)).doubleValue();
-						if (pc_ride > 0.0) {
-							l.getAttributes().putAttribute(ride_pc_att, pc_ride);
-						}
-					}
-					if (l.getAllowedModes().contains(SBBModes.CAR)) {
-
-						double pc_car = ((Number) zone.getAttribute(car_pc_att)).doubleValue();
-						if (pc_car > 0.0) {
-							l.getAttributes().putAttribute(car_pc_att, pc_car);
-						}
-					}
+				for (String detourAttribute : detourParams) {
+					double detourFactor = ((Number) zone.getAttribute(detourAttribute)).doubleValue();
+					l.getAttributes().putAttribute(detourAttribute, detourFactor);
 				}
 
+				for (var entry : parkingCostParameters.entrySet()) {
+					String mode = entry.getKey();
+					String attribute = entry.getValue();
+					double pc = ((Number) zone.getAttribute(attribute)).doubleValue();
+					if (l.getAllowedModes().contains(mode)) {
+						l.getAttributes().putAttribute(attribute, pc);
+					}
+				}
 			}
 
 			l.getAttributes().putAttribute(IS_CH, isInCH);
