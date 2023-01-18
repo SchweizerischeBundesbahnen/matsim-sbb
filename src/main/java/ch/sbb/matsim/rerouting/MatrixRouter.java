@@ -55,7 +55,9 @@ public class MatrixRouter {
     final static String demand = "Z:/99_Playgrounds/MD/Umlegung/Input/NachfrageTag.omx";
     final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/saveFile.csv";
     final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/smallTransitSchedule.xml.gz";
+    //final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Old/transitSchedule.xml.gz";
     final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input//smallTransitNetwork.xml.gz";
+    //final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Old/transitNetwork.xml.gz";
     final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/test.csv";
 
     final InputDemand inputDemand;
@@ -66,7 +68,9 @@ public class MatrixRouter {
     final RailTripsAnalyzer railTripsAnalyzer;
     final SwissRailRaptorData data;
 
-    int count = 0;
+    static int count = 0;
+    static int missingDemand = 0;
+    static int routedDemand = 0;
 
     SBBIntermodalRaptorStopFinder stopFinder;
     RaptorParametersForPerson raptorParametersForPerson;
@@ -78,8 +82,13 @@ public class MatrixRouter {
     public static void main(String[] args) {
         long startTime = System.nanoTime();
         MatrixRouter matrixRouter = new MatrixRouter();
+        System.out.println("MatrixRouter: " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
         matrixRouter.routingWithBestPath();
         System.out.println("It took " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
+        System.out.println("Missing Connections: "  + count);
+        System.out.println("Missing demand from sonnections: "  + missingDemand);
+        System.out.println("Missing demand from stations: "  + matrixRouter.inputDemand.getMissingDemand());
+        System.out.println("Routed demand: "  + routedDemand);
     }
 
     public MatrixRouter() {
@@ -122,12 +131,12 @@ public class MatrixRouter {
     }
 
     public void routingWithBestPath() {
-       inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
+       inputDemand.getTimeList().stream().filter(time -> time == 131).forEach(this::calculateMatrix);
        writeLinkCount();
     }
 
     private void calculateMatrix(Integer time) {
-        System.out.println("Matrix: " + time);
+        long startTime = System.nanoTime();
         var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
         double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
         for (Entry<Integer, Coord> entryX : inputDemand.getValidPosistions().entrySet()) {
@@ -140,10 +149,13 @@ public class MatrixRouter {
                     List<? extends PlanElement> legs = raptor.calcRoute(request);
                     if (legs == null) {
                         //System.out.println("No connection found for " + entryX.getValue() + " to " + entryX.getValue() + " at time " + time + " demand " + timeDemand);
-                        //System.out.println("LINESTRING (" + startCoord.getX() + " " + startCoord.getY() + ", " + endCoord.getX() + " " + endCoord.getY() + ");" + time);
+                        //System.out.println("LINESTRING (" + entryX.getValue().getX() + " " + entryX.getValue().getY() + ", " + entryY.getValue().getX() + " " + entryY.getValue().getY() + ");" + time);
                         count++;
+                        missingDemand += timeDemand;
+                        List<? extends PlanElement> legs3 = raptor.calcRoute(request);
                         continue;
                     }
+                    routedDemand += timeDemand;
                     for (PlanElement pe : legs) {
                         Leg leg = (Leg) pe;
                         if (leg.getMode().equals("pt")) {
@@ -159,6 +171,7 @@ public class MatrixRouter {
                 }
             }
         }
+        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
     }
 
     private void writeLinkCount() {

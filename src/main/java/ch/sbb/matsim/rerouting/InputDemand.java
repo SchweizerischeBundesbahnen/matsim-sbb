@@ -18,6 +18,7 @@ public class InputDemand {
     private final OmxFile omxFile;
     private final Map<Integer, Coord> validPosistions;
     private final List<Integer> timeList = new ArrayList<>();
+    private double missingDemand;
 
     InputDemand(String columNames, String nachfrageTag, Scenario scenario) {
         long startTime = System.nanoTime();
@@ -43,11 +44,11 @@ public class InputDemand {
                         missingDemand += matrix[i][y];
                         missingDemand += matrix[y][i];
                     }
-
                 }
             }
         }
         System.out.println("Missing demand becaus auf invalid stations: " + missingDemand);
+        this.missingDemand = missingDemand;
         return validPostions;
     }
 
@@ -95,5 +96,9 @@ public class InputDemand {
 
     public Map<Integer, Coord> getValidPosistions() {
         return validPosistions;
+    }
+
+    public double getMissingDemand() {
+        return missingDemand;
     }
 }
