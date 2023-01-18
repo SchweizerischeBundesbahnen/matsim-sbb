@@ -14,26 +14,40 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class InputDemand {
+
     private final OmxFile omxFile;
     private final Map<Integer, Coord> validPosistions;
     private final List<Integer> timeList = new ArrayList<>();
 
     InputDemand(String columNames, String nachfrageTag, Scenario scenario) {
+        long startTime = System.nanoTime();
         this.omxFile = readOMXMatrciesDayDemand(nachfrageTag);
         Map<Integer, Coord> assignmentMap = readAssignment(columNames, scenario);
         this.validPosistions = searchValidStationsPosition((int[]) omxFile.getLookup("NO").getLookup(), assignmentMap);
         for (int i = 1; i < this.omxFile.getMatrixNames().size(); i++) {
             timeList.add(i);
         }
+        System.out.println("Input demand: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
     }
 
     private Map<Integer, Coord> searchValidStationsPosition(int[] lookup, Map<Integer, Coord> assignmentMap) {
         Map<Integer, Coord> validPostions = new HashMap<>();
+        double missingDemand = 0;
         for (int i = 0; i < lookup.length; i++) {
             if (assignmentMap.containsKey(lookup[i])) {
                 validPostions.put(i, assignmentMap.get(lookup[i]));
+            } else {
+                for (int time = 1; time < this.omxFile.getMatrixNames().size(); time++) {
+                    double[][] matrix = (double[][]) omxFile.getMatrix(String.valueOf(time)).getData();
+                    for (int y = 0; y < matrix.length; y++) {
+                        missingDemand += matrix[i][y];
+                        missingDemand += matrix[y][i];
+                    }
+
+                }
             }
         }
+        System.out.println("Missing demand becaus auf invalid stations: " + missingDemand);
         return validPostions;
     }
 
@@ -63,9 +77,11 @@ public class InputDemand {
     }
 
     private OmxFile readOMXMatrciesDayDemand(String file) {
+        long startTime = System.nanoTime();
         OmxFile omxFile = new OmxFile(file);
         omxFile.openReadOnly();
         omxFile.summary();
+        System.out.println("Read omx file: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
         return omxFile;
     }
 
