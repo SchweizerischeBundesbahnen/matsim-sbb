@@ -29,13 +29,16 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-public class FilterPT {
+public final class FilterPT {
 
-    static String transitFile = "Z:/99_Playgrounds/MD/Umlegung/transitSchedule.xml.gz";
-    static String networkFile = "Z:/99_Playgrounds/MD/Umlegung/transitNetwork.xml.gz";
-    static String outputTransitFile = "C:/devsbb/writeFilePlace/Umlegung/smallTransitSchedule.xml.gz";
-    static String outputNetworkFile = "C:/devsbb/writeFilePlace/Umlegung/smallTransitNetwork.xml.gz";
+    static String transitFile = "Z:/99_Playgrounds/MD/Umlegung/Old/transitSchedule2020.xml.gz";
+    static String networkFile = "Z:/99_Playgrounds/MD/Umlegung/Old/transitNetwork2020.xml.gz";
+    static String outputTransitFile = "C:/devsbb/writeFilePlace/Umlegung/railTransitSchedule2020.xml.gz";
+    static String outputNetworkFile = "C:/devsbb/writeFilePlace/Umlegung/railTransitNetwork2020.xml.gz";
     static String demandStationsFile = "Z:/99_Playgrounds/MD/Umlegung/Input/ColumNames.csv";
+
+    private FilterPT() {
+    }
 
     public static void main(String[] args) {
 
@@ -51,7 +54,7 @@ public class FilterPT {
 
     public static void filterSchedual(Scenario scenario) {
 
-        List<Integer> codeList = readDemandStationsFile();
+        //List<Integer> codeList = readDemandStationsFile();
 
         Set<TransitStopFacility> transitStopFacilities = new LinkedHashSet<>();
         List<TransitLine> transitLines = scenario.getTransitSchedule().getTransitLines().values().stream()
@@ -68,8 +71,8 @@ public class FilterPT {
         transitLines.forEach(transitLine -> smallScenario.getTransitSchedule().addTransitLine(transitLine));
 
         NetworkFilterManager networkFilterManager = new NetworkFilterManager(scenario.getNetwork(), new NetworkConfigGroup());
-        networkFilterManager.addLinkFilter(l-> l.getAllowedModes().contains(PTSubModes.RAIL) || (l.getFromNode().equals(l.getToNode())&&
-            l.getFromNode().getInLinks().values().stream().anyMatch(link -> link.getAllowedModes().contains(PTSubModes.RAIL))));
+        networkFilterManager.addLinkFilter(l-> l.getAllowedModes().contains(PTSubModes.RAIL) || l.getFromNode().equals(l.getToNode()) &&
+            l.getFromNode().getInLinks().values().stream().anyMatch(link -> link.getAllowedModes().contains(PTSubModes.RAIL)));
         Network network = networkFilterManager.applyFilters();
         //org.matsim.core.network.algorithms.NetworkCleaner networkCleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
         //networkCleaner.run(network);
@@ -111,9 +114,9 @@ public class FilterPT {
 
     private static void filterMATSimVisumLinks(Network network) {
 
-        String linksConnrctionFile = "Z:/99_Playgrounds/MD/Umlegung/link_sequences.csv";
-        String polylines = "Z:/99_Playgrounds/MD/Umlegung/polylines.csv";
-        String outputSaveFile = "C:/devsbb/writeFilePlace/Umlegung/saveFile.csv";
+        String linksConnrctionFile = "Z:/99_Playgrounds/MD/Umlegung/Old/link_sequences2020.csv";
+        String polylines = "Z:/99_Playgrounds/MD/Umlegung/Old/polylines2020.csv";
+        String outputSaveFile = "C:/devsbb/writeFilePlace/Umlegung/saveFile2020.csv";
 
         Map<Id<Link>, DemandStorage> idDemandStorageMap = new HashMap<>();
 
