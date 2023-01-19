@@ -53,11 +53,11 @@ public class MatrixRouter {
 
     final static String columNames = "Z:/99_Playgrounds/MD/Umlegung/Input/ZoneToNode.csv";
     final static String demand = "Z:/99_Playgrounds/MD/Umlegung/Input/NachfrageTag.omx";
-    final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/saveFile.csv";
-    final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/smallTransitSchedule.xml.gz";
-    //final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Old/transitSchedule.xml.gz";
-    final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input//smallTransitNetwork.xml.gz";
-    //final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Old/transitNetwork.xml.gz";
+    final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/saveFile2020.csv";
+    //final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/smallTransitSchedule.xml.gz";
+    final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/railTransitSchedule2020.xml.gz";
+    // final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input//smallTransitNetwork.xml.gz";
+    final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input/railTransitNetwork2020.xml.gz";
     final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/test.csv";
 
     final InputDemand inputDemand;
@@ -69,8 +69,8 @@ public class MatrixRouter {
     final SwissRailRaptorData data;
 
     static int count = 0;
-    static int missingDemand = 0;
-    static int routedDemand = 0;
+    static double missingDemand = 0;
+    static double routedDemand = 0;
 
     SBBIntermodalRaptorStopFinder stopFinder;
     RaptorParametersForPerson raptorParametersForPerson;
@@ -85,8 +85,8 @@ public class MatrixRouter {
         System.out.println("MatrixRouter: " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
         matrixRouter.routingWithBestPath();
         System.out.println("It took " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
-        System.out.println("Missing Connections: "  + count);
-        System.out.println("Missing demand from sonnections: "  + missingDemand);
+        System.out.println("Missing connections: "  + count);
+        System.out.println("Missing demand from connections: "  + missingDemand);
         System.out.println("Missing demand from stations: "  + matrixRouter.inputDemand.getMissingDemand());
         System.out.println("Routed demand: "  + routedDemand);
     }
@@ -131,7 +131,7 @@ public class MatrixRouter {
     }
 
     public void routingWithBestPath() {
-       inputDemand.getTimeList().stream().filter(time -> time == 131).forEach(this::calculateMatrix);
+       inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
        writeLinkCount();
     }
 
@@ -152,7 +152,6 @@ public class MatrixRouter {
                         //System.out.println("LINESTRING (" + entryX.getValue().getX() + " " + entryX.getValue().getY() + ", " + entryY.getValue().getX() + " " + entryY.getValue().getY() + ");" + time);
                         count++;
                         missingDemand += timeDemand;
-                        List<? extends PlanElement> legs3 = raptor.calcRoute(request);
                         continue;
                     }
                     routedDemand += timeDemand;
@@ -164,7 +163,12 @@ public class MatrixRouter {
                                 if (scenario.getNetwork().getLinks().get(linkId).getFromNode().equals(scenario.getNetwork().getLinks().get(linkId).getToNode())) {
                                     continue;
                                 }
-                                idDemandStorageMap.get(linkId).increaseDemand(timeDemand);
+                                if (idDemandStorageMap.containsKey(linkId)) {
+                                    idDemandStorageMap.get(linkId).increaseDemand(timeDemand);
+                                } else {
+                                    //System.out.println("Hilfe");
+                                    idDemandStorageMap.put(linkId, new DemandStorage(linkId));
+                                }
                             }
                         }
                     }
