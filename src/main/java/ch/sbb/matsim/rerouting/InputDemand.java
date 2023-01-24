@@ -7,10 +7,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import omx.OmxFile;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.facilities.ActivityFacilitiesFactory;
+import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class InputDemand {
@@ -24,11 +31,22 @@ public class InputDemand {
         long startTime = System.nanoTime();
         this.omxFile = readOMXMatrciesDayDemand(nachfrageTag);
         Map<Integer, Coord> assignmentMap = readAssignment(columNames, scenario);
+        //createFacilities(assignmentMap);
         this.validPosistions = searchValidStationsPosition((int[]) omxFile.getLookup("NO").getLookup(), assignmentMap);
         for (int i = 1; i < this.omxFile.getMatrixNames().size(); i++) {
             timeList.add(i);
         }
         System.out.println("Input demand: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
+    }
+
+    private void createFacilities(Map<Integer, Coord> assignmentMap) {
+        Config config = ConfigUtils.createConfig();
+        Scenario scenario = ScenarioUtils.createScenario(config);
+        ActivityFacilitiesFactory f= scenario.getActivityFacilities().getFactory();
+        for (Entry<Integer, Coord> entry : assignmentMap.entrySet()) {
+            scenario.getActivityFacilities().addActivityFacility(f.createActivityFacility(Id.create(entry.getKey(), ActivityFacility.class), entry.getValue()));
+        }
+        new FacilitiesWriter(scenario.getActivityFacilities()).write("Z:/99_Playgrounds/MD/Umlegung/Input/facilities/facilities.xml");
     }
 
     private Map<Integer, Coord> searchValidStationsPosition(int[] lookup, Map<Integer, Coord> assignmentMap) {

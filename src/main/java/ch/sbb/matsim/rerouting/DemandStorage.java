@@ -5,8 +5,8 @@ import org.matsim.api.core.v01.network.Link;
 
 public class DemandStorage {
 
-    final Id<Link> matsimLink;
-    final String visumLink;
+    Id<Link> matsimLink;
+    String visumLink;
     String wkt;
     int demand = 0;
 
@@ -19,6 +19,10 @@ public class DemandStorage {
         this.matsimLink = linkId;
         this.visumLink = visumLink;
         this.wkt = wkt;
+    }
+
+    DemandStorage(Id<Link> linkId) {
+        new DemandStorage(linkId, "", "");
     }
 
     public synchronized void increaseDemand(double value) {

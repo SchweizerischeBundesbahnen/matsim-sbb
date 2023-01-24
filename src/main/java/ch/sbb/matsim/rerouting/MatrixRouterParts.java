@@ -29,6 +29,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -55,7 +56,7 @@ import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-public class MatrixRouter {
+public class MatrixRouterParts {
 
     List<Integer> startId = List.of();//80
     List<Integer> endId = List.of(478);
@@ -90,9 +91,10 @@ public class MatrixRouter {
     RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
 
 
+
     public static void main(String[] args) {
         long startTime = System.nanoTime();
-        MatrixRouter matrixRouter = new MatrixRouter();
+        MatrixRouterParts matrixRouter = new MatrixRouterParts();
         System.out.println("MatrixRouter: " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
         matrixRouter.route();
         System.out.println("It took " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
@@ -205,6 +207,16 @@ public class MatrixRouter {
                 double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
                 if (timeDemand != 0) {
                     TravelInfo travelInfo = tree.get(data.findNearestStop(destination.getValue().getX(), destination.getValue().getY()).getId());
+
+                    Iterator<RoutePart> routeParts = travelInfo.getRaptorRoute().getParts().iterator();
+
+                    while (routeParts.hasNext()) {
+                        RoutePart part = routeParts.next();
+
+
+
+                    }
+
                     if (travelInfo == null) {
                         count++;
                         missingDemand += timeDemand;
@@ -239,7 +251,7 @@ public class MatrixRouter {
         }
     }
 
-    public MatrixRouter() {
+    public MatrixRouterParts() {
         this.config = ConfigUtils.createConfig();
 
         SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
@@ -280,8 +292,8 @@ public class MatrixRouter {
     }
 
     public void routingWithBestPath() {
-       inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
-       writeLinkCount();
+        inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
+        writeLinkCount();
     }
 
     private void calculateMatrix(Integer time) {
