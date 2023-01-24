@@ -88,8 +88,7 @@ public class MatrixRouter {
     RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
     RaptorInVehicleCostCalculator inVehicleCostCalculator = new DefaultRaptorInVehicleCostCalculator();
     RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
-
-
+    
     public static void main(String[] args) {
         long startTime = System.nanoTime();
         MatrixRouter matrixRouter = new MatrixRouter();
