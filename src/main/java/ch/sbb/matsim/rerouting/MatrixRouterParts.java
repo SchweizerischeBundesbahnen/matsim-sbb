@@ -12,9 +12,11 @@ import ch.sbb.matsim.routing.pt.raptor.LeastCostRaptorRouteSelector;
 import ch.sbb.matsim.routing.pt.raptor.RaptorInVehicleCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
+import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig.RaptorOptimization;
 import ch.sbb.matsim.routing.pt.raptor.RaptorTransferCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
@@ -27,6 +29,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,17 +56,20 @@ import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-public class MatrixRouterTree {
+public class MatrixRouterParts {
+
+    List<Integer> startId = List.of();//80
+    List<Integer> endId = List.of(478);
 
     final static String YEAR = "2020";
     final static String TRANSIT = "rail";
-    final static String TRY = "calc";
+    final static String TRY = "tree";
     final static String columNames = "Z:/99_Playgrounds/MD/Umlegung/Input/ZoneToNode.csv";
     final static String demand = "Z:/99_Playgrounds/MD/Umlegung/Input/Demand2018.omx";
     final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/saveFile.csv";
     final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/transitSchedule.xml.gz";
     final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/transitNetwork.xml.gz";
-    final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/" + YEAR + "/" + TRANSIT + "/" + TRY + ".csv";
+    final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/" + YEAR + "/" + TRANSIT + "/" + TRY + "PointToPointTest.csv";
 
     final InputDemand inputDemand;
     final Map<Id<Link>, DemandStorage> idDemandStorageMap = createLinkDemandStorage();
@@ -85,11 +91,12 @@ public class MatrixRouterTree {
     RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
 
 
+
     public static void main(String[] args) {
         long startTime = System.nanoTime();
-        MatrixRouterTree matrixRouter = new MatrixRouterTree();
+        MatrixRouterParts matrixRouter = new MatrixRouterParts();
         System.out.println("MatrixRouter: " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
-        matrixRouter.treeRouting();
+        matrixRouter.route();
         System.out.println("It took " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
         System.out.println("Missing connections: "  + count);
         System.out.println("Missing demand from connections: "  + missingDemand);
@@ -97,7 +104,154 @@ public class MatrixRouterTree {
         System.out.println("Routed demand: "  + routedDemand);
     }
 
-    public MatrixRouterTree() {
+    private void route() {
+        if (startId.size() != 0 && endId.size() != 0) {
+            System.out.println("Point to Point");
+            routingPointToPointTree(startId, endId);
+            //routingPointToPointCalc(startId, endId);
+        } else if (TRY.equals("tree")) {
+            inputDemand.getTimeList().stream().parallel().forEach(this::calculateTree);
+        } else if (TRY.contains("calc")) {
+            inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
+        }
+        writeLinkCount();
+    }
+
+    private void routingPointToPointCalc(List<Integer> startId, List<Integer> endId) {
+        inputDemand.getTimeList().stream().parallel().forEach(time -> calculatePoint(time, this.startId, this.endId));
+        writeLinkCount();
+    }
+
+    private void calculatePoint(Integer time, List<Integer> startId, List<Integer> endId) {
+        long startTime = System.nanoTime();
+        var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
+        double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
+        for (Entry<Integer, Coord> entryX : inputDemand.getValidPosistions().entrySet()) {
+            if (!startId.contains(entryX.getKey()+1)) {
+                continue;
+            }
+            for (Entry<Integer, Coord> entryY : inputDemand.getValidPosistions().entrySet()) {
+                if (!endId.contains(entryY.getKey()+1)) {
+                    continue;
+                }
+                double timeDemand = matrix[entryX.getKey()][entryY.getKey()];
+                if (timeDemand != 0) {
+                    Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), entryX.getValue());
+                    Facility endF = afFactory.createActivityFacility(Id.create(2, ActivityFacility.class), entryY.getValue());
+                    RoutingRequest request = DefaultRoutingRequest.withoutAttributes(startF, endF, (time - 1) * 600, null);
+                    List<? extends PlanElement> legs = raptor.calcRoute(request);
+                    if (legs == null) {
+                        //System.out.println("No connection found for " + entryX.getValue() + " to " + entryX.getValue() + " at time " + time + " demand " + timeDemand);
+                        //System.out.println("LINESTRING (" + entryX.getValue().getX() + " " + entryX.getValue().getY() + ", " + entryY.getValue().getX() + " " + entryY.getValue().getY() + ");" + time);
+                        count++;
+                        missingDemand += timeDemand;
+                        continue;
+                    }
+                    routedDemand += timeDemand;
+                    addDemand(timeDemand, legs);
+                }
+            }
+        }
+        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
+    }
+
+    public void treeRouting() {
+        inputDemand.getTimeList().stream().parallel().forEach(this::calculateTree);
+        writeLinkCount();
+    }
+
+    public void routingPointToPointTree(List<Integer> startId, List<Integer> endId) {
+        inputDemand.getTimeList().stream().parallel().forEach(time -> calculateTreePoint(time, startId, endId));
+        writeLinkCount();
+    }
+
+    private void calculateTreePoint(Integer time, List<Integer> startId,  List<Integer> endId) {
+        long startTime = System.nanoTime();
+        var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
+        double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
+        for (Entry<Integer, Coord> validPotion : inputDemand.getValidPosistions().entrySet()) {
+            if (!startId.contains(validPotion.getKey()+1)) {
+                continue;
+            }
+            Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), validPotion.getValue());
+            Map<Id<TransitStopFacility>, TravelInfo> tree = raptor.calcTree(startF, (time - 1) * 600, null, null);
+            for (Entry<Integer, Coord>  destination : inputDemand.getValidPosistions().entrySet()) {
+                if (!endId.contains(destination.getKey()+1)) {
+                    continue;
+                }
+                double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
+                if (timeDemand != 0) {
+                    TravelInfo travelInfo = tree.get(data.findNearestStop(destination.getValue().getX(), destination.getValue().getY()).getId());
+                    if (travelInfo == null) {
+                        count++;
+                        missingDemand += timeDemand;
+                        continue;
+                    }
+                    routedDemand += timeDemand;
+                    List<? extends PlanElement> legs = RaptorUtils.convertRouteToLegs(travelInfo.getRaptorRoute(), ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getTransferWalkMargin());
+                    addDemand(timeDemand, legs);
+                }
+            }
+        }
+        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
+    }
+
+    private void calculateTree(Integer time) {
+        long startTime = System.nanoTime();
+        var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
+        double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
+        for (Entry<Integer, Coord> validPotion : inputDemand.getValidPosistions().entrySet()) {
+            Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), validPotion.getValue());
+            Map<Id<TransitStopFacility>, TravelInfo> tree = raptor.calcTree(startF, (time - 1) * 600, null, null);
+            for (Entry<Integer, Coord>  destination : inputDemand.getValidPosistions().entrySet()) {
+                double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
+                if (timeDemand != 0) {
+                    TravelInfo travelInfo = tree.get(data.findNearestStop(destination.getValue().getX(), destination.getValue().getY()).getId());
+
+                    Iterator<RoutePart> routeParts = travelInfo.getRaptorRoute().getParts().iterator();
+
+                    while (routeParts.hasNext()) {
+                        RoutePart part = routeParts.next();
+
+
+
+                    }
+
+                    if (travelInfo == null) {
+                        count++;
+                        missingDemand += timeDemand;
+                        continue;
+                    }
+                    routedDemand += timeDemand;
+                    List<? extends PlanElement> legs = RaptorUtils.convertRouteToLegs(travelInfo.getRaptorRoute(), ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getTransferWalkMargin());
+                    addDemand(timeDemand, legs);
+                }
+            }
+        }
+        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
+    }
+
+    private void addDemand(double timeDemand, List<? extends PlanElement> legs) {
+        for (PlanElement pe : legs) {
+            Leg leg = (Leg) pe;
+            if (leg.getMode().equals("pt")) {
+                List<Id<Link>> linkIds = railTripsAnalyzer.getPtLinkIdsTraveledOn((TransitPassengerRoute) leg.getRoute());
+                for (Id<Link> linkId : linkIds) {
+                    if (scenario.getNetwork().getLinks().get(linkId).getFromNode().equals(scenario.getNetwork().getLinks().get(linkId).getToNode())) {
+                        continue;
+                    }
+                    if (idDemandStorageMap.containsKey(linkId)) {
+                        idDemandStorageMap.get(linkId).increaseDemand(timeDemand);
+                    } else {
+                        System.out.println("Hilfe");
+                        idDemandStorageMap.put(linkId, new DemandStorage(linkId));
+                    }
+                }
+            }
+        }
+    }
+
+    public MatrixRouterParts() {
         this.config = ConfigUtils.createConfig();
 
         SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
@@ -116,6 +270,7 @@ public class MatrixRouterTree {
         new MatsimNetworkReader(scenario.getNetwork()).readFile(netwoekFile);
 
         RaptorStaticConfig raptorStaticConfig = new RaptorStaticConfig();
+        raptorStaticConfig.setOptimization(RaptorOptimization.OneToAllRouting);
         SwissRailRaptorData data = SwissRailRaptorData.create(scenario.getTransitSchedule(), null, raptorStaticConfig, scenario.getNetwork(), null);
         this.data = data;
 
@@ -136,52 +291,6 @@ public class MatrixRouterTree {
         this.inputDemand = new InputDemand(columNames, demand, scenario);
     }
 
-    public void treeRouting() {
-        inputDemand.getTimeList().stream().parallel().forEach(this::calculateTree);
-        writeLinkCount();
-    }
-
-    private void calculateTree(Integer time) {
-        long startTime = System.nanoTime();
-        var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
-        double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
-        for (Entry<Integer, Coord> validPotion : inputDemand.getValidPosistions().entrySet()) {
-            Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), validPotion.getValue());
-            Map<Id<TransitStopFacility>, TravelInfo> tree = raptor.calcTree(startF, (time - 1) * 600, null, null);
-            for (Entry<Integer, Coord>  destination : inputDemand.getValidPosistions().entrySet()) {
-                double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
-                if (timeDemand != 0) {
-                    TravelInfo travelInfo = tree.get(data.findNearestStop(destination.getValue().getX(), destination.getValue().getY()).getId());
-                    if (travelInfo == null) {
-                        count++;
-                        missingDemand += timeDemand;
-                        continue;
-                    }
-                    routedDemand += timeDemand;
-                    List<? extends PlanElement> legs = RaptorUtils.convertRouteToLegs(travelInfo.getRaptorRoute(), ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getTransferWalkMargin());
-                    for (PlanElement pe : legs) {
-                        Leg leg = (Leg) pe;
-                        if (leg.getMode().equals("pt")) {
-                            List<Id<Link>> linkIds = railTripsAnalyzer.getPtLinkIdsTraveledOn((TransitPassengerRoute) leg.getRoute());
-                            for (Id<Link> linkId : linkIds) {
-                                if (scenario.getNetwork().getLinks().get(linkId).getFromNode().equals(scenario.getNetwork().getLinks().get(linkId).getToNode())) {
-                                    continue;
-                                }
-                                if (idDemandStorageMap.containsKey(linkId)) {
-                                    idDemandStorageMap.get(linkId).increaseDemand(timeDemand);
-                                } else {
-                                    System.out.println("Hilfe");
-                                    idDemandStorageMap.put(linkId, new DemandStorage(linkId));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
-    }
-
     public void routingWithBestPath() {
         inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
         writeLinkCount();
@@ -198,25 +307,16 @@ public class MatrixRouterTree {
                     Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), entryX.getValue());
                     Facility endF = afFactory.createActivityFacility(Id.create(2, ActivityFacility.class), entryY.getValue());
                     RoutingRequest request = DefaultRoutingRequest.withoutAttributes(startF, endF, (time - 1) * 600, null);
-                    //List<? extends PlanElement> legs = raptor.calcRoute(request);
-                    List<? extends PlanElement> legs= raptor.calcRoute(startF, endF, (time - 1) * 600, (time - 1) * 600, (time - 1) * 600 + 5*3600, null,null);
+                    List<? extends PlanElement> legs = raptor.calcRoute(request);
                     if (legs == null) {
                         //System.out.println("No connection found for " + entryX.getValue() + " to " + entryX.getValue() + " at time " + time + " demand " + timeDemand);
-                        //System.out.println("LINESTRING (" + startCoord.getX() + " " + startCoord.getY() + ", " + endCoord.getX() + " " + endCoord.getY() + ");" + time);
+                        //System.out.println("LINESTRING (" + entryX.getValue().getX() + " " + entryX.getValue().getY() + ", " + entryY.getValue().getX() + " " + entryY.getValue().getY() + ");" + time);
                         count++;
                         missingDemand += timeDemand;
                         continue;
                     }
                     routedDemand += timeDemand;
-                    for (PlanElement pe : legs) {
-                        Leg leg = (Leg) pe;
-                        if (leg.getMode().equals("pt")) {
-                            List<Id<Link>> linkIds = railTripsAnalyzer.getPtLinkIdsTraveledOn((TransitPassengerRoute) leg.getRoute());
-                            for (Id<Link> linkId : linkIds) {
-                                idDemandStorageMap.get(linkId).increaseDemand(timeDemand);
-                            }
-                        }
-                    }
+                    addDemand(timeDemand, legs);
                 }
             }
         }
