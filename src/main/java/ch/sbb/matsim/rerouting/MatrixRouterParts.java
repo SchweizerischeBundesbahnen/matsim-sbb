@@ -28,6 +28,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -69,7 +70,8 @@ public class MatrixRouterParts {
     final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/saveFile.csv";
     final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/transitSchedule.xml.gz";
     final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/transitNetwork.xml.gz";
-    final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/" + YEAR + "/" + TRANSIT + "/" + TRY + "PointToPointTest.csv";
+    final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/" + YEAR + "/" + TRANSIT + "/" + TRY + ".csv";
+    final static String outputRoutes = "Z:/99_Playgrounds/MD/Umlegung/Results/" + YEAR + "/" + TRANSIT + "/" + TRY + "Routes.csv";
 
     final InputDemand inputDemand;
     final Map<Id<Link>, DemandStorage> idDemandStorageMap = createLinkDemandStorage();
@@ -89,11 +91,13 @@ public class MatrixRouterParts {
     RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
     RaptorInVehicleCostCalculator inVehicleCostCalculator = new DefaultRaptorInVehicleCostCalculator();
     RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
-
+    static List<String> lines = new ArrayList<>();
+    static int pathindex = 0;
 
 
     public static void main(String[] args) {
         long startTime = System.nanoTime();
+        lines.add("PATHINDEX;PATHLEGINDEX;FROMSTOPPOINTNO;TOSTOPPOINTNO;DEPTIME;ARRTIME");
         MatrixRouterParts matrixRouter = new MatrixRouterParts();
         System.out.println("MatrixRouter: " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
         matrixRouter.route();
@@ -115,6 +119,21 @@ public class MatrixRouterParts {
             inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
         }
         writeLinkCount();
+        writeRoute();
+    }
+
+    private void writeRoute() {
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputRoutes))) {
+            for (String line : lines) {
+                writer.write(line);
+                writer.newLine();
+                writer.flush();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private void routingPointToPointCalc(List<Integer> startId, List<Integer> endId) {
@@ -207,28 +226,33 @@ public class MatrixRouterParts {
                 double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
                 if (timeDemand != 0) {
                     TravelInfo travelInfo = tree.get(data.findNearestStop(destination.getValue().getX(), destination.getValue().getY()).getId());
-
-                    Iterator<RoutePart> routeParts = travelInfo.getRaptorRoute().getParts().iterator();
-
-                    while (routeParts.hasNext()) {
-                        RoutePart part = routeParts.next();
-
-
-
-                    }
-
                     if (travelInfo == null) {
                         count++;
                         missingDemand += timeDemand;
                         continue;
                     }
+
+                    int pathlegindex = 0;
+
+                    Iterator<RoutePart> routeParts = travelInfo.getRaptorRoute().getParts().iterator();
+
+                    while (routeParts.hasNext()) {
+                        RoutePart part = routeParts.next();
+                        addToLine(part, pathlegindex);
+                        pathindex++;
+                    }
                     routedDemand += timeDemand;
                     List<? extends PlanElement> legs = RaptorUtils.convertRouteToLegs(travelInfo.getRaptorRoute(), ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getTransferWalkMargin());
                     addDemand(timeDemand, legs);
+                    pathindex++;
                 }
             }
         }
         System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
+    }
+
+    private synchronized void addToLine(RoutePart part, int pathlegindex) {
+        lines.add(pathindex + ";" + pathlegindex + ";" + part.fromStop.getId() + ";" + part.toStop.getId() + ";" + (int) part.depTime + ";" + (int) part.arrivalTime);
     }
 
     private void addDemand(double timeDemand, List<? extends PlanElement> legs) {

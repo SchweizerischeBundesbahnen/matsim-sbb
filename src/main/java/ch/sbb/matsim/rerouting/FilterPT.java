@@ -31,11 +31,11 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public final class FilterPT {
 
-    static String transitFile = "Z:/99_Playgrounds/MD/Umlegung/Old/transitSchedule2020.xml.gz";
-    static String networkFile = "Z:/99_Playgrounds/MD/Umlegung/Old/transitNetwork2020.xml.gz";
-    static String outputTransitFile = "C:/devsbb/writeFilePlace/Umlegung/railTransitSchedule2020.xml.gz";
-    static String outputNetworkFile = "C:/devsbb/writeFilePlace/Umlegung/railTransitNetwork2020.xml.gz";
-    static String demandStationsFile = "Z:/99_Playgrounds/MD/Umlegung/Input/ColumNames.csv";
+    static String transitFile = "Z:/99_Playgrounds/MD/Umlegung/Old/2020/transitSchedule.xml.gz";
+    static String networkFile = "Z:/99_Playgrounds/MD/Umlegung/Old/2020/transitNetwork.xml.gz";
+    static String outputTransitFile = "C:/devsbb/writeFilePlace/Umlegung/transitSchedule.xml.gz";
+    static String outputNetworkFile = "C:/devsbb/writeFilePlace/Umlegung/transitNetwork.xml.gz";
+    static String demandStationsFile = "";
 
     private FilterPT() {
     }
@@ -114,9 +114,9 @@ public final class FilterPT {
 
     private static void filterMATSimVisumLinks(Network network) {
 
-        String linksConnrctionFile = "Z:/99_Playgrounds/MD/Umlegung/Old/link_sequences2020.csv";
-        String polylines = "Z:/99_Playgrounds/MD/Umlegung/Old/polylines2020.csv";
-        String outputSaveFile = "C:/devsbb/writeFilePlace/Umlegung/saveFile2020.csv";
+        String linksConnrctionFile = "Z:/99_Playgrounds/MD/Umlegung/Old/2020/link_sequences.csv";
+        String polylines = "Z:/99_Playgrounds/MD/Umlegung/Old/2020/polylines.csv";
+        String outputSaveFile = "C:/devsbb/writeFilePlace/Umlegung/saveFile.csv";
 
         Map<Id<Link>, DemandStorage> idDemandStorageMap = new HashMap<>();
 
