@@ -1,9 +1,8 @@
-package ch.sbb.matsim.rerouting.compareroutes;
+package ch.sbb.matsim.rerouting2.compareroutes;
 
-import ch.sbb.matsim.rerouting.compareroutes.MATSimRoute.Stops;
+import ch.sbb.matsim.rerouting2.compareroutes.PartRoutes.Stops;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,14 +11,14 @@ public class CompareRoutes {
 
     public static void main(String[] args) {
 
-        Set<MATSimRoute> matSimRoutesList = new HashSet<>();
+        Set<PartRoutes> matSimRoutesList = new HashSet<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader("treeRoutes.csv"))) {
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
             int index = 0;
             int count = 0;
-            MATSimRoute matSimRoute = null;
+            PartRoutes matSimRoute = null;
             while ((line = reader.readLine()) != null) {
                 String[] splitline = line.split(";");
                 if (index == Integer.parseInt(splitline[header.indexOf("PATHINDEX")])) {
@@ -34,7 +33,7 @@ public class CompareRoutes {
                        }
                     }
                     index = Integer.parseInt(splitline[header.indexOf("PATHINDEX")]);
-                    matSimRoute = new MATSimRoute(new Stops(Integer.parseInt(splitline[header.indexOf("DEPTIME")]),
+                    matSimRoute = new PartRoutes(new Stops(Integer.parseInt(splitline[header.indexOf("DEPTIME")]),
                         Integer.parseInt(splitline[header.indexOf("ARRTIME")]),
                         Integer.parseInt(splitline[header.indexOf("FROMSTOPPOINTNO")]),
                         Integer.parseInt(splitline[header.indexOf("TOSTOPPOINTNO")])));
@@ -51,7 +50,7 @@ public class CompareRoutes {
             String line;
             int index = 0;
             int count = 0;
-            MATSimRoute matSimRoute = null;
+            PartRoutes matSimRoute = null;
             while ((line = reader.readLine()) != null) {
                 String[] splitline = line.split(";");
                 if (splitline[header.indexOf("ARRTIME")].equals("") ||
@@ -73,7 +72,7 @@ public class CompareRoutes {
                         }
                     }
                     index = Integer.parseInt(splitline[header.indexOf("PATHINDEX")]);
-                    matSimRoute = new MATSimRoute(new Stops(Integer.parseInt(splitline[header.indexOf("DEPTIME")]),
+                    matSimRoute = new PartRoutes(new Stops(Integer.parseInt(splitline[header.indexOf("DEPTIME")]),
                         Integer.parseInt(splitline[header.indexOf("ARRTIME")]),
                         Integer.parseInt(splitline[header.indexOf("FROMSTOPPOINTNO")]),
                         Integer.parseInt(splitline[header.indexOf("TOSTOPPOINTNO")])));

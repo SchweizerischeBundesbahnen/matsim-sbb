@@ -1,9 +1,9 @@
-package ch.sbb.matsim.rerouting;
+package ch.sbb.matsim.rerouting2;
 
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
-import ch.sbb.matsim.rerouting2.InputDemand;
+import ch.sbb.matsim.rerouting.DemandStorage;
 import ch.sbb.matsim.routing.pt.raptor.AccessEgressRouteCache;
 import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorInVehicleCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorIntermodalAccessEgress;
@@ -54,23 +54,18 @@ import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-public class MatrixRouter {
+public class ConnectionRouter {
 
-    List<Integer> startId = List.of();//80
-    List<Integer> endId = List.of();//478
-
-    final static String YEAR = "2018";
     final static String TRANSIT = "rail";
-    final static String TRY = "tree";
-    final static String columNames = "Z:/99_Playgrounds/MD/Umlegung/Input/ZoneToNode.csv";
-    final static String demand = "Z:/99_Playgrounds/MD/Umlegung/Input/Visum/Demand2018.omx";
-    final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/saveFile.csv";
-    final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/transitSchedule.xml.gz";
-    final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/transitNetwork.xml.gz";
-    final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/" + YEAR + "/" + TRANSIT + "/" + TRY + ".csv";
-
+    final static String TRY = "Tree";
+    final static String columNames = "Z:/99_Playgrounds/MD/Umlegung2/Visum/ZoneToNode.csv";
+    final static String demand = "Z:/99_Playgrounds/MD/Umlegung2/visum/Demand2018.omx";
+    final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung2/2018/saveFile.csv";
+    final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/2018/transitSchedule.xml.gz";
+    final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/2018/transitNetwork.xml.gz";
+    final static String output = "Z:/99_Playgrounds/MD/Umlegung/routes" + TRY + ".csv";
     final InputDemand inputDemand;
-    final Map<Id<Link>, DemandStorage> idDemandStorageMap = createLinkDemandStorage();
+    final Map<Id<Link>, DemandStorage2> idDemandStorageMap = createLinkDemandStorage();
     final ActivityFacilitiesFactory afFactory = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getActivityFacilities().getFactory();
     final Config config;
     final Scenario scenario;
@@ -90,106 +85,37 @@ public class MatrixRouter {
 
     public static void main(String[] args) {
         long startTime = System.nanoTime();
-        MatrixRouter matrixRouter = new MatrixRouter();
+        ConnectionRouter connectionRouter = new ConnectionRouter();
         System.out.println("MatrixRouter: " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
-        matrixRouter.route();
+        connectionRouter.route();
         System.out.println("It took " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
         System.out.println("Missing connections: "  + count);
         System.out.println("Missing demand from connections: "  + missingDemand);
-        System.out.println("Missing demand from stations: "  + matrixRouter.inputDemand.getMissingDemand());
+        System.out.println("Missing demand from stations: "  + connectionRouter.inputDemand.getMissingDemand());
         System.out.println("Routed demand: "  + routedDemand);
     }
 
     private void route() {
-        if (startId.size() != 0 && endId.size() != 0) {
-            System.out.println("Point to Point");
-            routingPointToPointTree(startId, endId);
-            //routingPointToPointCalc(startId, endId);
-        } else if (TRY.equals("tree")) {
+        if (TRY.equals("Tree")) {
             inputDemand.getTimeList().stream().parallel().forEach(this::calculateTree);
-        } else if (TRY.contains("calc")) {
+        } else if (TRY.contains("Calc")) {
             inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
         }
         writeLinkCount();
     }
 
-    private void routingPointToPointCalc(List<Integer> startId, List<Integer> endId) {
-        inputDemand.getTimeList().stream().parallel().forEach(time -> calculatePoint(time, this.startId, this.endId));
-        writeLinkCount();
-    }
-
-    private void calculatePoint(Integer time, List<Integer> startId, List<Integer> endId) {
-        long startTime = System.nanoTime();
-        var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
-        double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
-        for (Entry<Integer, Coord> entryX : inputDemand.getValidPosistions().entrySet()) {
-            if (!startId.contains(entryX.getKey()+1)) {
-                continue;
+    private void writeLinkCount() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
+            writer.write("Matsim_Link;Demand;Visum_Link;WKT");
+            writer.newLine();
+            for (DemandStorage2 demandStorage : idDemandStorageMap.values()) {
+                writer.write(demandStorage.toString());
+                writer.newLine();
+                writer.flush();
             }
-            for (Entry<Integer, Coord> entryY : inputDemand.getValidPosistions().entrySet()) {
-                if (!endId.contains(entryY.getKey()+1)) {
-                    continue;
-                }
-                double timeDemand = matrix[entryX.getKey()][entryY.getKey()];
-                if (timeDemand != 0) {
-                    Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), entryX.getValue());
-                    Facility endF = afFactory.createActivityFacility(Id.create(2, ActivityFacility.class), entryY.getValue());
-                    RoutingRequest request = DefaultRoutingRequest.withoutAttributes(startF, endF, (time - 1) * 600, null);
-                    List<? extends PlanElement> legs = raptor.calcRoute(request);
-                    if (legs == null) {
-                        //System.out.println("No connection found for " + entryX.getValue() + " to " + entryX.getValue() + " at time " + time + " demand " + timeDemand);
-                        //System.out.println("LINESTRING (" + entryX.getValue().getX() + " " + entryX.getValue().getY() + ", " + entryY.getValue().getX() + " " + entryY.getValue().getY() + ");" + time);
-                        count++;
-                        missingDemand += timeDemand;
-                        continue;
-                    }
-                    routedDemand += timeDemand;
-                    addDemand(timeDemand, legs);
-                }
-            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
-    }
-
-    public void treeRouting() {
-        inputDemand.getTimeList().stream().parallel().forEach(this::calculateTree);
-        writeLinkCount();
-    }
-
-    public void routingPointToPointTree(List<Integer> startId, List<Integer> endId) {
-        inputDemand.getTimeList().stream().parallel().forEach(time -> calculateTreePoint(time, startId, endId));
-        writeLinkCount();
-    }
-
-    private void calculateTreePoint(Integer time, List<Integer> startId,  List<Integer> endId) {
-        long startTime = System.nanoTime();
-        var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
-        double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
-        for (Entry<Integer, Coord> validPotion : inputDemand.getValidPosistions().entrySet()) {
-            if (!startId.contains(validPotion.getKey()+1)) {
-                continue;
-            }
-            Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), validPotion.getValue());
-            Map<Id<TransitStopFacility>, TravelInfo> tree = raptor.calcTree(startF, (time - 1) * 600, null, null);
-            for (Entry<Integer, Coord>  destination : inputDemand.getValidPosistions().entrySet()) {
-                if (!endId.contains(destination.getKey()+1)) {
-                    continue;
-                }
-                double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
-                if (timeDemand != 0) {
-                    TravelInfo travelInfo = tree.get(data.findNearestStop(destination.getValue().getX(), destination.getValue().getY()).getId());
-                    if (travelInfo == null) {
-                        count++;
-                        missingDemand += timeDemand;
-                        continue;
-                    }
-                    routedDemand += timeDemand;
-                    List<? extends PlanElement> legs = RaptorUtils.convertRouteToLegs(travelInfo.getRaptorRoute(), ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getTransferWalkMargin());
-                    addDemand(timeDemand, legs);
-                }
-            }
-        }
-        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
     }
 
     private void calculateTree(Integer time) {
@@ -217,6 +143,33 @@ public class MatrixRouter {
         System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
     }
 
+    private void calculateMatrix(Integer time) {
+        long startTime = System.nanoTime();
+        var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
+        double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
+        for (Entry<Integer, Coord> entryX : inputDemand.getValidPosistions().entrySet()) {
+            for (Entry<Integer, Coord> entryY : inputDemand.getValidPosistions().entrySet()) {
+                double timeDemand = matrix[entryX.getKey()][entryY.getKey()];
+                if (timeDemand != 0) {
+                    Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), entryX.getValue());
+                    Facility endF = afFactory.createActivityFacility(Id.create(2, ActivityFacility.class), entryY.getValue());
+                    RoutingRequest request = DefaultRoutingRequest.withoutAttributes(startF, endF, (time - 1) * 600, null);
+                    List<? extends PlanElement> legs = raptor.calcRoute(request);
+                    if (legs == null) {
+                        //System.out.println("No connection found for " + entryX.getValue() + " to " + entryX.getValue() + " at time " + time + " demand " + timeDemand);
+                        //System.out.println("LINESTRING (" + entryX.getValue().getX() + " " + entryX.getValue().getY() + ", " + entryY.getValue().getX() + " " + entryY.getValue().getY() + ");" + time);
+                        count++;
+                        missingDemand += timeDemand;
+                        continue;
+                    }
+                    routedDemand += timeDemand;
+                    addDemand(timeDemand, legs);
+                }
+            }
+        }
+        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
+    }
+
     private void addDemand(double timeDemand, List<? extends PlanElement> legs) {
         for (PlanElement pe : legs) {
             Leg leg = (Leg) pe;
@@ -224,6 +177,7 @@ public class MatrixRouter {
                 List<Id<Link>> linkIds = railTripsAnalyzer.getPtLinkIdsTraveledOn((TransitPassengerRoute) leg.getRoute());
                 for (Id<Link> linkId : linkIds) {
                     if (scenario.getNetwork().getLinks().get(linkId) == null) {
+                        System.out.println("Null");
                         continue;
                     }
                     if (scenario.getNetwork().getLinks().get(linkId).getFromNode().equals(scenario.getNetwork().getLinks().get(linkId).getToNode())) {
@@ -233,14 +187,14 @@ public class MatrixRouter {
                         idDemandStorageMap.get(linkId).increaseDemand(timeDemand);
                     } else {
                         System.out.println("Hilfe");
-                        idDemandStorageMap.put(linkId, new DemandStorage(linkId));
+                        idDemandStorageMap.put(linkId, new DemandStorage2(linkId));
                     }
                 }
             }
         }
     }
 
-    public MatrixRouter() {
+    public ConnectionRouter() {
         this.config = ConfigUtils.createConfig();
 
         SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
@@ -280,64 +234,19 @@ public class MatrixRouter {
         this.inputDemand = new InputDemand(columNames, demand, scenario);
     }
 
-    public void routingWithBestPath() {
-        inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
-        writeLinkCount();
-    }
-
-    private void calculateMatrix(Integer time) {
-        long startTime = System.nanoTime();
-        var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
-        double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix(time.toString()).getData();
-        for (Entry<Integer, Coord> entryX : inputDemand.getValidPosistions().entrySet()) {
-            for (Entry<Integer, Coord> entryY : inputDemand.getValidPosistions().entrySet()) {
-                double timeDemand = matrix[entryX.getKey()][entryY.getKey()];
-                if (timeDemand != 0) {
-                    Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), entryX.getValue());
-                    Facility endF = afFactory.createActivityFacility(Id.create(2, ActivityFacility.class), entryY.getValue());
-                    RoutingRequest request = DefaultRoutingRequest.withoutAttributes(startF, endF, (time - 1) * 600, null);
-                    List<? extends PlanElement> legs = raptor.calcRoute(request);
-                    if (legs == null) {
-                        //System.out.println("No connection found for " + entryX.getValue() + " to " + entryX.getValue() + " at time " + time + " demand " + timeDemand);
-                        //System.out.println("LINESTRING (" + entryX.getValue().getX() + " " + entryX.getValue().getY() + ", " + entryY.getValue().getX() + " " + entryY.getValue().getY() + ");" + time);
-                        count++;
-                        missingDemand += timeDemand;
-                        continue;
-                    }
-                    routedDemand += timeDemand;
-                    addDemand(timeDemand, legs);
-                }
-            }
-        }
-        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime)/1_000_000_000) + "s");
-    }
-
-    private void writeLinkCount() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
-            writer.write("Matsim_Link;Demand;Visum_Link;WKT");
-            writer.newLine();
-            for (DemandStorage demandStorage : idDemandStorageMap.values()) {
-                writer.write(demandStorage.toString());
-                writer.newLine();
-                writer.flush();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static Map<Id<Link>, DemandStorage> createLinkDemandStorage() {
-        Map<Id<Link>, DemandStorage> idDemandStorageMap = new HashMap<>();
+    private static Map<Id<Link>, DemandStorage2> createLinkDemandStorage() {
+        Map<Id<Link>, DemandStorage2> idDemandStorageMap = new HashMap<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(saveFileInpout))) {
             List<String> header = List.of(reader.readLine().split(";"));
             String line;
             while ((line = reader.readLine()) != null) {
                 var linkId = Id.createLinkId(line.split(";")[header.indexOf("Matsim_Link")]);
-                idDemandStorageMap.put(linkId, new DemandStorage(linkId, line.split(";")[header.indexOf("Visum_Link")], line.split(";")[header.indexOf("WKT")]));
+                idDemandStorageMap.put(linkId, new DemandStorage2(linkId, line.split(";")[header.indexOf("Visum_Link")], line.split(";")[header.indexOf("WKT")]));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return idDemandStorageMap;
     }
+
 }

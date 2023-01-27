@@ -1,14 +1,13 @@
-package ch.sbb.matsim.rerouting.compareroutes;
+package ch.sbb.matsim.rerouting2.compareroutes;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-public class MATSimRoute {
+public class PartRoutes {
 
     List<Stops> stopList = new ArrayList<>();
 
-    public MATSimRoute(Stops stop) {
+    public PartRoutes(Stops stop) {
         stopList.add(stop);
     }
 
@@ -34,7 +33,7 @@ public class MATSimRoute {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        MATSimRoute that = (MATSimRoute) o;
+        PartRoutes that = (PartRoutes) o;
         return this.toString().equals(that.toString());
     }
 
