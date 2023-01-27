@@ -27,7 +27,7 @@ public class InputDemand {
     private final List<Integer> timeList = new ArrayList<>();
     private double missingDemand;
 
-    InputDemand(String columNames, String nachfrageTag, Scenario scenario) {
+    public InputDemand(String columNames, String nachfrageTag, Scenario scenario) {
         long startTime = System.nanoTime();
         this.omxFile = readOMXMatrciesDayDemand(nachfrageTag);
         Map<Integer, Coord> assignmentMap = readAssignment(columNames, scenario);
