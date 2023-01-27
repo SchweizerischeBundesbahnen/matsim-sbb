@@ -12,10 +12,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.NetworkFactory;
+import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.NetworkConfigGroup;
 import org.matsim.core.network.filter.NetworkFilterManager;
@@ -31,10 +34,10 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public final class FilterPT {
 
-    static String transitFile = "Z:/99_Playgrounds/MD/Umlegung/Old/2020/transitSchedule.xml.gz";
-    static String networkFile = "Z:/99_Playgrounds/MD/Umlegung/Old/2020/transitNetwork.xml.gz";
-    static String outputTransitFile = "C:/devsbb/writeFilePlace/Umlegung/transitSchedule.xml.gz";
-    static String outputNetworkFile = "C:/devsbb/writeFilePlace/Umlegung/transitNetwork.xml.gz";
+    static String transitFile = "Z:/99_Playgrounds/MD/Umlegung/Old/2018/transitSchedule.xml.gz";
+    static String networkFile = "Z:/99_Playgrounds/MD/Umlegung/Old/2018/transitNetwork.xml.gz";
+    static String outputTransitFile = "transitSchedule.xml.gz";
+    static String outputNetworkFile = "transitNetwork.xml.gz";
     static String demandStationsFile = "";
 
     private FilterPT() {
@@ -46,6 +49,24 @@ public final class FilterPT {
 
         new TransitScheduleReader(scenario).readFile(transitFile);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
+        for (Node n : scenario.getNetwork().getNodes().values()) {
+            Coord coord = n.getCoord();
+            Coord newCoord = new Coord(n.getCoord().getX() + (2600050.78090007 - 2599978.43312236), n.getCoord().getY() + (1199824.09952451 - 1199677.02592021));
+            //			coord.setXY(new_coord.getX(), new_coord.getY());
+            n.setCoord(newCoord);
+        }
+        NetworkFactory nf = scenario.getNetwork().getFactory();
+        /*for (TransitStopFacility transitStopFacility : scenario.getTransitSchedule().getFacilities().values()) {
+            if (!scenario.getNetwork().getLinks().containsKey(Id.createLinkId(transitStopFacility.getId()))) {
+                Link link = nf.createLink(Id.createLinkId(transitStopFacility.getId()), scenario.getNetwork().getNodes().get(Id.createNodeId(transitStopFacility.getId())),scenario.getNetwork().getNodes().get(Id.createNodeId(transitStopFacility.getId())));
+                link.setLength(0.1);
+                link.setFreespeed(10000);
+                link.setCapacity(10000);
+                link.setNumberOfLanes(10000);
+                link.setAllowedModes(Set.of("pt"));
+                scenario.getNetwork().addLink(link);
+            }
+        }*/
 
         filterSchedual(scenario);
 
@@ -54,25 +75,40 @@ public final class FilterPT {
 
     public static void filterSchedual(Scenario scenario) {
 
-        //List<Integer> codeList = readDemandStationsFile();
-
         Set<TransitStopFacility> transitStopFacilities = new LinkedHashSet<>();
-        List<TransitLine> transitLines = scenario.getTransitSchedule().getTransitLines().values().stream()
+
+        // load scenario from 2017 to find "Bergbahnen" und "Trams"
+        Scenario scenarioReduction = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new TransitScheduleReader(scenarioReduction).readFile("Z:/99_Playgrounds/MD/Umlegung/Old/2017/transitSchedule.xml.gz");
+
+        // find all rail lines
+        List<TransitLine> transitLinesReduction = scenarioReduction.getTransitSchedule().getTransitLines().values().stream()
             .filter(transitLine -> transitLine.getRoutes().values().stream().anyMatch(transitRoute -> transitRoute.getTransportMode().equals(PTSubModes.RAIL)))
-            .map(transitLine -> {
-                transitLine.getRoutes().values().forEach(transitRoute ->
-                {transitRoute.getStops().forEach(transitRouteStop -> transitStopFacilities.add(transitRouteStop.getStopFacility()));});
-                return transitLine;})
             .toList();
 
+        // if rail line then safe the all stops
+        List<TransitLine> transitLines = scenario.getTransitSchedule().getTransitLines().values().stream().filter(transitLinesReduction::contains).
+            map(transitLine -> {transitLine.getRoutes().values().forEach(transitRoute ->
+            {
+                transitRoute.getStops().forEach(transitRouteStop -> transitStopFacilities.add(transitRouteStop.getStopFacility()));
+            });
+            return transitLine;
+        }).toList();
 
+        // create the reduced scenario, adding all stops and lines
         Scenario smallScenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         transitStopFacilities.forEach(transitStopFacility -> smallScenario.getTransitSchedule().addStopFacility(transitStopFacility));
         transitLines.forEach(transitLine -> smallScenario.getTransitSchedule().addTransitLine(transitLine));
 
+        // find all links with rail
+        NetworkFilterManager networkFilterManagerReduction = new NetworkFilterManager(scenario.getNetwork(), new NetworkConfigGroup());
+        networkFilterManagerReduction.addLinkFilter(l -> !l.getAllowedModes().contains(PTSubModes.RAIL) || !l.getFromNode().equals(l.getToNode()) &&
+            !l.getFromNode().getInLinks().values().stream().anyMatch(link -> link.getAllowedModes().contains(PTSubModes.RAIL)));
+        Network networkReduction = networkFilterManagerReduction.applyFilters();
+
+        // filter, remove all none rail links
         NetworkFilterManager networkFilterManager = new NetworkFilterManager(scenario.getNetwork(), new NetworkConfigGroup());
-        networkFilterManager.addLinkFilter(l-> l.getAllowedModes().contains(PTSubModes.RAIL) || l.getFromNode().equals(l.getToNode()) &&
-            l.getFromNode().getInLinks().values().stream().anyMatch(link -> link.getAllowedModes().contains(PTSubModes.RAIL)));
+        networkFilterManager.addLinkFilter(l -> !networkReduction.getLinks().containsKey(l.getId()));
         Network network = networkFilterManager.applyFilters();
         //org.matsim.core.network.algorithms.NetworkCleaner networkCleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
         //networkCleaner.run(network);
@@ -83,6 +119,12 @@ public final class FilterPT {
         new NetworkWriter(network).write(outputNetworkFile);
 
         filterMATSimVisumLinks(network);
+    }
+
+    private static Scenario readFileForReduction() {
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(outputTransitFile);
+        return scenario;
     }
 
     private static List<Integer> readDemandStationsFile() {
@@ -114,9 +156,9 @@ public final class FilterPT {
 
     private static void filterMATSimVisumLinks(Network network) {
 
-        String linksConnrctionFile = "Z:/99_Playgrounds/MD/Umlegung/Old/2020/link_sequences.csv";
-        String polylines = "Z:/99_Playgrounds/MD/Umlegung/Old/2020/polylines.csv";
-        String outputSaveFile = "C:/devsbb/writeFilePlace/Umlegung/saveFile.csv";
+        String linksConnrctionFile = "Z:/99_Playgrounds/MD/Umlegung/Old/2018/link_sequences.csv";
+        String polylines = "Z:/99_Playgrounds/MD/Umlegung/Old/2018/polylines.csv";
+        String outputSaveFile = "saveFile.csv";
 
         Map<Id<Link>, DemandStorage> idDemandStorageMap = new HashMap<>();
 

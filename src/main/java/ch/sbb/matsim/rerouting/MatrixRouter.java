@@ -12,8 +12,6 @@ import ch.sbb.matsim.routing.pt.raptor.LeastCostRaptorRouteSelector;
 import ch.sbb.matsim.routing.pt.raptor.RaptorInVehicleCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
-import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
-import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
 import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig.RaptorOptimization;
@@ -58,17 +56,17 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 public class MatrixRouter {
 
     List<Integer> startId = List.of();//80
-    List<Integer> endId = List.of(478);
+    List<Integer> endId = List.of();//478
 
-    final static String YEAR = "2020";
+    final static String YEAR = "2018";
     final static String TRANSIT = "rail";
     final static String TRY = "tree";
     final static String columNames = "Z:/99_Playgrounds/MD/Umlegung/Input/ZoneToNode.csv";
-    final static String demand = "Z:/99_Playgrounds/MD/Umlegung/Input/Demand2018.omx";
+    final static String demand = "Z:/99_Playgrounds/MD/Umlegung/Input/Visum/Demand2018.omx";
     final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/saveFile.csv";
     final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/transitSchedule.xml.gz";
     final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/Input/" + YEAR + "/" + TRANSIT + "/transitNetwork.xml.gz";
-    final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/" + YEAR + "/" + TRANSIT + "/" + TRY + "PointToPointTest.csv";
+    final static String output = "Z:/99_Playgrounds/MD/Umlegung/Results/" + YEAR + "/" + TRANSIT + "/" + TRY + ".csv";
 
     final InputDemand inputDemand;
     final Map<Id<Link>, DemandStorage> idDemandStorageMap = createLinkDemandStorage();
@@ -224,6 +222,9 @@ public class MatrixRouter {
             if (leg.getMode().equals("pt")) {
                 List<Id<Link>> linkIds = railTripsAnalyzer.getPtLinkIdsTraveledOn((TransitPassengerRoute) leg.getRoute());
                 for (Id<Link> linkId : linkIds) {
+                    if (scenario.getNetwork().getLinks().get(linkId) == null) {
+                        continue;
+                    }
                     if (scenario.getNetwork().getLinks().get(linkId).getFromNode().equals(scenario.getNetwork().getLinks().get(linkId).getToNode())) {
                         continue;
                     }
