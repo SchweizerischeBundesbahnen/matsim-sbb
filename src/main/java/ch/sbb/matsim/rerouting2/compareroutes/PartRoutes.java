@@ -41,7 +41,7 @@ public class PartRoutes {
     public int hashCode() {
         int hash = stopList.size()+2;
         for (Stops stops : stopList) {
-            hash = 31 * hash + stops.startPoint - stops.endPoint + stops.endTime - stops.startTime;
+            hash = 31 * hash + stops.startPoint + stops.endPoint - stops.endTime - stops.startTime;
         }
         return hash;
     }

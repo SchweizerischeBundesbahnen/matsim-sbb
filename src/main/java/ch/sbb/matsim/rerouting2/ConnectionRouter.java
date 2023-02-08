@@ -56,14 +56,13 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class ConnectionRouter {
 
-    final static String TRANSIT = "rail";
     final static String TRY = "Tree";
     final static String columNames = "Z:/99_Playgrounds/MD/Umlegung2/Visum/ZoneToNode.csv";
     final static String demand = "Z:/99_Playgrounds/MD/Umlegung2/visum/Demand2018.omx";
     final static String saveFileInpout = "Z:/99_Playgrounds/MD/Umlegung2/2018/saveFile.csv";
-    final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung/2018/transitSchedule.xml.gz";
-    final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung/2018/transitNetwork.xml.gz";
-    final static String output = "Z:/99_Playgrounds/MD/Umlegung/routes" + TRY + ".csv";
+    final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung2/2018/transitSchedule.xml.gz";
+    final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung2/2018/transitNetwork.xml.gz";
+    final static String output = "Z:/99_Playgrounds/MD/Umlegung2/routes" + TRY + ".csv";
     final InputDemand inputDemand;
     final Map<Id<Link>, DemandStorage2> idDemandStorageMap = createLinkDemandStorage();
     final ActivityFacilitiesFactory afFactory = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getActivityFacilities().getFactory();
@@ -74,6 +73,7 @@ public class ConnectionRouter {
     final SwissRailRaptorData data;
 
     static int count = 0;
+    static int route = 0;
     static double missingDemand = 0;
     static double routedDemand = 0;
 
@@ -93,6 +93,7 @@ public class ConnectionRouter {
         System.out.println("Missing demand from connections: "  + missingDemand);
         System.out.println("Missing demand from stations: "  + connectionRouter.inputDemand.getMissingDemand());
         System.out.println("Routed demand: "  + routedDemand);
+        System.out.println(route);
     }
 
     private void route() {
@@ -128,6 +129,7 @@ public class ConnectionRouter {
             for (Entry<Integer, Coord>  destination : inputDemand.getValidPosistions().entrySet()) {
                 double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
                 if (timeDemand != 0) {
+                    route++;
                     TravelInfo travelInfo = tree.get(data.findNearestStop(destination.getValue().getX(), destination.getValue().getY()).getId());
                     if (travelInfo == null) {
                         count++;
