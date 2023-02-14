@@ -1,5 +1,15 @@
 package ch.sbb.matsim.rerouting2;
 
+import static ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.DIRECTION_CODE;
+import static ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.FZPNAME;
+import static ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.LINEROUTENAME;
+import static ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.STOP_NO;
+import static ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.TRANSITLINE;
+import static ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.TSYS_CODE;
+import static ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.getDayIndex;
+import static ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.getTime;
+
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.PutSurveyEntry;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
@@ -33,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -53,6 +64,8 @@ import org.matsim.facilities.ActivityFacilitiesFactory;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.routes.TransitPassengerRoute;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitRouteStop;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -79,6 +92,7 @@ public class MatrixRouterParts {
     static int route = 0;
     static double missingDemand = 0;
     static double routedDemand = 0;
+    static List<List<PutSurveyEntry>> entries = new ArrayList<>(); = 0;
 
     SBBIntermodalRaptorStopFinder stopFinder;
     RaptorParametersForPerson raptorParametersForPerson;
@@ -86,6 +100,8 @@ public class MatrixRouterParts {
     RaptorInVehicleCostCalculator inVehicleCostCalculator = new DefaultRaptorInVehicleCostCalculator();
     RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
     static List<String> lines = new ArrayList<>();
+
+    static AtomicInteger i = new AtomicInteger(1);
 
     public static void main(String[] args) {
         long startTime = System.nanoTime();
@@ -251,6 +267,9 @@ public class MatrixRouterParts {
      */
 
     private synchronized void addDemand(double timeDemand, List<? extends PlanElement> legs) {
+        String path_id = Integer.toString(i.incrementAndGet());
+        AtomicInteger leg_id = new AtomicInteger(1);
+        List<PutSurveyEntry> putSurveyEntries = new ArrayList<>();
         for (PlanElement pe : legs) {
             Leg leg = (Leg) pe;
             if (leg.getMode().equals("pt")) {
@@ -266,6 +285,27 @@ public class MatrixRouterParts {
                         idDemandStorageMap.put(linkId, new DemandStorage2(linkId));
                     }
                 }
+
+                TransitPassengerRoute r = (TransitPassengerRoute) leg.getRoute();
+                TransitLine line = scenario.getTransitSchedule().getTransitLines().get(r.getLineId());
+                TransitRoute transitRoute = line.getRoutes().get(r.getRouteId());
+                String from_stop = String.valueOf(scenario.getTransitSchedule().getFacilities().get(r.getAccessStopId()).getAttributes().getAttribute(STOP_NO));
+                String to_stop = String.valueOf(scenario.getTransitSchedule().getFacilities().get(r.getEgressStopId()).getAttributes().getAttribute(STOP_NO));
+
+                String vsyscode = String.valueOf(transitRoute.getAttributes().getAttribute(TSYS_CODE));
+                String linname = String.valueOf(transitRoute.getAttributes().getAttribute(TRANSITLINE));
+                String linroutename = String.valueOf(transitRoute.getAttributes().getAttribute(LINEROUTENAME));
+                String richtungscode = String.valueOf(transitRoute.getAttributes().getAttribute(DIRECTION_CODE));
+
+                String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
+
+                String teilweg_kennung = leg_id.getAndIncrement() > 1 ? "N" : "E";
+                String einhstabfahrtstag = getDayIndex(r.getBoardingTime().seconds());
+                String einhstabfahrtszeit = getTime(r.getBoardingTime().seconds());
+                putSurveyEntries.add(new PutSurveyEntry(path_id, String.valueOf(leg_id), from_stop, to_stop, vsyscode, linname, linroutename, richtungscode,
+                    fzprofilname, teilweg_kennung, from_stop, einhstabfahrtstag, einhstabfahrtszeit, timeDemand, "regular", "", ""));
+
+
             }
         }
     }
