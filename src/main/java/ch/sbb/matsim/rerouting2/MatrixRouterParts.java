@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.geotools.data.shapefile.index.DataDefinition;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -98,11 +99,20 @@ public class MatrixRouterParts {
     static List<String> lines = new ArrayList<>();
     static AtomicInteger i = new AtomicInteger(0);
 
+
+    static List<double[][]> pjt = new ArrayList<>();
+    static List<double[][]> depatureTime = new ArrayList<>();
+    static List<String[][]> connections = new ArrayList<>();
+    static Map<String, Double> connectionsDemand = new HashMap<>();
+
+    static double demandtest = 0;
+
     public static void main(String[] args) {
         long startTime = System.nanoTime();
         //lines.add("PATHINDEX;PATHLEGINDEX;FROMSTOPPOINTNO;TOSTOPPOINTNO;DEPTIME;ARRTIME");
         MatrixRouterParts matrixRouter = new MatrixRouterParts();
         System.out.println("MatrixRouter: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
+        matrixRouter.setUPJT();
         matrixRouter.route();
         //matrixRouter.calculateTest();
         System.out.println("It took " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
@@ -112,7 +122,116 @@ public class MatrixRouterParts {
         System.out.println("Routed demand: " + routedDemand);
         System.out.println(route);
         System.out.println("Lines: " + lines.size());
-        PutSurveyWriter.writePutSurvey("Z:/99_Playgrounds/MD/Umlegung2/routes" + TRY + "Visum.csv", entries);
+        System.out.println(demandtest);
+        //PutSurveyWriter.writePutSurvey("Z:/99_Playgrounds/MD/Umlegung2/routes" + TRY + "Visum.csv", entries);
+    }
+
+    private synchronized void addtest(double tmp) {
+        demandtest += tmp;
+    }
+
+    private void disributeDemamd(Integer time) {
+        long startTime = System.nanoTime();
+        double coefficientDeltaTime = 1.85/60;
+
+        double[][] matrix = (double[][]) inputDemand.getOmxFile().getMatrix("" + time).getData();
+        for (Entry<Integer, Coord> validPotion : inputDemand.getValidPosistions().entrySet()) {
+            for (Entry<Integer, Coord> destination : inputDemand.getValidPosistions().entrySet()) {
+                double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
+                addtest(timeDemand);
+                if (timeDemand != 0) {
+                    List<Double> pjtOverDay = new ArrayList<>();
+                    int optimalDepatureTime = time * 600;
+                    for (int i = 1; i <= 144; i++) {
+                        double[][] tmpPJTMatrix = pjt.get(i-1);
+                        double tmpPJT = tmpPJTMatrix[validPotion.getKey()][destination.getKey()];
+                        double[][] tmpDepatureTimeMatrix = depatureTime.get(i-1);
+                        int actualDepatureTime = (int) tmpDepatureTimeMatrix[validPotion.getKey()][destination.getKey()];
+                        int timeDiffernce = Math.abs(optimalDepatureTime - actualDepatureTime);
+                        pjtOverDay.add(tmpPJT + timeDiffernce * coefficientDeltaTime);
+                    }
+                    List<Double> utility = new ArrayList<>();
+                    double totalUtility = 0;
+                    for (Double tmpPTJ : pjtOverDay) {
+                        double tmpUtility = Math.pow(Math.E, -1.536 * ((Math.pow((tmpPTJ/60), 0.5)-1)/0.5));
+                        utility.add(tmpUtility);
+                        totalUtility += tmpUtility;
+                    }
+                    List<Double> realDemand = new ArrayList<>();
+                    if (totalUtility == 0) {
+                        continue;
+                    }
+                    for (Double tmpUtility : utility) {
+                        realDemand.add(timeDemand*(tmpUtility/totalUtility));
+                    }
+                    for (int i = 1; i <= 144; i++) {
+                        double tmpDemand = realDemand.get(i - 1);
+                        if (connections.get(i-1)[validPotion.getKey()][destination.getKey()] == null) {
+                            continue;
+                        }
+                        String connection = connections.get(i-1)[validPotion.getKey()][destination.getKey()];
+                        addDemandToMap(connection, tmpDemand);
+                    }
+                }
+            }
+        }
+        System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
+    }
+
+    private synchronized void addDemandToMap(String connection, double demand) {
+        double tmp = connectionsDemand.get(connection);
+        connectionsDemand.put(connection, tmp + demand);
+    }
+
+    private void setUPJT() {
+        for (int i = 0; i < 144; i++) {
+            pjt.add(new double[2392][2392]);
+        }
+        for (int i = 0; i < 144; i++) {
+            connections.add(new String[2392][2392]);
+        }
+        for (int i = 0; i < 144; i++) {
+            depatureTime.add(new double[2392][2392]);
+        }
+    }
+
+
+    private double calculatePJT(RaptorRoute route) {
+        double inVehicleTime = 0; // Reisezeit im Fahrzeug
+        double puTAuxRideTime = 0; // Anschlusszeit Nahverkehr, hier immer 0
+        double accessTime = 0; // hier immer 0
+        double egressTime = 0; // hier imme 0
+        double walkTime = 0; // minimale Umstiegzeit
+        double transferWaitTime = 0; // Umstiegzeit - minimale Umstiegszeit
+        double numberOfTransfers = route.getNumberOfTransfers(); // PT legs
+        double extendedImpedance = 0; //
+
+        double coefficientAccessTime = 2.94/60;
+        double coefficientEgressTime = 2.94/60;
+        double coefficientWalkTime = 2.25/60;
+        double coefficientTransferWaitTime = 1.13/60;
+
+        boolean firstPTLeg = false;
+        double time = 0;
+
+        for (RoutePart part : route.getParts()) {
+            if (part.mode.equals("pt")) {
+                inVehicleTime += part.arrivalTime - part.boardingTime;
+                if (firstPTLeg) {
+                    double minimalTransferTime = scenario.getTransitSchedule().getMinimalTransferTimes().get(part.fromStop.getId(), part.toStop.getId());
+                    if (!Double.isNaN(minimalTransferTime)) {
+                        walkTime += minimalTransferTime;
+                        transferWaitTime += part.depTime - time - minimalTransferTime;
+                    }
+                }
+                time = part.arrivalTime;
+                firstPTLeg = true;
+            }
+        }
+        double v =
+            inVehicleTime + puTAuxRideTime + accessTime * coefficientAccessTime + egressTime * coefficientEgressTime + walkTime * coefficientWalkTime + transferWaitTime * coefficientTransferWaitTime
+                + numberOfTransfers * 60 + extendedImpedance;
+        return v;
     }
 
     private void calculateTree(Integer time) {
@@ -135,12 +254,12 @@ public class MatrixRouterParts {
                     }
                     int pathlegindex = 1;
                     StringBuilder line = new StringBuilder();
-                    if (!(travelInfo.departureStop.equals(Id.create("1311", TransitStopFacility.class)))) {
+                    /*if (!(travelInfo.departureStop.equals(Id.create("1311", TransitStopFacility.class)))) {
                         continue;
                     }
                     if (!(data.findNearestStop(destination.getValue().getX(), destination.getValue().getY()).getId().equals(Id.create("2751", TransitStopFacility.class)))) {
                         continue;
-                    }
+                    }*/
                     for (RoutePart routePart : travelInfo.getRaptorRoute().getParts()) {
                         if (routePart.mode.equals("pt")) {
                             double depatureTime = -1;
@@ -154,12 +273,9 @@ public class MatrixRouterParts {
                                     }
                                 }
                             }
-                            // if (diff == 0) {System.out.println();}
                             line.append(pathlegindex++).append(";")
                                 .append(routePart.fromStop.getId()).append(";")
                                 .append(routePart.toStop.getId()).append(";")
-                                //.append((int) (routePart.boardingTime)).append(";")
-                                //.append((int) (routePart.arrivalTime)).append(";");
                                 .append((int) depatureTime).append(";");
                         }
                     }
@@ -168,16 +284,28 @@ public class MatrixRouterParts {
                         missingDemand += timeDemand;
                         continue;
                     }
+                    // pt depature time schould be walk depature time
+                    addPJT(time, validPotion.getKey(), destination.getKey(), calculatePJT(travelInfo.getRaptorRoute()), line.toString(), travelInfo.ptDepartureTime);
                     line.append(timeDemand);
                     addToLine(line);
                     routedDemand += timeDemand;
                     List<? extends PlanElement> legs = RaptorUtils.convertRouteToLegs(travelInfo.getRaptorRoute(),
                         ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getTransferWalkMargin());
-                    addDemand(timeDemand, legs);
+                    //addDemand(timeDemand, legs);
                 }
             }
         }
         System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
+    }
+
+    private synchronized void addPJT(Integer time, Integer start, Integer end, double calculatedPJT, String line, double actDepature) {
+        double[][] pjtMatrix = pjt.get(time-1);
+        pjtMatrix[start][end] = calculatedPJT;
+        String[][] connectionMatrix = connections.get(time-1);
+        connectionMatrix[start][end] = line;
+        connectionsDemand.put(line, 0.);
+        double[][] depature = depatureTime.get(time-1);
+        depature[start][end] = actDepature;
     }
 
     void calculateTest() {
@@ -190,6 +318,7 @@ public class MatrixRouterParts {
             int pathlegindex = 1;
             //int pathindex = getID();
             StringBuilder line = new StringBuilder();
+            var test = travelInfo.getRaptorRoute();
             for (RoutePart routePart : travelInfo.getRaptorRoute().getParts()) {
                 if (routePart.mode.equals("pt")) {
                     List<TransitRouteStop> routeStops = routePart.route.getStops();
@@ -246,6 +375,9 @@ public class MatrixRouterParts {
     private void route() {
         if (TRY.equals("Tree")) {
             inputDemand.getTimeList().stream().parallel().forEach(this::calculateTree);
+            long startTime = System.nanoTime();
+            inputDemand.getTimeList().stream().parallel().forEach(this::disributeDemamd);
+            System.out.println("Verteilung: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
             //List<Double> timeList = new ArrayList<>();
             //for (double i = 0.5; i < 144; i =i+0.5) {
             //    timeList.add(i);
@@ -254,12 +386,24 @@ public class MatrixRouterParts {
         } else if (TRY.contains("Calc")) {
             inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
         }
-        writeLinkCount();
-        writeRoute();
+        //writeLinkCount();
+        //writeRoute();
+        writeNewRoute();
+    }
+
+    private void writeNewRoute() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("treeRoutesDistribution.csv"))) {
+            for (Entry<String, Double> line : connectionsDemand.entrySet()) {
+                writer.write(line.getKey() + line.getValue());
+                writer.newLine();
+                writer.flush();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void writeRoute() {
-
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("treeRoutes.csv"))) {
             for (String line : lines) {
                 writer.write(line);
@@ -269,7 +413,6 @@ public class MatrixRouterParts {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private synchronized void addDemand(double timeDemand, List<? extends PlanElement> legs) {

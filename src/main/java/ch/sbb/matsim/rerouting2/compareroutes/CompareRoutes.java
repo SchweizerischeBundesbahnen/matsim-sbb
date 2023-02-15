@@ -55,7 +55,7 @@ public class CompareRoutes {
         }
          */
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("treeRoutes.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("treeRoutesDistribution.csv"))) {
             String line;
             double demand = 0;
             while ((line = reader.readLine()) != null) {
@@ -166,6 +166,7 @@ public class CompareRoutes {
         int visumRouteNotFoundInMatsim = 0;
         double foundDemand = 0;
         double notFoundDemand = 0;
+        double totaldemand = 0;
 
         int[] umsteigeVisum = new int[20];
         int[] umsteigeMatsim = new int[20];
@@ -178,6 +179,7 @@ public class CompareRoutes {
             if (um == 17) {
                 System.out.println(string);
             }
+            totaldemand += matSimRoutesMap.get(string);
             if (visumRoutesSet.contains(string)) {
                 matsimRouteFoundInVisum++;
                 foundDemand += visumRoutesMap.get(string);
@@ -208,7 +210,8 @@ public class CompareRoutes {
         System.out.println("matsimRouteFoundInVisum: " + matsimRouteFoundInVisum);
         System.out.println("foundDemand: " + foundDemand);
         System.out.println("matsimRouteNotFoundInVisum: " + matsimRouteNotFoundInVisum);
-        System.out.println("notFoundDemand: " + notFoundDemand);
+        System.out.println("matsim: " + notFoundDemand);
+        System.out.println("total matsim: " + totaldemand);
         System.out.println("visumRouteFoundInMatsim: " + visumRouteFoundInMatsim);
         System.out.println("visumRouteNotFoundInMatsim: " + visumRouteNotFoundInMatsim);
 
