@@ -38,9 +38,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.geotools.data.shapefile.index.DataDefinition;
 import org.matsim.api.core.v01.Coord;
@@ -138,23 +140,33 @@ public class MatrixRouterParts {
         for (Entry<Integer, Coord> validPotion : inputDemand.getValidPosistions().entrySet()) {
             for (Entry<Integer, Coord> destination : inputDemand.getValidPosistions().entrySet()) {
                 double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
-                addtest(timeDemand);
                 if (timeDemand != 0) {
+                    Set<String> uniqueConnections = new HashSet<>();
                     List<Double> pjtOverDay = new ArrayList<>();
                     int optimalDepatureTime = time * 600;
-                    for (int i = 1; i <= 144; i++) {
-                        double[][] tmpPJTMatrix = pjt.get(i-1);
+                    for (int i = 0; i < 144; i++) {
+                        String connection = connections.get(i)[validPotion.getKey()][destination.getKey()];
+                        double[][] tmpPJTMatrix = pjt.get(i);
                         double tmpPJT = tmpPJTMatrix[validPotion.getKey()][destination.getKey()];
-                        double[][] tmpDepatureTimeMatrix = depatureTime.get(i-1);
+                        double[][] tmpDepatureTimeMatrix = depatureTime.get(i);
                         int actualDepatureTime = (int) tmpDepatureTimeMatrix[validPotion.getKey()][destination.getKey()];
                         int timeDiffernce = Math.abs(optimalDepatureTime - actualDepatureTime);
-                        pjtOverDay.add(tmpPJT + timeDiffernce * coefficientDeltaTime);
+                        if (tmpPJT == 0 || actualDepatureTime == 0 || !uniqueConnections.add(connection)) {
+                            pjtOverDay.add(0.);
+                        } else {
+                            pjtOverDay.add(tmpPJT + timeDiffernce * coefficientDeltaTime);
+                        }
                     }
                     List<Double> utility = new ArrayList<>();
                     double totalUtility = 0;
                     for (Double tmpPTJ : pjtOverDay) {
-                        double tmpUtility = Math.pow(Math.E, -1.536 * ((Math.pow((tmpPTJ/60), 0.5)-1)/0.5));
-                        utility.add(tmpUtility);
+                        double tmpUtility = 0;
+                        if (tmpPTJ == 0) {
+                            utility.add(tmpUtility);
+                        } else {
+                            tmpUtility = Math.pow(Math.E, -1.536 * ((Math.pow((tmpPTJ/60), 0.5)-1)/0.5));
+                            utility.add(tmpUtility);
+                        }
                         totalUtility += tmpUtility;
                     }
                     List<Double> realDemand = new ArrayList<>();
@@ -164,13 +176,14 @@ public class MatrixRouterParts {
                     for (Double tmpUtility : utility) {
                         realDemand.add(timeDemand*(tmpUtility/totalUtility));
                     }
-                    for (int i = 1; i <= 144; i++) {
-                        double tmpDemand = realDemand.get(i - 1);
-                        if (connections.get(i-1)[validPotion.getKey()][destination.getKey()] == null) {
+                    for (int i = 0; i < 144; i++) {
+                        double tmpDemand = realDemand.get(i);
+                        if (tmpDemand == 0) {
                             continue;
                         }
-                        String connection = connections.get(i-1)[validPotion.getKey()][destination.getKey()];
+                        String connection = connections.get(i)[validPotion.getKey()][destination.getKey()];
                         addDemandToMap(connection, tmpDemand);
+                        addtest(tmpDemand);
                     }
                 }
             }
@@ -204,12 +217,13 @@ public class MatrixRouterParts {
         double walkTime = 0; // minimale Umstiegzeit
         double transferWaitTime = 0; // Umstiegzeit - minimale Umstiegszeit
         double numberOfTransfers = route.getNumberOfTransfers(); // PT legs
-        double extendedImpedance = 0; //
+        double extendedImpedance = 0; // jederhalt des Zuges
 
         double coefficientAccessTime = 2.94/60;
         double coefficientEgressTime = 2.94/60;
         double coefficientWalkTime = 2.25/60;
         double coefficientTransferWaitTime = 1.13/60;
+        double coefficientExtendedImpedance = 58;
 
         boolean firstPTLeg = false;
         double time = 0;
