@@ -23,7 +23,6 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.preparation.cutter.BetterPopulationReader;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.File;
 import org.matsim.analysis.TripsAndLegsCSVWriter;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
@@ -35,6 +34,8 @@ import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+
+import java.io.File;
 
 public class CreateTripTableFromPostprocessing {
 
@@ -61,7 +62,7 @@ public class CreateTripTableFromPostprocessing {
         new MatsimFacilitiesReader(scenario).readFile(facilitiesFile);
         new PopulationReader(scenario2).readFile(experiencedPlansFile);
         BetterPopulationReader.readSelectedPlansOnly(scenario, new File(populationFile));
-        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         SBBTripsExtension sbbTripsExtension = new SBBTripsExtension(railTripsAnalyzer, postProcessingConfigGroup, zonesCollection, scenario);
         SBBLegsExtension sbbLegsExtension = new SBBLegsExtension(railTripsAnalyzer);
         TripsAndLegsCSVWriter tripsAndLegsCSVWriter = new TripsAndLegsCSVWriter(scenario, sbbTripsExtension, sbbLegsExtension, null, v -> Long.toString((long) v));

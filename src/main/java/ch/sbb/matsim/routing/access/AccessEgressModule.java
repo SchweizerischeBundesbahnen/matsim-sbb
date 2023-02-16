@@ -1,6 +1,5 @@
 package ch.sbb.matsim.routing.access;
 
-import ch.sbb.matsim.config.ParkingCostConfigGroup;
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
@@ -10,6 +9,7 @@ import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressType;
@@ -25,12 +25,12 @@ public class AccessEgressModule extends AbstractModule {
 
 	public static final String IS_CH = "isCH";
 
-	public static void prepareLinkAttributes(Scenario scenario) {
+	public static void prepareLinkAttributes(Scenario scenario, boolean includeParkingCosts) {
 		ZonesCollection collection = (ZonesCollection) scenario.getScenarioElement(ZonesModule.SBB_ZONES);
 		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
 		ParkingCostConfigGroup parkingCostConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), ParkingCostConfigGroup.class);
-		String car_pc_att = parkingCostConfigGroup.getZonesParkingCostAttributeName();
-		String ride_pc_att = parkingCostConfigGroup.getZonesRideParkingCostAttributeName();
+		String car_pc_att = parkingCostConfigGroup.linkAttributePrefix + SBBModes.CAR;
+		String ride_pc_att = parkingCostConfigGroup.linkAttributePrefix + SBBModes.RIDE;
 		Id<Zones> zonesId = accessTimeConfigGroup.getZonesId();
 		Zones zones = collection.getZones(zonesId);
 		String attributePrefix = accessTimeConfigGroup.getAttributePrefix();
@@ -48,18 +48,16 @@ public class AccessEgressModule extends AbstractModule {
 			}
 			boolean isInCH = false;
 			if (zone != null) {
-				if (Integer.parseInt(zone.getId().toString()) < 700000000) {
+				if (isSwissZone(zone.getId())) {
 					isInCH = true;
 				}
-				if (ride_pc_att != null) {
+				if (includeParkingCosts) {
 					if (l.getAllowedModes().contains(SBBModes.RIDE)) {
 						double pc_ride = ((Number) zone.getAttribute(ride_pc_att)).doubleValue();
 						if (pc_ride > 0.0) {
 							l.getAttributes().putAttribute(ride_pc_att, pc_ride);
 						}
 					}
-				}
-				if (car_pc_att != null) {
 					if (l.getAllowedModes().contains(SBBModes.CAR)) {
 
 						double pc_car = ((Number) zone.getAttribute(car_pc_att)).doubleValue();
@@ -74,6 +72,10 @@ public class AccessEgressModule extends AbstractModule {
 			l.getAttributes().putAttribute(IS_CH, isInCH);
 		}
 
+	}
+
+	public static boolean isSwissZone(Id<Zone> id) {
+		return (Integer.parseInt(id.toString()) < 700000000);
 	}
 
 	public static void prepareAccessEgressTimesForMode(String mode, Id<Zones> zonesId, String accessTimeZoneId, String egressTimeZoneId, Scenario scenario) {

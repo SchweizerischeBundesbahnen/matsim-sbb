@@ -2,10 +2,8 @@ package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
-import java.util.HashSet;
-import java.util.Set;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.ConfigUtils;
@@ -13,12 +11,15 @@ import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.scoring.SumScoringFunction;
 import org.matsim.core.scoring.functions.CharyparNagelAgentStuckScoring;
-import org.matsim.core.scoring.functions.CharyparNagelMoneyScoring;
 import org.matsim.core.scoring.functions.ScoringParameters;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
- * @author jlie based on org.matsim.core.scoring.functions.RandomizedCharyparNagelScoringFunctionFactory adding: the default ScoringFunctionFactory seems to be
- * 		org.matsim.core.scoring.functions.CharyparNagelScoringFunctionFactory
+ * @author jlie based on org.matsim.core.scoring.functions.RandomizedCharyparNagelScoringFunctionFactory
+ * adding: the default ScoringFunctionFactory seems to be
+ * org.matsim.core.scoring.functions.CharyparNagelScoringFunctionFactory
  */
 public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 
@@ -48,9 +49,8 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 		SumScoringFunction sumScoringFunction = new SumScoringFunction();
 		sumScoringFunction.addScoringFunction(new SBBActivityScoring(params));
 		sumScoringFunction.addScoringFunction(new SBBCharyparNagelLegScoring(params, this.scenario.getNetwork(), ptModes));
-		sumScoringFunction.addScoringFunction(new CharyparNagelMoneyScoring(params));
 		sumScoringFunction.addScoringFunction(new CharyparNagelAgentStuckScoring(params));
-		sumScoringFunction.addScoringFunction(new SBBParkingCostScoring(sbbParams.getMarginalUtilityOfParkingPrice()));
+		sumScoringFunction.addScoringFunction(new SBBParkingCostAndMoneyScoring(params, sbbParams.getMarginalUtilityOfParkingPrice()));
 		sumScoringFunction.addScoringFunction(new SBBTransferScoring(sbbParams, ptModes, ptFeederModes));
 		return sumScoringFunction;
 	}

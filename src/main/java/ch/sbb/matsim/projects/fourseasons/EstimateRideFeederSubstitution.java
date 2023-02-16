@@ -7,8 +7,8 @@ import ch.sbb.matsim.preparation.casestudies.GenerateNetworkChangeEvents;
 import com.google.common.primitives.Ints;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -61,7 +61,8 @@ public class EstimateRideFeederSubstitution {
     private final Network carnet;
 
     public EstimateRideFeederSubstitution(Scenario scenario, List<Id<TransitStopFacility>> stopsCandidateList, TravelDisutility disutility, TravelTime travelTime) {
-        this.railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        //fix zones collection if required ever again
+        this.railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), null);
         this.stopsCandidateList = stopsCandidateList;
         this.scenario = scenario;
         flowsAtStops = calculateFlowPassingThroughStops();

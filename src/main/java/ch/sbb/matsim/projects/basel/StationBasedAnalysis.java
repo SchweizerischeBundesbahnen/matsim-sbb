@@ -2,8 +2,6 @@ package ch.sbb.matsim.projects.basel;
 
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -18,10 +16,10 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
-import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.geotools.MGC;
+import org.matsim.core.utils.gis.PolygonFeatureFactory;
 import org.matsim.core.utils.gis.ShapeFileWriter;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -64,10 +62,10 @@ public class StationBasedAnalysis {
         String transitScheduleFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.6-v100.1-10pct\\output\\v100.1.output_transitSchedule.xml.gz";
         new MatsimNetworkReader(scenario.getNetwork()).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.6-v100.1-10pct\\output\\v100.1.output_network.xml.gz");
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
-        new PopulationReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\2.1-v300-50pct\\output_slice0\\v300.1.output_experienced_plans.xml.gz");
-        new PopulationReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\2.1-v300-50pct\\output_slice1\\v300.1.output_experienced_plans.xml.gz");
+        //new PopulationReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\2.1-v300-50pct\\output_slice0\\v300.1.output_experienced_plans.xml.gz");
+        //new PopulationReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\2.1-v300-50pct\\output_slice1\\v300.1.output_experienced_plans.xml.gz");
 
-        RailTripsAnalyzer analyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        RailTripsAnalyzer analyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), null);
         StationBasedAnalysis stationBasedAnalysis = new StationBasedAnalysis(stations, scenario, 2, analyzer);
         stationBasedAnalysis.prepareStations();
         stationBasedAnalysis.analyse();
@@ -79,30 +77,24 @@ public class StationBasedAnalysis {
             String stationName = scenario.getTransitSchedule().getFacilities().get(facId).getName();
 
             String fileName = outputFolder + stationName + ".shp";
-            SimpleFeatureTypeBuilder simpleFeatureBuilder = new SimpleFeatureTypeBuilder();
-            simpleFeatureBuilder.setCRS(MGC.getCRS("CH1903_LV03_Plus_GT"));
-            simpleFeatureBuilder.setName("stationuse");
-            simpleFeatureBuilder.add("the_geom", Polygon.class);
-            simpleFeatureBuilder.add("zoneId", String.class);
-            simpleFeatureBuilder.add("Usage", Integer.class);
-            SimpleFeatureBuilder builder = new SimpleFeatureBuilder(simpleFeatureBuilder.buildFeatureType());
+
+            PolygonFeatureFactory pff = new PolygonFeatureFactory.Builder()
+                    .setName("stationUse")
+                    .setCrs(MGC.getCRS("CH1903_LV03_Plus_GT"))
+                    .addAttribute("Usage", int.class)
+                    .addAttribute("zoneId", String.class)
+                    .create();
+
 
             Collection<SimpleFeature> features = new ArrayList<>();
-            int i = 0;
+
             for (var feature : stations.get(facId).entrySet()) {
-                Object[] stationFeatureAttribute = new Object[3];
                 PreparedGeometry geo = feature.getValue();
-                stationFeatureAttribute[0] = geo;
-                stationFeatureAttribute[1] = feature.getKey();
-                stationFeatureAttribute[2] = stationDirectionUse.get(facId).get(feature.getKey()).intValue();
+                SimpleFeature f = pff.createPolygon(geo.getGeometry().getCoordinates());
+                f.setAttribute("Usage", stationDirectionUse.get(facId).get(feature.getKey()).intValue());
+                f.setAttribute("zoneId", feature.getKey());
+                features.add(f);
 
-
-                try {
-                    features.add(builder.buildFeature(Integer.toString(i), stationFeatureAttribute));
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                }
-                i++;
             }
             ShapeFileWriter.writeGeometries(features, fileName);
             System.out.println(stationName);

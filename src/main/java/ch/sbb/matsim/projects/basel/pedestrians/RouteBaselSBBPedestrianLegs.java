@@ -54,9 +54,9 @@ public class RouteBaselSBBPedestrianLegs {
 
     public static void main(String[] args) {
         var networkFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\osm\\basel-sbb-net.xml.gz";
-        var populationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\basel-sbb-legs.xml.gz";
-        String scenarioFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\results\\central\\";
-        var stopsWithAccessPointsFile = scenarioFolder + "Verteilung Eingänge.csv";
+        var populationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\v101\\v101-basel-sbb-legs.xml.gz";
+        String scenarioFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\v101\\results\\west\\";
+        var stopsWithAccessPointsFile = scenarioFolder + "Verteilung Eingänge-west.csv";
         var entranceLinksFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\Eingänge-Querschnitte.csv";
         var outputNetwork = scenarioFolder + "output_net.xml.gz";
         var outputPlans = scenarioFolder + "routed_plans.xml.gz";
@@ -125,7 +125,7 @@ public class RouteBaselSBBPedestrianLegs {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(stopsWithAccessPoints.toString());
+        System.out.println(stopsWithAccessPoints);
     }
 
     private void routeLegs() {

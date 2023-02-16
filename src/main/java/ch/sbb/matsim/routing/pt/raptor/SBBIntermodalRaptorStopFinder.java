@@ -5,8 +5,8 @@ import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
@@ -237,8 +237,16 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 					if (params != null && params.isRoutedOnNetwork() && (!params.isSimulatedOnNetwork())) {
 						routeParts = getCachedTravelTime(stopFacility, facility, departureTime, person, mode, module, true);
 					} else {
-						routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(facility, stopFacility, departureTime, person));
-					}
+                        if (stopFacility.getLinkId() == null) {
+                            LogManager.getLogger(getClass()).warn(stop.getName() + " has no link Id associated.");
+                        }
+                        if (facility.getLinkId() == null) {
+                            LogManager.getLogger(getClass()).warn("Facility " + facility.getCoord() + " has no link Id associated.");
+                        }
+                        Objects.requireNonNull(facility.getLinkId(), "Facility" + facility.getCoord() + "has no link Id associated.");
+                        Objects.requireNonNull(stopFacility.getLinkId(), "StopFacility" + stop.getName() + "has no link Id associated.");
+                        routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(facility, stopFacility, departureTime, person));
+                    }
 					if (routeParts == null) continue;
 
 				} else { // it's Egress
@@ -247,8 +255,16 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 					if (params != null && params.isRoutedOnNetwork() && (!params.isSimulatedOnNetwork())) {
 						routeParts = getCachedTravelTime(stopFacility, facility, departureTime, person, mode, module, false);
 					} else {
-						routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, facility, departureTime, person));
-					}
+                        if (stopFacility.getLinkId() == null) {
+                            LogManager.getLogger(getClass()).error(stop.getName() + " has no link Id associated.");
+                        }
+                        if (facility.getLinkId() == null) {
+                            LogManager.getLogger(getClass()).error("Facility " + facility.getCoord() + " has no link Id associated.");
+                        }
+                        Objects.requireNonNull(facility.getLinkId(), "Facility" + facility.getCoord() + "has no link Id associated.");
+                        Objects.requireNonNull(stopFacility.getLinkId(), "StopFacility" + stop.getName() + "has no link Id associated.");
+                        routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, facility, departureTime, person));
+                    }
 					if (routeParts == null) continue;
 					// clear the (wrong) departureTime so users don't get confused
 

@@ -244,14 +244,12 @@
         <!-- If enabled, it is ensured that all events that are created during a time step of the mobility simulation are processed before the next time step is simulated. E.g. neccessary when within-day replanning is used. -->
         <param name="synchronizeOnSimSteps" value="false"/>
     </module>
+
     <module name="parkingCosts">
-        <!-- The id of the zones collection as listed in the zones-configuration. -->
-        <param name="zonesId" value="zones"/>
-        <!-- The zones' attribute name containing the hourly parking cost for each zone for car mode. -->
-        <param name="zonesParkingCostAttributeName" value="pc_car"/>
-        <!-- The zones' attribute name containing the hourly parking cost for each zone for ride mode. -->
-        <param name="zonesRideParkingCostAttributeName" value="pc_ride"/>
+        <param name="modesWithParkingCosts" value="car,ride"/>
+        <param name="activityTypesWithoutParkingCost" value="home"/>
     </module>
+
     <module name="planCalcScore">
         <param name="writeExperiencedPlans" value="true"/>
         <parameterset type="scoringParameters">

@@ -32,12 +32,10 @@ import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
-import ch.sbb.matsim.vehicles.ParkingCostVehicleTracker;
-import ch.sbb.matsim.vehicles.RideParkingCostTracker;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.analysis.TripsAndLegsCSVWriter;
 import org.matsim.analysis.TripsAndLegsCSVWriter.CustomTripsWriterExtension;
 import org.matsim.api.core.v01.Scenario;
@@ -45,6 +43,8 @@ import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
+import org.matsim.contrib.parking.parkingcost.module.ParkingCostModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
@@ -109,7 +109,7 @@ public class RunSBB {
 		ZonesModule.addZonestoScenario(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		IntermodalModule.prepareIntermodalScenario(scenario);
-		AccessEgressModule.prepareLinkAttributes(scenario);
+		AccessEgressModule.prepareLinkAttributes(scenario, true);
 		// vehicle types
 		new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
 				scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
@@ -159,11 +159,8 @@ public class RunSBB {
 					bind(RaptorInVehicleCostCalculator.class).toInstance(inVehicleCostCalculator);
 				}
 				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
-				if (parkCostConfig.getZonesParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
-					addEventHandlerBinding().to(ParkingCostVehicleTracker.class);
-				}
-				if (parkCostConfig.getZonesRideParkingCostAttributeName() != null && parkCostConfig.getZonesId() != null) {
-					addEventHandlerBinding().to(RideParkingCostTracker.class);
+				if (parkCostConfig.useParkingCost) {
+					install(new ParkingCostModule());
 				}
 
 				ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);

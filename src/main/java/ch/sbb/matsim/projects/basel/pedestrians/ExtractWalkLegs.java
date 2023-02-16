@@ -52,9 +52,9 @@ public class ExtractWalkLegs {
     }
 
     public static void main(String[] args) {
-        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\outputplans-experienced-basel-sbb.xml.gz";
+        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\v101\\v101-outputplans-experienced-basel-sbb.xml.gz";
 //        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\testperson.xml";
-        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\basel-sbb-legs.xml.gz";
+        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\v101\\v101-basel-sbb-legs.xml.gz";
 //        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\testconversion.xml";
         String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\plans\\v200\\mobi-zones.shp";
         List<Id<Link>> stopFacilityIds = List.of(Id.create("pt_1388", Link.class), Id.create("pt_100001204", Link.class));

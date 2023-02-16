@@ -20,9 +20,11 @@
 package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.commons.lang3.mutable.MutableDouble;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.HasPlansAndId;
@@ -80,6 +82,9 @@ public class RailDemandReporting {
         String folderPrefix = args[0];
         double scaleFactor = Double.parseDouble(args[1]);
         String outputFile = args[2];
+        String zonesFile = args[3];
+        ZonesCollection zonesCollection = new ZonesCollection();
+        zonesCollection.addZones(ZonesLoader.loadZones("zones", zonesFile));
 
         String experiencedPlansFile = folderPrefix + "output_experienced_plans.xml.gz";
         String transitScheduleFile = folderPrefix + "output_transitSchedule.xml.gz";
@@ -89,7 +94,7 @@ public class RailDemandReporting {
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         new PopulationReader(scenario).readFile(experiencedPlansFile);
-        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         RailDemandReporting railDemandReporting = new RailDemandReporting(railTripsAnalyzer, scenario.getTransitSchedule());
         railDemandReporting
                 .calcAndWriteDistanceReporting(outputFile, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(Collectors.toSet()), scaleFactor);

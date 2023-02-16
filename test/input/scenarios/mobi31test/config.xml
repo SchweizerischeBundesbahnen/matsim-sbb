@@ -250,12 +250,8 @@
         <param name="synchronizeOnSimSteps" value="false"/>
     </module>
     <module name="parkingCosts">
-        <!-- The id of the zones collection as listed in the zones-configuration. -->
-        <param name="zonesId" value="zones"/>
-        <!-- The zones' attribute name containing the hourly parking cost for each zone for car mode. -->
-        <param name="zonesParkingCostAttributeName" value="pc_car"/>
-        <!-- The zones' attribute name containing the hourly parking cost for each zone for ride mode. -->
-        <param name="zonesRideParkingCostAttributeName" value="pc_ride"/>
+        <param name="modesWithParkingCosts" value="car,ride"/>
+        <param name="activityTypesWithoutParkingCost" value="home"/>
     </module>
     <module name="planCalcScore">
         <!-- logit model scale parameter. default: 1.  Has name and default value for historical reasons (see Bryan Raney's phd thesis). -->

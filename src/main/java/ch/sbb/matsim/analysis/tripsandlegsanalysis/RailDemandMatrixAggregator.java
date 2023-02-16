@@ -25,17 +25,6 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.HasPlansAndId;
@@ -51,6 +40,12 @@ import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Singleton
 public class RailDemandMatrixAggregator {
@@ -138,7 +133,7 @@ public class RailDemandMatrixAggregator {
         PostProcessingConfigGroup ppcg = new PostProcessingConfigGroup();
         ppcg.setRailMatrixAggregate(aggregationId);
         ppcg.setZonesId("zones");
-        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         RailDemandMatrixAggregator railDemandMatrixAggregator = new RailDemandMatrixAggregator(scenario.getTransitSchedule(), zonesCollection, ppcg, railTripsAnalyzer);
         railDemandMatrixAggregator
                 .writeMatrix(railDemandMatrixAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(

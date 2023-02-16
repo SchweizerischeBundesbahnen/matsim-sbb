@@ -5,6 +5,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
@@ -18,7 +19,9 @@ public class LinkToStationsAssigner {
 		String networkFile = args[1];
 		String outputFile = args[2];
 
-		Network filteredNetwork = new FilteredNetwork().readAndFilterNetwork(networkFile);
+		Network network = NetworkUtils.createNetwork();
+		new MatsimNetworkReader(network).readFile(networkFile);
+		Network filteredNetwork = new FilteredNetwork().filterNetwork(network, ConfigUtils.createConfig());
 		final TransitSchedule transitSchedule = readStations(transitScheduleFile);
 		assignLinkToFacility(filteredNetwork, transitSchedule);
 		new TransitScheduleWriter(transitSchedule).writeFile(outputFile);
