@@ -2,7 +2,6 @@ package ch.sbb.matsim.projects.basel.pedestrians;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVReader;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -25,10 +24,7 @@ import org.matsim.core.utils.io.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RouteBaselSBBPedestrianLegs {
@@ -38,8 +34,8 @@ public class RouteBaselSBBPedestrianLegs {
     private final Map<Id<Link>, StopWithAccessPoints> stopsWithAccessPoints = new HashMap<>();
     private final LeastCostPathCalculator lcp;
     private final double walkSpeed = 4.2 / 3.6;
-    private final Map<Id<Link>, MutableInt> linkUse = new HashMap<>();
-    private final Map<String, MutableInt> entranceUse = new HashMap<>();
+    private final Map<Id<Link>, int[]> linkUse = new HashMap<>();
+    private final Map<String, int[]> entranceUse = new HashMap<>();
     private final Map<Id<Link>, String> entranceLinks = new HashMap<>();
 
 
@@ -54,10 +50,10 @@ public class RouteBaselSBBPedestrianLegs {
 
     public static void main(String[] args) {
         var networkFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\osm\\basel-sbb-net.xml.gz";
-        var populationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\v101\\v101-basel-sbb-legs.xml.gz";
-        String scenarioFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\v101\\results\\west\\";
-        var stopsWithAccessPointsFile = scenarioFolder + "Verteilung Eingänge-west.csv";
-        var entranceLinksFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\Eingänge-Querschnitte.csv";
+        var populationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\v310\\pedsim\\v310-basel-sbb-legs.xml.gz";
+        String scenarioFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\v310\\pedsim\\";
+        var stopsWithAccessPointsFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\v301\\results\\west\\Verteilung Eingänge-west.csv";
+        var entranceLinksFile = scenarioFolder + "Eingänge-Querschnitte.csv";
         var outputNetwork = scenarioFolder + "output_net.xml.gz";
         var outputPlans = scenarioFolder + "routed_plans.xml.gz";
 
@@ -134,8 +130,10 @@ public class RouteBaselSBBPedestrianLegs {
                 plan -> {
                     Activity fromAct = (Activity) plan.getPlanElements().get(0);
                     Activity toAct = (Activity) plan.getPlanElements().get(2);
+                    //if (toAct.getType().equals("pt interaction") && fromAct.getType().equals("pt interaction")) {
                     Leg leg = (Leg) plan.getPlanElements().get(1);
                     routeLeg(fromAct.getCoord(), toAct.getCoord(), leg);
+                    //}
                 }
         );
     }
@@ -149,7 +147,12 @@ public class RouteBaselSBBPedestrianLegs {
         route.setDistance(bestPath.links.stream().mapToDouble(l -> l.getLength()).sum());
         walkLeg.setRoute(route);
         walkLeg.setTravelTime(route.getTravelTime().seconds());
-        bestPath.links.forEach(link -> linkUse.computeIfAbsent(link.getId(), l -> new MutableInt()).increment());
+        int hour = ((int) walkLeg.getDepartureTime().seconds() / 3600);
+        if (hour > 23) {
+            hour = hour - 24;
+        }
+        int finalHour = hour;
+        bestPath.links.forEach(link -> linkUse.computeIfAbsent(link.getId(), l -> new int[24])[finalHour]++);
 
     }
 
@@ -164,7 +167,7 @@ public class RouteBaselSBBPedestrianLegs {
                     if (stopWithAccessPoints != null) {
                         Coord newCoord = stopWithAccessPoints.select();
                         activity.setCoord(newCoord);
-                        activity.setType(stopWithAccessPoints.getName(newCoord));
+                        //activity.setType(stopWithAccessPoints.getName(newCoord));
                     }
                     if (activity.getCoord() == null) {
                         lostLinkIds.add(activity.getLinkId());
@@ -177,11 +180,23 @@ public class RouteBaselSBBPedestrianLegs {
     }
 
     private void writeNetwork(String outputNetFile) {
-        entranceLinks.forEach((linkId, name) -> entranceUse.computeIfAbsent(name, n -> new MutableInt()).add(linkUse.get(linkId).intValue()));
-        linkUse.forEach((l, v) -> scenario.getNetwork().getLinks().get(l).getAttributes().putAttribute("PED_VOLUME", v.intValue()));
+        entranceLinks.forEach((linkId, name) -> {
+                    var entrance = entranceUse.computeIfAbsent(name, n -> new int[24]);
+                    int[] linkUseAtEntrance = linkUse.get(linkId);
+                    if (linkUseAtEntrance == null) {
+                        System.out.println(linkId + " is null entrance");
+                    } else {
+                        for (int i = 0; i < 24; i++) {
+                            entrance[i] += linkUseAtEntrance[i];
+
+                        }
+                    }
+                }
+        );
+        linkUse.forEach((l, v) -> scenario.getNetwork().getLinks().get(l).getAttributes().putAttribute("PED_VOLUME", Arrays.stream(v).sum()));
         new NetworkWriter(scenario.getNetwork()).write(outputNetFile);
-        entranceUse.forEach((s, i) -> System.out.println(s + ":\t" + i.toString()));
-        System.out.println("Sum:\t" + entranceUse.values().stream().mapToInt(MutableInt::intValue).sum());
+        entranceUse.forEach((s, i) -> System.out.println(s + ";" + Arrays.stream(i).mapToObj(a -> Integer.toString(a)).collect(Collectors.joining(";"))));
+
     }
 
     private static class StopWithAccessPoints {

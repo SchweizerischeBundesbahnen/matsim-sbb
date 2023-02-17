@@ -21,13 +21,12 @@ public class ExtractStationPlans {
     }
 
     public static void main(String[] args) {
-        String inputPlans1 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.6-v100.1-10pct\\output\\v100.1.output_plans.xml.gz";
-        String inputPlans2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.2-v100-50pct\\output_slice1\\v100.2.output_plans.xml.gz";
-        String extractedTrips = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.6-v100.1-10pct\\reporting\\eingaenge\\outputplans-mitte.xml.gz";
+        String inputPlans1 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\BI2040.0.1-25pct\\output\\BI2040.01.output_plans.xml.gz";
+        String extractedTrips = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\output-plans-biel.xml.gz";
         List<String> plans = List.of(inputPlans1);
 
-        List<Id<Link>> stopFacilityIds = List.of(Id.createLinkId("pt_19054489"));
-        int factor = 10;
+        List<Id<Link>> stopFacilityIds = List.of(Id.createLinkId("pt_1279"), Id.createLinkId("pt_3654"));
+        int factor = 4;
         new ExtractStationPlans(plans, factor, stopFacilityIds, extractedTrips);
 
 

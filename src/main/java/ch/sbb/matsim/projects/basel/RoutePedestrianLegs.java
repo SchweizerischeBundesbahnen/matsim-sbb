@@ -52,18 +52,18 @@ public class RoutePedestrianLegs {
     }
 
     public static void main(String[] args) {
-        String path = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.6-v100.1-10pct\\reporting\\eingaenge\\";
-        String networkFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.2-v100-50pct\\reporting\\verteilung_eingaenge\\basel-net.xml.gz";
-        String inputPlansFile = path + "mitte-legs.xml.gz";
+        String path = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\";
+        String networkFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\biel.xml.gz";
+        String inputPlansFile = path + "biel-legs.xml.gz";
         String outputPlansFile = path + "routed-plans.xml.gz";
-        String outputNetFile = path + "basel-net_with_station_exits.xml.gz";
+        String outputNetFile = path + "biel-net_with_station_exits.xml.gz";
         double walkSpeed = 4.2 / 3.6;
-        Coord spital = new Coord(2611071, 1267871);
-        Coord markt = new Coord(2611210, 1267517);
-        Coord schiffl = new Coord(2611245.75, 1267708.125);
-        Coord spiegel = new Coord(2611130.5, 1267706);
+        Coord murtenstr = new Coord(2585399.862850578, 1220063.0303093693);
+        Coord zentral = new Coord(2585150.7279656795, 1220229.8680819331);
+        Coord sued = new Coord(2585094.6465606242, 1220103.5361372966);
+        Coord aldi = new Coord(2585056.697442964, 1220269.2606236746);
 
-        List<Coord> stationEntrances = List.of(spital, spiegel, markt, schiffl);
+        List<Coord> stationEntrances = List.of(murtenstr, aldi, zentral, sued);
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         new PopulationReader(scenario).readFile(inputPlansFile);
@@ -105,9 +105,9 @@ public class RoutePedestrianLegs {
 
         for (Node nearestNode : nearestNodes) {
             Link accessLink = network.getFactory().createLink(Id.createLinkId("nl_" + additionalLinks++), nearestNode, accessNode);
-            accessLink.setLength(CoordUtils.calcEuclideanDistance(coord, nearestNode.getCoord()));
+            accessLink.setLength(CoordUtils.calcEuclideanDistance(coord, nearestNode.getCoord()) + 1.0);
             Link egressLink = network.getFactory().createLink(Id.createLinkId("nl_" + additionalLinks++), accessNode, nearestNode);
-            egressLink.setLength(CoordUtils.calcEuclideanDistance(coord, nearestNode.getCoord()));
+            egressLink.setLength(CoordUtils.calcEuclideanDistance(coord, nearestNode.getCoord()) + 1.0);
             network.addLink(accessLink);
             network.addLink(egressLink);
         }
@@ -182,7 +182,7 @@ public class RoutePedestrianLegs {
     }
 
     private void calcProbabilities(List<Candidate> candidatePaths) {
-        double e = 0.01;
+        double e = 0.006;
         double sum = candidatePaths.stream().mapToDouble(c -> Math.exp(-e * c.distance)).sum();
         candidatePaths.forEach(candidate -> candidate.probability = Math.exp(-e * candidate.distance) / sum);
     }
