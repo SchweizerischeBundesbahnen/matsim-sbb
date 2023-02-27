@@ -22,6 +22,7 @@ import ch.sbb.matsim.routing.pt.raptor.SBBIntermodalRaptorStopFinder;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.TravelInfo;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
+import ch.sbb.matsim.zones.ZonesCollection;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -231,7 +232,7 @@ public class ConnectionRouter {
         RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
 
         this.swissRailRaptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
-        this.railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork());
+        this.railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), new ZonesCollection());
 
         this.inputDemand = new InputDemand(columNames, demand, scenario);
     }

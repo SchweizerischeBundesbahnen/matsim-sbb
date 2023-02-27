@@ -9,7 +9,7 @@ public class DemandStorage2 {
     Id<Link> matsimLink;
     String visumLink;
     String wkt;
-    int demand = 0;
+    double demand = 0.;
 
     DemandStorage2(Id<Link> linkId, String line) {
         this.matsimLink = linkId;
@@ -36,7 +36,7 @@ public class DemandStorage2 {
 
     @Override
     public String toString() {
-        return matsimLink.toString() + ";" + demand + ";" + visumLink + ";" + wkt;
+        return matsimLink.toString() + ";" + demand + ";" + (int) demand + ";" + visumLink + ";" + wkt;
     }
 
 }
