@@ -55,14 +55,14 @@ public class CompareRoutes {
         }
          */
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("treeRoutesDistribution.csv"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("treeRoutesv2.csv"))) {
             String line;
             double demand = 0;
             while ((line = reader.readLine()) != null) {
                 String[] splitLine = line.split(";");
-                String stringDemand = splitLine[splitLine.length-1];
-                demand = Double.parseDouble(stringDemand);
-                line = line.substring(0, line.length() - stringDemand.length()-1);
+                //String stringDemand = splitLine[splitLine.length-1];
+                //demand = Double.parseDouble(stringDemand);
+                line = line.substring(0, line.length() - 1);
                 matSimRoutesSet.add(line);
                 if (matSimRoutesMap.containsKey(line)) {
                     double tmp = matSimRoutesMap.get(line);
@@ -95,7 +95,7 @@ public class CompareRoutes {
                         splitline[header.indexOf("FROMSTOPPOINTNO")] + ";" +
                         splitline[header.indexOf("TOSTOPPOINTNO")] + ";" +
                         splitline[header.indexOf("VEHJOURNEY-DEP")];
-                    demand += Double.parseDouble(splitline[header.indexOf("ODTRIPS")]);
+                    //demand += Double.parseDouble(splitline[header.indexOf("ODTRIPS")]);
                 } else {
                     if (first) {
                         first = false;
@@ -197,6 +197,7 @@ public class CompareRoutes {
             int um = StringUtils.countMatches(string, ";")/4;
             int tmp = umsteigeVisum[um];
             umsteigeVisum[um] = tmp+1;
+            //totaldemand += visumRoutesMap.get(string);
             if (matSimRoutesSet.contains(string)) {
                 visumRouteFoundInMatsim++;
             } else {

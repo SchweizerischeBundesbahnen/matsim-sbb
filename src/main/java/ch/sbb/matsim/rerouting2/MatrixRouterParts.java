@@ -128,7 +128,7 @@ public class MatrixRouterParts {
         //lines.add("PATHINDEX;PATHLEGINDEX;FROMSTOPPOINTNO;TOSTOPPOINTNO;DEPTIME;ARRTIME");
         MatrixRouterParts matrixRouter = new MatrixRouterParts();
         System.out.println("MatrixRouter: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
-        matrixRouter.setUPJT();
+        //matrixRouter.setUPJT();
         matrixRouter.route();
         //matrixRouter.calculateTest();
         System.out.println("It took " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
@@ -139,7 +139,7 @@ public class MatrixRouterParts {
         System.out.println(route);
         System.out.println("Lines: " + lines.size());
         System.out.println(demandtest);
-        PutSurveyWriter.writePutSurvey(visum, entries);
+        //PutSurveyWriter.writePutSurvey(visum, entries);
     }
 
     private synchronized void addtest(double tmp) {
@@ -278,7 +278,7 @@ public class MatrixRouterParts {
         return inVehicleTime + puTAuxRideTime + accessTime * coefficientAccessTime + egressTime * coefficientEgressTime + walkTime * coefficientWalkTime + transferWaitTime * coefficientTransferWaitTime
             + numberOfTransfers * 60 + extendedImpedance;
     }
-
+    AtomicInteger zoneWithNoDemand = new AtomicInteger(0);
     private void calculateTree(Integer time) {
         long startTime = System.nanoTime();
         var raptor = new SwissRailRaptor(data, raptorParametersForPerson, routeSelector, stopFinder, inVehicleCostCalculator, transferCostCalculator);
@@ -287,7 +287,8 @@ public class MatrixRouterParts {
         for (Entry<Integer, Coord> validPotion : inputDemand.getValidPosistions().entrySet()) {
             Facility startF = afFactory.createActivityFacility(Id.create(1, ActivityFacility.class), validPotion.getValue());
             Map<Id<TransitStopFacility>, TravelInfo> tree = raptor.calcTree(startF, (time - 1) * 600, null, null);
-            for (Entry<Integer, Coord> destination : inputDemand.getValidPosistions().entrySet()) {
+            zoneWithNoDemand.incrementAndGet();
+            /*for (Entry<Integer, Coord> destination : inputDemand.getValidPosistions().entrySet()) {
                 double timeDemand = matrix[validPotion.getKey()][destination.getKey()];
                 if (timeDemand != 0) {
                     route++;
@@ -299,15 +300,15 @@ public class MatrixRouterParts {
                     }
                     int pathlegindex = 1;
                     StringBuilder line = new StringBuilder();
-                    /*if (!(travelInfo.departureStop.equals(Id.create("1311", TransitStopFacility.class)))) {
+                    if (!(travelInfo.departureStop.equals(Id.create("1311", TransitStopFacility.class)))) {
                         continue;
                     }
                     if (!(data.findNearestStop(destination.getValue().getX(), destination.getValue().getY()).getId().equals(Id.create("2751", TransitStopFacility.class)))) {
                         continue;
-                    }*/
+                    }
                     for (RoutePart routePart : travelInfo.getRaptorRoute().getParts()) {
                         if (routePart.mode.equals("pt")) {
-                            double depatureTime = -1;
+                            double depatureTime = 0;
                             List<TransitRouteStop> routeStops = routePart.route.getStops();
                             for (TransitRouteStop transitRouteStop : routeStops) {
                                 if (transitRouteStop.getStopFacility().getId().equals(routePart.toStop.getId())) {
@@ -332,14 +333,14 @@ public class MatrixRouterParts {
                     List<? extends PlanElement> legs = RaptorUtils.convertRouteToLegs(travelInfo.getRaptorRoute(),
                         ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getTransferWalkMargin());
                     // pt depature time schould be walk depature time
-                    addPJT(time, validPotion.getKey(), destination.getKey(), calculatePJT(travelInfo.getRaptorRoute()), line.toString(), travelInfo.ptDepartureTime, legs);
+                    //addPJT(time, validPotion.getKey(), destination.getKey(), calculatePJT(travelInfo.getRaptorRoute()), line.toString(), travelInfo.ptDepartureTime, legs);
                     line.append(timeDemand);
                     addToLine(line);
                     routedDemand += timeDemand;
 
                     //addDemand(timeDemand, legs);
                 }
-            }
+            }*/
         }
         System.out.println("Matrix: " + time + "; " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
     }
@@ -422,10 +423,11 @@ public class MatrixRouterParts {
 
     private void route() {
         if (TRY.equals("Tree")) {
-            inputDemand.getTimeList().stream().parallel().forEach(this::calculateTree);
             long startTime = System.nanoTime();
-            inputDemand.getTimeList().stream().parallel().forEach(this::disributeDemamd);
+            inputDemand.getTimeList().stream().parallel().forEach(this::calculateTree);
+            System.out.println(zoneWithNoDemand.get());
             System.out.println("Verteilung: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
+            //inputDemand.getTimeList().stream().parallel().forEach(this::disributeDemamd);
             //List<Double> timeList = new ArrayList<>();
             //for (double i = 0.5; i < 144; i =i+0.5) {
             //    timeList.add(i);
@@ -434,10 +436,10 @@ public class MatrixRouterParts {
         } else if (TRY.contains("Calc")) {
             inputDemand.getTimeList().stream().parallel().forEach(this::calculateMatrix);
         }
-        addDemandAll();
-        writeLinkCount();
-        //writeRoute();
-        writeNewRoute();
+        //addDemandAll();
+        //writeLinkCount();
+        writeRoute();
+        //writeNewRoute();
     }
 
     private void addDemandAll() {
