@@ -64,10 +64,10 @@ public class AdjustExogeneousDemand {
 
         String inputCarDemand = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2050\\plans_exogeneous\\cb_road\\100pct\\plans.xml.gz";
         String inputPtDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\plans_exogeneous\\cb_rail\\100pct\\plans.xml.gz";
-        String outputCarDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\4.0_metrox\\plans_exogeneous\\cb_road\\plans.xml.gz";
-        String outputPTDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\4.0_metrox\\plans_exogeneous\\cb_rail\\plans.xml.gz";
+        String outputCarDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\1.3-diam-fr-dyn\\plans_exogeneous\\cb_road\\plans.xml.gz";
+        String outputPTDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\1.3-diam-fr-dyn\\plans_exogeneous\\cb_rail\\plans.xml.gz";
         String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\skims\\zonierung_frankreich\\bordering_comm_ge.shp";
-        String alterationTable = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\4.0_metrox\\metrox-changes.csv";
+        String alterationTable = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\1.3-diam-fr-dyn\\nachfrage-frankreich-diam.csv";
 
         Scenario scenario1 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario1).readFile(inputCarDemand);
@@ -109,7 +109,7 @@ public class AdjustExogeneousDemand {
         try (CSVReader reader = new CSVReader(alterationTable, ";")) {
             var line = reader.readLine();
             while (line != null) {
-                String zone = line.get("zone");
+                String zone = line.get("Zone");
                 int car = Integer.parseInt(line.get("carDiff"));
                 int pt = Integer.parseInt(line.get("ptDiff"));
                 carCorrectionPerZone.put(zone, car);
@@ -142,6 +142,7 @@ public class AdjustExogeneousDemand {
         for (var e : correctionPerZone.entrySet()) {
             String zone = e.getKey();
             int correction = e.getValue();
+            System.out.println(zone + " " + correction);
             var persons = populationPerZone.get(zone);
             if (persons == null) {
                 LogManager.getLogger(getClass()).info("Zone " + zone + " has no demand for " + mode);
