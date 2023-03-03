@@ -50,8 +50,8 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 
 	@Inject
 	public SBBIntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE,
-			Map<String, Provider<RoutingModule>> routingModuleProviders,
-			TransitSchedule transitSchedule, AccessEgressRouteCache accessEgressRouteCache) {
+										 Map<String, Provider<RoutingModule>> routingModuleProviders,
+										 TransitSchedule transitSchedule, AccessEgressRouteCacheImpl accessEgressRouteCache) {
 		this.intermodalAE = intermodalAE;
 		this.transitSchedule = transitSchedule;
 		this.accessEgressRouteCache = accessEgressRouteCache;
