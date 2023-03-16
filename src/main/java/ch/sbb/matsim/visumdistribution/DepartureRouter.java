@@ -12,8 +12,6 @@ import static ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.getTim
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.PutSurveyWriter.PutSurveyEntry;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
-import ch.sbb.matsim.rerouting.DemandStorage;
-import ch.sbb.matsim.rerouting.RouteStorage;
 import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorInVehicleCostCalculator;
 import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorParametersForPerson;
@@ -50,7 +48,6 @@ import omx.OmxFile;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -66,46 +63,49 @@ public class DepartureRouter {
     final static String schedualFile = "Z:/99_Playgrounds/MD/Umlegung2/2018/transitSchedule.xml.gz";
     final static String netwoekFile = "Z:/99_Playgrounds/MD/Umlegung2/2018/transitNetwork.xml.gz";
     final static String omxFile = "Z:/99_Playgrounds/MD/Umlegung2/visum/Demand2018.omx";
-    final static String assignmentFile = "Z:/99_Playgrounds/MD/Umlegung2/Visum/ZoneToNode.csv";
-    final static String visum = "Z:/99_Playgrounds/MD/Umlegung2/routesDepatureVisumv2.csv";
+    final static String assignmentFile = "Z:/99_Playgrounds/MD/Umlegung2/visum/ZoneToNode.csv";
+    final static String visum = "routesDepatureVisumLines.csv";
+    final static String csvLines = "treeRoutesvLines.csv";
     Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
     SwissRailRaptorData data;
     RaptorParametersForPerson raptorParametersForPerson;
     RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
     RaptorInVehicleCostCalculator inVehicleCostCalculator = new DefaultRaptorInVehicleCostCalculator();
+    //RaptorInVehicleCostCalculator inVehicleCostCalculator = new VisumRaptorInVehicleCostCalculator();
     RaptorTransferCostCalculator transferCostCalculator = new DefaultRaptorTransferCostCalculator();
+    //RaptorTransferCostCalculator transferCostCalculator = new VisumRaptorTransferCostCalculator();
     DefaultRaptorStopFinder defaultRaptorStopFinder = new DefaultRaptorStopFinder(new DefaultRaptorIntermodalAccessEgress(), null);
     static AtomicInteger atomicInteger = new AtomicInteger(0);
+    static AtomicInteger depatureInteger = new AtomicInteger(0);
+    static AtomicInteger lines = new AtomicInteger(0);
+    static AtomicInteger calcInteger = new AtomicInteger(0);
     final double coefficientDeltaTime = 1.85 / 60; //in sekunden umgerechnet
     final double transferWalkinMargin;
     int matrixNames;
 
-    Map<Id<TransitStopFacility>, List<MyTravelInfo>> stopsAndMyTravelInfo = new HashMap<>();
-
     RaptorParameters params = RaptorUtils.createParameters(scenario.getConfig());
-
     OmxFile omx;
     Map<String, Set<TransitStopFacility>> matchingZoneToStops = new HashMap<>();
     Map<TransitStopFacility, Set<String>> matchingStopsToZones = new HashMap<>();
-    Map<Id<TransitStopFacility>, Set<TransitStopFacility>> stopsAndDemandLocations = new HashMap<>();
+    Map<String, Double> connectionTime = new HashMap<>();
     Map<String, Set<String>> zonesAndDemandLocations = new HashMap<>();
-    Map<TransitStopFacility, Set<Double>> stopsDepatures = new HashMap<>();
-    Map<String, Double> connectionsDemand = new HashMap<>();
-    Set<String> connections = new HashSet<>();
-    Map<String, List<? extends PlanElement>> connectionsLegs = new HashMap<>();
-    Map<String, RaptorRoute> connectionsLegs1 = new HashMap<>();
+    Map<Id<TransitStopFacility>, Set<Double>> stopsDepatures = new HashMap<>();
+    Map<String, Set<TransitRoute>> stopsRoutes = new HashMap<>();
+    Map<String, Double> connectionsDemand = Collections.synchronizedMap(new HashMap<>());
+    Map<String, List<MyTransitPassangerRoute>> connectionsLegs = Collections.synchronizedMap(new HashMap<>());
+    Set<DirectConnection> directConnections = Collections.synchronizedSet(new HashSet<>());
     List<List<PutSurveyEntry>> entries = Collections.synchronizedList(new ArrayList<>());
+    Map<Id<TransitRoute>, Id<TransitLine>> routeToLine = new HashMap<>();
     Map<String, Integer> zoneLookUp = new HashMap<>();
-    Set<String> lines = new HashSet<>();
     AtomicInteger zoneWithNoDemand = new AtomicInteger(0);
 
-
     public static void main(String[] args) {
+        System.out.println(Math.pow(Math.E, -1.536 * ((Math.pow(60, 0.5) - 1) / 0.5)));
         long startTime = System.nanoTime();
-        DepartureRouter departureRouter = new DepartureRouter();
+        DepartureRouter departureRouter = new DepartureRouter(0);
         departureRouter.readAndPrepareDemand();
         departureRouter.calculateTreeForUniqueDepatureAtAllStations();
-        //departureRouter.writeOutput();
+        departureRouter.writeOutput();
         System.out.println("It took: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
         System.out.println("Done");
     }
@@ -120,59 +120,47 @@ public class DepartureRouter {
             return;
         }
 
-        List<Map<Id<TransitStopFacility>, TravelInfo>> trees = new ArrayList<>();
-
+        Map<Double, Map<Id<TransitStopFacility>, TravelInfo>> trees = new HashMap<>();
         for (TransitStopFacility startStop : stringSetEntry.getValue()) {
-            for (Double depatureTime : stopsDepatures.get(startStop)) {
+            for (Double depatureTime : stopsDepatures.get(startStop.getId())) {
                 Map<Id<TransitStopFacility>, TravelInfo> tree = raptor.calcTree(startStop, depatureTime, params, null);
-                trees.add(tree);
+                trees.put(depatureTime,tree);
+                calcInteger.incrementAndGet();
             }
         }
-        /*
-        int count = 0;
 
+        int count = 0;
         for (String destinationZone : zonesAndDemandLocations.get(stringSetEntry.getKey())) {
             List<TravelInfo> oneStopToStop = new ArrayList<>();
             List<Double> pjtList = new ArrayList<>();
             Set<String> checkUniqueConnections = new HashSet<>();
             Set<TransitStopFacility> stops = matchingZoneToStops.get(destinationZone);
-            Iterable<RoutePart> test;
-            List<? extends PlanElement> legs;
+            List<DirectConnection> directConnections = new ArrayList<>();
+            List<Double> directConnectionsPJT = new ArrayList<>();
             for (TransitStopFacility stop : stops) {
-                for (Map<Id<TransitStopFacility>, TravelInfo> tree : trees) {
-                    TravelInfo travelInfo = tree.get(stop.getId());
-                    if (travelInfo != null) {
-                        String key = travelInfo.departureStop + "" + travelInfo.ptDepartureTime;
-                        if (checkUniqueConnections.add(key)) {
-                            pjtList.add(calculatePJT(travelInfo.getRaptorRoute()));
+                for (Entry<Double, Map<Id<TransitStopFacility>, TravelInfo>> tree : trees.entrySet()) {
+                    TravelInfo travelInfo = tree.getValue().get(stop.getId());
+                    if (travelInfo == null) {
+                        continue;
+                    }
+                    if (travelInfo.departureStop.equals(stop.getId())) {
+                        continue;
+                    }
+                    double conTime = connectionTime.get(stringSetEntry.getKey() + travelInfo.departureStop) + connectionTime.get(destinationZone + stop.getId());
+
+                    List<DirectConnection> tmpDirectConnections = checkDirectConnection(travelInfo, stop, tree.getKey());
+                    for (DirectConnection directConnection : tmpDirectConnections) {
+                        directConnections.add(directConnection);
+                        directConnectionsPJT.add(calculatePJT(directConnection, conTime));
+                    }
+
+                    if (travelInfo.transferCount > 0) {
+                        RaptorRoute raptorRoute = travelInfo.getRaptorRoute();
+                        String line = generateLineInfo(raptorRoute);
+                        if (checkUniqueConnections.add(line)) {
+                            pjtList.add(calculatePJT(raptorRoute, conTime));
                             oneStopToStop.add(travelInfo);
-
-                            int pathlegindex = 1;
-                            StringBuilder line = new StringBuilder();
-                            test = travelInfo.getRaptorRoute().getParts();
-                            for (RoutePart routePart : travelInfo.getRaptorRoute().getParts()) {
-                                if (routePart.mode.equals("pt")) {
-                                    double depatureTime = 0;
-                                    List<TransitRouteStop> routeStops = routePart.route.getStops();
-                                    for (TransitRouteStop transitRouteStop : routeStops) {
-                                        if (transitRouteStop.getStopFacility().getId().equals(routePart.toStop.getId())) {
-                                            if (transitRouteStop.getArrivalOffset().isUndefined()) {
-                                                depatureTime = routePart.arrivalTime;
-                                            } else {
-                                                depatureTime = routePart.arrivalTime - transitRouteStop.getArrivalOffset().seconds();
-                                            }
-                                        }
-                                    }
-                                    line.append(pathlegindex++).append(";")
-                                        .append(routePart.fromStop.getId()).append(";")
-                                        .append(routePart.toStop.getId()).append(";")
-                                        .append((int) depatureTime).append(";");
-                                }
-                            }
-                            if (line.length() > 0) {
-                                addToLine(line);
-                            }
-
+                            lines.incrementAndGet();
                         }
                     }
                 }
@@ -182,44 +170,180 @@ public class DepartureRouter {
                 double[] row = matrix[zoneLookUp.get(stringSetEntry.getKey())];
                 double demand = row[zoneLookUp.get(destinationZone)];
                 if (demand != 0) {
-                    List<Double> utility = new ArrayList<>();
-                    double optimalDepatureTime = (i - 1) * 600;
-                    double totalUtility = 0;
-                    for (TravelInfo travelInfo : oneStopToStop) {
-                        double actualDepatureTime = travelInfo.ptDepartureTime;
-                        double timeDiffernce = Math.abs(optimalDepatureTime - actualDepatureTime);
-                        double actualPJT = pjtList.get(oneStopToStop.indexOf(travelInfo)) + timeDiffernce * coefficientDeltaTime;
-                        double tmpUtility = Math.pow(Math.E, -1.536 * ((Math.pow((actualPJT / 60), 0.5) - 1) / 0.5)); //von visum
-                        totalUtility += tmpUtility;
-                        utility.add(tmpUtility);
-                        count++;
-                    }
-                    for (TravelInfo travelInfo : oneStopToStop) {
-                        double realDemand = demand * (utility.get(oneStopToStop.indexOf(travelInfo)) / totalUtility);
-                        String key = "" + travelInfo.transferCount + travelInfo.ptTravelTime + travelInfo.departureStop.toString() + travelInfo.ptArrivalTime;
-                        legs = RaptorUtils.convertRouteToLegs(travelInfo.getRaptorRoute(), transferWalkinMargin);
-                        if (connectionsDemand.containsKey(key)) {
-                            addDemandContains(realDemand, key);
-                        } else {
-                            addDemandNew(realDemand, key, legs);
+                    if (demand < 1) {
+                        double optimalDepartureTime = (i - 1) * 600;
+                        double timDiff = Double.POSITIVE_INFINITY;
+                        boolean isDirect = false;
+                        TravelInfo closestTravelInfo = null;
+                        DirectConnection closestDirectConnection = null;
+                        for (TravelInfo travelInfo : oneStopToStop) {
+                            double tmp = Math.abs(travelInfo.ptDepartureTime - optimalDepartureTime);
+                            if (tmp < timDiff) {
+                                timDiff = tmp;
+                                closestTravelInfo = travelInfo;
+                            }
                         }
-                        //addDemand(travelInfo, realDemand);
+                        for (DirectConnection directConnection : directConnections) {
+                            double tmp = Math.abs(directConnection.boardingTime() - optimalDepartureTime);
+                            if (tmp < timDiff) {
+                                timDiff = tmp;
+                                closestDirectConnection = directConnection;
+                            }
+                        }
+                        if (closestTravelInfo == null && closestDirectConnection == null) {
+                            continue;
+                        }
+                        String line = null;
+                        List<MyTransitPassangerRoute> legs = new ArrayList<>();
+                        if (closestDirectConnection == null) {
+                            RaptorRoute raptorRoute = closestTravelInfo.getRaptorRoute();
+                            legs = RaptorUtils.convertRouteToLegs(raptorRoute, transferWalkinMargin).stream()
+                                .filter(pe -> pe instanceof Leg leg && leg.getMode().equals("pt"))
+                                .map(pe -> (TransitPassengerRoute) ((Leg) pe).getRoute())
+                                .map(tPR -> new MyTransitPassangerRoute(tPR.getLineId(), tPR.getRouteId(), tPR.getAccessStopId(), tPR.getEgressStopId(), tPR.getBoardingTime().seconds())).toList();
+                            line = generateLineInfo(raptorRoute);
+                        } else {
+                            line = generateLineInfo(closestDirectConnection);
+                            legs.add(new MyTransitPassangerRoute(closestDirectConnection.lineId(), closestDirectConnection.transitRoute().getId(), closestDirectConnection.startId(), closestDirectConnection.endId(), closestDirectConnection.boardingTime()));
+                        }
+                        if (connectionsDemand.containsKey(line)) {
+                            double newDemand = connectionsDemand.get(line) + demand;
+                            connectionsDemand.put(line, newDemand);
+                        } else {
+                            connectionsDemand.put(line, demand);
+                            connectionsLegs.put(line, legs);
+                        }
+                    } else {
+                        List<Double> utility = new ArrayList<>();
+                        List<Double> utilityDirect = new ArrayList<>();
+                        double optimalDepatureTime = (i - 1) * 600;
+                        double totalUtility = 0;
+                        for (TravelInfo travelInfo : oneStopToStop) {
+                            double actualDerpatureTime = travelInfo.ptDepartureTime;
+                            double timeDiffernce = Math.abs(optimalDepatureTime - actualDerpatureTime);
+                            double actualPJT = pjtList.get(oneStopToStop.indexOf(travelInfo)) + timeDiffernce * coefficientDeltaTime;
+                            double tmpUtility = Math.pow(Math.E, -1.536 * ((Math.pow(actualPJT, 0.5) - 1) / 0.5)); //von visum
+                            totalUtility += tmpUtility;
+                            utility.add(tmpUtility);
+                            count++;
+                        }
+                        for (DirectConnection directConnection : directConnections) {
+                            double actualDerpatureTime = directConnection.boardingTime;
+                            double timeDiffernce = Math.abs(optimalDepatureTime - actualDerpatureTime);
+                            double actualPJT = directConnectionsPJT.get(directConnections.indexOf(directConnection)) + timeDiffernce * coefficientDeltaTime;
+                            double tmpUtility = Math.pow(Math.E, -1.536 * ((Math.pow(actualPJT, 0.5) - 1) / 0.5)); //von visum
+                            totalUtility += tmpUtility;
+                            utilityDirect.add(tmpUtility);
+                            count++;
+                        }
+                        for (TravelInfo travelInfo : oneStopToStop) {
+                            double realDemand = demand * (utility.get(oneStopToStop.indexOf(travelInfo)) / totalUtility);
+                            RaptorRoute raptorRoute = travelInfo.getRaptorRoute();
+                            List<MyTransitPassangerRoute> legs = RaptorUtils.convertRouteToLegs(raptorRoute, transferWalkinMargin).stream()
+                                .filter(pe -> pe instanceof Leg leg && leg.getMode().equals("pt"))
+                                .map(pe -> (TransitPassengerRoute) ((Leg) pe).getRoute())
+                                .map(tPR -> new MyTransitPassangerRoute(tPR.getLineId(), tPR.getRouteId(), tPR.getAccessStopId(), tPR.getEgressStopId(), tPR.getBoardingTime().seconds())).toList();
+                            String line = generateLineInfo(raptorRoute);
+                            if (connectionsDemand.containsKey(line)) {
+                                double newDemand = connectionsDemand.get(line) + realDemand;
+                                connectionsDemand.put(line, newDemand);
+                            } else {
+                                connectionsDemand.put(line, realDemand);
+                                connectionsLegs.put(line, legs);
+                            }
+                        }
+                        for (DirectConnection directConnection : directConnections) {
+                            double realDemand = demand * (utilityDirect.get(directConnections.indexOf(directConnection)) / totalUtility);
+                            String line = generateLineInfo(directConnection);
+                            List<MyTransitPassangerRoute> legs = new ArrayList<>();
+                            legs.add(new MyTransitPassangerRoute(directConnection.lineId(), directConnection.transitRoute().getId(), directConnection.startId(), directConnection.endId(), directConnection.boardingTime()));
+                            if (connectionsDemand.containsKey(line)) {
+                                double newDemand = connectionsDemand.get(line) + realDemand;
+                                connectionsDemand.put(line, newDemand);
+                            } else {
+                                connectionsDemand.put(line, realDemand);
+                                connectionsLegs.put(line, legs);
+                            }
+                        }
                     }
                 }
             }
         }
+        System.out.println("Zone: " + stringSetEntry.getKey() + ";" + trees.size() + ";" + count + ";" + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
+    }
 
-        System.out.println("Zone: " + stringSetEntry.getKey() + ";" + trees.size() + ";" + count + ";" + ((System.nanoTime() - startTime) / 1_000_000_000) + "s"); */
+    private List<DirectConnection> checkDirectConnection(TravelInfo travelInfo, TransitStopFacility endStop, Double depatureTime) {
+        List<DirectConnection> connections = new ArrayList<>();
+        Set<TransitRoute> departureLines = stopsRoutes.get(travelInfo.departureStop.toString() + depatureTime);
+        // alle Abfahrten auf direkte Verbindungen prüfen
+        for (TransitRoute transitRoute : departureLines) {
+            TransitStopFacility startStop = scenario.getTransitSchedule().getFacilities().get(travelInfo.departureStop);
+            TransitRouteStop routeStartStop = transitRoute.getStop(startStop);
+            TransitRouteStop routeEndStop = transitRoute.getStop(endStop);
+            int statStopId = transitRoute.getStops().indexOf(routeStartStop);
+            int endStopId = transitRoute.getStops().indexOf(routeEndStop);
+            // skip, wenn es keine direkte Verbindung gibt
+            if (statStopId == -1 || endStopId == -1) {
+                continue;
+            }
+            // skip, wenn es die falsche Richtung ist
+            if (statStopId > endStopId) {
+                continue;
+            }
+            // erzeugen und speichern der nötigen Informationen zur Weiterverarbeitung
+            double travelTime = routeEndStop.getArrivalOffset().seconds() - routeStartStop.getDepartureOffset().seconds();
+            // normalerweise sollte immer mit der Aknuftszeit gerechnet werden, da für die Berechnung der Abfahrtszeit die tatsächliche Abfahrtszeit genommen wurde muss hier auch die Abfahrtszeit genommen werden
+            double depatureRouteTime = depatureTime - routeStartStop.getDepartureOffset().seconds();
+            int stopsBetween = endStopId - statStopId - 1;
+            DirectConnection directConnection = new DirectConnection(routeToLine.get(transitRoute.getId()), transitRoute, depatureTime, startStop.getId(), endStop.getId(), travelTime, stopsBetween, depatureRouteTime);
+            directConnections.add(directConnection);
+            connections.add(directConnection);
+            if (travelInfo.transferCount == 0 && travelInfo.ptTravelTime > travelTime) {
+                System.out.println("test");
+            }
+        }
+        return connections;
+    }
+
+    private String generateLineInfo(RaptorRoute raptorRoute) {
+        StringBuilder line = new StringBuilder();
+        int pathlegindex = 1;
+        for (RoutePart routePart : raptorRoute.getParts()) {
+            if (routePart.mode.equals("pt")) {
+                TransitStopFacility toStop = routePart.toStop;
+                TransitRouteStop routeToStop = routePart.route.getStop(toStop);
+                double startTime = routePart.arrivalTime;
+                double depatureRouteTime = startTime - routeToStop.getArrivalOffset().seconds();
+                line.append(pathlegindex++).append(";")
+                    .append(routePart.fromStop.getId()).append(";")
+                    .append(routePart.toStop.getId()).append(";")
+                    .append(routePart.route.getAttributes().getAttribute(routePart.route.getId().toString())).append(";")
+                    .append(routePart.route.getAttributes().getAttribute(LINEROUTENAME)).append(";")
+                    .append((int) depatureRouteTime).append(";");
+            }
+        }
+        return line.toString();
+    }
+
+    private String generateLineInfo(DirectConnection directConnection) {
+        return 1 + ";"
+            + directConnection.startId() + ";"
+            + directConnection.endId() + ";"
+            + directConnection.transitRoute() + ";"
+            + directConnection.transitRoute().getAttributes().getAttribute(LINEROUTENAME) + ";"
+            + (int) directConnection.depatureRouteTime() + ";";
     }
 
     private void calculateTreeForUniqueDepatureAtAllStations() {
         long startTime = System.nanoTime();
-        matchingZoneToStops.entrySet().stream().parallel().forEach(this::calculationZones);
-        System.out.println("Warining: " + zoneWithNoDemand.get() + "zones with out demand");
+        matchingZoneToStops.entrySet().stream().filter(e -> e.getKey().equals("3640")).forEach(this::calculationZones);
+        System.out.println("Lines: " + lines.get());
+        System.out.println("Lines (Map): " + connectionsDemand.size());
+        System.out.println("Warining: " + zoneWithNoDemand.get() + " zones with out demand");
         System.out.println("Calculating trees and distribute demand took: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
     }
 
-    public DepartureRouter() {
+    public DepartureRouter(double transeferPenalty) {
         new MatsimNetworkReader(scenario.getNetwork()).readFile(netwoekFile);
         new TransitScheduleReader(scenario).readFile(schedualFile);
 
@@ -230,20 +354,26 @@ public class DepartureRouter {
         this.data = SwissRailRaptorData.create(scenario.getTransitSchedule(), null, raptorStaticConfig, scenario.getNetwork(), null);
 
         this.transferWalkinMargin = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class).getTransferWalkMargin();
+        this.params.setTransferPenaltyFixCostPerTransfer(transeferPenalty);
     }
 
     private void writeOutput() {
         long startTime = System.nanoTime();
-        //writeRoute();
+        omx = null;
+        matchingZoneToStops.clear();
+        matchingStopsToZones.clear();
+        zonesAndDemandLocations.clear();
+        stopsDepatures.clear();
+        writeRoute();
         connectionsDemand.keySet().stream().parallel().forEach(this::prepareOutput);
         PutSurveyWriter.writePutSurvey(visum, entries);
         System.out.println("Write output took: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
     }
 
     private void writeRoute() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("treeRoutesv2.csv"))) {
-            for (String line : lines) {
-                writer.write(line);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvLines))) {
+            for (String line : connectionsDemand.keySet()) {
+                writer.write(line + connectionsDemand.get(line));
                 writer.newLine();
                 writer.flush();
             }
@@ -252,20 +382,18 @@ public class DepartureRouter {
         }
     }
 
-    private double calculatePJT(RaptorRoute route) {
+    private double calculatePJT(RaptorRoute route, Double conTime) {
         double inVehicleTime = 0; // Reisezeit im Fahrzeug
-        double puTAuxRideTime = 0; // Anschlusszeit Nahverkehr, hier immer 0
-        double accessTime = 0; // hier immer 0
-        double egressTime = 0; // hier imme 0
+        //double puTAuxRideTime = 0; // Anschlusszeit Nahverkehr, hier immer 0
+        double accessEgressTime = conTime; // Anbindungszeit aus Visum
         double walkTime = 0; // minimale Umstiegzeit
         double transferWaitTime = 0; // Umstiegzeit - minimale Umstiegszeit
         double numberOfTransfers = route.getNumberOfTransfers(); // PT legs
         double extendedImpedance = 0; // jederhalt des Zuges
 
-        double coefficientAccessTime = 2.94 / 60;
-        double coefficientEgressTime = 2.94 / 60;
-        double coefficientWalkTime = 2.25 / 60;
-        double coefficientTransferWaitTime = 1.13 / 60;
+        double coefficientAccessEgressTime = 2.94;
+        double coefficientWalkTime = 2.25;
+        double coefficientTransferWaitTime = 1.13;
         double coefficientExtendedImpedance = 58;
 
         boolean firstPTLeg = false;
@@ -276,14 +404,14 @@ public class DepartureRouter {
                 inVehicleTime += part.arrivalTime - part.boardingTime;
                 boolean isBetweenStop = false;
                 for (TransitRouteStop stop : part.route.getStops()) {
+                    if (part.toStop.getId().equals(stop.getStopFacility().getId())) {
+                        break;
+                    }
                     if (isBetweenStop) {
                         extendedImpedance += coefficientExtendedImpedance;
                     }
                     if (part.fromStop.getId().equals(stop.getStopFacility().getId())) {
                         isBetweenStop = true;
-                    }
-                    if (part.toStop.getId().equals(stop.getStopFacility().getId())) {
-                        break;
                     }
                 }
                 if (firstPTLeg) {
@@ -297,9 +425,26 @@ public class DepartureRouter {
                 firstPTLeg = true;
             }
         }
-        return inVehicleTime + puTAuxRideTime + accessTime * coefficientAccessTime + egressTime * coefficientEgressTime + walkTime * coefficientWalkTime
-            + transferWaitTime * coefficientTransferWaitTime
-            + numberOfTransfers * 60 + extendedImpedance;
+        return inVehicleTime / 60 + (accessEgressTime / 60) * coefficientAccessEgressTime + (walkTime / 60) * coefficientWalkTime
+            + (transferWaitTime / 60) * coefficientTransferWaitTime
+            + numberOfTransfers + extendedImpedance / 60;
+    }
+
+    private double calculatePJT(DirectConnection directConnection, Double conTime) {
+        double inVehicleTime = directConnection.travelTime; // Reisezeit im Fahrzeug
+        //double puTAuxRideTime = 0; // Anschlusszeit Nahverkehr, hier immer 0
+        double accessEgressTime = conTime; // Anbindungszeit aus Visum
+        //double walkTime = 0; // minimale Umstiegzeit, bei direkt immer 0
+        //double transferWaitTime = 0; // Umstiegzeit - minimale Umstiegszeit, bei direkt immer 0
+        //double numberOfTransfers = 0; // PT legs, bei direkt immer 0
+        double extendedImpedance = directConnection.soptsBetween; // jederhalt des Zuges
+
+        double coefficientAccessEgressTime = 2.94;
+        //double coefficientWalkTime = 2.25;
+        //double coefficientTransferWaitTime = 1.13;
+        double coefficientExtendedImpedance = 58;
+
+        return inVehicleTime / 60 + (accessEgressTime / 60) * coefficientAccessEgressTime + (extendedImpedance * coefficientExtendedImpedance) / 60;
     }
 
     private void readAndPrepareDemand() {
@@ -335,6 +480,10 @@ public class DepartureRouter {
                     matchingStopsToZones.put(stop, new HashSet<>());
                     matchingStopsToZones.get(stop).add(splitLine[0]);
                 }
+                String key = splitLine[0] + stop.getId();
+                if (!connectionTime.containsKey(key)) {
+                    connectionTime.put(key, Double.parseDouble(splitLine[2])*60 + Double.parseDouble(splitLine[3]));
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -354,9 +503,6 @@ public class DepartureRouter {
             for (int x = 0; x < matrix.length; x++) {
                 for (int y = 0; y < matrix.length; y++) {
                     if (matrix[x][y] != 0) {
-                        if (String.valueOf(lookUp[x]).equals("7242")) {
-                            System.out.println("Done");
-                        }
                         Set<TransitStopFacility> startList = matchingZoneToStops.get(String.valueOf(lookUp[x]));
                         Set<TransitStopFacility> endList = matchingZoneToStops.get(String.valueOf(lookUp[y]));
                         if (startList == null) {
@@ -373,14 +519,6 @@ public class DepartureRouter {
                             zonesAndDemandLocations.put(String.valueOf(lookUp[x]), new HashSet<>());
                             zonesAndDemandLocations.get(String.valueOf(lookUp[x])).add(String.valueOf(lookUp[y]));
                         }
-                        for (TransitStopFacility startStop : startList) {
-                            if (stopsAndDemandLocations.containsKey(startStop.getId())) {
-                                stopsAndDemandLocations.get(startStop.getId()).addAll(endList);
-                            } else {
-                                stopsAndDemandLocations.put(startStop.getId(), new HashSet<>());
-                                stopsAndDemandLocations.get(startStop.getId()).addAll(endList);
-                            }
-                        }
                     }
                 }
             }
@@ -394,51 +532,32 @@ public class DepartureRouter {
 
     private void depatureForStops(TransitLine transitLine) {
         for (var routes : transitLine.getRoutes().values()) {
+            routeToLine.put(routes.getId(), transitLine.getId());
             var stops = routes.getStops();
             var depatures = routes.getDepartures();
             for (var depature : depatures.values()) {
                 var startDepatureTime = depature.getDepartureTime();
                 for (var stop : stops) {
-                    var stopDepatureTime = startDepatureTime;
-                    if (stop.getArrivalOffset().isDefined()) {
-                        stopDepatureTime += stop.getArrivalOffset().seconds();
-                    }
+                    // sollte hier auf die arrivalTime gewechselt werden muss auch die Methode checkDirectConnection angepasst werden
+                    var stopDepatureTime = startDepatureTime + stop.getDepartureOffset().seconds();
                     var stopFacility = stop.getStopFacility();
-                    if (stopsDepatures.containsKey(stopFacility)) {
-                        stopsDepatures.get(stopFacility).add(stopDepatureTime);
+                    if (stopsDepatures.containsKey(stopFacility.getId())) {
+                        stopsDepatures.get(stopFacility.getId()).add(stopDepatureTime);
+                        depatureInteger.incrementAndGet();
                     } else {
-                        stopsDepatures.put(stopFacility, new HashSet<>());
-                        stopsDepatures.get(stopFacility).add(stopDepatureTime);
-                        stopsAndMyTravelInfo.put(stopFacility.getId(), new ArrayList<>());
+                        stopsDepatures.put(stopFacility.getId(), new HashSet<>());
+                        stopsDepatures.get(stopFacility.getId()).add(stopDepatureTime);
+                        depatureInteger.incrementAndGet();
+                    }
+                    var key = stopFacility.getId().toString() + stopDepatureTime;
+                    if (stopsRoutes.containsKey(key)) {
+                        stopsRoutes.get(key).add(routes);
+                    } else {
+                        stopsRoutes.put(key, new HashSet<>());
+                        stopsRoutes.get(key).add(routes);
                     }
                 }
             }
-        }
-    }
-
-    private synchronized void addDemandNew(double realDemand, String key, List<? extends PlanElement> legs) {
-        connectionsDemand.put(key, realDemand);
-        connectionsLegs.put(key, legs);
-    }
-
-    private synchronized void addDemandContains(double realDemand, String key) {
-        double demand = connectionsDemand.get(key);
-        connectionsDemand.put(key, demand + realDemand);
-    }
-
-    private synchronized void addToLine(StringBuilder line) {
-        lines.add(line.toString());
-    }
-
-    private synchronized void addDemand(TravelInfo travelInfo, double realDemand) {
-        String key = "" + travelInfo.transferCount + travelInfo.travelCost + travelInfo.ptTravelTime;
-        if (connectionsDemand.containsKey(key)) {
-            double demand = connectionsDemand.get(key);
-            connectionsDemand.put(key, demand + realDemand);
-        } else {
-            connectionsDemand.put(key, realDemand);
-            connectionsLegs.put(key,
-                RaptorUtils.convertRouteToLegs(travelInfo.getRaptorRoute(), ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class).getTransferWalkMargin()));
         }
     }
 
@@ -446,32 +565,33 @@ public class DepartureRouter {
         String pathid = Integer.toString(atomicInteger.incrementAndGet());
         AtomicInteger legid = new AtomicInteger(0);
         List<PutSurveyEntry> putSurveyEntries = new ArrayList<>();
-        for (PlanElement pe : connectionsLegs.get(key)) {
-            Leg leg = (Leg) pe;
-            if (leg.getMode().equals("pt")) {
-                TransitPassengerRoute r = (TransitPassengerRoute) leg.getRoute();
-                TransitLine line = scenario.getTransitSchedule().getTransitLines().get(r.getLineId());
-                TransitRoute transitRoute = line.getRoutes().get(r.getRouteId());
-                String fromstop = String.valueOf(scenario.getTransitSchedule().getFacilities().get(r.getAccessStopId()).getAttributes().getAttribute(STOP_NO));
-                String tostop = String.valueOf(scenario.getTransitSchedule().getFacilities().get(r.getEgressStopId()).getAttributes().getAttribute(STOP_NO));
+        for (MyTransitPassangerRoute myTransitPassangerRoute : connectionsLegs.get(key)) {
+            Id<TransitLine> transitLineId = myTransitPassangerRoute.lineId();
+            Id<TransitRoute> transitRouteId = myTransitPassangerRoute.routeId();
+            TransitLine line = scenario.getTransitSchedule().getTransitLines().get(transitLineId);
+            TransitRoute transitRoute = line.getRoutes().get(transitRouteId);
+            String fromstop = String.valueOf(scenario.getTransitSchedule().getFacilities().get(myTransitPassangerRoute.fromStopId()).getAttributes().getAttribute(STOP_NO));
+            String tostop = String.valueOf(scenario.getTransitSchedule().getFacilities().get(myTransitPassangerRoute.toStopId).getAttributes().getAttribute(STOP_NO));
 
-                String vsyscode = String.valueOf(transitRoute.getAttributes().getAttribute(TSYS_CODE));
-                String linname = String.valueOf(transitRoute.getAttributes().getAttribute(TRANSITLINE));
-                String linroutename = String.valueOf(transitRoute.getAttributes().getAttribute(LINEROUTENAME));
-                String richtungscode = String.valueOf(transitRoute.getAttributes().getAttribute(DIRECTION_CODE));
+            String vsyscode = String.valueOf(transitRoute.getAttributes().getAttribute(TSYS_CODE));
+            String linname = String.valueOf(transitRoute.getAttributes().getAttribute(TRANSITLINE));
+            String linroutename = String.valueOf(transitRoute.getAttributes().getAttribute(LINEROUTENAME));
+            String richtungscode = String.valueOf(transitRoute.getAttributes().getAttribute(DIRECTION_CODE));
 
-                String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
+            String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
 
-                String teilwegkennung = legid.getAndIncrement() > 0 ? "N" : "E";
-                String einhstabfahrtstag = getDayIndex(r.getBoardingTime().seconds());
-                String einhstabfahrtszeit = getTime(r.getBoardingTime().seconds());
-                putSurveyEntries.add(new PutSurveyEntry(pathid, String.valueOf(legid), fromstop, tostop, vsyscode, linname, linroutename, richtungscode,
-                    fzprofilname, teilwegkennung, fromstop, einhstabfahrtstag, einhstabfahrtszeit, connectionsDemand.get(key), "regular", "", ""));
-            }
+            String teilwegkennung = legid.getAndIncrement() > 0 ? "N" : "E";
+            String einhstabfahrtstag = getDayIndex(myTransitPassangerRoute.boardingTime());
+            String einhstabfahrtszeit = getTime(myTransitPassangerRoute.boardingTime());
+            putSurveyEntries.add(new PutSurveyEntry(pathid, String.valueOf(legid), fromstop, tostop, vsyscode, linname, linroutename, richtungscode,
+                fzprofilname, teilwegkennung, fromstop, einhstabfahrtstag, einhstabfahrtszeit, connectionsDemand.get(key), "regular", "", ""));
         }
         if (!putSurveyEntries.isEmpty()) {
             entries.add(putSurveyEntries);
         }
     }
 
+    record DirectConnection(Id<TransitLine> lineId, TransitRoute transitRoute, double boardingTime, Id<TransitStopFacility> startId, Id<TransitStopFacility> endId, double travelTime, int soptsBetween, double depatureRouteTime) {}
+
+    record MyTransitPassangerRoute(Id<TransitLine> lineId, Id<TransitRoute> routeId, Id<TransitStopFacility> fromStopId, Id<TransitStopFacility> toStopId, Double boardingTime) {}
 }
