@@ -1,172 +1,223 @@
 package ch.sbb.matsim.visumdistribution;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 
 public class ComparePuT {
 
     public static void main(String[] args) {
 
-        String visum = "Z:/99_Playgrounds/MD/Umlegung2/PathRoutesVisumLines.csv";
-        String matsim = "Z:/99_Playgrounds/MD/Umlegung2/routesDepatureVisumLines.csv";
-        String out = "beideLines.csv";
+        String visum = "Z:/99_Playgrounds/MD/Umlegung2/visum/PathRoutesVisumLinesV2.csv";
+        //String matsim = "Z:/99_Playgrounds/MD/Umlegung2/treeRoutesvLines.csv";
+        String matsim = "treeRoutesvLines.csv";
 
         Set<String> matSimRoutesSet = new HashSet<>();
         Set<String> visumRoutesSet = new HashSet<>();
-        List<String> lines = new ArrayList<>();
+        List<String> matSimRoutesList = new ArrayList<>();
+        List<String> visumRoutesList = new ArrayList<>();
 
+        Map<String, Double> matsimMap = new HashMap<>();
+        Map<String, Double> visumMap = new HashMap<>();
+        int nulll =0;
+        int[] umsteigeVisum = new int[20];
+        int[] umsteigeMatsim = new int[20];
+        int[] umsteigebeides = new int[20];
+        double[] demandVisum = new double[20];
+        double[] demandMatsim = new double[20];
+        double[] demandbeides = new double[20];
+        List<Integer> skip = List.of(3,9,15,21,27,33,39,45,51,57,63,69,75,81,87,93,99);
+        List<Integer> time = List.of(5,11,17,23,29,35,41,47,53,59,65,71,77,83,89,95,101);
+        int mehrals = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(matsim))) {
             String line;
-            List<String> header = List.of(reader.readLine().split(";"));
-            String newLine = "";
-            int index = -1;
             while ((line = reader.readLine()) != null) {
+                StringBuilder newLine = new StringBuilder();
                 String[] splitLine = line.split(";");
-                if (!newLine.equals("")) {
-                    if (splitLine[header.indexOf("DATENSATZNR")].equals(String.valueOf(index))) {
-                        newLine = newLine +
-                            splitLine[header.indexOf("TWEGIND")] +
-                            splitLine[header.indexOf("VONHSTNR")] +
-                            splitLine[header.indexOf("NACHHSTNR")] +
-                            splitLine[header.indexOf("VSYSCODE")] +
-                            splitLine[header.indexOf("LINNAME")] +
-                            splitLine[header.indexOf("LINROUTENAME")] +
-                            splitLine[header.indexOf("RICHTUNGSCODE")] +
-                            splitLine[header.indexOf("FZPNAME")] +
-                            splitLine[header.indexOf("EINHSTABFAHRTSZEIT")];
-                    } else {
-                        matSimRoutesSet.add(newLine);
-                        newLine = "";
-                        index = Integer.parseInt(splitLine[header.indexOf("DATENSATZNR")]);
-                        newLine = newLine +
-                            splitLine[header.indexOf("TWEGIND")] +
-                            splitLine[header.indexOf("VONHSTNR")] +
-                            splitLine[header.indexOf("NACHHSTNR")] +
-                            splitLine[header.indexOf("VSYSCODE")] +
-                            splitLine[header.indexOf("LINNAME")] +
-                            splitLine[header.indexOf("LINROUTENAME")] +
-                            splitLine[header.indexOf("RICHTUNGSCODE")] +
-                            splitLine[header.indexOf("FZPNAME")] +
-                            splitLine[header.indexOf("EINHSTABFAHRTSZEIT")];
+                for (int i = 0; i < splitLine.length-1; i++) {
+                    if (!skip.contains(i)) {
+                        if (time.contains(i)) {
+                            int tmp = Integer.parseInt(splitLine[i]);
+                            tmp = tmp % 86400;
+                            newLine.append(tmp).append(";");
+                            mehrals++;
+                        } else {
+                            newLine.append(splitLine[i]).append(";");
+                        }
                     }
-                } else {
-                    index = Integer.parseInt(splitLine[header.indexOf("DATENSATZNR")]);
-                    newLine = newLine +
-                        splitLine[header.indexOf("TWEGIND")] +
-                        splitLine[header.indexOf("VONHSTNR")] +
-                        splitLine[header.indexOf("NACHHSTNR")] +
-                        splitLine[header.indexOf("VSYSCODE")] +
-                        splitLine[header.indexOf("LINNAME")] +
-                        splitLine[header.indexOf("LINROUTENAME")] +
-                        splitLine[header.indexOf("RICHTUNGSCODE")] +
-                        splitLine[header.indexOf("FZPNAME")] +
-                        splitLine[header.indexOf("EINHSTABFAHRTSZEIT")];
                 }
-            }
-            matSimRoutesSet.add(newLine);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        System.out.println(matSimRoutesSet.size());
-        int beide = 0;
-        try (BufferedReader reader = new BufferedReader(new FileReader(visum))) {
-            String line;
-            List<String> header = List.of(reader.readLine().split(";"));
-            String newLine = "";
-            int index = -1;
-            int pos = 0;
-            String[]  connection = new String[10];
-            while ((line = reader.readLine()) != null) {
-                String[] splitLine = line.split(";");
-                if (line.equals("")) {
+                if (newLine.length() == 0) {
+                    nulll++;
                     continue;
                 }
-                if (!newLine.equals("")) {
-                    if (splitLine[header.indexOf("PATHINDEX")].equals(String.valueOf(index))) {
-                        connection[pos] = line;
-                        newLine = newLine +
-                            splitLine[header.indexOf("PATHLEGINDEX")] +
-                            splitLine[header.indexOf("FROMSTOPPOINTNO")] +
-                            splitLine[header.indexOf("TOSTOPPOINTNO")] +
-                            splitLine[header.indexOf("TSYSCODE")] +
-                            splitLine[header.indexOf("LINENAME")] +
-                            splitLine[header.indexOf("LINEROUTENAME")] +
-                            splitLine[header.indexOf("DIRECTIONCODE")] +
-                            splitLine[header.indexOf("TIMEPROFILENAME")] +
-                            splitLine[header.indexOf("DEP")];
-                    } else {
-                        visumRoutesSet.add(newLine);
-                        if (matSimRoutesSet.add(newLine)) {
-                            for (int i = 0; i < 10; i++) {
-                                if (connection[i] != null) {
-                                    lines.add(connection[i]);
-                                }
-                            }
-                        } else {
-                            beide++;
-                        }
-                        newLine = "";
-                        connection = new String[10];
-                        index = Integer.parseInt(splitLine[header.indexOf("PATHINDEX")]);
-                        newLine = newLine +
-                            splitLine[header.indexOf("PATHLEGINDEX")] +
-                            splitLine[header.indexOf("FROMSTOPPOINTNO")] +
-                            splitLine[header.indexOf("TOSTOPPOINTNO")] +
-                            splitLine[header.indexOf("TSYSCODE")] +
-                            splitLine[header.indexOf("LINENAME")] +
-                            splitLine[header.indexOf("LINEROUTENAME")] +
-                            splitLine[header.indexOf("DIRECTIONCODE")] +
-                            splitLine[header.indexOf("TIMEPROFILENAME")] +
-                            splitLine[header.indexOf("DEP")];
-                    }
+                newLine.deleteCharAt(newLine.length()-1);
+                if (matSimRoutesSet.add(newLine.toString())) {
+                    matsimMap.put(newLine.toString(),Double.parseDouble(splitLine[splitLine.length-1]));
+                    int um = StringUtils.countMatches(newLine, ";")/5;
+                    double tmp2 = demandMatsim[um];
+                    demandMatsim[um] = tmp2+Double.parseDouble(splitLine[splitLine.length-1]);
+                    int tmp = umsteigeMatsim[um];
+                    umsteigeMatsim[um] = tmp+1;
                 } else {
-                    index = Integer.parseInt(splitLine[header.indexOf("PATHINDEX")]);
-                    newLine = newLine +
-                        splitLine[header.indexOf("PATHLEGINDEX")] +
-                        splitLine[header.indexOf("FROMSTOPPOINTNO")] +
-                        splitLine[header.indexOf("TOSTOPPOINTNO")] +
-                        splitLine[header.indexOf("TSYSCODE")] +
-                        splitLine[header.indexOf("LINENAME")] +
-                        splitLine[header.indexOf("LINEROUTENAME")] +
-                        splitLine[header.indexOf("DIRECTIONCODE")] +
-                        splitLine[header.indexOf("TIMEPROFILENAME")] +
-                        splitLine[header.indexOf("DEP")];
+                    double tmp = matsimMap.get(newLine.toString());
+                    matsimMap.put(newLine.toString(),Double.parseDouble(splitLine[splitLine.length-1]) + tmp);
                 }
+                matSimRoutesList.add(newLine.toString());
             }
-            visumRoutesSet.add(newLine);
-            if (matSimRoutesSet.add(newLine)) {
-                for (int i = 0; i < 10; i++) {
-                    if (connection[i] != null) {
-                        lines.add(connection[i]);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("matsim list " + matSimRoutesList.size());
+        System.out.println("matsim set " + matSimRoutesSet.size());
+        System.out.println("matsim mehr als " + mehrals);
+
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(visum))) {
+            List<String> header = List.of(reader.readLine().split(";"));
+            String line;
+            int index = 0;
+            StringBuilder addLine = new StringBuilder();
+            double demandtmp = 0;
+            boolean first = true;
+            while ((line = reader.readLine()) != null) {
+                String[] splitline = line.split(";");
+                if (index == Integer.parseInt(splitline[header.indexOf("PATHINDEX")])) {
+                    addLine.append(splitline[header.indexOf("PATHLEGINDEX")]).append(";")
+                        .append(splitline[header.indexOf("FROMSTOPPOINTNO")]).append(";")
+                        .append(splitline[header.indexOf("TOSTOPPOINTNO")]).append(";")
+                        .append(splitline[header.indexOf("LINEROUTENAME")]).append(";")
+                        .append(splitline[header.indexOf("VEHJOURNEY_DEP")]).append(";");
+                    demandtmp = Double.parseDouble(splitline[header.indexOf("ODTRIPS")]);
+                } else {
+                    if (first) {
+                        first = false;
+                    } else {
+                        addLine.deleteCharAt(addLine.length() - 1);
+                        if (addLine.toString().equals("1;803;1388;BS-BD-ZFH;60960")) {
+                            //System.out.println();
+                        }
+                        if (visumRoutesSet.add(addLine.toString())) {
+                            visumMap.put(addLine.toString(),demandtmp);
+                            int um = StringUtils.countMatches(addLine, ";")/5;
+                            int tmp = umsteigeVisum[um];
+                            umsteigeVisum[um] = tmp+1;
+                            double tmp2 = demandVisum[um];
+                            demandVisum[um] = tmp2+Double.parseDouble(splitline[splitline.length-1]);
+                        } else {
+                            double tmp = visumMap.get(addLine.toString());
+                            visumMap.put(addLine.toString(),demandtmp + tmp);
+                        }
+                        visumRoutesList.add(addLine.toString());
+                        addLine = new StringBuilder();
+                        demandtmp = 0;
                     }
+                    index = Integer.parseInt(splitline[header.indexOf("PATHINDEX")]);
+                    addLine.append(splitline[header.indexOf("PATHLEGINDEX")]).append(";")
+                        .append(splitline[header.indexOf("FROMSTOPPOINTNO")]).append(";")
+                        .append(splitline[header.indexOf("TOSTOPPOINTNO")]).append(";")
+                        .append(splitline[header.indexOf("LINEROUTENAME")]).append(";")
+                        .append(splitline[header.indexOf("VEHJOURNEY_DEP")]).append(";");
+                    demandtmp = Double.parseDouble(splitline[header.indexOf("ODTRIPS")]);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        System.out.println(visumRoutesSet.size());
-        System.out.println(lines.size());
-        System.out.println(beide);
+        System.out.println("visum list " + visumRoutesList.size());
+        System.out.println("visum set " + visumRoutesSet.size());
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(out))) {
-            for (String line : lines) {
-                writer.write(line);
-                writer.newLine();
-                writer.flush();
+        Set<String> beideSet = new HashSet<>();
+        List<String> beideList = new ArrayList<>();
+        int matsimRouteFoundInVisum = 0;
+        int matsimRouteNotFoundInVisum = 0;
+        for (String string : matSimRoutesSet) {
+            if (visumRoutesSet.contains(string)) {
+                matsimRouteFoundInVisum++;
+                beideSet.add(string);
+                beideList.add(string);
+                int um1 = StringUtils.countMatches(string, ";")/5;
+                int tmp1 = umsteigebeides[um1];
+                umsteigebeides[um1] = tmp1+1;
+            } else {
+                matsimRouteNotFoundInVisum++;
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+
+        System.out.println("matsimRouteFoundInVisum: " + matsimRouteFoundInVisum);
+        System.out.println("matsimRouteNotFoundInVisum: " + matsimRouteNotFoundInVisum);
+
+        System.out.println("beide list " + beideList.size());
+        System.out.println("beide set " + beideSet.size());
+        System.out.println("----------------------------------");
+        System.out.println("Visum: " + Arrays.toString(umsteigeVisum));
+        System.out.println("Matsim: " + Arrays.toString(umsteigeMatsim));
+        System.out.println("beides: " + Arrays.toString(umsteigebeides));
+        System.out.println("----------------------------------");
+
+        for (String string : visumRoutesSet) {
+            if (matSimRoutesSet.contains(string)) {
+
+            } else {
+                if (string.split(";").length < 6) {
+                   System.out.println(string);
+                }
+            }
+        }
+
+
+
+        double demand = 0;
+        double totaldemand = 0;
+
+        for (double tmp : matsimMap.values()) {
+            totaldemand += tmp;
+        }
+
+        for (String string : matSimRoutesSet) {
+            if (visumRoutesSet.contains(string)) {
+                demand = demand + visumMap.get(string);
+                int um1 = StringUtils.countMatches(string, ";")/5;
+                double tmp1 = demandbeides[um1];
+                demandbeides[um1] = tmp1+visumMap.get(string);
+            }
+        }
+
+        System.out.println("----------------------------------");
+        System.out.println("Visum: " + Arrays.toString(demandVisum));
+        System.out.println("Matsim: " + Arrays.toString(demandMatsim));
+        System.out.println("beides: " + Arrays.toString(demandbeides));
+        System.out.println("----------------------------------");
+        System.out.println("demandFoundInVisum: " + demand);
+        System.out.println("totaldemandFoundInMATSim: " + totaldemand);
+
+        demand = 0;
+        double max = 0;
+        String maxC = "";
+
+        for (var entry : visumMap.entrySet()) {
+            var start = entry.getKey().split(";")[1];
+            var end = entry.getKey().split(";")[entry.getKey().split(";").length - 3];
+            if (start.equals("1311") && end.equals("2194")) {
+                demand += entry.getValue();
+            }
+            if (entry.getValue() > max && !matsimMap.containsKey(entry.getKey())) {
+                maxC = entry.getKey();
+                max = entry.getValue();
+            }
+        }
+        System.out.println(demand);
+        System.out.println(maxC);
+        System.out.println(max);
+        System.out.println("nulll " + nulll);
+        System.out.println("Done");
+
     }
-
-
 }
