@@ -51,6 +51,7 @@ import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.pt.config.TransitRouterConfigGroup;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -66,7 +67,7 @@ public class DepartureRouter {
     final static String assignmentFile = "Z:/99_Playgrounds/MD/Umlegung2/visum/ZoneToNode.csv";
     final static String visum = "routesDepatureVisumLines.csv";
     final static String csvLines = "treeRoutesvLines.csv";
-    Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+    Scenario scenario;
     SwissRailRaptorData data;
     RaptorParametersForPerson raptorParametersForPerson;
     RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
@@ -84,7 +85,7 @@ public class DepartureRouter {
     int matrixNames;
     int distribution = 0;
 
-    RaptorParameters params = RaptorUtils.createParameters(scenario.getConfig());
+    RaptorParameters params;
     OmxFile omx;
     Map<String, Set<TransitStopFacility>> matchingZoneToStops = new HashMap<>();
     Map<TransitStopFacility, Set<String>> matchingStopsToZones = new HashMap<>();
@@ -102,8 +103,8 @@ public class DepartureRouter {
 
     public static void main(String[] args) {
         long startTime = System.nanoTime();
-        DepartureRouter departureRouter = new DepartureRouter(0);
-        departureRouter.distribution = 0;
+        DepartureRouter departureRouter = new DepartureRouter(2.5);
+        departureRouter.distribution = 1;
         departureRouter.readAndPrepareDemand();
         departureRouter.calculateTreeForUniqueDepatureAtAllStations();
         departureRouter.writeOutput();
@@ -411,15 +412,18 @@ public class DepartureRouter {
 
     private void calculateTreeForUniqueDepatureAtAllStations() {
         long startTime = System.nanoTime();
-        //matchingZoneToStops.entrySet().stream().filter(e -> e.getKey().equals("763")).forEach(this::calculationZones);
+        //matchingZoneToStops.entrySet().stream().filter(e -> e.getKey().equals("985")).forEach(this::calculationZones);
         matchingZoneToStops.entrySet().stream().parallel().forEach(this::calculationZones);
         System.out.println("Lines: " + lines.get());
-        //System.out.println("Lines (Map): " + connectionsDemand.size());
         System.out.println("Warining: " + zoneWithNoDemand.get() + " zones with out demand");
         System.out.println("Calculating trees and distribute demand took: " + ((System.nanoTime() - startTime) / 1_000_000_000) + "s");
     }
 
     public DepartureRouter(double transeferPenalty) {
+        this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        TransitRouterConfigGroup ptConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), TransitRouterConfigGroup.class);
+        ptConfig.setMaxBeelineWalkConnectionDistance(800);
+
         new MatsimNetworkReader(scenario.getNetwork()).readFile(netwoekFile);
         new TransitScheduleReader(scenario).readFile(schedualFile);
 
@@ -430,6 +434,7 @@ public class DepartureRouter {
         this.data = SwissRailRaptorData.create(scenario.getTransitSchedule(), null, raptorStaticConfig, scenario.getNetwork(), null);
 
         this.transferWalkinMargin = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class).getTransferWalkMargin();
+        this.params = RaptorUtils.createParameters(scenario.getConfig());
         this.params.setTransferPenaltyFixCostPerTransfer(transeferPenalty);
     }
 

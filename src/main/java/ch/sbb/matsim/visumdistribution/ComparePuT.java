@@ -26,28 +26,26 @@ public class ComparePuT {
 
         Map<String, Double> matsimMap = new HashMap<>();
         Map<String, Double> visumMap = new HashMap<>();
-        int nulll =0;
+        int nulll = 0;
         int[] umsteigeVisum = new int[20];
         int[] umsteigeMatsim = new int[20];
         int[] umsteigebeides = new int[20];
         double[] demandVisum = new double[20];
         double[] demandMatsim = new double[20];
         double[] demandbeides = new double[20];
-        List<Integer> skip = List.of(3,9,15,21,27,33,39,45,51,57,63,69,75,81,87,93,99);
-        List<Integer> time = List.of(5,11,17,23,29,35,41,47,53,59,65,71,77,83,89,95,101);
-        int mehrals = 0;
+        List<Integer> skip = List.of(3, 9, 15, 21, 27, 33, 39, 45, 51, 57, 63, 69, 75, 81, 87, 93, 99);
+        List<Integer> time = List.of(5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 83, 89, 95, 101);
         try (BufferedReader reader = new BufferedReader(new FileReader(matsim))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 StringBuilder newLine = new StringBuilder();
                 String[] splitLine = line.split(";");
-                for (int i = 0; i < splitLine.length-1; i++) {
+                for (int i = 0; i < splitLine.length - 1; i++) {
                     if (!skip.contains(i)) {
                         if (time.contains(i)) {
                             int tmp = Integer.parseInt(splitLine[i]);
                             tmp = tmp % 86400;
                             newLine.append(tmp).append(";");
-                            mehrals++;
                         } else {
                             newLine.append(splitLine[i]).append(";");
                         }
@@ -57,17 +55,17 @@ public class ComparePuT {
                     nulll++;
                     continue;
                 }
-                newLine.deleteCharAt(newLine.length()-1);
+                //newLine.deleteCharAt(newLine.length() - 1);
                 if (matSimRoutesSet.add(newLine.toString())) {
-                    matsimMap.put(newLine.toString(),Double.parseDouble(splitLine[splitLine.length-1]));
-                    int um = StringUtils.countMatches(newLine, ";")/5;
+                    matsimMap.put(newLine.toString(), Double.parseDouble(splitLine[splitLine.length - 1]));
+                    int um = (StringUtils.countMatches(newLine, ";") / 5)-1;
                     double tmp2 = demandMatsim[um];
-                    demandMatsim[um] = tmp2+Double.parseDouble(splitLine[splitLine.length-1]);
+                    demandMatsim[um] = tmp2 + Double.parseDouble(splitLine[splitLine.length - 1]);
                     int tmp = umsteigeMatsim[um];
-                    umsteigeMatsim[um] = tmp+1;
+                    umsteigeMatsim[um] = tmp + 1;
                 } else {
                     double tmp = matsimMap.get(newLine.toString());
-                    matsimMap.put(newLine.toString(),Double.parseDouble(splitLine[splitLine.length-1]) + tmp);
+                    matsimMap.put(newLine.toString(), Double.parseDouble(splitLine[splitLine.length - 1]) + tmp);
                 }
                 matSimRoutesList.add(newLine.toString());
             }
@@ -76,8 +74,6 @@ public class ComparePuT {
         }
         System.out.println("matsim list " + matSimRoutesList.size());
         System.out.println("matsim set " + matSimRoutesSet.size());
-        System.out.println("matsim mehr als " + mehrals);
-
 
         try (BufferedReader reader = new BufferedReader(new FileReader(visum))) {
             List<String> header = List.of(reader.readLine().split(";"));
@@ -99,24 +95,34 @@ public class ComparePuT {
                     if (first) {
                         first = false;
                     } else {
-                        addLine.deleteCharAt(addLine.length() - 1);
-                        if (addLine.toString().equals("1;803;1388;BS-BD-ZFH;60960")) {
-                            //System.out.println();
-                        }
+                        //addLine.deleteCharAt(addLine.length() - 1);
                         if (visumRoutesSet.add(addLine.toString())) {
-                            visumMap.put(addLine.toString(),demandtmp);
-                            int um = StringUtils.countMatches(addLine, ";")/5;
+                            visumMap.put(addLine.toString(), demandtmp);
+                            int um = (StringUtils.countMatches(addLine, ";") / 5)-1;
                             int tmp = umsteigeVisum[um];
-                            umsteigeVisum[um] = tmp+1;
+                            umsteigeVisum[um] = tmp + 1;
                             double tmp2 = demandVisum[um];
-                            demandVisum[um] = tmp2+Double.parseDouble(splitline[splitline.length-1]);
+                            demandVisum[um] = tmp2 + Double.parseDouble(splitline[splitline.length - 1]);
                         } else {
                             double tmp = visumMap.get(addLine.toString());
-                            visumMap.put(addLine.toString(),demandtmp + tmp);
+                            visumMap.put(addLine.toString(), demandtmp + tmp);
                         }
                         visumRoutesList.add(addLine.toString());
+                        var test = false;
+                        var tmpLine = addLine.toString().split(";");
+                        int last = 1;
+                        for (int x = 0; x < (tmpLine.length+1)/5; x++) {
+                            if (Integer.parseInt(tmpLine[x*5]) != last) {
+                                test = true;
+                            }
+                            last++;
+                        }
+                        if (test) {
+                            visumRoutesSet.remove(addLine.toString());
+                            //visumMap.remove(addLine.toString());
+                        }
                         addLine = new StringBuilder();
-                        demandtmp = 0;
+
                     }
                     index = Integer.parseInt(splitline[header.indexOf("PATHINDEX")]);
                     addLine.append(splitline[header.indexOf("PATHLEGINDEX")]).append(";")
@@ -140,12 +146,15 @@ public class ComparePuT {
         int matsimRouteNotFoundInVisum = 0;
         for (String string : matSimRoutesSet) {
             if (visumRoutesSet.contains(string)) {
+                int um2 = (StringUtils.countMatches(string, ";") / 5) -1;
+                double tmp2 = demandbeides[um2];
+                demandbeides[um2] = tmp2 + visumMap.get(string);
                 matsimRouteFoundInVisum++;
                 beideSet.add(string);
                 beideList.add(string);
-                int um1 = StringUtils.countMatches(string, ";")/5;
+                int um1 = (StringUtils.countMatches(string, ";") / 5) -1;
                 int tmp1 = umsteigebeides[um1];
-                umsteigebeides[um1] = tmp1+1;
+                umsteigebeides[um1] = tmp1 + 1;
             } else {
                 matsimRouteNotFoundInVisum++;
             }
@@ -167,12 +176,10 @@ public class ComparePuT {
 
             } else {
                 if (string.split(";").length < 6) {
-                   System.out.println(string);
+                    //System.out.println(string);
                 }
             }
         }
-
-
 
         double demand = 0;
         double totaldemand = 0;
@@ -181,16 +188,8 @@ public class ComparePuT {
             totaldemand += tmp;
         }
 
-        for (String string : matSimRoutesSet) {
-            if (visumRoutesSet.contains(string)) {
-                demand = demand + visumMap.get(string);
-                int um1 = StringUtils.countMatches(string, ";")/5;
-                double tmp1 = demandbeides[um1];
-                demandbeides[um1] = tmp1+visumMap.get(string);
-            }
-        }
 
-        System.out.println("----------------------------------");
+
         System.out.println("Visum: " + Arrays.toString(demandVisum));
         System.out.println("Matsim: " + Arrays.toString(demandMatsim));
         System.out.println("beides: " + Arrays.toString(demandbeides));
