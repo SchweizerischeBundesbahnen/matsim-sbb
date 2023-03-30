@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 public class GenerateDRTStops {
     public static void main(String[] args) throws IOException {
         String inputSchedule = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220905_Postauto_Bucheggberg\\pt\\NPVM2020\\output\\transitSchedule.xml.gz";
-        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220114_MOBi_3.3\\2017\\plans\\3.3.2017.7.100pct\\mobi-zones.shp";
+        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20230320_Wallis\\relevant_zones.txt";
         String whitelist = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220905_Postauto_Bucheggberg\\relevant_zones.txt";
         String networFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220905_Postauto_Bucheggberg\\streets\\output\\network.xml.gz";
         String outputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220905_Postauto_Bucheggberg\\sim\\virtual-stops.xml";

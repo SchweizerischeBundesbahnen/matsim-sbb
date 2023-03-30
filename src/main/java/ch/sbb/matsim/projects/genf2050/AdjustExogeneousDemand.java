@@ -26,13 +26,11 @@ public class AdjustExogeneousDemand {
     Zones zones;
 
     ConcurrentHashMap<String, Set<Id<Person>>> carPopulationPerZone = new ConcurrentHashMap<>();
-    ;
+
     Map<String, Integer> carCorrectionPerZone = new HashMap<>();
     Map<String, Integer> ptCorrectionPerZone = new HashMap<>();
     ConcurrentHashMap<String, Set<Id<Person>>> ptPopulationPerZone = new ConcurrentHashMap<>();
-    ;
     Map<String, List<Coord>> insertionPointsPerZone = new HashMap<>();
-    ;
     List<Coord> destinationCoords = List.of(new Coord(2499770.51984111, 1119868.9745656),
             new Coord(2500344.4893983, 1118336.75201323),
             new Coord(2500019.14977779, 1118468.80825104),
@@ -64,10 +62,11 @@ public class AdjustExogeneousDemand {
 
         String inputCarDemand = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2050\\plans_exogeneous\\cb_road\\100pct\\plans.xml.gz";
         String inputPtDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\plans_exogeneous\\cb_rail\\100pct\\plans.xml.gz";
-        String outputCarDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\1.3-diam-fr-dyn\\plans_exogeneous\\cb_road\\plans.xml.gz";
-        String outputPTDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\1.3-diam-fr-dyn\\plans_exogeneous\\cb_rail\\plans.xml.gz";
+        String variante = "10.5-sans_I_avec_Furet_miv";
+        String outputCarDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\" + variante + "\\plans_exogeneous\\cb_road\\plans.xml.gz";
+        String outputPTDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\" + variante + "\\plans_exogeneous\\cb_rail\\plans.xml.gz";
         String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\skims\\zonierung_frankreich\\bordering_comm_ge.shp";
-        String alterationTable = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\1.3-diam-fr-dyn\\nachfrage-frankreich-diam.csv";
+        String alterationTable = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\" + variante + "\\demand-f.csv";
 
         Scenario scenario1 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario1).readFile(inputCarDemand);
@@ -161,7 +160,8 @@ public class AdjustExogeneousDemand {
                 List<Id<Person>> personCandidates = new ArrayList<>(persons);
                 Collections.shuffle(personCandidates);
                 for (int i = 0; i < correction; i++) {
-                    Person toClone = demand.getPersons().get(personCandidates.get(i));
+                    int pid = i < personCandidates.size() ? i : random.nextInt(personCandidates.size());
+                    Person toClone = demand.getPersons().get(personCandidates.get(pid));
                     Id<Person> newId = Id.createPersonId("z_" + zone + "_" + mode + "_" + i);
                     Person clone = demand.getFactory().createPerson(newId);
                     Plan plan = demand.getFactory().createPlan();
