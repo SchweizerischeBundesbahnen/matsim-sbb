@@ -44,7 +44,6 @@ public class ComparePuT {
                     if (!skip.contains(i)) {
                         if (time.contains(i)) {
                             int tmp = Integer.parseInt(splitLine[i]);
-                            tmp = tmp % 86400;
                             newLine.append(tmp).append(";");
                         } else {
                             newLine.append(splitLine[i]).append(";");
@@ -72,8 +71,8 @@ public class ComparePuT {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("matsim list " + matSimRoutesList.size());
-        System.out.println("matsim set " + matSimRoutesSet.size());
+        System.out.println("matsim list: " + matSimRoutesList.size());
+        System.out.println("matsim set: " + matSimRoutesSet.size());
 
         try (BufferedReader reader = new BufferedReader(new FileReader(visum))) {
             List<String> header = List.of(reader.readLine().split(";"));
@@ -137,8 +136,60 @@ public class ComparePuT {
             e.printStackTrace();
         }
 
-        System.out.println("visum list " + visumRoutesList.size());
-        System.out.println("visum set " + visumRoutesSet.size());
+        System.out.println("visum list: " + visumRoutesList.size());
+        System.out.println("visum set: " + visumRoutesSet.size());
+
+        System.out.println("----------------------------------");
+
+        int beide = 0;
+        int error = 0;
+        int umsteige0 = 0;
+        int umsteige1 = 0;
+        int umsteige2 = 0;
+        int umsteige3 = 0;
+        int umsteige4 = 0;
+        double demandGefunden = 0;
+        double demandNichtGefunden = 0;
+
+        for (String line : visumRoutesSet) {
+            if (!matSimRoutesSet.contains(line)) {
+                demandNichtGefunden += visumMap.get(line);
+                if (line.startsWith("2;")) {
+                    error++;
+                }
+                if (line.contains(";5;")) {
+                    umsteige4++;
+                } else if (line.contains(";4;")) {
+                    umsteige3++;
+                } else if (line.contains(";3;")) {
+                    umsteige2++;
+                } else if (line.contains(";2;")) {
+                    umsteige1++;
+                } else  {
+                    umsteige0++;
+                }
+            } else {
+                demandGefunden += visumMap.get(line);
+                beide++;
+            }
+        }
+
+        System.out.println("Nachfrage gefunden : " + demandGefunden);
+        System.out.println("beide: " + beide);
+        System.out.println("Nachfrage nicht gefunden: " + demandNichtGefunden);
+        System.out.println("nicht gefunden error: " + error);
+        System.out.println("nicht gefunden Umsteige 0: " + umsteige0);
+        System.out.println("nicht gefunden Umsteige 1: " + umsteige1);
+        System.out.println("nicht gefunden Umsteige 2: " + umsteige2);
+        System.out.println("nicht gefunden Umsteige 3: " + umsteige3);
+        System.out.println("nicht gefunden Umsteige 4: " + umsteige4);
+
+        System.out.println("----------------------------------");
+
+
+
+
+
 
         Set<String> beideSet = new HashSet<>();
         List<String> beideList = new ArrayList<>();
@@ -157,6 +208,9 @@ public class ComparePuT {
                 umsteigebeides[um1] = tmp1 + 1;
             } else {
                 matsimRouteNotFoundInVisum++;
+                if (!string.contains(";2;")) {
+                   //System.out.println(string);
+                }
             }
         }
 
@@ -176,6 +230,9 @@ public class ComparePuT {
 
             } else {
                 if (string.split(";").length < 6) {
+                  //  System.out.println(string);
+                }
+                if (!string.contains(";2;")) {
                     //System.out.println(string);
                 }
             }
