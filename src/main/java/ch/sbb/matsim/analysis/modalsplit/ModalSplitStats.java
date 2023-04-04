@@ -798,14 +798,14 @@ public class ModalSplitStats {
         String description = route.getRouteDescription();
         int startIndex = description.indexOf("\"accessFacilityId\":\"") + "\"accessFacilityId\":\"".length();
         int endIndex = description.indexOf("\",\"egressFacilityId");
-        int startString = Integer.parseInt(description.substring(startIndex, endIndex));
+        String startString = description.substring(startIndex, endIndex);
         return transitSchedule.getFacilities().get(Id.create(startString, TransitStopFacility.class));
     }
 
     private TransitStopFacility getEndTrainFacility(Route route) {
         String description = route.getRouteDescription();
         int endIndex = description.indexOf("egressFacilityId\":\"") + "\",\"egressFacilityId".length();
-        int endString = Integer.parseInt(description.substring(endIndex, description.length() - 2));
+        String endString = description.substring(endIndex, description.length() - 2);
         return transitSchedule.getFacilities().get(Id.create(endString, TransitStopFacility.class));
     }
 
