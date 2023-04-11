@@ -3,20 +3,18 @@ package ch.sbb.matsim.visumdistribution;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 
 public class ComparePuT {
 
     public static void main(String[] args) {
 
-        String visum = "Z:/99_Playgrounds/MD/Umlegung2/visum/PathRoutesVisumLinesV2.csv";
-        //String matsim = "Z:/99_Playgrounds/MD/Umlegung2/treeRoutesvLines.csv";
+        String visum = "Z:/99_Playgrounds/MD/Umlegung/visum/PathRoutesVisumLinesV2.csv";
+        //String matsim = "Z:/99_Playgrounds/MD/Umlegung/alle/treeRoutesvLines.csv";
         String matsim = "treeRoutesvLines.csv";
 
         Set<String> matSimRoutesSet = new HashSet<>();
@@ -26,13 +24,6 @@ public class ComparePuT {
 
         Map<String, Double> matsimMap = new HashMap<>();
         Map<String, Double> visumMap = new HashMap<>();
-        int nulll = 0;
-        int[] umsteigeVisum = new int[20];
-        int[] umsteigeMatsim = new int[20];
-        int[] umsteigebeides = new int[20];
-        double[] demandVisum = new double[20];
-        double[] demandMatsim = new double[20];
-        double[] demandbeides = new double[20];
         List<Integer> skip = List.of(3, 9, 15, 21, 27, 33, 39, 45, 51, 57, 63, 69, 75, 81, 87, 93, 99);
         List<Integer> time = List.of(5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 83, 89, 95, 101);
         try (BufferedReader reader = new BufferedReader(new FileReader(matsim))) {
@@ -51,17 +42,11 @@ public class ComparePuT {
                     }
                 }
                 if (newLine.length() == 0) {
-                    nulll++;
                     continue;
                 }
                 //newLine.deleteCharAt(newLine.length() - 1);
                 if (matSimRoutesSet.add(newLine.toString())) {
                     matsimMap.put(newLine.toString(), Double.parseDouble(splitLine[splitLine.length - 1]));
-                    int um = (StringUtils.countMatches(newLine, ";") / 5)-1;
-                    double tmp2 = demandMatsim[um];
-                    demandMatsim[um] = tmp2 + Double.parseDouble(splitLine[splitLine.length - 1]);
-                    int tmp = umsteigeMatsim[um];
-                    umsteigeMatsim[um] = tmp + 1;
                 } else {
                     double tmp = matsimMap.get(newLine.toString());
                     matsimMap.put(newLine.toString(), Double.parseDouble(splitLine[splitLine.length - 1]) + tmp);
@@ -71,8 +56,6 @@ public class ComparePuT {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("matsim list: " + matSimRoutesList.size());
-        System.out.println("matsim set: " + matSimRoutesSet.size());
 
         try (BufferedReader reader = new BufferedReader(new FileReader(visum))) {
             List<String> header = List.of(reader.readLine().split(";"));
@@ -97,11 +80,6 @@ public class ComparePuT {
                         //addLine.deleteCharAt(addLine.length() - 1);
                         if (visumRoutesSet.add(addLine.toString())) {
                             visumMap.put(addLine.toString(), demandtmp);
-                            int um = (StringUtils.countMatches(addLine, ";") / 5)-1;
-                            int tmp = umsteigeVisum[um];
-                            umsteigeVisum[um] = tmp + 1;
-                            double tmp2 = demandVisum[um];
-                            demandVisum[um] = tmp2 + Double.parseDouble(splitline[splitline.length - 1]);
                         } else {
                             double tmp = visumMap.get(addLine.toString());
                             visumMap.put(addLine.toString(), demandtmp + tmp);
@@ -118,7 +96,6 @@ public class ComparePuT {
                         }
                         if (test) {
                             visumRoutesSet.remove(addLine.toString());
-                            //visumMap.remove(addLine.toString());
                         }
                         addLine = new StringBuilder();
 
@@ -136,7 +113,9 @@ public class ComparePuT {
             e.printStackTrace();
         }
 
+        System.out.println("matsim list: " + matSimRoutesList.size());
         System.out.println("visum list: " + visumRoutesList.size());
+        System.out.println("matsim set: " + matSimRoutesSet.size());
         System.out.println("visum set: " + visumRoutesSet.size());
 
         System.out.println("----------------------------------");
@@ -150,6 +129,12 @@ public class ComparePuT {
         int umsteige4 = 0;
         double demandGefunden = 0;
         double demandNichtGefunden = 0;
+        double demand0 = 0;
+        double demand1 = 0;
+        double demand2 = 0;
+        double demand3 = 0;
+        double demand4 = 0;
+        double demandMatsimTotal = 0;
 
         for (String line : visumRoutesSet) {
             if (!matSimRoutesSet.contains(line)) {
@@ -171,109 +156,41 @@ public class ComparePuT {
             } else {
                 demandGefunden += visumMap.get(line);
                 beide++;
+                demandMatsimTotal += matsimMap.get(line);
+                if (line.startsWith("2;")) {
+                    error++;
+                }
+                if (line.contains(";5;")) {
+                    demand4 += matsimMap.get(line);
+                } else if (line.contains(";4;")) {
+                    demand3 += matsimMap.get(line);
+                } else if (line.contains(";3;")) {
+                    demand2 += matsimMap.get(line);
+                } else if (line.contains(";2;")) {
+                    demand1 += matsimMap.get(line);
+                } else  {
+                    demand0 += matsimMap.get(line);
+                }
             }
         }
 
-        System.out.println("Nachfrage gefunden : " + demandGefunden);
         System.out.println("beide: " + beide);
+        System.out.println("Nachfrage gefunden : " + demandGefunden);
         System.out.println("Nachfrage nicht gefunden: " + demandNichtGefunden);
+        System.out.println("----------------------------------");
         System.out.println("nicht gefunden error: " + error);
         System.out.println("nicht gefunden Umsteige 0: " + umsteige0);
         System.out.println("nicht gefunden Umsteige 1: " + umsteige1);
         System.out.println("nicht gefunden Umsteige 2: " + umsteige2);
         System.out.println("nicht gefunden Umsteige 3: " + umsteige3);
         System.out.println("nicht gefunden Umsteige 4: " + umsteige4);
-
         System.out.println("----------------------------------");
-
-
-
-
-
-
-        Set<String> beideSet = new HashSet<>();
-        List<String> beideList = new ArrayList<>();
-        int matsimRouteFoundInVisum = 0;
-        int matsimRouteNotFoundInVisum = 0;
-        for (String string : matSimRoutesSet) {
-            if (visumRoutesSet.contains(string)) {
-                int um2 = (StringUtils.countMatches(string, ";") / 5) -1;
-                double tmp2 = demandbeides[um2];
-                demandbeides[um2] = tmp2 + visumMap.get(string);
-                matsimRouteFoundInVisum++;
-                beideSet.add(string);
-                beideList.add(string);
-                int um1 = (StringUtils.countMatches(string, ";") / 5) -1;
-                int tmp1 = umsteigebeides[um1];
-                umsteigebeides[um1] = tmp1 + 1;
-            } else {
-                matsimRouteNotFoundInVisum++;
-                if (!string.contains(";2;")) {
-                   //System.out.println(string);
-                }
-            }
-        }
-
-        System.out.println("matsimRouteFoundInVisum: " + matsimRouteFoundInVisum);
-        System.out.println("matsimRouteNotFoundInVisum: " + matsimRouteNotFoundInVisum);
-
-        System.out.println("beide list " + beideList.size());
-        System.out.println("beide set " + beideSet.size());
+        System.out.println("matsim gefunden Demand total: " + demandMatsimTotal);
+        System.out.println("matsim gefunden Demand 0: " + demand0);
+        System.out.println("matsim gefunden Demand 1: " + demand1);
+        System.out.println("matsim gefunden Demand 2: " + demand2);
+        System.out.println("matsim gefunden Demand 3: " + demand3);
+        System.out.println("matsim gefunden Demand >=4: " + demand4);
         System.out.println("----------------------------------");
-        System.out.println("Visum: " + Arrays.toString(umsteigeVisum));
-        System.out.println("Matsim: " + Arrays.toString(umsteigeMatsim));
-        System.out.println("beides: " + Arrays.toString(umsteigebeides));
-        System.out.println("----------------------------------");
-
-        for (String string : visumRoutesSet) {
-            if (matSimRoutesSet.contains(string)) {
-
-            } else {
-                if (string.split(";").length < 6) {
-                  //  System.out.println(string);
-                }
-                if (!string.contains(";2;")) {
-                    //System.out.println(string);
-                }
-            }
-        }
-
-        double demand = 0;
-        double totaldemand = 0;
-
-        for (double tmp : matsimMap.values()) {
-            totaldemand += tmp;
-        }
-
-
-
-        System.out.println("Visum: " + Arrays.toString(demandVisum));
-        System.out.println("Matsim: " + Arrays.toString(demandMatsim));
-        System.out.println("beides: " + Arrays.toString(demandbeides));
-        System.out.println("----------------------------------");
-        System.out.println("demandFoundInVisum: " + demand);
-        System.out.println("totaldemandFoundInMATSim: " + totaldemand);
-
-        demand = 0;
-        double max = 0;
-        String maxC = "";
-
-        for (var entry : visumMap.entrySet()) {
-            var start = entry.getKey().split(";")[1];
-            var end = entry.getKey().split(";")[entry.getKey().split(";").length - 3];
-            if (start.equals("1311") && end.equals("2194")) {
-                demand += entry.getValue();
-            }
-            if (entry.getValue() > max && !matsimMap.containsKey(entry.getKey())) {
-                maxC = entry.getKey();
-                max = entry.getValue();
-            }
-        }
-        System.out.println(demand);
-        System.out.println(maxC);
-        System.out.println(max);
-        System.out.println("nulll " + nulll);
-        System.out.println("Done");
-
     }
 }
