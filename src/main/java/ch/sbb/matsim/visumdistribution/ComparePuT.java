@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * compare the links from visa and the srr also considers the demand on these, the solution is currently implemented very practical
+ * compare the links from visum and the srr also considers the demand on these, the solution is currently implemented very practical
  */
 public class ComparePuT {
 
