@@ -9,13 +9,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * compare the links from visa and the srr also considers the demand on these, the solution is currently implemented very practical
+ */
 public class ComparePuT {
 
     public static void main(String[] args) {
 
-        String visum = "Z:/99_Playgrounds/MD/Umlegung/visum/PathRoutesVisumLinesV2.csv";
-        //String matsim = "Z:/99_Playgrounds/MD/Umlegung/alle/treeRoutesvLines.csv";
-        String matsim = "treeRoutesvLines.csv";
+        String visum = "Z:/99_Playgrounds/MD/Umlegung/visum/PathRoutesVisumLines.csv";
+        String matsim = "Z:/99_Playgrounds/MD/Umlegung/alle/treeRoutesvLines.csv";
 
         Set<String> matSimRoutesSet = new HashSet<>();
         Set<String> visumRoutesSet = new HashSet<>();
