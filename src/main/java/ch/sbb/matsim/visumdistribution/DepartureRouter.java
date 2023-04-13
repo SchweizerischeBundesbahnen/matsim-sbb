@@ -91,6 +91,9 @@ public class DepartureRouter {
     private final Map<Id<TransitRoute>, Id<TransitLine>> routeToLine = new HashMap<>();
     private final Set<Id<TransitRoute>> doubleStop = new HashSet<>();
 
+    /*
+     * make sure to add the -Djava.library.path=Z:\10_Daten\libraries\hdf5_java_win64 libary in the vm options to read an omx file
+     */
     public static void main(String[] args) throws Exception {
         long startTime = System.nanoTime();
         DepartureRouter departureRouter;
