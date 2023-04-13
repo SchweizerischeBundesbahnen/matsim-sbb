@@ -264,7 +264,7 @@
         <!-- There used to be a plateau between duration=0 and duration=zeroUtilityDuration. This caused durations to evolve to zero once they were below zeroUtilityDuration, causing problems.  Only use this switch if you need to be backwards compatible with some old results.  (changed nov'13) -->
         <param name="usingOldScoringBelowZeroUtilityDuration" value="false"/>
         <!-- write a plans file in each iteration directory which contains what each agent actually did, and the score it received. -->
-        <param name="writeExperiencedPlans" value="true"/>
+        <param name="writeExperiencedPlans" value="false"/>
         <parameterset type="scoringParameters">
             <param name="earlyDeparture" value="0.0"/>
             <param name="lateArrival" value="-6.0"/>
