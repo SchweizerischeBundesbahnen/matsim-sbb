@@ -1041,8 +1041,8 @@ public class ModalSplitStats {
         final String einstiege = "Einstiege_Gesamt";
         final String ausstiege = "Ausstiege_Gesamt";
         final String umstiege = "Umstiege_Bahn_Bahn";
-        final String zustiege = "Umsteige_AHP_Bahn";
-        final String wegstiege = "Umsteige_Bahn_AHP";
+        final String zustiege = "Umstiege_AHP_Bahn";
+        final String wegstiege = "Umstiege_Bahn_AHP";
         StringBuilder head = new StringBuilder(
             String.join(",", runID, hstNummer, stopNumber, code, trainStationName, x, y, zone, einstiege, ausstiege, umstiege, zustiege, wegstiege));
         for (String mode : StopStation.getOrigDestModes()) {
