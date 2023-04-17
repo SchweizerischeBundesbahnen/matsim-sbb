@@ -171,12 +171,14 @@ public class CarLinkAnalysis {
             for (var leg : legs) {
                 if (leg.getMode().equals(mode)) {
                     var route = leg.getRoute();
-                    var linkIds = route.getRouteDescription().split(" ");
-                    for (var link : linkIds) {
-                        var linkId = Id.createLinkId(link);
-                        var linkStorage = linkVolumes.getOrDefault(linkId, new LinkStorage(linkId));
-                        linkStorage.increase(vehicleType);
-                        linkVolumes.put(linkId, linkStorage);
+                    if (route.getRouteDescription() != null) {
+                        var linkIds = route.getRouteDescription().split(" ");
+                        for (var link : linkIds) {
+                            var linkId = Id.createLinkId(link);
+                            var linkStorage = linkVolumes.getOrDefault(linkId, new LinkStorage(linkId));
+                            linkStorage.increase(vehicleType);
+                            linkVolumes.put(linkId, linkStorage);
+                        }
                     }
                 }
             }
