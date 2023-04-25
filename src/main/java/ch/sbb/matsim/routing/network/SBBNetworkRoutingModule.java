@@ -32,7 +32,9 @@ public class SBBNetworkRoutingModule extends AbstractModule {
 	public static void prepareScenario(Scenario scenario) {
 		Set<String> routedModes = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBNetworkRoutingConfigGroup.class).getNetworkRoutingModes();
 		for (String mode : routedModes) {
-			addNetworkMode(scenario.getNetwork(), mode, SBBModes.CAR);
+			if (!mode.equals(SBBModes.BIKE)) {
+				addNetworkMode(scenario.getNetwork(), mode, SBBModes.CAR);
+			}
 			SBBActivities.stageActivityTypeList.add(mode + " interaction");
 			Set<String> networkModes = new HashSet<>(scenario.getConfig().plansCalcRoute().getNetworkModes());
 			networkModes.add(mode);
