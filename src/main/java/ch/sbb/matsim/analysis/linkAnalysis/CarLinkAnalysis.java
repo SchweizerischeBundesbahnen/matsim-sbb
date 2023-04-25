@@ -33,7 +33,14 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.api.experimental.events.EventsManager;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.events.EventsUtils;
+import org.matsim.core.events.MatsimEventsReader;
+import org.matsim.core.network.io.MatsimNetworkReader;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 
 import java.io.*;
@@ -179,6 +186,28 @@ public class CarLinkAnalysis {
         }
     }
 
+    public static void main(String[] args) {
+        String folderprefix = args[0];
+        double sampleSize = Double.parseDouble(args[1]);
+        String networkFile = folderprefix + "output_network.xml.gz";
+        String eventsFile = folderprefix + "output_events.xml.gz";
+        String outputPlans = folderprefix + "output_plans.xml.gz";
+
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
+        new PopulationReader(scenario).readFile(outputPlans);
+        EventsManager eventsManager = EventsUtils.createEventsManager();
+        IterationLinkAnalyzer analyzer = new IterationLinkAnalyzer(scenario);
+        eventsManager.addHandler(analyzer);
+        new MatsimEventsReader(eventsManager).readFile(eventsFile);
+        PostProcessingConfigGroup postProcessingConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), PostProcessingConfigGroup.class);
+        postProcessingConfigGroup.setSimulationSampleSize(sampleSize);
+        CarLinkAnalysis carLinkAnalysis = new CarLinkAnalysis(postProcessingConfigGroup, scenario, analyzer);
+        carLinkAnalysis.writeSingleIterationCarStats(folderprefix + "carLinkVolumes.att");
+
+
+    }
+
     static class LinkStorage {
 
         private final static Logger log = LogManager.getLogger(LinkStorage.class);
@@ -217,7 +246,10 @@ public class CarLinkAnalysis {
         public int getRideCount() {
             return rideCount;
         }
+
+
     }
+
 }
 
 

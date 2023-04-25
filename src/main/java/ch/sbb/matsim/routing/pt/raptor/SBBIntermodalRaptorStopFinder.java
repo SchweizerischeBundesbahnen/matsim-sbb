@@ -319,26 +319,26 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 	}
 
 	private List<? extends PlanElement> getCachedTravelTime(Facility stopFacility, Facility actFacility, double departureTime, Person person, String mode, RoutingModule module, boolean backwards) {
-		AccessEgressRouteCache.RouteCharacteristics characteristics = this.accessEgressRouteCache.getCachedRouteCharacteristics(mode, stopFacility, actFacility, module, person);
+        AccessEgressRouteCache.RouteCharacteristics characteristics = this.accessEgressRouteCache.getCachedRouteCharacteristics(mode, stopFacility, actFacility, module, person);
 
-		Id<Link> startLink = backwards ? actFacility.getLinkId() : stopFacility.getLinkId();
-		Id<Link> endLink = backwards ? stopFacility.getLinkId() : actFacility.getLinkId();
-		List<PlanElement> travel = new ArrayList<>();
-		double accessTime = backwards ? characteristics.getEgressTime() : characteristics.getAccessTime();
-		double egressTime = backwards ? characteristics.getAccessTime() : characteristics.getEgressTime();
+        Id<Link> startLink = backwards ? actFacility.getLinkId() : stopFacility.getLinkId();
+        Id<Link> endLink = backwards ? stopFacility.getLinkId() : actFacility.getLinkId();
+        List<PlanElement> travel = new ArrayList<>();
+        double accessTime = backwards ? characteristics.egressTime() : characteristics.accessTime();
+        double egressTime = backwards ? characteristics.accessTime() : characteristics.egressTime();
 
-		Leg leg = PopulationUtils.createLeg(mode);
-		Route route = RouteUtils.createGenericRouteImpl(startLink, endLink);
-		double travelTime = characteristics.getTravelTime();
-		if (!Double.isNaN(accessTime)) {
-			travelTime += accessTime;
-		}
-		if (!Double.isNaN(egressTime)) {
-			travelTime += egressTime;
-		}
-		route.setTravelTime(travelTime);
-		route.setDistance(characteristics.getDistance());
-		leg.setTravelTime(travelTime);
+        Leg leg = PopulationUtils.createLeg(mode);
+        Route route = RouteUtils.createGenericRouteImpl(startLink, endLink);
+        double travelTime = characteristics.travelTime();
+        if (!Double.isNaN(accessTime)) {
+            travelTime += accessTime;
+        }
+        if (!Double.isNaN(egressTime)) {
+            travelTime += egressTime;
+        }
+        route.setTravelTime(travelTime);
+        route.setDistance(characteristics.distance());
+        leg.setTravelTime(travelTime);
 		leg.setRoute(route);
 		leg.setDepartureTime(departureTime);
 		travel.add(leg);
@@ -378,17 +378,17 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		return new ArrayList<>(stopFacilities);
 	}
 
-	private static class ChangedLinkFacility implements Facility, Identifiable<TransitStopFacility> {
+    static class ChangedLinkFacility implements Facility, Identifiable<TransitStopFacility> {
 
-		private final TransitStopFacility delegate;
-		private final Id<Link> linkId;
+        private final TransitStopFacility delegate;
+        private final Id<Link> linkId;
 
-		ChangedLinkFacility(final TransitStopFacility delegate, final Id<Link> linkId) {
-			this.delegate = delegate;
-			this.linkId = linkId;
-		}
+        ChangedLinkFacility(final TransitStopFacility delegate, final Id<Link> linkId) {
+            this.delegate = delegate;
+            this.linkId = linkId;
+        }
 
-		@Override
+        @Override
 		public Id<Link> getLinkId() {
 			return this.linkId;
 		}
