@@ -1,5 +1,6 @@
 package ch.sbb.matsim.mavi.streets;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.counts.VisumToCounts;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import com.jacob.activeX.ActiveXComponent;
@@ -18,22 +19,25 @@ import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class VisumStreetNetworkExporter {
 
-    private final static Logger log = LogManager.getLogger(VisumStreetNetworkExporter.class);
+	private final static Logger log = LogManager.getLogger(VisumStreetNetworkExporter.class);
+	private final Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
+	Set<String> fullModeset = Set.of(SBBModes.CAR, SBBModes.RIDE, SBBModes.BIKE);
+	Set<String> modeSetWithoutBike = Set.of(SBBModes.CAR, SBBModes.RIDE);
+	private Scenario scenario;
+	private NetworkFactory nf;
 
-    private Scenario scenario;
-    private NetworkFactory nf;
-    private final Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
-
-    public static void main(String[] args) throws IOException {
-        String inputvisum = args[0];
-        String outputPath = args[1];
-        int visumVersion = 21;
-        boolean exportCounts = true;
-        if (args.length > 2) {
+	public static void main(String[] args) throws IOException {
+		String inputvisum = args[0];
+		String outputPath = args[1];
+		int visumVersion = 21;
+		boolean exportCounts = true;
+		if (args.length > 2) {
             exportCounts = Boolean.parseBoolean(args[2]);
         }
 
@@ -144,13 +148,17 @@ public class VisumStreetNetworkExporter {
 						Integer.parseInt(anAttarraylink[6]));
 				if (link != null) {
 					NetworkUtils.setType(link, anAttarraylink[5]);
-					int ac = 0;
+					int ac;
 					try {
 						ac = Integer.parseInt(anAttarraylink[8]);
 					} catch (NumberFormatException e) {
 						log.warn("Access Control not defined for link " + link.getId() + ". Assuming = 0");
+						ac = 0;
 					}
 					link.getAttributes().putAttribute("accessControlled", ac);
+					if (ac == 1) {
+						link.setAllowedModes(modeSetWithoutBike);
+					}
 					network.addLink(link);
 				}
 				this.wktLineStringPerVisumLink.put(id, anAttarraylink[9]);
@@ -165,7 +173,7 @@ public class VisumStreetNetworkExporter {
 		if (fnode == null || tnode == null) {
 			return null;
 		}
-		Set<String> modeset = new HashSet<>(Arrays.asList("car", "ride"));
+
 		Link link = nf.createLink(id, fnode, tnode);
 		if (length < 0.01) {
 			length = 0.01;
@@ -183,8 +191,8 @@ public class VisumStreetNetworkExporter {
         link.setLength(length);
         link.setCapacity(cap);
         link.setFreespeed(v / 3.6);
-        link.setNumberOfLanes(numlanes);
-        link.setAllowedModes(modeset);
+		link.setNumberOfLanes(numlanes);
+		link.setAllowedModes(fullModeset);
 
         return link;
     }
