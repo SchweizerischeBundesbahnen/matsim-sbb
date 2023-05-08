@@ -1,6 +1,7 @@
 package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.counts.VisumToCounts;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import com.jacob.activeX.ActiveXComponent;
@@ -11,7 +12,10 @@ import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.network.*;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.NetworkFactory;
+import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -28,24 +32,9 @@ public class VisumStreetNetworkExporter {
 	private final static Logger log = LogManager.getLogger(VisumStreetNetworkExporter.class);
 	private final Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
 	Set<String> fullModeset = Set.of(SBBModes.CAR, SBBModes.RIDE, SBBModes.BIKE);
-	Set<String> modeSetWithoutBike = Set.of(SBBModes.CAR, SBBModes.RIDE);
+	public static final Set<String> modeSetWithoutBike = Set.of(SBBModes.CAR, SBBModes.RIDE);
 	private Scenario scenario;
 	private NetworkFactory nf;
-
-	public static void main(String[] args) throws IOException {
-		String inputvisum = args[0];
-		String outputPath = args[1];
-		int visumVersion = 21;
-		boolean exportCounts = true;
-		if (args.length > 2) {
-            exportCounts = Boolean.parseBoolean(args[2]);
-        }
-
-		VisumStreetNetworkExporter exp = new VisumStreetNetworkExporter();
-		exp.run(inputvisum, outputPath, visumVersion, exportCounts, true);
-		exp.writeNetwork(outputPath);
-
-	}
 
 	public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
 		return Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
@@ -78,15 +67,15 @@ public class VisumStreetNetworkExporter {
 		}
 		String[][] nodes = importNodes(net, "No", "XCoord", "YCoord");
 		String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
-				"NumLanes", "TSysSet", "accessControlled", "WKTPoly", "No");
+				"NumLanes", "TSysSet", Variables.ACCESS_CONTROLLED, "WKTPoly", "No");
 		createNetwork(nodes, links);
-
 		// Export Polylines
 		if (exportPolylines) {
 			new PolylinesCreator().runStreets(this.scenario.getNetwork(), wktLineStringPerVisumLink, "polylines.csv", outputPath);
 		}
 
 	}
+
 
 	private void exportCountStations(Dispatch net, String outputFolder) throws IOException {
 		VisumToCounts visumToCounts = new VisumToCounts();
@@ -155,7 +144,7 @@ public class VisumStreetNetworkExporter {
 						log.warn("Access Control not defined for link " + link.getId() + ". Assuming = 0");
 						ac = 0;
 					}
-					link.getAttributes().putAttribute("accessControlled", ac);
+					link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, ac);
 					if (ac == 1) {
 						link.setAllowedModes(modeSetWithoutBike);
 					}
@@ -195,14 +184,6 @@ public class VisumStreetNetworkExporter {
 		link.setAllowedModes(fullModeset);
 
         return link;
-    }
-
-    private void writeNetwork(String outputFolder) {
-        org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
-        cleaner.run(scenario.getNetwork());
-
-        File file = new File(outputFolder, "network.xml.gzwithPolylines.xml.gz");
-        new NetworkWriter(this.scenario.getNetwork()).write(file.getAbsolutePath());
     }
 
     public Network getNetwork() {

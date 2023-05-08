@@ -20,6 +20,8 @@
 package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.config.variables.Filenames;
+import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
@@ -30,12 +32,19 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.groups.NetworkConfigGroup;
+import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
+import org.matsim.core.network.filter.NetworkFilterManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.modeSetWithoutBike;
 
 public class StreetNetworkExporter {
 
@@ -74,11 +83,41 @@ public class StreetNetworkExporter {
             cleaner.run(network);
         }
         adjustRoundaboutLinks(network);
+        Network bikenet = NetworkUtils.createNetwork();
+        filterBikeNetwork(network, bikenet);
+
+
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network with polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK_WITH_POLYLINES);
         removePolylines(network);
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network without polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK);
+
+    }
+
+
+    private static void filterBikeNetwork(Network network, Network bikenet) {
+        NetworkFilterManager fm = new NetworkFilterManager(network, new NetworkConfigGroup());
+        fm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
+        bikenet = fm.applyFilters();
+        org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
+        cleaner.run(bikenet);
+        List<Link> deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().size() == 0).collect(Collectors.toList());
+
+        while (!deadEnds.isEmpty()) {
+            for (var link : deadEnds) {
+                bikenet.removeLink(link.getId());
+            }
+            deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().size() == 0).collect(Collectors.toList());
+
+        }
+        for (Link l : network.getLinks().values()) {
+            if (!bikenet.getLinks().containsKey(l.getId())) {
+                l.setAllowedModes(modeSetWithoutBike);
+                l.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
+
+            }
+        }
 
     }
 
