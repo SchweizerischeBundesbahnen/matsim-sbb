@@ -6,9 +6,12 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.facilities.Facility;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -102,7 +105,7 @@ public class GridbasedAccessEgressCacheTest {
         });
         GridbasedAccessEgressCache cache = new GridbasedAccessEgressCache(scenario);
         var timeb = System.currentTimeMillis();
-        cache.calculateGridTraveltimes();
+        cache.calculateGridTraveltimesViaTree();
         System.out.println((System.currentTimeMillis() - timeb) / 1000.);
         timeb = System.currentTimeMillis();
         cache.writeCache("test/output/intermodalcachetest.csv");
@@ -113,6 +116,14 @@ public class GridbasedAccessEgressCacheTest {
         newcache.readCache("test/output/intermodalcachetest.csv");
         System.out.println((System.currentTimeMillis() - timeb) / 1000.);
 
+        var fac = scenario.getActivityFacilities().getFacilities().get(Id.create(1896390, Facility.class));
+        var stopFac = scenario.getTransitSchedule().getFacilities().get(Id.create(1850, TransitStopFacility.class));
+        var characteristics1 = cache.getCachedRouteCharacteristics(SBBModes.CARFEEDER, stopFac, fac, null, null);
+        var characteristics2 = newcache.getCachedRouteCharacteristics(SBBModes.CARFEEDER, stopFac, fac, null, null);
+        Assert.assertEquals(characteristics1.accessTime(), characteristics2.accessTime(), 1.0);
+        Assert.assertEquals(characteristics1.egressTime(), characteristics2.egressTime(), 1.0);
+        Assert.assertEquals(characteristics1.distance(), characteristics2.distance(), 10);
+        Assert.assertEquals(characteristics1.travelTime(), characteristics2.travelTime(), 1.0);
 
     }
 }

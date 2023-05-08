@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -20,10 +21,12 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.router.DefaultRoutingRequest;
-import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
+import org.matsim.core.router.speedy.LeastCostPathTree;
+import org.matsim.core.router.speedy.SpeedyALTFactory;
+import org.matsim.core.router.speedy.SpeedyGraph;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.facilities.Facility;
@@ -36,15 +39,15 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
     public static final double CAR_FREESPEED_TRAVELTIME_FACTOR = 1.25;
+    double bikeFreespeed = 16 / 3.6;
     private final Network carnet;
     private final Network bikenet;
-    private final LeastCostPathCalculator carlcp;
-    private final LeastCostPathCalculator bikelcp;
     private final int gridsizeInM = 200;
     private final int diameterInM = 30000;
     private final int cellSize;
@@ -52,23 +55,28 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     private final String linkIdAttribute;
     private final Scenario scenario;
     private final SBBIntermodalConfiggroup sbbIntermodalConfiggroup;
-    private Set<Id<TransitStopFacility>> cachedStops;
-    private Map<Id<TransitStopFacility>, int[][]> cachedDistancesAndTimes = new HashMap<>();
+    FreespeedTravelTimeAndDisutility disutility = new FreespeedTravelTimeAndDisutility(-0.1, 0.1, -0.01);
+    private int threads;
     private Map<Id<TransitStopFacility>, Map<String, Integer>> accessTimesAtStops = new HashMap<>();
     private Logger logger = LogManager.getLogger(getClass());
     private Vehicle bike;
+    private List<Id<TransitStopFacility>> cachedStops;
+    private Map<Id<TransitStopFacility>, int[][]> cachedDistancesAndTimes = new ConcurrentHashMap<>();
+    ;
 
 
     @Inject
     public GridbasedAccessEgressCache(Scenario scenario) {
         this.scenario = scenario;
         this.sbbIntermodalConfiggroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBIntermodalConfiggroup.class);
+        this.threads = scenario.getConfig().global().getNumberOfThreads();
         var railRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
         SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet carInterModalSet = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().filter(set -> set.getMode().equals(SBBModes.CARFEEDER)).findAny().get();
         this.linkIdAttribute = carInterModalSet.getLinkIdAttribute();
         String stopFilterValue = carInterModalSet.getStopFilterValue();
         String stopFilterAttribute = carInterModalSet.getStopFilterAttribute();
-        this.cachedStops = scenario.getTransitSchedule().getFacilities().values().stream().filter(transitStopFacility -> transitStopFacility.getAttributes().getAttribute(stopFilterAttribute).equals(stopFilterValue)).map(TransitStopFacility::getId).collect(Collectors.toSet());
+        scenario.getNetwork().getLinks().values().stream().filter(link -> link.getLength() < 0.1).forEach(link -> link.setLength(0.1));
+        this.cachedStops = scenario.getTransitSchedule().getFacilities().values().stream().filter(transitStopFacility -> transitStopFacility.getAttributes().getAttribute(stopFilterAttribute).equals(stopFilterValue)).map(TransitStopFacility::getId).collect(Collectors.toList());
         logger.info("Cache will consist of " + cachedStops.size() + " stops.");
 
         rowSize = diameterInM / gridsizeInM;
@@ -77,19 +85,18 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         nfm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.CAR));
         this.carnet = nfm.applyFilters();
         new NetworkCleaner().run(carnet);
-        FreespeedTravelTimeAndDisutility disutility = new FreespeedTravelTimeAndDisutility(0.0, 0, -0.01);
-        this.carlcp = new DijkstraFactory().createPathCalculator(carnet, disutility, disutility);
+
+
         VehicleType bikeType = scenario.getVehicles().getFactory().createVehicleType(Id.create("bikeType", VehicleType.class));
         bikeType.setNetworkMode(SBBModes.BIKE);
-        bikeType.setMaximumVelocity(16 / 3.6);
+        bikeType.setMaximumVelocity(bikeFreespeed);
         this.bike = scenario.getVehicles().getFactory().createVehicle(Id.create("bike", Vehicle.class), bikeType);
-
         NetworkFilterManager nfm2 = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
         nfm2.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
         this.bikenet = nfm2.applyFilters();
         new NetworkCleaner().run(bikenet);
 
-        this.bikelcp = new DijkstraFactory().createPathCalculator(bikenet, disutility, disutility);
+
 
         prepareAccessTimes();
 
@@ -111,41 +118,88 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     }
 
 
-    void calculateGridTraveltimes() {
+    void calculateGridTraveltimesViaTree() {
         Gbl.printMemoryUsage();
+        bikenet.getLinks().values().stream().filter(link -> link.getFreespeed() > bikeFreespeed).forEach(link -> link.setFreespeed(bikeFreespeed));
+        SpeedyGraph carGraph = new SpeedyGraph(carnet);
+        SpeedyGraph bikeGraph = new SpeedyGraph(bikenet);
+        SpeedyALTFactory factory = new SpeedyALTFactory();
         logger.info("Building Cache Structure for " + cachedStops.size() + " stops.");
-        cachedDistancesAndTimes = cachedStops
-                .stream()
-                .map(stopFacilityId -> scenario.getTransitSchedule().getFacilities().get(stopFacilityId))
-                .collect(Collectors.toMap(stop -> stop.getId(), stop -> calculateGridForStop(stop)));
+
         Gbl.printMemoryUsage();
+        List<List<Id<TransitStopFacility>>> partitions = new ArrayList<>();
+        if (cachedStops.size() < threads) {
+            threads = cachedStops.size();
+        }
+        int size = cachedStops.size() / threads;
+        for (int i = 0; i < threads; i++) {
+            int toIndex = Math.min((i + 1) * size, cachedStops.size());
+            List<Id<TransitStopFacility>> partition = cachedStops.subList(i * size, toIndex);
+            partitions.add(partition);
+        }
+        partitions.parallelStream().forEach(list -> {
+            LeastCostPathTree bikeLeastCostPathTree = new LeastCostPathTree(bikeGraph, disutility, disutility);
+            LeastCostPathTree carLeastCostPathTree = new LeastCostPathTree(carGraph, disutility, disutility);
+            var carLcp = factory.createPathCalculator(carnet, disutility, disutility);
+            var bikeLcp = factory.createPathCalculator(bikenet, disutility, disutility);
+            for (Id<TransitStopFacility> stopId : list) {
+                var stop = scenario.getTransitSchedule().getFacilities().get(stopId);
+                cachedDistancesAndTimes.put(stopId, calculateGridForStopViaTree(stop, carLeastCostPathTree, bikeLeastCostPathTree, carLcp, bikeLcp));
+            }
+
+        });
 
     }
 
-    int[][] calculateGridForStop(TransitStopFacility stop) {
+
+    int[][] calculateGridForStopViaTree(TransitStopFacility stop, LeastCostPathTree carLeastCostPathTree, LeastCostPathTree bikeLeastCostPathTree, LeastCostPathCalculator carlcp, LeastCostPathCalculator bikelcp) {
         Link carFromLink = carnet.getLinks().get(Id.createLinkId(String.valueOf(stop.getAttributes().getAttribute(linkIdAttribute))));
         Node carFromNode = carFromLink.getToNode();
+
         Link bikeFromLink = NetworkUtils.getNearestLink(bikenet, stop.getCoord());
         Node bikeFromNode = bikeFromLink.getToNode();
+        carLeastCostPathTree.calculate(carFromNode.getId().index(), 0, null, null, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
+        bikeLeastCostPathTree.calculate(bikeFromNode.getId().index(), 0, null, bike, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
+
+
         int[][] dist = new int[cellSize][4];
 
+        int found = 0;
         for (int i = 0; i < cellSize; i++) {
             Coord coord = getCellCoordinate(stop.getCoord(), i);
-            Node nearestBikeNode = NetworkUtils.getNearestNode(bikenet, coord);
             Node nearestCarNode = NetworkUtils.getNearestNode(carnet, coord);
+            int nearestCarNodeIndex = nearestCarNode.getId().index();
+            Node nearestBikeNode = NetworkUtils.getNearestNode(bikenet, coord);
+            int nearestBikeNodeIndex = nearestBikeNode.getId().index();
+            double carTravelTime;
+            double carDistance;
+            if (carLeastCostPathTree.getTime(nearestCarNodeIndex).isDefined()) {
+                carTravelTime = carLeastCostPathTree.getTime(nearestCarNodeIndex).seconds() * CAR_FREESPEED_TRAVELTIME_FACTOR;
+                carDistance = carLeastCostPathTree.getDistance(nearestCarNodeIndex);
+                found++;
+            } else {
+                var carpath = carlcp.calcLeastCostPath(nearestCarNode, carFromNode, 0, null, null);
+                carTravelTime = carpath.travelTime * CAR_FREESPEED_TRAVELTIME_FACTOR;
+                carDistance = carpath.links.stream().mapToDouble(l -> l.getLength()).sum();
+            }
 
-            var carpath = carlcp.calcLeastCostPath(nearestCarNode, carFromNode, 0, null, null);
-            double carTravelTime = carpath.travelTime * CAR_FREESPEED_TRAVELTIME_FACTOR;
-            double carDistance = carpath.links.stream().mapToDouble(l -> l.getLength()).sum();
-            var bikepath = bikelcp.calcLeastCostPath(nearestBikeNode, bikeFromNode, 0, null, bike);
-            double bikeTravelTime = bikepath.travelTime;
-            double bikeDistance = bikepath.links.stream().mapToDouble(l -> l.getLength()).sum();
+
+            double bikeTravelTime;
+            double bikeDistance;
+            if (bikeLeastCostPathTree.getTime(nearestBikeNodeIndex).isDefined()) {
+                bikeTravelTime = bikeLeastCostPathTree.getTime(nearestBikeNodeIndex).seconds();
+                bikeDistance = bikeLeastCostPathTree.getDistance(nearestBikeNodeIndex);
+            } else {
+                var bikepath = bikelcp.calcLeastCostPath(nearestBikeNode, bikeFromNode, 0, null, bike);
+                bikeTravelTime = bikepath.travelTime;
+                bikeDistance = bikepath.links.stream().mapToDouble(l -> l.getLength()).sum();
+            }
             dist[i][0] = (int) carTravelTime;
             dist[i][1] = (int) carDistance;
             dist[i][2] = (int) bikeTravelTime;
             dist[i][3] = (int) bikeDistance;
         }
-
+        logger.info("Found " + found + " of " + cellSize);
         return dist;
     }
 
@@ -177,7 +231,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
     @Override
     public RouteCharacteristics getCachedRouteCharacteristics(String mode, Facility stopFacility, Facility actFacility, RoutingModule module, Person person) {
-        Id<TransitStopFacility> transitStopFacilityId = ((SBBIntermodalRaptorStopFinder.ChangedLinkFacility) stopFacility).getId();
+        Id<TransitStopFacility> transitStopFacilityId = ((Identifiable<TransitStopFacility>) stopFacility).getId();
         int cell = getCellNumber(stopFacility.getCoord(), actFacility.getCoord());
         int[][] cache = this.cachedDistancesAndTimes.get(transitStopFacilityId);
         if (cache != null && cellInBound(cell)) {
@@ -234,6 +288,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
                         cache[cell][1] = Integer.parseInt(entries[i + 1]);
                         cache[cell][2] = Integer.parseInt(entries[i + 2]);
                         cache[cell][3] = Integer.parseInt(entries[i + 3]);
+                        cell++;
                     }
                     cachedDistancesAndTimes.put(stopId, cache);
                 }
