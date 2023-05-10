@@ -38,7 +38,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.analysis.TripsAndLegsCSVWriter;
 import org.matsim.analysis.TripsAndLegsCSVWriter.CustomTripsWriterExtension;
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
@@ -61,7 +60,6 @@ import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.utils.misc.OptionalTime;
-import org.matsim.vehicles.VehicleType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,6 +102,7 @@ public class RunSBB {
 
 	public static void addSBBDefaultScenarioModules(Scenario scenario) {
 		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork(), scenario.getConfig());
+		SBBXY2LinksAssigner.run(scenario.getPopulation(), scenario.getNetwork(), scenario.getConfig().network());
 		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
 		LinkToStationsAssigner.runAssignment(scenario);
 		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
