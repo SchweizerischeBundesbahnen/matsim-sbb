@@ -31,7 +31,7 @@ public class VisumStreetNetworkExporter {
 
 	private final static Logger log = LogManager.getLogger(VisumStreetNetworkExporter.class);
 	private final Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
-	Set<String> fullModeset = Set.of(SBBModes.CAR, SBBModes.RIDE, SBBModes.BIKE);
+	public static final Set fullModeset = Set.of(SBBModes.CAR, SBBModes.RIDE, SBBModes.BIKE);
 	public static final Set<String> modeSetWithoutBike = Set.of(SBBModes.CAR, SBBModes.RIDE);
 	private Scenario scenario;
 	private NetworkFactory nf;
@@ -141,8 +141,8 @@ public class VisumStreetNetworkExporter {
 					try {
 						ac = Integer.parseInt(anAttarraylink[8]);
 					} catch (NumberFormatException e) {
-						log.warn("Access Control not defined for link " + link.getId() + ". Assuming = 0");
-						ac = 0;
+						log.warn("Access Control not defined for link " + link.getId() + ". Assuming = 1");
+						ac = 1;
 					}
 					link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, ac);
 					if (ac == 1) {

@@ -30,9 +30,11 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
+import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.NetworkConfigGroup;
+import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.filter.NetworkFilterManager;
@@ -41,9 +43,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.fullModeset;
 import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.modeSetWithoutBike;
 
 public class StreetNetworkExporter {
@@ -66,6 +70,7 @@ public class StreetNetworkExporter {
                     streetsExporterConfigGroup.getMainRoadSpeedFactor());
             reduceNetworkSpeeds.reduceSpeeds();
         }
+        filterBikeNetwork(network, outputDir);
 
         if (streetsExporterConfigGroup.isReduceForeignLinks()) {
             LogManager.getLogger(StreetNetworkExporter.class).info("Removing foreign rural links.");
@@ -83,32 +88,114 @@ public class StreetNetworkExporter {
             cleaner.run(network);
         }
         adjustRoundaboutLinks(network);
-        Network bikenet = NetworkUtils.createNetwork();
-        filterBikeNetwork(network, bikenet);
 
+        finalIntermodalCleanup(network);
 
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network with polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK_WITH_POLYLINES);
         removePolylines(network);
+
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network without polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK);
 
     }
 
-
-    private static void filterBikeNetwork(Network network, Network bikenet) {
+    private static void finalIntermodalCleanup(Network network) {
         NetworkFilterManager fm = new NetworkFilterManager(network, new NetworkConfigGroup());
         fm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
-        bikenet = fm.applyFilters();
+        Network bikenet = fm.applyFilters();
+
+        NetworkFilterManager fm2 = new NetworkFilterManager(network, new NetworkConfigGroup());
+        fm2.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.CAR));
+        Network carnet = fm2.applyFilters();
+
+        Set<Link> toRemove = new HashSet<>();
+        for (Link link : network.getLinks().values()) {
+            if (link.getAllowedModes().contains(SBBModes.BIKE)) {
+                if (!bikenet.getLinks().containsKey(link.getId())) {
+                    if (link.getAllowedModes().size() == 1) {
+                        toRemove.add(link);
+                    } else {
+                        link.setAllowedModes(modeSetWithoutBike);
+                    }
+                }
+            } else if (link.getAllowedModes().contains(SBBModes.CAR)) {
+                if (!carnet.getLinks().containsKey(link.getId())) {
+                    if (link.getAllowedModes().contains(SBBModes.BIKE)) {
+                        link.setAllowedModes(Set.of(SBBModes.BIKE));
+                    } else {
+                        toRemove.add(link);
+                    }
+                }
+            }
+
+        }
+        toRemove.forEach(link -> network.removeLink(link.getId()));
+        Set<Node> nodesToRemove = network.getNodes().values().stream().filter(node -> node.getOutLinks().size() == 0 && node.getInLinks().size() == 0).collect(Collectors.toSet());
+        nodesToRemove.forEach(node -> network.removeNode(node.getId()));
+
+        network.getLinks().values().stream().filter(l -> (!String.valueOf(l.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED)).equals("1"))).filter(l -> l.getAllowedModes().size() < 3).forEach(link -> link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 0));
+
+    }
+
+
+    private static void filterBikeNetwork(Network network, String outputDir) {
+        NetworkFilterManager fm = new NetworkFilterManager(network, new NetworkConfigGroup());
+        fm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
+        Network bikenet = fm.applyFilters();
+        Set<Id<Link>> needsBikeBackLink = new HashSet<>();
+        Random r = MatsimRandom.getRandom();
+        for (Link link : bikenet.getLinks().values()) {
+            if (NetworkUtils.findLinkInOppositeDirection(link) == null) {
+                needsBikeBackLink.add(link.getId());
+            }
+        }
+
+        for (var linkId : needsBikeBackLink) {
+            Link link = bikenet.getLinks().get(linkId);
+            Link carNetLink = network.getLinks().get(linkId);
+            Integer visumLinkId = VisumStreetNetworkExporter.extractVisumLinkId(linkId);
+            if (visumLinkId == null) {
+                visumLinkId = Integer.MAX_VALUE - r.nextInt(5000);
+            }
+            Id<Link> backLinkId = VisumStreetNetworkExporter.createLinkId(link.getToNode().getId().toString().split("_")[1], Integer.toString(visumLinkId));
+            Link bikeBackLink = bikenet.getFactory().createLink(backLinkId, link.getToNode(), link.getFromNode());
+            bikeBackLink.setLength(link.getLength());
+            bikeBackLink.setAllowedModes(Set.of(SBBModes.BIKE));
+            bikeBackLink.setFreespeed(link.getFreespeed());
+            bikeBackLink.setNumberOfLanes(link.getNumberOfLanes());
+            bikeBackLink.setCapacity(link.getCapacity());
+            bikeBackLink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
+            bikenet.addLink(bikeBackLink);
+
+
+            Link carNetBacklink = NetworkUtils.findLinkInOppositeDirection(carNetLink);
+            if (carNetBacklink == null) {
+                carNetBacklink = network.getFactory().createLink(backLinkId, carNetLink.getToNode(), carNetLink.getFromNode());
+                carNetBacklink.setLength(link.getLength());
+                carNetBacklink.setAllowedModes(Set.of(SBBModes.BIKE));
+                carNetBacklink.setFreespeed(link.getFreespeed());
+                carNetBacklink.setNumberOfLanes(link.getNumberOfLanes());
+                carNetBacklink.setCapacity(link.getCapacity());
+                carNetBacklink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
+                network.addLink(carNetBacklink);
+            } else {
+                network.getLinks().get(backLinkId).setAllowedModes(fullModeset);
+            }
+
+        }
+
         org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
         cleaner.run(bikenet);
-        List<Link> deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().size() == 0).collect(Collectors.toList());
+
+
+        List<Link> deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().size() == 0 || link.getFromNode().getInLinks().size() == 0).collect(Collectors.toList());
 
         while (!deadEnds.isEmpty()) {
             for (var link : deadEnds) {
                 bikenet.removeLink(link.getId());
             }
-            deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().size() == 0).collect(Collectors.toList());
+            deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().size() == 0 || link.getFromNode().getInLinks().size() == 0).collect(Collectors.toList());
 
         }
         for (Link l : network.getLinks().values()) {
@@ -118,6 +205,8 @@ public class StreetNetworkExporter {
 
             }
         }
+        new NetworkWriter(bikenet).write(outputDir + "/bikenet.xml.gz");
+
 
     }
 

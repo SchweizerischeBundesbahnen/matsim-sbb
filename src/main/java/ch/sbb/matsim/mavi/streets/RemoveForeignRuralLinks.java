@@ -21,13 +21,14 @@ package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.core.network.NetworkUtils;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.core.network.NetworkUtils;
 
 public class RemoveForeignRuralLinks {
 
@@ -56,13 +57,16 @@ public class RemoveForeignRuralLinks {
     public void removeLinks() {
         List<Link> toRemove = new ArrayList<>();
         for (Link link : network.getLinks().values()) {
-            int t = Integer.parseInt(NetworkUtils.getType(link));
-            if (irrelevantTypes.contains(t)) {
-                Zone zone = zones.findZone(link.getCoord());
-                if (zone == null) {
-                    toRemove.add(link);
-                }
+            String nettype = NetworkUtils.getType(link);
+            if (nettype != null) {
+                int t = Integer.parseInt(nettype);
+                if (irrelevantTypes.contains(t)) {
+                    Zone zone = zones.findZone(link.getCoord());
+                    if (zone == null) {
+                        toRemove.add(link);
+                    }
 
+                }
             }
         }
         for (Link l : toRemove) {

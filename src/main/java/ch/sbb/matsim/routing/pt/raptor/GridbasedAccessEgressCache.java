@@ -62,7 +62,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     private Vehicle bike;
     private List<Id<TransitStopFacility>> cachedStops;
     private Map<Id<TransitStopFacility>, int[][]> cachedDistancesAndTimes = new ConcurrentHashMap<>();
-    ;
+
 
 
     @Inject
@@ -99,6 +99,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
 
         prepareAccessTimes();
+        calculateGridTraveltimesViaTree();
 
     }
 
@@ -199,7 +200,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             dist[i][2] = (int) bikeTravelTime;
             dist[i][3] = (int) bikeDistance;
         }
-        logger.info("Found " + found + " of " + cellSize);
+        //logger.info("Found " + found + " of " + cellSize);
         return dist;
     }
 

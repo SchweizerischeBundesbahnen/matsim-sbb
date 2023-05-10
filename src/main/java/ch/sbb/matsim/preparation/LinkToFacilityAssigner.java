@@ -1,5 +1,6 @@
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.config.variables.Variables;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.Config;
@@ -24,8 +25,7 @@ public class LinkToFacilityAssigner {
         new MatsimFacilitiesReader(scenario).readFile(facilityFile);
         Network network = NetworkUtils.createNetwork();
         new MatsimNetworkReader(network).readFile(networkFile);
-        Network filteredNetwork = getAccessibleLinks(network, scenario.getConfig().network());
-        run(scenario.getActivityFacilities(), filteredNetwork, scenario.getConfig());
+        run(scenario.getActivityFacilities(), network, scenario.getConfig());
         new FacilitiesWriter(scenario.getActivityFacilities()).write(outputFile);
 
     }
@@ -45,7 +45,7 @@ public class LinkToFacilityAssigner {
 
     public static Network getAccessibleLinks(Network network, NetworkConfigGroup networkConfigGroup) {
         NetworkFilterManager networkFilterManager = new NetworkFilterManager(network, networkConfigGroup);
-        networkFilterManager.addLinkFilter(l -> (!String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("1")));
+        networkFilterManager.addLinkFilter(l -> (!String.valueOf(l.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED)).equals("1")));
         return networkFilterManager.applyFilters();
     }
 
