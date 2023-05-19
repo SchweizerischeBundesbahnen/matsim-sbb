@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.createLinkId;
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.extractVisumLinkAndNodeId;
 
 public class TimeProfileExporter {
 
@@ -192,8 +193,15 @@ public class TimeProfileExporter {
             for (Map.Entry<Id<Link>, String> entry : this.linkToVisumSequence.entrySet()) {
                 if (network.getLinks().containsKey(entry.getKey())) {
                     writer.set("matsim_link", entry.getKey().toString());
-					String fromNodeSequence = Arrays.stream(entry.getValue().split(",")).map(s -> s.split("_")[0]).collect(Collectors.joining(","));
-					String linkSequence = Arrays.stream(entry.getValue().split(",")).map(s -> s.split("_")[1]).collect(Collectors.joining(","));
+					LinkedHashMap<Integer, Integer> visumFromNodeToLinkMap = Arrays.stream(
+							entry.getValue().split(","))
+							.map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s)))
+							.collect(Collectors.collectingAndThen(
+									 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue),
+									 LinkedHashMap::new)
+							);
+					String fromNodeSequence = visumFromNodeToLinkMap.entrySet().stream().map(String::valueOf).collect(Collectors.joining(","));
+					String linkSequence = visumFromNodeToLinkMap.values().stream().map(String::valueOf).collect(Collectors.joining(","));
 					writer.set("fromnode_sequence_visum", fromNodeSequence);
 					writer.set("link_sequence_visum", linkSequence);
                     writer.writeRow();
