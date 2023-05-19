@@ -85,7 +85,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                 String railDemandAggregateFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
                 railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename);
-                String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes")
+                String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.att");
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
                 putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
