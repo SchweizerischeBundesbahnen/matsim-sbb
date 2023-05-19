@@ -22,6 +22,8 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.csv.CSVWriter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
@@ -36,14 +38,25 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.extractVisumLinkAndNodeId;
+
 public class PtLinkVolumeAnalyzer {
 
+    private static final String LINK_NO = "$LINK:NO";
+    private static final String FROMNODENO = "FROMNODENO";
+    private static final String LINK_ID_SIM = "LINK_ID_SIM";
+    private static final String VOLUME = "VOLUME";
+    private static final String[] VOLUMES_COLUMNS = new String[]{LINK_NO, FROMNODENO, LINK_ID_SIM, VOLUME};
+    private static final String HEADER = "$VISION\n* Schweizerische Bundesbahnen SBB Personenverkehr Bern\n* 12/09/22\n* \n* Table: Version block\n* \n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n12.00;Att;ENG;KM\n\n* \n* Table: Links\n* \n";
+    private final static Logger log = LogManager.getLogger(PtLinkVolumeAnalyzer.class);
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final Set<Id<Link>> ptlinks;
     private final Network network;
@@ -74,24 +87,35 @@ public class PtLinkVolumeAnalyzer {
 
     }
 
-    public void writePtLinkUsage(String outputfile, String runId, double scalefactor) {
+    public void writePtLinkUsage(String outputfile, double scalefactor) {
         NetworkFilterManager nfm = new NetworkFilterManager(network, new NetworkConfigGroup());
         nfm.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
         Network ptNetwork = nfm.applyFilters();
-        final String vol = runId + "_ptVolume";
-        final String linkId = "linkId";
-        String[] header = {linkId, vol};
         var ptVolumes = analysePtLinkUsage();
-        try (CSVWriter writer = new CSVWriter(null, header, outputfile + ".csv")) {
+        try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile)) {
             for (Entry<Id<Link>, Long> e : ptVolumes.entrySet()) {
                 Id<Link> currentLinkId = e.getKey();
-                writer.set(linkId, currentLinkId.toString());
                 int scaledVolume = (int) Math.round((double) e.getValue() * scalefactor);
-                writer.set(vol, Integer.toString(scaledVolume));
-                writer.writeRow();
                 Link l = ptNetwork.getLinks().get(currentLinkId);
                 if (l != null) {
-                    l.getAttributes().putAttribute(vol, scaledVolume);
+                    l.getAttributes().putAttribute(VOLUME, scaledVolume);
+                    String visumLinkSequence = (String) l.getAttributes().getAttribute("visum_link_sequence");
+                    LinkedHashMap<Integer, Integer> visumFromNodeToLinkMap = Arrays.stream(
+                            visumLinkSequence.split(","))
+                            .map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s)))
+                            .collect(Collectors.collectingAndThen(
+                                    Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue),
+                                    LinkedHashMap::new)
+                            );
+                    for (Entry<Integer, Integer> visumFromNodeToLinkIds : visumFromNodeToLinkMap.entrySet()) {
+                        writer.set(LINK_ID_SIM, currentLinkId.toString());
+                        writer.set(VOLUME, Integer.toString(scaledVolume));
+                        writer.set(FROMNODENO, Integer.toString(visumFromNodeToLinkIds.getKey()));
+                        writer.set(LINK_NO, Integer.toString(visumFromNodeToLinkIds.getValue()));
+                        writer.writeRow();
+                    }
+                } else {
+                    log.warn("Could not find link " + currentLinkId + ". Skipping.");
                 }
             }
         } catch (IOException e) {
