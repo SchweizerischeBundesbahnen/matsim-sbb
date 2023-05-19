@@ -47,14 +47,15 @@ public class VisumStreetNetworkExporter {
 		return Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
 	}
 
-	public static Integer extractVisumLinkId(Id<Link> linkId) {
-		Integer result = null;
+	public static Map.Entry<Integer, Integer> extractVisumLinkAndNodeId(Id<Link> linkId) {
 		try {
-			result = Integer.parseInt(linkId.toString().split("_")[1], 36);
+			int visumFromNodeId = Integer.parseInt(linkId.toString().split("_")[0], 36);
+			int visumLinkId = Integer.parseInt(linkId.toString().split("_")[1], 36);
+			return Map.entry(visumFromNodeId, visumLinkId);
 		} catch (NumberFormatException e) {
-
+			log.error("Failed to extract Visum Link and FromNode Ids from " + linkId + ". Returning NULL.");
+			throw e;
 		}
-		return result;
 	}
 
 	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {

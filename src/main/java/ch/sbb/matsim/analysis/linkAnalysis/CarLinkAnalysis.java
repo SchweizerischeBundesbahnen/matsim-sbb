@@ -109,7 +109,7 @@ public class CarLinkAnalysis {
                 if (link != null) {
                     if (link.getAllowedModes().contains(SBBModes.CAR)) {
                         var volume = entry.getValue();
-                        Integer visumLinkNo = VisumStreetNetworkExporter.extractVisumLinkId(link.getId());
+                        Integer visumLinkNo = VisumStreetNetworkExporter.extractVisumLinkAndNodeId(link.getId()).getValue();
                         if (visumLinkNo != null) {
                             String visumNo = String.valueOf(visumLinkNo);
                             writer.set(LINK_NO, visumNo);
