@@ -22,7 +22,6 @@ import org.matsim.core.controler.listener.StartupListener;
 
 public class SBBDefaultAnalysisListener implements IterationEndsListener, StartupListener {
 
-    private final Scenario scenario;
     private final OutputDirectoryHierarchy controlerIO;
     private final ControlerConfigGroup config;
     private final PostProcessingConfigGroup ppConfig;
@@ -58,7 +57,6 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
             final PostProcessingConfigGroup ppConfig,
             IterationLinkAnalyzer iterationLinkAnalyzer
     ) {
-        this.scenario = scenario;
         this.controlerIO = controlerIO;
         this.config = config;
         this.ppConfig = ppConfig;
@@ -88,8 +86,8 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
                 railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename);
                 String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes")
-                        : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes");
-                ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scenario.getConfig().controler().getRunId(), scalefactor);
+                        : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.att");
+                ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
                 putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
                 String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("car_volumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "car_volumes.att");
