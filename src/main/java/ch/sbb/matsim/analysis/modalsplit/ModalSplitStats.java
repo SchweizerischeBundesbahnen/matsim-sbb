@@ -70,6 +70,7 @@ public class ModalSplitStats {
     private Map<String, Map<String, double[][]>> zonesEgressMSPkmMap;
 
     private Map<String, double[][]> subpopulationChangeMap;
+    private Map<String, double[][]> subpopulationChangePKMMap;
     private Map<String, int[][]> timeMap;
     private Map<String, int[][]> travelTimeMap;
     private Map<String, Integer> variablesTimeStepsMap;
@@ -148,6 +149,7 @@ public class ModalSplitStats {
         this.zonesEgressMSPFMap = new HashMap<>();
         this.zonesEgressMSPkmMap = new HashMap<>();
         this.subpopulationChangeMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLableList.size());
+        this.subpopulationChangePKMMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLableList.size());
         this.timeMap = createTimeStepsForSubpopulaitonMap((int) (this.config.qsim().getEndTime().seconds() / timeSplit), this.variablesTimeStepsMap.size());
         this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 1, this.variablesTimeStepsMap.size());
 
@@ -347,9 +349,11 @@ public class ModalSplitStats {
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             int ptLegs = 0;
             int raillegs = 0;
+            double distance = 0;
             for (Leg leg : trip.getLegsOnly()) {
                 if (PT.contains(leg.getMode())) {
                     if (leg.getMode().equals(PT)) {
+                        distance += leg.getRoute().getDistance() / 1000;
                         ptLegs++;
                         TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
                         if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
@@ -359,6 +363,8 @@ public class ModalSplitStats {
                 }
             }
             double[][] changeArray = subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+            double[][] changeArrayPKM = subpopulationChangePKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+
             if (ptLegs > 6) {
                 ptLegs = 6;
                 if (raillegs > 6) {
@@ -367,11 +373,14 @@ public class ModalSplitStats {
             }
             if (raillegs > 0) {
                 changeArray[changeOrderList.indexOf(changeTrain)][raillegs - 1]++;
+                changeArrayPKM[changeOrderList.indexOf(changeTrain)][raillegs - 1]+=distance;
             } else if (ptLegs > 0) {
                 changeArray[changeOrderList.indexOf(changeOPNV)][ptLegs - 1]++;
+                changeArrayPKM[changeOrderList.indexOf(changeOPNV)][ptLegs - 1]+=distance;
             }
             if (ptLegs > 0) {
                 changeArray[changeOrderList.indexOf(changeOEV)][ptLegs - 1]++;
+                changeArrayPKM[changeOrderList.indexOf(changeOEV)][ptLegs - 1]+=distance;
             }
         }
     }
@@ -1092,6 +1101,26 @@ public class ModalSplitStats {
             mapChange.put("changesOPNV", 1);
             mapChange.put("changesOEV", 2);
             for (Entry<String, double[][]> entry : subpopulationChangeMap.entrySet()) {
+                for (Entry<String, Integer> change : mapChange.entrySet()) {
+                    csvWriter.set(runID, config.controler().getRunId());
+                    csvWriter.set(subpopulation, entry.getKey());
+                    csvWriter.set(umsteigetyp, change.getKey());
+                    for (int i = 0; i < 6; i++) {
+                        csvWriter.set(changeLableList.get(i), Integer.toString((int) (entry.getValue()[change.getValue()][i] / sampleSize)));
+                    }
+                    csvWriter.writeRow();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNChangesPKM)) {
+            Map<String, Integer> mapChange = new HashMap<>();
+            mapChange.put("changesTrain", 0);
+            mapChange.put("changesOPNV", 1);
+            mapChange.put("changesOEV", 2);
+            for (Entry<String, double[][]> entry : subpopulationChangePKMMap.entrySet()) {
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
                     csvWriter.set(runID, config.controler().getRunId());
                     csvWriter.set(subpopulation, entry.getKey());

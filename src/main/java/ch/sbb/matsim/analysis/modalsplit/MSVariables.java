@@ -97,6 +97,7 @@ public final class MSVariables {
     public static final String oNModalSplitZoneFeederPF = "modal_split_feeder_zone_PF.csv";
     public static final String oNDistanceClasses = "distance_classes.csv";
     public static final String oNChangesCount = "changes_count.csv";
+    public static final String oNChangesPKM = "changes_pkm.csv";
     public static final String oNStopStationsCount = "stop_stations_count.csv";
     public static final String oNTrainStrationsCount = "train_stations_count.csv";
     private MSVariables() {
