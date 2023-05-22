@@ -103,8 +103,8 @@ public class RunSBB {
 	public static void addSBBDefaultScenarioModules(Scenario scenario) {
 		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork(), scenario.getConfig());
 		SBBXY2LinksAssigner.run(scenario.getPopulation(), scenario.getNetwork(), scenario.getConfig().network());
-		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
 		LinkToStationsAssigner.runAssignment(scenario);
+		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
 		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
 		createInitialEndTimeAttribute(scenario.getPopulation());
 		ZonesModule.addZonestoScenario(scenario);
