@@ -104,10 +104,12 @@ public class StreetNetworkExporter {
         NetworkFilterManager fm = new NetworkFilterManager(network, new NetworkConfigGroup());
         fm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
         Network bikenet = fm.applyFilters();
+        new NetworkCleaner().run(bikenet);
 
         NetworkFilterManager fm2 = new NetworkFilterManager(network, new NetworkConfigGroup());
         fm2.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.CAR));
         Network carnet = fm2.applyFilters();
+        new NetworkCleaner().run(carnet);
 
         Set<Link> toRemove = new HashSet<>();
         for (Link link : network.getLinks().values()) {
