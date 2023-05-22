@@ -2,17 +2,14 @@ package ch.sbb.matsim.routing.network;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
-import java.util.HashSet;
-import java.util.Set;
-
-import com.google.inject.Key;
-import com.google.inject.name.Names;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
-import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author jbischoff / SBB
@@ -21,7 +18,7 @@ public class SBBNetworkRoutingModule extends AbstractModule {
 
 	public static void addNetworkMode(Network network, String transportMode, String routingMode) {
 		for (Link l : network.getLinks().values()) {
-			if (l.getAllowedModes().contains(routingMode)) {
+			if (!l.getId().toString().startsWith("pt")) {
 				Set<String> allowedModes = new HashSet<>(l.getAllowedModes());
 				allowedModes.add(transportMode);
 				l.setAllowedModes(allowedModes);
