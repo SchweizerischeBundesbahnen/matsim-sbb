@@ -18,7 +18,6 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.RoutingModule;
@@ -84,7 +83,6 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         NetworkFilterManager nfm = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
         nfm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.CAR));
         this.carnet = nfm.applyFilters();
-        new NetworkCleaner().run(carnet);
 
 
         VehicleType bikeType = scenario.getVehicles().getFactory().createVehicleType(Id.create("bikeType", VehicleType.class));
@@ -94,7 +92,6 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         NetworkFilterManager nfm2 = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
         nfm2.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
         this.bikenet = nfm2.applyFilters();
-        new NetworkCleaner().run(bikenet);
 
 
 
@@ -109,6 +106,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             this.accessTimesAtStops.put(stopId, accessTimesPerMode);
             var stop = scenario.getTransitSchedule().getFacilities().get(stopId);
             Link carFromLink = carnet.getLinks().get(Id.createLinkId(String.valueOf(stop.getAttributes().getAttribute(linkIdAttribute))));
+
             for (var param : sbbIntermodalConfiggroup.getModeParameterSets()) {
                 if (param.getAccessTimeZoneId() != null) {
                     int accessTime = (int) NetworkUtils.getLinkAccessTime(carFromLink, param.getMode()).seconds();
