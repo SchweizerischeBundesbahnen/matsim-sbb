@@ -24,8 +24,6 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.Gbl;
-import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.RoutingModule;
@@ -216,32 +214,16 @@ public class AccessEgressRouteCache {
 	}
 
 	private Network getRoutingNetwork(String mode, Config config) {
-		Map<String, Network> cache = this.singleModeNetworksCache.getSingleModeNetworksCache();
-		Network filteredNetwork = cache.get(mode);
-		if (filteredNetwork == null) {
-			// Ensure this is not performed concurrently by multiple threads!
-			synchronized (cache) {
-				filteredNetwork = cache.get(mode);
-				if (filteredNetwork == null) {
-					TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
-					Set<String> modes = new HashSet<>();
-					modes.add(mode);
-					filteredNetwork = NetworkUtils.createNetwork(config);
-					filter.filter(filteredNetwork, modes);
-					cache.put(mode, filteredNetwork);
-				}
-			}
-		}
-		return filteredNetwork;
+		return scenario.getNetwork();
 	}
 
 	public RouteCharacteristics getCachedRouteCharacteristics(String mode, Facility stopFacility, Facility actFacility, RoutingModule module, Person person) {
 		Id<Link> stopFacilityLinkId = stopFacility.getLinkId();
 		Id<Link> actFacilityLinkId = actFacility.getLinkId();
 		Map<Id<Link>, Map<Id<Link>, int[]>> modalStats = this.travelTimesDistances.get(mode);
-		Map<Id<Link>, int[]> facStats = modalStats.get(stopFacilityLinkId);
-		if (facStats == null) {
-			throw new RuntimeException("Stop at linkId " + stopFacilityLinkId + " is not a listed stop for intermodal access egress.");
+		Map<Id<Link>, int[]> facStats = modalStats.getOrDefault(stopFacilityLinkId, new HashMap<>());
+		if (facStats.isEmpty()) {
+			LOGGER.info("Stop at linkId " + stopFacilityLinkId + " is not a listed stop for intermodal access egress. Adding it.");
 		}
 		int[] value = facStats.get(actFacilityLinkId);
 		int accessTime = accessTimes.getOrDefault(mode, Collections.emptyMap()).getOrDefault(stopFacilityLinkId, 0);
