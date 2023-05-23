@@ -70,7 +70,6 @@ public class StreetNetworkExporter {
                     streetsExporterConfigGroup.getMainRoadSpeedFactor());
             reduceNetworkSpeeds.reduceSpeeds();
         }
-        filterBikeNetwork(network, outputDir);
 
         if (streetsExporterConfigGroup.isReduceForeignLinks()) {
             LogManager.getLogger(StreetNetworkExporter.class).info("Removing foreign rural links.");
@@ -89,7 +88,8 @@ public class StreetNetworkExporter {
         }
         adjustRoundaboutLinks(network);
 
-        finalIntermodalCleanup(network);
+        filterBikeNetwork(network, outputDir);
+        finalMultimodalCleanup(network);
 
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network with polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK_WITH_POLYLINES);
@@ -100,7 +100,7 @@ public class StreetNetworkExporter {
 
     }
 
-    private static void finalIntermodalCleanup(Network network) {
+    private static void finalMultimodalCleanup(Network network) {
         NetworkFilterManager fm = new NetworkFilterManager(network, new NetworkConfigGroup());
         fm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
         Network bikenet = fm.applyFilters();
@@ -111,29 +111,29 @@ public class StreetNetworkExporter {
         Network carnet = fm2.applyFilters();
         new NetworkCleaner().run(carnet);
 
-        Set<Link> toRemove = new HashSet<>();
         for (Link link : network.getLinks().values()) {
             if (link.getAllowedModes().contains(SBBModes.BIKE)) {
                 if (!bikenet.getLinks().containsKey(link.getId())) {
-                    if (link.getAllowedModes().size() == 1) {
-                        toRemove.add(link);
-                    } else {
-                        link.setAllowedModes(modeSetWithoutBike);
-                    }
-                }
-            } else if (link.getAllowedModes().contains(SBBModes.CAR)) {
-                if (!carnet.getLinks().containsKey(link.getId())) {
-                    if (link.getAllowedModes().contains(SBBModes.BIKE)) {
-                        link.setAllowedModes(Set.of(SBBModes.BIKE));
-                    } else {
-                        toRemove.add(link);
-                    }
+                    Set<String> allowedModes = new HashSet<>(link.getAllowedModes());
+                    allowedModes.remove(SBBModes.BIKE);
+                    link.setAllowedModes(allowedModes);
                 }
             }
-
+            if (link.getAllowedModes().contains(SBBModes.CAR)) {
+                if (!carnet.getLinks().containsKey(link.getId())) {
+                    Set<String> allowedModes = new HashSet<>(link.getAllowedModes());
+                    allowedModes.remove(SBBModes.CAR);
+                    allowedModes.remove(SBBModes.RIDE);
+                    link.setAllowedModes(allowedModes);
+                }
+            }
         }
+        Set<Link> toRemove = network.getLinks().values().stream().filter(link -> link.getAllowedModes().isEmpty()).collect(Collectors.toSet());
+        LogManager.getLogger(StreetNetworkExporter.class).info("Removing " + toRemove.size() + " links in multimodal cleanup.");
         toRemove.forEach(link -> network.removeLink(link.getId()));
         Set<Node> nodesToRemove = network.getNodes().values().stream().filter(node -> node.getOutLinks().size() == 0 && node.getInLinks().size() == 0).collect(Collectors.toSet());
+        LogManager.getLogger(StreetNetworkExporter.class).info("Removing " + nodesToRemove.size() + " nodes in multimodal cleanup.");
+
         nodesToRemove.forEach(node -> network.removeNode(node.getId()));
 
         network.getLinks().values().stream().filter(l -> (!String.valueOf(l.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED)).equals("1"))).filter(l -> l.getAllowedModes().size() < 3).forEach(link -> link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 0));
