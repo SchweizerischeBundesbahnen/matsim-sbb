@@ -1,6 +1,5 @@
 package ch.sbb.matsim.preparation;
 
-import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
@@ -15,8 +14,6 @@ import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.FacilitiesUtils;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
-
-import java.util.Set;
 
 public class LinkToFacilityAssigner {
 
@@ -49,9 +46,7 @@ public class LinkToFacilityAssigner {
     public static Network getAccessibleLinks(Network network, NetworkConfigGroup networkConfigGroup) {
         NetworkFilterManager networkFilterManager = new NetworkFilterManager(network, networkConfigGroup);
         networkFilterManager.addLinkFilter(l -> (String.valueOf(l.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED)).equals("0")));
-        networkFilterManager.addLinkFilter(l -> l.getAllowedModes().containsAll(Set.of(SBBModes.BIKE, SBBModes.CAR, SBBModes.RIDE)));
         Network filteredNet = networkFilterManager.applyFilters();
-        new org.matsim.core.network.algorithms.NetworkCleaner().run(filteredNet);
         return filteredNet;
 
     }
