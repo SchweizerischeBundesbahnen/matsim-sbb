@@ -12,7 +12,7 @@ public class RunSBBIT {
 	@Test
 	public void runSBBIt() {
 		System.setProperty("matsim.preferLocalDtds", "true");
-		Config config = RunSBB.buildConfig("test/input/scenarios/mobi31test/config_bike.xml");
+		Config config = RunSBB.buildConfig("test/input/scenarios/mobi31test/config.xml");
 		RunSBB.run(config);
 
     }

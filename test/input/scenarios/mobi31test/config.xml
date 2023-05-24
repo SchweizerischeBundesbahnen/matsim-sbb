@@ -104,7 +104,7 @@
     </module>
     <module name="SBBNetworkRouting">
         <!-- Teleported modes that are routed with the same disutiliy and travel time as car. Default is [ride] -->
-        <param name="networkRoutingModes" value="ride"/>
+        <param name="networkRoutingModes" value="ride,bike"/>
     </module>
 
     <module name="SBBPt">
@@ -383,17 +383,9 @@
         <!-- Some typical teleportation routing params are set by default, such as for walk and bike.  Setting this switch to "true" will clear them.  Note that this will also clear settings for helper modes such as for non_network_walk -->
         <param name="clearDefaultTeleportedModeParams" value="false"/>
         <!-- All the modes for which the router is supposed to generate network routes (like car) -->
-        <param name="networkModes" value="car,ride,ride_feeder,car_feeder"/>
+        <param name="networkModes" value="car,ride,ride_feeder,car_feeder,bike"/>
         <!-- strength of the randomness for the utility of money in routing under toll.  Leads to Pareto-optimal route with randomly drawn money-vs-other-attributes tradeoff. Technically the width parameter of a log-normal distribution. 3.0 seems to be a good value.  -->
         <param name="routingRandomness" value="3.0"/>
-        <parameterset type="teleportedModeParameters">
-            <param name="beelineDistanceFactor" value="1.3"/>
-            <param name="mode" value="bike"/>
-            <!-- Free-speed factor for a teleported mode. Travel time = teleportedModeFreespeedFactor * <freespeed car travel time>. Insert a line like this for every such mode. Please do not set teleportedModeFreespeedFactor as well as teleportedModeSpeed for the same mode, but if you do, +teleportedModeFreespeedFactor wins over teleportedModeSpeed. -->
-            <param name="teleportedModeFreespeedFactor" value="null"/>
-            <!-- Speed for a teleported mode. Travel time = (<beeline distance> * beelineDistanceFactor) / teleportedModeSpeed. Insert a line like this for every such mode. -->
-            <param name="teleportedModeSpeed" value="3.6111111111"/>
-        </parameterset>
         <parameterset type="teleportedModeParameters">
             <param name="beelineDistanceFactor" value="1.3"/>
             <param name="mode" value="bike_feeder"/>
@@ -701,7 +693,7 @@
         <param name="travelTimeGetter" value="average"/>
     </module>
     <module name="vehicles">
-        <param name="vehiclesFile" value="vehicles.xml.gz"/>
+        <param name="vehiclesFile" value="vehicles.xml"/>
     </module>
     <module name="vspExperimental">
         <!-- (do not use except of you have to) There was a problem with pt interaction scoring.  Some people solved it by overwriting the parameters of the pt interaction activity type.  Doing this now throws an Exception.  If you still insist on doing this, set the following to true. -->
