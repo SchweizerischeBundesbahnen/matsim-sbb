@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
 public class GenerateAppenzellDRTStops {
 
     public static void main(String[] args) throws IOException {
-        String areaFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area\\service-area-publicar-cut.shp";
-        String existingStops = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area\\stops-appenzell-city.csv";
+        String areaFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area-gross\\drt-area.shp";
+        String existingStops = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area-gross\\drt-stops.csv";
         String networkFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\streets\\output\\network.xml.gz";
-        String stopsFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area\\drt-stops-only-city.xml";
+        String stopsFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20221221_Postauto_OnDemand\\20221221_Appenzell\\drt-area-gross\\drt-stops.xml";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);

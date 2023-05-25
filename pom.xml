@@ -24,7 +24,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>15.0-PR2342</matsim.version>
+        <matsim.version>15.0-PR2415</matsim.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>17</maven.compiler.source>
@@ -129,7 +129,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.11.768</version>
+            <version>1.12.261</version>
         </dependency>
 
     </dependencies>

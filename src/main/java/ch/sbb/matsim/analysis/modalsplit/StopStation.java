@@ -8,6 +8,7 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 public class StopStation {
 
     private static final List<String> modes = SBBModes.TRAIN_STATION_MODES;
+    private static final List<String> origdestModes = SBBModes.TRAIN_STATION_ORIGDEST_MODES;
     private int entered = 0;
     private int exited = 0;
     private final int[] enteredMode = new int[modes.size()];
@@ -66,6 +67,10 @@ public class StopStation {
 
     public static List<String> getModes() {
         return modes;
+    }
+
+    public static List<String> getOrigDestModes() {
+        return origdestModes;
     }
 
     public int[] getEnteredMode() {

@@ -24,10 +24,10 @@ public class ExtractLegsAtStation {
     public static final double TIMEVARIATION = 300;
 
     public static void main(String[] args) {
-        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.6-v100.1-10pct\\reporting\\eingaenge\\outputplans-mitte.xml.gz";
-        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\0.6-v100.1-10pct\\reporting\\eingaenge\\mitte-legs.xml.gz";
+        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\output-plans-biel.xml.gz";
+        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\biel-legs.xml.gz";
 
-        List<Id<Link>> stopFacilityIds = List.of(Id.create("pt_19054489", Link.class));
+        List<Id<Link>> stopFacilityIds = List.of(Id.createLinkId("pt_1279"), Id.createLinkId("pt_3654"));
 
         extractLegs(inputPlans, outputPlans, stopFacilityIds);
     }

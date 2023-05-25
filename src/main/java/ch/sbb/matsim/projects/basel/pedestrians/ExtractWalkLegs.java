@@ -52,14 +52,14 @@ public class ExtractWalkLegs {
     }
 
     public static void main(String[] args) {
-        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\v101\\v101-outputplans-experienced-basel-sbb.xml.gz";
+        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\v310\\pedsim\\v310-outputplans-experienced-basel-sbb.xml.gz";
 //        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\testperson.xml";
-        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\v101\\v101-basel-sbb-legs.xml.gz";
+        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\v310\\pedsim\\v310-basel-sbb-legs.xml.gz";
 //        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\testconversion.xml";
         String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\plans\\v200\\mobi-zones.shp";
         List<Id<Link>> stopFacilityIds = List.of(Id.create("pt_1388", Link.class), Id.create("pt_100001204", Link.class));
         Set<String> relevantZones = Set.of("27010106");
-        int scaleFactor = 2;
+        int scaleFactor = 4;
         Coord basel = new Coord(2611360.86388353, 1266277.81032902);
 
 

@@ -734,7 +734,7 @@
         <param name="travelTimeGetter" value="average"/>
     </module>
     <module name="vehicles">
-        <param name="vehiclesFile" value="vehicles.xml.gz"/>
+        <param name="vehiclesFile" value="vehicles.xml"/>
     </module>
     <module name="vspExperimental">
         <!-- (do not use except of you have to) There was a problem with pt interaction scoring.  Some people solved it by overwriting the parameters of the pt interaction activity type.  Doing this now throws an Exception.  If you still insist on doing this, set the following to true. -->

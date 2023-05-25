@@ -19,7 +19,7 @@
 
 package ch.sbb.matsim.analysis.linkAnalysis;
 
-import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer.VehicleType;
+import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer.AnalysisVehicleType;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
@@ -59,7 +59,8 @@ public class CarLinkAnalysis {
     private static final String VOLUME_CAR = "VOLUME_CAR";
     private static final String VOLUME_FREIGHT = "VOLUME_FREIGHT";
     private static final String VOLUME_RIDE = "VOLUME_RIDE";
-    private static final String[] VOLUMES_COLUMNS = new String[]{LINK_NO, FROMNODENO, TONODENO, LINK_ID_SIM, VOLUME_CAR, VOLUME_RIDE, VOLUME_FREIGHT};
+    private static final String VOLUME_BIKE = "VOLUME_BIKE";
+    private static final String[] VOLUMES_COLUMNS = new String[]{LINK_NO, FROMNODENO, TONODENO, LINK_ID_SIM, VOLUME_CAR, VOLUME_RIDE, VOLUME_BIKE, VOLUME_FREIGHT};
     private static final String HEADER = "$VISION\n* Schweizerische Bundesbahnen SBB Personenverkehr Bern\n* 12/09/22\n* \n* Table: Version block\n* \n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n12.00;Att;ENG;KM\n\n* \n* Table: Links\n* \n";
     private final Network network;
     private final Population population;
@@ -107,7 +108,8 @@ public class CarLinkAnalysis {
     public void writeSingleIterationCarStats(String fileName) {
         var linkVolumes = linkAnalyzer.getIterationCounts();
 
-        calculateRidePerLink(linkVolumes);
+        calculateVolumesPerLinkForNonNetworkModes(linkVolumes, SBBModes.RIDE, AnalysisVehicleType.ride);
+        calculateVolumesPerLinkForNonNetworkModes(linkVolumes, SBBModes.BIKE, AnalysisVehicleType.bike);
 
         try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, fileName)) {
             for (Map.Entry<Id<Link>, LinkStorage> entry : linkVolumes.entrySet()) {
@@ -138,6 +140,7 @@ public class CarLinkAnalysis {
                                     writer.set(LINK_ID_SIM, id);
                                     writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
                                     writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
+                                    writer.set(VOLUME_BIKE, Integer.toString((int) (volume.getBikeCount() / samplesize)));
                                     writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
                                     writer.writeRow();
                                     currentFromNode = currentToNode;
@@ -155,6 +158,7 @@ public class CarLinkAnalysis {
                             writer.set(TONODENO, toNode);
                             writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
                             writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
+                            writer.set(VOLUME_BIKE, Integer.toString((int) (volume.getBikeCount() / samplesize)));
                             writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
                             writer.writeRow();
                         }
@@ -167,19 +171,21 @@ public class CarLinkAnalysis {
         }
     }
 
-    private void calculateRidePerLink(Map<Id<Link>, LinkStorage> linkVolumes) {
+    private void calculateVolumesPerLinkForNonNetworkModes(Map<Id<Link>, LinkStorage> linkVolumes, String mode, IterationLinkAnalyzer.AnalysisVehicleType vehicleType) {
         for (var person : population.getPersons().values()) {
             var plan = person.getSelectedPlan();
             var legs = TripStructureUtils.getLegs(plan);
             for (var leg : legs) {
-                if (leg.getMode().equals(SBBModes.RIDE)) {
+                if (leg.getMode().equals(mode)) {
                     var route = leg.getRoute();
-                    var linkIds = route.getRouteDescription().split(" ");
-                    for (var link : linkIds) {
-                        var linkId = Id.createLinkId(link);
-                        var linkStorage = linkVolumes.getOrDefault(linkId, new LinkStorage(linkId));
-                        linkStorage.increase(VehicleType.ride);
-                        linkVolumes.put(linkId, linkStorage);
+                    if (route.getRouteDescription() != null) {
+                        var linkIds = route.getRouteDescription().split(" ");
+                        for (var link : linkIds) {
+                            var linkId = Id.createLinkId(link);
+                            var linkStorage = linkVolumes.getOrDefault(linkId, new LinkStorage(linkId));
+                            linkStorage.increase(vehicleType);
+                            linkVolumes.put(linkId, linkStorage);
+                        }
                     }
                 }
             }
@@ -217,16 +223,18 @@ public class CarLinkAnalysis {
         private int freightCount = 0;
         private int carCount = 0;
         private int rideCount = 0;
+        private int bikeCount = 0;
 
         LinkStorage(Id<Link> linkId){
             this.linkId = linkId;
         }
 
-        public void increase(VehicleType vehicleType) {
+        public void increase(IterationLinkAnalyzer.AnalysisVehicleType vehicleType) {
             switch (vehicleType) {
                 case freight -> freightCount++;
                 case car -> carCount++;
                 case ride -> rideCount++;
+                case bike -> bikeCount++;
                 default -> log.warn("Vehicle type cannot be recognized");
             }
         }
@@ -247,9 +255,10 @@ public class CarLinkAnalysis {
             return rideCount;
         }
 
-
+        public int getBikeCount() {
+            return bikeCount;
+        }
     }
-
 }
 
 

@@ -26,8 +26,8 @@ import java.util.HashSet;
  */
 public class BaselOSMNetworkReader {
 
-    private static final String inputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\osm\\basel-streets.osm.pbf";
-    private static final String outputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\osm\\basel-sbb-net.xml.gz";
+    private static final String inputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\biel.osm.pbf";
+    private static final String outputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\biel.xml.gz";
     private static final CoordinateTransformation coordinateTransformation = TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, "EPSG:2056");
 
     public static void main(String[] args) {
