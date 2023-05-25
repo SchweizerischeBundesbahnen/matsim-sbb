@@ -12,6 +12,7 @@ import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.matsim.vehicles.*;
@@ -195,14 +196,13 @@ public class TimeProfileExporter {
 				String visumLinkSequence = entry.getValue();
                 if (network.getLinks().containsKey(matsimLinkId)) {
                     writer.set("matsim_link", matsimLinkId.toString());
-					if (visumLinkSequence == null || visumLinkSequence.isEmpty()) {
-						visumLinkSequence = "-1_-1";  // parseable integers representing null
-					}
-					List<Map.Entry<Integer, Integer>> visumFromNodeToLinkTuples =
+					List<Tuple<Integer, Integer>> visumFromNodeToLinkTuples =
 							Arrays.stream(visumLinkSequence.split(","))
-							.map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s))).toList();
-					String fromNodeSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getKey())).collect(Collectors.joining(","));
-					String linkSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getValue())).collect(Collectors.joining(","));
+									.map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s)))
+									.filter(Objects::nonNull)
+									.toList();
+					String fromNodeSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getFirst())).collect(Collectors.joining(","));
+					String linkSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getSecond())).collect(Collectors.joining(","));
 					writer.set("fromnode_sequence_visum", fromNodeSequence);
 					writer.set("link_sequence_visum", linkSequence);
                     writer.writeRow();

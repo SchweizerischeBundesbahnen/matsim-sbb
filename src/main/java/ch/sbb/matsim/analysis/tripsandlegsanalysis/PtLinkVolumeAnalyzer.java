@@ -33,6 +33,7 @@ import org.matsim.core.config.groups.NetworkConfigGroup;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
@@ -97,17 +98,16 @@ public class PtLinkVolumeAnalyzer {
                 if (l != null) {
                     l.getAttributes().putAttribute(VOLUME, scaledVolume);
                     String visumLinkSequence = (String) l.getAttributes().getAttribute("visum_link_sequence");
-                    if (visumLinkSequence == null || visumLinkSequence.isEmpty()) {
-                        visumLinkSequence = "-1_-1";  // parseable integers representing null
-                    }
-                    List<Entry<Integer, Integer>> visumFromNodeToLinkTuples =
+                    List<Tuple<Integer, Integer>> visumFromNodeToLinkTuples =
                             Arrays.stream(visumLinkSequence.split(","))
-                                    .map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s))).toList();
-                    for (Entry<Integer, Integer> visumFromNodeToLinkIds : visumFromNodeToLinkTuples) {
+                                    .map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s)))
+                                    .filter(Objects::nonNull)
+                                    .toList();
+                    for (Tuple<Integer, Integer> visumFromNodeToLinkIds : visumFromNodeToLinkTuples) {
                         writer.set(LINK_ID_SIM, currentLinkId.toString());
                         writer.set(VOLUME, Integer.toString(scaledVolume));
-                        writer.set(FROMNODENO, Integer.toString(visumFromNodeToLinkIds.getKey()));
-                        writer.set(LINK_NO, Integer.toString(visumFromNodeToLinkIds.getValue()));
+                        writer.set(FROMNODENO, Integer.toString(visumFromNodeToLinkIds.getFirst()));
+                        writer.set(LINK_NO, Integer.toString(visumFromNodeToLinkIds.getSecond()));
                         writer.writeRow();
                     }
                 } else {
