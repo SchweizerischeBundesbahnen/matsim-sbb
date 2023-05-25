@@ -143,7 +143,7 @@ public class TimeProfileExporter {
 						useIt = true;
 					}
 					if (useIt) {
-						if (!lri.outLink.equals(lastLink) && !lri.outLink.isBlank()) {
+						if (!lri.outLink.equals(lastLink) && !lri.outLink.isBlank() && !lri.node.isBlank()) {
 							if (seq.length() > 0) {
 								seq.append(',');
 							}
@@ -191,17 +191,18 @@ public class TimeProfileExporter {
         try (CSVWriter writer = new CSVWriter("", new String[]{"matsim_link", "link_sequence_visum", "fromnode_sequence_visum"},
                 outputfolder + "/link_sequences.csv")) {
             for (Map.Entry<Id<Link>, String> entry : this.linkToVisumSequence.entrySet()) {
-                if (network.getLinks().containsKey(entry.getKey())) {
-                    writer.set("matsim_link", entry.getKey().toString());
-					LinkedHashMap<Integer, Integer> visumFromNodeToLinkMap = Arrays.stream(
-							entry.getValue().split(","))
-							.map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s)))
-							.collect(Collectors.collectingAndThen(
-									 Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue),
-									 LinkedHashMap::new)
-							);
-					String fromNodeSequence = visumFromNodeToLinkMap.entrySet().stream().map(String::valueOf).collect(Collectors.joining(","));
-					String linkSequence = visumFromNodeToLinkMap.values().stream().map(String::valueOf).collect(Collectors.joining(","));
+				Id<Link> matsimLinkId = entry.getKey();
+				String visumLinkSequence = entry.getValue();
+                if (network.getLinks().containsKey(matsimLinkId)) {
+                    writer.set("matsim_link", matsimLinkId.toString());
+					if (visumLinkSequence == null || visumLinkSequence.isEmpty()) {
+						visumLinkSequence = "-1_-1";  // parseable integers representing null
+					}
+					List<Map.Entry<Integer, Integer>> visumFromNodeToLinkTuples =
+							Arrays.stream(visumLinkSequence.split(","))
+							.map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s))).toList();
+					String fromNodeSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getKey())).collect(Collectors.joining(","));
+					String linkSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getValue())).collect(Collectors.joining(","));
 					writer.set("fromnode_sequence_visum", fromNodeSequence);
 					writer.set("link_sequence_visum", linkSequence);
                     writer.writeRow();

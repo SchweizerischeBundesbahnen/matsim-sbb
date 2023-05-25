@@ -38,11 +38,8 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -100,17 +97,13 @@ public class PtLinkVolumeAnalyzer {
                 if (l != null) {
                     l.getAttributes().putAttribute(VOLUME, scaledVolume);
                     String visumLinkSequence = (String) l.getAttributes().getAttribute("visum_link_sequence");
-                    if (visumLinkSequence == null) {
+                    if (visumLinkSequence == null || visumLinkSequence.isEmpty()) {
                         visumLinkSequence = "-1_-1";  // parseable integers representing null
                     }
-                    LinkedHashMap<Integer, Integer> visumFromNodeToLinkMap = Arrays.stream(
-                            visumLinkSequence.split(","))
-                            .map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s)))
-                            .collect(Collectors.collectingAndThen(
-                                    Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue),
-                                    LinkedHashMap::new)
-                            );
-                    for (Entry<Integer, Integer> visumFromNodeToLinkIds : visumFromNodeToLinkMap.entrySet()) {
+                    List<Entry<Integer, Integer>> visumFromNodeToLinkTuples =
+                            Arrays.stream(visumLinkSequence.split(","))
+                                    .map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s))).toList();
+                    for (Entry<Integer, Integer> visumFromNodeToLinkIds : visumFromNodeToLinkTuples) {
                         writer.set(LINK_ID_SIM, currentLinkId.toString());
                         writer.set(VOLUME, Integer.toString(scaledVolume));
                         writer.set(FROMNODENO, Integer.toString(visumFromNodeToLinkIds.getKey()));
