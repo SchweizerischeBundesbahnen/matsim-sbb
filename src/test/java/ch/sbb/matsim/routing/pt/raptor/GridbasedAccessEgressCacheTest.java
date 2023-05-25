@@ -23,6 +23,7 @@ public class GridbasedAccessEgressCacheTest {
 
     private static GridbasedAccessEgressCache getGridbasedAccessEgressCache() {
         Config config = createConfig();
+        config.global().setNumberOfThreads(1);
         var raptorConfig = new SwissRailRaptorConfigGroup();
         SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet carSet = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
         carSet.setMode(SBBModes.CARFEEDER);
@@ -94,14 +95,15 @@ public class GridbasedAccessEgressCacheTest {
     public void testCacheReaderWriter() {
         Config config = RunSBB.buildConfig("test/input/scenarios/mobi31test/config.xml");
         var raptorConfig = new SwissRailRaptorConfigGroup();
-        SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet carSet = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
         RunSBB.addSBBDefaultScenarioModules(scenario);
         scenario.getNetwork().getLinks().values().forEach(link -> {
             Set<String> allowedmodes = new HashSet<>(link.getAllowedModes());
-            allowedmodes.add(SBBModes.BIKE);
-            link.setAllowedModes(allowedmodes);
+            if (allowedmodes.contains(SBBModes.CAR)) {
+                allowedmodes.add(SBBModes.BIKE);
+                link.setAllowedModes(allowedmodes);
+            }
         });
         GridbasedAccessEgressCache cache = new GridbasedAccessEgressCache(scenario);
         var timeb = System.currentTimeMillis();

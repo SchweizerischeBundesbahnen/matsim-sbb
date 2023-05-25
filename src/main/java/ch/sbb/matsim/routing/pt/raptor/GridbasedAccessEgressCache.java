@@ -128,7 +128,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         Gbl.printMemoryUsage();
         List<List<Id<TransitStopFacility>>> partitions = new ArrayList<>();
         if (cachedStops.size() < threads) {
-            threads = cachedStops.size();
+            threads = Math.max(cachedStops.size(), 1);
         }
         int size = cachedStops.size() / threads;
         for (int i = 0; i < threads; i++) {
