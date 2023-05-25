@@ -10,8 +10,8 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -24,8 +24,6 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.Gbl;
-import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.RoutingModule;
@@ -93,7 +91,7 @@ public class AccessEgressRouteCache {
 						.collect(Collectors.toSet());
 				LOGGER.info("Found " + stopLinkIds.size() + " stops with intermodal access option for this mode.");
 				Network network = getRoutingNetwork(paramset.getMode(), config);
-				Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeZoneId(), network);
+				Map<Id<Link>, Integer> modeAccessTimes = calcModeAccessTimes(stopLinkIds, paramset.getAccessTimeZoneId(), scenario.getNetwork());
 				accessTimes.put(paramset.getMode(), modeAccessTimes);
 
 				if (paramset.getIntermodalAccessCacheFileString() == null) {
@@ -151,14 +149,15 @@ public class AccessEgressRouteCache {
         LOGGER.info("Building Traveltime cache for feeder mode " + paramset.getMode() + "....");
         final double maxRadius = raptorParams.getMaxRadius();
         final FreeSpeedTravelTime freeSpeedTravelTime = new FreeSpeedTravelTime();
-        final FreespeedTravelTimeAndDisutility travelTimeAndDisutility = new FreespeedTravelTimeAndDisutility(config.planCalcScore());
-        Map<Id<Link>, LeastCostPathTree> travelTimes = stopLinkIds.parallelStream()
-                .collect(Collectors.toMap(l -> l, l -> {
-                    LeastCostPathTree leastCostPathTree = new LeastCostPathTree(graph, freeSpeedTravelTime, travelTimeAndDisutility);
-                    Node fromNode = network.getLinks().get(l).getToNode();
-                    leastCostPathTree.calculate(fromNode.getId().index(), 0, PERSON, VEHICLE, new LeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
-                    return leastCostPathTree;
-
+		final FreespeedTravelTimeAndDisutility travelTimeAndDisutility = new FreespeedTravelTimeAndDisutility(config.planCalcScore());
+		Map<Id<Link>, LeastCostPathTree> travelTimes = stopLinkIds.parallelStream()
+				.filter(l -> network.getLinks().containsKey(l))
+				.collect(Collectors.toMap(l -> l, l -> {
+					LeastCostPathTree leastCostPathTree = new LeastCostPathTree(graph, freeSpeedTravelTime, travelTimeAndDisutility);
+					Link link = network.getLinks().get(l);
+					Node fromNode = link.getToNode();
+					leastCostPathTree.calculate(fromNode.getId().index(), 0, PERSON, VEHICLE, new LeastCostPathTree.TravelDistanceStopCriterion(maxRadius * 1.5));
+					return leastCostPathTree;
 				}));
 		Map<Id<Link>, Map<Id<Link>, int[]>> travelTimeLinks = new HashMap<>();
 		for (Map.Entry<Id<Link>, LeastCostPathTree> entry : travelTimes.entrySet()) {
@@ -215,32 +214,16 @@ public class AccessEgressRouteCache {
 	}
 
 	private Network getRoutingNetwork(String mode, Config config) {
-		Map<String, Network> cache = this.singleModeNetworksCache.getSingleModeNetworksCache();
-		Network filteredNetwork = cache.get(mode);
-		if (filteredNetwork == null) {
-			// Ensure this is not performed concurrently by multiple threads!
-			synchronized (cache) {
-				filteredNetwork = cache.get(mode);
-				if (filteredNetwork == null) {
-					TransportModeNetworkFilter filter = new TransportModeNetworkFilter(this.scenario.getNetwork());
-					Set<String> modes = new HashSet<>();
-					modes.add(mode);
-					filteredNetwork = NetworkUtils.createNetwork(config);
-					filter.filter(filteredNetwork, modes);
-					cache.put(mode, filteredNetwork);
-				}
-			}
-		}
-		return filteredNetwork;
+		return scenario.getNetwork();
 	}
 
 	public RouteCharacteristics getCachedRouteCharacteristics(String mode, Facility stopFacility, Facility actFacility, RoutingModule module, Person person) {
 		Id<Link> stopFacilityLinkId = stopFacility.getLinkId();
 		Id<Link> actFacilityLinkId = actFacility.getLinkId();
 		Map<Id<Link>, Map<Id<Link>, int[]>> modalStats = this.travelTimesDistances.get(mode);
-		Map<Id<Link>, int[]> facStats = modalStats.get(stopFacilityLinkId);
-		if (facStats == null) {
-			throw new RuntimeException("Stop at linkId " + stopFacilityLinkId + " is not a listed stop for intermodal access egress.");
+		Map<Id<Link>, int[]> facStats = modalStats.getOrDefault(stopFacilityLinkId, new HashMap<>());
+		if (facStats.isEmpty()) {
+			LOGGER.info("Stop at linkId " + stopFacilityLinkId + " is not a listed stop for intermodal access egress. Adding it.");
 		}
 		int[] value = facStats.get(actFacilityLinkId);
 		int accessTime = accessTimes.getOrDefault(mode, Collections.emptyMap()).getOrDefault(stopFacilityLinkId, 0);

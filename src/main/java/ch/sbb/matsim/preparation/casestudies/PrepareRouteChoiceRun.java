@@ -45,6 +45,7 @@ public class PrepareRouteChoiceRun {
 
     private final TransitSchedule schedule;
     private final String selectedPlansPath;
+    private final String mode;
 
     /**
      * @param inputPlans outputPlans of base run
@@ -53,7 +54,7 @@ public class PrepareRouteChoiceRun {
      * @param zonesFile zones file
      * @param simFolder sim folder for routchoice run
      */
-    public PrepareRouteChoiceRun(String inputPlans, String inputConfig, String transit, String zonesFile, String simFolder, String selectedPlansPath) {
+    public PrepareRouteChoiceRun(String inputPlans, String inputConfig, String transit, String zonesFile, String simFolder, String selectedPlansPath, String mode) {
         this.inputPlans = inputPlans;
         this.inputConfig = inputConfig;
         this.transit = transit;
@@ -63,7 +64,7 @@ public class PrepareRouteChoiceRun {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(Paths.get(transit, "transitSchedule.xml.gz").toString());
         this.schedule = scenario.getTransitSchedule();
-
+        this.mode = mode;
     }
 
     /**
@@ -79,12 +80,16 @@ public class PrepareRouteChoiceRun {
         if (args.length>4) {
             selectedPlansPath = args[5];
         }
-        new PrepareRouteChoiceRun(inputPlans, inputConfig, transit, zonesFile, simFolder, selectedPlansPath).run();
+        String mode = "pt";
+        if (args.length>5) {
+            mode = args[6];
+        }
+        new PrepareRouteChoiceRun(inputPlans, inputConfig, transit, zonesFile, simFolder, selectedPlansPath, mode).run();
     }
 
     private void run() {
         modifyConfig();
-        selectPtPlans();
+        selectModePlans(mode);
     }
     private void modifyConfig() {
         String outputConfig = Paths.get(simFolder, "config_scoring_parsed.xml").toString();
@@ -127,7 +132,7 @@ public class PrepareRouteChoiceRun {
 
     }
 
-    private void selectPtPlans() {
+    private void selectModePlans(String mode) {
         Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
 
         String prepared = Paths.get(simFolder, "prepared").toString();
@@ -139,11 +144,13 @@ public class PrepareRouteChoiceRun {
 
         List<Id<Person>> selectedPersons = new ArrayList<>();
         if (this.selectedPlansPath != null) {
-            StreamingPopulationReader selectedPersonsReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
-            selectedPersonsReader.addAlgorithm(person -> {
-                selectedPersons.add(person.getId());
-            });
-            selectedPersonsReader.readFile(this.selectedPlansPath);
+            if (!this.selectedPlansPath.equals("-")) {
+                StreamingPopulationReader selectedPersonsReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
+                selectedPersonsReader.addAlgorithm(person -> {
+                    selectedPersons.add(person.getId());
+                });
+                selectedPersonsReader.readFile(this.selectedPlansPath);
+            }
         }
 
         StreamingPopulationWriter spw = new StreamingPopulationWriter();
@@ -156,7 +163,7 @@ public class PrepareRouteChoiceRun {
                 var ptlegs = TripStructureUtils.getLegs(person.getSelectedPlan());
                 boolean include = false;
                 for (Leg l : ptlegs) {
-                    if (l.getMode().equals("pt")) {
+                    if (l.getMode().equals(mode)) {
                         include = true;
                         break;
                     }

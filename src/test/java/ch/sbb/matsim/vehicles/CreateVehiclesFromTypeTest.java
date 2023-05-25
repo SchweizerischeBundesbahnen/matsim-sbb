@@ -23,6 +23,7 @@ public class CreateVehiclesFromTypeTest {
 	private final static String VEHTYPE_GASOLINE = "carGasoline";
 	private final static String VEHTYPE_DIESEL = "carDiesel";
 	private final static String VEHTYPE_ELECTRIC = "carElectric";
+	private final static String VEHTYPE_BIKE = "bike";
 	private final static String VEHTYPE_ATTRIBUTE = "vehTypeId";
 
 	private final static String DEFAULT_VEHICLE_TYPE = "defaultCar";
@@ -35,6 +36,7 @@ public class CreateVehiclesFromTypeTest {
 		Id<VehicleType> carGasolineId = Id.create(VEHTYPE_GASOLINE, VehicleType.class);
 		Id<VehicleType> carDieselId = Id.create(VEHTYPE_DIESEL, VehicleType.class);
 		Id<VehicleType> carElectricId = Id.create(VEHTYPE_ELECTRIC, VehicleType.class);
+		Id<VehicleType> bikeId = Id.create(VEHTYPE_BIKE, VehicleType.class);
 
 		VehicleType carGasoline = vehFac.createVehicleType(carGasolineId);
 		carGasoline.setMaximumVelocity(180 / 3.6);
@@ -48,6 +50,10 @@ public class CreateVehiclesFromTypeTest {
 		carElectric.setMaximumVelocity(140 / 3.6);
 		carElectric.setPcuEquivalents(0.8);
 
+		VehicleType bike = vehFac.createVehicleType(bikeId);
+		bike.setMaximumVelocity(140 / 3.6);
+		bike.setPcuEquivalents(0.8);
+
 		VehicleType carDefault = vehFac.createVehicleType(Id.create(DEFAULT_VEHICLE_TYPE, VehicleType.class));
 		carElectric.setMaximumVelocity(145 / 3.6);
 		carElectric.setPcuEquivalents(1.0);
@@ -56,6 +62,7 @@ public class CreateVehiclesFromTypeTest {
 		vehicles.addVehicleType(carDiesel);
 		vehicles.addVehicleType(carElectric);
 		vehicles.addVehicleType(carDefault);
+		vehicles.addVehicleType(bike);
 
 		Population population = scenario.getPopulation();
 		PopulationFactory populationFactory = population.getFactory();
@@ -90,12 +97,17 @@ public class CreateVehiclesFromTypeTest {
 				scenario.getConfig().qsim().getMainModes());
 		vehicleCreator.createVehicles();
 
-		Assert.assertEquals(5, scenario.getVehicles().getVehicles().size());
+		Assert.assertEquals(10, scenario.getVehicles().getVehicles().size());
 		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create("v"+1, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_BIKE, scenario.getVehicles().getVehicles().get(Id.create("vb"+1, Vehicle.class)).getType().getId().toString());
 		Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create("v"+2, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_BIKE, scenario.getVehicles().getVehicles().get(Id.create("vb"+2, Vehicle.class)).getType().getId().toString());
 		Assert.assertEquals(VEHTYPE_ELECTRIC, scenario.getVehicles().getVehicles().get(Id.create("v"+3, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_BIKE, scenario.getVehicles().getVehicles().get(Id.create("vb"+3, Vehicle.class)).getType().getId().toString());
 		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create("v"+4, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_BIKE, scenario.getVehicles().getVehicles().get(Id.create("vb"+4, Vehicle.class)).getType().getId().toString());
 		Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create("v"+5, Vehicle.class)).getType().getId().toString());
+		Assert.assertEquals(VEHTYPE_BIKE, scenario.getVehicles().getVehicles().get(Id.create("vb"+5, Vehicle.class)).getType().getId().toString());
 	}
 
 	@Test
@@ -109,7 +121,7 @@ public class CreateVehiclesFromTypeTest {
 				scenario.getConfig().qsim().getMainModes());
 		vehicleCreator.createVehicles();
 
-		Assert.assertEquals(5, scenario.getVehicles().getVehicles().size());
+		Assert.assertEquals(10, scenario.getVehicles().getVehicles().size());
 		Assert.assertEquals(VEHTYPE_GASOLINE, scenario.getVehicles().getVehicles().get(Id.create("v"+1, Vehicle.class)).getType().getId().toString());
 		Assert.assertEquals(VEHTYPE_DIESEL, scenario.getVehicles().getVehicles().get(Id.create("v"+2, Vehicle.class)).getType().getId().toString());
 		Assert.assertEquals(VEHTYPE_ELECTRIC, scenario.getVehicles().getVehicles().get(Id.create("v"+3, Vehicle.class)).getType().getId().toString());
