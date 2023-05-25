@@ -27,17 +27,16 @@ import org.matsim.core.router.speedy.LeastCostPathTree;
 import org.matsim.core.router.speedy.SpeedyALTFactory;
 import org.matsim.core.router.speedy.SpeedyGraph;
 import org.matsim.core.router.util.LeastCostPathCalculator;
-import org.matsim.core.utils.io.IOUtils;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleType;
 
 import javax.inject.Inject;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -256,48 +255,6 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         return (cell >= 0 && cell < cellSize);
     }
 
-    public void writeCache(String fileName) {
-        try (BufferedWriter bw = IOUtils.getBufferedWriter(fileName)) {
-            for (var entry : this.cachedDistancesAndTimes.entrySet()) {
-                bw.write(entry.getKey().toString() + ";");
-                String value = Arrays.stream(entry.getValue())
-                        .flatMapToInt(ii -> Arrays.stream(ii))
-                        .mapToObj(a -> Integer.toString(a))
-                        .collect(Collectors.joining(";"));
-                bw.write(value);
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    public void readCache(String fileName) {
-        try (BufferedReader bufferedReader = IOUtils.getBufferedReader(fileName)) {
-            String line = bufferedReader.readLine();
-            while (line != null) {
-                String[] entries = line.split(";");
-                if (entries.length > 0) {
-                    var stopId = Id.create(entries[0], TransitStopFacility.class);
-                    int[][] cache = new int[cellSize][4];
-                    int cell = 0;
-                    for (int i = 1; i < entries.length; i = i + 4) {
-                        cache[cell][0] = Integer.parseInt(entries[i]);
-                        cache[cell][1] = Integer.parseInt(entries[i + 1]);
-                        cache[cell][2] = Integer.parseInt(entries[i + 2]);
-                        cache[cell][3] = Integer.parseInt(entries[i + 3]);
-                        cell++;
-                    }
-                    cachedDistancesAndTimes.put(stopId, cache);
-                }
-                line = bufferedReader.readLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
 
 
 }
