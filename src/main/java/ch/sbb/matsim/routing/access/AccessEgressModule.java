@@ -2,6 +2,7 @@ package ch.sbb.matsim.routing.access;
 
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -80,7 +81,8 @@ public class AccessEgressModule extends AbstractModule {
 					}
 				}
 			}
-
+			NetworkUtils.setLinkAccessTime(l, SBBModes.BIKE, 1.0);
+			NetworkUtils.setLinkEgressTime(l, SBBModes.BIKE, 1.0);
 			l.getAttributes().putAttribute(IS_CH, isInCH);
 		}
 
