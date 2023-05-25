@@ -88,6 +88,8 @@ public class AccessEgressModule extends AbstractModule {
 				double egressTime = zone != null ? ((Number) zone.getAttribute(egressTimeZoneId)).intValue() : .0;
 				NetworkUtils.setLinkEgressTime(l, mode, egressTime);
 				NetworkUtils.setLinkAccessTime(l, mode, accessTime);
+				NetworkUtils.setLinkEgressTime(l, SBBModes.BIKE, 0.);
+				NetworkUtils.setLinkAccessTime(l, SBBModes.BIKE, 0.);
 			}
 		}
 	}

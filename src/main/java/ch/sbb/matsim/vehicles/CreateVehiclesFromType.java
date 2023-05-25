@@ -2,6 +2,8 @@ package ch.sbb.matsim.vehicles;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
+
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
@@ -40,6 +42,7 @@ public class CreateVehiclesFromType {
 	 */
 	public void createVehicles() {
 		VehiclesFactory vf = this.vehicles.getFactory();
+		VehicleType vehicleTypeBike = this.vehicles.getVehicleTypes().get(Id.create(SBBModes.BIKE, VehicleType.class));
 		for (Person person : population.getPersons().values()) {
 			Id<Person> personId = person.getId();
 			Id<Vehicle> vehicleId = Id.create("v"+personId.toString(), Vehicle.class);
@@ -54,7 +57,15 @@ public class CreateVehiclesFromType {
 			}
 			Vehicle vehicle = vf.createVehicle(vehicleId, vehicleType);
 			this.vehicles.addVehicle(vehicle);
-			VehicleUtils.insertVehicleIdsIntoAttributes(person, this.mainModes.stream().collect(Collectors.toMap(s -> s, t -> vehicleId)));
+
+			Id<Vehicle> vehicleIdBike = Id.create("vb"+personId.toString(), Vehicle.class);
+
+			Vehicle vehicleBike = vf.createVehicle(vehicleIdBike, vehicleTypeBike);
+			this.vehicles.addVehicle(vehicleBike);
+
+			var vehicleMap = this.mainModes.stream().collect(Collectors.toMap(s -> s, t -> vehicleId));
+			vehicleMap.put(SBBModes.BIKE, vehicleIdBike);
+			VehicleUtils.insertVehicleIdsIntoAttributes(person, vehicleMap);
 
 		}
 	}
