@@ -194,7 +194,10 @@ public class TimeProfileExporter {
             for (Map.Entry<Id<Link>, String> entry : this.linkToVisumSequence.entrySet()) {
 				Id<Link> matsimLinkId = entry.getKey();
 				String visumLinkSequence = entry.getValue();
-                if (network.getLinks().containsKey(matsimLinkId)) {
+				if (visumLinkSequence == null || visumLinkSequence.isEmpty()) {
+					visumLinkSequence = "-1_-1";  // parseable integers representing null
+				}
+				if (network.getLinks().containsKey(matsimLinkId)) {
                     writer.set("matsim_link", matsimLinkId.toString());
 					List<Tuple<Integer, Integer>> visumFromNodeToLinkTuples =
 							Arrays.stream(visumLinkSequence.split(","))

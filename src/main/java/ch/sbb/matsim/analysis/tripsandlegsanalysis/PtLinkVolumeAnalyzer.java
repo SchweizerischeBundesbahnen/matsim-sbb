@@ -98,6 +98,9 @@ public class PtLinkVolumeAnalyzer {
                 if (l != null) {
                     l.getAttributes().putAttribute(VOLUME, scaledVolume);
                     String visumLinkSequence = (String) l.getAttributes().getAttribute("visum_link_sequence");
+                    if (visumLinkSequence == null || visumLinkSequence.isEmpty()) {
+                        visumLinkSequence = "-1_-1";  // parseable integers representing null
+                    }
                     List<Tuple<Integer, Integer>> visumFromNodeToLinkTuples =
                             Arrays.stream(visumLinkSequence.split(","))
                                     .map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s)))
