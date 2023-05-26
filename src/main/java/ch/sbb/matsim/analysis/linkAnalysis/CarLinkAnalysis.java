@@ -34,6 +34,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.io.UncheckedIOException;
 
 import java.io.*;
@@ -111,9 +112,9 @@ public class CarLinkAnalysis {
                 if (link != null) {
                     if (link.getAllowedModes().contains(SBBModes.CAR)) {
                         var volume = entry.getValue();
-                        Integer visumLinkNo = VisumStreetNetworkExporter.extractVisumLinkId(link.getId());
-                        if (visumLinkNo != null) {
-                            String visumNo = String.valueOf(visumLinkNo);
+                        Tuple<Integer, Integer> visumLinkNodeIds = VisumStreetNetworkExporter.extractVisumLinkAndNodeId(link.getId());
+                        if (visumLinkNodeIds != null) {
+                            String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
                             writer.set(LINK_NO, visumNo);
                             String id = link.getId().toString();
                             writer.set(LINK_ID_SIM, id);
