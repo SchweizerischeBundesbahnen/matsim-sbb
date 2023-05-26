@@ -54,8 +54,7 @@ public class VisumStreetNetworkExporter {
 			int visumLinkId = Integer.parseInt(linkId.toString().split("_")[1], 36);
 			return Tuple.of(visumFromNodeId, visumLinkId);
 		} catch (NumberFormatException e) {
-			log.error("Failed to extract Visum Link and FromNode Ids from " + linkId + ". NULL.");
-			return null;
+		return null;
 		}
 	}
 
