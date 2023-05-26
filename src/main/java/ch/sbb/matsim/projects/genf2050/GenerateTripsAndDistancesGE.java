@@ -28,7 +28,7 @@ public class GenerateTripsAndDistancesGE {
         String runId = args[1];
         String prefix = folder + "/" + runId + ".";
         String networkFile = prefix + "output_network.xml.gz";
-        String ptVolumes = prefix + "ptlinkvolumes.csv";
+        String ptVolumes = prefix + "ptlinkvolumes.att";
         String carVolumes = prefix + "car_volumes.att";
         String zonesFile = args[2];
         Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
