@@ -412,50 +412,64 @@ public class ModalSplitStats {
             pkmArray[modeId][variablesMSMap.get(all)] += distance;
 
             // car available
-            for (String carAva : carAvailable) {
-                if (attributes.getAttribute(Variables.CAR_AVAIL) != null && (Variables.CAR_AVAIL + "_" + attributes.getAttribute(Variables.CAR_AVAIL).toString()).equals(carAva)) {
-                    pfArray[modeId][variablesMSMap.get(carAva)]++;
-                    pkmArray[modeId][variablesMSMap.get(carAva)] += distance;
+            String carAva = "0";
+            if (attributes.getAttribute(Variables.CAR_AVAIL) != null) {
+                carAva = attributes.getAttribute(Variables.CAR_AVAIL).toString();
+            }
+            for (String attCarAva : carAvailable) {
+                if ((Variables.CAR_AVAIL + "_" + carAva).equals(attCarAva)) {
+                    pfArray[modeId][variablesMSMap.get(attCarAva)]++;
+                    pkmArray[modeId][variablesMSMap.get(attCarAva)] += distance;
                     break;
                 }
             }
             // pt subscription
-            for (String ptSub : ptSubscription) {
-                if (attributes.getAttribute(Variables.PT_SUBSCRIPTION) != null && (Variables.PT_SUBSCRIPTION + "_" + attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString()).equals(ptSub)) {
-                    pfArray[modeId][variablesMSMap.get(ptSub)]++;
-                    pkmArray[modeId][variablesMSMap.get(ptSub)] += distance;
+            String ptSub = "none";
+            if (attributes.getAttribute(Variables.PT_SUBSCRIPTION) != null) {
+                ptSub = attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString();
+            }
+            for (String attPtSub : ptSubscription) {
+                if ((Variables.PT_SUBSCRIPTION + "_" + ptSub).equals(attPtSub)) {
+                    pfArray[modeId][variablesMSMap.get(attPtSub)]++;
+                    pkmArray[modeId][variablesMSMap.get(attPtSub)] += distance;
                     break;
                 }
             }
             // combination car available and pt subscription
-            for (String carPT : carAndPt) {
-                if (attributes.getAttribute(Variables.CAR_AVAIL) != null && attributes.getAttribute(Variables.PT_SUBSCRIPTION) != null && (Variables.CAR_AVAIL + "_" + attributes.getAttribute(
-                        Variables.CAR_AVAIL).toString() + "_" + Variables.PT_SUBSCRIPTION + "_" + attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString()).equals(carPT)) {
-                    pfArray[modeId][variablesMSMap.get(carPT)]++;
-                    pkmArray[modeId][variablesMSMap.get(carPT)] += distance;
+            for (String attCarPT : carAndPt) {
+                if ((Variables.CAR_AVAIL + "_" + carAva + "_" + Variables.PT_SUBSCRIPTION + "_" + ptSub).equals(attCarPT)) {
+                    pfArray[modeId][variablesMSMap.get(attCarPT)]++;
+                    pkmArray[modeId][variablesMSMap.get(attCarPT)] += distance;
                     break;
                 }
             }
             // kind of education
-            for (String edu : educationType) {
-                if (attributes.getAttribute(Variables.CURRENT_EDUCATION) != null && (Variables.CURRENT_EDUCATION + "_" + attributes.getAttribute(Variables.CURRENT_EDUCATION).toString()).equals(edu)) {
-                    pfArray[modeId][variablesMSMap.get(edu)]++;
-                    pkmArray[modeId][variablesMSMap.get(edu)] += distance;
+            String edu = "null";
+            if (attributes.getAttribute(Variables.CURRENT_EDUCATION) != null) {
+                edu = attributes.getAttribute(Variables.CURRENT_EDUCATION).toString();
+            }
+            for (String attEdu : educationType) {
+                if ((Variables.CURRENT_EDUCATION + "_" + edu).equals(attEdu)) {
+                    pfArray[modeId][variablesMSMap.get(attEdu)]++;
+                    pkmArray[modeId][variablesMSMap.get(attEdu)] += distance;
                     break;
                 }
             }
             // employment rate
-            for (String empRate : employmentRate) {
-                if (attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT) != null && (Variables.LEVEL_OF_EMPLOYMENT_CAT + "_" + attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT)
-                        .toString()).equals(empRate)) {
-                    pfArray[modeId][variablesMSMap.get(empRate)]++;
-                    pkmArray[modeId][variablesMSMap.get(empRate)] += distance;
+            String empRate = "0";
+            if (attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT) != null) {
+                empRate = attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT).toString();
+            }
+            for (String attEmpRate : employmentRate) {
+                if ((Variables.LEVEL_OF_EMPLOYMENT_CAT + "_" + empRate).equals(attEmpRate)) {
+                    pfArray[modeId][variablesMSMap.get(attEmpRate)]++;
+                    pkmArray[modeId][variablesMSMap.get(attEmpRate)] += distance;
                     break;
                 }
             }
             // age categorie
-            for (String age : ageCategorie) {
-                if (attributes.getAttribute(Variables.AGE_CATEGORIE) != null && (Variables.AGE_CATEGORIE + "_" + attributes.getAttribute(Variables.AGE_CATEGORIE).toString()).equals(age)) {
+            for (String age : ageCategory) {
+                if (attributes.getAttribute(Variables.AGE_CATEGORY) != null && (Variables.AGE_CATEGORY + "_" + attributes.getAttribute(Variables.AGE_CATEGORY).toString()).equals(age)) {
                     pfArray[modeId][variablesMSMap.get(age)]++;
                     pkmArray[modeId][variablesMSMap.get(age)] += distance;
                     break;
@@ -483,7 +497,7 @@ public class ModalSplitStats {
         subgroups.put(List.of(Variables.CAR_AVAIL, Variables.PT_SUBSCRIPTION), carAndPt);
         subgroups.put(List.of(Variables.CURRENT_EDUCATION), educationType);
         subgroups.put(List.of(Variables.LEVEL_OF_EMPLOYMENT_CAT), employmentRate);
-        subgroups.put(List.of(Variables.AGE_CATEGORIE), ageCategorie);
+        subgroups.put(List.of(Variables.AGE_CATEGORY), ageCategory);
         return subgroups;
     }
 
@@ -526,156 +540,158 @@ public class ModalSplitStats {
                 int firstRailLeg = findFirstRailLeg(legs);
                 int lastRailLeg = findLastRailLeg(legs);
 
-                int subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf("walk");
-                double distanceEnter = 0;
-                for (int i=0;i<firstRailLeg;i++){
-                    Leg leg = legs.get(i);
-                    if (leg.getRoute() != null) {
-                        distanceEnter += leg.getRoute().getDistance() / 1000;
-                    }
-                    if (leg.getMode().equals(PT)) {
-                        String subPTMode = getModeOfTransitRoute(leg.getRoute());
-                        subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf(subPTMode);
-                    } else {
-                        if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
-                            subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf(leg.getMode());
+                if (firstRailLeg > -1) {
+                    int subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf("walk");
+                    double distanceEnter = 0;
+                    for (int i = 0; i < firstRailLeg; i++) {
+                        Leg leg = legs.get(i);
+                        if (leg.getRoute() != null) {
+                            distanceEnter += leg.getRoute().getDistance() / 1000;
+                        }
+                        if (leg.getMode().equals(PT)) {
+                            String subPTMode = getModeOfTransitRoute(leg.getRoute());
+                            subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf(subPTMode);
+                        } else {
+                            if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
+                                subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf(leg.getMode());
+                            }
                         }
                     }
-                }
 
-                int subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf("walk");
-                double distanceExit = 0;
-                for (int i=lastRailLeg+1;i<legs.size();i++){
-                    Leg leg = legs.get(i);
-                    if (leg.getRoute() != null) {
-                         distanceExit += leg.getRoute().getDistance() / 1000;
+                    int subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf("walk");
+                    double distanceExit = 0;
+                    for (int i = lastRailLeg + 1; i < legs.size(); i++) {
+                        Leg leg = legs.get(i);
+                        if (leg.getRoute() != null) {
+                            distanceExit += leg.getRoute().getDistance() / 1000;
+                        }
+                        if (leg.getMode().equals(PT)) {
+                            String subPTMode = getModeOfTransitRoute(leg.getRoute());
+                            subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf(subPTMode);
+                        } else {
+                            if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
+                                subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf(leg.getMode());
+                            }
+
+
+                        }
                     }
-                    if (leg.getMode().equals(PT)) {
-                        String subPTMode = getModeOfTransitRoute(leg.getRoute());
-                        subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf(subPTMode);
-                    } else {
-                        if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
-                            subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf(leg.getMode());
+
+                    // count PF and PKM
+                    String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
+                    if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+                        tmpMode = SBBModes.WALK_FOR_ANALYSIS;
+                    }
+                    if (tmpMode.equals(PT)) {
+                        // get origin and dest zon Maps
+                        Zone originZone = zones.findZone(trip.getOriginActivity().getCoord());
+                        Zone destZone = zones.findZone(trip.getDestinationActivity().getCoord());
+                        String originZoneId = "";
+                        String destZoneId = "";
+
+                        if (originZone != null) {
+                            originZoneId = String.valueOf(originZone.getId());
+                        }
+                        if (destZone != null) {
+                            destZoneId = String.valueOf(destZone.getId());
                         }
 
+                        if (zonesAccessMSPFMap.get(originZoneId) == null) {
+                            zonesAccessMSPFMap.put(originZoneId, createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size()));
+                            zonesAccessMSPkmMap.put(originZoneId, createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size()));
+                        }
+                        if (zonesEgressMSPFMap.get(destZoneId) == null) {
+                            zonesEgressMSPFMap.put(destZoneId, createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size()));
+                            zonesEgressMSPkmMap.put(destZoneId, createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size()));
+                        }
 
-                    }
-                }
+                        double[][] pfOriginZoneArray = zonesAccessMSPFMap.get(originZoneId).get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+                        double[][] pfDestZoneArray = zonesEgressMSPFMap.get(destZoneId).get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
 
-                // count PF and PKM
-                String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-                if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
-                    tmpMode = SBBModes.WALK_FOR_ANALYSIS;
-                }
-                if (tmpMode.equals(PT)) {
-                    // get origin and dest zon Maps
-                    Zone originZone = zones.findZone(trip.getOriginActivity().getCoord());
-                    Zone destZone = zones.findZone(trip.getDestinationActivity().getCoord());
-                    String originZoneId = "";
-                    String destZoneId = "";
+                        double[][] pfAccessArray = subpopulaionAccessMSPFMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+                        pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(all)]++;
+                        pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(all)]++;
+                        double[][] pfEgressArray = subpopulaionEgressMSPFMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+                        pfEgressArray[subPTModeExited][variablesMSFeederMap.get(all)]++;
+                        pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(all)]++;
 
-                    if (originZone != null) {
-                        originZoneId = String.valueOf(originZone.getId());
-                    }
-                    if (destZone != null) {
-                        destZoneId = String.valueOf(destZone.getId());
-                    }
+                        double[][] pkmOriginZoneArray = zonesAccessMSPkmMap.get(originZoneId).get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+                        double[][] pkmDestZoneArray = zonesEgressMSPkmMap.get(destZoneId).get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
 
-                    if (zonesAccessMSPFMap.get(originZoneId) == null) {
-                        zonesAccessMSPFMap.put(originZoneId, createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size()));
-                        zonesAccessMSPkmMap.put(originZoneId, createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size()));
-                    }
-                    if (zonesEgressMSPFMap.get(destZoneId) == null) {
-                        zonesEgressMSPFMap.put(destZoneId, createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size()));
-                        zonesEgressMSPkmMap.put(destZoneId, createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size()));
-                    }
-
-                    double[][] pfOriginZoneArray = zonesAccessMSPFMap.get(originZoneId).get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-                    double[][] pfDestZoneArray = zonesEgressMSPFMap.get(destZoneId).get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-
-                    double[][] pfAccessArray = subpopulaionAccessMSPFMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-                    pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(all)]++;
-                    pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(all)]++;
-                    double[][] pfEgressArray = subpopulaionEgressMSPFMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-                    pfEgressArray[subPTModeExited][variablesMSFeederMap.get(all)]++;
-                    pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(all)]++;
-
-                    double[][] pkmOriginZoneArray = zonesAccessMSPkmMap.get(originZoneId).get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-                    double[][] pkmDestZoneArray = zonesEgressMSPkmMap.get(destZoneId).get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-
-                    double[][] pkmAccessArray = subpopulaionAccessMSPKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-                    pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(all)] += distanceEnter;
-                    pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(all)] += distanceEnter;
-                    double[][] pkmEgressArray = subpopulaionEgressMSPKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-                    pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(all)] += distanceExit;
-                    pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(all)] += distanceExit;
+                        double[][] pkmAccessArray = subpopulaionAccessMSPKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+                        pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(all)] += distanceEnter;
+                        pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(all)] += distanceEnter;
+                        double[][] pkmEgressArray = subpopulaionEgressMSPKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+                        pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(all)] += distanceExit;
+                        pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(all)] += distanceExit;
 
 
-                    Map<List<String>, List<String>> subgroups = getSubgroups();
+                        Map<List<String>, List<String>> subgroups = getSubgroups();
 
-                    for (Entry <List<String>, List<String>> subgroup: subgroups.entrySet()) {
-                        // car available
-                        for (String value : subgroup.getValue()) {
-                            List<String> variables = subgroup.getKey();
-                            String att = "";
-                            for (String variable : variables){
-                                if (attributes.getAttribute(variable) != null){
-                                    if (att.length() > 0){
-                                        att = att + "_";
+                        for (Entry<List<String>, List<String>> subgroup : subgroups.entrySet()) {
+                            // car available
+                            for (String value : subgroup.getValue()) {
+                                List<String> variables = subgroup.getKey();
+                                String att = "";
+                                for (String variable : variables) {
+                                    if (attributes.getAttribute(variable) != null) {
+                                        if (att.length() > 0) {
+                                            att = att + "_";
+                                        }
+                                        att = att + variable + "_" + attributes.getAttribute(variable).toString();
                                     }
-                                    att = att + variable + "_" + attributes.getAttribute(variable).toString();
+                                }
+                                if (att.equals(value)) {
+                                    pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(value)]++;
+                                    pfEgressArray[subPTModeExited][variablesMSFeederMap.get(value)]++;
+                                    pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(value)] += distanceEnter;
+                                    pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(value)] += distanceExit;
+                                    pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(value)]++;
+                                    pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(value)]++;
+                                    pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(value)] += distanceEnter;
+                                    pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(value)] += distanceExit;
+                                    break;
                                 }
                             }
-                            if (att.equals(value)) {
-                                pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(value)]++;
-                                pfEgressArray[subPTModeExited][variablesMSFeederMap.get(value)]++;
-                                pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(value)] += distanceEnter;
-                                pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(value)] += distanceExit;
-                                pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(value)]++;
-                                pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(value)]++;
-                                pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(value)] += distanceEnter;
-                                pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(value)] += distanceExit;
+                        }
+                        // activity type for end activity
+                        String acttyp = trip.getDestinationActivity().getType();
+                        for (String act : toActTypeList) {
+                            if (acttyp.contains(separator)) {
+                                acttyp = acttyp.substring(0, acttyp.indexOf("_"));
+                            }
+                            if ((toActType + separator + acttyp).equals(act)) {
+                                pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(act)]++;
+                                pfEgressArray[subPTModeExited][variablesMSFeederMap.get(act)]++;
+                                pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(act)] += distanceEnter;
+                                pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(act)] += distanceExit;
+                                pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(act)]++;
+                                pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(act)]++;
+                                pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(act)] += distanceEnter;
+                                pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(act)] += distanceExit;
                                 break;
                             }
                         }
-                    }
-                    // activity type for end activity
-                    String acttyp = trip.getDestinationActivity().getType();
-                    for (String act : toActTypeList) {
-                        if (acttyp.contains(separator)) {
-                            acttyp = acttyp.substring(0, acttyp.indexOf("_"));
-                        }
-                        if ((toActType + separator + acttyp).equals(act)) {
-                            pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(act)]++;
-                            pfEgressArray[subPTModeExited][variablesMSFeederMap.get(act)]++;
-                            pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(act)] += distanceEnter;
-                            pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(act)] += distanceExit;
-                            pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(act)]++;
-                            pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(act)]++;
-                            pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(act)] += distanceEnter;
-                            pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(act)] += distanceExit;
-                            break;
-                        }
-                    }
 
-                    // feeder distance
-                    for (int disClass : distanceClassesFeederValue) {
-                        if (distanceEnter <= disClass) {
-                            pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
-                            pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceEnter;
-                            pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
-                            pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceEnter;
-                            break;
+                        // feeder distance
+                        for (int disClass : distanceClassesFeederValue) {
+                            if (distanceEnter <= disClass) {
+                                pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
+                                pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceEnter;
+                                pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
+                                pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceEnter;
+                                break;
+                            }
                         }
-                    }
 
-                    for (int disClass : distanceClassesFeederValue) {
-                        if (distanceExit <= disClass) {
-                            pfEgressArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
-                            pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceExit;
-                            pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
-                            pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceExit;
-                            break;
+                        for (int disClass : distanceClassesFeederValue) {
+                            if (distanceExit <= disClass) {
+                                pfEgressArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
+                                pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceExit;
+                                pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
+                                pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceExit;
+                                break;
+                            }
                         }
                     }
                 }
