@@ -21,8 +21,6 @@ package ch.sbb.matsim.preparation.casestudies;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
-import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SBBSupplyConfigGroup;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import org.matsim.core.config.Config;
@@ -67,17 +65,7 @@ public class GenerateMiniConfig {
                 }
             }
         }
-        if (args.length > 7) {
-            String cache = args[7];
-            for (SBBIntermodalModeParameterSet paramSet : ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class).getModeParameterSets()) {
-                if (paramSet.getMode().toString().equals("car_feeder")) {
-                    paramSet.setIntermodalAccessCacheFile(Paths.get(cache, "intermodalCache_car_feeder.csv.gz").toString());
-                } else if (paramSet.getMode().toString().equals("ride_feeder")){
-                    paramSet.setIntermodalAccessCacheFile(Paths.get(cache, "intermodalCache_ride_feeder.csv.gz").toString());
-                }
 
-            }
-        }
         new ConfigWriter(config).write(outputFile);
     }
 
