@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.createLinkId;
-import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.extractVisumLinkAndNodeId;
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.extractVisumNodeAndLinkId;
 
 public class TimeProfileExporter {
 
@@ -201,7 +201,7 @@ public class TimeProfileExporter {
                     writer.set("matsim_link", matsimLinkId.toString());
 					List<Tuple<Integer, Integer>> visumFromNodeToLinkTuples =
 							Arrays.stream(visumLinkSequence.split(","))
-									.map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s)))
+									.map(s -> extractVisumNodeAndLinkId(Id.createLinkId(s)))
 									.filter(Objects::nonNull)
 									.toList();
 					String fromNodeSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getFirst())).collect(Collectors.joining(","));

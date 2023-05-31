@@ -31,9 +31,6 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 	static private final String PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE = "personActivityFilterAttribute";
 	static private final String PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE_DESC = "activities from/to which feeder mode is available";
 
-	static private final String PARAM_CACHE_FILE = "intermodalAccessCacheFile";
-	static private final String PARAM_CACHE_FILE_DESC = "Cached intermodal travel times to and from stations.";
-
 	private String mode = null;
 	private boolean routedOnNetwork = false;
 	private boolean simulatedOnNetwork = false;
@@ -119,16 +116,6 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 		this.personActivityFilterAttribute = personActivityFilterAttribute;
 	}
 
-	@StringSetter(PARAM_CACHE_FILE)
-	public void setIntermodalAccessCacheFile(String intermodalAccessCacheFile) {
-		this.intermodalAccessCacheFile = intermodalAccessCacheFile;
-	}
-
-	@StringGetter(PARAM_CACHE_FILE)
-	public String getIntermodalAccessCacheFileString() {
-		return intermodalAccessCacheFile;
-	}
-
 	public URL getIntermodalAccessCacheFile(URL context) {
 		return ConfigGroup.getInputFileURL(context, intermodalAccessCacheFile);
 	}
@@ -143,7 +130,6 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 		comments.put(PARAM_ACCESSTIME_ZoneATT, PARAM_ACCESSTIME_ZoneATT_DESC);
 		comments.put(PARAM_USEMINIMALTRANSFERTIMES, PARAM_USEMINIMALTRANSFERTIMES_DESC);
 		comments.put(PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE, PARAM_PERSON_ACTIVITY_FILTER_ATTRIBUTE_DESC);
-		comments.put(PARAM_CACHE_FILE, PARAM_CACHE_FILE_DESC);
 		return comments;
 	}
 

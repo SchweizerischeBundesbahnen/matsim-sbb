@@ -38,6 +38,7 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.filter.NetworkFilterManager;
+import org.matsim.core.utils.collections.Tuple;
 
 import java.io.File;
 import java.io.IOException;
@@ -156,7 +157,8 @@ public class StreetNetworkExporter {
         for (var linkId : needsBikeBackLink) {
             Link link = bikenet.getLinks().get(linkId);
             Link carNetLink = network.getLinks().get(linkId);
-            Integer visumLinkId = VisumStreetNetworkExporter.extractVisumLinkId(linkId);
+            Tuple<Integer, Integer> visumLinkAndNodeId = VisumStreetNetworkExporter.extractVisumNodeAndLinkId(linkId);
+            Integer visumLinkId = visumLinkAndNodeId != null ? visumLinkAndNodeId.getSecond() : null;
             if (visumLinkId == null) {
                 visumLinkId = Integer.MAX_VALUE - r.nextInt(5000);
             }

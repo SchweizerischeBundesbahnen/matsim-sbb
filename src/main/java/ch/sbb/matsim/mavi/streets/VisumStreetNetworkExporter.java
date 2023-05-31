@@ -41,13 +41,13 @@ public class VisumStreetNetworkExporter {
 		return Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
 	}
 
-	public static Tuple<Integer, Integer> extractVisumLinkAndNodeId(Id<Link> linkId) {
+	public static Tuple<Integer, Integer> extractVisumNodeAndLinkId(Id<Link> linkId) {
 		try {
 			int visumFromNodeId = Integer.parseInt(linkId.toString().split("_")[0], 36);
 			int visumLinkId = Integer.parseInt(linkId.toString().split("_")[1], 36);
 			return Tuple.of(visumFromNodeId, visumLinkId);
 		} catch (NumberFormatException e) {
-		return null;
+			return null;
 		}
 	}
 
