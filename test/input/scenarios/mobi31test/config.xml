@@ -44,8 +44,6 @@
         <!-- Zones ID -->
         <param name="zonesId" value="zones"/>
         <parameterset type="mode">
-            <!-- Cached intermodal travel times to and from stations. -->
-            <param name="intermodalAccessCacheFile" value="null"/>
             <!-- If true, the mode will be added as main-mode to be simulated on the road network. -->
             <param name="isRoutedOnNetwork" value="false"/>
             <!-- If true, the mode will be added as main-mode to be simulated on the road network. -->
@@ -58,7 +56,6 @@
             <param name="useMinimalTransferTimes" value="false"/>
         </parameterset>
         <parameterset type="mode">
-            <param name="intermodalAccessCacheFile" value="null"/>
             <param name="isRoutedOnNetwork" value="false"/>
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="mode" value="bike_feeder"/>

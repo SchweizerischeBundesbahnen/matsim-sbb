@@ -88,8 +88,6 @@
             <param name="accessTimeZonesAttributeName" value="null"/>
             <!-- Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers. -->
             <param name="detourFactorZonesAttributeName" value="null"/>
-            <!-- Cached intermodal travel times to and from stations. -->
-            <param name="intermodalAccessCacheFile" value="null"/>
             <!-- If true, the mode will be added as main-mode to be simulated on the road network. -->
             <param name="isRoutedOnNetwork" value="false"/>
             <!-- If true, the mode will be added as main-mode to be simulated on the road network. -->
