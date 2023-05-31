@@ -85,7 +85,6 @@
             <param name="mode" value="car_feeder"/>
             <param name="personActivityFilterAttribute" value="car2pt_act"/>
             <param name="useMinimalTransferTimes" value="true"/>
-            <param name="intermodalAccessCacheFile" value="null"/>
         </parameterset>
         <parameterset type="mode">
             <param name="accessTimeZonesAttributeName" value="at_ride"/>
@@ -95,7 +94,6 @@
             <param name="mode" value="ride_feeder"/>
             <param name="personActivityFilterAttribute" value="ride2pt_act"/>
             <param name="useMinimalTransferTimes" value="true"/>
-            <param name="intermodalAccessCacheFile" value="null"/>
         </parameterset>
         <parameterset type="mode">
             <param name="accessTimeZonesAttributeName" value="at_avfeed"/>

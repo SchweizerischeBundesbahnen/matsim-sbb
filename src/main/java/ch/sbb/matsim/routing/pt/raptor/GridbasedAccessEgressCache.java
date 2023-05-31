@@ -33,10 +33,7 @@ import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleType;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -88,10 +85,17 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         bikeType.setNetworkMode(SBBModes.BIKE);
         bikeType.setMaximumVelocity(bikeFreespeed);
         this.bike = scenario.getVehicles().getFactory().createVehicle(Id.create("bike", Vehicle.class), bikeType);
-        NetworkFilterManager nfm2 = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
+
+        //TODO: fix this to pure bike net once our data is ready for it
+        this.carnet.getLinks().values().forEach(link -> {
+            Set<String> allowedModes = new HashSet<>(link.getAllowedModes());
+            allowedModes.add(SBBModes.BIKE);
+            link.setAllowedModes(allowedModes);
+        });
+        //TODO: use scenario.getNetwork((
+        NetworkFilterManager nfm2 = new NetworkFilterManager(carnet, scenario.getConfig().network());
         nfm2.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
         this.bikenet = nfm2.applyFilters();
-
 
 
         prepareAccessTimes();
