@@ -392,6 +392,7 @@ public class ModalSplitStats {
             double[][] changeArray = subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
             double[][] changeArrayPKM = subpopulationChangePKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
 
+            boolean isMixed = ((raillegs > 0) & (ptLegs > raillegs));
             if (ptLegs > 6) {
                 ptLegs = 6;
                 if (raillegs > 6) {
@@ -399,15 +400,16 @@ public class ModalSplitStats {
                 }
             }
             if (raillegs > 0) {
-                changeArray[changeOrderList.indexOf(changeTrain)][raillegs - 1]++;
-                changeArrayPKM[changeOrderList.indexOf(changeTrain)][raillegs - 1]+=distance;
+                if (isMixed) {
+                    changeArray[changeOrderList.indexOf(changeOEV)][ptLegs - 1]++;
+                    changeArrayPKM[changeOrderList.indexOf(changeOEV)][ptLegs - 1]+=distance;
+                } else {
+                    changeArray[changeOrderList.indexOf(changeTrain)][raillegs - 1]++;
+                    changeArrayPKM[changeOrderList.indexOf(changeTrain)][raillegs - 1] += distance;
+                }
             } else if (ptLegs > 0) {
                 changeArray[changeOrderList.indexOf(changeOPNV)][ptLegs - 1]++;
                 changeArrayPKM[changeOrderList.indexOf(changeOPNV)][ptLegs - 1]+=distance;
-            }
-            if (ptLegs > 0) {
-                changeArray[changeOrderList.indexOf(changeOEV)][ptLegs - 1]++;
-                changeArrayPKM[changeOrderList.indexOf(changeOEV)][ptLegs - 1]+=distance;
             }
         }
     }
