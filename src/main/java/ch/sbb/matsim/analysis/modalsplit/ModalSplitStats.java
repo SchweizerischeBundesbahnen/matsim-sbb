@@ -315,6 +315,22 @@ public class ModalSplitStats {
             if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
+            boolean tmpIsRail = false;
+            boolean tmpIsFQRail = false;
+            double fqDistance = 0;
+            for (Leg leg : trip.getLegsOnly()) {
+                if (PT.contains(leg.getMode())) {
+                    if (leg.getMode().equals(PT)) {
+                        TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                        if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                            tmpIsRail = true;
+                            fqDistance = railTripsAnalyzer.getFQDistance(trip, true);
+                            tmpIsFQRail = (fqDistance > 0);
+                        }
+                    }
+                }
+            }
+
             String tmpActivity = trip.getDestinationActivity().getType();
             int middle = (int) ((trip.getOriginActivity().getEndTime().seconds() + trip.getDestinationActivity().getStartTime().seconds()) / 2);
             int time = (middle - (middle % timeSplit)) / timeSplit;
@@ -332,6 +348,17 @@ public class ModalSplitStats {
                     subpopulationArrray[time][variablesTimeStepsMap.get(mode)]++;
                     subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(mode)]++;
                     break;
+                }
+            }
+            if(tmpIsRail) {
+                String submode = MSVariables.submode + separator + SBBModes.RAIL;
+                subpopulationArrray[time][variablesTimeStepsMap.get(submode)]++;
+                subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(submode)]++;
+                if (tmpIsFQRail) {
+                    submode = MSVariables.submode + separator + SBBModes.FQRAIL;
+                    subpopulationArrray[time][variablesTimeStepsMap.get(submode)]++;
+                    subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(submode)]++;
+
                 }
             }
             for (String activity : toActTypeList) {
@@ -401,8 +428,24 @@ public class ModalSplitStats {
             }
             int modeId = modesMap.get(tmpMode);
             double distance = 0;
+            boolean tmpIsRail = false;
+            boolean tmpIsFQRail = false;
+            double fqDistance = 0;
+
             for (Leg leg : trip.getLegsOnly()) {
+                if (PT.contains(leg.getMode())) {
+                    if (leg.getMode().equals(PT)) {
+                        TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                        if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                            tmpIsRail = true;
+                        }
+                    }
+                }
                 distance += leg.getRoute().getDistance() / 1000;
+            }
+            if (tmpIsRail) {
+                fqDistance = railTripsAnalyzer.getFQDistance(trip, true);
+                tmpIsFQRail = (fqDistance > 0);
             }
 
             double[][] pfArray = subpopulaionMSPFMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
@@ -410,6 +453,17 @@ public class ModalSplitStats {
 
             double[][] pkmArray = subpopulaionMSPKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
             pkmArray[modeId][variablesMSMap.get(all)] += distance;
+
+            if(tmpIsRail) {
+                String submode = MSVariables.submode + separator + SBBModes.RAIL;
+                pfArray[modeId][variablesMSMap.get(submode)]++;
+                pkmArray[modeId][variablesMSMap.get(submode)] += distance;
+                if (tmpIsFQRail) {
+                    submode = MSVariables.submode + separator + SBBModes.FQRAIL;
+                    pfArray[modeId][variablesMSMap.get(submode)]++;
+                    pkmArray[modeId][variablesMSMap.get(submode)] += fqDistance;
+                }
+            }
 
             // car available
             String carAva = "0";

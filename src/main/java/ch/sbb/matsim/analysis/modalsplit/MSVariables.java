@@ -53,6 +53,7 @@ public final class MSVariables {
     public static final String exogeneous = toActType + separator + SBBActivities.exogeneous;
     public static final String accompany = toActType + separator + SBBActivities.accompany;
     public static final String mode = "mode";
+    public static final String submode = "submode";
     public static final String zone = "zone";
     public static final String accessMode = "access_mode";
     public static final String egressMode = "egress_mode";
@@ -63,6 +64,8 @@ public final class MSVariables {
     public static final String bike = mode + separator + SBBModes.BIKE;
     public static final String avtaxi = mode + separator + SBBModes.AVTAXI;
     public static final String drt = mode + separator + SBBModes.DRT;
+    public static final String rail = submode + separator + SBBModes.RAIL;
+    public static final String fqrail = submode + separator + SBBModes.FQRAIL;
     public static final String changeTrain = "train";
     public static final String changeOEV = "oev";
     public static final String changeOPNV = "opnv";
@@ -79,6 +82,7 @@ public final class MSVariables {
     public static final List<String> changeOrderList = List.of(changeTrain, changeOPNV, changeOEV);
     public static final List<String> changeLableList = List.of("0", "1", "2", "3", "4", ">=5");
     public static final List<String> modesMS = List.of(walk, ride, car, pt, bike, avtaxi, drt);
+    public static final List<String> submodes = List.of(rail, fqrail);
     public static final List<String> carAvailable = List.of(carAvailableTrue, carAvailableFalse);
     public static final List<String> ptSubscription = List.of(ptSubNone, ptSubGA, ptSubVA, ptSubHTA);
     public static final List<String> carAndPt = List.of(carNone, carGa, carHTA, carVA, nocarNone, nocarGa, nocarHTA, nocarVA);
@@ -86,9 +90,9 @@ public final class MSVariables {
     public static final List<String> employmentRate = List.of(employment0, employment39, employment79, employment100);
     public static final List<String> ageCategory = List.of(ageCat17, ageCat24, ageCat44, ageCat64, ageCat74, ageCatXX);
     public static final List<String> toActTypeList = List.of(home, cbhome, leisure, other, freight, business, shopping, work, education, exogeneous, accompany);
-    public static final List<List<String>> varList = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategory , toActTypeList);
+    public static final List<List<String>> varList = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategory , toActTypeList, submodes);
     public static final List<List<String>> varListFeeder = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategory , toActTypeList, distanceClassesFeederLable);
-    public static final List<List<String>> varTimeList = List.of(modesMS, toActTypeList);
+    public static final List<List<String>> varTimeList = List.of(modesMS, submodes, toActTypeList);
     public static final String oNMiddleTimeSteps = "middle_time_distribution.csv";
     public static final String oNTravelTimeDistribution = "travel_time_distribution.csv";
     public static final String oNModalSplitPF = "modal_split_PF.csv";
