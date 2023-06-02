@@ -67,6 +67,7 @@ public final class MSVariables {
     public static final String rail = submode + separator + SBBModes.RAIL;
     public static final String fqrail = submode + separator + SBBModes.FQRAIL;
     public static final String changeTrain = "train";
+    public static final String changeTrainFQ = "trainFQ";
     public static final String changeOEV = "oev";
     public static final String changeOPNV = "opnv";
     public static final int timeSplit = 15 * 60;
@@ -79,7 +80,7 @@ public final class MSVariables {
             "1800-2000", "2000-2200", "2200-2400", "2400-2600", "2600-2800", "2800-3000", "3000-3200", "3200-3400",
             "3400-3600", "3600-3800", "3800-4000", "4000-5000", "5000-6000", "6000-7000", "7000-8000", "8000-9000",
             "9000-10000", "10000-20000", "20000-30000", "30000+");
-    public static final List<String> changeOrderList = List.of(changeTrain, changeOPNV, changeOEV);
+    public static final List<String> changeOrderList = List.of(changeTrain, changeOPNV, changeOEV, changeTrainFQ);
     public static final List<String> changeLableList = List.of("0", "1", "2", "3", "4", ">=5");
     public static final List<String> modesMS = List.of(walk, ride, car, pt, bike, avtaxi, drt);
     public static final List<String> submodes = List.of(rail, fqrail);
