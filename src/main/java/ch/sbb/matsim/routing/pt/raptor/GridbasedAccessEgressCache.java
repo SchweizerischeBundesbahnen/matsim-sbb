@@ -240,8 +240,11 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             int[] cellCache = cache[cell];
             double travelTime = mode.equals(SBBModes.BIKEFEEDER) ? cellCache[2] : cellCache[0];
             double travelDistance = mode.equals(SBBModes.BIKEFEEDER) ? cellCache[3] : cellCache[2];
-            double accessTime = this.accessTimesAtStops.get(transitStopFacilityId).get(mode);
-            double egressTime = NetworkUtils.getLinkEgressTime(scenario.getNetwork().getLinks().get(actFacility.getLinkId()), mode).seconds();
+            Integer accessTime = this.accessTimesAtStops.get(transitStopFacilityId).get(mode);
+            if (accessTime == null) {
+                accessTime = 0;
+            }
+            double egressTime = NetworkUtils.getLinkEgressTime(scenario.getNetwork().getLinks().get(actFacility.getLinkId()), mode).orElse(0);
             return new RouteCharacteristics(travelDistance, accessTime, egressTime, travelTime);
         } else {
             List<? extends PlanElement> routeParts = module.calcRoute(DefaultRoutingRequest.withoutAttributes(stopFacility, actFacility, 3d * 3600, person));

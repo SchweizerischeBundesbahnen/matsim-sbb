@@ -37,7 +37,7 @@ public class AccessEgressModule extends AbstractModule {
 		Map<String, String> accessTimeParameters = new HashMap<>();
 		accessTimeConfigGroup.getModesWithAccessTime().forEach(m -> accessTimeParameters.put(m, attributePrefix + m.toLowerCase()));
 		sbbIntermodalConfigGroup.getModeParameterSets().stream()
-				.filter(sbbIntermodalModeParameterSet -> sbbIntermodalModeParameterSet.isRoutedOnNetwork())
+				.filter(sbbIntermodalModeParameterSet -> sbbIntermodalModeParameterSet.isRoutedOnNetwork() && sbbIntermodalModeParameterSet.getAccessTimeZoneId() != null)
 				.forEach(sbbIntermodalModeParameterSet -> accessTimeParameters.put(sbbIntermodalModeParameterSet.getMode(), sbbIntermodalModeParameterSet.getAccessTimeZoneId()));
 		Set<String> detourParams = sbbIntermodalConfigGroup.getModeParameterSets().stream()
 				.map(sbbIntermodalModeParameterSet -> sbbIntermodalModeParameterSet.getDetourFactorZoneId())
