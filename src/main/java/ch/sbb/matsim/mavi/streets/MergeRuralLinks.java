@@ -23,19 +23,15 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MergeRuralLinks {
 
@@ -76,11 +72,17 @@ public class MergeRuralLinks {
                     while (nextLink.getToNode().getOutLinks().size() < 3) {
                         Link outLink = findRealOutLink(nextLink);
                         if (outLink != null) {
-                            if (nextLink.getNumberOfLanes() != outLink.getNumberOfLanes()) break;
+                            if (nextLink.getNumberOfLanes() != outLink.getNumberOfLanes()) {
+                                linksToMerge.clear();
+                                break;
+                            }
                             linksToMerge.add(outLink);
                             nextLink = outLink;
 
-                        } else break;
+                        } else {
+                            linksToMerge.clear();
+                            break;
+                        }
                     }
                     if (linksToMerge.size() > 1) {
                         mergeLinks(linksToMerge);
@@ -166,7 +168,6 @@ public class MergeRuralLinks {
         Link outlink = null;
         for (Link l : nextLink.getToNode().getOutLinks().values()) {
             if (l.getToNode().equals(nextLink.getFromNode())) {
-                continue;
             } else if (outlink == null) {
                 outlink = l;
             } else {

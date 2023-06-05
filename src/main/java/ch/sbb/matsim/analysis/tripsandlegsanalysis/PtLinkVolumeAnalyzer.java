@@ -44,7 +44,7 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.extractVisumLinkAndNodeId;
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.extractVisumNodeAndLinkId;
 
 public class PtLinkVolumeAnalyzer {
 
@@ -103,7 +103,7 @@ public class PtLinkVolumeAnalyzer {
                     }
                     List<Tuple<Integer, Integer>> visumFromNodeToLinkTuples =
                             Arrays.stream(visumLinkSequence.split(","))
-                                    .map(s -> extractVisumLinkAndNodeId(Id.createLinkId(s)))
+                                    .map(s -> extractVisumNodeAndLinkId(Id.createLinkId(s)))
                                     .filter(Objects::nonNull)
                                     .toList();
                     for (Tuple<Integer, Integer> visumFromNodeToLinkIds : visumFromNodeToLinkTuples) {
