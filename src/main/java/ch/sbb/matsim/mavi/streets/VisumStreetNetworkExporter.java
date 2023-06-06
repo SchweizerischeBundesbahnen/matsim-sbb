@@ -137,7 +137,6 @@ public class VisumStreetNetworkExporter {
 				final String fromNode = anAttarraylink[0];
 				final String toNode = anAttarraylink[1];
 				final String visumLinkNo = anAttarraylink[10];
-				final String linkType = anAttarraylink[5];
 				Id<Link> id = createLinkId(fromNode, visumLinkNo);
 				Link link = createLink(id, fromNode, toNode, Double.parseDouble(anAttarraylink[2]),
 						Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
