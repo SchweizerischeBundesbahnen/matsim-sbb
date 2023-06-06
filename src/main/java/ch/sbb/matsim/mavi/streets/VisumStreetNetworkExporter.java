@@ -34,6 +34,7 @@ public class VisumStreetNetworkExporter {
 	private final Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
 	public static final Set fullModeset = Set.of(SBBModes.CAR, SBBModes.RIDE, SBBModes.BIKE);
 	public static final Set<String> modeSetWithoutBike = Set.of(SBBModes.CAR, SBBModes.RIDE);
+	public static final Set<String> modeSetBikeOnly = Set.of(SBBModes.BIKE);
 	private Scenario scenario;
 	private NetworkFactory nf;
 
@@ -127,11 +128,16 @@ public class VisumStreetNetworkExporter {
 			network.addNode(node);
 		}
 
+		boolean carAllowed;
+		boolean bikeAllowed;
 		for (String[] anAttarraylink : attarraylink) {
-			if (anAttarraylink[7].contains("P")) {
+			carAllowed = (anAttarraylink[7].contains("P"));
+			bikeAllowed = (anAttarraylink[7].contains("V"));
+			if (carAllowed | bikeAllowed) {
 				final String fromNode = anAttarraylink[0];
 				final String toNode = anAttarraylink[1];
 				final String visumLinkNo = anAttarraylink[10];
+				final String linkType = anAttarraylink[5];
 				Id<Link> id = createLinkId(fromNode, visumLinkNo);
 				Link link = createLink(id, fromNode, toNode, Double.parseDouble(anAttarraylink[2]),
 						Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
@@ -148,6 +154,8 @@ public class VisumStreetNetworkExporter {
 					link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, ac);
 					if (ac == 1) {
 						link.setAllowedModes(modeSetWithoutBike);
+					} else if (!carAllowed) {
+						link.setAllowedModes(modeSetBikeOnly);
 					}
 					network.addLink(link);
 				}
@@ -177,17 +185,17 @@ public class VisumStreetNetworkExporter {
 			if (beelineDistance - length > 1.0) {
 				log.warn(link.getId() + " has a length (" + length + ") shorter than its beeline distance (" + beelineDistance + "). Will not correct this.");
 			}
-        }
-        link.setLength(length);
-        link.setCapacity(cap);
-        link.setFreespeed(v / 3.6);
+		}
+		link.setLength(length);
+		link.setCapacity(cap);
+		link.setFreespeed(v / 3.6);
 		link.setNumberOfLanes(numlanes);
 		link.setAllowedModes(fullModeset);
 
-        return link;
-    }
+		return link;
+	}
 
-    public Network getNetwork() {
-        return scenario.getNetwork();
-    }
+	public Network getNetwork() {
+		return scenario.getNetwork();
+	}
 }
