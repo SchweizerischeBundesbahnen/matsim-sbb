@@ -209,7 +209,6 @@ public class StreetNetworkExporter {
 
             }
         }
-        new NetworkWriter(bikenet).write(outputDir + "/bikenet.xml.gz");
 
 
     }
@@ -245,7 +244,6 @@ public class StreetNetworkExporter {
 
         }
         LogManager.getLogger(StreetNetworkExporter.class).info("Adjusted  " + i + " link capacities in roundabouts.");
-        System.out.println(adjustedLinks);
     }
 
     private static void removePolylines(Network network) {
