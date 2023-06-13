@@ -738,10 +738,10 @@ public class ModalSplitStats {
                         }
                         // activity type for end activity
                         String acttyp = trip.getDestinationActivity().getType();
+                        if (acttyp.contains(separator)) {
+                            acttyp = acttyp.substring(0, acttyp.indexOf("_"));
+                        }
                         for (String act : toActTypeList) {
-                            if (acttyp.contains(separator)) {
-                                acttyp = acttyp.substring(0, acttyp.indexOf("_"));
-                            }
                             if ((toActType + separator + acttyp).equals(act)) {
                                 pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(act)]++;
                                 pfEgressArray[subPTModeExited][variablesMSFeederMap.get(act)]++;
