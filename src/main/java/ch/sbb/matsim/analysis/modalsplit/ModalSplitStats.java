@@ -246,6 +246,13 @@ public class ModalSplitStats {
 
     private void analyzeStopsStations(Entry<Id<Person>, Plan> entry) {
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+            boolean isFQ = false;
+            try {
+                isFQ = railTripsAnalyzer.getFQDistance(trip, true) > 0;
+            } catch (Exception ignored) {
+
+            }
+
             if (mainModeIdentifier.identifyMainMode(trip.getTripElements()).equals(PT)) {
                 List<Leg> legs = trip.getLegsOnly();
                 Leg legBefore = null;
@@ -257,6 +264,9 @@ public class ModalSplitStats {
 
                         StopStation startStopStation = stopStationsMap.get(startStopStationFacility.getId());
                         startStopStation.addEntred();
+                        if (isFQ) {
+                            startStopStation.addEntredFQ();
+                        }
                         if (legBefore != null) {
                             startStopStation.getEnteredMode()[StopStation.getModes().indexOf(legBefore.getMode())]++;
                             if (legBefore.getMode().equals(PT)) {
@@ -280,6 +290,9 @@ public class ModalSplitStats {
 
                         StopStation endStopStation = stopStationsMap.get(endStopStationFacility.getId());
                         endStopStation.addExited();
+                        if (isFQ) {
+                            endStopStation.addExitedFQ();
+                        }
                         int currentLegIndex = legs.indexOf(leg);
                         Leg legAfter = getLegAfter(legs, currentLegIndex);
                         endStopStation.getExitedMode()[StopStation.getModes().indexOf(legAfter.getMode())]++;
