@@ -1147,11 +1147,13 @@ public class ModalSplitStats {
         final String zone = "Zone";
         final String einstiege = "Einstiege_Gesamt";
         final String ausstiege = "Ausstiege_Gesamt";
+        final String einstiegeFQ = "Einstiege_FQ_Gesamt";
+        final String ausstiegeFQ = "Ausstiege_FQ_Gesamt";
         final String umstiege = "Umstiege_Bahn_Bahn";
         final String zustiege = "Umsteige_AHP_Bahn";
         final String wegstiege = "Umsteige_Bahn_AHP";
         StringBuilder head = new StringBuilder(
-            String.join(",", runID, hstNummer, stopNumber, code, trainStationName, x, y, zone, einstiege, ausstiege, umstiege, zustiege, wegstiege));
+            String.join(",", runID, hstNummer, stopNumber, code, trainStationName, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
         for (String mode : StopStation.getOrigDestModes()) {
             head.append(",").append("Zielaustieg_").append(mode);
             head.append(",").append("Quelleinstieg_").append(mode);
@@ -1175,6 +1177,8 @@ public class ModalSplitStats {
                 csvWriter.set(zone, entry.getValue().getZoneId());
                 csvWriter.set(einstiege, Integer.toString((int) (entry.getValue().getEntered() / sampleSize)));
                 csvWriter.set(ausstiege, Integer.toString((int) (entry.getValue().getExited() / sampleSize)));
+                csvWriter.set(einstiegeFQ, Integer.toString((int) (entry.getValue().getEnteredFQ() / sampleSize)));
+                csvWriter.set(ausstiegeFQ, Integer.toString((int) (entry.getValue().getExitedFQ() / sampleSize)));
                 for (String mode : StopStation.getOrigDestModes()) {
                     csvWriter.set("Quelleinstieg_" + mode, Integer.toString((int) (entry.getValue().getEnteredMode()[StopStation.getModes().indexOf(mode)] / sampleSize)));
                     csvWriter.set("Zielaustieg_" + mode, Integer.toString((int) (entry.getValue().getExitedMode()[StopStation.getModes().indexOf(mode)] / sampleSize)));
