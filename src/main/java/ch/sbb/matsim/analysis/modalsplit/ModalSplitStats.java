@@ -1223,6 +1223,7 @@ public class ModalSplitStats {
             mapChange.put("changesTrain", 0);
             mapChange.put("changesOPNV", 1);
             mapChange.put("changesOEV", 2);
+            mapChange.put("changesTrainFQ", 3);
             for (Entry<String, double[][]> entry : subpopulationChangePKMMap.entrySet()) {
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
                     csvWriter.set(runID, config.controler().getRunId());
