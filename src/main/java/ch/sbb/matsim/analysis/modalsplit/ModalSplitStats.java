@@ -403,8 +403,9 @@ public class ModalSplitStats {
                     }
                 }
             }
+            double fqDistance = 0;
             if (raillegs > 0) {
-                double fqDistance = railTripsAnalyzer.getFQDistance(trip, true);
+                fqDistance = railTripsAnalyzer.getFQDistance(trip, true);
                 isFQ = (fqDistance > 0);
             }
 
@@ -428,7 +429,7 @@ public class ModalSplitStats {
                 }
                 if (isFQ) {
                     changeArray[changeOrderList.indexOf(changeTrainFQ)][raillegs - 1]++;
-                    changeArrayPKM[changeOrderList.indexOf(changeTrainFQ)][raillegs - 1] += distance;
+                    changeArrayPKM[changeOrderList.indexOf(changeTrainFQ)][raillegs - 1] += fqDistance;
                 }
             } else if (ptLegs > 0) {
                 changeArray[changeOrderList.indexOf(changeOPNV)][ptLegs - 1]++;
