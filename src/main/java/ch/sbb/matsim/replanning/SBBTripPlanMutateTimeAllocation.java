@@ -118,10 +118,10 @@ public final class SBBTripPlanMutateTimeAllocation implements PlanAlgorithm {
 		if (t.isDefined()) {
 			int mutation = minimumMutation * ((int) ((random.nextDouble() * 2.0 - 1.0) * mutationRange) / minimumMutation);
 			newTime = t.seconds() + mutation;
-			if (t.seconds() < 0) {
-				newTime = 0;
+			if (newTime <= 0) {
+				newTime = 1;
 			}
-			if (t.seconds() > 29 * 3600) {
+			if (newTime > 29 * 3600) {
 				newTime = 29.0 * 3600;
 			}
 		} else {
