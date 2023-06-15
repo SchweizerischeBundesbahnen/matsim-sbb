@@ -18,6 +18,7 @@ public class StopStation {
     private int umsteigeBahnBahn = 0;
     private int umsteigeAHPBahn = 0;
     private int umsteigeBahnAHP = 0;
+    private boolean isRailStation = false;
     private final Zone zone;
     private final TransitStopFacility stop;
     public StopStation(TransitStopFacility trainStation, Zone zone) {
@@ -32,6 +33,7 @@ public class StopStation {
         return zone.getId().toString();
     }
 
+    public boolean getIsRailStation() { return isRailStation; }
     public void addUmstiegeBahnBahn() {
         umsteigeBahnBahn++;
     }
@@ -109,5 +111,9 @@ public class StopStation {
 
     public int getUmsteigeBahnAHP() {
         return umsteigeBahnAHP;
+    }
+
+    public void setRailStation() {
+        isRailStation = true;
     }
 }
