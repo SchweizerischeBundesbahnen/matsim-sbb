@@ -428,6 +428,8 @@ public class ModalSplitStats {
                 }
             }
             if (raillegs > 0) {
+                changeArray[changeOrderList.indexOf(changeTrainAll)][raillegs - 1]++;
+                changeArrayPKM[changeOrderList.indexOf(changeTrainAll)][raillegs - 1] += distance;
                 if (isMixed) {
                     changeArray[changeOrderList.indexOf(changeOEV)][ptLegs - 1]++;
                     changeArrayPKM[changeOrderList.indexOf(changeOEV)][ptLegs - 1]+=distance;
@@ -1217,6 +1219,7 @@ public class ModalSplitStats {
             mapChange.put("changesOPNV", 1);
             mapChange.put("changesOEV", 2);
             mapChange.put("changesTrainFQ", 3);
+            mapChange.put("changesTrainAll", 4);
             for (Entry<String, double[][]> entry : subpopulationChangeMap.entrySet()) {
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
                     csvWriter.set(runID, config.controler().getRunId());
@@ -1238,6 +1241,7 @@ public class ModalSplitStats {
             mapChange.put("changesOPNV", 1);
             mapChange.put("changesOEV", 2);
             mapChange.put("changesTrainFQ", 3);
+            mapChange.put("changesTrainAll", 4);
             for (Entry<String, double[][]> entry : subpopulationChangePKMMap.entrySet()) {
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
                     csvWriter.set(runID, config.controler().getRunId());
