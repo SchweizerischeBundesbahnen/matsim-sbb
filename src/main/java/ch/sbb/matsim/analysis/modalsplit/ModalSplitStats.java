@@ -1160,8 +1160,9 @@ public class ModalSplitStats {
         final String umstiege = "Umstiege_Bahn_Bahn";
         final String zustiege = "Umsteige_AHP_Bahn";
         final String wegstiege = "Umsteige_Bahn_AHP";
+        final String isRailStop = "isRailStop";
         StringBuilder head = new StringBuilder(
-            String.join(",", runID, hstNummer, stopNumber, code, trainStationName, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
+            String.join(",", runID, hstNummer, stopNumber, code, isRailStop, trainStationName, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
         for (String mode : StopStation.getOrigDestModes()) {
             head.append(",").append("Zielaustieg_").append(mode);
             head.append(",").append("Quelleinstieg_").append(mode);
@@ -1172,6 +1173,11 @@ public class ModalSplitStats {
                 csvWriter.set(runID, config.controler().getRunId());
                 csvWriter.set(hstNummer, entry.getValue().getStop().getAttributes().getAttribute("02_Stop_No").toString());
                 csvWriter.set(stopNumber, entry.getValue().getStop().getId().toString());
+                if (entry.getValue().getIsRailStation()) {
+                    csvWriter.set(isRailStop, "1");
+                } else {
+                    csvWriter.set(isRailStop, "0");
+                }
                 Id<TransitStopFacility> stopId = Id.create(entry.getKey(), TransitStopFacility.class);
                 Object codeAttribute = entry.getValue().getStop().getAttributes().getAttribute("03_Stop_Code");
                 if (codeAttribute == null) {
