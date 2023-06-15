@@ -44,16 +44,6 @@
         <!-- Zones ID -->
         <param name="zonesId" value="zones"/>
         <parameterset type="mode">
-            <!-- Zone Id field for mode specific access (or wait) time (in seconds). -->
-            <param name="accessTimeZonesAttributeName" value="null"/>
-            <!-- Factor to multiply the fastest travel time with as an estimation of potential detours to pick up other passengers. -->
-            <param name="detourFactor" value="1.0"/>
-            <!-- Zone Id field for mode specific detour factor. -->
-            <param name="detourFactorZonesAttributeName" value="null"/>
-            <!-- Zone Id field for mode specific egress time (in seconds). -->
-            <param name="egressTimeZonesAttributeName" value="null"/>
-            <!-- Cached intermodal travel times to and from stations. -->
-            <param name="intermodalAccessCacheFile" value="null"/>
             <!-- If true, the mode will be added as main-mode to be simulated on the road network. -->
             <param name="isRoutedOnNetwork" value="false"/>
             <!-- If true, the mode will be added as main-mode to be simulated on the road network. -->
@@ -64,47 +54,31 @@
             <param name="personActivityFilterAttribute" value="null"/>
             <!-- use minimal transfer times -->
             <param name="useMinimalTransferTimes" value="false"/>
-            <!-- Additional waiting time in seconds. -->
-            <param name="waitingTime" value="0"/>
         </parameterset>
         <parameterset type="mode">
-            <param name="accessTimeZonesAttributeName" value="null"/>
-            <param name="detourFactor" value="1.0"/>
-            <param name="detourFactorZonesAttributeName" value="null"/>
-            <param name="egressTimeZonesAttributeName" value="null"/>
-            <param name="intermodalAccessCacheFile" value="null"/>
-            <param name="isRoutedOnNetwork" value="false"/>
+            <param name="isRoutedOnNetwork" value="true"/>
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="mode" value="bike_feeder"/>
             <param name="useMinimalTransferTimes" value="true"/>
-            <param name="waitingTime" value="0"/>
         </parameterset>
         <parameterset type="mode">
             <param name="accessTimeZonesAttributeName" value="at_car"/>
-            <param name="detourFactor" value="1.0"/>
-            <param name="detourFactorZonesAttributeName" value="null"/>
-            <param name="egressTimeZonesAttributeName" value="at_car"/>
             <param name="isRoutedOnNetwork" value="true"/>
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="mode" value="car_feeder"/>
             <param name="useMinimalTransferTimes" value="true"/>
-            <param name="waitingTime" value="0"/>
         </parameterset>
         <parameterset type="mode">
             <param name="accessTimeZonesAttributeName" value="at_ride"/>
-            <param name="detourFactor" value="1.0"/>
-            <param name="detourFactorZonesAttributeName" value="null"/>
-            <param name="egressTimeZonesAttributeName" value="at_ride"/>
             <param name="isRoutedOnNetwork" value="true"/>
             <param name="isSimulatedOnNetwork" value="false"/>
             <param name="mode" value="ride_feeder"/>
             <param name="useMinimalTransferTimes" value="true"/>
-            <param name="waitingTime" value="0"/>
         </parameterset>
     </module>
     <module name="SBBNetworkRouting">
         <!-- Teleported modes that are routed with the same disutiliy and travel time as car. Default is [ride] -->
-        <param name="networkRoutingModes" value="ride"/>
+        <param name="networkRoutingModes" value="ride,bike"/>
     </module>
 
     <module name="SBBPt">
@@ -383,23 +357,9 @@
         <!-- Some typical teleportation routing params are set by default, such as for walk and bike.  Setting this switch to "true" will clear them.  Note that this will also clear settings for helper modes such as for non_network_walk -->
         <param name="clearDefaultTeleportedModeParams" value="false"/>
         <!-- All the modes for which the router is supposed to generate network routes (like car) -->
-        <param name="networkModes" value="car,ride,ride_feeder,car_feeder"/>
+        <param name="networkModes" value="car,ride,ride_feeder,car_feeder,bike"/>
         <!-- strength of the randomness for the utility of money in routing under toll.  Leads to Pareto-optimal route with randomly drawn money-vs-other-attributes tradeoff. Technically the width parameter of a log-normal distribution. 3.0 seems to be a good value.  -->
         <param name="routingRandomness" value="3.0"/>
-        <parameterset type="teleportedModeParameters">
-            <param name="beelineDistanceFactor" value="1.3"/>
-            <param name="mode" value="bike"/>
-            <!-- Free-speed factor for a teleported mode. Travel time = teleportedModeFreespeedFactor * <freespeed car travel time>. Insert a line like this for every such mode. Please do not set teleportedModeFreespeedFactor as well as teleportedModeSpeed for the same mode, but if you do, +teleportedModeFreespeedFactor wins over teleportedModeSpeed. -->
-            <param name="teleportedModeFreespeedFactor" value="null"/>
-            <!-- Speed for a teleported mode. Travel time = (<beeline distance> * beelineDistanceFactor) / teleportedModeSpeed. Insert a line like this for every such mode. -->
-            <param name="teleportedModeSpeed" value="3.6111111111"/>
-        </parameterset>
-        <parameterset type="teleportedModeParameters">
-            <param name="beelineDistanceFactor" value="1.3"/>
-            <param name="mode" value="bike_feeder"/>
-            <param name="teleportedModeFreespeedFactor" value="null"/>
-            <param name="teleportedModeSpeed" value="3.6111111111"/>
-        </parameterset>
         <parameterset type="teleportedModeParameters">
             <param name="beelineDistanceFactor" value="1.3"/>
             <param name="mode" value="walk"/>
@@ -701,7 +661,7 @@
         <param name="travelTimeGetter" value="average"/>
     </module>
     <module name="vehicles">
-        <param name="vehiclesFile" value="vehicles.xml.gz"/>
+        <param name="vehiclesFile" value="vehicles.xml"/>
     </module>
     <module name="vspExperimental">
         <!-- (do not use except of you have to) There was a problem with pt interaction scoring.  Some people solved it by overwriting the parameters of the pt interaction activity type.  Doing this now throws an Exception.  If you still insist on doing this, set the following to true. -->

@@ -2,8 +2,8 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.visum.Visum;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -12,6 +12,7 @@ import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.matsim.vehicles.*;
@@ -21,6 +22,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.createLinkId;
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.extractVisumNodeAndLinkId;
 
 public class TimeProfileExporter {
 
@@ -43,13 +47,14 @@ public class TimeProfileExporter {
 		this.vehicleBuilder = scenario.getVehicles().getFactory();
 	}
 
-	private void createLink(Id<Link> linkId, Node fromNode, Node toNode, String mode, double length) {
+	private void createLink(Id<Link> linkId, Node fromNode, Node toNode, String mode, double length, String visumLinkSequence) {
 		Link link = this.networkBuilder.createLink(linkId, fromNode, toNode);
 		link.setLength(length * 1000);
 		link.setFreespeed(10000);
 		link.setCapacity(10000);
 		link.setNumberOfLanes(10000);
 		link.setAllowedModes(Collections.singleton(mode));
+		link.getAttributes().putAttribute("visum_link_sequence", visumLinkSequence);
 		this.network.addLink(link);
 	}
 
@@ -124,16 +129,7 @@ public class TimeProfileExporter {
 		int lastLRItemIndex = 0;
 		for (int tpi = 0; tpi < nrOfTimeProfileItems; tpi++) {
 			String[] row = timeProfileItemAttributes[tpi];
-			String[] linkSeq = row[6].split(",");
-			List<String> linkSeqList = new ArrayList<>();
-			linkSeqList.add(linkSeq[0]);
-			for (int i = 1; i < linkSeq.length; i++) {
-				if (!linkSeq[i].equals(linkSeq[i - 1])) {
-					linkSeqList.add(linkSeq[i]);
-				}
-			}
-
-			String linkSequence = "";
+			String visumLinkSequence = "";
 			String lineRouteKey = row[6] + "||" + row[7] + "||" + row[8];
 			List<LineRouteItem> tpLineRouteItems = lrItemsPerLineRoute.get(lineRouteKey);
 			if (tpLineRouteItems == null) {
@@ -148,11 +144,11 @@ public class TimeProfileExporter {
 						useIt = true;
 					}
 					if (useIt) {
-						if (!lri.outLink.equals(lastLink) && !lri.outLink.isBlank()) {
+						if (!lri.outLink.equals(lastLink) && !lri.outLink.isBlank() && !lri.node.isBlank()) {
 							if (seq.length() > 0) {
 								seq.append(',');
 							}
-							seq.append(lri.outLink);
+							seq.append(createLinkId(lri.node, lri.outLink).toString());
 							lastLink = lri.outLink;
 						}
 					}
@@ -160,7 +156,7 @@ public class TimeProfileExporter {
 						break;
 					}
 				}
-				linkSequence = seq.toString();
+				visumLinkSequence = seq.toString();
 				lastLRItemIndex = thisLRItemIndex;
 			}
 
@@ -171,9 +167,9 @@ public class TimeProfileExporter {
 						Double.parseDouble(row[3]),
 						Double.parseDouble(row[4]),
 						Double.parseDouble(row[5]),
-						linkSequence));
+						visumLinkSequence));
 			} catch (Exception e) {
-				LogManager.getLogger(TimeProfileExporter.class).error(" Could not add TPI for row " + Arrays.stream(row).collect(Collectors.toList()));
+				LogManager.getLogger(TimeProfileExporter.class).error(" Could not add TPI for row " + Arrays.stream(row).toList());
 				e.printStackTrace();
 			}
 		}
@@ -184,28 +180,34 @@ public class TimeProfileExporter {
 	private static void addAttribute(Attributes attributes, String name, String value, String dataType) {
 		if (!value.isEmpty() && !value.equals("null")) {
 			switch (dataType) {
-				case "java.lang.String":
-					attributes.putAttribute(name, value);
-					break;
-				case "java.lang.Double":
-					attributes.putAttribute(name, Double.parseDouble(value));
-                    break;
-                case "java.lang.Integer":
-                    attributes.putAttribute(name, (int) Double.parseDouble(value));
-                    break;
-                default:
-                    throw new IllegalArgumentException(dataType);
-            }
+				case "java.lang.String" -> attributes.putAttribute(name, value);
+				case "java.lang.Double" -> attributes.putAttribute(name, Double.parseDouble(value));
+				case "java.lang.Integer" -> attributes.putAttribute(name, (int) Double.parseDouble(value));
+				default -> throw new IllegalArgumentException(dataType);
+			}
         }
     }
 
     public void writeLinkSequence(String outputfolder, Network network) {
-        try (CSVWriter writer = new CSVWriter("", new String[]{"matsim_link", "link_sequence_visum"},
+        try (CSVWriter writer = new CSVWriter("", new String[]{"matsim_link", "link_sequence_visum", "fromnode_sequence_visum"},
                 outputfolder + "/link_sequences.csv")) {
             for (Map.Entry<Id<Link>, String> entry : this.linkToVisumSequence.entrySet()) {
-                if (network.getLinks().containsKey(entry.getKey())) {
-                    writer.set("matsim_link", entry.getKey().toString());
-                    writer.set("link_sequence_visum", entry.getValue());
+				Id<Link> matsimLinkId = entry.getKey();
+				String visumLinkSequence = entry.getValue();
+				if (visumLinkSequence == null || visumLinkSequence.isEmpty()) {
+					visumLinkSequence = "-1_-1";  // parseable integers representing null
+				}
+				if (network.getLinks().containsKey(matsimLinkId)) {
+                    writer.set("matsim_link", matsimLinkId.toString());
+					List<Tuple<Integer, Integer>> visumFromNodeToLinkTuples =
+							Arrays.stream(visumLinkSequence.split(","))
+									.map(s -> extractVisumNodeAndLinkId(Id.createLinkId(s)))
+									.filter(Objects::nonNull)
+									.toList();
+					String fromNodeSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getFirst())).collect(Collectors.joining(","));
+					String linkSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getSecond())).collect(Collectors.joining(","));
+					writer.set("fromnode_sequence_visum", fromNodeSequence);
+					writer.set("link_sequence_visum", linkSequence);
                     writer.writeRow();
                 }
             }
@@ -284,17 +286,17 @@ public class TimeProfileExporter {
 							Node toNode = this.network.getLinks().get(stop.getLinkId()).getFromNode();
 							Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString());
 							if (!this.network.getLinks().containsKey(newLinkID)) {
-								createLink(newLinkID, fromNode, toNode, mode, postlength);
-								this.linkToVisumSequence.put(newLinkID, tpi.linkSequence);
+								createLink(newLinkID, fromNode, toNode, mode, postlength, tpi.visumLinkSequence);
+								this.linkToVisumSequence.put(newLinkID, tpi.visumLinkSequence);
 							}
 							// differentiate between links with the same from- and to-node but different length
 							else {
 								boolean hasSameLinkSequence = false;
-								if (!this.linkToVisumSequence.get(newLinkID).equals(tpi.linkSequence)) {
+								if (!this.linkToVisumSequence.get(newLinkID).equals(tpi.visumLinkSequence)) {
 									int m = 1;
 									Id<Link> linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
 									while (this.network.getLinks().containsKey(linkID)) {
-										if (this.linkToVisumSequence.get(linkID).equals(tpi.linkSequence)) {
+										if (this.linkToVisumSequence.get(linkID).equals(tpi.visumLinkSequence)) {
 											hasSameLinkSequence = true;
 											newLinkID = linkID;
 											Link link = this.network.getLinks().get(newLinkID);
@@ -311,8 +313,8 @@ public class TimeProfileExporter {
 
 									}
 									if (!hasSameLinkSequence) {
-										createLink(linkID, fromNode, toNode, mode, postlength);
-										this.linkToVisumSequence.put(linkID, tpi.linkSequence);
+										createLink(linkID, fromNode, toNode, mode, postlength, tpi.visumLinkSequence);
+										this.linkToVisumSequence.put(linkID, tpi.visumLinkSequence);
 										newLinkID = linkID;
 									}
 								}
@@ -459,15 +461,15 @@ public class TimeProfileExporter {
 		final double dep;
 		final double arr;
 		final double length;
-		final String linkSequence;
+		final String visumLinkSequence;
 
-		public TimeProfileItem(int index, int stopPoint, double dep, double arr, double length, String linkSequence) {
+		public TimeProfileItem(int index, int stopPoint, double dep, double arr, double length, String visumLinkSequence) {
 			this.index = index;
 			this.stopPoint = stopPoint;
 			this.dep = dep;
 			this.arr = arr;
 			this.length = length;
-			this.linkSequence = linkSequence;
+			this.visumLinkSequence = visumLinkSequence;
 		}
 	}
 }

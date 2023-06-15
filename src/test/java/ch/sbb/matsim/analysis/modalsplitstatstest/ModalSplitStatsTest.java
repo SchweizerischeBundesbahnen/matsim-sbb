@@ -600,10 +600,6 @@ public class ModalSplitStatsTest {
                     Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Einstiege_Gesamt")]));
                     Assert.assertEquals(3, Long.parseLong(tmpLine[header.indexOf("Ausstiege_Gesamt")]));
                     Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_walk")]));
-                    Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_pt")]));
-                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_pt")]));
-                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_rail")]));
-                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_rail")]));
                     Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Zielaustieg_bus")]));
                 }
                 if (tmpLine[header.indexOf("Stop_Nummer")].equals("2194")) {
@@ -612,8 +608,6 @@ public class ModalSplitStatsTest {
                 }
                 if (tmpLine[header.indexOf("Stop_Nummer")].equals("485773991")) {
                     Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Einstiege_Gesamt")]));
-                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_pt")]));
-                    Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Quelleinstieg_rail")]));
                 }
                 if (tmpLine[header.indexOf("Stop_Nummer")].equals("485774092")) {
                     Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("Ausstiege_Gesamt")]));

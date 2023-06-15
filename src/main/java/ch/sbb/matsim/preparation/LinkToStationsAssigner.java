@@ -4,6 +4,7 @@ import ch.sbb.matsim.config.variables.Variables;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.groups.NetworkConfigGroup;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -21,14 +22,14 @@ public class LinkToStationsAssigner {
 
 		Network network = NetworkUtils.createNetwork();
 		new MatsimNetworkReader(network).readFile(networkFile);
-		Network filteredNetwork = new FilteredNetwork().filterNetwork(network, ConfigUtils.createConfig());
+		Network filteredNetwork = LinkToFacilityAssigner.getAccessibleLinks(network, new NetworkConfigGroup());
 		final TransitSchedule transitSchedule = readStations(transitScheduleFile);
 		assignLinkToFacility(filteredNetwork, transitSchedule);
 		new TransitScheduleWriter(transitSchedule).writeFile(outputFile);
 	}
 
 	public static void runAssignment(Scenario scenario) {
-		Network filteredNetwork = new FilteredNetwork().filterNetwork(scenario.getNetwork(), scenario.getConfig());
+		Network filteredNetwork = LinkToFacilityAssigner.getAccessibleLinks(scenario.getNetwork(), scenario.getConfig().network());
 		assignLinkToFacility(filteredNetwork, scenario.getTransitSchedule());
 	}
 

@@ -16,13 +16,12 @@ import java.util.List;
 public class MergeNewExoPlans {
 
     public static void main(String[] args) {
-        String plans0 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\1.2-diam-50pct\\output_slice0\\diam.output_plans.xml.gz";
-        String plans1 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\1.2-diam-50pct\\output_slice1\\diam.output_plans.xml.gz";
-        List<String> inputPlans = List.of(plans1, plans0);
+        String plans0 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\7.5-metroX_miv\\output\\7.5.output_plans.xml.gz";
+        List<String> inputPlans = List.of(plans0);
         List<String> subPopsToRemove = List.of(Variables.CB_RAIL, Variables.CB_ROAD);
-        String cb_rail = "";
-        String cb_road = "";
-        String outfile = "C:\\devsbb\\diam.output_plans50pct.xml";
+        String cb_rail = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\7.5-metroX_miv\\plans_exogeneous\\cb_rail\\plans.xml.gz";
+        String cb_road = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\7.5-metroX_miv\\plans_exogeneous\\cb_road\\plans.xml.gz";
+        String outfile = "C:\\devsbb\\7.5.outputplans.xml";
 
         StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();
         streamingPopulationWriter.startStreaming(outfile);
@@ -49,7 +48,7 @@ public class MergeNewExoPlans {
         for (var s : scens) {
             int i = 0;
             for (Person p : s.getPopulation().getPersons().values()) {
-                if (i % 2 == 0) {
+                if (i % 4 == 0) {
                     streamingPopulationWriter.run(p);
                 }
                 i++;

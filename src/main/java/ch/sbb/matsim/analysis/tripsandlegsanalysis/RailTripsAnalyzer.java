@@ -72,11 +72,13 @@ public class RailTripsAnalyzer {
                 .filter(transitStopFacility -> String.valueOf(transitStopFacility.getAttributes().getAttribute(Variables.FQ_RELEVANT)).equals("1"))
                 .map(Identifiable::getId)
                 .collect(Collectors.toSet());
-        railStops = schedule.getFacilities().values()
-                .stream()
-                .filter(transitStopFacility -> getTransitLinesAndRoutesAtStop(transitStopFacility.getId()).keySet().stream().anyMatch(p -> railLines.contains(p)))
-                .map(Identifiable::getId)
+        railStops = railLines.stream()
+                .flatMap(lid -> schedule.getTransitLines().get(lid).getRoutes().values().stream())
+                .filter(transitRoute -> transitRoute.getTransportMode().equals(PTSubModes.RAIL))
+                .flatMap(transitRoute -> transitRoute.getStops().stream())
+                .map(transitRouteStop -> transitRouteStop.getStopFacility().getId())
                 .collect(Collectors.toSet());
+
         swissRailStops = railStops.stream()
                 .map(id -> schedule.getFacilities().get(id))
                 .filter(stop -> {

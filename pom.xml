@@ -21,10 +21,18 @@
             <url>https://repo.matsim.org/repository/matsim</url>
         </repository>
 
+        <repository>
+            <!-- Geotools is not on Maven central -->
+            <id>osgeo</id>
+            <name>Geotools repository</name>
+            <!--<url>http://download.osgeo.org/webdav/geotools</url>-->
+            <url>https://repo.osgeo.org/repository/release/</url>
+        </repository>
+
     </repositories>
 
     <properties>
-        <matsim.version>15.0-PR2342</matsim.version>
+        <matsim.version>15.0-PR2415</matsim.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>17</maven.compiler.source>
@@ -131,6 +139,17 @@
             <artifactId>aws-java-sdk-s3</artifactId>
             <version>1.12.261</version>
         </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-geotiff</artifactId>
+            <version>28.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.glassfish.jaxb</groupId>
+                    <artifactId>jaxb-runtime</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
     </dependencies>
 
@@ -172,7 +191,13 @@
                     <archive>
                         <manifest>
                             <mainClass>ch.sbb.matsim.RunSBB</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
+                        <manifestEntries>
+                            <Specification-Vendor>SBB CFF FFS</Specification-Vendor>
+                            <Implementation-Vendor>SBB CFF FFS</Implementation-Vendor>
+                        </manifestEntries>
                     </archive>
                 </configuration>
                 <executions>

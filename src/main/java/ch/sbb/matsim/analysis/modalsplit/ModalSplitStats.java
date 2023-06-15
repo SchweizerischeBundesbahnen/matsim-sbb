@@ -1150,8 +1150,8 @@ public class ModalSplitStats {
         final String einstiegeFQ = "Einstiege_FQ_Gesamt";
         final String ausstiegeFQ = "Ausstiege_FQ_Gesamt";
         final String umstiege = "Umstiege_Bahn_Bahn";
-        final String zustiege = "Umsteige_AHP_Bahn";
-        final String wegstiege = "Umsteige_Bahn_AHP";
+        final String zustiege = "Umstiege_AHP_Bahn";
+        final String wegstiege = "Umstiege_Bahn_AHP";
         StringBuilder head = new StringBuilder(
             String.join(",", runID, hstNummer, stopNumber, code, trainStationName, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
         for (String mode : StopStation.getOrigDestModes()) {
@@ -1352,14 +1352,14 @@ public class ModalSplitStats {
         String description = route.getRouteDescription();
         int startIndex = description.indexOf("\"accessFacilityId\":\"") + "\"accessFacilityId\":\"".length();
         int endIndex = description.indexOf("\",\"egressFacilityId");
-        int startString = Integer.parseInt(description.substring(startIndex, endIndex));
+        String startString = description.substring(startIndex, endIndex);
         return transitSchedule.getFacilities().get(Id.create(startString, TransitStopFacility.class));
     }
 
     private TransitStopFacility getEndTrainFacility(Route route) {
         String description = route.getRouteDescription();
         int endIndex = description.indexOf("egressFacilityId\":\"") + "\",\"egressFacilityId".length();
-        int endString = Integer.parseInt(description.substring(endIndex, description.length() - 2));
+        String endString = description.substring(endIndex, description.length() - 2);
         return transitSchedule.getFacilities().get(Id.create(endString, TransitStopFacility.class));
     }
 

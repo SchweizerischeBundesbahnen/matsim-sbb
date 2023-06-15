@@ -1,15 +1,10 @@
 package ch.sbb.matsim.analysis.potential;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.preparation.FilteredNetwork;
+import ch.sbb.matsim.preparation.LinkToFacilityAssigner;
 import com.graphhopper.isochrone.algorithm.DelaunayTriangulationIsolineBuilder;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.geotools.feature.SchemaException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.Coordinate;
@@ -44,6 +39,12 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleUtils;
 import org.opengis.feature.simple.SimpleFeature;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class Isochrones {
 
@@ -101,8 +102,8 @@ public class Isochrones {
 
         this.network = NetworkUtils.createNetwork();
         new TransportModeNetworkFilter(scenario.getNetwork()).filter(this.network, Collections.singleton(SBBModes.CAR));
-        this.graph = new SpeedyGraph(this.network);
-        this.filteredNetwork = new FilteredNetwork().filterNetwork(this.network, this.config);
+		this.graph = new SpeedyGraph(this.network);
+		this.filteredNetwork = LinkToFacilityAssigner.getAccessibleLinks(this.network, this.config.network());
 
         this.travelTime = getTravelTime();
         if (this.eventsFilename != null) {
