@@ -169,9 +169,9 @@ public class ModalSplitStatsTest {
 
                 if (tmpLine[header.indexOf(MSVariables.subpopulation)].equals(Variables.REGULAR)) {
                     if (tmpLine[header.indexOf(MSVariables.mode)].equals(SBBModes.CAR)) {
-                        Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLable.get(2))]));
+                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLable.get(2))]));
                     } else if (tmpLine[header.indexOf(MSVariables.mode)].equals(SBBModes.WALK_FOR_ANALYSIS)) {
-                        Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLable.get(1))]));
+                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLable.get(1))]));
                     } else {
                         Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLable.get(3))]));
                     }
@@ -542,12 +542,12 @@ public class ModalSplitStatsTest {
 
                 if (tmpLine[header.indexOf(MSVariables.subpopulation)].equals(Variables.REGULAR)) {
                     if (tmpLine[header.indexOf("Umsteigetyp")].equals("changesTrain")) {
-                        Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("0")]));
+                        Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("0")]));
                         Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("1")]));
                     }
                     if (tmpLine[header.indexOf("Umsteigetyp")].equals("changesOEV")) {
-                        Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("0")]));
-                        Assert.assertEquals(2, Long.parseLong(tmpLine[header.indexOf("1")]));
+                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf("0")]));
+                        Assert.assertEquals(1, Long.parseLong(tmpLine[header.indexOf("1")]));
                     }
                     if (tmpLine[header.indexOf("Umsteigetyp")].equals("changesOPNV")) {
                         Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf("0")]));
