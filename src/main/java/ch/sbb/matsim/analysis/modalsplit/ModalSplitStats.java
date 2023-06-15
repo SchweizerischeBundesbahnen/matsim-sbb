@@ -264,13 +264,18 @@ public class ModalSplitStats {
 
                         StopStation startStopStation = stopStationsMap.get(startStopStationFacility.getId());
                         startStopStation.addEntred();
+                        String subPTMode = getModeOfTransitRoute(leg.getRoute());
+                        boolean isRailLeg = (subPTMode.equals(PTSubModes.RAIL));
+                        if (isRailLeg) {
+                            startStopStation.setRailStation();
+                        }
                         if (isFQ) {
                             startStopStation.addEntredFQ();
                         }
                         if (legBefore != null) {
                             startStopStation.getEnteredMode()[StopStation.getModes().indexOf(legBefore.getMode())]++;
                             if (legBefore.getMode().equals(PT)) {
-                                String subPTMode = getModeOfTransitRoute(legBefore.getRoute());
+                                subPTMode = getModeOfTransitRoute(legBefore.getRoute());
                                 startStopStation.getEnteredMode()[StopStation.getModes().indexOf(subPTMode)]++;
                                 if (getEndTrainFacility(legBefore.getRoute()).getAttributes().getAttribute("02_Stop_No").equals(startStopStationFacility.getAttributes().getAttribute("02_Stop_No"))) {
                                     if (getEndTrainFacility(legBefore.getRoute()).equals(startStopStationFacility)) {
@@ -290,6 +295,9 @@ public class ModalSplitStats {
 
                         StopStation endStopStation = stopStationsMap.get(endStopStationFacility.getId());
                         endStopStation.addExited();
+                        if (isRailLeg) {
+                            endStopStation.setRailStation();
+                        }
                         if (isFQ) {
                             endStopStation.addExitedFQ();
                         }
@@ -297,7 +305,7 @@ public class ModalSplitStats {
                         Leg legAfter = getLegAfter(legs, currentLegIndex);
                         endStopStation.getExitedMode()[StopStation.getModes().indexOf(legAfter.getMode())]++;
                         if (legAfter.getMode().equals(PT)) {
-                            String subPTMode = getModeOfTransitRoute(legAfter.getRoute());
+                            subPTMode = getModeOfTransitRoute(legAfter.getRoute());
                             endStopStation.getExitedMode()[StopStation.getModes().indexOf(subPTMode)]++;
                             if (getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute("02_Stop_No").equals(endStopStationFacility.getAttributes().getAttribute("02_Stop_No"))) {
                                 if (getStartTrainFacility(legAfter.getRoute()).equals(endStopStationFacility)) {
@@ -420,6 +428,8 @@ public class ModalSplitStats {
                 }
             }
             if (raillegs > 0) {
+                changeArray[changeOrderList.indexOf(changeTrainAll)][raillegs - 1]++;
+                changeArrayPKM[changeOrderList.indexOf(changeTrainAll)][raillegs - 1] += distance;
                 if (isMixed) {
                     changeArray[changeOrderList.indexOf(changeOEV)][ptLegs - 1]++;
                     changeArrayPKM[changeOrderList.indexOf(changeOEV)][ptLegs - 1]+=distance;
@@ -1152,8 +1162,9 @@ public class ModalSplitStats {
         final String umstiege = "Umstiege_Bahn_Bahn";
         final String zustiege = "Umsteige_AHP_Bahn";
         final String wegstiege = "Umsteige_Bahn_AHP";
+        final String isRailStop = "isRailStop";
         StringBuilder head = new StringBuilder(
-            String.join(",", runID, hstNummer, stopNumber, code, trainStationName, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
+            String.join(",", runID, hstNummer, stopNumber, code, isRailStop, trainStationName, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
         for (String mode : StopStation.getOrigDestModes()) {
             head.append(",").append("Zielaustieg_").append(mode);
             head.append(",").append("Quelleinstieg_").append(mode);
@@ -1164,6 +1175,11 @@ public class ModalSplitStats {
                 csvWriter.set(runID, config.controler().getRunId());
                 csvWriter.set(hstNummer, entry.getValue().getStop().getAttributes().getAttribute("02_Stop_No").toString());
                 csvWriter.set(stopNumber, entry.getValue().getStop().getId().toString());
+                if (entry.getValue().getIsRailStation()) {
+                    csvWriter.set(isRailStop, "1");
+                } else {
+                    csvWriter.set(isRailStop, "0");
+                }
                 Id<TransitStopFacility> stopId = Id.create(entry.getKey(), TransitStopFacility.class);
                 Object codeAttribute = entry.getValue().getStop().getAttributes().getAttribute("03_Stop_Code");
                 if (codeAttribute == null) {
@@ -1203,6 +1219,7 @@ public class ModalSplitStats {
             mapChange.put("changesOPNV", 1);
             mapChange.put("changesOEV", 2);
             mapChange.put("changesTrainFQ", 3);
+            mapChange.put("changesTrainAll", 4);
             for (Entry<String, double[][]> entry : subpopulationChangeMap.entrySet()) {
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
                     csvWriter.set(runID, config.controler().getRunId());
@@ -1224,6 +1241,7 @@ public class ModalSplitStats {
             mapChange.put("changesOPNV", 1);
             mapChange.put("changesOEV", 2);
             mapChange.put("changesTrainFQ", 3);
+            mapChange.put("changesTrainAll", 4);
             for (Entry<String, double[][]> entry : subpopulationChangePKMMap.entrySet()) {
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
                     csvWriter.set(runID, config.controler().getRunId());
