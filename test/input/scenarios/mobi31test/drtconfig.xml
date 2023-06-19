@@ -62,10 +62,6 @@
                value="subpopulation,pt_subscr,car_available,residence_msr_id,age_cat,current_edu,level_of_employment_cat"/>
         <param name="writeAgentsCSV" value="true"/>
 
-        <!-- To reduce heap use on build server (1Gig limit)-->
-        <param name="ptVolumes" value="false"/>
-        <param name="writeFinalDailyVolumes" value="false"/>
-
         <param name="writeOutputsInterval" value="1"/>
         <param name="writeVisumPuTSurvey" value="true"/>
         <param name="zoneAttribute" value="zone_id"/>

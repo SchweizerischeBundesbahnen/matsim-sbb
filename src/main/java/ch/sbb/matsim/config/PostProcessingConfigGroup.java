@@ -5,9 +5,10 @@
 package ch.sbb.matsim.config;
 
 import ch.sbb.matsim.zones.Zones;
-import java.util.Map;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.ReflectiveConfigGroup;
+
+import java.util.Map;
 
 public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
@@ -16,13 +17,11 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 
 	private Id<Zones> zonesId = null;
 	private String zoneAttribute = "GMDNR";
-	private Boolean ptVolumes = false;
 	private Boolean linkVolumes = false;
 	private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
 	private int writeOutputsInterval = 10;
 	private Boolean writeAgentsCSV = false;
 	private Boolean writePlanElementsCSV = false;
-	private Boolean finalDailyVolumes = false;
 	private Boolean writeVisumPuTSurvey = false;
 	static private final String SIMULATION_SAMPLE_SIZE = "simulationSampleSize";
 	private double simulationSampleSize;
@@ -108,16 +107,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 		this.writePlanElementsCSV = value;
 	}
 
-	@StringGetter("writeFinalDailyVolumes")
-	public Boolean getFinalDailyVolumes() {
-		return finalDailyVolumes;
-	}
-
-	@StringSetter("writeFinalDailyVolumes")
-	public void setFinalDailyVolumes(Boolean finalDailyVolumes) {
-		this.finalDailyVolumes = finalDailyVolumes;
-	}
-
 	@StringGetter("personAttributes")
 	public String getPersonAttributes() {
 		return personAttributes;
@@ -128,15 +117,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 		this.personAttributes = personAttributes;
 	}
 
-	@StringGetter("ptVolumes")
-	public Boolean getPtVolumes() {
-		return ptVolumes;
-	}
-
-	@StringSetter("ptVolumes")
-	public void setPtVolumes(Boolean ptVolumes) {
-		this.ptVolumes = ptVolumes;
-	}
 
 	@StringGetter("linkVolumes")
 	public Boolean getLinkVolumes() {
@@ -194,11 +174,9 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
     }
 
 	public void setAllPostProcessingOff() {
-		this.ptVolumes = false;
 		this.linkVolumes = false;
 		this.writeAgentsCSV = false;
 		this.writePlanElementsCSV = false;
-		this.finalDailyVolumes = false;
 		this.writeVisumPuTSurvey = false;
 		this.writeOutputsInterval = 0;
 	}
