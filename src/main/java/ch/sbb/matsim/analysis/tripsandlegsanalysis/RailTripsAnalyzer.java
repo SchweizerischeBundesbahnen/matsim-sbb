@@ -158,6 +158,34 @@ public class RailTripsAnalyzer {
         return tuple;
     }
 
+    public RailTravelInfo getRailTravelInfo(Trip trip) {
+        Id<TransitStopFacility> firstStop = null;
+        Id<TransitStopFacility> lastStop = null;
+        double railDistance = 0.;
+        double travelTime = 0.;
+        for (Leg leg : trip.getLegsOnly()) {
+            if (leg.getRoute() instanceof TransitPassengerRoute) {
+                TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                if (railLines.contains(route.getLineId())) {
+                    if (firstStop == null) {
+                        firstStop = route.getAccessStopId();
+
+                    }
+                    lastStop = route.getEgressStopId();
+                    railDistance += route.getDistance();
+                    travelTime += route.getTravelTime().seconds();
+                }
+            }
+        }
+        if (firstStop != null && lastStop != null) {
+            return new RailTravelInfo(firstStop, lastStop, travelTime, railDistance);
+        } else return null;
+    }
+
+    public record RailTravelInfo(Id<TransitStopFacility> fromStation, Id<TransitStopFacility> toStation,
+                                 double railTravelTime, double distance) {
+    }
+
 
     /**
      * A rail leg between SIMBA/CH-Perimeter stops or to&from Domodossola, or the swiss section of an international rail leg

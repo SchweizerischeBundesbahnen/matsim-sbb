@@ -25,6 +25,7 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
+import org.apache.commons.lang3.mutable.MutableDouble;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.HasPlansAndId;
@@ -36,7 +37,6 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.Trip;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
-import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -53,6 +53,7 @@ public class RailDemandMatrixAggregator {
     public static final String OUTSIDE_ZONE = "outside";
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final Map<Id<TransitStopFacility>, String> zoneStop = new HashMap<>();
+    private final Map<Id<TransitStopFacility>, Map<Id<TransitStopFacility>, OdTravelInfo>> odDemandMatrix = new TreeMap<>();
     private final ArrayList<String> aggregateZones;
     @Inject
     private ExperiencedPlansService experiencedPlansService;
@@ -76,9 +77,38 @@ public class RailDemandMatrixAggregator {
 
     }
 
-    public void aggregateAndWriteMatrix(double scalefactor, String outputfile) {
-        writeMatrix(aggregateRailDemand(scalefactor, experiencedPlansService.getExperiencedPlans().values()), outputfile);
+    public void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile) {
+        float[][] matrix = aggregateRailDemand(scalefactor, experiencedPlansService.getExperiencedPlans().values());
+        writeMatrix(matrix, outputMatrixFile);
+        writeStationToStationDemand(stationToStationFile);
+
     }
+
+    public void writeStationToStationDemand(String outputFile) {
+        String from = "from_station";
+        String to = "to_station";
+        String trips = "rail_trips";
+        String pkm = "rail_pkm";
+        String travel_time = "average_travel_time";
+        try (CSVWriter writer = new CSVWriter(null, new String[]{from, to, trips, pkm, travel_time}, outputFile)) {
+            for (var entry : this.odDemandMatrix.entrySet()) {
+                for (var stopEntry : entry.getValue().entrySet()) {
+                    writer.set(from, entry.getKey().toString());
+                    writer.set(to, stopEntry.getKey().toString());
+                    var travelInfo = stopEntry.getValue();
+                    writer.set(pkm, travelInfo.travelDistance().toString());
+                    writer.set(trips, travelInfo.demand().toString());
+                    writer.set(travel_time, travelInfo.travelTime().toString());
+                    writer.writeRow();
+                }
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    ;
 
 
     private void writeMatrix(float[][] matrix, String outputfile) {
@@ -103,11 +133,17 @@ public class RailDemandMatrixAggregator {
         float[][] matrix = new float[aggregateZones.size()][aggregateZones.size()];
         for (Plan plan : plans) {
             for (Trip trip : TripStructureUtils.getTrips(plan)) {
-                Tuple<Id<TransitStopFacility>, Id<TransitStopFacility>> od = railTripsAnalyzer.getOriginDestination(trip);
+                RailTripsAnalyzer.RailTravelInfo od = railTripsAnalyzer.getRailTravelInfo(trip);
                 if (od != null) {
-                    String fromZone = zoneStop.get(od.getFirst());
-                    String toZone = zoneStop.get(od.getSecond());
+                    String fromZone = zoneStop.get(od.fromStation());
+                    String toZone = zoneStop.get(od.toStation());
                     matrix[aggregateZones.indexOf(fromZone)][aggregateZones.indexOf(toZone)] += scaleFactor;
+
+                    OdTravelInfo travelInfo = this.odDemandMatrix.computeIfAbsent(od.fromStation(), a -> new TreeMap<>()).computeIfAbsent(od.toStation(), b -> new OdTravelInfo(new MutableDouble(), new MutableDouble(), new MutableDouble()));
+                    travelInfo.demand.add(scaleFactor);
+                    travelInfo.travelDistance().add(scaleFactor * od.distance() * 0.001);
+                    travelInfo.travelTime().add(scaleFactor * od.railTravelTime());
+
 
                 }
             }
@@ -139,6 +175,9 @@ public class RailDemandMatrixAggregator {
                 .writeMatrix(railDemandMatrixAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(
                         Collectors.toSet())), outputFile);
 
+    }
+
+    record OdTravelInfo(MutableDouble demand, MutableDouble travelTime, MutableDouble travelDistance) {
     }
 
     private static class StringNumberComparator implements Comparator<String> {
