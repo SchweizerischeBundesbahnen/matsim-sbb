@@ -2,11 +2,13 @@ package ch.sbb.matsim.routing.network;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.routing.BicycleTravelDisutilityFactory;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
+import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -44,6 +46,8 @@ public class SBBNetworkRoutingModule extends AbstractModule {
 		Set<String> routedModes = ConfigUtils.addOrGetModule(getConfig(), SBBNetworkRoutingConfigGroup.class).getNetworkRoutingModes();
 		for (String mode : routedModes) {
 			if (mode.equals(SBBModes.BIKE)) {
+				addTravelTimeBinding(SBBModes.BIKE).to(FreeSpeedTravelTime.class);
+				addTravelDisutilityFactoryBinding(SBBModes.BIKE).to(BicycleTravelDisutilityFactory.class).asEagerSingleton();
 				continue;
 			}
 			addTravelTimeBinding(mode).to(networkTravelTime());
