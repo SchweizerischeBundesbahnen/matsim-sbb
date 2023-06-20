@@ -24,6 +24,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +68,7 @@ public class VisumStreetNetworkExporter {
 		if (exportCounts) {
 			this.exportCountStations(visum, outputPath);
 		}
-		String[][] nodes = importNodes(net, "No", "XCoord", "YCoord");
+		String[][] nodes = importNodes(net, "No", "XCoord", "YCoord", "ZCoord");
 		String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
 				"NumLanes", "TSysSet", Variables.ACCESS_CONTROLLED, "WKTPoly", "No");
 		createNetwork(nodes, links);
@@ -120,10 +121,17 @@ public class VisumStreetNetworkExporter {
 	private void createNetwork(String[][] attarraynode, String[][] attarraylink) {
 		Network network = this.scenario.getNetwork();
 		network.setCapacityPeriod(3600);
-
+		double sumOfZCoords = Arrays.stream(attarraynode).mapToDouble(s -> Double.parseDouble(s[3])).sum();
+		boolean threeDimensionalNetwork = true;
+		if (sumOfZCoords < 1.) {
+			threeDimensionalNetwork = false;
+			log.warn("Network is two-dimensional, will not set any zcoords");
+		}
 		for (String[] anAttarraynode : attarraynode) {
-			Coord coord = new Coord(Double.parseDouble(anAttarraynode[1]),
-					Double.parseDouble(anAttarraynode[2]));
+			double x = Double.parseDouble(anAttarraynode[1]);
+			double y = Double.parseDouble(anAttarraynode[2]);
+			double z = Double.parseDouble(anAttarraynode[3]);
+			Coord coord = threeDimensionalNetwork ? new Coord(x, y, z) : new Coord(x, y);
 			Node node = nf.createNode(Id.createNodeId("C_" + anAttarraynode[0]), coord);
 			network.addNode(node);
 		}
