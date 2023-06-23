@@ -19,6 +19,8 @@ public class SBBModes {
 	public static final String RIDEFEEDER = "ride_feeder";
 	public static final String CARFEEDER = "car_feeder";
 	public static final String DRT = TransportMode.drt;
+	public static final String RAIL = "rail";
+	public static final String FQRAIL = "fqrail";
 	public static final String PT_FALLBACK_MODE = TransportMode.transit_walk;
 	public static final String ACCESS_EGRESS_WALK = TransportMode.walk;
 	public static final String WALK_MAIN_MAINMODE = "walk_main";
