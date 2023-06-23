@@ -12,7 +12,7 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.*;
-import org.matsim.contrib.util.random.WeightedRandomSelection;
+import org.matsim.contrib.common.util.WeightedRandomSelection;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PopulationUtils;
@@ -41,8 +41,8 @@ public class GenerateEAPDemand {
     //equidistant between new train station and bus stop
     private final Coord destinationCoord = new Coord(2607176.8206491300, 1272138.9751427100);
     private final Random r = MatsimRandom.getRandom();
-    private final WeightedRandomSelection<Integer> departureSelector = new WeightedRandomSelection<>();
-    private final WeightedRandomSelection<Integer> arrivalSelector = new WeightedRandomSelection<>();
+    private final WeightedRandomSelection<Integer> departureSelector = new WeightedRandomSelection<>(MatsimRandom.getRandom());
+    private final WeightedRandomSelection<Integer> arrivalSelector = new WeightedRandomSelection<>(MatsimRandom.getRandom());
     private final Map<String, List<Id<ActivityFacility>>> facilitiesPerMunId = new HashMap<>();
 
     GenerateEAPDemand(String facilitiesFile, String demandMatrixFile, String zonesFile, String dailyDistribution, double scaleFactorPt, double scaleFactorCar) {
@@ -108,7 +108,7 @@ public class GenerateEAPDemand {
     }
 
     private void generateDemand(Population population, String mode, int desiredPassengers, Map<String, MutableInt> demandStatsMap) {
-        WeightedRandomSelection<String> zoneSelector = new WeightedRandomSelection<>();
+        WeightedRandomSelection<String> zoneSelector = new WeightedRandomSelection<>(MatsimRandom.getRandom());
         PopulationFactory factory = scenario.getPopulation().getFactory();
 
         demandData.forEach(d -> zoneSelector.add(d.destinationZone, d.getDemand(mode)));
