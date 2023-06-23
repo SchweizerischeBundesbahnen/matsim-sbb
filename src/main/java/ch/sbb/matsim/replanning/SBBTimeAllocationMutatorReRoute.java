@@ -11,8 +11,8 @@ import org.matsim.core.router.TripRouter;
 import org.matsim.core.utils.timing.TimeInterpretation;
 import org.matsim.facilities.ActivityFacilities;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 
 /**
  * THIS IS A COPY of the default TimeAllocationMutatorReRoute module. The only modification is a custom TimeAllocationStrategy which is called SBBTimeAllocationMutator

@@ -1,6 +1,6 @@
 package ch.sbb.matsim.rideshare.analysis;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.matsim.core.config.Config;
 import org.matsim.core.controler.MatsimServices;
 import org.matsim.core.controler.events.IterationEndsEvent;
