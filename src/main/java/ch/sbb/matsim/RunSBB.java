@@ -134,8 +134,8 @@ public class RunSBB {
 				addPlanStrategyBinding(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice).toProvider(SBBSubtourModeChoice.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
 				bind(RailTripsAnalyzer.class);
-				bind(RailDemandMatrixAggregator.class);
-				bind(RailDemandReporting.class);
+                bind(DemandAggregator.class);
+                bind(RailDemandReporting.class);
 				bind(PtLinkVolumeAnalyzer.class);
 				bind(PutSurveyWriter.class);
 				bind(TripsAndDistanceStats.class);

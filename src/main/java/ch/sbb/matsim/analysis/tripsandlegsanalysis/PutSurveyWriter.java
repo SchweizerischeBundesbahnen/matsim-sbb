@@ -28,8 +28,8 @@ import ch.sbb.matsim.preparation.casestudies.MixExperiencedPlansFromSeveralSimul
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.*;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
@@ -263,8 +263,8 @@ public class PutSurveyWriter {
                                 var origzone = zones.findZone(findCoord(trip.getOriginActivity()));
                                 var destzone = zones.findZone(findCoord(trip.getDestinationActivity()));
 
-                                String orig_gem = origzone != null ? origzone.getAttribute(GEM_SHAPE_ATTR).toString() : Variables.DEFAULT_ZONE;
-                                String dest_gem = destzone != null ? destzone.getAttribute(GEM_SHAPE_ATTR).toString() : Variables.DEFAULT_ZONE;
+                                String orig_gem = origzone != null ? origzone.getAttribute(GEM_SHAPE_ATTR).toString() : Variables.DEFAULT_OUTSIDE_ZONE;
+                                String dest_gem = destzone != null ? destzone.getAttribute(GEM_SHAPE_ATTR).toString() : Variables.DEFAULT_OUTSIDE_ZONE;
                                 double railAccessDist = 0.;
                                 double railEgressDist = 0.;
                                 for (Leg leg : trip.getLegsOnly()) {

@@ -30,7 +30,10 @@ import org.matsim.utils.objectattributes.attributable.Attributes;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
@@ -1062,7 +1065,11 @@ public class ModalSplitStats {
                 } else {
                     csvWriter.set(code, codeAttribute.toString());
                 }
-                csvWriter.set(trainStationName, transitSchedule.getFacilities().get(stopId).getName().replaceAll(",", " "));
+                String name = transitSchedule.getFacilities().get(stopId).getName();
+                if (name == null) {
+                    name = "";
+                }
+                csvWriter.set(trainStationName, name.replaceAll(",", " "));
                 csvWriter.set(x, Double.toString(entry.getValue().getStop().getCoord().getX()));
                 csvWriter.set(y, Double.toString(entry.getValue().getStop().getCoord().getY()));
                 csvWriter.set(zone, entry.getValue().getZoneId());
