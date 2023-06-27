@@ -117,10 +117,16 @@ public class DemandAggregator {
     }
 
     public void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String tripsPerMunFile, String tripsPerAMRFile) {
+        Collection<Plan> experiencedPlans = experiencedPlansService.getExperiencedPlans().values();
+        aggregateAndWriteMatrix(scalefactor, outputMatrixFile, stationToStationFile, tripsPerMunFile, tripsPerAMRFile, experiencedPlans);
+
+    }
+
+    void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String tripsPerMunFile, String tripsPerAMRFile, Collection<Plan> experiencedPlans) {
         LOG.info("aggregating Rail Demand");
-        float[][] matrix = aggregateRailDemand(scalefactor, experiencedPlansService.getExperiencedPlans().values());
+        float[][] matrix = aggregateRailDemand(scalefactor, experiencedPlans);
         LOG.info("aggregating Trip Demand");
-        aggregateTripDemand(scalefactor, experiencedPlansService.getExperiencedPlans().values());
+        aggregateTripDemand(scalefactor, experiencedPlans);
         LOG.info("Writing Trip Demand aggregate files.");
         writeMatrix(matrix, outputMatrixFile);
         writeStationToStationDemand(stationToStationFile);
@@ -129,7 +135,6 @@ public class DemandAggregator {
         LOG.info("Done.");
         odRailDemandMatrix.clear();
         allModesOdDemand.clear();
-
     }
 
     private void writeTripDemand(String aggregationString, String outputfile) {
@@ -176,9 +181,9 @@ public class DemandAggregator {
                         double demand = info.getDemand(mode);
                         double distance = info.getTravelDistane(mode);
                         double travelTime = info.getTravelTime(mode);
-                        String averageTravelTime = demand > 0.0 ? String.valueOf(travelTime / demand) : "";
+                        String averageTravelTime = demand > 0.0 ? String.valueOf((int) Math.round(travelTime / demand)) : "";
                         writer.set(mode + "_demand", String.valueOf(demand));
-                        writer.set(mode + "_travelDistance_km", String.valueOf(distance * 0.001));
+                        writer.set(mode + "_travelDistance_km", String.valueOf((int) Math.round(distance * 0.001)));
                         writer.set(mode + "_average_travelTime", averageTravelTime);
                     }
                     writer.writeRow();
@@ -192,7 +197,7 @@ public class DemandAggregator {
 
     }
 
-    private void aggregateTripDemand(double scalefactor, Collection<Plan> experiencedPlans) {
+    void aggregateTripDemand(double scalefactor, Collection<Plan> experiencedPlans) {
         //for (Plan plan : experiencedPlans)
 
         experiencedPlans.parallelStream().forEach(plan ->
@@ -247,9 +252,9 @@ public class DemandAggregator {
                     writer.set(to, stopEntry.getKey().toString());
 
                     var travelInfo = stopEntry.getValue();
-                    writer.set(pkm, travelInfo.travelDistance().toString());
+                    writer.set(pkm, String.valueOf((int) Math.round(travelInfo.travelDistance().doubleValue())));
                     writer.set(trips, travelInfo.demand().toString());
-                    writer.set(travel_time, travelInfo.travelTime().toString());
+                    writer.set(travel_time, String.valueOf((int) Math.round(travelInfo.travelTime().doubleValue() / travelInfo.demand().doubleValue())));
                     writer.writeRow();
                 }
             }
