@@ -9,6 +9,9 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.gis.ShapeFileReader;
 import org.opengis.feature.simple.SimpleFeature;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Locale;
 
 /**
@@ -26,11 +29,12 @@ public final class ZonesLoader {
 
 		for (ZonesListConfigGroup.ZonesParameterSet group : zonesConfig.getZones()) {
 			String id = group.getId();
-			String fileName = group.getFilename();
+			URL filenameURL = group.getFilenameURL(config.getContext());
+			String filenameString = group.getFilename();
 			String idAttribute = group.getIdAttributeName();
-			Zones zones = loadZones(id, fileName, idAttribute);
+			Zones zones = loadZones(id, filenameURL, filenameString, idAttribute);
 			zonesCollection.addZones(zones);
-        }
+		}
     }
 
     public static Zones loadZones(String id, String filename, String idAttribute) {
@@ -41,9 +45,19 @@ public final class ZonesLoader {
 		throw new RuntimeException("Unsupported format for zones-file " + filename);
 	}
 
-    public static Zones loadZones(String id, String filename) {
-        return loadZones(id, filename, Variables.ZONE_ID);
-    }
+	public static Zones loadZones(String id, String filename) {
+		return loadZones(id, filename, Variables.ZONE_ID);
+	}
+
+	public static Zones loadZones(String id, URL filenameURL, String fileNameString, String idAttribute) {
+		try {
+			String filename = new File(filenameURL.toURI()).getAbsolutePath();
+			return loadZones(id, filename, idAttribute);
+		} catch (URISyntaxException e) {
+			return loadZones(id, fileNameString, idAttribute);
+		}
+
+	}
 
 	private static Zones loadZonesFromShapefile(String id, String filename, String idAttribute) {
 		boolean noZoneId = idAttribute == null || idAttribute.isEmpty();
