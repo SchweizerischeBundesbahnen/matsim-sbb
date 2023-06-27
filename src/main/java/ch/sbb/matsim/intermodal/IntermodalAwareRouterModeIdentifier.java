@@ -2,16 +2,18 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package ch.sbb.matsim.analysis.zonebased;
+package ch.sbb.matsim.intermodal;
 
-import java.util.List;
-import java.util.Set;
-import javax.inject.Inject;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.router.MainModeIdentifier;
+
+import jakarta.inject.Inject;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author mrieser / SBB

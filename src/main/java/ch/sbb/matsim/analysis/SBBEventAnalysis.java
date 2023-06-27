@@ -8,8 +8,6 @@ import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.zones.ZonesCollection;
 import com.google.inject.Inject;
-import java.util.LinkedList;
-import java.util.List;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.groups.ControlerConfigGroup;
@@ -22,6 +20,9 @@ import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.controler.listener.ShutdownListener;
 import org.matsim.core.controler.listener.StartupListener;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsListener, StartupListener, ShutdownListener {
 
@@ -57,10 +58,6 @@ public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsList
 
     static List<EventsAnalysis> buildEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename, final ZonesCollection zones) {
         List<EventsAnalysis> analyses = new LinkedList<>();
-        if (ppConfig.getPtVolumes()) {
-            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, false);
-            analyses.add(ptVolumeWriter);
-        }
         if (ppConfig.getLinkVolumes()) {
             LinkVolumeToCSV linkVolumeWriter = new LinkVolumeToCSV(scenario, filename);
             analyses.add(linkVolumeWriter);
@@ -68,14 +65,6 @@ public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsList
         return analyses;
     }
 
-    static List<EventsAnalysis> buildPersistentEventWriters(final Scenario scenario, final PostProcessingConfigGroup ppConfig, final String filename) {
-        List<EventsAnalysis> persistentAnalyses = new LinkedList<>();
-        if (ppConfig.getDailyLinkVolumes()) {
-            PtVolumeToCSV ptVolumeWriter = new PtVolumeToCSV(scenario, filename, true);
-            persistentAnalyses.add(ptVolumeWriter);
-        }
-        return persistentAnalyses;
-    }
 
     @Override
     public void notifyStartup(StartupEvent event) {
@@ -83,12 +72,7 @@ public class SBBEventAnalysis implements BeforeMobsimListener, IterationEndsList
         if (this.ppConfig.getWriteAgentsCSV() || this.ppConfig.getWritePlanElementsCSV()) {
             new PopulationToCSV(scenario).write(outputDirectory);
         }
-        if (this.ppConfig.getFinalDailyVolumes()) {
-            this.persistentAnalyses = buildPersistentEventWriters(this.scenario, this.ppConfig, this.controlerIO.getOutputFilename(""));
-            for (EventsAnalysis analysis : this.persistentAnalyses) {
-                eventsManager.addHandler(analysis);
-            }
-        }
+
     }
 
     @Override

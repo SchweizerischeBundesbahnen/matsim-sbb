@@ -27,7 +27,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     private final PostProcessingConfigGroup ppConfig;
 
     @Inject
-    private RailDemandMatrixAggregator railDemandMatrixAggregator;
+    private DemandAggregator demandAggregator;
 
     @Inject
     private RailDemandReporting railDemandReporting;
@@ -84,7 +84,14 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
             if (((interval > 0) && (event.getIteration() % interval == 0)) || event.getIteration() == this.config.getLastIteration()) {
                 String railDemandAggregateFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
-                railDemandMatrixAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename);
+                String railDemandStationToStation = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandStationToStation.csv.gz")
+                        : controlerIO.getIterationFilename(event.getIteration(), "railDemandStationToStation.csv.gz");
+                String tripsPerMunFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMun.csv.gz")
+                        : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMun.csv.gz");
+                String tripsPerAMRFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerAMR.csv.gz")
+                        : controlerIO.getIterationFilename(event.getIteration(), "tripsPerAMR.csv.gz");
+
+                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, tripsPerMunFile, tripsPerAMRFile);
                 String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.att");
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);

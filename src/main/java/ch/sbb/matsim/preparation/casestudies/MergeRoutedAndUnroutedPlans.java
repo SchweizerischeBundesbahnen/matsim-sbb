@@ -20,13 +20,13 @@
 package ch.sbb.matsim.preparation.casestudies;
 
 import ch.sbb.matsim.RunSBB;
-import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.intermodal.IntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;

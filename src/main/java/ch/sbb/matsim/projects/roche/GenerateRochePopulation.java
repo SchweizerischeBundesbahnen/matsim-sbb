@@ -107,7 +107,7 @@ public class GenerateRochePopulation {
                     pt_subscr = "HTA";
                 }
                 Zone homezone = zones.findZone(homeCoord);
-                Integer residence_zone_id = Integer.parseInt(Variables.DEFAULT_ZONE);
+                Integer residence_zone_id = Integer.parseInt(Variables.DEFAULT_OUTSIDE_ZONE);
                 Integer residence_msr_id = -1;
                 if (homezone != null) {
                     residence_zone_id = Integer.parseInt(homezone.getId().toString());

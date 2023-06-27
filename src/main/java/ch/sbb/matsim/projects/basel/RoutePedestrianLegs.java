@@ -10,8 +10,9 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.*;
-import org.matsim.contrib.util.random.WeightedRandomSelection;
+import org.matsim.contrib.common.util.WeightedRandomSelection;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
@@ -170,7 +171,7 @@ public class RoutePedestrianLegs {
         }
 //        useShortestWay(candidatePaths);
         calcProbabilities(candidatePaths);
-        WeightedRandomSelection<Candidate> weightedRandomSelection = new WeightedRandomSelection();
+        WeightedRandomSelection<Candidate> weightedRandomSelection = new WeightedRandomSelection(MatsimRandom.getRandom());
         candidatePaths
                 .stream().filter(candidate -> candidate.probability > 0.001)
                 .forEach(candidate -> weightedRandomSelection.add(candidate, candidate.probability));

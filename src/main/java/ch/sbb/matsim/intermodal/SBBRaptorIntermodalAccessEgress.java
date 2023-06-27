@@ -27,7 +27,8 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.utils.misc.OptionalTime;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
+
 import java.util.List;
 
 public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEgress {

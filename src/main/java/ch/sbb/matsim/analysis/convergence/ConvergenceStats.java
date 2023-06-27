@@ -17,7 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-import javax.inject.Inject;
+
+import jakarta.inject.Inject;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;

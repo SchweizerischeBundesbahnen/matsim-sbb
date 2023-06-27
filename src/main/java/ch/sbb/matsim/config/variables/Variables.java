@@ -40,7 +40,7 @@ public class Variables {
     public static final String INIT_END_TIMES = "initialActivityEndTimes";
     public static final String NO_INIT_END_TIME = "NONE";
 
-    public static final String DEFAULT_ZONE = "999999999";
+    public static final String DEFAULT_OUTSIDE_ZONE = "999999999";
 
     public static final String INTERMODAL_ACCESS_LINK_ID = "accessLinkId";
     public static final String PERSONID = "personId";
@@ -66,9 +66,10 @@ public class Variables {
 
     public static final String CURRENT_EDUCATION = "current_edu";
     public static final String NOT_IN_EDUCATION = "null";
-    public static final String PRIMRAY = "pupil_primray";
+    public static final String PRIMARY = "pupil_primary";
     public static final String SECONDARY = "pupil_secondary";
     public static final String STUDENT = "student";
+    public static final String APPRENTICE = "apprentice";
 
     public static final String LEVEL_OF_EMPLOYMENT_CAT = "level_of_employment_cat";
     public static final String LEVEL_OF_EMPLOYMENT_CAT_NONE = "0";
@@ -76,13 +77,13 @@ public class Variables {
     public static final String LEVEL_OF_EMPLOYMENT_CAT_40_to_79 = "40_to_79";
     public static final String LEVEL_OF_EMPLOYMENT_CAT_80_to_100 = "80_to_100";
 
-    public static final String AGE_CATEGORIE = "age_cat";
-    public static final String AGE_CATEGORIE_0_17 = "0_to_17";
-    public static final String AGE_CATEGORIE_18_24 = "18_to_24";
-    public static final String AGE_CATEGORIE_25_44 = "25_to_44";
-    public static final String AGE_CATEGORIE_45_64 = "45_to_64";
-    public static final String AGE_CATEGORIE_65_74 = "65_to_74";
-    public static final String AGE_CATEGORIE_75_XX = "75_to_XX";
+    public static final String AGE_CATEGORY = "age_cat";
+    public static final String AGE_CATEGORY_0_17 = "0_to_17";
+    public static final String AGE_CATEGORY_18_24 = "18_to_24";
+    public static final String AGE_CATEGORY_25_44 = "25_to_44";
+    public static final String AGE_CATEGORY_45_64 = "45_to_64";
+    public static final String AGE_CATEGORY_65_74 = "65_to_74";
+    public static final String AGE_CATEGORY_75_XX = "75_to_XX";
 
     public static class MOBiTripAttributes {
         public static final String TOUR_ID = "next_trip_tour_id";

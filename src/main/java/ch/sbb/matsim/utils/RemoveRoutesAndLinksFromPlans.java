@@ -1,6 +1,6 @@
 package ch.sbb.matsim.utils;
 
-import ch.sbb.matsim.analysis.zonebased.IntermodalAwareRouterModeIdentifier;
+import ch.sbb.matsim.intermodal.IntermodalAwareRouterModeIdentifier;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.algorithms.TripsToLegsAlgorithm;

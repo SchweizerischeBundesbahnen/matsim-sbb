@@ -9,8 +9,9 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
 import org.matsim.api.core.v01.population.*;
-import org.matsim.contrib.util.random.WeightedRandomSelection;
+import org.matsim.contrib.common.util.WeightedRandomSelection;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
@@ -202,7 +203,7 @@ public class RouteBaselSBBPedestrianLegs {
     private static class StopWithAccessPoints {
         final Id<Link> stopFacilityLinkId;
         final String name;
-        private final WeightedRandomSelection<Coord> weightedAccessPoints = new WeightedRandomSelection<>();
+        private final WeightedRandomSelection<Coord> weightedAccessPoints = new WeightedRandomSelection<>(MatsimRandom.getRandom());
         private final Map<Coord, String> coord2Names = new HashMap<>();
 
         private StopWithAccessPoints(Id<Link> stopFacilityLinkId, String name) {

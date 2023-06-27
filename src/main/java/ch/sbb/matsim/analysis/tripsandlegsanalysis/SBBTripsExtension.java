@@ -30,6 +30,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
@@ -39,8 +40,9 @@ import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+
 import java.util.*;
 
 @Singleton
@@ -73,50 +75,16 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
         return Collections.emptyList();
     }
 
-    @Override
-    public List<String> getAdditionalTripColumns(Id<Person> personId, Trip trip) {
-        var fromZone = zones.findZone(getCoordFromActivity(trip.getOriginActivity()));
-        var toZone = zones.findZone(getCoordFromActivity(trip.getDestinationActivity()));
-        String fromZoneString = fromZone != null ? fromZone.getId().toString() : "";
-        String toZoneString = toZone != null ? toZone.getId().toString() : "";
-        var railOd = railTripsAnalyzer.getOriginDestination(trip);
-        String fromStation = railOd != null ? railOd.getFirst().toString() : "";
-        String toStation = railOd != null ? railOd.getSecond().toString() : "";
-        var visumTripIds = tripAttributes.get(personId);
-        String tourId = "";
-        String tripId = "";
-        String direction = "";
-        String purpose = "";
-        if (visumTripIds != null) {
-            Variables.MOBiTripAttributes tripAttributes = visumTripIds.poll();
-            if (tripAttributes != null) {
-                tourId = tripAttributes.getTourId();
-                tripId = tripAttributes.getTripId();
-                direction = tripAttributes.getTripDirection();
-                purpose = tripAttributes.getTripPurpose();
-            }
-        }
-        String rail_legs = "";
-        String rail_pkm = "";
-        String fq_rail_pkm = "";
-
-        String accessModes = "";
-        String egressModes = "";
-        String accessDistance = "";
-        String egressDistance = "";
-        if (railOd != null) {
-            rail_pkm = calcRailPkm(trip);
-            fq_rail_pkm = calcfqRailPkm(trip);
-            rail_legs = Integer.toString(railTripsAnalyzer.getRailRouteSegmentsofTrip(trip).size());
-            var access = findAccessMode(trip, railOd.getFirst());
-            var egress = findEgressMode(trip, railOd.getSecond());
-            accessModes = access.getFirst();
-            accessDistance = Integer.toString(access.getSecond());
-            egressModes = egress.getFirst();
-            egressDistance = Integer.toString(egress.getSecond());
+    public static Coord getCoordFromActivity(Activity activity, Scenario scenario) {
+        if (activity.getCoord() != null) {
+            return activity.getCoord();
+        } else if (activity.getFacilityId() != null && scenario.getActivityFacilities().getFacilities().containsKey(activity.getFacilityId())) {
+            Coord coord = scenario.getActivityFacilities().getFacilities().get(activity.getFacilityId()).getCoord();
+            return coord != null ? coord : getCoordFromLink(activity.getLinkId(), scenario.getNetwork());
+        } else {
+            return getCoordFromLink(activity.getLinkId(), scenario.getNetwork());
         }
 
-        return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, rail_legs, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction);
     }
 
     private Tuple<String, Integer> findAccessMode(Trip trip, Id<TransitStopFacility> accessStop) {
@@ -173,20 +141,54 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
         return String.valueOf(rail_pm / 1000);
     }
 
-    private Coord getCoordFromActivity(Activity activity) {
-        if (activity.getCoord() != null) {
-            return activity.getCoord();
-        } else if (activity.getFacilityId() != null && scenario.getActivityFacilities().getFacilities().containsKey(activity.getFacilityId())) {
-            Coord coord = scenario.getActivityFacilities().getFacilities().get(activity.getFacilityId()).getCoord();
-            return coord != null ? coord : getCoordFromLink(activity.getLinkId());
-        } else {
-            return getCoordFromLink(activity.getLinkId());
-        }
-
+    private static Coord getCoordFromLink(Id<Link> linkId, Network network) {
+        return network.getLinks().get(linkId).getToNode().getCoord();
     }
 
-    private Coord getCoordFromLink(Id<Link> linkId) {
-        return scenario.getNetwork().getLinks().get(linkId).getToNode().getCoord();
+    @Override
+    public List<String> getAdditionalTripColumns(Id<Person> personId, Trip trip) {
+        var fromZone = zones.findZone(getCoordFromActivity(trip.getOriginActivity(), scenario));
+        var toZone = zones.findZone(getCoordFromActivity(trip.getDestinationActivity(), scenario));
+        String fromZoneString = fromZone != null ? fromZone.getId().toString() : "";
+        String toZoneString = toZone != null ? toZone.getId().toString() : "";
+        var railOd = railTripsAnalyzer.getOriginDestination(trip);
+        String fromStation = railOd != null ? railOd.getFirst().toString() : "";
+        String toStation = railOd != null ? railOd.getSecond().toString() : "";
+        var visumTripIds = tripAttributes.get(personId);
+        String tourId = "";
+        String tripId = "";
+        String direction = "";
+        String purpose = "";
+        if (visumTripIds != null) {
+            Variables.MOBiTripAttributes tripAttributes = visumTripIds.poll();
+            if (tripAttributes != null) {
+                tourId = tripAttributes.getTourId();
+                tripId = tripAttributes.getTripId();
+                direction = tripAttributes.getTripDirection();
+                purpose = tripAttributes.getTripPurpose();
+            }
+        }
+        String rail_legs = "";
+        String rail_pkm = "";
+        String fq_rail_pkm = "";
+
+        String accessModes = "";
+        String egressModes = "";
+        String accessDistance = "";
+        String egressDistance = "";
+        if (railOd != null) {
+            rail_pkm = calcRailPkm(trip);
+            fq_rail_pkm = calcfqRailPkm(trip);
+            rail_legs = Integer.toString(railTripsAnalyzer.getRailRouteSegmentsofTrip(trip).size());
+            var access = findAccessMode(trip, railOd.getFirst());
+            var egress = findEgressMode(trip, railOd.getSecond());
+            accessModes = access.getFirst();
+            accessDistance = Integer.toString(access.getSecond());
+            egressModes = egress.getFirst();
+            egressDistance = Integer.toString(egress.getSecond());
+        }
+
+        return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, rail_legs, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction);
     }
 
 

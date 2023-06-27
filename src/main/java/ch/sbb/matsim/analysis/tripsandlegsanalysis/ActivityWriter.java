@@ -25,7 +25,8 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import java.io.IOException;
-import javax.inject.Inject;
+
+import jakarta.inject.Inject;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;

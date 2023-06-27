@@ -6,7 +6,8 @@ package ch.sbb.matsim.utils;
 
 import java.util.List;
 import java.util.Set;
-import javax.inject.Inject;
+
+import jakarta.inject.Inject;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.PlanElement;

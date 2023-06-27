@@ -6,13 +6,6 @@ import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
-import java.io.IOException;
-import java.util.DoubleSummaryStatistics;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.PersonArrivalEvent;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
@@ -32,6 +25,15 @@ import org.matsim.contrib.dvrp.passenger.PassengerRequestRejectedEventHandler;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+
+import jakarta.inject.Inject;
+
+import java.io.IOException;
+import java.util.DoubleSummaryStatistics;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author jbischoff / SBB
@@ -123,7 +125,7 @@ public class ZonebasedRideshareAnalysis implements DrtRequestSubmittedEventHandl
 	private Id<Zone> findZone(Id<Link> linkId) {
 		return links2zoneCache.computeIfAbsent(linkId, l -> {
 			Zone zone = zones.findZone(network.getLinks().get(linkId).getCoord());
-			return zone == null ? Id.create(Variables.DEFAULT_ZONE, Zone.class) : zone.getId();
+			return zone == null ? Id.create(Variables.DEFAULT_OUTSIDE_ZONE, Zone.class) : zone.getId();
 		});
 
 	}
