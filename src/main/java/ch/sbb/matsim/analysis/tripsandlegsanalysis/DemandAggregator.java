@@ -24,6 +24,8 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
 import ch.sbb.matsim.zones.*;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,9 +45,6 @@ import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,6 +56,7 @@ public class DemandAggregator {
     public static final String OUTSIDE_ZONE = Variables.DEFAULT_OUTSIDE_ZONE;
     public static final Id<Zone> OUTSIDE_ZONE_ID = Id.create(OUTSIDE_ZONE, Zone.class);
     private final RailTripsAnalyzer railTripsAnalyzer;
+    private final Map<Id<TransitStopFacility>, String> aggregateZoneStop = new HashMap<>();
     private final Map<Id<TransitStopFacility>, String> zoneStop = new HashMap<>();
     private final Map<Id<TransitStopFacility>, Map<Id<TransitStopFacility>, RailODTravelInfo>> odRailDemandMatrix = new TreeMap<>();
     private final ArrayList<String> aggregateZones;
@@ -80,10 +80,11 @@ public class DemandAggregator {
             if (aggregate.equals("-1")) {
                 aggregate = OUTSIDE_ZONE;
             }
-            zoneStop.put(facility.getId(), aggregate);
+            aggregateZoneStop.put(facility.getId(), aggregate);
+            zoneStop.put(facility.getId(), zone != null ? zone.getId().toString() : OUTSIDE_ZONE);
         }
         var sortedZones = new TreeSet<>(new StringNumberComparator());
-        sortedZones.addAll(zoneStop.values());
+        sortedZones.addAll(aggregateZoneStop.values());
         aggregateZones = new ArrayList<>(sortedZones);
         aggregateZones.remove("");
 
@@ -282,8 +283,8 @@ public class DemandAggregator {
             for (Trip trip : TripStructureUtils.getTrips(plan)) {
                 RailTripsAnalyzer.RailTravelInfo od = railTripsAnalyzer.getRailTravelInfo(trip);
                 if (od != null) {
-                    String fromZone = zoneStop.get(od.fromStation());
-                    String toZone = zoneStop.get(od.toStation());
+                    String fromZone = aggregateZoneStop.get(od.fromStation());
+                    String toZone = aggregateZoneStop.get(od.toStation());
                     matrix[aggregateZones.indexOf(fromZone)][aggregateZones.indexOf(toZone)] += scaleFactor;
 
                     RailODTravelInfo travelInfo = this.odRailDemandMatrix.computeIfAbsent(od.fromStation(), a -> new TreeMap<>()).computeIfAbsent(od.toStation(), b -> new RailODTravelInfo(new MutableDouble(), new MutableDouble(), new MutableDouble()));
