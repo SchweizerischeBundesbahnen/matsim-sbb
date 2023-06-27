@@ -39,6 +39,7 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.utils.collections.Tuple;
+import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,6 +92,7 @@ public class StreetNetworkExporter {
 
         filterBikeNetwork(network, outputDir);
         finalMultimodalCleanup(network);
+        assureLinkLenghtsAndSpeedsAreSet(network);
 
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network with polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK_WITH_POLYLINES);
@@ -99,6 +101,16 @@ public class StreetNetworkExporter {
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network without polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK);
 
+    }
+
+    private static void assureLinkLenghtsAndSpeedsAreSet(Network network) {
+
+        for (Link link : network.getLinks().values()){
+            double beelineDistance = CoordUtils.calcEuclideanDistance(link.getFromNode().getCoord(),link.getToNode().getCoord());
+            if (link.getLength()==0.0 || link.getLength()<beelineDistance){
+                link.setLength(Math.max(0.1,beelineDistance));
+            }
+        }
     }
 
     private static void finalMultimodalCleanup(Network network) {
