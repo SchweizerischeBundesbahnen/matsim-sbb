@@ -31,7 +31,7 @@ public class DemandAggregatorTest {
 
         new PopulationReader(scenario2).readFile(inputFolder + "MOBI33IT.output_experienced_plans.xml.gz");
         aggregator.aggregateAndWriteMatrix(10, outputFolder + "matrix.csv", outputFolder + "railDemandStationToStation.csv.gz", outputFolder + "tripsPerMun.csv.gz", outputFolder + "tripsPerAMR.csv.gz", scenario2.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(Collectors.toList()));
-        MatsimTestUtils.assertEqualFilesLineByLine(outputFolder + "station2station.csv.gz", inputFolder + "MOBI33IT.railDemandStationToStation.csv.gz");
+        MatsimTestUtils.assertEqualFilesLineByLine(outputFolder + "railDemandStationToStation.csv.gz", inputFolder + "MOBI33IT.railDemandStationToStation.csv.gz");
         MatsimTestUtils.assertEqualFilesLineByLine(outputFolder + "tripsPerMun.csv.gz", inputFolder + "MOBI33IT.tripsPerMun.csv.gz");
         MatsimTestUtils.assertEqualFilesLineByLine(outputFolder + "tripsPerAMR.csv.gz", inputFolder + "MOBI33IT.tripsPerAMR.csv.gz");
     }
