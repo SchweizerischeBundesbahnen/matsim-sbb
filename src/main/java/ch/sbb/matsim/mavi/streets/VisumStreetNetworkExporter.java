@@ -160,9 +160,13 @@ public class VisumStreetNetworkExporter {
 					}
 					link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, ac);
 					if (ac == 1) {
-						link.setAllowedModes(modeSetWithoutBike);
+						if (carAllowed) {
+							link.setAllowedModes(modeSetWithoutBike);
+						}
 					} else if (!carAllowed) {
 						link.setAllowedModes(modeSetBikeOnly);
+					} else {
+						link.setAllowedModes(fullModeset);
 					}
 					network.addLink(link);
 				}
