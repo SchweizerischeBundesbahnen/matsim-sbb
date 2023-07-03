@@ -83,7 +83,7 @@ public class CarLinkAnalysisTest {
 
         File outputDir = new File("test/output/ch/sbb/matsim/analysis/linkAnalyser");
         outputDir.mkdirs();
-        carLinkAnalysis.writeSingleIterationCarStats(outputDir.getAbsolutePath() + "/test.att");
+        carLinkAnalysis.writeSingleIterationStreetStats(outputDir.getAbsolutePath() + "/test.att");
         File f1 = new File(outputDir.getAbsolutePath() + "/test.att");
         File f2 = new File("test/input/ch/sbb/matsim/analysis/linkAnalyser/carlinkanalysistestvolumes.att");
         Assert.equals(true, Files.readLines(f1, Charsets.UTF_8).equals(Files.readLines(f2, Charsets.UTF_8)));
