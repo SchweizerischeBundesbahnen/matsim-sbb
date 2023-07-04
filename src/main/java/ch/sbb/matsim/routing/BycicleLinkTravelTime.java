@@ -17,7 +17,7 @@ public class BycicleLinkTravelTime extends FreeSpeedTravelTime {
 	public double getLinkTravelTime(Link link, double time, Person person, Vehicle vehicle) {
 		double velocity = link.getFreespeed();
 		if (vehicle!=null) {
-			velocity = Math.max(velocity, vehicle.getType().getMaximumVelocity());
+			velocity = Math.min(velocity, vehicle.getType().getMaximumVelocity());
 		}
 		return link.getLength() / velocity / computeGradientFactor(link);
 	}
