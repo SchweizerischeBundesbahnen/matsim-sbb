@@ -23,7 +23,6 @@ public class BycicleLinkTravelTime extends FreeSpeedTravelTime {
 	}
 
 	private double computeGradientFactor(Link link) {
-
 		double factor = 1;
 		if (link.getFromNode().getCoord().hasZ() && link.getToNode().getCoord().hasZ()) {
 			double fromZ = link.getFromNode().getCoord().getZ();
