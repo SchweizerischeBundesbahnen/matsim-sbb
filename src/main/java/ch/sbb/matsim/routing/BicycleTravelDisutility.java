@@ -68,10 +68,10 @@ class BicycleTravelDisutility implements TravelDisutility {
 		final PlanCalcScoreConfigGroup.ModeParams bicycleParams = cnScoringGroup.getModes().get(SBBModes.BIKE);
 		if (bicycleParams == null) {
 			throw new NullPointerException("Mode " + SBBModes.BIKE + " is not part of the valid mode parameters " + cnScoringGroup.getModes().keySet());
-		}
-
-		this.marginalCostOfDistanceM = -(bicycleParams.getMonetaryDistanceRate() * cnScoringGroup.getMarginalUtilityOfMoney())
+		}		this.marginalCostOfDistanceM = -(bicycleParams.getMonetaryDistanceRate() * cnScoringGroup.getMarginalUtilityOfMoney())
 				- bicycleParams.getMarginalUtilityOfDistance();
+
+
 		this.marginalCostOfTimeS = -(bicycleParams.getMarginalUtilityOfTraveling() / 3600.0) + cnScoringGroup.getPerforming_utils_hr() / 3600.0;
 
 		this.marginalCostOfGradientM100M = 0.02;

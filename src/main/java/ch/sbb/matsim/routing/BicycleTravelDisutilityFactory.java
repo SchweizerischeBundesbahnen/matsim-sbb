@@ -40,7 +40,8 @@ public final class BicycleTravelDisutilityFactory implements TravelDisutilityFac
 	
 	private static int normalisationWrnCnt = 0;
 
-	/* package-private */ BicycleTravelDisutilityFactory(){}
+	/* package-private */
+	public BicycleTravelDisutilityFactory(){}
 	
 	@Override
 	public TravelDisutility createTravelDisutility(TravelTime timeCalculator) {
