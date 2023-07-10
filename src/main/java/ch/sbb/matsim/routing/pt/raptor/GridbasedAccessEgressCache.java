@@ -206,7 +206,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
                 bikeDistance = bikepath.links.stream().mapToDouble(l -> l.getLength()).sum();
             }
             if (bikeBackwardsLeastCostPathTree.getTime(nearestBikeNodeIndex).isDefined()) {
-                bikeTravelTime = (bikeTravelTime + bikeBackwardsLeastCostPathTree.getTime(nearestBikeNodeIndex).seconds()) / 2;
+                bikeTravelTime = (bikeTravelTime - bikeBackwardsLeastCostPathTree.getTime(nearestBikeNodeIndex).seconds()) / 2;
                 bikeDistance = (bikeDistance + bikeBackwardsLeastCostPathTree.getDistance(nearestBikeNodeIndex)) / 2;
             }
             dist[i][0] = (int) carTravelTime;
@@ -214,7 +214,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             dist[i][2] = (int) bikeTravelTime;
             dist[i][3] = (int) bikeDistance;
         }
-        //logger.info("Found " + found + " of " + cellSize);
+        logger.info("Found " + found + " of " + cellSize);
         return dist;
     }
 
