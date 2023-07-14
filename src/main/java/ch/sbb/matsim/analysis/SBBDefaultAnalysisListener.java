@@ -88,10 +88,10 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandStationToStation.csv.gz");
                 String tripsPerMunFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMun.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMun.csv.gz");
-                String tripsPerAMRFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerAMR.csv.gz")
-                        : controlerIO.getIterationFilename(event.getIteration(), "tripsPerAMR.csv.gz");
+                String tripsPerMSRFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerAMR.csv.gz")
+                        : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMSR.csv.gz");
 
-                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, tripsPerMunFile, tripsPerAMRFile);
+                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, tripsPerMunFile, tripsPerMSRFile);
                 String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.att");
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
