@@ -53,17 +53,21 @@ public class LinkVolumeToCSV extends VolumesAnalyzerSBB implements EventsAnalysi
 		log.info("write linkvolumes to " + filename + FILENAME_VOLUMES);
 		try (CSVWriter linkVolumesWriter = new CSVWriter("", COLUMNS, filename + FILENAME_VOLUMES)) {
 			for (Id<Link> linkId : super.getLinkIds()) {
-				for (String aMode : this.network.getLinks().get(linkId).getAllowedModes()) {
-					int[] volumes = super.getVolumesForLink(linkId, aMode);
-					if (volumes != null) {
-						for (int i = 0; i < volumes.length; i++) {
-							linkVolumesWriter.set(COL_LINK_ID, linkId.toString());
-							linkVolumesWriter.set(COL_MODE, aMode);
-							linkVolumesWriter.set(COL_BIN, Integer.toString(i + 1));
-							linkVolumesWriter.set(COL_VOLUME, Double.toString(volumes[i]));
-							linkVolumesWriter.writeRow();
+				try {
+					for (String aMode : this.network.getLinks().get(linkId).getAllowedModes()) {
+						int[] volumes = super.getVolumesForLink(linkId, aMode);
+						if (volumes != null) {
+							for (int i = 0; i < volumes.length; i++) {
+								linkVolumesWriter.set(COL_LINK_ID, linkId.toString());
+								linkVolumesWriter.set(COL_MODE, aMode);
+								linkVolumesWriter.set(COL_BIN, Integer.toString(i + 1));
+								linkVolumesWriter.set(COL_VOLUME, Double.toString(volumes[i]));
+								linkVolumesWriter.writeRow();
+							}
 						}
 					}
+				} catch (Exception e) {
+					log.info("couldn't write " + linkId.toString());
 				}
 			}
 		} catch (IOException e) {
