@@ -236,7 +236,8 @@ public class DemandAggregator {
         String trips = "rail_trips";
         String pkm = "rail_pkm";
         String travel_time = "average_travel_time";
-        try (CSVWriter writer = new CSVWriter(null, new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time}, outputFile)) {
+        String number_of_transfers = "number_of_rail_transfers";
+        try (CSVWriter writer = new CSVWriter(null, new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFile)) {
             for (var entry : this.odRailDemandMatrix.entrySet()) {
                 String fromZoneId = this.zoneStop.get(entry.getKey()).toString();
                 String fromStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getName());
@@ -255,6 +256,7 @@ public class DemandAggregator {
                     writer.set(pkm, String.valueOf((int) Math.round(travelInfo.travelDistance().doubleValue())));
                     writer.set(trips, travelInfo.demand().toString());
                     writer.set(travel_time, String.valueOf((int) Math.round(travelInfo.travelTime().doubleValue() / travelInfo.demand().doubleValue())));
+                    writer.set(number_of_transfers, String.valueOf((int) Math.round(travelInfo.numberOfRailTransfers().doubleValue() / travelInfo.demand().doubleValue())));
                     writer.writeRow();
                 }
             }
@@ -292,19 +294,18 @@ public class DemandAggregator {
                     String toZone = aggregateZoneStop.get(od.toStation());
                     matrix[aggregateZones.indexOf(fromZone)][aggregateZones.indexOf(toZone)] += scaleFactor;
 
-                    RailODTravelInfo travelInfo = this.odRailDemandMatrix.computeIfAbsent(od.fromStation(), a -> new TreeMap<>()).computeIfAbsent(od.toStation(), b -> new RailODTravelInfo(new MutableDouble(), new MutableDouble(), new MutableDouble()));
+                    RailODTravelInfo travelInfo = this.odRailDemandMatrix.computeIfAbsent(od.fromStation(), a -> new TreeMap<>()).computeIfAbsent(od.toStation(), b -> new RailODTravelInfo(new MutableDouble(), new MutableDouble(), new MutableDouble(), new MutableDouble()));
                     travelInfo.demand.add(scaleFactor);
                     travelInfo.travelDistance().add(scaleFactor * od.distance() * 0.001);
                     travelInfo.travelTime().add(scaleFactor * od.railTravelTime());
-
-
+                    travelInfo.numberOfRailTransfers().add(scaleFactor * od.numberOfTransfers());
                 }
             }
         }
         return matrix;
     }
 
-    record RailODTravelInfo(MutableDouble demand, MutableDouble travelTime, MutableDouble travelDistance) {
+    record RailODTravelInfo(MutableDouble demand, MutableDouble travelTime, MutableDouble travelDistance, MutableDouble numberOfRailTransfers) {
     }
 
     record ODTravelInfo(Map<String, MutableDouble> demandPerMode, Map<String, MutableDouble> travelTimePerMode,

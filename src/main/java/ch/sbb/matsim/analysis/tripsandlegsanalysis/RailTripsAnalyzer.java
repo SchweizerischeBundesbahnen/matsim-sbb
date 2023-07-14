@@ -159,15 +159,33 @@ public class RailTripsAnalyzer {
         return tuple;
     }
 
+    private String getModeOfTransitRoute(Route route) {
+        if (route instanceof TransitPassengerRoute) {
+            return schedule.getTransitLines().get(((TransitPassengerRoute) route).getLineId()).getRoutes().get(((TransitPassengerRoute) route).getRouteId()).getTransportMode();
+        }
+        return null;
+    }
+
     public RailTravelInfo getRailTravelInfo(Trip trip) {
         Id<TransitStopFacility> firstStop = null;
         Id<TransitStopFacility> lastStop = null;
         double railDistance = 0.;
         double travelTime = 0.;
+        double numberOfTransfers = 0.;
+        boolean lastLegWasRail = false;
         for (Leg leg : trip.getLegsOnly()) {
             if (leg.getRoute() instanceof TransitPassengerRoute) {
                 TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
-                if (railLines.contains(route.getLineId())) {
+                if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                    if (lastLegWasRail) {
+                        numberOfTransfers+=1.;
+                    }
+                    lastLegWasRail = true;
+                } else {
+                    lastLegWasRail = false;
+                }
+
+                    if (railLines.contains(route.getLineId())) {
                     if (firstStop == null) {
                         firstStop = route.getAccessStopId();
 
@@ -179,12 +197,12 @@ public class RailTripsAnalyzer {
             }
         }
         if (firstStop != null && lastStop != null) {
-            return new RailTravelInfo(firstStop, lastStop, travelTime, railDistance);
+            return new RailTravelInfo(firstStop, lastStop, travelTime, railDistance, numberOfTransfers);
         } else return null;
     }
 
     public record RailTravelInfo(Id<TransitStopFacility> fromStation, Id<TransitStopFacility> toStation,
-                                 double railTravelTime, double distance) {
+                                 double railTravelTime, double distance, double numberOfTransfers) {
     }
 
 
