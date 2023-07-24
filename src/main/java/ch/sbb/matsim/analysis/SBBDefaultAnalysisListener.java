@@ -88,17 +88,17 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandStationToStation.csv.gz");
                 String tripsPerMunFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMun.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMun.csv.gz");
-                String tripsPerAMRFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerAMR.csv.gz")
-                        : controlerIO.getIterationFilename(event.getIteration(), "tripsPerAMR.csv.gz");
+                String tripsPerMSRFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMSR.csv.gz")
+                        : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMSR.csv.gz");
 
-                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, tripsPerMunFile, tripsPerAMRFile);
+                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, tripsPerMunFile, tripsPerMSRFile);
                 String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.att");
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
                 putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
                 String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("car_volumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "car_volumes.att");
-                carLinkAnalysis.writeSingleIterationCarStats(carVolumesName);
+                carLinkAnalysis.writeSingleIterationStreetStats(carVolumesName);
                 String tripsAndDistanceStatsName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("trips_distance_stats.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "trips_distance_stats.csv");
                 String fullTripsAndDistanceStatsName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("trips_distance_stats_full.csv")

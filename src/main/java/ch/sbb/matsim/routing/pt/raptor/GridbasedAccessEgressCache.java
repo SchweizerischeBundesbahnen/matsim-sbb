@@ -88,11 +88,11 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         this.bike = scenario.getVehicles().getFactory().createVehicle(Id.create("bike", Vehicle.class), bikeType);
 
         //TODO: fix this to pure bike net once our data is ready for it
-      //  this.carnet.getLinks().values().forEach(link -> {
+        //  this.carnet.getLinks().values().forEach(link -> {
         //    Set<String> allowedModes = new HashSet<>(link.getAllowedModes());
-          //  allowedModes.add(SBBModes.BIKE);
-         //   link.setAllowedModes(allowedModes);
-       // });
+        //  allowedModes.add(SBBModes.BIKE);
+        //   link.setAllowedModes(allowedModes);
+        // });
         //TODO: use scenario.getNetwork((
         NetworkFilterManager nfm2 = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
         nfm2.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
