@@ -130,16 +130,18 @@ public class DemandAggregator {
         LOG.info("Writing Trip Demand aggregate files.");
         writeMatrix(matrix, outputMatrixFile);
         writeStationToStationDemand(stationToStationFile);
-        writeTripDemand("mun_id", tripsPerMunFile);
-        writeTripDemand("msr_id", tripsPerMSRFile);
+        writeTripDemand("mun_id", "mun_name", tripsPerMunFile);
+        writeTripDemand("msr_id", "msr_name", tripsPerMSRFile);
         LOG.info("Done.");
         odRailDemandMatrix.clear();
         allModesOdDemand.clear();
     }
 
-    private void writeTripDemand(String aggregationString, String outputfile) {
+    private void writeTripDemand(String aggregationString, String aggregationStringName, String outputfile) {
         ZonesImpl zonesImpl = (ZonesImpl) zones;
         Map<Id<Zone>, String> zoneAggregate = zonesImpl.getZones().stream().collect(Collectors.toMap(zone -> zone.getId(), zone -> String.valueOf(zone.getAttribute(aggregationString))));
+        Map<String, String> zoneAggregateNameString = zonesImpl.getZones().stream().collect(Collectors.toMap(zone -> String.valueOf(zone.getAttribute(aggregationString)), zone -> String.valueOf(zone.getAttribute(aggregationStringName)), (a, b) -> a));
+        zoneAggregateNameString.put(OUTSIDE_ZONE, "Outside");
         zoneAggregate.put(OUTSIDE_ZONE_ID, OUTSIDE_ZONE);
         Map<String, Map<String, ODTravelInfo>> aggregatedAllModesOdDemand = new HashMap<>();
         Set<String> allModes = new HashSet<>();
@@ -161,10 +163,12 @@ public class DemandAggregator {
         });
         List<String> sortedModes = new ArrayList<>(allModes);
         Collections.sort(sortedModes);
-        String[] header = new String[2 + sortedModes.size() * 3];
+        String[] header = new String[4 + sortedModes.size() * 3];
         header[0] = "from_" + aggregationString;
-        header[1] = "to_" + aggregationString;
-        int i = 2;
+        header[1] = "from_" + aggregationStringName;
+        header[2] = "to_" + aggregationString;
+        header[3] = "to_" + aggregationStringName;
+        int i = 4;
         for (String mode : sortedModes) {
             header[i] = mode + "_demand";
             header[i + 1] = mode + "_travelDistance_km";
@@ -175,7 +179,9 @@ public class DemandAggregator {
             for (var fromZoneFlows : aggregatedAllModesOdDemand.entrySet()) {
                 for (var toZoneFlows : fromZoneFlows.getValue().entrySet()) {
                     writer.set(header[0], fromZoneFlows.getKey());
-                    writer.set(header[1], toZoneFlows.getKey());
+                    writer.set(header[1], zoneAggregateNameString.get(fromZoneFlows.getKey()));
+                    writer.set(header[2], toZoneFlows.getKey());
+                    writer.set(header[3], zoneAggregateNameString.get(toZoneFlows.getKey()));
                     var info = toZoneFlows.getValue();
                     for (String mode : sortedModes) {
                         double demand = info.getDemand(mode);
