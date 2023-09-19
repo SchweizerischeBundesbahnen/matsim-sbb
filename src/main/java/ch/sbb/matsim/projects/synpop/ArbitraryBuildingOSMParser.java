@@ -16,6 +16,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Polygon;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
+import org.matsim.contrib.common.util.WeightedRandomSelection;
 import org.matsim.contrib.osm.networkReader.PbfParser;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.geotools.MGC;
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 class ArbitraryBuildingOSMParser {
 
@@ -55,7 +57,7 @@ class ArbitraryBuildingOSMParser {
         System.out.println("done");
     }
 
-    private void writeTable(String outputFile) {
+    public void writeTable(String outputFile) {
         String zoneId = "zoneId";
         String nuts3 = "NUTS3";
         String buildings = "buildings";
@@ -75,8 +77,9 @@ class ArbitraryBuildingOSMParser {
         }
     }
 
-    private void assignZones(Zones zones) {
+    public void assignZones(Zones zones) {
         GeometryFactory fac = new GeometryFactory();
+        int errors = 0;
         for (var data : buildingData.values()) {
             Coordinate[] coords = new Coordinate[data.nodeIds.size() + 1];
             for (int i = 0; i < data.nodeIds.size(); i++) {
@@ -87,15 +90,26 @@ class ArbitraryBuildingOSMParser {
             coords[data.nodeIds.size()] = coords[0];
             Polygon polygon = fac.createPolygon(coords);
             Coord centroid = MGC.point2Coord(polygon.getCentroid());
-            Zone zone = zones.findZone(centroid);
+            Zone zone = null;
+            try {
+                 zone = zones.findZone(centroid);
+            }
+            catch (Exception e){
+                errors++;
+                e.printStackTrace();
+            }
+
             if (zone != null) {
                 var zoneId = zone.getId();
                 String nuts3 = String.valueOf(zone.getAttribute("NUTS3"));
-                buildingsPerZone.computeIfAbsent(zoneId, zoneId1 -> new BuildingsPerZone(zoneId1, nuts3, new MutableDouble(), new MutableInt())).add(polygon.getArea());
+                double floors = data.floors()>0?data.floors():1.;
+                buildingsPerZone.computeIfAbsent(zoneId, zoneId1 -> new BuildingsPerZone(zoneId1, nuts3, new MutableDouble(), new MutableInt())).add(polygon.getArea()*floors);
 
             }
 
         }
+        System.out.println("Errors in Zone Mapping "+errors);
+        System.out.println("Buildings: " + buildingData.size());
 
 
     }
@@ -155,6 +169,22 @@ class ArbitraryBuildingOSMParser {
         }
 
 
+    }
+
+    public Map<String, WeightedRandomSelection> prepareRandomDistributor(boolean useBuildingArea, Random random) {
+        Set<String> nuts3data = this.buildingsPerZone.values().stream().map(data -> data.nuts3Id()).collect(Collectors.toSet());
+        Map<String,WeightedRandomSelection> weightsPerNuts = new HashMap<>();
+        for (String nutsZone : nuts3data){
+            WeightedRandomSelection<Id<Zone>> selection = new WeightedRandomSelection<>(random);
+            this.buildingsPerZone.values().stream().filter(data-> data.nuts3Id.equals(nutsZone)).forEach(data->{
+                double weight = useBuildingArea?data.area().doubleValue():data.buildings.doubleValue();
+                selection.add(data.zoneId(),weight);
+
+
+            });
+            weightsPerNuts.put(nutsZone,selection);
+        }
+        return weightsPerNuts;
     }
 
     record BuildingData(long wayId, List<Long> nodeIds, int floors, boolean retail) {
