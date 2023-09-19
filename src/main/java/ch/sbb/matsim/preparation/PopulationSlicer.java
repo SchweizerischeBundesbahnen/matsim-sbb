@@ -61,7 +61,6 @@ public class PopulationSlicer {
 		List<Id<Person>> personIds = new ArrayList<>(population.getPersons().keySet());
 		Collections.shuffle(personIds, random);
 		int partitionsize = personIds.size() / slices;
-		partitionsize = 100;
 
 		for (int i = 0; i < slices; i++) {
 			StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();
@@ -77,6 +76,7 @@ public class PopulationSlicer {
 						.collect(Collectors.toSet()));
 
 			}
+			streamingPopulationWriter.closeStreaming();
 			Scenario newfacilities = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 			for (var facId : usedFacilities) {
 				newfacilities.getActivityFacilities().addActivityFacility(scenario.getActivityFacilities().getFacilities().get(facId));
@@ -84,7 +84,6 @@ public class PopulationSlicer {
 			if (newfacilities.getActivityFacilities().getFacilities().size() > 0) {
 				new FacilitiesWriter(newfacilities.getActivityFacilities()).write(outputFolder + "/facilities_" + i + ".xml.gz");
 			}
-			streamingPopulationWriter.closeStreaming();
 		}
 
 	}
