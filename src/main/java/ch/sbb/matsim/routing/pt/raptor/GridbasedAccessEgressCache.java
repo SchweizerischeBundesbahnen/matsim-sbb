@@ -239,7 +239,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         if (cache != null && cellInBound(cell)) {
             int[] cellCache = cache[cell];
             double travelTime = mode.equals(SBBModes.BIKEFEEDER) ? cellCache[2] : cellCache[0];
-            double travelDistance = mode.equals(SBBModes.BIKEFEEDER) ? cellCache[3] : cellCache[2];
+            double travelDistance = mode.equals(SBBModes.BIKEFEEDER) ? cellCache[3] : cellCache[1];
             Integer accessTime = this.accessTimesAtStops.get(transitStopFacilityId).get(mode);
             if (accessTime == null) {
                 accessTime = 0;
