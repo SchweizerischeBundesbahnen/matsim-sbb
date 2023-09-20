@@ -61,7 +61,6 @@ public class PopulationSlicer {
 		List<Id<Person>> personIds = new ArrayList<>(population.getPersons().keySet());
 		Collections.shuffle(personIds, random);
 		int partitionsize = personIds.size() / slices;
-		partitionsize = 100;
 
 		for (int i = 0; i < slices; i++) {
 			StreamingPopulationWriter streamingPopulationWriter = new StreamingPopulationWriter();

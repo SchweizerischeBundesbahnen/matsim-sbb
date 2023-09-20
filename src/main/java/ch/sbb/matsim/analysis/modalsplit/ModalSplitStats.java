@@ -161,13 +161,13 @@ public class ModalSplitStats {
         startAnalyze(experiencedPlans);
 
         // writing the different files
-        //writeStopStationAnalysis();
-        //writeTrainStationAnalysis();
-        //writeDistanceClassesAnalysis();
-        //writeModalSplit();
-        //writeFeederModalSplit();
+        writeStopStationAnalysis();
+        writeTrainStationAnalysis();
+        writeDistanceClassesAnalysis();
+        writeModalSplit();
+        writeFeederModalSplit();
         writeChanges();
-        // writeTimeSteps();
+        writeTimeSteps();
 
     }
 
@@ -175,19 +175,19 @@ public class ModalSplitStats {
         for (Entry<Id<Person>, Plan> entry : experiencedPlans.entrySet()) {
 
             // analysis for access and egress mode for each stop station
-            //analyzeStopsStations(entry);
+            analyzeStopsStations(entry);
             // analysis for access and egress mode for each train station
-            //analyzeTrainsStations(entry);
+            analyzeTrainsStations(entry);
             // analysis for distance classes
-            //analyzeDistanceClasses(entry);
+            analyzeDistanceClasses(entry);
             // analysis modal split for persons trips and person km
-            //analyzeModalSplit(entry);
+            analyzeModalSplit(entry);
             // analysis access/egress modal split for persons trips and person km
-            //analyzeFeederModalSplit(entry);
+            analyzeFeederModalSplit(entry);
             // analysis public transport changes
             analyzeChanges(entry);
             // analyze travel time and middle time between to activities
-            //analyzeTimes(entry);
+            analyzeTimes(entry);
 
         }
     }
