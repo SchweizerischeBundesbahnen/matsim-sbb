@@ -79,6 +79,8 @@ public class ModalSplitStats {
     private Map<String, int[][]> travelTimeMap;
     private Map<String, Integer> variablesTimeStepsMap;
     private Map<String, TrainStation> trainStationMap;
+    private Map<String,double[][]> subpopulationDistanceChangeMap;
+    private Map<String,double[][]> subpopulationDistanceChangePKMMap;
 
     @Inject
     public ModalSplitStats(ZonesCollection zonesCollection, Config config, Scenario scenario) {
@@ -153,7 +155,9 @@ public class ModalSplitStats {
         this.zonesEgressMSPFMap = new HashMap<>();
         this.zonesEgressMSPkmMap = new HashMap<>();
         this.subpopulationChangeMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLableList.size());
+        this.subpopulationDistanceChangeMap = createArrayForSubpopulationMap(changeOrderList.size()*distanceClassesLable.size(), changeLableList.size());
         this.subpopulationChangePKMMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLableList.size());
+        this.subpopulationDistanceChangePKMMap = createArrayForSubpopulationMap(changeOrderList.size()*distanceClassesLable.size(), changeLableList.size());
         this.timeMap = createTimeStepsForSubpopulaitonMap((int) (this.config.qsim().getEndTime().seconds() / timeSplit), this.variablesTimeStepsMap.size());
         this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 1, this.variablesTimeStepsMap.size());
 
@@ -423,6 +427,19 @@ public class ModalSplitStats {
 
             double[][] changeArray = subpopulationChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
             double[][] changeArrayPKM = subpopulationChangePKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+            double[][] changeDistanceArray = subpopulationDistanceChangeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+            double[][] changeDistanceArrayPKM = subpopulationDistanceChangePKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+
+            int offsetDistance = distanceClassesValue.size()-1;
+
+            for (int disClass : distanceClassesValue) {
+                if (distance <= disClass) {
+                    offsetDistance = distanceClassesValue.indexOf(disClass);
+                    break;
+                }
+            }
+
+            offsetDistance = offsetDistance * changeOrderList.size();
 
             boolean isMixed = ((raillegs > 0) & (ptLegs > raillegs));
             if (ptLegs > 6) {
@@ -434,20 +451,30 @@ public class ModalSplitStats {
             if (raillegs > 0) {
                 changeArray[changeOrderList.indexOf(changeTrainAll)][raillegs - 1]++;
                 changeArrayPKM[changeOrderList.indexOf(changeTrainAll)][raillegs - 1] += distance;
+                changeDistanceArray[offsetDistance + changeOrderList.indexOf(changeTrainAll)][raillegs - 1]++;
+                changeDistanceArrayPKM[offsetDistance + changeOrderList.indexOf(changeTrainAll)][raillegs - 1] += distance;
                 if (isMixed) {
                     changeArray[changeOrderList.indexOf(changeOEV)][ptLegs - 1]++;
                     changeArrayPKM[changeOrderList.indexOf(changeOEV)][ptLegs - 1]+=distance;
+                    changeDistanceArray[offsetDistance + changeOrderList.indexOf(changeOEV)][ptLegs - 1]++;
+                    changeDistanceArrayPKM[offsetDistance + changeOrderList.indexOf(changeOEV)][ptLegs - 1]+=distance;
                 } else {
                     changeArray[changeOrderList.indexOf(changeTrain)][raillegs - 1]++;
                     changeArrayPKM[changeOrderList.indexOf(changeTrain)][raillegs - 1] += distance;
+                    changeDistanceArray[offsetDistance + changeOrderList.indexOf(changeTrain)][raillegs - 1]++;
+                    changeDistanceArrayPKM[offsetDistance + changeOrderList.indexOf(changeTrain)][raillegs - 1] += distance;
                 }
                 if (isFQ) {
                     changeArray[changeOrderList.indexOf(changeTrainFQ)][raillegs - 1]++;
                     changeArrayPKM[changeOrderList.indexOf(changeTrainFQ)][raillegs - 1] += fqDistance;
+                    changeDistanceArray[offsetDistance +changeOrderList.indexOf(changeTrainFQ)][raillegs - 1]++;
+                    changeDistanceArrayPKM[offsetDistance +changeOrderList.indexOf(changeTrainFQ)][raillegs - 1] += fqDistance;
                 }
             } else if (ptLegs > 0) {
                 changeArray[changeOrderList.indexOf(changeOPNV)][ptLegs - 1]++;
                 changeArrayPKM[changeOrderList.indexOf(changeOPNV)][ptLegs - 1]+=distance;
+                changeDistanceArray[offsetDistance +changeOrderList.indexOf(changeOPNV)][ptLegs - 1]++;
+                changeDistanceArrayPKM[offsetDistance +changeOrderList.indexOf(changeOPNV)][ptLegs - 1]+=distance;
             }
         }
     }
@@ -1220,6 +1247,7 @@ public class ModalSplitStats {
     private void writeChanges() {
         final String umsteigetyp = "Umsteigetyp";
         String[] columns = {runID, subpopulation, umsteigetyp, "0", "1", "2", "3", "4", ">=5"};
+        String[] columnsDistance = {runID, subpopulation, umsteigetyp, "distanceClass", "0", "1", "2", "3", "4", ">=5"};
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNChangesCount)) {
             Map<String, Integer> mapChange = new HashMap<>();
@@ -1259,6 +1287,32 @@ public class ModalSplitStats {
                         csvWriter.set(changeLableList.get(i), Integer.toString((int) (entry.getValue()[change.getValue()][i] / sampleSize)));
                     }
                     csvWriter.writeRow();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try (CSVWriter csvWriter = new CSVWriter("", columnsDistance, outputLocation + oNDistanceChangesCount)) {
+            Map<String, Integer> mapChange = new HashMap<>();
+            mapChange.put("changesTrain", 0);
+            mapChange.put("changesOPNV", 1);
+            mapChange.put("changesOEV", 2);
+            mapChange.put("changesTrainFQ", 3);
+            mapChange.put("changesTrainAll", 4);
+            for (Entry<String, double[][]> entry : subpopulationDistanceChangeMap.entrySet()) {
+                for (int d=0; d<distanceClassesLable.size(); d++) {
+                    int offsetDistance = d * changeOrderList.size();
+                    for (Entry<String, Integer> change : mapChange.entrySet()) {
+                        csvWriter.set("distanceClass", distanceClassesLable.get(d));
+                        csvWriter.set(runID, config.controler().getRunId());
+                        csvWriter.set(subpopulation, entry.getKey());
+                        csvWriter.set(umsteigetyp, change.getKey());
+                        for (int i = 0; i < 6; i++) {
+                            csvWriter.set(changeLableList.get(i), Integer.toString((int) (entry.getValue()[offsetDistance + change.getValue()][i] / sampleSize)));
+                        }
+                        csvWriter.writeRow();
+                    }
                 }
             }
         } catch (Exception e) {
