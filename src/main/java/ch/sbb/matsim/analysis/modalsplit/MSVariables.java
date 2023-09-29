@@ -75,7 +75,7 @@ public final class MSVariables {
     public static final int travelTimeSplit = 10 * 60;
     public static final int lastTravelTimeValue = 5 * 60 * 60;
     public static final List<Integer> distanceClassesValue = List.of(2, 4, 6, 8, 10, 15, 20, 25, 30, 40, 50, 100, 150, 200, 250, 300);
-    public static final List<String> distanceClassesLable = List.of("0-2", "2-4", "4-6", "6-8", "8-10", "10-15", "15-20", "20-25", "25-30", "30-40", "40-50", "50-100", "100-150", "150-200", "200-250", "250-300");
+    public static final List<String> distanceClassesLable = List.of("0-2", "2-4", "4-6", "6-8", "8-10", "10-15", "15-20", "20-25", "25-30", "30-40", "40-50", "50-100", "100-150", "150-200", "200-250", "250-300", "300+");
     public static final List<Integer> distanceClassesFeederValue = List.of(-1, 0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3200, 3400, 3600, 3800, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 20000, 30000, 9999999);
     public static final List<String> distanceClassesFeederLable = List.of("na", "0", "0-200", "200-400", "400-600", "600-800", "800-1000", "1000-1200", "1200-1400", "1400-1600", "1600-1800",
             "1800-2000", "2000-2200", "2200-2400", "2400-2600", "2600-2800", "2800-3000", "3000-3200", "3200-3400",
@@ -104,6 +104,7 @@ public final class MSVariables {
     public static final String oNModalSplitZoneFeederPF = "modal_split_feeder_zone_PF.csv";
     public static final String oNDistanceClasses = "distance_classes.csv";
     public static final String oNChangesCount = "changes_count.csv";
+    public static final String oNDistanceChangesCount = "distance_changes_count.csv";
     public static final String oNChangesPKM = "changes_pkm.csv";
     public static final String oNStopStationsCount = "stop_stations_count.csv";
     public static final String oNTrainStrationsCount = "train_stations_count.csv";
