@@ -10,6 +10,10 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.facilities.ActivityFacilities;
+import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.FacilitiesUtils;
+import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.households.Household;
 import org.matsim.households.HouseholdImpl;
 import org.matsim.households.Households;
@@ -42,12 +46,26 @@ public class PopulationToSynpopexporter {
         String inputPopulationFile = args[0];
         String outputPopulationCSVFile = args[1];
         String outputHouseholdCSVFile = args[2];
+        String outputFacilitiesFile = args[3];
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(inputPopulationFile);
         PopulationToSynpopexporter exporter = new PopulationToSynpopexporter(scenario.getPopulation());
         exporter.prepareHouseholds();
         exporter.exportPopulation(outputPopulationCSVFile);
         exporter.exportHouseholds(outputHouseholdCSVFile);
+        exporter.exportHouseholdsAsFacilities(outputFacilitiesFile);
+    }
+
+    private void exportHouseholdsAsFacilities(String outputFacilitiesFile) {
+        ActivityFacilities facilities = FacilitiesUtils.createActivityFacilities();
+
+        for (Household household : households.getHouseholds().values()) {
+            Id<ActivityFacility> facilityId = Id.create(household.getId(), ActivityFacility.class);
+            Coord homeCoord = (Coord) household.getAttributes().getAttribute(HOME_COORD);
+            ActivityFacility facility = facilities.getFactory().createActivityFacility(facilityId, homeCoord);
+            facilities.addActivityFacility(facility);
+        }
+        new FacilitiesWriter(facilities).write(outputFacilitiesFile);
     }
 
     private static Id<Household> getHouseholdId(Person p) {
