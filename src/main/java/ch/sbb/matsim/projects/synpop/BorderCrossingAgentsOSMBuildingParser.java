@@ -18,6 +18,7 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.contrib.common.util.WeightedRandomSelection;
 import org.matsim.contrib.osm.networkReader.PbfParser;
+import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.geotools.MGC;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
@@ -31,30 +32,39 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-class ArbitraryBuildingOSMParser {
+class BorderCrossingAgentsOSMBuildingParser {
 
-    private static final Logger log = LogManager.getLogger(ArbitraryBuildingOSMParser.class);
+    private static final Logger log = LogManager.getLogger(BorderCrossingAgentsOSMBuildingParser.class);
     final ExecutorService executor;
     private final CoordinateTransformation transformation;
+    private final static List<String> RESIDENTIAL_TAGS = List.of("apartments", "barracks", " bungalow", "cabin", "detached", "dormitory", "farm", "ger", "house", "houseboat", "residential", "semdetached_house", "static_caravan", "stilt_house", "terrace", "yes");
     private Map<Long, BuildingData> buildingData;
     private Map<Long, Set<Long>> buildingDataNodeStorage;
+    private final Zones zones;
+    private final Map<Id<Zone>, WeightedRandomSelection<Long>> weightedBuildingsPerZone = new HashMap<>();
+    // building = yes is used very often for residential buildings.
 
     private Map<Long, Coord> nodeStorage;
     private HashMap<Id<Zone>, BuildingsPerZone> buildingsPerZone;
 
 
-    ArbitraryBuildingOSMParser(CoordinateTransformation transformation, ExecutorService executor) {
+    BorderCrossingAgentsOSMBuildingParser(CoordinateTransformation transformation, ExecutorService executor, Zones zones) {
         this.transformation = transformation;
         this.executor = executor;
+        this.zones = zones;
     }
 
     public static void main(String[] args) {
-        ArbitraryBuildingOSMParser arbitraryBuildingOSMParser = new ArbitraryBuildingOSMParser(TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus), Executors.newWorkStealingPool());
-        arbitraryBuildingOSMParser.parse(Paths.get(args[0]));
         Zones zones = ZonesLoader.loadZones("ID_Zone", args[1], "ID_Zone");
-        arbitraryBuildingOSMParser.assignZones(zones);
-        arbitraryBuildingOSMParser.writeTable(args[2]);
+        BorderCrossingAgentsOSMBuildingParser borderCrossingAgentsOSMBuildingParser = new BorderCrossingAgentsOSMBuildingParser(TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus), Executors.newWorkStealingPool(), zones);
+        borderCrossingAgentsOSMBuildingParser.parse(Paths.get(args[0]));
+        borderCrossingAgentsOSMBuildingParser.assignZones(MatsimRandom.getRandom());
+        borderCrossingAgentsOSMBuildingParser.writeTable(args[2]);
         System.out.println("done");
+    }
+
+    public Map<Long, BuildingData> getBuildingData() {
+        return buildingData;
     }
 
     public void writeTable(String outputFile) {
@@ -77,7 +87,8 @@ class ArbitraryBuildingOSMParser {
         }
     }
 
-    public void assignZones(Zones zones) {
+    public void assignZones(Random random) {
+
         GeometryFactory fac = new GeometryFactory();
         int errors = 0;
         for (var data : buildingData.values()) {
@@ -90,6 +101,7 @@ class ArbitraryBuildingOSMParser {
             coords[data.nodeIds.size()] = coords[0];
             Polygon polygon = fac.createPolygon(coords);
             Coord centroid = MGC.point2Coord(polygon.getCentroid());
+            data.setCentroid(centroid);
             Zone zone = null;
             try {
                  zone = zones.findZone(centroid);
@@ -102,8 +114,12 @@ class ArbitraryBuildingOSMParser {
             if (zone != null) {
                 var zoneId = zone.getId();
                 String nuts3 = String.valueOf(zone.getAttribute("NUTS3"));
-                double floors = data.floors()>0?data.floors():1.;
-                buildingsPerZone.computeIfAbsent(zoneId, zoneId1 -> new BuildingsPerZone(zoneId1, nuts3, new MutableDouble(), new MutableInt())).add(polygon.getArea()*floors);
+                double floors = data.floors() > 0 ? data.floors() : 1.;
+                if (data.residential) {
+                    double weight = polygon.getArea() * floors;
+                    buildingsPerZone.computeIfAbsent(zoneId, zoneId1 -> new BuildingsPerZone(zoneId1, nuts3, new MutableDouble(), new MutableInt())).add(weight);
+                    weightedBuildingsPerZone.computeIfAbsent(zoneId, zoneId1 -> new WeightedRandomSelection<>(random)).add(data.wayId, weight);
+                }
 
             }
 
@@ -154,7 +170,7 @@ class ArbitraryBuildingOSMParser {
         if (tags.containsKey("building")) {
             List<Long> nodeIds = new ArrayList<>();
             OsmModelUtil.nodesAsList(osmWay).forEach(t -> nodeIds.add(t));
-            boolean isRetail = tags.get("building").equals("retail");
+            boolean isResidential = RESIDENTIAL_TAGS.contains(tags.get("building"));
             String levelString = tags.get("building:levels");
             int levels = -1;
             if (levelString != null) {
@@ -163,7 +179,7 @@ class ArbitraryBuildingOSMParser {
                 } catch (NumberFormatException e) {
                 }
             }
-            buildingData.put(osmWay.getId(), new BuildingData(osmWay.getId(), nodeIds, levels, isRetail));
+            buildingData.put(osmWay.getId(), new BuildingData(osmWay.getId(), nodeIds, levels, isResidential));
             nodeIds.forEach(nodeId -> buildingDataNodeStorage.computeIfAbsent(nodeId, a -> new HashSet<>()).add(osmWay.getId()));
 
         }
@@ -171,23 +187,80 @@ class ArbitraryBuildingOSMParser {
 
     }
 
-    public Map<String, WeightedRandomSelection> prepareRandomDistributor(boolean useBuildingArea, Random random) {
+    public Map<Id<Zone>, WeightedRandomSelection<Long>> getWeightedBuildingsPerZone() {
+        return weightedBuildingsPerZone;
+    }
+
+    public Map<String, WeightedRandomSelection<Id<Zone>>> prepareRandomDistributor(boolean useBuildingArea, Random random) {
         Set<String> nuts3data = this.buildingsPerZone.values().stream().map(data -> data.nuts3Id()).collect(Collectors.toSet());
-        Map<String,WeightedRandomSelection> weightsPerNuts = new HashMap<>();
-        for (String nutsZone : nuts3data){
+        Map<String, WeightedRandomSelection<Id<Zone>>> weightsPerNuts = new HashMap<>();
+        for (String nutsZone : nuts3data) {
             WeightedRandomSelection<Id<Zone>> selection = new WeightedRandomSelection<>(random);
-            this.buildingsPerZone.values().stream().filter(data-> data.nuts3Id.equals(nutsZone)).forEach(data->{
-                double weight = useBuildingArea?data.area().doubleValue():data.buildings.doubleValue();
-                selection.add(data.zoneId(),weight);
+            this.buildingsPerZone.values().stream().filter(data -> data.nuts3Id.equals(nutsZone)).forEach(data -> {
+                Zone zone = zones.getZone(data.zoneId);
+                double weight = (useBuildingArea ? data.area().doubleValue() : data.buildings.doubleValue()) / zone.getEnvelope().getArea() * getZonalCorrectionFactor(data.zoneId);
+
+                selection.add(data.zoneId(), weight);
 
 
             });
-            weightsPerNuts.put(nutsZone,selection);
+            weightsPerNuts.put(nutsZone, selection);
         }
         return weightsPerNuts;
     }
 
-    record BuildingData(long wayId, List<Long> nodeIds, int floors, boolean retail) {
+    private double getZonalCorrectionFactor(Id<Zone> zoneId) {
+        double factor = 1.0;
+        if (zoneId.toString().equals(("730101001"))) {
+            //Campione, very densely built and too attractive
+            factor = 0.3;
+        }
+        if (zoneId.toString().equals(("710101001"))) {
+            //Buesingen am Hochrhein, high share of commuters
+            factor = 3.0;
+        }
+        return factor;
+    }
+
+    static final class BuildingData {
+        private final long wayId;
+        private final List<Long> nodeIds;
+        private final int floors;
+        private final boolean residential;
+        private Coord centroid;
+
+        BuildingData(long wayId, List<Long> nodeIds, int floors, boolean residential) {
+            this.wayId = wayId;
+            this.nodeIds = nodeIds;
+            this.floors = floors;
+            this.residential = residential;
+        }
+
+        public void setCentroid(Coord centroid) {
+            this.centroid = centroid;
+        }
+
+        public long wayId() {
+            return wayId;
+        }
+
+        public List<Long> nodeIds() {
+            return nodeIds;
+        }
+
+        public int floors() {
+            return floors;
+        }
+
+        public boolean residential() {
+            return residential;
+        }
+
+        public Coord centroid() {
+            return centroid;
+        }
+
+
     }
 
     record BuildingsPerZone(Id<Zone> zoneId, String nuts3Id, MutableDouble area, MutableInt buildings) {
