@@ -25,7 +25,7 @@ public class BorderCrossingAgentsGenerator {
 
     private final Random random;
     private final WeightedRandomSelection<Integer> ageDistribution;
-    int initialPersonId = 90_000_000;
+    int initialPersonId = 14_000_000;
     Map<Id<Zone>, WeightedRandomSelection<Long>> zonalBuildingSelector;
     private Map<String, Integer> commutersPerNuts3 = new HashMap<>();
     private Population population;
@@ -118,8 +118,8 @@ public class BorderCrossingAgentsGenerator {
                 person.getAttributes().putAttribute("age", age);
                 person.getAttributes().putAttribute("current_job_rank", "employee");
                 person.getAttributes().putAttribute("is_swiss", "0");
-                person.getAttributes().putAttribute("is_swiss", "0");
-                person.getAttributes().putAttribute("level_of_employment", 80 + random.nextInt(21));
+                person.getAttributes().putAttribute("current_edu", "0");
+                person.getAttributes().putAttribute("level_of_employment", 80 + random.nextInt(5) * 5);
                 person.getAttributes().putAttribute("language", language);
                 person.getAttributes().putAttribute("zone_id", zoneId.toString());
                 this.population.addPerson(person);

@@ -52,6 +52,15 @@ class ForeignBusinessOSMParser {
     double referenceAttractionAccompany = 1472.0;
     double referenceAttractionOther = 231.0;
     double referenceAttractionBusiness = 120.0;
+
+    //  visit_L	visit_S	visit_S_lt	visit_S_st
+//2127	31077	28251	2826
+
+    double reference_visit_L = 2127;
+    double reference_visit_S = 31077;
+    double reference_visit_S_lt = 0.9 * reference_visit_S;
+    double reference_visit_S_st = 0.1 * reference_visit_S;
+
     private Map<Long, BuildingData> buildingData;
     private Map<Long, CompleteBuildingData> completeBuildingDataMap = new HashMap<>();
     private Map<Long, Set<Long>> buildingDataNodeStorage;
@@ -85,7 +94,7 @@ class ForeignBusinessOSMParser {
     }
 
     private void writeZonalRetailAttractions(String outputFile) {
-        String[] columns = new String[]{"zone_id", "businesses", "retailArea", "distanceToBorder", "attraction", "attr_l", "attr_s", "attr_b", "attr_o", "attr_a"};
+        String[] columns = new String[]{"zone_id", "businesses", "retailArea", "distanceToBorder", "area", "attraction", "attr_l", "attr_s", "attr_b", "attr_o", "attr_a", "visit_L", "visit_S", "visit_S_lt", "visit_S_st", "amr_id"};
         try (CSVWriter writer = new CSVWriter(null, columns, outputFile)) {
             for (var entry : this.distancesToSwissBorder.entrySet()) {
                 if (entry.getValue() > 0.0) {
@@ -100,6 +109,11 @@ class ForeignBusinessOSMParser {
                     double attr_b = calculateBusinessAttraction(attraction);
                     double attr_a = calculateAccompanyAttraction(attraction);
 
+                    int visit_L = (int) Math.round(reference_visit_L * (attr_l / referenceAttractionLeisure));
+                    int visit_S = (int) Math.round(reference_visit_S * (attr_s / referenceAttractionShopping));
+                    int visit_S_lt = (int) Math.round(reference_visit_S_lt * (attr_s / referenceAttractionShopping));
+                    int visit_S_st = (int) Math.round(reference_visit_S_st * (attr_s / referenceAttractionShopping));
+
                     writer.set("retailArea", retailArea.toString());
                     writer.set("attraction", String.valueOf(attraction));
                     writer.set("attr_l", String.valueOf(attr_l));
@@ -107,6 +121,13 @@ class ForeignBusinessOSMParser {
                     writer.set("attr_o", String.valueOf(attr_o));
                     writer.set("attr_b", String.valueOf(attr_b));
                     writer.set("attr_a", String.valueOf(attr_a));
+                    writer.set("visit_L", String.valueOf(visit_L));
+                    writer.set("visit_S", String.valueOf(visit_S));
+                    writer.set("visit_S_lt", String.valueOf(visit_S_lt));
+                    writer.set("visit_S_st", String.valueOf(visit_S_st));
+                    writer.set("amr_id", "-1");
+
+                    writer.set("area", String.valueOf(this.zones.getZone(entry.getKey()).getEnvelope().getArea() / 1000000.0));
                     writer.writeRow();
                 }
             }

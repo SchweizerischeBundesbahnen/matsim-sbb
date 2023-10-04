@@ -1,6 +1,10 @@
 package ch.sbb.matsim.analysis.skims;
 
+import ch.sbb.matsim.zones.ZonesImpl;
+import ch.sbb.matsim.zones.ZonesLoader;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.core.gbl.MatsimRandom;
+import org.matsim.core.utils.geometry.geotools.MGC;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +24,20 @@ public class CreateZoneSamplingpointsFile {
         String zonesIdAttributeName = "ID_Zone";
         Random r = MatsimRandom.getRandom();
         skims.calculateSamplingPointsPerZoneFromFacilities(facilitiesFilename, numberOfPointsPerZone, zonesShapeFilename, zonesIdAttributeName, r, f -> 1);
+        var zonesCoord = skims.getCoordsPerZone();
+
+        ZonesImpl zones = (ZonesImpl) ZonesLoader.loadZones(zonesIdAttributeName, zonesShapeFilename, zonesIdAttributeName);
+        zones.getZones().stream().filter(zone -> !zonesCoord.containsKey(zone.getId().toString())).forEach(zone -> {
+            Coord centre = MGC.coordinate2Coord(zone.getEnvelope().centre());
+            Coord[] coords = new Coord[]{centre, centre, centre, centre};
+            String zoneIdString = zone.getId().toString();
+            zonesCoord.put(zoneIdString, coords);
+            System.out.println("Added Samping points for Zone " + zoneIdString);
+        });
+        System.out.println("Zone Coord zones: " + zonesCoord.size());
         skims.writeSamplingPointsToFile(new File(outputDirectory, "zone_coordinates.csv"));
+
+
     }
 
 
