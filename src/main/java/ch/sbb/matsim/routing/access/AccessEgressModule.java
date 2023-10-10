@@ -83,9 +83,10 @@ public class AccessEgressModule extends AbstractModule {
 			}
 			NetworkUtils.setLinkAccessTime(l, SBBModes.BIKE, 1.0);
 			NetworkUtils.setLinkEgressTime(l, SBBModes.BIKE, 1.0);
+			NetworkUtils.setLinkAccessTime(l, SBBModes.BIKEFEEDER, 1.0);
+			NetworkUtils.setLinkEgressTime(l, SBBModes.BIKEFEEDER, 1.0);
 			l.getAttributes().putAttribute(IS_CH, isInCH);
 		}
-
 	}
 
 	public static boolean isSwissZone(Id<Zone> id) {
