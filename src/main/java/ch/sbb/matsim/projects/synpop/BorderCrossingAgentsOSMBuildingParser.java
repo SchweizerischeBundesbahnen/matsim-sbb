@@ -32,12 +32,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-class BorderCrossingAgentsOSMBuildingParser {
+public class BorderCrossingAgentsOSMBuildingParser {
 
     private static final Logger log = LogManager.getLogger(BorderCrossingAgentsOSMBuildingParser.class);
     final ExecutorService executor;
     private final CoordinateTransformation transformation;
-    private final static List<String> RESIDENTIAL_TAGS = List.of("apartments", "barracks", " bungalow", "cabin", "detached", "dormitory", "farm", "ger", "house", "houseboat", "residential", "semdetached_house", "static_caravan", "stilt_house", "terrace", "yes");
+    public final static List<String> RESIDENTIAL_TAGS = List.of("apartments", "barracks", " bungalow", "cabin", "detached", "dormitory", "farm", "ger", "house", "houseboat", "residential", "semdetached_house", "static_caravan", "stilt_house", "terrace", "yes");
     private Map<Long, BuildingData> buildingData;
     private Map<Long, Set<Long>> buildingDataNodeStorage;
     private final Zones zones;
