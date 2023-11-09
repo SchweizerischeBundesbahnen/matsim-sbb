@@ -86,12 +86,14 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
                 String railDemandStationToStation = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandStationToStation.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandStationToStation.csv.gz");
+                String railDemandStationToStationFQ = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandStationToStationFQ.csv.gz")
+                        : controlerIO.getIterationFilename(event.getIteration(), "railDemandStationToStationFQ.csv.gz");
                 String tripsPerMunFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMun.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMun.csv.gz");
                 String tripsPerMSRFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMSR.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMSR.csv.gz");
 
-                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, tripsPerMunFile, tripsPerMSRFile);
+                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, railDemandStationToStationFQ, tripsPerMunFile, tripsPerMSRFile);
                 String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.att");
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
