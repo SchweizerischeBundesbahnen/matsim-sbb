@@ -58,6 +58,7 @@ public class ModalSplitStats {
     private String outputLocation;
     private Map<Id<TransitStopFacility>, StopStation> stopStationsMap;
     private Map<String, Integer> modesMap;
+    private Map<String, Integer> modesInclRailFQMap;
     private Map<String, Integer> feederModesMap;
     private Map<String, Integer> variablesMSMap;
     private Map<String, Integer> variablesMSFeederMap;
@@ -139,11 +140,12 @@ public class ModalSplitStats {
         this.stopStationsMap = generateStopStationMap();
         this.trainStationMap = generateTrainStationMap();
         this.modesMap = getModesMap();
+        this.modesInclRailFQMap = getModesInclRailFQMap();
         this.feederModesMap = getFeederModesMap();
         this.variablesMSMap = createVariablesModalSplitMap();
         this.variablesMSFeederMap = createVariablesModalSplitFeederMap();
         this.variablesTimeStepsMap = createVariablesTimeStepsMap();
-        this.subpopulaionDistanceMap = createArrayForSubpopulationMap(this.modesMap.size(), distanceClassesLable.size());
+        this.subpopulaionDistanceMap = createArrayForSubpopulationMap(this.modesInclRailFQMap.size(), distanceClassesLable.size());
         this.subpopulaionMSPFMap = createArrayForSubpopulationMap(this.modesMap.size(), this.variablesMSMap.size());
         this.subpopulaionMSPKMMap = createArrayForSubpopulationMap(this.modesMap.size(), this.variablesMSMap.size());
         this.subpopulaionAccessMSPFMap = createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size());
@@ -832,16 +834,44 @@ public class ModalSplitStats {
             if (tmpMode.equals("walk_main")) {
                 tmpMode = "walk";
             }
-            int modeID = this.modesMap.get(tmpMode);
+            int modeID = this.modesInclRailFQMap.get(tmpMode);
             double distance = 0;
             for (Leg leg : trip.getLegsOnly()) {
                 distance += leg.getRoute().getDistance() / 1000;
             }
+            int disCl = distanceClassesValue.size();
             double[][] disArray = this.subpopulaionDistanceMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
             for (int disClass : distanceClassesValue) {
                 if (distance <= disClass) {
-                    disArray[modeID][distanceClassesValue.indexOf(disClass)]++;
+                    disCl = distanceClassesValue.indexOf(disClass);
                     break;
+                }
+            }
+            disArray[modeID][disCl]++;
+            if (tmpMode.equals(SBBModes.PT)) {
+                List<Leg> legs = trip.getLegsOnly();
+                int firstRailLeg = findFirstRailLeg(legs);
+                int lastRailLeg = findLastRailLeg(legs);
+                if (firstRailLeg > -1) {
+                    double railDistance = 0;
+                    for (int i = firstRailLeg; i <= lastRailLeg; i++) {
+                        Leg leg = legs.get(i);
+                        railDistance += leg.getRoute().getDistance() / 1000;
+                    }
+                    int railDisCl = distanceClassesValue.size();
+                    for (int disClass : distanceClassesValue) {
+                        if (railDistance <= disClass) {
+                            railDisCl = distanceClassesValue.indexOf(disClass);
+                            break;
+                        }
+                    }
+                    int modeRailID = this.modesInclRailFQMap.get("rail");
+                    disArray[modeRailID][railDisCl]++;
+                    double railFQdist = railTripsAnalyzer.getFQDistance(trip, true) / 1000;
+                    if (railFQdist>0) {
+                        int modeRailFQID = this.modesInclRailFQMap.get("railFQ");
+                        disArray[modeRailFQID][railDisCl]++;
+                    }
                 }
             }
         }
@@ -849,20 +879,20 @@ public class ModalSplitStats {
 
     private void writeDistanceClassesAnalysis() {
         final double sampleSize = ConfigUtils.addOrGetModule(this.config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] columns = new String[3 + distanceClassesValue.size()];
+        String[] columns = new String[3 + distanceClassesLable.size()];
         columns[0] = runID;
         columns[1] = subpopulation;
         columns[2] = mode;
-        for (int i = 0; i < distanceClassesValue.size(); i++) {
+        for (int i = 0; i < distanceClassesLable.size(); i++) {
             columns[i + 3] = distanceClassesLable.get(i);
         }
         try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNDistanceClasses)) {
             for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
-                for (Entry<String, Integer> col : this.modesMap.entrySet()) {
+                for (Entry<String, Integer> col : this.modesInclRailFQMap.entrySet()) {
                     csvWriter.set(runID, this.config.controler().getRunId());
                     csvWriter.set(subpopulation, tmpSubpopulation);
                     csvWriter.set(mode, col.getKey());
-                    for (int i = 0; i < distanceClassesValue.size(); i++) {
+                    for (int i = 0; i < distanceClassesLable.size(); i++) {
                         csvWriter.set(distanceClassesLable.get(i), Integer.toString((int) (this.subpopulaionDistanceMap.get(tmpSubpopulation)[col.getValue()][i] / sampleSize)));
                     }
                     csvWriter.writeRow();
@@ -1406,6 +1436,16 @@ public class ModalSplitStats {
         return coding;
     }
 
+    private Map<String, Integer> getModesInclRailFQMap() {
+        Map<String, Integer> coding = new HashMap<>();
+        List<String> modes = SBBModes.MAIN_MODES;
+        for (int i = 0; i < modes.size(); i++) {
+            coding.put(modes.get(i), i);
+        }
+        coding.put("railFQ", modes.size());
+        coding.put("rail", modes.size()+1);
+        return coding;
+    }
     private Map<String, Integer> getFeederModesMap() {
         Map<String, Integer> coding = new HashMap<>();
         List<String> modes = SBBModes.TRAIN_FEEDER_MODES;
