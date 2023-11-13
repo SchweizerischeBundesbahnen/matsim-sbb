@@ -207,7 +207,6 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		SBBIntermodalModeParameterSet params = this.intermodalModeParams.get(mode);
 
 		boolean useMinimalTransferTimes = this.doUseMinimalTransferTimes(mode);
-		boolean usePtAccessTime = mode.equals(SBBModes.ACCESS_EGRESS_WALK);
 
 		String overrideMode = null;
 		if (mode.equals(SBBModes.WALK_MAIN_MAINMODE) || mode.equals(SBBModes.PT_FALLBACK_MODE)) {
@@ -287,9 +286,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 						if (useMinimalTransferTimes) {
 							transferTime = this.getMinimalTransferTime(stop);
 						}
-						if (usePtAccessTime) {
-							transferTime += this.getPtAccessTime(stop);
-						}
+						transferTime += this.getRailAccessTime(stop, mode);
 						transferRoute.setTravelTime(transferTime);
 						transferRoute.setDistance(0);
 						transferLeg.setRoute(transferRoute);
@@ -306,9 +303,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 						if (useMinimalTransferTimes) {
 							transferTime = this.getMinimalTransferTime(stop);
 						}
-						if (usePtAccessTime) {
-							transferTime += this.getPtAccessTime(stop);
-						}
+						transferTime += this.getRailAccessTime(stop, mode);
 						transferRoute.setTravelTime(transferTime);
 						transferRoute.setDistance(0);
 						transferLeg.setRoute(transferRoute);
@@ -327,10 +322,10 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		}
 	}
 
-	private double getPtAccessTime(TransitStopFacility stop) {
+	private double getRailAccessTime(TransitStopFacility stop, String mode) {
 		Double accessTime;
 		try {
-			accessTime = (Double) stop.getAttributes().getAttribute("accessTime");
+			accessTime = (Double) stop.getAttributes().getAttribute("at_"+mode);
 			if (accessTime == null) accessTime = 0.0;
 		} catch (Exception e) {
 			accessTime = 0.0;
