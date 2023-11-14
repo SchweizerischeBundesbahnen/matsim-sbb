@@ -48,6 +48,7 @@ public class GenerateSynpopAndHouseholds {
 
 
     public static final String FACILITY_ID = "facilityId";
+    public static final String APPRENTINCE = "apprentince";
     final ExecutorService executor = Executors.newWorkStealingPool();
     private final Zones zones;
     private final Random random;
@@ -163,6 +164,11 @@ public class GenerateSynpopAndHouseholds {
         person.getAttributes().putAttribute("age", age);
         boolean isEmployed = false;
         int levelOfEmployment = 0;
+        String currentEdu = "";
+        if (age < 6) currentEdu = "kindergarten";
+        else if (age < 12) currentEdu = "pupil_primary";
+        else if (age < 16) currentEdu = "pupil_secondary";
+        else if (age < 20) currentEdu = random.nextDouble() < 0.3 ? APPRENTINCE : "pupil_secondary";
         String curent_job_rank = "";
 
         if (age > 17 && age < 65) {
@@ -177,10 +183,11 @@ public class GenerateSynpopAndHouseholds {
                 levelOfEmployment = 90 + random.nextInt(11);
             }
         }
-        String currentEdu = "";
-        if (age < 6) currentEdu = "kindergarten";
-        else if (age < 12) currentEdu = "pupil_primary";
-        else if (age < 18) currentEdu = "pupil_secondary";
+        if (currentEdu.equals(APPRENTINCE)) {
+            isEmployed = true;
+            levelOfEmployment = 100;
+            curent_job_rank = APPRENTINCE;
+        }
         person.getAttributes().putAttribute("level_of_employment", levelOfEmployment);
         person.getAttributes().putAttribute("current_edu", currentEdu);
         person.getAttributes().putAttribute("curent_job_rank", curent_job_rank);

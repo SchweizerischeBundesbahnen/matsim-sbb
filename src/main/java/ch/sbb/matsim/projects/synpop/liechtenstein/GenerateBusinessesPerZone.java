@@ -92,7 +92,7 @@ public class GenerateBusinessesPerZone {
             Coord center = MGC.point2Coord(polygon.getCentroid());
             int floors = Math.max(1, data.floors);
             double area = polygon.getArea() * floors;
-            double weight = data.type.equals("school") ? area * 0.3 : area;
+            double weight = data.type.equals("school") ? area * 0.1 : area;
             Zone zone = this.zones.findZone(center);
             if (zone != null) {
                 var zoneId = zone.getId();
@@ -146,22 +146,24 @@ public class GenerateBusinessesPerZone {
         try (CSVWriter writer = new CSVWriter(null, new String[]{business_id, zoneId, sector, noga, school_type, jobs_endo, fte_endo, jobs_exo, fte_exo, x, y, osmWay, osmType}, outputBusinessesFile)) {
             int businessId = 9_000_000;
             for (var business : businesses) {
-                Coord coord = business.coord;
-                writer.set(business_id, String.valueOf(businessId));
-                writer.set(osmWay, String.valueOf(business.osmWayId));
-                writer.set(sector, business.sector);
-                writer.set(noga, String.valueOf(osmBuildingTypeToNOGAMap.get(business.osmType())));
-                writer.set(school_type, drawSchoolType(osmType));
-                writer.set(jobs_endo, business.jobsEndo().toString());
-                writer.set(fte_endo, String.valueOf((int) business.jobsEndo().doubleValue() * 0.8));
-                writer.set(jobs_exo, business.jobsExo().toString());
-                writer.set(fte_exo, String.valueOf((int) business.jobsExo().doubleValue() * 0.8));
-                writer.set(x, String.valueOf(coord.getX()));
-                writer.set(y, String.valueOf(coord.getY()));
-                writer.set(zoneId, business.zoneId().toString());
-                writer.set(osmType, business.osmType);
-                writer.writeRow();
-                businessId++;
+                if (business.jobsEndo.intValue() > 0) {
+                    Coord coord = business.coord;
+                    writer.set(business_id, String.valueOf(businessId));
+                    writer.set(osmWay, String.valueOf(business.osmWayId));
+                    writer.set(sector, business.sector);
+                    writer.set(noga, String.valueOf(osmBuildingTypeToNOGAMap.get(business.osmType())));
+                    writer.set(school_type, drawSchoolType(business.osmType));
+                    writer.set(jobs_endo, business.jobsEndo().toString());
+                    writer.set(fte_endo, String.valueOf((int) business.jobsEndo().doubleValue() * 0.8));
+                    writer.set(jobs_exo, business.jobsExo().toString());
+                    writer.set(fte_exo, String.valueOf((int) business.jobsExo().doubleValue() * 0.8));
+                    writer.set(x, String.valueOf(coord.getX()));
+                    writer.set(y, String.valueOf(coord.getY()));
+                    writer.set(zoneId, business.zoneId().toString());
+                    writer.set(osmType, business.osmType);
+                    writer.writeRow();
+                    businessId++;
+                }
             }
 
         } catch (IOException e) {
