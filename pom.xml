@@ -32,7 +32,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>ftt_intermodal_change_count_noff</matsim.version>
+        <matsim.version>ftt_icc_noff_split_trips_for_transfer</matsim.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>17</maven.compiler.source>
