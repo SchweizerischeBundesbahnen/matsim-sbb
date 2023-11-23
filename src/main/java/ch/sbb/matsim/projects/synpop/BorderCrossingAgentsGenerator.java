@@ -25,7 +25,7 @@ public class BorderCrossingAgentsGenerator {
 
     private final Random random;
     private final WeightedRandomSelection<Integer> ageDistribution;
-    int initialPersonId = 14_000_000;
+    int initialPersonId = 11_100_000;
     Map<Id<Zone>, WeightedRandomSelection<Long>> zonalBuildingSelector;
     private Map<String, Integer> commutersPerNuts3 = new HashMap<>();
     private Population population;

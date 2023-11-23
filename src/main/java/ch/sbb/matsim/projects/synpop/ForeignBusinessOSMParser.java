@@ -240,7 +240,7 @@ class ForeignBusinessOSMParser {
 
 
         try (CSVWriter writer = new CSVWriter(null, new String[]{business_id, zoneId, sector, noga, school_type, jobs_endo, fte_endo, jobs_exo, fte_exo, x, y, osmWay, area, no_of_shops}, file)) {
-            int businessId = 10_000_000;
+            int businessId = 9_100_000;
             for (CompleteBuildingData completeBuildingData : completeBuildingDataMap.values()) {
                 double buildingArea = completeBuildingData.polygon().getArea();
                 Coord coord = MGC.point2Coord(completeBuildingData.polygon().getCentroid());
