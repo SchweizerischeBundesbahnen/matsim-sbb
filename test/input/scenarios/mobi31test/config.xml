@@ -546,6 +546,7 @@
         <param name="transferPenaltyCostPerTravelTimeHour" value="0.475"/>
         <param name="transferPenaltyMaxCost" value="0.8"/>
         <param name="transferPenaltyMinCost" value="0.02"/>
+        <param name="transferUtilityRailOePNV" value="0.2"/>
         <!-- time deducted from transfer walk leg during transfers between pt legs in order to avoid missing a vehicle by a few seconds due to delays. -->
         <param name="transferWalkMargin" value="5.0"/>
         <!-- If true, SwissRailRaptor tries to detect when agents cannot board a vehicle in the previous iteration because it is already full and tries to find an alternative route instead. -->
