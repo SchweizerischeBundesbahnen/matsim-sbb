@@ -62,12 +62,13 @@ public class XLSXScoringParser {
 	static final String TRANSFER_UTILITY_BASE = "transferUtilityBase";
 	static final String TRANSFER_UTILITY_MINIMUM = "transferUtilityMinimum";
 	static final String TRANSFER_UTILITY_MAXIMUM = "transferUtilityMaximum";
+	static final String TRANSFER_UTILITY_RAIL_OEPNV = "transferUtilityRailOePNV";
 	static final String BEHAVIOR_GROUP_LABEL = "BehaviorGroup";
 	private static final String GLOBAL = "global";
 	private static final String[] GENERAL_PARAMS_ARRAY = new String[]{UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
 	private static final String[] MODE_PARAMS_ARRAY = new String[]{CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
 	private static final String[] SBB_GENERAL_PARAMS_ARRAY = new String[]{MARGINAL_UTILITY_OF_PARKINGPRICE, TRANSFER_UTILITY_PER_TRAVEL_TIME, TRANSFER_UTILITY_BASE, TRANSFER_UTILITY_MINIMUM,
-			TRANSFER_UTILITY_MAXIMUM};
+			TRANSFER_UTILITY_MAXIMUM, TRANSFER_UTILITY_RAIL_OEPNV};
 	private static final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
 	private static final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
 	private static final Set<String> SBB_GENERAL_PARAMS = new HashSet<>(Arrays.asList(SBB_GENERAL_PARAMS_ARRAY));
@@ -224,6 +225,10 @@ public class XLSXScoringParser {
 							case TRANSFER_UTILITY_MAXIMUM:
 								sbbParams.setMaximumTransferUtility(paramValue);
 								raptorConfigGroup.setTransferPenaltyMaxCost(-1.0 * paramValue);
+								break;
+							case TRANSFER_UTILITY_RAIL_OEPNV:
+								sbbParams.setTransferUtilityRailOePNV(paramValue);
+								raptorConfigGroup.setTransferPenaltyRailOePNV(-1.0 * paramValue);
 								break;
 							default:
 								log.error("Unsupported parameter: " + rowLabel);
