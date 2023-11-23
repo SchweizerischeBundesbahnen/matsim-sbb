@@ -364,6 +364,9 @@ public class ModalSplitStats {
             int middle = (int) ((trip.getOriginActivity().getEndTime().seconds() + trip.getDestinationActivity().getStartTime().seconds()) / 2);
             int time = (middle - (middle % timeSplit)) / timeSplit;
             int[][] subpopulationArrray = timeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+            if (time >= subpopulationArrray.length) {
+                time = subpopulationArrray.length - 1;
+            }
             subpopulationArrray[time][variablesTimeStepsMap.get(all)]++;
             int travelTime = (int) ((trip.getDestinationActivity().getStartTime().seconds() - trip.getOriginActivity().getEndTime().seconds()));
             int timeArray = (travelTime - (travelTime % travelTimeSplit)) / travelTimeSplit;

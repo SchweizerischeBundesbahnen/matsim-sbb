@@ -20,12 +20,12 @@
 package ch.sbb.matsim.config.variables;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import java.util.HashMap;
-import java.util.Map;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SamplesizeFactors {
 
@@ -38,7 +38,7 @@ public class SamplesizeFactors {
         qsimStorageCapacityFactor.put(0.25, 0.60);
         qsimStorageCapacityFactor.put(0.10, 0.40);
         qsimStorageCapacityFactor.put(0.05, 0.20);
-        qsimStorageCapacityFactor.put(0.01, 0.50);
+        qsimStorageCapacityFactor.put(0.01, 0.05);
 
         hermesStorageCapacityFactor = new HashMap<>();
         hermesStorageCapacityFactor.put(0.10, 0.20);
