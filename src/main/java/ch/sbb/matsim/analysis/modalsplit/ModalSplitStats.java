@@ -1214,8 +1214,10 @@ public class ModalSplitStats {
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         final String hstNummer = "HST_Nummer";
         final String code = "Code";
+        final String stopCode = "Stop_Code";
         final String stopNumber = "Stop_Nummer";
         final String trainStationName = "Name";
+        final String stopName = "Stop_Name";
         final String x = "X";
         final String y = "Y";
         final String zone = "Zone";
@@ -1228,7 +1230,7 @@ public class ModalSplitStats {
         final String wegstiege = "Umsteige_Bahn_AHP";
         final String isRailStop = "isRailStop";
         StringBuilder head = new StringBuilder(
-            String.join(",", runID, hstNummer, stopNumber, code, isRailStop, trainStationName, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
+            String.join(",", runID, hstNummer, stopNumber, code, stopCode, trainStationName, stopName, isRailStop, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
         for (String mode : StopStation.getOrigDestModes()) {
             head.append(",").append("Zielaustieg_").append(mode);
             head.append(",").append("Quelleinstieg_").append(mode);
@@ -1245,17 +1247,37 @@ public class ModalSplitStats {
                     csvWriter.set(isRailStop, "0");
                 }
                 Id<TransitStopFacility> stopId = Id.create(entry.getKey(), TransitStopFacility.class);
-                Object codeAttribute = entry.getValue().getStop().getAttributes().getAttribute("03_Stop_Code");
+                Object codeAttribute;
+                codeAttribute = entry.getValue().getStop().getAttributes().getAttribute("03_Stop_Code");
                 if (codeAttribute == null) {
                     csvWriter.set(code, "NA");
                 } else {
                     csvWriter.set(code, codeAttribute.toString());
                 }
-                String name = transitSchedule.getFacilities().get(stopId).getName();
+                Object stopCodeAttribute;
+                try {
+                    stopCodeAttribute =entry.getValue().getStop().getAttributes().getAttribute("11_Stop_Area_Code");
+                } catch (Exception e){
+                    stopCodeAttribute = "";
+                }
+                if (stopCodeAttribute == null) {
+                    csvWriter.set(stopCode, "NA");
+                } else {
+                    csvWriter.set(stopCode, stopCodeAttribute.toString());
+                }
+                String name;
+                name = transitSchedule.getFacilities().get(stopId).getName();
                 if (name == null) {
                     name = "";
                 }
                 csvWriter.set(trainStationName, name.replaceAll(",", " "));
+                String stpName;
+                try {
+                    stpName = entry.getValue().getStop().getAttributes().getAttribute("10_Stop_Area_Name").toString();
+                } catch (Error e) {
+                    stpName = "";
+                }
+                csvWriter.set(stopName, stpName.replaceAll(",", " "));
                 csvWriter.set(x, Double.toString(entry.getValue().getStop().getCoord().getX()));
                 csvWriter.set(y, Double.toString(entry.getValue().getStop().getCoord().getY()));
                 csvWriter.set(zone, entry.getValue().getZoneId());
