@@ -37,7 +37,11 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 			String legMode = leg.getMode();
 			boolean isTransit = this.ptModes.contains(legMode);
 			if (isTransit) {
-				isRail = transitSchedule.getTransitLines().get(((TransitPassengerRoute) leg.getRoute()).getLineId()).getRoutes().get(((TransitPassengerRoute) leg.getRoute()).getRouteId()).getTransportMode().equals("rail");
+				try {
+					isRail = transitSchedule.getTransitLines().get(((TransitPassengerRoute) leg.getRoute()).getLineId()).getRoutes().get(((TransitPassengerRoute) leg.getRoute()).getRouteId()).getTransportMode().equals("rail");
+				} catch (Exception ignored) {
+					isRail = false;
+				}
 				if (!departureTime.isUndefined() & (isRail != prevIsRail)) {
 					double travelTime = arrivalTime - departureTime.seconds();
 					this.scoreTransitTrip(travelTime, transferCount);
