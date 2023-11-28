@@ -94,7 +94,7 @@ class ForeignBusinessOSMParser {
     }
 
     private void writeZonalRetailAttractions(String outputFile) {
-        String[] columns = new String[]{"zone_id", "businesses", "retailArea", "distanceToBorder", "area", "attraction", "attr_l", "attr_s", "attr_b", "attr_o", "attr_a", "visit_L", "visit_S", "visit_S_lt", "visit_S_st", "amr_id"};
+        String[] columns = new String[]{"zone_id", "businesses", "retailArea", "distanceToBorder", "area", "attraction", "Attr_L", "Attr_S", "Attr_B", "Attr_O", "Attr_A", "visit_L", "visit_S", "visit_S_lt", "visit_S_st", "Attr_EC"};
         try (CSVWriter writer = new CSVWriter(null, columns, outputFile)) {
             for (var entry : this.distancesToSwissBorder.entrySet()) {
                 if (entry.getValue() > 0.0) {
@@ -116,16 +116,16 @@ class ForeignBusinessOSMParser {
 
                     writer.set("retailArea", retailArea.toString());
                     writer.set("attraction", String.valueOf(attraction));
-                    writer.set("attr_l", String.valueOf(attr_l));
-                    writer.set("attr_s", String.valueOf(attr_s));
-                    writer.set("attr_o", String.valueOf(attr_o));
-                    writer.set("attr_b", String.valueOf(attr_b));
-                    writer.set("attr_a", String.valueOf(attr_a));
+                    writer.set("Attr_L", String.valueOf(attr_l));
+                    writer.set("Attr_S", String.valueOf(attr_s));
+                    writer.set("Attr_O", String.valueOf(attr_o));
+                    writer.set("Attr_B", String.valueOf(attr_b));
+                    writer.set("Attr_EC", "0");
+                    writer.set("Attr_A", String.valueOf(attr_a));
                     writer.set("visit_L", String.valueOf(visit_L));
                     writer.set("visit_S", String.valueOf(visit_S));
                     writer.set("visit_S_lt", String.valueOf(visit_S_lt));
                     writer.set("visit_S_st", String.valueOf(visit_S_st));
-                    writer.set("amr_id", "-1");
 
                     writer.set("area", String.valueOf(this.zones.getZone(entry.getKey()).getEnvelope().getArea() / 1000000.0));
                     writer.writeRow();
@@ -235,11 +235,12 @@ class ForeignBusinessOSMParser {
         String jobs_exo = "jobs_exo";
         String fte_exo = "fte_exo";
         String area = "area";
+        String attraction = "relative_attraction";
         String osmWay = "osm_way";
         String no_of_shops = "no_of_shops";
 
 
-        try (CSVWriter writer = new CSVWriter(null, new String[]{business_id, zoneId, sector, noga, school_type, jobs_endo, fte_endo, jobs_exo, fte_exo, x, y, osmWay, area, no_of_shops}, file)) {
+        try (CSVWriter writer = new CSVWriter(null, new String[]{business_id, zoneId, sector, noga, school_type, jobs_endo, fte_endo, jobs_exo, fte_exo, x, y, osmWay, area, no_of_shops, attraction}, file)) {
             int businessId = 9_100_000;
             for (CompleteBuildingData completeBuildingData : completeBuildingDataMap.values()) {
                 double buildingArea = completeBuildingData.polygon().getArea();
@@ -247,6 +248,7 @@ class ForeignBusinessOSMParser {
                 writer.set(business_id, String.valueOf(businessId));
                 writer.set(osmWay, String.valueOf(completeBuildingData.osmWayId));
                 writer.set(area, String.valueOf(buildingArea));
+                writer.set(attraction, String.valueOf(Math.max(buildingArea / 33.33, 1.0)));
                 writer.set(sector, "retail");
                 writer.set(noga, "563002");
                 writer.set(school_type, "no_school");

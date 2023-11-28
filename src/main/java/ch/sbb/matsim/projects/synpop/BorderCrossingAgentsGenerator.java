@@ -118,10 +118,11 @@ public class BorderCrossingAgentsGenerator {
                 person.getAttributes().putAttribute("age", age);
                 person.getAttributes().putAttribute("current_job_rank", "employee");
                 person.getAttributes().putAttribute("is_swiss", "0");
-                person.getAttributes().putAttribute("current_edu", "0");
+                person.getAttributes().putAttribute("current_edu", "null");
                 person.getAttributes().putAttribute("level_of_employment", 80 + random.nextInt(5) * 5);
                 person.getAttributes().putAttribute("language", language);
                 person.getAttributes().putAttribute("zone_id", zoneId.toString());
+                person.getAttributes().putAttribute("is_employed", "True");
                 this.population.addPerson(person);
                 Plan plan = fac.createPlan();
                 person.addPlan(plan);

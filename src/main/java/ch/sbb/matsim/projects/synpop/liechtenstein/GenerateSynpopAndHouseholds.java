@@ -48,7 +48,7 @@ public class GenerateSynpopAndHouseholds {
 
 
     public static final String FACILITY_ID = "facilityId";
-    public static final String APPRENTINCE = "apprentince";
+    public static final String APPRENTICE = "apprentice";
     final ExecutorService executor = Executors.newWorkStealingPool();
     private final Zones zones;
     private final Random random;
@@ -164,12 +164,12 @@ public class GenerateSynpopAndHouseholds {
         person.getAttributes().putAttribute("age", age);
         boolean isEmployed = false;
         int levelOfEmployment = 0;
-        String currentEdu = "0";
+        String currentEdu = "null";
         if (age < 6) currentEdu = "kindergarten";
         else if (age < 12) currentEdu = "pupil_primary";
         else if (age < 16) currentEdu = "pupil_secondary";
-        else if (age < 20) currentEdu = random.nextDouble() < 0.3 ? APPRENTINCE : "pupil_secondary";
-        String curent_job_rank = "";
+        else if (age < 20) currentEdu = random.nextDouble() < 0.3 ? APPRENTICE : "pupil_secondary";
+        String curent_job_rank = "null";
 
         if (age > 17 && age < 65) {
             isEmployed = random.nextDouble() < this.employmentProbability;
@@ -183,16 +183,15 @@ public class GenerateSynpopAndHouseholds {
                 levelOfEmployment = 90 + random.nextInt(11);
             }
         }
-        if (currentEdu.equals(APPRENTINCE)) {
+        if (currentEdu.equals(APPRENTICE)) {
             isEmployed = true;
             levelOfEmployment = 100;
-            curent_job_rank = APPRENTINCE;
+            curent_job_rank = APPRENTICE;
         }
         person.getAttributes().putAttribute("is_employed", Boolean.toString(isEmployed));
-        person.getAttributes().putAttribute("level_of_employment", levelOfEmployment);
         person.getAttributes().putAttribute("current_edu", currentEdu);
-        person.getAttributes().putAttribute("curent_job_rank", curent_job_rank);
-        person.getAttributes().putAttribute("current_job_rank", levelOfEmployment);
+        person.getAttributes().putAttribute("current_job_rank", curent_job_rank);
+        person.getAttributes().putAttribute("level_of_employment", levelOfEmployment);
         person.getAttributes().putAttribute("language", "german");
         person.getAttributes().putAttribute("is_swiss", false);
         personNo++;
