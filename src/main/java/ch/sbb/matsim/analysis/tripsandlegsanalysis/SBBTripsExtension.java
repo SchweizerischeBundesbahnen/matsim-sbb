@@ -190,7 +190,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
 
         double score=0.0;
         for (Leg leg : trip.getLegsOnly()) {
-            score += (float) leg.getAttributes().getAttribute("score");
+            //score += (float) leg.getAttributes().getAttribute("score");
         }
         return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, rail_legs, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction, Double.toString(score));
     }

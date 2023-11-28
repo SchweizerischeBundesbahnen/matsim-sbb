@@ -228,7 +228,7 @@ public class XLSXScoringParser {
 								break;
 							case TRANSFER_UTILITY_RAIL_OEPNV:
 								sbbParams.setTransferUtilityRailOePNV(paramValue);
-								raptorConfigGroup.setTransferPenaltyRailOePNV(-1.0 * paramValue);
+								 // raptorConfigGroup.setTransferPenaltyRailOePNV(-1.0 * paramValue);
 								break;
 							default:
 								log.error("Unsupported parameter: " + rowLabel);
