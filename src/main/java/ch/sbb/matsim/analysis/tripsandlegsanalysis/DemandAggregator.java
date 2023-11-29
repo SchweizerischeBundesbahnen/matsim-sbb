@@ -59,6 +59,7 @@ public class DemandAggregator {
     private final Map<Id<TransitStopFacility>, String> aggregateZoneStop = new HashMap<>();
     private final Map<Id<TransitStopFacility>, String> zoneStop = new HashMap<>();
     private final Map<Id<TransitStopFacility>, Map<Id<TransitStopFacility>, RailODTravelInfo>> odRailDemandMatrix = new TreeMap<>();
+    private final Map<Id<TransitStopFacility>, Map<Id<TransitStopFacility>, RailODTravelInfo>> odRailDemandMatrixFQ = new TreeMap<>();
     private final ArrayList<String> aggregateZones;
     private final Map<Id<Zone>, Map<Id<Zone>, ODTravelInfo>> allModesOdDemand = new ConcurrentHashMap<>();
     private final Scenario scenario;
@@ -116,20 +117,20 @@ public class DemandAggregator {
 
     }
 
-    public void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String tripsPerMunFile, String tripsPerMSRFile) {
+    public void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerMSRFile) {
         Collection<Plan> experiencedPlans = experiencedPlansService.getExperiencedPlans().values();
-        aggregateAndWriteMatrix(scalefactor, outputMatrixFile, stationToStationFile, tripsPerMunFile, tripsPerMSRFile, experiencedPlans);
+        aggregateAndWriteMatrix(scalefactor, outputMatrixFile, stationToStationFile, stationToStationFQFile, tripsPerMunFile, tripsPerMSRFile, experiencedPlans);
 
     }
 
-    void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String tripsPerMunFile, String tripsPerMSRFile, Collection<Plan> experiencedPlans) {
+    void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerMSRFile, Collection<Plan> experiencedPlans) {
         LOG.info("aggregating Rail Demand");
         float[][] matrix = aggregateRailDemand(scalefactor, experiencedPlans);
         LOG.info("aggregating Trip Demand");
         aggregateTripDemand(scalefactor, experiencedPlans);
         LOG.info("Writing Trip Demand aggregate files.");
         writeMatrix(matrix, outputMatrixFile);
-        writeStationToStationDemand(stationToStationFile);
+        writeStationToStationDemand(stationToStationFile, stationToStationFQFile);
         writeTripDemand("mun_id", "mun_name", tripsPerMunFile);
         writeTripDemand("msr_id", "msr_name", tripsPerMSRFile);
         LOG.info("Done.");
@@ -229,7 +230,7 @@ public class DemandAggregator {
         });
     }
 
-    public void writeStationToStationDemand(String outputFile) {
+    public void writeStationToStationDemand(String outputFile, String outputFileFQ) {
         String from = "from_station";
         String fromName = "from_station_name";
         String fromZone = "from_station_zone";
@@ -270,6 +271,33 @@ public class DemandAggregator {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        try (CSVWriter writer = new CSVWriter(null, new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFileFQ)) {
+            for (var entry : this.odRailDemandMatrixFQ.entrySet()) {
+                String fromZoneId = this.zoneStop.get(entry.getKey()).toString();
+                String fromStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getName());
+                for (var stopEntry : entry.getValue().entrySet()) {
+                    String toZoneId = this.zoneStop.get(stopEntry.getKey()).toString();
+                    String toStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(stopEntry.getKey()).getName());
+                    writer.set(from, entry.getKey().toString());
+                    writer.set(fromZone, fromZoneId);
+                    writer.set(fromName, fromStationName);
+                    writer.set(toName, toStationName);
+                    writer.set(toZone, toZoneId);
+                    writer.set(to, stopEntry.getKey().toString());
+
+                    var travelInfo = stopEntry.getValue();
+                    writer.set(pkm, String.valueOf((int) Math.round(travelInfo.travelDistance().doubleValue())));
+                    writer.set(trips, travelInfo.demand().toString());
+                    writer.set(travel_time, String.valueOf((int) Math.round(travelInfo.travelTime().doubleValue() / travelInfo.demand().doubleValue())));
+                    writer.set(number_of_transfers, String.valueOf((double) Math.round(travelInfo.numberOfRailTransfers().doubleValue() / travelInfo.demand().doubleValue())));
+                    writer.writeRow();
+                }
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void writeMatrix(float[][] matrix, String outputfile) {
@@ -295,6 +323,7 @@ public class DemandAggregator {
         for (Plan plan : plans) {
             for (Trip trip : TripStructureUtils.getTrips(plan)) {
                 RailTripsAnalyzer.RailTravelInfo od = railTripsAnalyzer.getRailTravelInfo(trip);
+                double pkmFQ = railTripsAnalyzer.getFQDistance(trip, true);
                 if (od != null) {
                     String fromZone = aggregateZoneStop.get(od.fromStation());
                     String toZone = aggregateZoneStop.get(od.toStation());
@@ -305,6 +334,13 @@ public class DemandAggregator {
                     travelInfo.travelDistance().add(scaleFactor * od.distance() * 0.001);
                     travelInfo.travelTime().add(scaleFactor * od.railTravelTime());
                     travelInfo.numberOfRailTransfers().add(scaleFactor * od.numberOfTransfers());
+                    if (pkmFQ>0) {
+                        RailODTravelInfo travelInfoFQ = this.odRailDemandMatrixFQ.computeIfAbsent(od.fromStation(), a -> new TreeMap<>()).computeIfAbsent(od.toStation(), b -> new RailODTravelInfo(new MutableDouble(), new MutableDouble(), new MutableDouble(), new MutableDouble()));
+                        travelInfoFQ.demand.add(scaleFactor);
+                        travelInfoFQ.travelDistance().add(scaleFactor * od.distance() * 0.001);
+                        travelInfoFQ.travelTime().add(scaleFactor * od.railTravelTime());
+                        travelInfoFQ.numberOfRailTransfers().add(scaleFactor * od.numberOfTransfers());
+                    }
                 }
             }
         }

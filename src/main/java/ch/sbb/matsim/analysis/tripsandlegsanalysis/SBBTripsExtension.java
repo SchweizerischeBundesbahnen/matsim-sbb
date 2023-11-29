@@ -67,7 +67,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
         //this is always called before a new file is written, so the reset is added here.
         tripAttributes = Variables.MOBiTripAttributes.extractTripAttributes(scenario.getPopulation());
         return new String[]{"from_zone", "to_zone", "first_rail_stop", "last_rail_stop", "rail_pkm", "fq_rail_pkm", "rail_legs", "rail_access_modes", "rail_access_distance", "rail_egress_modes",
-                "rail_egress_distance", Variables.MOBiTripAttributes.TOUR_ID, Variables.MOBiTripAttributes.TRIP_ID, Variables.MOBiTripAttributes.PURPOSE, Variables.MOBiTripAttributes.DIRECTION};
+                "rail_egress_distance", Variables.MOBiTripAttributes.TOUR_ID, Variables.MOBiTripAttributes.TRIP_ID, Variables.MOBiTripAttributes.PURPOSE, Variables.MOBiTripAttributes.DIRECTION, "score"};
     }
 
     @Override
@@ -188,7 +188,11 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             egressDistance = Integer.toString(egress.getSecond());
         }
 
-        return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, rail_legs, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction);
+        double score=0.0;
+        for (Leg leg : trip.getLegsOnly()) {
+            //score += (float) leg.getAttributes().getAttribute("score");
+        }
+        return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, rail_legs, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction, Double.toString(score));
     }
 
 
