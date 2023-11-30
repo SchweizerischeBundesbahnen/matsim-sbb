@@ -6,6 +6,7 @@ package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.SBBScoringParametersConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -90,6 +91,17 @@ public class XLSXScoringParser {
 		}
 
 		new ConfigWriter(config).write(configOut);
+	}
+
+	public static void buildScoringBehaviourGroups(Config config) {
+		String excelPath = ConfigUtils.addOrGetModule(config, SBBScoringParametersConfigGroup.class).getScoringParametersExcelPath();
+		try (FileInputStream inputStream = new FileInputStream(excelPath)) {
+			Workbook workbook = WorkbookFactory.create(inputStream);
+
+			XLSXScoringParser.parseXLSXWorkbook(workbook, config);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
