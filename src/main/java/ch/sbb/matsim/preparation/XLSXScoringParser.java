@@ -8,27 +8,17 @@ import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.SBBScoringParametersConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * XLSXScoringParser.
@@ -95,12 +85,16 @@ public class XLSXScoringParser {
 
 	public static void buildScoringBehaviourGroups(Config config) {
 		String excelPath = ConfigUtils.addOrGetModule(config, SBBScoringParametersConfigGroup.class).getScoringParametersExcelPath();
-		try (FileInputStream inputStream = new FileInputStream(excelPath)) {
-			Workbook workbook = WorkbookFactory.create(inputStream);
+		if (excelPath != null) {
+			try (FileInputStream inputStream = new FileInputStream(excelPath)) {
+				Workbook workbook = WorkbookFactory.create(inputStream);
 
-			XLSXScoringParser.parseXLSXWorkbook(workbook, config);
-		} catch (IOException e) {
-			e.printStackTrace();
+				XLSXScoringParser.parseXLSXWorkbook(workbook, config);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			log.info("Not parsing excel file, assuming scoring parameters are set in config.");
 		}
 	}
 
