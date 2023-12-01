@@ -199,6 +199,7 @@ public class RunSBB {
         }
 		ActivityParamsBuilder.buildActivityParams(config);
 		SamplesizeFactors.setFlowAndStorageCapacities(config);
+		XLSXScoringParser.buildScoringBehaviourGroups(config);
 	}
 
 	public static void createInitialEndTimeAttribute(Population population) {
@@ -230,7 +231,9 @@ public class RunSBB {
 	public static ConfigGroup[] getSbbDefaultConfigGroups() {
 		return new ConfigGroup[]{new PostProcessingConfigGroup(), new SBBTransitConfigGroup(),
 				new SBBBehaviorGroupsConfigGroup(), new SwissRailRaptorConfigGroup(),
-				new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(), new SBBAccessTimeConfigGroup(),
-				new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(), new ConvergenceConfigGroup(), new SBBSupplyConfigGroup(), new SBBCapacityDependentRoutingConfigGroup(), new SBBReplanningConfigGroup()};
+				new ZonesListConfigGroup(), new ParkingCostConfigGroup(), new SBBIntermodalConfiggroup(),
+				new SBBAccessTimeConfigGroup(), new SBBNetworkRoutingConfigGroup(), new SBBS3ConfigGroup(),
+				new ConvergenceConfigGroup(), new SBBSupplyConfigGroup(), new SBBCapacityDependentRoutingConfigGroup(),
+				new SBBReplanningConfigGroup(), new SBBScoringParametersConfigGroup()};
 	}
 }
