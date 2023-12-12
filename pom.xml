@@ -194,6 +194,7 @@
                         <manifestEntries>
                             <Specification-Vendor>SBB CFF FFS</Specification-Vendor>
                             <Implementation-Vendor>SBB CFF FFS</Implementation-Vendor>
+                            <Multi-Release>true</Multi-Release>
                         </manifestEntries>
                     </archive>
                 </configuration>
