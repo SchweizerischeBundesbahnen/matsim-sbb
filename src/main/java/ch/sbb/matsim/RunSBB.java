@@ -5,7 +5,6 @@
 package ch.sbb.matsim;
 
 import ch.sbb.matsim.analysis.SBBDefaultAnalysisListener;
-import ch.sbb.matsim.analysis.SBBEventAnalysis;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
