@@ -1,13 +1,8 @@
-package ch.sbb.matsim.visumdistribution;
+package ch.sbb.matsim.postprocessing.visumdistribution;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * compare the links from visum and the srr also considers the demand on these, the solution is currently implemented very practical
