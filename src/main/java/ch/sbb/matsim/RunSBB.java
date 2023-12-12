@@ -89,44 +89,47 @@ public class RunSBB {
 			config.controler().setOutputDirectory(args[1]);
 		}
 		if (args.length > 2) {
-
-			String[] remainingArgs = Arrays.stream(args)
-					.skip(2)
-					.map(s -> s.replace("-c:", "--config:"))
-					.toArray(String[]::new);
-
-			ConfigUtils.applyCommandline(config, remainingArgs);
-
-			int idx = ArrayUtils.indexOf(args, "--params");
-			if (idx > -1) {
-				SBBBehaviorGroupsConfigGroup bgs = ConfigUtils.addOrGetModule(config, SBBBehaviorGroupsConfigGroup.class);
-				// Ensure that mode correction is present for all calibrated modes
-				for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bg : bgs.getBehaviorGroupParams().values()) {
-					for (SBBBehaviorGroupsConfigGroup.PersonGroupValues values : bg.getPersonGroupByAttribute().values()) {
-						// All constant except for the fixed mode are reset
-						for (SBBBehaviorGroupsConfigGroup.ModeCorrection corr : values.getModeCorrectionParams().values()) {
-							if (!corr.getMode().equals("walk_main"))
-								corr.setConstant(0);
-						}
-						for (String m : List.of("car", "ride", "pt", "bike")) {
-							if (!values.getModeCorrectionParams().containsKey(m)) {
-								SBBBehaviorGroupsConfigGroup.ModeCorrection c = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
-								c.setMode(m);
-								values.addModeCorrection(c);
-							}
-
-						}
-					}
-				}
-
-				// TODO: workaround to use private function, needs to be made public if stable
-				Method m = MATSimApplication.class.getDeclaredMethod("applySpecs", Config.class, Path.class);
-				m.setAccessible(true);
-				m.invoke(null, config, Path.of(args[idx + 1]));
-			}
+			prepareAutoCalibration(args, config);
 		}
 
 		run(config);
+	}
+
+	private static void prepareAutoCalibration(String[] args, Config config) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+		String[] remainingArgs = Arrays.stream(args)
+				.skip(2)
+				.map(s -> s.replace("-c:", "--config:"))
+				.toArray(String[]::new);
+
+		ConfigUtils.applyCommandline(config, remainingArgs);
+
+		int idx = ArrayUtils.indexOf(args, "--params");
+		if (idx > -1) {
+			SBBBehaviorGroupsConfigGroup bgs = ConfigUtils.addOrGetModule(config, SBBBehaviorGroupsConfigGroup.class);
+			// Ensure that mode correction is present for all calibrated modes
+			for (SBBBehaviorGroupsConfigGroup.BehaviorGroupParams bg : bgs.getBehaviorGroupParams().values()) {
+				for (SBBBehaviorGroupsConfigGroup.PersonGroupValues values : bg.getPersonGroupByAttribute().values()) {
+					// All constant except for the fixed mode are reset
+					for (SBBBehaviorGroupsConfigGroup.ModeCorrection corr : values.getModeCorrectionParams().values()) {
+						if (!corr.getMode().equals("walk_main"))
+							corr.setConstant(0);
+					}
+					for (String m : List.of("car", "ride", "pt", "bike")) {
+						if (!values.getModeCorrectionParams().containsKey(m)) {
+							SBBBehaviorGroupsConfigGroup.ModeCorrection c = new SBBBehaviorGroupsConfigGroup.ModeCorrection();
+							c.setMode(m);
+							values.addModeCorrection(c);
+						}
+
+					}
+				}
+			}
+
+			// TODO: workaround to use private function, needs to be made public if stable
+			Method m = MATSimApplication.class.getDeclaredMethod("applySpecs", Config.class, Path.class);
+			m.setAccessible(true);
+			m.invoke(null, config, Path.of(args[idx + 1]));
+		}
 	}
 
 	public static void run(Config config) {
