@@ -301,7 +301,7 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 
 		public static final String SET_TYPE = PARAMSET_PERSONGROUPATTRIBUTE;
 
-		private final Set<String> attributeValues = new HashSet<>();
+		private final Set<String> attributeValues = new LinkedHashSet<>();
 
 		private double deltaMarginalUtilityOfParkingPrice = 0.0;
 		private double deltaTransferUtilityBase = 0.0;

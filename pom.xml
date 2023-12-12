@@ -74,6 +74,11 @@
         </dependency>
         <dependency>
             <groupId>org.matsim.contrib</groupId>
+            <artifactId>application</artifactId>
+            <version>${matsim.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.matsim.contrib</groupId>
             <artifactId>osm</artifactId>
             <version>${matsim.version}</version>
         </dependency>
