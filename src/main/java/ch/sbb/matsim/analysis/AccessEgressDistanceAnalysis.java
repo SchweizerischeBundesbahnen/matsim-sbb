@@ -5,35 +5,27 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.io.IOUtils;
-import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.*;
 
 /**
  * @author mrieser / SBB
@@ -121,7 +113,7 @@ public class AccessEgressDistanceAnalysis {
 				}
 			}
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 	}
 

@@ -17,7 +17,7 @@ public class IntermodalModuleTest {
 	@Test(expected = RuntimeException.class)
 	public void install() {
         Config config = ConfigUtils.createConfig();
-        config.controler().setOutputDirectory("test/output/ch/sbb/matsim/intermodal/");
+        config.controller().setOutputDirectory("test/output/ch/sbb/matsim/intermodal/");
         SBBIntermodalConfiggroup intermodalConfigGroup = new SBBIntermodalConfiggroup();
         config.addModule(intermodalConfigGroup);
         Scenario scenario = ScenarioUtils.createScenario(config);

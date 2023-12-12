@@ -9,7 +9,6 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
-import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,9 +35,9 @@ public class SBBNetworkRoutingModule extends AbstractModule {
 				addNetworkMode(scenario.getNetwork(), mode, SBBModes.CAR);
 			}
 			SBBActivities.stageActivityTypeList.add(mode + " interaction");
-			Set<String> networkModes = new HashSet<>(scenario.getConfig().plansCalcRoute().getNetworkModes());
+			Set<String> networkModes = new HashSet<>(scenario.getConfig().routing().getNetworkModes());
 			networkModes.add(mode);
-			scenario.getConfig().plansCalcRoute().setNetworkModes(networkModes);
+			scenario.getConfig().routing().setNetworkModes(networkModes);
 		}
 	}
 

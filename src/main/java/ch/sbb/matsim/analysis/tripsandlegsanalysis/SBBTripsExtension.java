@@ -24,7 +24,9 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
-import org.matsim.analysis.TripsAndLegsCSVWriter.CustomTripsWriterExtension;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import org.matsim.analysis.TripsAndLegsWriter.CustomTripsWriterExtension;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
@@ -39,9 +41,6 @@ import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import java.util.*;
 

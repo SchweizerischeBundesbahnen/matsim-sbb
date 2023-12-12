@@ -1,23 +1,7 @@
 package ch.sbb.matsim.analysis.convergence;
 
-import static ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup.Test;
-
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
-
 import jakarta.inject.Inject;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.matsim.core.config.Config;
@@ -26,10 +10,18 @@ import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationStartsEvent;
 import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.utils.io.IOUtils;
-import org.matsim.core.utils.io.UncheckedIOException;
 import smile.stat.distribution.GaussianDistribution;
 import smile.stat.hypothesis.CorTest;
 import smile.stat.hypothesis.KSTest;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.IntStream;
+
+import static ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup.Test;
 
 public class ConvergenceStats implements IterationStartsListener {
 
@@ -66,7 +58,7 @@ public class ConvergenceStats implements IterationStartsListener {
 	public ConvergenceStats(Config config) {
 		this((int) // if using a share of the total iterations is configured, calculate it. Finally cast to int.
 						(ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class).getIterationWindowSize() < 1.0 ?
-								config.controler().getLastIteration() *
+								config.controller().getLastIteration() *
 										ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class).getIterationWindowSize() :
 								ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class).getIterationWindowSize()),
 				ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class).getTestsToRun(),
@@ -118,9 +110,17 @@ public class ConvergenceStats implements IterationStartsListener {
 			}
 			calcIteration(event.getServices().getControlerIO(), event.getIteration());
 			for (CSVWriter writer : this.writers.values()) {
-				writer.writeRow(true);
+				try {
+					writer.writeRow(true);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
 			}
-			this.convergenceFunctionWriter.writeRow(true);
+			try {
+				this.convergenceFunctionWriter.writeRow(true);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
@@ -144,7 +144,7 @@ public class ConvergenceStats implements IterationStartsListener {
 			this.convergenceFunctionWriter = new CSVWriter("", new String[]{COL_ITERATION, COL_CONVERGENCE_FUNCTION_RESULT},
 					Paths.get(dir.toString(), COL_CONVERGENCE_FUNCTION_RESULT + ".txt").toString(), "\t");
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -178,7 +178,7 @@ public class ConvergenceStats implements IterationStartsListener {
 			this.convergenceFunctionWriter.set(COL_ITERATION, String.valueOf(iteration));
 			this.convergenceFunctionWriter.set(COL_CONVERGENCE_FUNCTION_RESULT, String.valueOf(this.currentConvergenceFunctionResults));
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 	}
 

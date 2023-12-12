@@ -2,15 +2,16 @@ package ch.sbb.matsim.preparation.cutter;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigWriter;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
-import org.matsim.core.config.groups.StrategyConfigGroup;
+import org.matsim.core.config.groups.ReplanningConfigGroup;
+import org.matsim.core.config.groups.RoutingConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
+
+import java.io.IOException;
 
 public class SBBScenarioCutter {
 
@@ -89,7 +90,7 @@ public class SBBScenarioCutter {
 
 		ScenarioCutter.run(originalRunDirectory, originalRunId, cutterOutputDirectory, newScenarioSampleSize, parseEvents, inside, outside, network, cutNetworkAndPlans);
 
-		config.controler().setRunId(newRunId);
+		config.controller().setRunId(newRunId);
 		adjustConfig(config, newInputRelativeToNewConfig);
 		new ConfigWriter(config).write(newConfig);
 
@@ -113,29 +114,29 @@ public class SBBScenarioCutter {
 		config.counts().setInputFile(null);
 
 		// fix cut plans (no innovation, scoring parameters do not matter)
-		PlanCalcScoreConfigGroup.ActivityParams outsideParams = new PlanCalcScoreConfigGroup.ActivityParams(ScenarioCutter.OUTSIDE_ACT_TYPE);
+		ScoringConfigGroup.ActivityParams outsideParams = new ScoringConfigGroup.ActivityParams(ScenarioCutter.OUTSIDE_ACT_TYPE);
 		outsideParams.setTypicalDuration(3600);
 		outsideParams.setScoringThisActivityAtAll(false);
-		config.planCalcScore().addActivityParams(outsideParams);
+		config.scoring().addActivityParams(outsideParams);
 
-		StrategyConfigGroup.StrategySettings outsideStrategy = new StrategyConfigGroup.StrategySettings();
+		ReplanningConfigGroup.StrategySettings outsideStrategy = new ReplanningConfigGroup.StrategySettings();
 		outsideStrategy.setStrategyName(DefaultPlanStrategiesModule.DefaultSelector.KeepLastSelected);
 		outsideStrategy.setWeight(1.0);
 		outsideStrategy.setSubpopulation(ScenarioCutter.OUTSIDE_AGENT_SUBPOP);
-		config.strategy().addStrategySettings(outsideStrategy);
+		config.replanning().addStrategySettings(outsideStrategy);
 
 		//these values are not required, but neccessary for the simulation to run
-		PlanCalcScoreConfigGroup.ModeParams outsideMode = new PlanCalcScoreConfigGroup.ModeParams(ScenarioCutter.OUTSIDE_LEG_MODE);
+		ScoringConfigGroup.ModeParams outsideMode = new ScoringConfigGroup.ModeParams(ScenarioCutter.OUTSIDE_LEG_MODE);
 		outsideMode.setMarginalUtilityOfTraveling(0);
 		outsideMode.setConstant(0);
 		outsideMode.setMarginalUtilityOfDistance(0);
 		outsideMode.setMonetaryDistanceRate(0);
-		config.planCalcScore().addModeParams(outsideMode);
+		config.scoring().addModeParams(outsideMode);
 
-		PlansCalcRouteConfigGroup.ModeRoutingParams outsideRoutingParams = new PlansCalcRouteConfigGroup.ModeRoutingParams(ScenarioCutter.OUTSIDE_LEG_MODE);
+		RoutingConfigGroup.ModeRoutingParams outsideRoutingParams = new RoutingConfigGroup.ModeRoutingParams(ScenarioCutter.OUTSIDE_LEG_MODE);
 		outsideRoutingParams.setBeelineDistanceFactor(1.3);
 		outsideRoutingParams.setTeleportedModeSpeed(8.0);
-		config.plansCalcRoute().addModeRoutingParams(outsideRoutingParams);
+		config.routing().addModeRoutingParams(outsideRoutingParams);
 
 	}
 

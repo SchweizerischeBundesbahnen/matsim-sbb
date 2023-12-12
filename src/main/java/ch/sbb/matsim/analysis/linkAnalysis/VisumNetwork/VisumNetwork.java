@@ -1,14 +1,14 @@
 package ch.sbb.matsim.analysis.linkAnalysis.VisumNetwork;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.utils.collections.Tuple;
-import org.matsim.core.utils.io.UncheckedIOException;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class VisumNetwork {
 
@@ -108,7 +108,7 @@ public class VisumNetwork {
 			writer.writeRow();
 
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -128,7 +128,7 @@ public class VisumNetwork {
 			}
 
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -161,7 +161,7 @@ public class VisumNetwork {
 			}
 
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -184,7 +184,7 @@ public class VisumNetwork {
 			}
 
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -204,7 +204,7 @@ public class VisumNetwork {
 			}
 
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 	}
 }

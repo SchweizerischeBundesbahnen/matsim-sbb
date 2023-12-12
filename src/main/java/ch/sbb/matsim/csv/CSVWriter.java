@@ -4,15 +4,11 @@
 
 package ch.sbb.matsim.csv;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import org.matsim.core.utils.io.IOUtils;
-import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.core.utils.misc.Counter;
+
+import java.io.*;
+import java.nio.charset.Charset;
 
 public class CSVWriter implements AutoCloseable {
 
@@ -89,13 +85,17 @@ public class CSVWriter implements AutoCloseable {
 	/**
 	 * Writes the current row to the file and clears the current row afterwards.
 	 *
-	 * @throws UncheckedIOException
+	 * @throws IOException
 	 */
-	public void writeRow() throws UncheckedIOException {
-		writeRow(false);
+	public void writeRow() {
+		try {
+			writeRow(false);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
-	public void writeRow(boolean flush) throws UncheckedIOException {
+	public void writeRow(boolean flush) throws IOException {
 		try {
 			for (int i = 0; i < this.columnCount; i++) {
 				if (i > 0) {
@@ -108,7 +108,7 @@ public class CSVWriter implements AutoCloseable {
 				this.writer.flush();
 			}
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new IOException(e);
 		}
 		this.counter.incCounter();
 		clearRow();

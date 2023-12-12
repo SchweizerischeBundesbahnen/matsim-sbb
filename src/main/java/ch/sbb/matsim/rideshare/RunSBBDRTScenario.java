@@ -3,11 +3,8 @@ package ch.sbb.matsim.rideshare;
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.rideshare.analysis.SBBDRTAnalysisModule;
 import ch.sbb.matsim.rideshare.utils.RideshareAwareIntermodalMainModeIdentifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.drt.run.DrtConfigs;
 import org.matsim.contrib.drt.run.DrtControlerCreator;
@@ -24,6 +21,10 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.router.MainModeIdentifier;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class RunSBBDRTScenario {
 
 	private final static Logger log = LogManager.getLogger(RunSBBDRTScenario.class);
@@ -34,7 +35,7 @@ public class RunSBBDRTScenario {
 		log.info(configFile);
 		Config config = ConfigUtils.loadConfig(configFile, getSBBAndDrtConfigGroups());
 		if (args.length > 1) {
-			config.controler().setOutputDirectory(args[1]);
+			config.controller().setOutputDirectory(args[1]);
 		}
 		prepareDrtConfig(config);
 		Scenario scenario = DrtControlerCreator.createScenarioWithDrtRouteFactory(config);
@@ -57,7 +58,7 @@ public class RunSBBDRTScenario {
 
 	public static void prepareDrtConfig(Config config) {
 		RunSBB.adjustMobiConfig(config);
-		DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.planCalcScore(), config.plansCalcRoute());
+		DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.scoring(), config.routing());
 		config.checkConsistency();
 	}
 

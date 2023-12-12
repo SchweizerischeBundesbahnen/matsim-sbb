@@ -35,8 +35,8 @@ import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.matsim.analysis.TripsAndLegsCSVWriter;
-import org.matsim.analysis.TripsAndLegsCSVWriter.CustomTripsWriterExtension;
+import org.matsim.analysis.TripsAndLegsWriter;
+import org.matsim.analysis.TripsAndLegsWriter.CustomTripsWriterExtension;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
@@ -81,7 +81,7 @@ public class RunSBB {
 		final Config config = buildConfig(configFile);
 
 		if (args.length > 1) {
-			config.controler().setOutputDirectory(args[1]);
+			config.controller().setOutputDirectory(args[1]);
 		}
 //		if (args.length > 2) {
 //			prepareAutoCalibration(args, config);
@@ -153,7 +153,7 @@ public class RunSBB {
 		AccessEgressModule.prepareLinkAttributes(scenario, true);
 		// vehicle types
 		new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
-				scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
+				scenario.getConfig().routing().getNetworkModes()).createVehicles();
 		scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
 
@@ -173,8 +173,8 @@ public class RunSBB {
 				addPlanStrategyBinding(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice).toProvider(SBBSubtourModeChoice.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
 				bind(RailTripsAnalyzer.class);
-                bind(DemandAggregator.class);
-                bind(RailDemandReporting.class);
+				bind(DemandAggregator.class);
+				bind(RailDemandReporting.class);
 				bind(PtLinkVolumeAnalyzer.class);
 				bind(PutSurveyWriter.class);
 				bind(TripsAndDistanceStats.class);
@@ -182,8 +182,8 @@ public class RunSBB {
 				bind(ModalSplitStats.class);
 				bind(IterationLinkAnalyzer.class).asEagerSingleton();
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
-				bind(TripsAndLegsCSVWriter.CustomLegsWriterExtension.class).to(SBBLegsExtension.class);
-				bind(TripsAndLegsCSVWriter.CustomTimeWriter.class).toInstance(v -> Long.toString((long) v));
+				bind(TripsAndLegsWriter.CustomLegsWriterExtension.class).to(SBBLegsExtension.class);
+				bind(TripsAndLegsWriter.CustomTimeWriter.class).toInstance(v -> Long.toString((long) v));
 				install(new SBBTransitModule());
 				install(new ZonesModule(scenario));
 				install(new SBBNetworkRoutingModule());
@@ -232,10 +232,10 @@ public class RunSBB {
 	}
 
 	public static void adjustMobiConfig(Config config) {
-		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
-            // MATSim defines ride by default as teleported, which conflicts with the network mode
-            config.plansCalcRoute().removeTeleportedModeParams(SBBModes.RIDE);
-        }
+		if (config.routing().getNetworkModes().contains(SBBModes.RIDE)) {
+			// MATSim defines ride by default as teleported, which conflicts with the network mode
+			config.routing().removeTeleportedModeParams(SBBModes.RIDE);
+		}
 		ActivityParamsBuilder.buildActivityParams(config);
 		SamplesizeFactors.setFlowAndStorageCapacities(config);
 		XLSXScoringParser.buildScoringBehaviourGroups(config);

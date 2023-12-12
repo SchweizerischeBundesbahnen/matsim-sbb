@@ -13,7 +13,7 @@ import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import com.google.inject.Inject;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
-import org.matsim.core.config.groups.ControlerConfigGroup;
+import org.matsim.core.config.groups.ControllerConfigGroup;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.events.StartupEvent;
@@ -23,7 +23,7 @@ import org.matsim.core.controler.listener.StartupListener;
 public class SBBDefaultAnalysisListener implements IterationEndsListener, StartupListener {
 
     private final OutputDirectoryHierarchy controlerIO;
-    private final ControlerConfigGroup config;
+    private final ControllerConfigGroup config;
     private final PostProcessingConfigGroup ppConfig;
 
     @Inject
@@ -56,7 +56,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
             final EventsManager eventsManager,
             final Scenario scenario,
             final OutputDirectoryHierarchy controlerIO,
-            final ControlerConfigGroup config,
+            final ControllerConfigGroup config,
             final PostProcessingConfigGroup ppConfig,
             IterationLinkAnalyzer iterationLinkAnalyzer
     ) {

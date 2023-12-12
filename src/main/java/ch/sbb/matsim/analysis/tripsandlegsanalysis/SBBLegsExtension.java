@@ -1,16 +1,15 @@
 package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
-import org.matsim.analysis.TripsAndLegsCSVWriter;
+import jakarta.inject.Inject;
+import org.matsim.analysis.TripsAndLegsWriter;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.pt.routes.TransitPassengerRoute;
 
-import jakarta.inject.Inject;
-
 import java.util.Collections;
 import java.util.List;
 
-public class SBBLegsExtension implements TripsAndLegsCSVWriter.CustomLegsWriterExtension {
+public class SBBLegsExtension implements TripsAndLegsWriter.CustomLegsWriterExtension {
 
     private final RailTripsAnalyzer railTripsAnalyzer;
 

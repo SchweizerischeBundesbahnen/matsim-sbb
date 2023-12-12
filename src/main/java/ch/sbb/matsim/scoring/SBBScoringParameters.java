@@ -1,8 +1,8 @@
 package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.ScenarioConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.scoring.functions.ScoringParameters;
 
 /**
@@ -58,27 +58,28 @@ public class SBBScoringParameters {
 	public double getTransferUtilityRailOePNV() {
 		return this.transferUtilityRailOePNV;
 	}
+
 	public static final class Builder {
 
-        private final ScoringParameters.Builder matsimBuilder;
-        private double marginalUtilityOfParkingPrice;
-        private double transferUtilityPerTravelTime;
-        private double transferUtilityBase;
-        private final double transferUtilityMinimum;
-        private final double transferUtilityMaximum;
+		private final ScoringParameters.Builder matsimBuilder;
+		private final double transferUtilityMinimum;
+		private final double transferUtilityMaximum;
+		private double marginalUtilityOfParkingPrice;
+		private double transferUtilityPerTravelTime;
+		private double transferUtilityBase;
 		private final double transferUtilityRailOePNV;
 
-        public Builder(final PlanCalcScoreConfigGroup configGroup,
-                final PlanCalcScoreConfigGroup.ScoringParameterSet scoringParameterSet,
-                final ScenarioConfigGroup scenarioConfig,
-                final SBBBehaviorGroupsConfigGroup sbbConfig) {
-            this.matsimBuilder = new ScoringParameters.Builder(configGroup, scoringParameterSet, scenarioConfig);
-            this.marginalUtilityOfParkingPrice = sbbConfig.getMarginalUtilityOfParkingPrice();
-            this.transferUtilityPerTravelTime = sbbConfig.getTransferUtilityPerTravelTime_utils_hr();
-            this.transferUtilityBase = sbbConfig.getBaseTransferUtility();
-            this.transferUtilityMinimum = Math.min(sbbConfig.getMinimumTransferUtility(), sbbConfig.getMaximumTransferUtility());
+		public Builder(final ScoringConfigGroup configGroup,
+					   final ScoringConfigGroup.ScoringParameterSet scoringParameterSet,
+					   final ScenarioConfigGroup scenarioConfig,
+					   final SBBBehaviorGroupsConfigGroup sbbConfig) {
+			this.matsimBuilder = new ScoringParameters.Builder(configGroup, scoringParameterSet, scenarioConfig);
+			this.marginalUtilityOfParkingPrice = sbbConfig.getMarginalUtilityOfParkingPrice();
+			this.transferUtilityPerTravelTime = sbbConfig.getTransferUtilityPerTravelTime_utils_hr();
+			this.transferUtilityBase = sbbConfig.getBaseTransferUtility();
+			this.transferUtilityMinimum = Math.min(sbbConfig.getMinimumTransferUtility(), sbbConfig.getMaximumTransferUtility());
 			this.transferUtilityMaximum = Math.max(sbbConfig.getMinimumTransferUtility(), sbbConfig.getMaximumTransferUtility());
-			this.transferUtilityRailOePNV =sbbConfig.getTransferUtilityRailOePNV();
+			this.transferUtilityRailOePNV = sbbConfig.getTransferUtilityRailOePNV();
 		}
 
 		public void setMarginalUtilityOfParkingPrice(double marginalUtilityOfParkingPrice) {

@@ -10,6 +10,7 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
+import jakarta.inject.Inject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
@@ -27,8 +28,6 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
-
-import jakarta.inject.Inject;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -104,9 +103,9 @@ public class ModalSplitStats {
         String outputFile = args[7];
 
         final Config config = ConfigUtils.createConfig();
-        config.controler().setRunId(runId);
+        config.controller().setRunId(runId);
         config.qsim().setEndTime(30 * 3600);
-        config.controler().setOutputDirectory(outputFile);
+        config.controller().setOutputDirectory(outputFile);
         PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
         ppConfig.setSimulationSampleSize(sampleSize);
         ppConfig.setZonesId("zones");
@@ -126,7 +125,7 @@ public class ModalSplitStats {
         scenario2.getPopulation().getPersons().values().forEach(p -> experiencedPlans.put(p.getId(), p.getSelectedPlan()));
 
         ModalSplitStats modalSplitStats = new ModalSplitStats(zonesCollection, config, scenario);
-        modalSplitStats.analyzeAndWriteStats(config.controler().getOutputDirectory(), experiencedPlans);
+        modalSplitStats.analyzeAndWriteStats(config.controller().getOutputDirectory(), experiencedPlans);
     }
 
     public void analyzeAndWriteStats(String outputLocation) {
@@ -889,7 +888,7 @@ public class ModalSplitStats {
         try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNDistanceClasses)) {
             for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
                 for (Entry<String, Integer> col : this.modesInclRailFQMap.entrySet()) {
-                    csvWriter.set(runID, this.config.controler().getRunId());
+                    csvWriter.set(runID, this.config.controller().getRunId());
                     csvWriter.set(subpopulation, tmpSubpopulation);
                     csvWriter.set(mode, col.getKey());
                     for (int i = 0; i < distanceClassesLable.size(); i++) {
@@ -918,7 +917,7 @@ public class ModalSplitStats {
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNMiddleTimeSteps)) {
             for (Entry<String, int[][]> entry : timeMap.entrySet()) {
                 for (int i = 0; i < config.qsim().getEndTime().seconds() / timeSplit; i++) {
-                    csvWriter.set(runID, config.controler().getRunId());
+                    csvWriter.set(runID, config.controller().getRunId());
                     csvWriter.set(subpopulation, entry.getKey());
                     csvWriter.set(time, Integer.toString(i * timeSplit));
                     for (Entry<String, Integer> var : variablesTimeStepsMap.entrySet()) {
@@ -933,7 +932,7 @@ public class ModalSplitStats {
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNTravelTimeDistribution)) {
             for (Entry<String, int[][]> entry : travelTimeMap.entrySet()) {
                 for (int i = 0; i < (lastTravelTimeValue / travelTimeSplit) + 1; i++) {
-                    csvWriter.set(runID, config.controler().getRunId());
+                    csvWriter.set(runID, config.controller().getRunId());
                     csvWriter.set(subpopulation, entry.getKey());
                     csvWriter.set(time, Integer.toString(i * travelTimeSplit));
                     if (i == (lastTravelTimeValue / travelTimeSplit)) {
@@ -962,7 +961,7 @@ public class ModalSplitStats {
         try (CSVWriter csvWriterPF = new CSVWriter("", colums, outputLocation + oNModalSplitPF)) {
             for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
                 for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
-                    csvWriterPF.set(runID, config.controler().getRunId());
+                    csvWriterPF.set(runID, config.controller().getRunId());
                     csvWriterPF.set(subpopulation, tmpSubpopulation);
                     for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
                         if (entry.getKey().equals(mode)) {
@@ -983,7 +982,7 @@ public class ModalSplitStats {
         try (CSVWriter csvWriterPKM = new CSVWriter("", colums, outputLocation + oNModalSplitPKM)) {
             for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
                 for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
-                    csvWriterPKM.set(runID, config.controler().getRunId());
+                    csvWriterPKM.set(runID, config.controller().getRunId());
                     csvWriterPKM.set(subpopulation, tmpSubpopulation);
                     for (Entry<String, Integer> entry : this.variablesMSMap.entrySet()) {
                         if (entry.getKey().equals(mode)) {
@@ -1016,7 +1015,7 @@ public class ModalSplitStats {
         try (CSVWriter csvWriterPF = new CSVWriter("", columns, outputLocation + oNModalSplitFeederPF)) {
             for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
                 for (Entry<String, Integer> modeAccessEntry : feederModesMap.entrySet()) {
-                    csvWriterPF.set(runID, config.controler().getRunId());
+                    csvWriterPF.set(runID, config.controller().getRunId());
                     csvWriterPF.set(subpopulation, tmpSubpopulation);
                     csvWriterPF.set(mode, PT);
                     for (Entry<String, Integer> entry : this.variablesMSFeederMap.entrySet()) {
@@ -1035,7 +1034,7 @@ public class ModalSplitStats {
                     csvWriterPF.writeRow();
                 }
                 for (Entry<String, Integer> modeEgressEntry : feederModesMap.entrySet()) {
-                    csvWriterPF.set(runID, config.controler().getRunId());
+                    csvWriterPF.set(runID, config.controller().getRunId());
                     csvWriterPF.set(subpopulation, tmpSubpopulation);
                     csvWriterPF.set(mode, PT);
                     for (Entry<String, Integer> entry : this.variablesMSFeederMap.entrySet()) {
@@ -1061,7 +1060,7 @@ public class ModalSplitStats {
         try (CSVWriter csvWriterPKM = new CSVWriter("", columns, outputLocation + oNModalSplitFeederPKM)) {
             for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
                 for (Entry<String, Integer> accessModeEntry : feederModesMap.entrySet()) {
-                    csvWriterPKM.set(runID, config.controler().getRunId());
+                    csvWriterPKM.set(runID, config.controller().getRunId());
                     csvWriterPKM.set(subpopulation, tmpSubpopulation);
                     csvWriterPKM.set(mode, PT);
                     for (Entry<String, Integer> entry : this.variablesMSFeederMap.entrySet()) {
@@ -1080,7 +1079,7 @@ public class ModalSplitStats {
                     csvWriterPKM.writeRow();
                 }
                 for (Entry<String, Integer> egrcessModeEntry : feederModesMap.entrySet()) {
-                    csvWriterPKM.set(runID, config.controler().getRunId());
+                    csvWriterPKM.set(runID, config.controller().getRunId());
                     csvWriterPKM.set(subpopulation, tmpSubpopulation);
                     csvWriterPKM.set(mode, PT);
                     for (Entry<String, Integer> entry : this.variablesMSFeederMap.entrySet()) {
@@ -1118,7 +1117,7 @@ public class ModalSplitStats {
                 for (Entry<String, Map<String, double[][]>> zoneEntry : zonesAccessMSPFMap.entrySet()){
                     for (Entry<String, Integer> accessModeEntry : feederModesMap.entrySet()) {
                         if (zonesAccessMSPFMap.get(zoneEntry.getKey()).get(tmpSubpopulation)[accessModeEntry.getValue()][this.variablesMSFeederMap.get("all")]>0) {
-                            csvWriterPKM.set(runID, config.controler().getRunId());
+                            csvWriterPKM.set(runID, config.controller().getRunId());
                             csvWriterPKM.set(subpopulation, tmpSubpopulation);
                             csvWriterPKM.set(zone, zoneEntry.getKey());
                             csvWriterPKM.set(mode, PT);
@@ -1142,7 +1141,7 @@ public class ModalSplitStats {
                 for (Entry<String, Map<String, double[][]>> zoneEntry : zonesEgressMSPFMap.entrySet()){
                     for (Entry<String, Integer> egressModeEntry : feederModesMap.entrySet()) {
                         if (zonesEgressMSPFMap.get(zoneEntry.getKey()).get(tmpSubpopulation)[egressModeEntry.getValue()][this.variablesMSFeederMap.get("all")]>0) {
-                            csvWriterPKM.set(runID, config.controler().getRunId());
+                            csvWriterPKM.set(runID, config.controller().getRunId());
                             csvWriterPKM.set(subpopulation, tmpSubpopulation);
                             csvWriterPKM.set(zone, zoneEntry.getKey());
                             csvWriterPKM.set(mode, PT);
@@ -1189,7 +1188,7 @@ public class ModalSplitStats {
         String[] columns = head.split(",");
         try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNTrainStrationsCount)) {
             for (TrainStation station : trainStationMap.values()) {
-                csvWriter.set(runID, config.controler().getRunId());
+                csvWriter.set(runID, config.controller().getRunId());
                 csvWriter.set(hstNumber, station.getHstNummer());
                 csvWriter.set(stopCode, station.getStopCode());
                 csvWriter.set(zone, station.getZoneId());
@@ -1238,7 +1237,7 @@ public class ModalSplitStats {
         String[] columns = head.toString().split(",");
         try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNStopStationsCount)) {
             for (Entry<Id<TransitStopFacility>, StopStation> entry : stopStationsMap.entrySet()) {
-                csvWriter.set(runID, config.controler().getRunId());
+                csvWriter.set(runID, config.controller().getRunId());
                 csvWriter.set(hstNummer, entry.getValue().getStop().getAttributes().getAttribute("02_Stop_No").toString());
                 csvWriter.set(stopNumber, entry.getValue().getStop().getId().toString());
                 if (entry.getValue().getIsRailStation()) {
@@ -1313,7 +1312,7 @@ public class ModalSplitStats {
             mapChange.put("changesTrainAll", 4);
             for (Entry<String, double[][]> entry : subpopulationChangeMap.entrySet()) {
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
-                    csvWriter.set(runID, config.controler().getRunId());
+                    csvWriter.set(runID, config.controller().getRunId());
                     csvWriter.set(subpopulation, entry.getKey());
                     csvWriter.set(umsteigetyp, change.getKey());
                     for (int i = 0; i < 6; i++) {
@@ -1335,7 +1334,7 @@ public class ModalSplitStats {
             mapChange.put("changesTrainAll", 4);
             for (Entry<String, double[][]> entry : subpopulationChangePKMMap.entrySet()) {
                 for (Entry<String, Integer> change : mapChange.entrySet()) {
-                    csvWriter.set(runID, config.controler().getRunId());
+                    csvWriter.set(runID, config.controller().getRunId());
                     csvWriter.set(subpopulation, entry.getKey());
                     csvWriter.set(umsteigetyp, change.getKey());
                     for (int i = 0; i < 6; i++) {
@@ -1360,7 +1359,7 @@ public class ModalSplitStats {
                     int offsetDistance = d * changeOrderList.size();
                     for (Entry<String, Integer> change : mapChange.entrySet()) {
                         csvWriter.set("distanceClass", distanceClassesLable.get(d));
-                        csvWriter.set(runID, config.controler().getRunId());
+                        csvWriter.set(runID, config.controller().getRunId());
                         csvWriter.set(subpopulation, entry.getKey());
                         csvWriter.set(umsteigetyp, change.getKey());
                         for (int i = 0; i < 6; i++) {

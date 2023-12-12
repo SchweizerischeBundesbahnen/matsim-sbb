@@ -14,7 +14,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -109,7 +109,7 @@ public class XLSXScoringParser {
 	 * @param config (required) MATSim config instance, must contain ALL configured config modules, otherwise their settings will be deleted from the config output.
 	 */
 	public static void parseXLSXWorkbook(Workbook workbook, Config config) {
-		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+		ScoringConfigGroup planCalcScore = config.scoring();
 		SBBBehaviorGroupsConfigGroup behaviorGroupConfigGroup = ConfigUtils.addOrGetModule(config, SBBBehaviorGroupsConfigGroup.class);
 		SwissRailRaptorConfigGroup raptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
 
@@ -135,11 +135,11 @@ public class XLSXScoringParser {
 	 * first column. Strings found in the same row and present in the MODES array will be interpreted as modes</p>
 	 *
 	 * @param scoringParamsSheet (required) the workbook sheet, usually labelled "ScoringParams"
-	 * @param planCalcScore (required) MATSim configGroup instance
+	 * @param planCalcScore      (required) MATSim configGroup instance
 	 */
-	protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore,
-			SBBBehaviorGroupsConfigGroup sbbParams, SwissRailRaptorConfigGroup raptorConfigGroup) {
-		Map<Integer, PlanCalcScoreConfigGroup.ModeParams> modeParamsConfig = new TreeMap<>();
+	protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, ScoringConfigGroup planCalcScore,
+												  SBBBehaviorGroupsConfigGroup sbbParams, SwissRailRaptorConfigGroup raptorConfigGroup) {
+		Map<Integer, ScoringConfigGroup.ModeParams> modeParamsConfig = new TreeMap<>();
 		Set<String> modes = new TreeSet<>();
 		Integer generalParamsCol = null;
 
@@ -161,7 +161,7 @@ public class XLSXScoringParser {
 							if (mode.equals(GENERAL_PARAMS_LABEL)) {
 								generalParamsCol = col;
 							} else if (!modes.contains(mode)) {
-								PlanCalcScoreConfigGroup.ModeParams modeParams = planCalcScore.getOrCreateModeParams(mode);
+								ScoringConfigGroup.ModeParams modeParams = planCalcScore.getOrCreateModeParams(mode);
 								modeParamsConfig.put(col, modeParams);
 								modes.add(mode);
 							}
@@ -170,9 +170,9 @@ public class XLSXScoringParser {
 
 					log.info("found parameters for modes: " + modes.toString());
 				} else if (MODE_PARAMS.contains(rowLabel)) {
-					for (Map.Entry<Integer, PlanCalcScoreConfigGroup.ModeParams> entry : modeParamsConfig.entrySet()) {
+					for (Map.Entry<Integer, ScoringConfigGroup.ModeParams> entry : modeParamsConfig.entrySet()) {
 						Cell cell = row.getCell(entry.getKey());
-						PlanCalcScoreConfigGroup.ModeParams modeParams = entry.getValue();
+						ScoringConfigGroup.ModeParams modeParams = entry.getValue();
 
 						if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
 							try {

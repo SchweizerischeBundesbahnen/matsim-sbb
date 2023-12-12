@@ -4,6 +4,8 @@
 
 package ch.sbb.matsim.csv;
 
+import org.matsim.core.utils.io.IOUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,8 +14,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import org.matsim.core.utils.io.IOUtils;
-import org.matsim.core.utils.io.UncheckedIOException;
 
 public class CSVReader implements AutoCloseable {
 
@@ -21,27 +21,27 @@ public class CSVReader implements AutoCloseable {
 	private final BufferedReader br;
 	private String[] columns;
 
-	public CSVReader(String[] columns, final String csvFile, final String splitBy) throws UncheckedIOException {
+	public CSVReader(String[] columns, final String csvFile, final String splitBy) throws IOException {
 		this.columns = columns;
 		this.splitBy = splitBy;
 		this.br = IOUtils.getBufferedReader(csvFile);
 	}
 
-	public CSVReader(String[] columns, final URL csvFileURL, final String splitBy) throws UncheckedIOException {
+	public CSVReader(String[] columns, final URL csvFileURL, final String splitBy) throws IOException {
 		this.columns = columns;
 		this.splitBy = splitBy;
 		this.br = IOUtils.getBufferedReader(csvFileURL);
 	}
 
-	public CSVReader(final URL csvFileURL, final String splitBy) throws UncheckedIOException, IOException {
+	public CSVReader(final URL csvFileURL, final String splitBy) throws IOException {
 		this(splitBy, IOUtils.getBufferedReader(csvFileURL));
 	}
 
-	public CSVReader(final String csvFile, final String splitBy) throws UncheckedIOException, IOException {
+	public CSVReader(final String csvFile, final String splitBy) throws IOException {
 		this(splitBy, IOUtils.getBufferedReader(csvFile));
 	}
 
-	public CSVReader(final String splitBy, BufferedReader br) throws UncheckedIOException, IOException {
+	public CSVReader(final String splitBy, BufferedReader br) throws IOException {
 		this.splitBy = splitBy;
 		this.br = br;
 

@@ -4,18 +4,18 @@
 
 package ch.sbb.matsim.scoring;
 
-import static org.junit.Assert.assertEquals;
-
 import ch.sbb.matsim.config.variables.SBBModes;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Rule;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.scoring.functions.ScoringParameters;
 import org.matsim.testcases.MatsimTestUtils;
+
+import static org.junit.Assert.assertEquals;
 
 public class SBBScoringParametersForPersonTest {
 
@@ -26,7 +26,7 @@ public class SBBScoringParametersForPersonTest {
 	public void testDefaultScoringParams() {
 		ScoringFixture f = new ScoringFixture();
 
-		PlanCalcScoreConfigGroup.ModeParams defaultModeParams = f.config.planCalcScore().getModes().get(SBBModes.PT);
+		ScoringConfigGroup.ModeParams defaultModeParams = f.config.scoring().getModes().get(SBBModes.PT);
 		assertEquals(-1.0, defaultModeParams.getConstant(), 0.0);
 		assertEquals(0.0, defaultModeParams.getMarginalUtilityOfDistance(), 0.0);
 		assertEquals(1.14, defaultModeParams.getMarginalUtilityOfTraveling(), 0.0);
