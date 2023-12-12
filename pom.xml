@@ -28,6 +28,18 @@
             <!--<url>http://download.osgeo.org/webdav/geotools</url>-->
             <url>https://repo.osgeo.org/repository/release/</url>
         </repository>
+        <repository>
+            <id>msmobility-msm</id>
+            <url>https://dl.cloudsmith.io/public/msmobility/msm/maven/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
 
     </repositories>
 
