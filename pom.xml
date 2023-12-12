@@ -89,14 +89,6 @@
             <version>32.0.0-jre</version>
         </dependency>
 
-
-        <dependency>
-            <groupId>com.graphhopper</groupId>
-            <artifactId>graphhopper-isochrone</artifactId>
-            <version>0.13.0</version>
-        </dependency>
-
-
         <!-- Include the JUnit testing library -->
         <dependency>
             <groupId>junit</groupId>
