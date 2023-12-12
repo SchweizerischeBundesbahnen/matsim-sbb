@@ -46,7 +46,10 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     @Inject
     private ModalSplitStats modalSplitStats;
 
+    @Inject
+    private Scenario scenario;
     private final CarLinkAnalysis carLinkAnalysis;
+
 
     @Inject
     public SBBDefaultAnalysisListener(
@@ -66,6 +69,10 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     @Override
     public void notifyStartup(StartupEvent event) {
         ScenarioConsistencyChecker.writeLog(controlerIO.getOutputFilename("scenarioCheck.log"));
+        String outputDirectory = this.controlerIO.getOutputFilename("");
+        if (this.ppConfig.getWriteAgentsCSV()) {
+            new PopulationToCSV(scenario).write(outputDirectory);
+        }
     }
 
     @Override

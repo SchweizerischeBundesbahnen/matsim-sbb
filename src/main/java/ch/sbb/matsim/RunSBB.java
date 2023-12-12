@@ -5,7 +5,6 @@
 package ch.sbb.matsim;
 
 import ch.sbb.matsim.analysis.SBBDefaultAnalysisListener;
-import ch.sbb.matsim.analysis.SBBEventAnalysis;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
@@ -128,7 +127,6 @@ public class RunSBB {
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
-				addControlerListenerBinding().to(SBBEventAnalysis.class);
 				addControlerListenerBinding().to(SBBDefaultAnalysisListener.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 				addPlanStrategyBinding(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice).toProvider(SBBSubtourModeChoice.class);

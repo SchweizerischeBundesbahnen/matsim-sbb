@@ -2,16 +2,17 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package ch.sbb.matsim.counts;
+package ch.sbb.matsim.mavi.counts;
 
 import ch.sbb.matsim.csv.CSVReader;
-import java.io.IOException;
-import java.util.Map;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsWriter;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author mrieser / SBB

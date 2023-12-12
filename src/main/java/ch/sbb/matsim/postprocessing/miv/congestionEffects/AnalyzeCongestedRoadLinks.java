@@ -1,4 +1,4 @@
-package ch.sbb.matsim.analysis.congestionEffects;
+package ch.sbb.matsim.postprocessing.miv.congestionEffects;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;

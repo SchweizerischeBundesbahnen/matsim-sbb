@@ -2,7 +2,7 @@
  * Copyright (C) Schweizerische Bundesbahnen SBB, 2018.
  */
 
-package ch.sbb.matsim.via;
+package ch.sbb.matsim.utils.via;
 
 import org.matsim.core.utils.misc.Time;
 

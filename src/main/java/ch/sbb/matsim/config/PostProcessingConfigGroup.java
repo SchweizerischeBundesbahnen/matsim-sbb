@@ -21,7 +21,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
 	private int writeOutputsInterval = 10;
 	private Boolean writeAgentsCSV = false;
-	private Boolean writePlanElementsCSV = false;
 	private Boolean writeVisumPuTSurvey = false;
 	static private final String SIMULATION_SAMPLE_SIZE = "simulationSampleSize";
 	private double simulationSampleSize;
@@ -97,16 +96,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 		this.writeAgentsCSV = value;
 	}
 
-	@StringGetter("writePlanElementsCSV")
-	public Boolean getWritePlanElementsCSV() {
-		return writePlanElementsCSV;
-	}
-
-	@StringSetter("writePlanElementsCSV")
-	public void setWritePlanElementsCSV(Boolean value) {
-		this.writePlanElementsCSV = value;
-	}
-
 	@StringGetter("personAttributes")
 	public String getPersonAttributes() {
 		return personAttributes;
@@ -176,7 +165,6 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	public void setAllPostProcessingOff() {
 		this.linkVolumes = false;
 		this.writeAgentsCSV = false;
-		this.writePlanElementsCSV = false;
 		this.writeVisumPuTSurvey = false;
 		this.writeOutputsInterval = 0;
 	}
