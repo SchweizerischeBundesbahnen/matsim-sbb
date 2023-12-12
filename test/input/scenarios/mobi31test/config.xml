@@ -145,7 +145,7 @@
         <!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
         <param name="overwriteFiles" value="deleteDirectoryIfExists"/>
         <!-- The type of routing (least cost path) algorithm used, may have the values: Dijkstra, FastDijkstra, AStarLandmarks or FastAStarLandmarks -->
-        <param name="routingAlgorithmType" value="FastAStarLandmarks"/>
+        <param name="routingAlgorithmType" value="SpeedyALT"/>
         <!-- An identifier for the current run which is used as prefix for output files and mentioned in output xml files etc. -->
         <param name="runId" value="MOBI33IT"/>
         <!-- Comma-separated list of visualizer output file formats. `transims', `googleearth', and `otfvis'. -->
@@ -651,8 +651,6 @@
         <param name="travelTimeAggregator" value="optimistic"/>
         <!-- The size of the time bin (in sec) into which the link travel times are aggregated for the router -->
         <param name="travelTimeBinSize" value="900"/>
-        <!-- possible values: TravelTimeCalculatorArray TravelTimeCalculatorHashMap  -->
-        <param name="travelTimeCalculator" value="TravelTimeCalculatorArray"/>
         <!-- How to deal with link entry times at different positions during the time bin. Currently supported: average, linearinterpolation -->
         <param name="travelTimeGetter" value="average"/>
     </module>
