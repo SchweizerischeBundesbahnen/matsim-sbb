@@ -2,8 +2,8 @@ package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
-import ch.sbb.matsim.counts.VisumToCounts;
 import ch.sbb.matsim.mavi.PolylinesCreator;
+import ch.sbb.matsim.mavi.counts.VisumToCounts;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.SafeArray;
