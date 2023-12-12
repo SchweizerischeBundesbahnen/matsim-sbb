@@ -26,7 +26,7 @@ public class PopulationToCSV {
 	}
 
 	public void write(String directory) {
-		String agentsFilename = directory + directory + "agents.csv.gz";
+		String agentsFilename = directory + "agents.csv.gz";
 		PostProcessingConfigGroup ppConfig = ConfigUtils.addOrGetModule(this.scenario.getConfig(), PostProcessingConfigGroup.class);
 		Population population = this.scenario.getPopulation();
 		String[] attributes = ppConfig.getPersonAttributes().split(",");
