@@ -127,7 +127,6 @@ public class RunSBB {
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
-				addControlerListenerBinding().to(SBBEventAnalysis.class);
 				addControlerListenerBinding().to(SBBDefaultAnalysisListener.class);
 				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 				addPlanStrategyBinding(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice).toProvider(SBBSubtourModeChoice.class);
