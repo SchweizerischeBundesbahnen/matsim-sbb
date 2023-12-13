@@ -48,7 +48,7 @@ public class ConvergenceStatsTest {
 	@Test
 	public void test_ConvergenceTests() throws IOException {
 		ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfigGroup.Test.values(), ConfigUtils.createConfig());
-		double[] scores = ConvergenceStats.loadGlobalStats(utils.getPackageInputDirectory() + "convergence/traveldistancestats.txt");
+		double[] scores = ConvergenceStats.loadGlobalStats(utils.getPackageInputDirectory() + "convergence/traveldistancestats.csv");
 		System.out.println("Test: statistic=p-value");
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
 			Map.Entry<Double, Double> res = cs.runTest(test, scores);
@@ -67,7 +67,7 @@ public class ConvergenceStatsTest {
 		cs.notifyIterationStarts(event);
 		cs.close();
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
-			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
+			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".csv").toFile();
 			Assert.assertTrue(file.exists());
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			br.readLine(); // skip header
