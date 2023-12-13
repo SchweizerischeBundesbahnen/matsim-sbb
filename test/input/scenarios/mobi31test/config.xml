@@ -444,7 +444,7 @@
         <parameterset type="strategysettings">
             <param name="disableAfterIteration" value="-1"/>
             <param name="executionPath" value="null"/>
-            <param name="strategyName" value="SBBTimeMutation_ReRoute"/>
+            <param name="strategyName" value="TimeAllocationMutator_ReRoute"/>
             <param name="subpopulation" value="regular"/>
             <param name="weight" value="0.1"/>
         </parameterset>
@@ -535,6 +535,18 @@
         <param name="considerCarAvailability" value="true"/>
         <!-- Defines all the modes available, including chain-based modes, seperated by commas -->
         <param name="modes" value="car,pt,bike,walk_main,ride"/>
+    </module>
+    <module name="timeAllocationMutator">
+        <!-- Latest Activity End Time. Default = 24:00:00 -->
+        <param name="latestActivityEndTime" value="86400.0"/>
+        <!-- Mutates times only around the initially defined end times. -->
+        <param name="mutateAroundInitialEndTimeOnly" value="true"/>
+        <!-- Default:true; Defines whether time mutation changes an activity's duration. -->
+        <param name="mutationAffectsDuration" value="true"/>
+        <!-- Default:1800.0; Defines how many seconds a time mutation can maximally shift a time. -->
+        <param name="mutationRange" value="1800.0"/>
+        <!-- Mutation Range Step, default = 1 second -->
+        <param name="mutationRangeStep" value="120.0"/>
     </module>
     <module name="swissRailRaptor">
         <!-- Sets whether intermodal access and egress modes are selected by least cost (default) or randomly chosen out of the available access / egress modes. -->

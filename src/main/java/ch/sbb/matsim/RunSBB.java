@@ -13,7 +13,6 @@ import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SamplesizeFactors;
-import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
@@ -21,7 +20,6 @@ import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.*;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBSubtourModeChoice;
-import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
 import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
 import ch.sbb.matsim.routing.SBBCapacityDependentInVehicleCostCalculator;
 import ch.sbb.matsim.routing.access.AccessEgressModule;
@@ -39,10 +37,6 @@ import org.apache.logging.log4j.Logger;
 import org.matsim.analysis.TripsAndLegsWriter;
 import org.matsim.analysis.TripsAndLegsWriter.CustomTripsWriterExtension;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.Population;
 import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
 import org.matsim.contrib.parking.parkingcost.module.ParkingCostModule;
 import org.matsim.core.config.Config;
@@ -56,16 +50,10 @@ import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
 import org.matsim.core.population.algorithms.PermissibleModesCalculator;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.router.AnalysisMainModeIdentifier;
-import org.matsim.core.router.TripStructureUtils;
-import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
-import org.matsim.core.utils.misc.OptionalTime;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author denism
@@ -148,7 +136,6 @@ public class RunSBB {
 		LinkToStationsAssigner.runAssignment(scenario);
 		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
 		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
-		createInitialEndTimeAttribute(scenario.getPopulation());
 		ZonesModule.addZonestoScenario(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		IntermodalModule.prepareIntermodalScenario(scenario);
@@ -171,7 +158,6 @@ public class RunSBB {
 			@Override
 			public void install() {
 				addControlerListenerBinding().to(SBBDefaultAnalysisListener.class);
-				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 				addPlanStrategyBinding(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice).toProvider(SBBSubtourModeChoice.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
 				bind(AnalysisMainModeIdentifier.class).to(SBBAnalysisMainModeIdentifier.class);
@@ -242,32 +228,6 @@ public class RunSBB {
 		ActivityParamsBuilder.buildActivityParams(config);
 		SamplesizeFactors.setFlowAndStorageCapacities(config);
 		XLSXScoringParser.buildScoringBehaviourGroups(config);
-	}
-
-	public static void createInitialEndTimeAttribute(Population population) {
-		for (Person p : population.getPersons().values()) {
-			if (p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null) {
-				continue;
-			}
-			Plan plan = p.getSelectedPlan();
-			List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
-			List<OptionalTime> endTimeList = new ArrayList<>();
-			int i = 0;
-
-			for (Activity act : activities) {
-				if (i == activities.size() - 1) {
-					break;
-				}
-				endTimeList.add(act.getEndTime());
-				i += 1;
-			}
-
-			p.getAttributes()
-					.putAttribute(Variables.INIT_END_TIMES, endTimeList
-							.stream()
-							.map(e -> e.isDefined() ? Double.toString(e.seconds()) : Variables.NO_INIT_END_TIME)
-							.collect(Collectors.joining("_")));
-		}
 	}
 
 	public static ConfigGroup[] getSbbDefaultConfigGroups() {
