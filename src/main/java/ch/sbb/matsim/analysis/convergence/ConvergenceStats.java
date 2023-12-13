@@ -37,9 +37,9 @@ public class ConvergenceStats implements IterationStartsListener {
 	 * @author davig
 	 */
 
-	private static final String SCORESTATS_FILENAME = "scorestats.txt";
-	private static final String TRAVELDISTANCESTATS_FILENAME = "traveldistancestats.txt";
-	private static final String MODESTATS_FILENAME = "modestats.txt";
+	private static final String SCORESTATS_FILENAME = "scorestats.csv";
+	private static final String TRAVELDISTANCESTATS_FILENAME = "traveldistancestats.csv";
+	private static final String MODESTATS_FILENAME = "modestats.csv";
 	private static final String COL_STATISTIC = "_stat";
 	private static final String COL_PVALUE = "_p-value";
 	private static final String COL_TRAVELDISTANCE = "traveldistances";
@@ -85,7 +85,7 @@ public class ConvergenceStats implements IterationStartsListener {
 
 	public static Map<String, List<Double>> loadGlobalStats(String path, String... columns) throws IOException {
 		Map<String, List<Double>> values = new HashMap<>();
-		try (CSVReader csv = new CSVReader(path, "\t")) {
+		try (CSVReader csv = new CSVReader(path, ";")) {
 			if (columns.length == 0) {
 				columns = Arrays.copyOfRange(csv.getColumns(), 1, 2);
 			}
@@ -131,7 +131,7 @@ public class ConvergenceStats implements IterationStartsListener {
 
 		try {
 			String msHeader = IOUtils.getBufferedReader(controlerIO.getOutputFilename(MODESTATS_FILENAME)).readLine();
-			this.columns.addAll(Arrays.asList(msHeader.substring(10).split("\t")));
+			this.columns.addAll(Arrays.asList(msHeader.substring(10).split(";")));
 			for (String m : this.columns) {
 				header.add(m + COL_STATISTIC);
 				header.add(m + COL_PVALUE);
@@ -139,10 +139,10 @@ public class ConvergenceStats implements IterationStartsListener {
 			Path dir = Files.createDirectory(Paths.get(controlerIO.getOutputPath(), "convergence"));
 			for (Test t : this.testsToRun) {
 				this.writers.put(t, new CSVWriter("", header.toArray(new String[0]),
-						Paths.get(dir.toString(), t.name().toLowerCase() + ".txt").toString(), "\t"));
+						Paths.get(dir.toString(), t.name().toLowerCase() + ".csv").toString(), ";"));
 			}
 			this.convergenceFunctionWriter = new CSVWriter("", new String[]{COL_ITERATION, COL_CONVERGENCE_FUNCTION_RESULT},
-					Paths.get(dir.toString(), COL_CONVERGENCE_FUNCTION_RESULT + ".txt").toString(), "\t");
+					Paths.get(dir.toString(), COL_CONVERGENCE_FUNCTION_RESULT + ".csv").toString(), ";");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

@@ -112,7 +112,7 @@ public class ConvergenceStatsTest {
 		// tests
 		int iterationsRun = 0;
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
-			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
+			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".csv").toFile();
 			Assert.assertTrue(file.exists());
 			List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());
 			iterationsRun = lines.size();
