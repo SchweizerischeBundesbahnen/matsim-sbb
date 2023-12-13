@@ -112,7 +112,7 @@
         <param name="deterministicServiceModes" value="bus,other,rail,tram"/>
     </module>
 
-    <module name="ReplanningAnnealer">
+    <module name="replanningAnnealer">
         <param name="activateAnnealingModule" value="true"/>
         <parameterset type="AnnealingVariable">
             <!-- list of config parameters that shall be annealed. Currently supported: globalInnovationRate, BrainExpBeta, PathSizeLogitBeta, learningRate. Default is globalInnovationRate -->
@@ -140,7 +140,7 @@
         <!-- Defines all the modes available, including chain-based modes, seperated by commas -->
         <param name="modes" value="car,pt"/>
     </module>
-    <module name="controler">
+    <module name="controller">
         <param name="eventsFileFormat" value="xml"/>
         <!-- Default=0. First Iteration of a simulation. -->
         <param name="firstIteration" value="0"/>
@@ -214,7 +214,7 @@
     <module name="network">
         <param name="inputNetworkFile" value="&STREETS_PATH;/network.xml.gz"/>
     </module>
-    <module name="parallelEventHandling">
+    <module name="eventsManager">
         <!-- Estimated number of events during mobsim run. An optional optimization hint for the framework. -->
         <param name="estimatedNumberOfEvents" value="null"/>
         <!-- Size of the events Queue. Increase for very large scenarios -->
@@ -232,7 +232,7 @@
         <param name="activityTypesWithoutParkingCost" value="home"/>
     </module>
 
-    <module name="planCalcScore">
+    <module name="scoring">
         <param name="writeExperiencedPlans" value="true"/>
         <parameterset type="scoringParameters">
             <param name="earlyDeparture" value="0.0"/>
@@ -305,7 +305,7 @@
         <param name="inputPlansFile" value="prepared\plans.xml.gz"/>
         <param name="networkRouteType" value="LinkNetworkRoute"/>
     </module>
-    <module name="planscalcroute">
+    <module name="routing">
         <!-- All the modes for which the router is supposed to generate network routes (like car) -->
         <param name="networkModes" value="car,ride,ride_feeder,car_feeder,avtaxi"/>
         <!-- strength of the randomness for the utility of money in routing under toll.  Leads to Pareto-optimal route with randomly drawn money-vs-other-attributes tradeoff. Technically the width parameter of a log-normal distribution. 3.0 seems to be a good value.  -->
@@ -363,7 +363,7 @@
         <!-- If vehicles should all be the same default vehicle, or come from the vehicles file, or something else.  Possible values:  defaultVehicle modeVehicleTypesFromVehiclesData fromVehiclesData -->
         <param name="vehiclesSource" value="defaultVehicle"/>
     </module>
-    <module name="strategy">
+    <module name="replanning">
         <param name="fractionOfIterationsToDisableInnovation" value="1.0"/>
         <!-- maximum number of plans per agent.  ``0'' means ``infinity''.  Currently (2010), ``5'' is a good number -->
         <param name="maxAgentPlanMemorySize" value="4"/>
@@ -535,22 +535,9 @@
     </module>
 
     <module name="travelTimeCalculator">
-        <!-- (only for backwards compatibility; only used if separateModes==false && + filterModes==true)  Transport modes that will be respected by the travel time collector. 'car' is default which includes also buses from the pt simulation module. -->
-        <param name="analyzedModes" value="car"/>
-        <param name="calculateLinkToLinkTravelTimes" value="false"/>
-        <param name="calculateLinkTravelTimes" value="true"/>
-        <!-- (only for backwards compatiblity; only used if separateModes==false)  Only modes included in analyzedModes are included. -->
-        <param name="filterModes" value="false"/>
-        <!-- The lenght (in sec) of the time period that is splited into time bins; an additional time bin is created to aggregate all travel times collected after maxTime -->
-        <param name="maxTime" value="108000"/>
-        <!-- (only for backwards compatibility) If false, link travel times are measured and aggregated over all vehicles using the link. -->
         <param name="separateModes" value="false"/>
         <!-- The size of the time bin (in sec) into which the link travel times are aggregated for the router -->
         <param name="travelTimeBinSize" value="900"/>
-        <!-- possible values: TravelTimeCalculatorArray TravelTimeCalculatorHashMap  -->
-        <param name="travelTimeCalculator" value="TravelTimeCalculatorArray"/>
-        <!-- How to deal with link entry times at different positions during the time bin. Currently supported: average, linearinterpolation -->
-        <param name="travelTimeGetter" value="average"/>
     </module>
     <module name="vehicles">
         <param name="vehiclesFile" value="&STREETS_PATH;\av-vehicles.xml"/>
