@@ -41,11 +41,6 @@
             </snapshots>
         </repository>
 
-        <repository>
-            <id>jogl</id>
-            <url>https://jogamp.org/deployment/maven/</url>
-        </repository>
-
     </repositories>
 
     <properties>
@@ -131,19 +126,6 @@
             <artifactId>omx</artifactId>
             <version>2</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.jogamp.gluegen</groupId>
-            <artifactId>gluegen-rt-main</artifactId>
-            <version>2.5.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jogamp.jogl</groupId>
-            <artifactId>jogl-all-main</artifactId>
-            <version>2.5.0</version>
-        </dependency>
-
 
         <!-- used by convergence stats-->
         <dependency>
