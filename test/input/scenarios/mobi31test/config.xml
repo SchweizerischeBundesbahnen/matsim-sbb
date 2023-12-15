@@ -2,7 +2,7 @@
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">
 <config>
     <module name="ConvergenceStats">
-        <param name="activateConvergenceStats" value="true"/>
+        <param name="activateConvergenceStats" value="false"/>
         <!-- When the convergence criterion function reaches this value the simulation is terminated. 0.0 is the default and disables the convergence criterion termination. Make sure to set a big enough lastIteration param in the controler, since that value is also used as a termination criterion. -->
         <param name="convergenceCriterionFunctionTarget" value="0.0"/>
         <!-- number of iterations to be used for calculating the convergence statistics. If between 0.0 and 1.0 the window is sized as a share of the total number of iterations from the controler. -->
@@ -17,11 +17,10 @@
         <param name="simulationSampleSize" value="0.1"/>
         <param name="linkVolumes" value="true"/>
         <param name="dailylinkVolumes" value="true"/>
-
         <param name="personAttributes"
                value="subpopulation,pt_subscr,car_available,residence_msr_id,age_cat,current_edu,level_of_employment_cat"/>
         <param name="writeAgentsCSV" value="true"/>
-        <param name="writeDefaultAnalysis" value="true"/>
+        <param name="writeDefaultAnalysis" value="false"/>
         <param name="writeOutputsInterval" value="1"/>
         <param name="writeVisumPuTSurvey" value="true"/>
         <param name="zoneAttribute" value="zone_id"/>
