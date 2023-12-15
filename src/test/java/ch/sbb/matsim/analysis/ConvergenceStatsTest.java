@@ -100,7 +100,7 @@ public class ConvergenceStatsTest {
 		config.controller().setWritePlansInterval(0);
 		config.controller().setWriteSnapshotsInterval(0);
 		config.controller().setDumpDataAtEnd(false);
-		config.controller().setCreateGraphs(false);
+		config.controller().setCreateGraphsInterval(0);
 		ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).setAllPostProcessingOff();
 
 		// quick simulation is enough

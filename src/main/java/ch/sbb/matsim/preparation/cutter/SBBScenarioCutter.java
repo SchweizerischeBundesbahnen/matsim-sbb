@@ -133,10 +133,10 @@ public class SBBScenarioCutter {
 		outsideMode.setMonetaryDistanceRate(0);
 		config.scoring().addModeParams(outsideMode);
 
-		RoutingConfigGroup.ModeRoutingParams outsideRoutingParams = new RoutingConfigGroup.ModeRoutingParams(ScenarioCutter.OUTSIDE_LEG_MODE);
+		RoutingConfigGroup.TeleportedModeParams outsideRoutingParams = new RoutingConfigGroup.TeleportedModeParams(ScenarioCutter.OUTSIDE_LEG_MODE);
 		outsideRoutingParams.setBeelineDistanceFactor(1.3);
 		outsideRoutingParams.setTeleportedModeSpeed(8.0);
-		config.routing().addModeRoutingParams(outsideRoutingParams);
+		config.routing().addTeleportedModeParams(outsideRoutingParams);
 
 	}
 

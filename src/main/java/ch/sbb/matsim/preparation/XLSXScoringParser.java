@@ -146,7 +146,7 @@ public class XLSXScoringParser {
 		for (Row row : scoringParamsSheet) {
 			Cell firstCell = row.getCell(0);
 
-			if ((firstCell != null) && (firstCell.getCellTypeEnum() == CellType.STRING)) {
+			if ((firstCell != null) && (firstCell.getCellType() == CellType.STRING)) {
 				String rowLabel = firstCell.getStringCellValue();
 
 				if (rowLabel.equals(MATSIM_PARAMS_LABEL)) {
@@ -155,7 +155,7 @@ public class XLSXScoringParser {
 					for (int col = 1; col < lastColumn; col++) {
 						Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
 
-						if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
+						if ((cell != null) && (cell.getCellType() == CellType.STRING)) {
 							String mode = cell.getStringCellValue();
 
 							if (mode.equals(GENERAL_PARAMS_LABEL)) {
@@ -174,7 +174,7 @@ public class XLSXScoringParser {
 						Cell cell = row.getCell(entry.getKey());
 						ScoringConfigGroup.ModeParams modeParams = entry.getValue();
 
-						if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+						if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 							try {
 								double numericCellValue = cell.getNumericCellValue();
 
@@ -200,7 +200,7 @@ public class XLSXScoringParser {
 				} else if (GENERAL_PARAMS.contains(rowLabel)) {
 					Cell cell = row.getCell(generalParamsCol);
 
-					if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+					if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 						try {
 							planCalcScore.addParam(rowLabel, String.valueOf(cell.getNumericCellValue()));
 						} catch (IllegalStateException e) {
@@ -210,7 +210,7 @@ public class XLSXScoringParser {
 				} else if (SBB_GENERAL_PARAMS.contains(rowLabel)) {
 					Cell cell = row.getCell(generalParamsCol);
 
-					if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+					if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 						double paramValue = cell.getNumericCellValue();
 						switch (rowLabel) {
 							case MARGINAL_UTILITY_OF_PARKINGPRICE:
@@ -278,9 +278,9 @@ public class XLSXScoringParser {
 
 			String rowLabel;
 
-			if (firstCell.getCellTypeEnum() == CellType.STRING) {
+			if (firstCell.getCellType() == CellType.STRING) {
 				rowLabel = firstCell.getStringCellValue();
-			} else if (firstCell.getCellTypeEnum() == CellType.NUMERIC) {
+			} else if (firstCell.getCellType() == CellType.NUMERIC) {
 				rowLabel = String.valueOf((int) firstCell.getNumericCellValue());
 			} else {
 				continue; // ignore rows not starting with a String or Numeric value (e.g. formula in A1)
@@ -290,7 +290,7 @@ public class XLSXScoringParser {
 				Row belowRow = behaviorGroupParamsSheet.getRow(row.getRowNum() + 1);
 				Cell belowCell = belowRow.getCell(0);
 
-				if (belowCell.getCellTypeEnum() == CellType.STRING) {
+				if (belowCell.getCellType() == CellType.STRING) {
 					personAttributeKey = belowCell.getStringCellValue();
 					behaviorGroupParams = new SBBBehaviorGroupsConfigGroup.BehaviorGroupParams();
 					behaviorGroupParams.setBehaviorGroupName(behaviorGroupParamsSheet.getSheetName());
@@ -307,7 +307,7 @@ public class XLSXScoringParser {
 				for (int col = 1; col < lastColumn; col++) {
 					Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
 
-					if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
+					if ((cell != null) && (cell.getCellType() == CellType.STRING)) {
 						String mode = cell.getStringCellValue();
 
 						if (GLOBAL.equals(mode)) {
@@ -323,7 +323,7 @@ public class XLSXScoringParser {
 				// this seems to be a row with actual values
 				Cell secondCell = row.getCell(1);
 
-				if ((secondCell != null) && (secondCell.getCellTypeEnum() == CellType.STRING)) {
+				if ((secondCell != null) && (secondCell.getCellType() == CellType.STRING)) {
 					String parameterLabel = secondCell.getStringCellValue();
 
 					if (MODE_PARAMS.contains(parameterLabel)) {
@@ -342,7 +342,7 @@ public class XLSXScoringParser {
 							SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = modeCorrections.get(rowLabel).get(entry.getValue());
 							Cell cell = row.getCell(entry.getKey());
 
-							if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+							if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 								try {
 									double numericCellValue = cell.getNumericCellValue();
 
@@ -370,7 +370,7 @@ public class XLSXScoringParser {
 						Cell cell = row.getCell(globalColumnIndex);
 						SBBBehaviorGroupsConfigGroup.PersonGroupValues groupCorrection = groupCorrections.computeIfAbsent(rowLabel, k -> new SBBBehaviorGroupsConfigGroup.PersonGroupValues());
 
-						if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+						if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 							try {
 								double numericCellValue = cell.getNumericCellValue();
 

@@ -26,6 +26,7 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,7 +62,7 @@ public class ScenarioConsistencyChecker {
 	public static void writeLog(String path) {
 		try {
 			LOGGER.info("Writing scenario log check to " + path);
-			FileUtils.writeStringToFile(new File(path), logmessage);
+			FileUtils.writeStringToFile(new File(path), logmessage, Charset.defaultCharset());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

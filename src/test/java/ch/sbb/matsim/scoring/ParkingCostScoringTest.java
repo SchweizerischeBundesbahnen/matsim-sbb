@@ -168,7 +168,7 @@ public class ParkingCostScoringTest {
 			rideInteractionScoring.setScoringThisActivityAtAll(false);
 			config.scoring().getOrCreateScoringParameters(null).addActivityParams(rideInteractionScoring);
 
-			this.config.controller().setCreateGraphs(false);
+			this.config.controller().setCreateGraphsInterval(0);
 			this.config.controller().setDumpDataAtEnd(false);
 		}
 

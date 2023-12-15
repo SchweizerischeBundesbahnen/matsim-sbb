@@ -957,7 +957,7 @@ public class ScenarioCutter {
 		if (linkIds.size() == 0) {
 			return null;
 		}
-		return RouteUtils.createNetworkRoute(linkIds, network);
+		return RouteUtils.createNetworkRoute(linkIds);
 	}
 
 	private NetworkRoute findAvailableRouteStart(CutContext ctx, NetworkRoute route) {
@@ -979,7 +979,7 @@ public class ScenarioCutter {
 			return null;
 		}
 
-		return RouteUtils.createNetworkRoute(linkIds, network);
+		return RouteUtils.createNetworkRoute(linkIds);
 	}
 
 	private NetworkRoute findAvailableRoutePart(CutContext ctx, NetworkRoute route) {
@@ -994,7 +994,7 @@ public class ScenarioCutter {
 			if (isInside) {
 				linkIds.add(linkId);
 			} else if (!linkIds.isEmpty()) {
-				return RouteUtils.createNetworkRoute(linkIds, network);
+				return RouteUtils.createNetworkRoute(linkIds);
 			}
 		}
 		if (network.getLinks().containsKey(route.getEndLinkId())) {
@@ -1003,7 +1003,7 @@ public class ScenarioCutter {
 		if (linkIds.size() == 0) {
 			return null;
 		} else {
-			return RouteUtils.createNetworkRoute(linkIds, network);
+			return RouteUtils.createNetworkRoute(linkIds);
 		}
 	}
 

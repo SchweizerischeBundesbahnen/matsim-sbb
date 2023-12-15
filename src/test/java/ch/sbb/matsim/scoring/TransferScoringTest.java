@@ -111,7 +111,7 @@ public class TransferScoringTest {
 			scoringConfig.addActivityParams(homeScoring);
 
 			this.config.controller().setOutputDirectory(outputDirectory);
-			this.config.controller().setCreateGraphs(false);
+			this.config.controller().setCreateGraphsInterval(0);
 			this.config.controller().setDumpDataAtEnd(false);
 
 			this.config.transit().setUseTransit(true);

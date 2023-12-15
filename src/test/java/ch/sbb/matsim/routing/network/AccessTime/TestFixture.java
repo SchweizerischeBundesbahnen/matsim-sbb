@@ -132,7 +132,7 @@ public class TestFixture {
 		ScoringConfigGroup.ActivityParams params3 = new ScoringConfigGroup.ActivityParams(mode + " interaction");
 		params3.setScoringThisActivityAtAll(false);
 		scenario.getConfig().scoring().addActivityParams(params3);
-		var rideParams = scenario.getConfig().routing().getModeRoutingParams().get(SBBModes.RIDE);
+		var rideParams = scenario.getConfig().routing().getTeleportedModeParams().get(SBBModes.RIDE);
 		scenario.getConfig().routing().removeParameterSet(rideParams);
 		egressParams = config.scoring().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
 		egressParams.setConstant(constant);
