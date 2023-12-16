@@ -45,7 +45,7 @@ public class TransferScoringTest {
 	private static final Logger log = LogManager.getLogger(TransferScoringTest.class);
 
 	@Rule
-	public MatsimTestUtils helper = new MatsimTestUtils();
+	public final MatsimTestUtils helper = new MatsimTestUtils();
 
 	@Test
 	public void testTransferScoring() {

@@ -26,7 +26,6 @@ public class ExtractWalkLegs {
 
     public static final String STATION_ACT = "station";
     public static final String PT_INTERACTION = "pt interaction";
-    public static final String ACTIVITY = "activity";
     public static final String TRANSFER = "transfer";
     //VIA does not like visualizing interaction activities
     public static final double TIMEVARIATION = 300;

@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 public class ConvergenceStatsTest {
 
 	@Rule
-	public MatsimTestUtils utils = new MatsimTestUtils();
+	public final MatsimTestUtils utils = new MatsimTestUtils();
 
 	@Test
 	public void test_ConvergenceTests() throws IOException {

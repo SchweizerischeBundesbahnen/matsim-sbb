@@ -954,7 +954,7 @@ public class ScenarioCutter {
 		}
 		// ignore startLink, we look for the route end and know that the route does not start inside
 		Collections.reverse(linkIds);
-		if (linkIds.size() == 0) {
+		if (linkIds.isEmpty()) {
 			return null;
 		}
 		return RouteUtils.createNetworkRoute(linkIds);
@@ -975,7 +975,7 @@ public class ScenarioCutter {
 			}
 		}
 		// ignore endLink, we look for the route start and know that the route does not end inside
-		if (linkIds.size() == 0) {
+		if (linkIds.isEmpty()) {
 			return null;
 		}
 
@@ -1000,7 +1000,7 @@ public class ScenarioCutter {
 		if (network.getLinks().containsKey(route.getEndLinkId())) {
 			linkIds.add(route.getEndLinkId());
 		}
-		if (linkIds.size() == 0) {
+		if (linkIds.isEmpty()) {
 			return null;
 		} else {
 			return RouteUtils.createNetworkRoute(linkIds);

@@ -1,5 +1,6 @@
 package ch.sbb.matsim.analysis.modalsplit;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
 import java.util.Comparator;
 import java.util.List;
@@ -11,15 +12,15 @@ public class LongestMainModeIdentifier implements MainModeIdentifier {
 
     @Override
     public String identifyMainMode(List<? extends PlanElement> tripElements) {
-        if ("pt".equals(new SBBAnalysisMainModeIdentifier().identifyMainMode(tripElements))) {
-            return "pt";
+        if (SBBModes.PT.equals(new SBBAnalysisMainModeIdentifier().identifyMainMode(tripElements))) {
+            return SBBModes.PT;
         }
         Leg leg = tripElements.stream()
             .filter(t -> t instanceof Leg)
             .map(t -> ((Leg) t))
             .max(Comparator.comparing(tmpLeg -> tmpLeg.getRoute().getDistance())).orElse(null);
         if (leg == null) {
-            throw new NullPointerException("The tripElements schould contain at least one leg");
+            throw new NullPointerException("The tripElements should contain at least one leg");
         }
         return new SBBAnalysisMainModeIdentifier().identifyMainMode(List.of(leg));
     }

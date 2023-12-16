@@ -37,14 +37,12 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 	protected final ScoringParameters params;
 	private final Set<String> ptModes;
 	protected double score;
-	protected final Network network;
 	private boolean nextStartPtLegIsFirstOfTrip = true;
 	private boolean currentLegIsPtLeg = false;
 	private OptionalTime lastActivityEndTime = OptionalTime.undefined();
 
 	public SBBCharyparNagelLegScoring(final ScoringParameters params, Network network, Set<String> ptModes) {
 		this.params = params;
-		this.network = network;
 		this.currentLegIsPtLeg = false;
 		this.ptModes = ptModes;
 	}

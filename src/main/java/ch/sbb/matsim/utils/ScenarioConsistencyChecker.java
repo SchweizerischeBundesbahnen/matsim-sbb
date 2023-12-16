@@ -72,7 +72,7 @@ public class ScenarioConsistencyChecker {
 		double sum = scenario.getPopulation().getPersons().size();
 		Map<String, Integer> subpops = scenario.getPopulation().getPersons().values().stream().map(PopulationUtils::getSubpopulation).filter(Objects::nonNull)
 				.collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-		LOGGER.info("Found the following subpopulations: " + subpops.keySet().toString());
+		LOGGER.info("Found the following subpopulations: " + subpops.keySet());
 		Map<String, Double> shares = Map.of("regular", 0.65, "freight_road", 0.25, "cb_road", 0.08, "cb_rail", 0.0067, "airport_road", 0.0033, "airport_rail", 0.0024);
 
 		final String persons_per_subpopulation = "Persons per Subpopulation";
@@ -94,7 +94,7 @@ public class ScenarioConsistencyChecker {
 		boolean checkPassed = true;
 		Set<Person> regularPopulation = scenario.getPopulation().getPersons().values().stream()
 				.filter(p -> PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)).collect(Collectors.toSet());
-		if (regularPopulation.size() == 0) {
+		if (regularPopulation.isEmpty()) {
 			LOGGER.error("No agent in subpopulation" + Variables.REGULAR + " found. ");
 			checkPassed = false;
 

@@ -58,7 +58,7 @@ public class CreateVehiclesFromType {
 			Vehicle vehicle = vf.createVehicle(vehicleId, vehicleType);
 			this.vehicles.addVehicle(vehicle);
 
-			Id<Vehicle> vehicleIdBike = Id.create("vb"+personId.toString(), Vehicle.class);
+			Id<Vehicle> vehicleIdBike = Id.create("vb"+ personId, Vehicle.class);
 
 			Vehicle vehicleBike = vf.createVehicle(vehicleIdBike, vehicleTypeBike);
 			this.vehicles.addVehicle(vehicleBike);

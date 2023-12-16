@@ -44,11 +44,11 @@ public class ModalSplitStats {
     @Inject
     private ExperiencedPlansService experiencedPlansService;
     @Inject
-    private Population population;
+    private final Population population;
     @Inject
-    private Config config;
+    private final Config config;
     @Inject
-    private TransitSchedule transitSchedule;
+    private final TransitSchedule transitSchedule;
 
     private final Zones zones;
     private final RailTripsAnalyzer railTripsAnalyzer;
@@ -144,7 +144,7 @@ public class ModalSplitStats {
         this.variablesMSMap = createVariablesModalSplitMap();
         this.variablesMSFeederMap = createVariablesModalSplitFeederMap();
         this.variablesTimeStepsMap = createVariablesTimeStepsMap();
-        this.subpopulaionDistanceMap = createArrayForSubpopulationMap(this.modesInclRailFQMap.size(), distanceClassesLable.size());
+        this.subpopulaionDistanceMap = createArrayForSubpopulationMap(this.modesInclRailFQMap.size(), distanceClassesLabel.size());
         this.subpopulaionMSPFMap = createArrayForSubpopulationMap(this.modesMap.size(), this.variablesMSMap.size());
         this.subpopulaionMSPKMMap = createArrayForSubpopulationMap(this.modesMap.size(), this.variablesMSMap.size());
         this.subpopulaionAccessMSPFMap = createArrayForSubpopulationMap(this.feederModesMap.size(), this.variablesMSFeederMap.size());
@@ -155,10 +155,10 @@ public class ModalSplitStats {
         this.zonesAccessMSPkmMap = new HashMap<>();
         this.zonesEgressMSPFMap = new HashMap<>();
         this.zonesEgressMSPkmMap = new HashMap<>();
-        this.subpopulationChangeMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLableList.size());
-        this.subpopulationDistanceChangeMap = createArrayForSubpopulationMap(changeOrderList.size()*distanceClassesLable.size(), changeLableList.size());
-        this.subpopulationChangePKMMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLableList.size());
-        this.subpopulationDistanceChangePKMMap = createArrayForSubpopulationMap(changeOrderList.size()*distanceClassesLable.size(), changeLableList.size());
+        this.subpopulationChangeMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLabelList.size());
+        this.subpopulationDistanceChangeMap = createArrayForSubpopulationMap(changeOrderList.size()* distanceClassesLabel.size(), changeLabelList.size());
+        this.subpopulationChangePKMMap = createArrayForSubpopulationMap(changeOrderList.size(), changeLabelList.size());
+        this.subpopulationDistanceChangePKMMap = createArrayForSubpopulationMap(changeOrderList.size()* distanceClassesLabel.size(), changeLabelList.size());
         this.timeMap = createTimeStepsForSubpopulaitonMap((int) (this.config.qsim().getEndTime().seconds() / timeSplit), this.variablesTimeStepsMap.size());
         this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 1, this.variablesTimeStepsMap.size());
 
@@ -205,15 +205,15 @@ public class ModalSplitStats {
                 for (Leg leg : legs) {
                     if (leg.getMode().equals(PT)) {
                         Route route = leg.getRoute();
-                        String startTrainStationId = getStartTrainFacility(route).getAttributes().getAttribute("02_Stop_No").toString();
-                        String endTrainStationId = getEndTrainFacility(route).getAttributes().getAttribute("02_Stop_No").toString();
+                        String startTrainStationId = getStartTrainFacility(route).getAttributes().getAttribute(STOP_NO).toString();
+                        String endTrainStationId = getEndTrainFacility(route).getAttributes().getAttribute(STOP_NO).toString();
                         String subMode = getModeOfTransitRoute(leg.getRoute());
                         Leg legAfter = getLegAfter(legs, legs.indexOf(leg));
                         if (railTripsAnalyzer.hasFQRelevantLeg(List.of((TransitPassengerRoute) leg.getRoute()))) {
                             if (legBefore.getMode().equals(PT) &&
                                     getModeOfTransitRoute(legBefore.getRoute()).equals(PTSubModes.RAIL) &&
                                     subMode.equals(PTSubModes.RAIL)) {
-                                if (!getEndTrainFacility(legBefore.getRoute()).getAttributes().getAttribute("02_Stop_No").toString().equals(startTrainStationId)) {
+                                if (!getEndTrainFacility(legBefore.getRoute()).getAttributes().getAttribute(STOP_NO).toString().equals(startTrainStationId)) {
                                     trainStationMap.get(startTrainStationId).addUmsteigerTyp5b();
                                 } else if (railTripsAnalyzer.hasFQRelevantLeg(List.of((TransitPassengerRoute) legBefore.getRoute()))) {
                                     trainStationMap.get(startTrainStationId).addUmsteigerSimbaSimba();
@@ -226,7 +226,7 @@ public class ModalSplitStats {
                             if (legAfter.getMode().equals(PT) &&
                                     getModeOfTransitRoute(legAfter.getRoute()).equals(PTSubModes.RAIL) &&
                                     subMode.equals(PTSubModes.RAIL)) {
-                                if (!getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute("02_Stop_No").toString().equals(endTrainStationId)) {
+                                if (!getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute(STOP_NO).toString().equals(endTrainStationId)) {
                                     trainStationMap.get(endTrainStationId).addUmsteigerTyp5a();
                                 } else if (railTripsAnalyzer.hasFQRelevantLeg(List.of((TransitPassengerRoute) legAfter.getRoute()))) {
                                     trainStationMap.get(endTrainStationId).addUmsteigerSimbaSimba();
@@ -286,7 +286,7 @@ public class ModalSplitStats {
                             if (legBefore.getMode().equals(PT)) {
                                 subPTMode = getModeOfTransitRoute(legBefore.getRoute());
                                 startStopStation.getEnteredMode()[StopStation.getModes().indexOf(subPTMode)]++;
-                                if (getEndTrainFacility(legBefore.getRoute()).getAttributes().getAttribute("02_Stop_No").equals(startStopStationFacility.getAttributes().getAttribute("02_Stop_No"))) {
+                                if (getEndTrainFacility(legBefore.getRoute()).getAttributes().getAttribute(STOP_NO).equals(startStopStationFacility.getAttributes().getAttribute(STOP_NO))) {
                                     if (getEndTrainFacility(legBefore.getRoute()).equals(startStopStationFacility)) {
                                         if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
                                                 subPTMode.equals(PTSubModes.RAIL)) {
@@ -316,7 +316,7 @@ public class ModalSplitStats {
                         if (legAfter.getMode().equals(PT)) {
                             subPTMode = getModeOfTransitRoute(legAfter.getRoute());
                             endStopStation.getExitedMode()[StopStation.getModes().indexOf(subPTMode)]++;
-                            if (getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute("02_Stop_No").equals(endStopStationFacility.getAttributes().getAttribute("02_Stop_No"))) {
+                            if (getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute(STOP_NO).equals(endStopStationFacility.getAttributes().getAttribute(STOP_NO))) {
                                 if (getStartTrainFacility(legAfter.getRoute()).equals(endStopStationFacility)) {
                                     if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
                                             subPTMode.equals(PTSubModes.RAIL)) {
@@ -346,7 +346,6 @@ public class ModalSplitStats {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
             boolean tmpIsRail = false;
-            double fqDistance = 0;
             for (Leg leg : trip.getLegsOnly()) {
                 if (PT.contains(leg.getMode())) {
                     if (leg.getMode().equals(PT)) {
@@ -364,11 +363,11 @@ public class ModalSplitStats {
             }
             int middle = (int) ((trip.getOriginActivity().getEndTime().seconds() + trip.getDestinationActivity().getStartTime().seconds()) / 2);
             int time = (middle - (middle % timeSplit)) / timeSplit;
-            int[][] subpopulationArrray = timeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-            if (time >= subpopulationArrray.length) {
-                time = subpopulationArrray.length - 1;
+            int[][] subpopulationArray = timeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+            if (time >= subpopulationArray.length) {
+                time = subpopulationArray.length - 1;
             }
-            subpopulationArrray[time][variablesTimeStepsMap.get(all)]++;
+            subpopulationArray[time][variablesTimeStepsMap.get(all)]++;
             int travelTime = (int) ((trip.getDestinationActivity().getStartTime().seconds() - trip.getOriginActivity().getEndTime().seconds()));
             int timeArray = (travelTime - (travelTime % travelTimeSplit)) / travelTimeSplit;
             int[][] subpopulationTravelTime = travelTimeMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
@@ -378,25 +377,25 @@ public class ModalSplitStats {
             subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(all)]++;
             for (String mode : modesMS) {
                 if ((MSVariables.mode + separator + tmpMode).equals(mode)) {
-                    subpopulationArrray[time][variablesTimeStepsMap.get(mode)]++;
+                    subpopulationArray[time][variablesTimeStepsMap.get(mode)]++;
                     subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(mode)]++;
                     break;
                 }
             }
             if(tmpIsRail) {
                 String submode = MSVariables.submode + separator + SBBModes.RAIL;
-                subpopulationArrray[time][variablesTimeStepsMap.get(submode)]++;
+                subpopulationArray[time][variablesTimeStepsMap.get(submode)]++;
                 subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(submode)]++;
-                fqDistance = railTripsAnalyzer.getFQDistance(trip, true);
+                double fqDistance = railTripsAnalyzer.getFQDistance(trip, true);
                 if (fqDistance > 0) {
                     submode = MSVariables.submode + separator + SBBModes.FQRAIL;
-                    subpopulationArrray[time][variablesTimeStepsMap.get(submode)]++;
+                    subpopulationArray[time][variablesTimeStepsMap.get(submode)]++;
                     subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(submode)]++;
                 }
             }
             for (String activity : toActTypeList) {
                 if ((MSVariables.toActType + separator + tmpActivity).equals(activity)) {
-                    subpopulationArrray[time][variablesTimeStepsMap.get(activity)]++;
+                    subpopulationArray[time][variablesTimeStepsMap.get(activity)]++;
                     subpopulationTravelTime[timeArray][variablesTimeStepsMap.get(activity)]++;
                     break;
                 }
@@ -594,7 +593,7 @@ public class ModalSplitStats {
                     break;
                 }
             }
-            // age categorie
+            // age category
             for (String age : ageCategory) {
                 if (attributes.getAttribute(Variables.AGE_CATEGORY) != null && (Variables.AGE_CATEGORY + "_" + attributes.getAttribute(Variables.AGE_CATEGORY).toString()).equals(age)) {
                     pfArray[modeId][variablesMSMap.get(age)]++;
@@ -603,12 +602,12 @@ public class ModalSplitStats {
                 }
             }
             // activity type for end activity
-            String acttyp = trip.getDestinationActivity().getType();
+            String acttype = trip.getDestinationActivity().getType();
             for (String act : toActTypeList) {
-                if (acttyp.contains(separator)) {
-                    acttyp = acttyp.substring(0, acttyp.indexOf("_"));
+                if (acttype.contains(separator)) {
+                    acttype = acttype.substring(0, acttype.indexOf("_"));
                 }
-                if ((toActType + separator + acttyp).equals(act)) {
+                if ((toActType + separator + acttype).equals(act)) {
                     pfArray[modeId][variablesMSMap.get(act)]++;
                     pkmArray[modeId][variablesMSMap.get(act)] += distance;
                     break;
@@ -668,7 +667,7 @@ public class ModalSplitStats {
                 int lastRailLeg = findLastRailLeg(legs);
 
                 if (firstRailLeg > -1) {
-                    int subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf("walk");
+                    int subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf(SBBModes.ACCESS_EGRESS_WALK);
                     double distanceEnter = 0;
                     for (int i = 0; i < firstRailLeg; i++) {
                         Leg leg = legs.get(i);
@@ -685,7 +684,7 @@ public class ModalSplitStats {
                         }
                     }
 
-                    int subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf("walk");
+                    int subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf(SBBModes.ACCESS_EGRESS_WALK);
                     double distanceExit = 0;
                     for (int i = lastRailLeg + 1; i < legs.size(); i++) {
                         Leg leg = legs.get(i);
@@ -759,16 +758,16 @@ public class ModalSplitStats {
                             // car available
                             for (String value : subgroup.getValue()) {
                                 List<String> variables = subgroup.getKey();
-                                String att = "";
+                                StringBuilder att = new StringBuilder();
                                 for (String variable : variables) {
                                     if (attributes.getAttribute(variable) != null) {
-                                        if (att.length() > 0) {
-                                            att = att + "_";
+                                        if (!att.isEmpty()) {
+                                            att.append("_");
                                         }
-                                        att = att + variable + "_" + attributes.getAttribute(variable).toString();
+                                        att.append(variable).append("_").append(attributes.getAttribute(variable).toString());
                                     }
                                 }
-                                if (att.equals(value)) {
+                                if (att.toString().equals(value)) {
                                     pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(value)]++;
                                     pfEgressArray[subPTModeExited][variablesMSFeederMap.get(value)]++;
                                     pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(value)] += distanceEnter;
@@ -782,12 +781,12 @@ public class ModalSplitStats {
                             }
                         }
                         // activity type for end activity
-                        String acttyp = trip.getDestinationActivity().getType();
-                        if (acttyp.contains(separator)) {
-                            acttyp = acttyp.substring(0, acttyp.indexOf("_"));
+                        String acttype = trip.getDestinationActivity().getType();
+                        if (acttype.contains(separator)) {
+                            acttype = acttype.substring(0, acttype.indexOf("_"));
                         }
                         for (String act : toActTypeList) {
-                            if ((toActType + separator + acttyp).equals(act)) {
+                            if ((toActType + separator + acttype).equals(act)) {
                                 pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(act)]++;
                                 pfEgressArray[subPTModeExited][variablesMSFeederMap.get(act)]++;
                                 pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(act)] += distanceEnter;
@@ -803,20 +802,20 @@ public class ModalSplitStats {
                         // feeder distance
                         for (int disClass : distanceClassesFeederValue) {
                             if (distanceEnter <= disClass) {
-                                pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
-                                pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceEnter;
-                                pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
-                                pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceEnter;
+                                pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLabel.get(distanceClassesFeederValue.indexOf(disClass)))]++;
+                                pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLabel.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceEnter;
+                                pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLabel.get(distanceClassesFeederValue.indexOf(disClass)))]++;
+                                pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(distanceClassesFeederLabel.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceEnter;
                                 break;
                             }
                         }
 
                         for (int disClass : distanceClassesFeederValue) {
                             if (distanceExit <= disClass) {
-                                pfEgressArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
-                                pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceExit;
-                                pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))]++;
-                                pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLable.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceExit;
+                                pfEgressArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLabel.get(distanceClassesFeederValue.indexOf(disClass)))]++;
+                                pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLabel.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceExit;
+                                pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLabel.get(distanceClassesFeederValue.indexOf(disClass)))]++;
+                                pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(distanceClassesFeederLabel.get(distanceClassesFeederValue.indexOf(disClass)))] += distanceExit;
                                 break;
                             }
                         }
@@ -830,8 +829,8 @@ public class ModalSplitStats {
         Attributes attributes = this.population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-            if (tmpMode.equals("walk_main")) {
-                tmpMode = "walk";
+            if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+                tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
             int modeID = this.modesInclRailFQMap.get(tmpMode);
             double distance = 0;
@@ -864,7 +863,7 @@ public class ModalSplitStats {
                             break;
                         }
                     }
-                    int modeRailID = this.modesInclRailFQMap.get("rail");
+                    int modeRailID = this.modesInclRailFQMap.get(PTSubModes.RAIL);
                     disArray[modeRailID][railDisCl]++;
                     double railFQdist = railTripsAnalyzer.getFQDistance(trip, true) / 1000;
                     if (railFQdist>0) {
@@ -878,12 +877,12 @@ public class ModalSplitStats {
 
     private void writeDistanceClassesAnalysis() {
         final double sampleSize = ConfigUtils.addOrGetModule(this.config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] columns = new String[3 + distanceClassesLable.size()];
+        String[] columns = new String[3 + distanceClassesLabel.size()];
         columns[0] = runID;
         columns[1] = subpopulation;
         columns[2] = mode;
-        for (int i = 0; i < distanceClassesLable.size(); i++) {
-            columns[i + 3] = distanceClassesLable.get(i);
+        for (int i = 0; i < distanceClassesLabel.size(); i++) {
+            columns[i + 3] = distanceClassesLabel.get(i);
         }
         try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNDistanceClasses)) {
             for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
@@ -891,8 +890,8 @@ public class ModalSplitStats {
                     csvWriter.set(runID, this.config.controller().getRunId());
                     csvWriter.set(subpopulation, tmpSubpopulation);
                     csvWriter.set(mode, col.getKey());
-                    for (int i = 0; i < distanceClassesLable.size(); i++) {
-                        csvWriter.set(distanceClassesLable.get(i), Integer.toString((int) (this.subpopulaionDistanceMap.get(tmpSubpopulation)[col.getValue()][i] / sampleSize)));
+                    for (int i = 0; i < distanceClassesLabel.size(); i++) {
+                        csvWriter.set(distanceClassesLabel.get(i), Integer.toString((int) (this.subpopulaionDistanceMap.get(tmpSubpopulation)[col.getValue()][i] / sampleSize)));
                     }
                     csvWriter.writeRow();
                 }
@@ -951,14 +950,14 @@ public class ModalSplitStats {
 
     private void writeModalSplit() {
         final double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
-        String[] colums = new String[2 + variablesMSMap.size()];
-        colums[0] = runID;
-        colums[1] = subpopulation;
+        String[] columns = new String[2 + variablesMSMap.size()];
+        columns[0] = runID;
+        columns[1] = subpopulation;
         int i = 2;
         for (String var : this.variablesMSMap.keySet()) {
-            colums[i++] = var;
+            columns[i++] = var;
         }
-        try (CSVWriter csvWriterPF = new CSVWriter("", colums, outputLocation + oNModalSplitPF)) {
+        try (CSVWriter csvWriterPF = new CSVWriter("", columns, outputLocation + oNModalSplitPF)) {
             for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
                 for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
                     csvWriterPF.set(runID, config.controller().getRunId());
@@ -979,7 +978,7 @@ public class ModalSplitStats {
             IOException e) {
             e.printStackTrace();
         }
-        try (CSVWriter csvWriterPKM = new CSVWriter("", colums, outputLocation + oNModalSplitPKM)) {
+        try (CSVWriter csvWriterPKM = new CSVWriter("", columns, outputLocation + oNModalSplitPKM)) {
             for (String tmpSubpopulation : Variables.SUBPOPULATIONS) {
                 for (Entry<String, Integer> modeEntry : modesMap.entrySet()) {
                     csvWriterPKM.set(runID, config.controller().getRunId());
@@ -1238,7 +1237,7 @@ public class ModalSplitStats {
         try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNStopStationsCount)) {
             for (Entry<Id<TransitStopFacility>, StopStation> entry : stopStationsMap.entrySet()) {
                 csvWriter.set(runID, config.controller().getRunId());
-                csvWriter.set(hstNummer, entry.getValue().getStop().getAttributes().getAttribute("02_Stop_No").toString());
+                csvWriter.set(hstNummer, entry.getValue().getStop().getAttributes().getAttribute(STOP_NO).toString());
                 csvWriter.set(stopNumber, entry.getValue().getStop().getId().toString());
                 if (entry.getValue().getIsRailStation()) {
                     csvWriter.set(isRailStop, "1");
@@ -1247,7 +1246,7 @@ public class ModalSplitStats {
                 }
                 Id<TransitStopFacility> stopId = Id.create(entry.getKey(), TransitStopFacility.class);
                 Object codeAttribute;
-                codeAttribute = entry.getValue().getStop().getAttributes().getAttribute("03_Stop_Code");
+                codeAttribute = entry.getValue().getStop().getAttributes().getAttribute(STOP_CODE);
                 if (codeAttribute == null) {
                     csvWriter.set(code, "NA");
                 } else {
@@ -1255,7 +1254,7 @@ public class ModalSplitStats {
                 }
                 Object stopCodeAttribute;
                 try {
-                    stopCodeAttribute =entry.getValue().getStop().getAttributes().getAttribute("11_Stop_Area_Code");
+                    stopCodeAttribute =entry.getValue().getStop().getAttributes().getAttribute(STOP_AREA_CODE);
                 } catch (Exception e){
                     stopCodeAttribute = "";
                 }
@@ -1272,7 +1271,7 @@ public class ModalSplitStats {
                 csvWriter.set(trainStationName, name.replaceAll(",", " "));
                 String stpName;
                 try {
-                    stpName = entry.getValue().getStop().getAttributes().getAttribute("10_Stop_Area_Name").toString();
+                    stpName = entry.getValue().getStop().getAttributes().getAttribute(STOP_AREA_NAME).toString();
                 } catch (Error e) {
                     stpName = "";
                 }
@@ -1316,7 +1315,7 @@ public class ModalSplitStats {
                     csvWriter.set(subpopulation, entry.getKey());
                     csvWriter.set(umsteigetyp, change.getKey());
                     for (int i = 0; i < 6; i++) {
-                        csvWriter.set(changeLableList.get(i), Integer.toString((int) (entry.getValue()[change.getValue()][i] / sampleSize)));
+                        csvWriter.set(changeLabelList.get(i), Integer.toString((int) (entry.getValue()[change.getValue()][i] / sampleSize)));
                     }
                     csvWriter.writeRow();
                 }
@@ -1338,7 +1337,7 @@ public class ModalSplitStats {
                     csvWriter.set(subpopulation, entry.getKey());
                     csvWriter.set(umsteigetyp, change.getKey());
                     for (int i = 0; i < 6; i++) {
-                        csvWriter.set(changeLableList.get(i), Integer.toString((int) (entry.getValue()[change.getValue()][i] / sampleSize)));
+                        csvWriter.set(changeLabelList.get(i), Integer.toString((int) (entry.getValue()[change.getValue()][i] / sampleSize)));
                     }
                     csvWriter.writeRow();
                 }
@@ -1355,15 +1354,15 @@ public class ModalSplitStats {
             mapChange.put("changesTrainFQ", 3);
             mapChange.put("changesTrainAll", 4);
             for (Entry<String, double[][]> entry : subpopulationDistanceChangeMap.entrySet()) {
-                for (int d=0; d<distanceClassesLable.size(); d++) {
+                for (int d = 0; d< distanceClassesLabel.size(); d++) {
                     int offsetDistance = d * changeOrderList.size();
                     for (Entry<String, Integer> change : mapChange.entrySet()) {
-                        csvWriter.set("distanceClass", distanceClassesLable.get(d));
+                        csvWriter.set("distanceClass", distanceClassesLabel.get(d));
                         csvWriter.set(runID, config.controller().getRunId());
                         csvWriter.set(subpopulation, entry.getKey());
                         csvWriter.set(umsteigetyp, change.getKey());
                         for (int i = 0; i < 6; i++) {
-                            csvWriter.set(changeLableList.get(i), Integer.toString((int) (entry.getValue()[offsetDistance + change.getValue()][i] / sampleSize)));
+                            csvWriter.set(changeLabelList.get(i), Integer.toString((int) (entry.getValue()[offsetDistance + change.getValue()][i] / sampleSize)));
                         }
                         csvWriter.writeRow();
                     }
@@ -1425,7 +1424,7 @@ public class ModalSplitStats {
     private Map<String, TrainStation> generateTrainStationMap() {
         Map<String, TrainStation> trainStationsMap = new HashMap<>();
         for (TransitStopFacility transitStopFacility : transitSchedule.getFacilities().values()) {
-            String id = transitStopFacility.getAttributes().getAttribute("02_Stop_No").toString();
+            String id = transitStopFacility.getAttributes().getAttribute(STOP_NO).toString();
             if (trainStationsMap.get(id) == null) {
                 TrainStation trainStation = new TrainStation(transitStopFacility, zones.findZone(transitStopFacility.getCoord()));
                 trainStation.addStop(transitStopFacility);

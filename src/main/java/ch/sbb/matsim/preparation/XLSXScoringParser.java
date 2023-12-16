@@ -168,7 +168,7 @@ public class XLSXScoringParser {
 						}
 					}
 
-					log.info("found parameters for modes: " + modes.toString());
+					log.info("found parameters for modes: " + modes);
 				} else if (MODE_PARAMS.contains(rowLabel)) {
 					for (Map.Entry<Integer, ScoringConfigGroup.ModeParams> entry : modeParamsConfig.entrySet()) {
 						Cell cell = row.getCell(entry.getKey());

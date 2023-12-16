@@ -28,8 +28,6 @@ import org.matsim.vehicles.Vehicle;
 
 public class LinkAnalyser implements LinkEnterEventHandler, PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler, TransitDriverStartsEventHandler {
 
-    private final static Logger log = LogManager.getLogger(LinkAnalyser.class);
-
     protected final Scenario scenario;
     protected final LinkedHashMap<Id, Integer> linkVolumes;
     protected final HashMap<Id<Vehicle>, Integer> passengers;

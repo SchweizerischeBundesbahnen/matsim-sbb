@@ -106,7 +106,7 @@ public class ScheduleCondenser {
         LOGGER.info("Removed " + linksToRemove.size() + " unused links.");
 
         Set<Id<Node>> nodesToRemove = network.getNodes().values().stream().
-                filter(n -> n.getInLinks().size() == 0 && n.getOutLinks().size() == 0).
+                filter(n -> n.getInLinks().isEmpty() && n.getOutLinks().isEmpty()).
                 map(Node::getId).
                 collect(Collectors.toSet());
         nodesToRemove.forEach(network::removeNode);
@@ -157,7 +157,7 @@ public class ScheduleCondenser {
                     break;
                 }
             } while (true);
-            if (replacement.size() > 0 && replacement.get(replacement.size() - 1).getToNode().equals(link.getToNode())) {
+            if (!replacement.isEmpty() && replacement.get(replacement.size() - 1).getToNode().equals(link.getToNode())) {
                 replaceInSchedule(link, replacement);
             }
             links.remove();
@@ -215,7 +215,7 @@ public class ScheduleCondenser {
                 continue;
             }
             List<String> linkSequence = Arrays.asList(CollectionUtils.stringToArray(linkToVisumSequence.get(linkcandidate.getId())));
-            if (linkSequence.size() > 0 && linkSequence.size() <= originalLinkSequence.size() - currentSegmentIndex) {
+            if (!linkSequence.isEmpty() && linkSequence.size() <= originalLinkSequence.size() - currentSegmentIndex) {
                 int i = 0;
                 String nextSection = linkSequence.get(0);
                 int deviation = 0;

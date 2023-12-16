@@ -58,8 +58,6 @@ import java.util.stream.Collectors;
 
 public class PutSurveyWriter {
 
-    private final static Logger LOG = LogManager.getLogger(MixExperiencedPlansFromSeveralSimulations.class);
-
     private static final String GEM_SHAPE_ATTR = "mun_id";
 
     private static final String COL_PATH_ID = "$OEVTEILWEG:DATENSATZNR";

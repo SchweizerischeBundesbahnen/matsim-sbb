@@ -38,7 +38,7 @@ public class SBBIntermodalModeParameterSet extends ReflectiveConfigGroup {
 	private String detourFactorZoneId = null;
 	private boolean useMinimalTransferTimes = false;
 	private String personActivityFilterAttribute = null;
-	private String intermodalAccessCacheFile = null;
+	private final String intermodalAccessCacheFile = null;
 
 	public SBBIntermodalModeParameterSet() {
 		super(TYPE);

@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class ScaleAgentTrips {
 
-    Map<Id<Person>, Map<Integer, Integer>> scalingPerPerson = new HashMap<>();
+    final Map<Id<Person>, Map<Integer, Integer>> scalingPerPerson = new HashMap<>();
     private PopulationFactory populationFactory;
 
     public static void main(String[] args) {

@@ -21,13 +21,13 @@ public class CSVReader implements AutoCloseable {
 	private final BufferedReader br;
 	private String[] columns;
 
-	public CSVReader(String[] columns, final String csvFile, final String splitBy) throws IOException {
+	public CSVReader(String[] columns, final String csvFile, final String splitBy) {
 		this.columns = columns;
 		this.splitBy = splitBy;
 		this.br = IOUtils.getBufferedReader(csvFile);
 	}
 
-	public CSVReader(String[] columns, final URL csvFileURL, final String splitBy) throws IOException {
+	public CSVReader(String[] columns, final URL csvFileURL, final String splitBy) {
 		this.columns = columns;
 		this.splitBy = splitBy;
 		this.br = IOUtils.getBufferedReader(csvFileURL);

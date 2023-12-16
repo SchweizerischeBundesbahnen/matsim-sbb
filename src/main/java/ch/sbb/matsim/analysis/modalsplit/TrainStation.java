@@ -7,7 +7,7 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class TrainStation {
 
-    private List<TransitStopFacility> stops = new ArrayList<>();
+    private final List<TransitStopFacility> stops = new ArrayList<>();
     private final Zone zone;
     private final String hstNummer;
     private final String stopCode;

@@ -63,7 +63,7 @@ public class RunSBB {
 
 	private static final Logger log = LogManager.getLogger(RunSBB.class);
 
-	public static void main(String[] args) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+	public static void main(String[] args) {
 		System.setProperty("matsim.preferLocalDtds", "true");
 
 		final String configFile = args[0];

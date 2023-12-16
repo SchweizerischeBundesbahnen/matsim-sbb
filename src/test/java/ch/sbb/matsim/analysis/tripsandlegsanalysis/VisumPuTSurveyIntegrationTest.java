@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class VisumPuTSurveyIntegrationTest {
 
 	@Rule
-	public MatsimTestUtils utils = new MatsimTestUtils();
+	public final MatsimTestUtils utils = new MatsimTestUtils();
 
 	/**
 	 * This test fails in IntelliJ when run as part of all tests in the project, but works if run individually. It always works if run with Maven. I guess there's no easy fix, as the test seems to be

@@ -21,7 +21,7 @@ import org.matsim.testcases.MatsimTestUtils;
 public class PopulationToCSVTest {
 
 	@Rule
-	public MatsimTestUtils utils = new MatsimTestUtils();
+	public final MatsimTestUtils utils = new MatsimTestUtils();
 
 	@Test
 	public final void testPopulationPostProc() throws IOException {

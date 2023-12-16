@@ -44,7 +44,7 @@ public class ParkingCostScoringTest {
 	private static final Logger log = LogManager.getLogger(ParkingCostScoringTest.class);
 
 	@Rule
-	public MatsimTestUtils helper = new MatsimTestUtils();
+	public final MatsimTestUtils helper = new MatsimTestUtils();
 
 	@Test
 	public void testParkingCostScoring() {

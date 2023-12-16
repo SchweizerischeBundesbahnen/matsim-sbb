@@ -128,7 +128,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 				filteredParameterSet.add(paramSet);
 			}
 		}
-		if (filteredParameterSet.size() > 0) {
+		if (!filteredParameterSet.isEmpty()) {
 			switch (srrCfg.getIntermodalAccessEgressModeSelection()) {
 				case CalcLeastCostModePerStop:
 					for (IntermodalAccessEgressParameterSet parameterSet : filteredParameterSet) {
@@ -366,7 +366,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 
 	private boolean doUseMinimalTransferTimes(String mode) {
 		var params = this.intermodalModeParams.get(mode);
-		return (params != null ? params.doUseMinimalTransferTimes() : false);
+		return (params != null && params.doUseMinimalTransferTimes());
 	}
 
 	private double getMinimalTransferTime(TransitStopFacility stop) {

@@ -35,7 +35,7 @@ public class AreaAnalysis {
     private final Map<String, String> runs;
     private final Network roadNetwork;
     private final Zones zones;
-    Map<String, RunVolumeData> runVolumeDataMap = new TreeMap<>();
+    final Map<String, RunVolumeData> runVolumeDataMap = new TreeMap<>();
 
 
     public AreaAnalysis(Network roadNetwork, Zones zones, Map<String, String> runs) {
