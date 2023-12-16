@@ -897,6 +897,7 @@ public class ModalSplitStats {
                 }
             }
         } catch (IOException e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
     }
@@ -926,6 +927,7 @@ public class ModalSplitStats {
                 }
             }
         } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
         try (CSVWriter csvWriter = new CSVWriter("", columns, outputLocation + oNTravelTimeDistribution)) {
@@ -944,6 +946,7 @@ public class ModalSplitStats {
                 }
             }
         } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
     }
@@ -976,6 +979,7 @@ public class ModalSplitStats {
             }
         } catch (
             IOException e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
         try (CSVWriter csvWriterPKM = new CSVWriter("", columns, outputLocation + oNModalSplitPKM)) {
@@ -997,6 +1001,7 @@ public class ModalSplitStats {
             }
         } catch (
             IOException e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
     }
@@ -1054,6 +1059,7 @@ public class ModalSplitStats {
             }
         } catch (
                 IOException e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
         try (CSVWriter csvWriterPKM = new CSVWriter("", columns, outputLocation + oNModalSplitFeederPKM)) {
@@ -1099,6 +1105,7 @@ public class ModalSplitStats {
             }
         } catch (
                 IOException e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
 
@@ -1164,6 +1171,7 @@ public class ModalSplitStats {
             }
         } catch (
                 IOException e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
 
@@ -1203,6 +1211,7 @@ public class ModalSplitStats {
                 csvWriter.writeRow();
             }
         } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
 
@@ -1293,6 +1302,7 @@ public class ModalSplitStats {
                 csvWriter.writeRow();
             }
         } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
     }
@@ -1321,6 +1331,7 @@ public class ModalSplitStats {
                 }
             }
         } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
 
@@ -1343,6 +1354,7 @@ public class ModalSplitStats {
                 }
             }
         } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
 
@@ -1369,6 +1381,7 @@ public class ModalSplitStats {
                 }
             }
         } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
     }
