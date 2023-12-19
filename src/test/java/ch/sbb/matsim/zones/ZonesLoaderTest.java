@@ -20,6 +20,13 @@ public class ZonesLoaderTest {
 	}
 
 	@Test
+	public void testLoadZonesGeopackage() {
+		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.gpkg", "ID");
+		Assert.assertEquals("testZones", zones.getId().toString());
+		Assert.assertEquals(5, zones.size());
+	}
+
+	@Test
 	public void testLoadAllZones() {
 		Config config = ConfigUtils.createConfig();
 		ZonesListConfigGroup cfg = new ZonesListConfigGroup();

@@ -6,13 +6,11 @@ import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.utils.gis.ShapeFileReader;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Locale;
 
 /**
  * Loads all zones specified in the configuration.
@@ -39,10 +37,7 @@ public final class ZonesLoader {
 
     public static Zones loadZones(String id, String filename, String idAttribute) {
 		LogManager.getLogger(ZonesLoader.class).info(" zones file " + filename);
-		if (filename.toLowerCase(Locale.ROOT).endsWith(".shp")) {
-			return loadZonesFromShapefile(id, filename, idAttribute);
-		}
-		throw new RuntimeException("Unsupported format for zones-file " + filename);
+		return loadZonesFromFile(id, filename, idAttribute);
 	}
 
 	public static Zones loadZones(String id, String filename) {
@@ -59,7 +54,7 @@ public final class ZonesLoader {
 
 	}
 
-	private static Zones loadZonesFromShapefile(String id, String filename, String idAttribute) {
+	private static Zones loadZonesFromFile(String id, String filename, String idAttribute) {
 		boolean noZoneId = idAttribute == null || idAttribute.isEmpty();
 		ZonesImpl zones = new ZonesImpl(Id.create(id, Zones.class));
 		for (SimpleFeature sf : ShapeFileReader.getAllFeatures(filename)) {

@@ -44,7 +44,8 @@
     </repositories>
 
     <properties>
-        <matsim.version>16.0-PR2990</matsim.version>
+        <matsim.version>16.0-PR2659</matsim.version>
+        <geotools.version>29.1</geotools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>17</maven.compiler.source>
@@ -151,13 +152,18 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-geotiff</artifactId>
-            <version>29.1</version>
+            <version>${geotools.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.glassfish.jaxb</groupId>
                     <artifactId>jaxb-runtime</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-geopkg</artifactId>
+            <version>${geotools.version}</version>
         </dependency>
 
     </dependencies>
