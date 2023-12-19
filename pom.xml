@@ -44,7 +44,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>16.0-PR2659</matsim.version>
+        <matsim.version>16.0-PR2990</matsim.version>
         <geotools.version>29.1</geotools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
