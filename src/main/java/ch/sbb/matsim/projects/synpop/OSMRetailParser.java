@@ -39,7 +39,7 @@ public class OSMRetailParser {
     private final CoordinateTransformation transformation;
     private Map<Long, BuildingData> buildingData;
     private Map<Long, BuildingDataWithShops> buildingDataWithShopsMap = new HashMap<>();
-    private Map<Long, CompleteBuildingData> completeBuildingDataMap = new HashMap<>();
+    private final Map<Long, CompleteBuildingData> completeBuildingDataMap = new HashMap<>();
     private Map<Long, Set<Long>> buildingDataNodeStorage;
     private Map<Long, ShopData> shopDataStorage;
     private Map<Long, Coord> nodeStorage;

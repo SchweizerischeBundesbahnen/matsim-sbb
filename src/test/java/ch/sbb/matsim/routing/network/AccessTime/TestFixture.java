@@ -16,8 +16,8 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
-import org.matsim.core.config.groups.StrategyConfigGroup;
+import org.matsim.core.config.groups.ReplanningConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
@@ -31,22 +31,22 @@ import java.util.Set;
 
 public class TestFixture {
 
-    final Scenario scenario;
-    final Population population;
-    Controler controler;
-    List<Event> allEvents;
-    final PlanCalcScoreConfigGroup.ModeParams accessParams;
-    final PlanCalcScoreConfigGroup.ModeParams egressParams;
-    final Activity home;
-    final Activity work;
-    final Person person;
+	final Scenario scenario;
+	final Population population;
+	final ScoringConfigGroup.ModeParams accessParams;
+	final ScoringConfigGroup.ModeParams egressParams;
+	final Activity home;
+	final Activity work;
+	final Person person;
+	Controler controler;
+	List<Event> allEvents;
 
-    TestFixture(Coord start, Coord end, String mode, boolean withAccess, double constant, String modesWithAccess) {
+	TestFixture(Coord start, Coord end, String mode, boolean withAccess, double constant, String modesWithAccess) {
 
-        Config config = ConfigUtils.createConfig(new SBBAccessTimeConfigGroup());
-		config.controler().setOutputDirectory("test/output/AccessTimeIntegrationTest");
+		Config config = ConfigUtils.createConfig(new SBBAccessTimeConfigGroup());
+		config.controller().setOutputDirectory("test/output/AccessTimeIntegrationTest");
 		scenario = ScenarioUtils.createScenario(config);
-        population = scenario.getPopulation();
+		population = scenario.getPopulation();
         Network network = scenario.getNetwork();
 
         double delta_x = end.getX() - start.getX();
@@ -121,47 +121,47 @@ public class TestFixture {
 
 		population.addPerson(person);
 
-		PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams("home");
+		ScoringConfigGroup.ActivityParams params = new ScoringConfigGroup.ActivityParams("home");
 		params.setScoringThisActivityAtAll(false);
-		scenario.getConfig().planCalcScore().addActivityParams(params);
+		scenario.getConfig().scoring().addActivityParams(params);
 
-		PlanCalcScoreConfigGroup.ActivityParams params2 = new PlanCalcScoreConfigGroup.ActivityParams("work");
+		ScoringConfigGroup.ActivityParams params2 = new ScoringConfigGroup.ActivityParams("work");
 		params2.setScoringThisActivityAtAll(false);
-		scenario.getConfig().planCalcScore().addActivityParams(params2);
+		scenario.getConfig().scoring().addActivityParams(params2);
 
-		PlanCalcScoreConfigGroup.ActivityParams params3 = new PlanCalcScoreConfigGroup.ActivityParams(mode + " interaction");
+		ScoringConfigGroup.ActivityParams params3 = new ScoringConfigGroup.ActivityParams(mode + " interaction");
 		params3.setScoringThisActivityAtAll(false);
-		scenario.getConfig().planCalcScore().addActivityParams(params3);
-		var rideParams = scenario.getConfig().plansCalcRoute().getModeRoutingParams().get(SBBModes.RIDE);
-		scenario.getConfig().plansCalcRoute().removeParameterSet(rideParams);
-		egressParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-        egressParams.setConstant(constant);
-        accessParams = config.planCalcScore().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
-        accessParams.setConstant(constant);
+		scenario.getConfig().scoring().addActivityParams(params3);
+		var rideParams = scenario.getConfig().routing().getTeleportedModeParams().get(SBBModes.RIDE);
+		scenario.getConfig().routing().removeParameterSet(rideParams);
+		egressParams = config.scoring().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
+		egressParams.setConstant(constant);
+		accessParams = config.scoring().getOrCreateModeParams(SBBModes.ACCESS_EGRESS_WALK);
+		accessParams.setConstant(constant);
 
-        StrategyConfigGroup.StrategySettings settings = new StrategyConfigGroup.StrategySettings();
-        settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);
-        settings.setWeight(1.0);
-        scenario.getConfig().strategy().addStrategySettings(settings);
+		ReplanningConfigGroup.StrategySettings settings = new ReplanningConfigGroup.StrategySettings();
+		settings.setStrategyName(DefaultPlanStrategiesModule.DefaultStrategy.TimeAllocationMutator);
+		settings.setWeight(1.0);
+		scenario.getConfig().replanning().addStrategySettings(settings);
 
-        ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
-        String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP";
-        zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, "ID"));
+		ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
+		String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP";
+		zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, "ID"));
 
-        SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
-        accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
-        accessTimeConfigGroup.setModesWithAccessTime(modesWithAccess);
-        accessTimeConfigGroup.setZonesId("zones");
+		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
+		accessTimeConfigGroup.setInsertingAccessEgressWalk(withAccess);
+		accessTimeConfigGroup.setModesWithAccessTime(modesWithAccess);
+		accessTimeConfigGroup.setZonesId("zones");
 
-        config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
-        config.controler().setLastIteration(0);
-        config.controler().setWriteEventsUntilIteration(1);
-        config.controler().setWritePlansInterval(1);
+		config.controller().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
+		config.controller().setLastIteration(0);
+		config.controller().setWriteEventsUntilIteration(1);
+		config.controller().setWritePlansInterval(1);
 		config.qsim().setEndTime(10 * 60 * 60);
-		//config.plansCalcRoute().setNetworkModes(List.of(SBBModes.CAR,SBBModes.RIDE));
+		//config.routing().setNetworkModes(List.of(SBBModes.CAR,SBBModes.RIDE));
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		ZonesModule.addZonestoScenario(scenario);
-        AccessEgressModule.prepareLinkAttributes(scenario, false);
+		AccessEgressModule.prepareLinkAttributes(scenario, false);
 
 	}
 

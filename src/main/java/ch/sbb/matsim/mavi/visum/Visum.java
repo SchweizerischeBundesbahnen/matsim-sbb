@@ -123,7 +123,7 @@ public class Visum {
 		}
 
 		public void callMethod(String method, String... attributes) {
-			Dispatch.call(this.dispatch, method, attributes);
+			Dispatch.call(this.dispatch, method, (Object[]) attributes);
 		}
 
 		public void callMethod(String method, String attribute, int dataType) {

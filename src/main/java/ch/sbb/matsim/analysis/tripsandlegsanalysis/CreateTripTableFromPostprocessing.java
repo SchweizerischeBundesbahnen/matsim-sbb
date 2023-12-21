@@ -23,7 +23,7 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.preparation.cutter.BetterPopulationReader;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.matsim.analysis.TripsAndLegsCSVWriter;
+import org.matsim.analysis.TripsAndLegsWriter;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -65,7 +65,7 @@ public class CreateTripTableFromPostprocessing {
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         SBBTripsExtension sbbTripsExtension = new SBBTripsExtension(railTripsAnalyzer, postProcessingConfigGroup, zonesCollection, scenario);
         SBBLegsExtension sbbLegsExtension = new SBBLegsExtension(railTripsAnalyzer);
-        TripsAndLegsCSVWriter tripsAndLegsCSVWriter = new TripsAndLegsCSVWriter(scenario, sbbTripsExtension, sbbLegsExtension, null, v -> Long.toString((long) v));
+        TripsAndLegsWriter tripsAndLegsCSVWriter = new TripsAndLegsWriter(scenario, sbbTripsExtension, sbbLegsExtension, null, v -> Long.toString((long) v));
         IdMap<Person, Plan> plans = new IdMap<>(Person.class);
         for (Person p : scenario2.getPopulation().getPersons().values()) {
             plans.put(p.getId(), p.getSelectedPlan());

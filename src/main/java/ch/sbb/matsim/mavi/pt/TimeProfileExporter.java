@@ -145,7 +145,7 @@ public class TimeProfileExporter {
 					}
 					if (useIt) {
 						if (!lri.outLink.equals(lastLink) && !lri.outLink.isBlank() && !lri.node.isBlank()) {
-							if (seq.length() > 0) {
+							if (!seq.isEmpty()) {
 								seq.append(',');
 							}
 							seq.append(createLinkId(lri.node, lri.outLink).toString());
@@ -325,7 +325,7 @@ public class TimeProfileExporter {
 						postlength = tpi.length;
 						fromStop = stop;
 					}
-					if (routeLinks.size() > 0) {
+					if (!routeLinks.isEmpty()) {
 						routeLinks.remove(routeLinks.size() - 1);
 					} else {
 						LogManager.getLogger(getClass()).warn(routeID + " has no links along route");

@@ -23,8 +23,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
+import org.matsim.core.config.groups.RoutingConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
@@ -63,12 +63,13 @@ class BicycleTravelDisutility implements TravelDisutility {
 	private Person prevPerson;
 
 
-	BicycleTravelDisutility(PlanCalcScoreConfigGroup cnScoringGroup,
-			PlansCalcRouteConfigGroup plansCalcRouteConfigGroup, TravelTime timeCalculator, double normalization) {
-		final PlanCalcScoreConfigGroup.ModeParams bicycleParams = cnScoringGroup.getModes().get(SBBModes.BIKE);
+	BicycleTravelDisutility(ScoringConfigGroup cnScoringGroup,
+							RoutingConfigGroup RoutingConfigGroup, TravelTime timeCalculator, double normalization) {
+		final ScoringConfigGroup.ModeParams bicycleParams = cnScoringGroup.getModes().get(SBBModes.BIKE);
 		if (bicycleParams == null) {
 			throw new NullPointerException("Mode " + SBBModes.BIKE + " is not part of the valid mode parameters " + cnScoringGroup.getModes().keySet());
-		}		this.marginalCostOfDistanceM = -(bicycleParams.getMonetaryDistanceRate() * cnScoringGroup.getMarginalUtilityOfMoney())
+		}
+		this.marginalCostOfDistanceM = -(bicycleParams.getMonetaryDistanceRate() * cnScoringGroup.getMarginalUtilityOfMoney())
 				- bicycleParams.getMarginalUtilityOfDistance();
 
 
@@ -79,7 +80,7 @@ class BicycleTravelDisutility implements TravelDisutility {
 		this.timeCalculator = timeCalculator;
 
 		this.normalization = normalization;
-		this.sigma = plansCalcRouteConfigGroup.getRoutingRandomness();
+		this.sigma = RoutingConfigGroup.getRoutingRandomness();
 		this.random = sigma != 0 ? MatsimRandom.getLocalInstance() : null;
 	}
 

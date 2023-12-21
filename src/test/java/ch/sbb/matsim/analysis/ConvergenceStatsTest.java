@@ -5,14 +5,6 @@ import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import com.google.inject.Provider;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -25,7 +17,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.ControlerConfigGroup;
+import org.matsim.core.config.groups.ControllerConfigGroup;
 import org.matsim.core.controler.MatsimServices;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationStartsEvent;
@@ -39,15 +31,24 @@ import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.testcases.MatsimTestUtils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 public class ConvergenceStatsTest {
 
 	@Rule
-	public MatsimTestUtils utils = new MatsimTestUtils();
+	public final MatsimTestUtils utils = new MatsimTestUtils();
 
 	@Test
 	public void test_ConvergenceTests() throws IOException {
 		ConvergenceStats cs = new ConvergenceStats(60, ConvergenceConfigGroup.Test.values(), ConfigUtils.createConfig());
-		double[] scores = ConvergenceStats.loadGlobalStats(utils.getPackageInputDirectory() + "convergence/traveldistancestats.txt");
+		double[] scores = ConvergenceStats.loadGlobalStats(utils.getPackageInputDirectory() + "convergence/traveldistancestats.csv");
 		System.out.println("Test: statistic=p-value");
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
 			Map.Entry<Double, Double> res = cs.runTest(test, scores);
@@ -66,7 +67,7 @@ public class ConvergenceStatsTest {
 		cs.notifyIterationStarts(event);
 		cs.close();
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
-			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
+			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".csv").toFile();
 			Assert.assertTrue(file.exists());
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			br.readLine(); // skip header
@@ -78,7 +79,7 @@ public class ConvergenceStatsTest {
 	public void test_convergenceCriterion() throws IOException {
 		System.setProperty("matsim.preferLocalDtds", "true");
 		Config config = RunSBB.buildConfig("test/input/scenarios/mobi31test/config.xml");
-		config.controler().setMobsim("qsim");
+		config.controller().setMobsim("qsim");
 		// integrate config
 		ConvergenceConfigGroup csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
 		csConfig.setActivateConvergenceStats(true);
@@ -93,13 +94,13 @@ public class ConvergenceStatsTest {
 
 		// shut-off outputs
 		int absoluteLastIteration = 10;
-		config.controler().setLastIteration(absoluteLastIteration);
-		config.controler().setOutputDirectory(utils.getOutputDirectory());
-		config.controler().setWriteEventsInterval(0);
-		config.controler().setWritePlansInterval(0);
-		config.controler().setWriteSnapshotsInterval(0);
-		config.controler().setDumpDataAtEnd(false);
-		config.controler().setCreateGraphs(false);
+		config.controller().setLastIteration(absoluteLastIteration);
+		config.controller().setOutputDirectory(utils.getOutputDirectory());
+		config.controller().setWriteEventsInterval(0);
+		config.controller().setWritePlansInterval(0);
+		config.controller().setWriteSnapshotsInterval(0);
+		config.controller().setDumpDataAtEnd(false);
+		config.controller().setCreateGraphsInterval(0);
 		ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).setAllPostProcessingOff();
 
 		// quick simulation is enough
@@ -111,7 +112,7 @@ public class ConvergenceStatsTest {
 		// tests
 		int iterationsRun = 0;
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
-			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".txt").toFile();
+			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".csv").toFile();
 			Assert.assertTrue(file.exists());
 			List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());
 			iterationsRun = lines.size();
@@ -125,7 +126,7 @@ public class ConvergenceStatsTest {
 		@Override
 		public OutputDirectoryHierarchy getControlerIO() {
 			return new OutputDirectoryHierarchy(utils.getOutputDirectory(),
-					OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, ControlerConfigGroup.CompressionType.none);
+					OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, ControllerConfigGroup.CompressionType.none);
 		}
 
 		@Override

@@ -75,7 +75,7 @@ public class MTTExporter {
 		Set<String> fromStopAreas = CollectionUtils.stringToSet(a[i][0]);
 		Set<String> toStopAreas = CollectionUtils.stringToSet(a[i][1]);
 		double walkTime = Double.parseDouble(a[i][2]);
-		if (walkTime > 0 && fromStopAreas.size() > 0 && toStopAreas.size() > 0) {
+		if (walkTime > 0 && !fromStopAreas.isEmpty() && !toStopAreas.isEmpty()) {
 			for (String fromStopArea : fromStopAreas) {
 				for (String toStopArea : toStopAreas) {
 					transferList.add(new Transfer((int) Double.parseDouble(fromStopArea), (int) Double.parseDouble(toStopArea),

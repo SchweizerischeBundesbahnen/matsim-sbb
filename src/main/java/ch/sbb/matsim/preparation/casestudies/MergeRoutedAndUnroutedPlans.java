@@ -34,7 +34,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
-import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
+import org.matsim.core.config.groups.ReplanningConfigGroup.StrategySettings;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.algorithms.TripsToLegsAlgorithm;
@@ -338,7 +338,7 @@ public class MergeRoutedAndUnroutedPlans {
     private void adjustConfig() {
 
         this.config = ConfigUtils.loadConfig(this.inputConfig, RunSBB.getSbbDefaultConfigGroups());
-        config.strategy().getStrategySettings().stream().filter(s -> Variables.EXOGENEOUS_DEMAND.contains(s.getSubpopulation())).forEach(s -> s.setWeight(0.0));
+        config.replanning().getStrategySettings().stream().filter(s -> Variables.EXOGENEOUS_DEMAND.contains(s.getSubpopulation())).forEach(s -> s.setWeight(0.0));
         List<String> subpops = new ArrayList<>();
         subpops.add(Variables.NO_REPLANNING);
         subpops.addAll(Variables.EXOGENEOUS_DEMAND);
@@ -347,7 +347,7 @@ public class MergeRoutedAndUnroutedPlans {
             norep.setWeight(1.0);
             norep.setSubpopulation(s);
             norep.setStrategyName(DefaultSelector.KeepLastSelected);
-            config.strategy().addStrategySettings(norep);
+            config.replanning().addStrategySettings(norep);
         }
         new ConfigWriter(config).write(outputConfig);
         LOG.info("wrote new config to " + outputConfig);

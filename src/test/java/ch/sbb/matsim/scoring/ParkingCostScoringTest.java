@@ -25,7 +25,7 @@ import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
 import org.matsim.contrib.parking.parkingcost.eventhandling.MainModeParkingCostVehicleTracker;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -44,13 +44,13 @@ public class ParkingCostScoringTest {
 	private static final Logger log = LogManager.getLogger(ParkingCostScoringTest.class);
 
 	@Rule
-	public MatsimTestUtils helper = new MatsimTestUtils();
+	public final MatsimTestUtils helper = new MatsimTestUtils();
 
 	@Test
 	public void testParkingCostScoring() {
 		Fixture f = new Fixture();
 
-		f.config.controler().setLastIteration(0);
+		f.config.controller().setLastIteration(0);
 
 		double scoreWithout;
 		double scoreWith;
@@ -59,7 +59,7 @@ public class ParkingCostScoringTest {
 		ParkingCostEventCollector parkingCostCollectorWith = new ParkingCostEventCollector();
 
 		{ // run 1 without parking cost
-			f.config.controler().setOutputDirectory(this.helper.getOutputDirectory() + "/without");
+			f.config.controller().setOutputDirectory(this.helper.getOutputDirectory() + "/without");
 			Controler controler = new Controler(f.scenario);
 			ScoringFunctionFactory scoringFunctionFactory = new SBBScoringFunctionFactory(f.scenario);
 			controler.setScoringFunctionFactory(scoringFunctionFactory);
@@ -78,7 +78,7 @@ public class ParkingCostScoringTest {
 		}
 
 		{ // run 2 with parking cost
-			f.config.controler().setOutputDirectory(this.helper.getOutputDirectory() + "/with");
+			f.config.controller().setOutputDirectory(this.helper.getOutputDirectory() + "/with");
 			f.scenario.getNetwork().getLinks().get(Id.createLinkId("T")).getAttributes().putAttribute("pc_car", 100);
 			f.scenario.getNetwork().getLinks().get(Id.createLinkId("B")).getAttributes().putAttribute("pc_car", 100);
 			f.scenario.getNetwork().getLinks().get(Id.createLinkId("L")).getAttributes().putAttribute("pc_car", 100);
@@ -153,23 +153,23 @@ public class ParkingCostScoringTest {
 			SBBBehaviorGroupsConfigGroup sbbScoringConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
 			sbbScoringConfig.setMarginalUtilityOfParkingPrice(-0.1);
 
-			PlanCalcScoreConfigGroup scoringConfig = this.config.planCalcScore();
-			PlanCalcScoreConfigGroup.ActivityParams homeScoring = new PlanCalcScoreConfigGroup.ActivityParams("home");
+			ScoringConfigGroup scoringConfig = this.config.scoring();
+			ScoringConfigGroup.ActivityParams homeScoring = new ScoringConfigGroup.ActivityParams("home");
 			homeScoring.setTypicalDuration(12 * 3600);
 			scoringConfig.addActivityParams(homeScoring);
-			PlanCalcScoreConfigGroup.ActivityParams workScoring = new PlanCalcScoreConfigGroup.ActivityParams("work");
+			ScoringConfigGroup.ActivityParams workScoring = new ScoringConfigGroup.ActivityParams("work");
 			workScoring.setTypicalDuration(8 * 3600);
 			scoringConfig.addActivityParams(workScoring);
-			PlanCalcScoreConfigGroup.ActivityParams shopScoring = new PlanCalcScoreConfigGroup.ActivityParams("shop");
+			ScoringConfigGroup.ActivityParams shopScoring = new ScoringConfigGroup.ActivityParams("shop");
 			shopScoring.setTypicalDuration(8 * 3600);
 			scoringConfig.addActivityParams(shopScoring);
 
-			PlanCalcScoreConfigGroup.ActivityParams rideInteractionScoring = new PlanCalcScoreConfigGroup.ActivityParams("ride interaction");
+			ScoringConfigGroup.ActivityParams rideInteractionScoring = new ScoringConfigGroup.ActivityParams("ride interaction");
 			rideInteractionScoring.setScoringThisActivityAtAll(false);
-			config.planCalcScore().getOrCreateScoringParameters(null).addActivityParams(rideInteractionScoring);
+			config.scoring().getOrCreateScoringParameters(null).addActivityParams(rideInteractionScoring);
 
-			this.config.controler().setCreateGraphs(false);
-			this.config.controler().setDumpDataAtEnd(false);
+			this.config.controller().setCreateGraphsInterval(0);
+			this.config.controller().setDumpDataAtEnd(false);
 		}
 
 		private void createNetwork() {

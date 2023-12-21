@@ -13,7 +13,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlansConfigGroup;
-import org.matsim.core.config.groups.StrategyConfigGroup;
+import org.matsim.core.config.groups.ReplanningConfigGroup;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.population.io.StreamingPopulationWriter;
@@ -95,12 +95,12 @@ public class PrepareRouteChoiceRun {
         String outputConfig = Paths.get(simFolder, "config_scoring_parsed.xml").toString();
         Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
 
-        config.controler().setLastIteration(60);
+        config.controller().setLastIteration(60);
         Map<String, Double> strategies = new HashMap<>();
         strategies.put("SBBTimeMutation_ReRoute", 0.25);
         strategies.put("ReRoute", 0.05);
         strategies.put("BestScore", 0.7);
-        for (StrategyConfigGroup.StrategySettings s: config.strategy().getStrategySettings()) {
+        for (ReplanningConfigGroup.StrategySettings s : config.replanning().getStrategySettings()) {
             if (s.getSubpopulation().equals("regular")) {
                 if (strategies.containsKey(s.getStrategyName())) {
                     s.setWeight(strategies.get(s.getStrategyName()));
@@ -158,7 +158,7 @@ public class PrepareRouteChoiceRun {
 
         StreamingPopulationReader routedReader = new StreamingPopulationReader(ScenarioUtils.createScenario(ConfigUtils.createConfig()));
         routedReader.addAlgorithm(person -> {
-            if ((selectedPersons.size()==0) | selectedPersons.contains(person.getId())) {
+            if ((selectedPersons.isEmpty()) | selectedPersons.contains(person.getId())) {
                 PersonUtils.removeUnselectedPlans(person);
                 var ptlegs = TripStructureUtils.getLegs(person.getSelectedPlan());
                 boolean include = false;

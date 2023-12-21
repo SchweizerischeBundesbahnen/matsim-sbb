@@ -13,7 +13,6 @@ import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SamplesizeFactors;
-import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
@@ -21,7 +20,7 @@ import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.*;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBSubtourModeChoice;
-import ch.sbb.matsim.replanning.SBBTimeAllocationMutatorReRoute;
+import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
 import ch.sbb.matsim.routing.SBBCapacityDependentInVehicleCostCalculator;
 import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
@@ -35,13 +34,9 @@ import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.matsim.analysis.TripsAndLegsCSVWriter;
-import org.matsim.analysis.TripsAndLegsCSVWriter.CustomTripsWriterExtension;
+import org.matsim.analysis.TripsAndLegsWriter;
+import org.matsim.analysis.TripsAndLegsWriter.CustomTripsWriterExtension;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.Population;
 import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
 import org.matsim.contrib.parking.parkingcost.module.ParkingCostModule;
 import org.matsim.core.config.Config;
@@ -54,16 +49,11 @@ import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
 import org.matsim.core.population.algorithms.PermissibleModesCalculator;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
-import org.matsim.core.router.TripStructureUtils;
-import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
+import org.matsim.core.router.AnalysisMainModeIdentifier;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
-import org.matsim.core.utils.misc.OptionalTime;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author denism
@@ -73,7 +63,7 @@ public class RunSBB {
 
 	private static final Logger log = LogManager.getLogger(RunSBB.class);
 
-	public static void main(String[] args) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+	public static void main(String[] args) {
 		System.setProperty("matsim.preferLocalDtds", "true");
 
 		final String configFile = args[0];
@@ -81,7 +71,7 @@ public class RunSBB {
 		final Config config = buildConfig(configFile);
 
 		if (args.length > 1) {
-			config.controler().setOutputDirectory(args[1]);
+			config.controller().setOutputDirectory(args[1]);
 		}
 //		if (args.length > 2) {
 //			prepareAutoCalibration(args, config);
@@ -146,14 +136,13 @@ public class RunSBB {
 		LinkToStationsAssigner.runAssignment(scenario);
 		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
 		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
-		createInitialEndTimeAttribute(scenario.getPopulation());
 		ZonesModule.addZonestoScenario(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		IntermodalModule.prepareIntermodalScenario(scenario);
 		AccessEgressModule.prepareLinkAttributes(scenario, true);
 		// vehicle types
 		new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
-				scenario.getConfig().plansCalcRoute().getNetworkModes()).createVehicles();
+				scenario.getConfig().routing().getNetworkModes()).createVehicles();
 		scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
 
@@ -169,12 +158,12 @@ public class RunSBB {
 			@Override
 			public void install() {
 				addControlerListenerBinding().to(SBBDefaultAnalysisListener.class);
-				addPlanStrategyBinding("SBBTimeMutation_ReRoute").toProvider(SBBTimeAllocationMutatorReRoute.class);
 				addPlanStrategyBinding(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice).toProvider(SBBSubtourModeChoice.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
+				bind(AnalysisMainModeIdentifier.class).to(SBBAnalysisMainModeIdentifier.class);
 				bind(RailTripsAnalyzer.class);
-                bind(DemandAggregator.class);
-                bind(RailDemandReporting.class);
+				bind(DemandAggregator.class);
+				bind(RailDemandReporting.class);
 				bind(PtLinkVolumeAnalyzer.class);
 				bind(PutSurveyWriter.class);
 				bind(TripsAndDistanceStats.class);
@@ -182,8 +171,8 @@ public class RunSBB {
 				bind(ModalSplitStats.class);
 				bind(IterationLinkAnalyzer.class).asEagerSingleton();
 				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
-				bind(TripsAndLegsCSVWriter.CustomLegsWriterExtension.class).to(SBBLegsExtension.class);
-				bind(TripsAndLegsCSVWriter.CustomTimeWriter.class).toInstance(v -> Long.toString((long) v));
+				bind(TripsAndLegsWriter.CustomLegsWriterExtension.class).to(SBBLegsExtension.class);
+				bind(TripsAndLegsWriter.CustomTimeWriter.class).toInstance(v -> Long.toString((long) v));
 				install(new SBBTransitModule());
 				install(new ZonesModule(scenario));
 				install(new SBBNetworkRoutingModule());
@@ -232,39 +221,13 @@ public class RunSBB {
 	}
 
 	public static void adjustMobiConfig(Config config) {
-		if (config.plansCalcRoute().getNetworkModes().contains(SBBModes.RIDE)) {
-            // MATSim defines ride by default as teleported, which conflicts with the network mode
-            config.plansCalcRoute().removeTeleportedModeParams(SBBModes.RIDE);
-        }
+		if (config.routing().getNetworkModes().contains(SBBModes.RIDE)) {
+			// MATSim defines ride by default as teleported, which conflicts with the network mode
+			config.routing().removeTeleportedModeParams(SBBModes.RIDE);
+		}
 		ActivityParamsBuilder.buildActivityParams(config);
 		SamplesizeFactors.setFlowAndStorageCapacities(config);
 		XLSXScoringParser.buildScoringBehaviourGroups(config);
-	}
-
-	public static void createInitialEndTimeAttribute(Population population) {
-		for (Person p : population.getPersons().values()) {
-			if (p.getAttributes().getAttribute(Variables.INIT_END_TIMES) != null) {
-				continue;
-			}
-			Plan plan = p.getSelectedPlan();
-			List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
-			List<OptionalTime> endTimeList = new ArrayList<>();
-			int i = 0;
-
-			for (Activity act : activities) {
-				if (i == activities.size() - 1) {
-					break;
-				}
-				endTimeList.add(act.getEndTime());
-				i += 1;
-			}
-
-			p.getAttributes()
-					.putAttribute(Variables.INIT_END_TIMES, endTimeList
-							.stream()
-							.map(e -> e.isDefined() ? Double.toString(e.seconds()) : Variables.NO_INIT_END_TIME)
-							.collect(Collectors.joining("_")));
-		}
 	}
 
 	public static ConfigGroup[] getSbbDefaultConfigGroups() {

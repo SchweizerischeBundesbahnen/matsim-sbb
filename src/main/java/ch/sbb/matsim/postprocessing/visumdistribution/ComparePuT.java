@@ -38,7 +38,7 @@ public class ComparePuT {
                         }
                     }
                 }
-                if (newLine.length() == 0) {
+                if (newLine.isEmpty()) {
                     continue;
                 }
                 //newLine.deleteCharAt(newLine.length() - 1);

@@ -21,17 +21,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AdjustExogeneousDemand {
 
-    Population carDemand;
-    Population ptDemand;
-    Zones zones;
+    final Population carDemand;
+    final Population ptDemand;
+    final Zones zones;
 
-    ConcurrentHashMap<String, Set<Id<Person>>> carPopulationPerZone = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<String, Set<Id<Person>>> carPopulationPerZone = new ConcurrentHashMap<>();
 
-    Map<String, Integer> carCorrectionPerZone = new HashMap<>();
-    Map<String, Integer> ptCorrectionPerZone = new HashMap<>();
-    ConcurrentHashMap<String, Set<Id<Person>>> ptPopulationPerZone = new ConcurrentHashMap<>();
-    Map<String, List<Coord>> insertionPointsPerZone = new HashMap<>();
-    List<Coord> destinationCoords = List.of(new Coord(2499770.51984111, 1119868.9745656),
+    final Map<String, Integer> carCorrectionPerZone = new HashMap<>();
+    final Map<String, Integer> ptCorrectionPerZone = new HashMap<>();
+    final ConcurrentHashMap<String, Set<Id<Person>>> ptPopulationPerZone = new ConcurrentHashMap<>();
+    final Map<String, List<Coord>> insertionPointsPerZone = new HashMap<>();
+    final List<Coord> destinationCoords = List.of(new Coord(2499770.51984111, 1119868.9745656),
             new Coord(2500344.4893983, 1118336.75201323),
             new Coord(2500019.14977779, 1118468.80825104),
             new Coord(2500315.2699545, 1117674.92252405),
@@ -45,7 +45,7 @@ public class AdjustExogeneousDemand {
             new Coord(2537930.45351674, 1152090.45089376)
 
     );
-    Random random = MatsimRandom.getRandom();
+    final Random random = MatsimRandom.getRandom();
 
     public AdjustExogeneousDemand(Population carDemand, Population ptDemand, Zones zones, String alterationTable) {
         this.zones = zones;

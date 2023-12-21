@@ -11,6 +11,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.testcases.MatsimTestUtils;
 
+import java.io.File;
 import java.util.stream.Collectors;
 
 import static org.matsim.core.config.ConfigUtils.createConfig;
@@ -28,6 +29,8 @@ public class DemandAggregatorTest {
         String inputFolder = "test/input/ch/sbb/matsim/analysis/tripsandlegsanalysis/";
         String outputFolder = "test/output/";
         Scenario scenario2 = createScenario(createConfig());
+        File outputFolderFile = new File(outputFolder);
+        outputFolderFile.mkdirs();
 
         new PopulationReader(scenario2).readFile(inputFolder + "MOBI33IT.output_experienced_plans.xml.gz");
         aggregator.aggregateAndWriteMatrix(10, outputFolder + "matrix.csv", outputFolder + "railDemandStationToStation.csv.gz", outputFolder + "railDemandStationToStationFQ.csv.gz", outputFolder + "tripsPerMun.csv.gz", outputFolder + "tripsPerAMR.csv.gz", scenario2.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(Collectors.toList()));

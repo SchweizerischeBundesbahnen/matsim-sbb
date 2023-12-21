@@ -3,10 +3,8 @@ package ch.sbb.matsim.scoring;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.preparation.ActivityParamsBuilder;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,15 +15,10 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.Population;
-import org.matsim.api.core.v01.population.PopulationFactory;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
@@ -34,19 +27,12 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.routes.DefaultTransitPassengerRoute;
-import org.matsim.pt.transitSchedule.api.Departure;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitRouteStop;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.testcases.MatsimTestUtils;
-import org.matsim.vehicles.Vehicle;
-import org.matsim.vehicles.VehicleCapacity;
-import org.matsim.vehicles.VehicleType;
-import org.matsim.vehicles.Vehicles;
-import org.matsim.vehicles.VehiclesFactory;
+import org.matsim.vehicles.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Main idea of the test: Run a mini-scenario with a single agent twice, once with default MATSim scoring, once with SBB Scoring. Then we can calculate the score-difference and compare it against our
@@ -59,7 +45,7 @@ public class TransferScoringTest {
 	private static final Logger log = LogManager.getLogger(TransferScoringTest.class);
 
 	@Rule
-	public MatsimTestUtils helper = new MatsimTestUtils();
+	public final MatsimTestUtils helper = new MatsimTestUtils();
 
 	@Test
 	public void testTransferScoring() {
@@ -69,7 +55,7 @@ public class TransferScoringTest {
             Fixture f1 = new Fixture(this.helper.getOutputDirectory() + "/run1/");
             f1.setLineSwitchConfig();
 
-            f1.config.controler().setLastIteration(0);
+			f1.config.controller().setLastIteration(0);
 
             Controler controler = new Controler(f1.scenario);
             controler.run();
@@ -82,7 +68,7 @@ public class TransferScoringTest {
             Fixture f2 = new Fixture(this.helper.getOutputDirectory() + "/run2/");
             f2.setSBBTransferUtility();
 
-            f2.config.controler().setLastIteration(0);
+			f2.config.controller().setLastIteration(0);
 
             Controler controler = new Controler(f2.scenario);
             controler.setScoringFunctionFactory(new SBBScoringFunctionFactory(f2.scenario));
@@ -119,21 +105,21 @@ public class TransferScoringTest {
         }
 
 		private void prepareConfig(String outputDirectory) {
-			PlanCalcScoreConfigGroup scoringConfig = this.config.planCalcScore();
-			PlanCalcScoreConfigGroup.ActivityParams homeScoring = new PlanCalcScoreConfigGroup.ActivityParams("home");
+			ScoringConfigGroup scoringConfig = this.config.scoring();
+			ScoringConfigGroup.ActivityParams homeScoring = new ScoringConfigGroup.ActivityParams("home");
 			homeScoring.setTypicalDuration(12 * 3600);
-            scoringConfig.addActivityParams(homeScoring);
+			scoringConfig.addActivityParams(homeScoring);
 
-            this.config.controler().setOutputDirectory(outputDirectory);
-            this.config.controler().setCreateGraphs(false);
-            this.config.controler().setDumpDataAtEnd(false);
+			this.config.controller().setOutputDirectory(outputDirectory);
+			this.config.controller().setCreateGraphsInterval(0);
+			this.config.controller().setDumpDataAtEnd(false);
 
-            this.config.transit().setUseTransit(true);
-            ActivityParamsBuilder.buildStageActivityModeParams(config);
-        }
+			this.config.transit().setUseTransit(true);
+			ActivityParamsBuilder.buildStageActivityModeParams(config);
+		}
 
         void setLineSwitchConfig() {
-            this.config.planCalcScore().setUtilityOfLineSwitch(-3.0);
+			this.config.scoring().setUtilityOfLineSwitch(-3.0);
         }
 
         void setSBBTransferUtility() {

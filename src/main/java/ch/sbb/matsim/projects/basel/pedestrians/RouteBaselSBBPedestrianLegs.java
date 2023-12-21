@@ -142,7 +142,7 @@ public class RouteBaselSBBPedestrianLegs {
     private void routeLeg(Coord fromCoord, Coord toCoord, Leg walkLeg) {
         var bestPath = lcp.calcLeastCostPath(NetworkUtils.getNearestNode(scenario.getNetwork(), fromCoord), NetworkUtils.getNearestNode(scenario.getNetwork(), toCoord), 0.0, null, null);
         Link startLink = bestPath.getFromNode().getInLinks().values().stream().findAny().get();
-        Link endLink = bestPath.links.size() > 0 ? bestPath.links.get(bestPath.links.size() - 1) : startLink;
+        Link endLink = !bestPath.links.isEmpty() ? bestPath.links.get(bestPath.links.size() - 1) : startLink;
         Route route = RouteUtils.createLinkNetworkRouteImpl(startLink.getId(), bestPath.links.stream().map(l -> l.getId()).collect(Collectors.toList()), endLink.getId());
         route.setTravelTime(bestPath.travelTime);
         route.setDistance(bestPath.links.stream().mapToDouble(l -> l.getLength()).sum());

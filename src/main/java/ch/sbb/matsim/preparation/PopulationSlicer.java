@@ -81,7 +81,7 @@ public class PopulationSlicer {
 			for (var facId : usedFacilities) {
 				newfacilities.getActivityFacilities().addActivityFacility(scenario.getActivityFacilities().getFacilities().get(facId));
 			}
-			if (newfacilities.getActivityFacilities().getFacilities().size() > 0) {
+			if (!newfacilities.getActivityFacilities().getFacilities().isEmpty()) {
 				new FacilitiesWriter(newfacilities.getActivityFacilities()).write(outputFolder + "/facilities_" + i + ".xml.gz");
 			}
 		}

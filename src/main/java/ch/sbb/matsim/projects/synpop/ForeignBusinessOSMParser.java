@@ -45,24 +45,24 @@ class ForeignBusinessOSMParser {
     private final Map<Id<Zone>, Double> distancesToSwissBorder = new HashMap<>();
     private final Map<Id<Zone>, MutableInt> shopsPerZone = new HashMap<>();
     private final Map<Id<Zone>, MutableDouble> retailAreaPerZone = new HashMap<>();
-    double maximumAttraction = 368264.6396;
+    final double maximumAttraction = 368264.6396;
     //reference zone: Basel downtown (270101062)
-    double referenceAttractionLeisure = 5095.0;
-    double referenceAttractionShopping = 8823.0;
-    double referenceAttractionAccompany = 1472.0;
-    double referenceAttractionOther = 231.0;
-    double referenceAttractionBusiness = 120.0;
+    final double referenceAttractionLeisure = 5095.0;
+    final double referenceAttractionShopping = 8823.0;
+    final double referenceAttractionAccompany = 1472.0;
+    final double referenceAttractionOther = 231.0;
+    final double referenceAttractionBusiness = 120.0;
 
     //  visit_L	visit_S	visit_S_lt	visit_S_st
 //2127	31077	28251	2826
 
-    double reference_visit_L = 2127;
-    double reference_visit_S = 31077;
-    double reference_visit_S_lt = 0.9 * reference_visit_S;
-    double reference_visit_S_st = 0.1 * reference_visit_S;
+    final double reference_visit_L = 2127;
+    final double reference_visit_S = 31077;
+    final double reference_visit_S_lt = 0.9 * reference_visit_S;
+    final double reference_visit_S_st = 0.1 * reference_visit_S;
 
     private Map<Long, BuildingData> buildingData;
-    private Map<Long, CompleteBuildingData> completeBuildingDataMap = new HashMap<>();
+    private final Map<Long, CompleteBuildingData> completeBuildingDataMap = new HashMap<>();
     private Map<Long, Set<Long>> buildingDataNodeStorage;
     private Map<Long, ShopData> shopDataStorage;
     private Map<Long, Coord> nodeStorage;

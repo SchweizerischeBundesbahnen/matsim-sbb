@@ -13,7 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.testcases.MatsimTestUtils;
 
 public class XLSXScoringParserTest {
@@ -43,7 +43,7 @@ public class XLSXScoringParserTest {
 
 		XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 
-		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+		ScoringConfigGroup planCalcScore = config.scoring();
 
 		Assert.assertEquals(utilOfLineSwitch, planCalcScore.getUtilityOfLineSwitch(), 0);
 	}
@@ -71,7 +71,7 @@ public class XLSXScoringParserTest {
 
 		XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 
-		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+		ScoringConfigGroup planCalcScore = config.scoring();
 
 		Assert.assertEquals(constantCar, planCalcScore.getOrCreateModeParams(mode).getConstant(), 0);
 	}

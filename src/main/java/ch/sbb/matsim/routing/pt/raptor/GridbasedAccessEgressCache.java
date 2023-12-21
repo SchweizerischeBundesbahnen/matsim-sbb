@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
     public static final double CAR_FREESPEED_TRAVELTIME_FACTOR = 1.25;
-    double bikeFreespeed = 16 / 3.6;
+    final double bikeFreespeed = 16 / 3.6;
     private final Network carnet;
     private final Network bikenet;
     private final int gridsizeInM = 200;
@@ -51,13 +51,13 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     private final String linkIdAttribute;
     private final Scenario scenario;
     private final SBBIntermodalConfiggroup sbbIntermodalConfiggroup;
-    FreespeedTravelTimeAndDisutility disutility = new FreespeedTravelTimeAndDisutility(-0.1, 0.1, -0.01);
+    final FreespeedTravelTimeAndDisutility disutility = new FreespeedTravelTimeAndDisutility(-0.1, 0.1, -0.01);
     private int threads;
-    private Map<Id<TransitStopFacility>, Map<String, Integer>> accessTimesAtStops = new HashMap<>();
-    private Logger logger = LogManager.getLogger(getClass());
-    private Vehicle bike;
-    private List<Id<TransitStopFacility>> cachedStops;
-    private Map<Id<TransitStopFacility>, int[][]> cachedDistancesAndTimes = new ConcurrentHashMap<>();
+    private final Map<Id<TransitStopFacility>, Map<String, Integer>> accessTimesAtStops = new HashMap<>();
+    private final Logger logger = LogManager.getLogger(getClass());
+    private final Vehicle bike;
+    private final List<Id<TransitStopFacility>> cachedStops;
+    private final Map<Id<TransitStopFacility>, int[][]> cachedDistancesAndTimes = new ConcurrentHashMap<>();
 
 
 

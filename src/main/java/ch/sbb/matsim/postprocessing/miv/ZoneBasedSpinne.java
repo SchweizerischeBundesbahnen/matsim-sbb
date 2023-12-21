@@ -20,7 +20,6 @@ import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.io.UncheckedIOException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -148,7 +147,7 @@ public class ZoneBasedSpinne {
 				writer.writeRow();
 			}
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 	}
 

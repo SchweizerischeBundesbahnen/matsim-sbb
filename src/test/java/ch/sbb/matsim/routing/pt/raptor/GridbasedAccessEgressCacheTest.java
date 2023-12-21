@@ -28,11 +28,6 @@ public class GridbasedAccessEgressCacheTest {
     }
 
     @Test
-    public void testCalculateGridForStop() {
-
-    }
-
-    @Test
     public void testGetCellNumberAndCoordinates() {
         GridbasedAccessEgressCache cache = getGridbasedAccessEgressCache();
         Coord stopCoord = new Coord(0, 0);

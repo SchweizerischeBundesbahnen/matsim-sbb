@@ -25,8 +25,9 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.commons.lang3.mutable.MutableInt;
+import jakarta.inject.Inject;
 import org.apache.commons.lang3.mutable.MutableDouble;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
@@ -55,8 +56,6 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-import jakarta.inject.Inject;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.List;
@@ -81,7 +80,7 @@ public class TripsAndDistanceStats {
         this.network = scenario.getNetwork();
         this.population = scenario.getPopulation();
         this.transitSchedule = scenario.getTransitSchedule();
-        this.runId = scenario.getConfig().controler().getRunId();
+        this.runId = scenario.getConfig().controller().getRunId();
         this.sampleSize = ConfigUtils.addOrGetModule(scenario.getConfig(), PostProcessingConfigGroup.class).getSimulationSampleSize();
 
     }
@@ -97,7 +96,7 @@ public class TripsAndDistanceStats {
         String outputFile = args[7];
         Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
         final Config config = ConfigUtils.createConfig();
-        config.controler().setRunId(runId);
+        config.controller().setRunId(runId);
         ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).setSimulationSampleSize(sampleSize);
         Scenario scenario = ScenarioUtils.createScenario(config);
         Scenario scenario2 = ScenarioUtils.createScenario(config);

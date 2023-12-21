@@ -3,14 +3,16 @@ package ch.sbb.matsim.zones;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.geotools.data.*;
+import org.geotools.data.DataStore;
+import org.geotools.data.DataStoreFinder;
+import org.geotools.data.FileDataStore;
+import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.matsim.core.api.internal.MatsimSomeReader;
 import org.matsim.core.gbl.Gbl;
-import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.core.utils.misc.Counter;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -55,7 +57,7 @@ public class ShapeFileReader implements MatsimSomeReader {
             dataStore.dispose();
             return featureSet;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -93,7 +95,7 @@ public class ShapeFileReader implements MatsimSomeReader {
             dataStore.dispose();
             return featureSet;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -110,31 +112,6 @@ public class ShapeFileReader implements MatsimSomeReader {
         }
         it.close();
         return featureSet;
-    }
-
-    /**
-     * Reads all Features in the file into the returned Set and initializes the instance of this class.
-     */
-    public Collection<SimpleFeature> readFileAndInitialize(final String filename) throws UncheckedIOException {
-        try {
-            this.featureSource = org.matsim.core.utils.gis.ShapeFileReader.readDataFile(filename);
-            this.init();
-            SimpleFeature ft = null;
-            SimpleFeatureIterator it = this.featureSource.getFeatures().features();
-            this.featureSet = new ArrayList<SimpleFeature>();
-            log.info("features to read #" + this.featureSource.getFeatures().size());
-            Counter cnt = new Counter("features read #");
-            while (it.hasNext()) {
-                ft = it.next();
-                this.featureSet.add(ft);
-                cnt.incCounter();
-            }
-            cnt.printCounter();
-            it.close();
-            return this.featureSet;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     /**
@@ -172,16 +149,41 @@ public class ShapeFileReader implements MatsimSomeReader {
      *
      * @param filename File name of a shape file (ending in <code>*.shp</code>)
      * @return FeatureSource containing all features.
-     * @throws UncheckedIOException if the file cannot be found or another error happens during reading
+     * @throws RuntimeException if the file cannot be found or another error happens during reading
      */
-    public static SimpleFeatureSource readDataFile(final String filename) throws UncheckedIOException {
+    public static SimpleFeatureSource readDataFile(final String filename) throws RuntimeException {
         try {
             log.warn("Unsafe method! store.dispose() is not called from within this method");
             File dataFile = new File(filename);
             FileDataStore store = FileDataStoreFinder.getDataStore(dataFile);
             return store.getFeatureSource();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Reads all Features in the file into the returned Set and initializes the instance of this class.
+     */
+    public Collection<SimpleFeature> readFileAndInitialize(final String filename) {
+        try {
+            this.featureSource = org.matsim.core.utils.gis.ShapeFileReader.readDataFile(filename);
+            this.init();
+            SimpleFeature ft = null;
+            SimpleFeatureIterator it = this.featureSource.getFeatures().features();
+            this.featureSet = new ArrayList<SimpleFeature>();
+            log.info("features to read #" + this.featureSource.getFeatures().size());
+            Counter cnt = new Counter("features read #");
+            while (it.hasNext()) {
+                ft = it.next();
+                this.featureSet.add(ft);
+                cnt.incCounter();
+            }
+            cnt.printCounter();
+            it.close();
+            return this.featureSet;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -193,7 +195,7 @@ public class ShapeFileReader implements MatsimSomeReader {
             this.schema = this.featureSource.getSchema();
             this.crs = this.featureSource.getSchema().getCoordinateReferenceSystem();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
     }
 

@@ -63,7 +63,7 @@ public class PolylinesCreator {
 		processNetwork(network, matsimPolylinesFilePath);
 	}
 
-	public void runStreets(Network network, Map<Id<Link>, String> wktLineStringPerVisumLink, String matsimPolylinesFilename, String outputPath) throws IOException {
+	public void runStreets(Network network, Map<Id<Link>, String> wktLineStringPerVisumLink, String matsimPolylinesFilename, String outputPath) {
         for (Map.Entry<Id<Link>, String> entry : wktLineStringPerVisumLink.entrySet()) {
             this.polylinePerVisumLink.put(entry.getKey().toString(), parseWktLinestring(entry.getValue()));
         }

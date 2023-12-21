@@ -2,26 +2,27 @@ package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.variables.SBBActivities;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansConfigGroup;
 import org.matsim.core.config.groups.ScenarioConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.scoring.functions.ModeUtilityParameters;
 import org.matsim.core.scoring.functions.ScoringParameters;
 import org.matsim.core.scoring.functions.ScoringParametersForPerson;
+
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author jlie/pmanser/mrieser / SBB based on org.matsim.core.scoring.functions.RandomizedCharyparNagelScoringParameters
@@ -34,7 +35,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
 	private final static Logger log = LogManager.getLogger(SBBCharyparNagelScoringParametersForPerson.class);
 
-	private final PlanCalcScoreConfigGroup config;
+	private final ScoringConfigGroup config;
 	private final ScenarioConfigGroup scConfig;
 	private final Map<Person, SBBScoringParameters> paramsPerPerson = new LinkedHashMap<>();
 	private final SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup;
@@ -43,17 +44,17 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
 	public SBBCharyparNagelScoringParametersForPerson(Scenario scenario) {
 		this(scenario.getConfig().plans(),
-				scenario.getConfig().planCalcScore(),
+				scenario.getConfig().scoring(),
 				scenario.getConfig().scenario(),
 				ConfigUtils.addOrGetModule(scenario.getConfig(), SBBBehaviorGroupsConfigGroup.class));
 	}
 
 	SBBCharyparNagelScoringParametersForPerson(
 			PlansConfigGroup plansConfigGroup,
-			PlanCalcScoreConfigGroup planCalcScoreConfigGroup,
+			ScoringConfigGroup ScoringConfigGroup,
 			ScenarioConfigGroup scenarioConfigGroup,
 			SBBBehaviorGroupsConfigGroup behaviorGroupsConfigGroup) {
-		this.config = planCalcScoreConfigGroup;
+		this.config = ScoringConfigGroup;
 		this.scConfig = scenarioConfigGroup;
 		this.behaviorGroupsConfigGroup = behaviorGroupsConfigGroup;
 	}
@@ -72,9 +73,9 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
 		final String subpopulation = PopulationUtils.getSubpopulation(person);
 
-		PlanCalcScoreConfigGroup.ScoringParameterSet scoringParameters = this.config.getScoringParameters(subpopulation);
-		PlanCalcScoreConfigGroup.ScoringParameterSet filteredParameters = (PlanCalcScoreConfigGroup.ScoringParameterSet) this.config
-				.createParameterSet(PlanCalcScoreConfigGroup.ScoringParameterSet.SET_TYPE);
+		ScoringConfigGroup.ScoringParameterSet scoringParameters = this.config.getScoringParameters(subpopulation);
+		ScoringConfigGroup.ScoringParameterSet filteredParameters = (ScoringConfigGroup.ScoringParameterSet) this.config
+				.createParameterSet(ScoringConfigGroup.ScoringParameterSet.SET_TYPE);
 
 		// make a (filtered) duplicate. Not very nice as it is not very future-proof, but I didn't find a better way to achieve the goal
 		Set<String> usedActTypes = new HashSet<>();
@@ -92,10 +93,10 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 		filteredParameters.setUtilityOfLineSwitch(scoringParameters.getUtilityOfLineSwitch());
 		filteredParameters.setEarlyDeparture_utils_hr(scoringParameters.getEarlyDeparture_utils_hr());
 		filteredParameters.setLateArrival_utils_hr(scoringParameters.getLateArrival_utils_hr());
-		for (PlanCalcScoreConfigGroup.ModeParams modeParams : scoringParameters.getModes().values()) {
+		for (ScoringConfigGroup.ModeParams modeParams : scoringParameters.getModes().values()) {
 			filteredParameters.addModeParams(modeParams);
 		}
-		for (PlanCalcScoreConfigGroup.ActivityParams actParams : scoringParameters.getActivityParams()) {
+		for (ScoringConfigGroup.ActivityParams actParams : scoringParameters.getActivityParams()) {
 			if (usedActTypes.contains(actParams.getActivityType())) {
 				filteredParameters.addActivityParams(actParams);
 			}
@@ -134,7 +135,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 
 		// collect the values for each mode
 		for (String mode : this.config.getModes().keySet()) {
-			final PlanCalcScoreConfigGroup.ModeParams defaultModeParams = this.config.getModes().get(mode);
+			final ScoringConfigGroup.ModeParams defaultModeParams = this.config.getModes().get(mode);
 			final ModeUtilityParameters.Builder modeParameteresBuilder = new ModeUtilityParameters.Builder(defaultModeParams);
 
 			double constant = defaultModeParams.getConstant();

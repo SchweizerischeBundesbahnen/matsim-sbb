@@ -57,10 +57,10 @@ public class GenerateSynpopAndHouseholds {
     private final ActivityFacilities facilities;
     private final double employmentProbability = 18103. / 24479.;
     private final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus);
-    Logger log = LogManager.getLogger(GenerateSynpopAndHouseholds.class);
-    Map<Id<Zone>, WeightedRandomSelection<Id<ActivityFacility>>> facilitySelector = new HashMap<>();
-    private Map<Id<Zone>, Map<String, Integer>> householdSizesPerZone = new HashMap<>();
-    private Map<Id<Zone>, WeightedRandomSelection<Integer>> ageDistributionPerZone = new HashMap<>();
+    final Logger log = LogManager.getLogger(GenerateSynpopAndHouseholds.class);
+    final Map<Id<Zone>, WeightedRandomSelection<Id<ActivityFacility>>> facilitySelector = new HashMap<>();
+    private final Map<Id<Zone>, Map<String, Integer>> householdSizesPerZone = new HashMap<>();
+    private final Map<Id<Zone>, WeightedRandomSelection<Integer>> ageDistributionPerZone = new HashMap<>();
     private int personNo = 11_000_000;
     private Map<Long, Set<Long>> buildingDataNodeStorage;
     private Map<Long, Coord> nodeStorage;

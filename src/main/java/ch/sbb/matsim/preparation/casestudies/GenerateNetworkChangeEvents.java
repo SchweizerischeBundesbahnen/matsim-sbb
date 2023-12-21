@@ -162,8 +162,4 @@ public class GenerateNetworkChangeEvents {
         new NetworkChangeEventsWriter().write(outputChangeEventsFile, networkChangeEvents);
     }
 
-    public List<NetworkChangeEvent> getNetworkChangeEvents() {
-        return networkChangeEvents;
-    }
-
 }

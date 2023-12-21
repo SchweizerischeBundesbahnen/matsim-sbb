@@ -47,7 +47,7 @@ public class ElevationDataParser {
     public static final String EPSG_3035 = "PROJCS[\"ETRS_1989_LAEA\",GEOGCS[\"GCS_ETRS_1989\",DATUM[\"D_ETRS_1989\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Lambert_Azimuthal_Equal_Area\"],PARAMETER[\"False_Easting\",4321000.0],PARAMETER[\"False_Northing\",3210000.0],PARAMETER[\"Central_Meridian\",10.0],PARAMETER[\"Latitude_Of_Origin\",52.0],UNIT[\"Meter\",1.0]]";
     private static GridCoverage2D grid;
     private static Raster gridData;
-    private CoordinateTransformation ct;
+    private final CoordinateTransformation ct;
 
     public ElevationDataParser(String tiffFile, String scenarioCRS) {
         this.ct = TransformationFactory.getCoordinateTransformation(scenarioCRS, EPSG_3035);

@@ -31,7 +31,7 @@ import java.util.Set;
 
 public class VisumStreetNetworkExporter {
 
-	public static final Set fullModeset = Set.of(SBBModes.CAR, SBBModes.RIDE, SBBModes.BIKE);
+	public static final Set<String> fullModeset = Set.of(SBBModes.CAR, SBBModes.RIDE, SBBModes.BIKE);
 	public static final Set<String> modeSetWithoutBike = Set.of(SBBModes.CAR, SBBModes.RIDE);
 	public static final Set<String> modeSetBikeOnly = Set.of(SBBModes.BIKE);
 	private final static Logger log = LogManager.getLogger(VisumStreetNetworkExporter.class);
