@@ -38,11 +38,12 @@ public class BorderCrossingAgentsOSMBuildingParser {
     final ExecutorService executor;
     private final CoordinateTransformation transformation;
     public final static List<String> RESIDENTIAL_TAGS = List.of("apartments", "barracks", " bungalow", "cabin", "detached", "dormitory", "farm", "ger", "house", "houseboat", "residential", "semdetached_house", "static_caravan", "stilt_house", "terrace", "yes");
+    // building = yes is used very often for residential buildings.
+
     private Map<Long, BuildingData> buildingData;
     private Map<Long, Set<Long>> buildingDataNodeStorage;
     private final Zones zones;
     private final Map<Id<Zone>, WeightedRandomSelection<Long>> weightedBuildingsPerZone = new HashMap<>();
-    // building = yes is used very often for residential buildings.
 
     private Map<Long, Coord> nodeStorage;
     private HashMap<Id<Zone>, BuildingsPerZone> buildingsPerZone;
@@ -91,19 +92,24 @@ public class BorderCrossingAgentsOSMBuildingParser {
 
         GeometryFactory fac = new GeometryFactory();
         int errors = 0;
+        int buildingErrors = 0;
         for (var data : buildingData.values()) {
+            Zone zone = null;
+            Polygon polygon = null;
+            try {
             Coordinate[] coords = new Coordinate[data.nodeIds.size() + 1];
             for (int i = 0; i < data.nodeIds.size(); i++) {
                 long nodeid = data.nodeIds().get(i);
                 Coord coord = nodeStorage.get(nodeid);
+                if (coord == null) {
+                    buildingErrors++;
+                }
                 coords[i] = new Coordinate(coord.getX(), coord.getY());
             }
             coords[data.nodeIds.size()] = coords[0];
-            Polygon polygon = fac.createPolygon(coords);
+                polygon = fac.createPolygon(coords);
             Coord centroid = MGC.point2Coord(polygon.getCentroid());
             data.setCentroid(centroid);
-            Zone zone = null;
-            try {
                  zone = zones.findZone(centroid);
             }
             catch (Exception e){
@@ -125,6 +131,7 @@ public class BorderCrossingAgentsOSMBuildingParser {
 
         }
         System.out.println("Errors in Zone Mapping "+errors);
+        System.out.println("Errors in Building Mapping " + buildingErrors);
         System.out.println("Buildings: " + buildingData.size());
 
 
@@ -211,14 +218,40 @@ public class BorderCrossingAgentsOSMBuildingParser {
 
     private double getZonalCorrectionFactor(Id<Zone> zoneId) {
         double factor = 1.0;
-        if (zoneId.toString().equals(("730101001"))) {
+        String zoneIdString = zoneId.toString();
+        if (zoneIdString.equals(("730101001"))) {
             //Campione, very densely built and too attractive
             factor = 0.3;
         }
-        if (zoneId.toString().equals(("710101001"))) {
+        if (zoneIdString.equals(("710101001"))) {
             //Buesingen am Hochrhein, high share of commuters
             factor = 3.0;
         }
+        List<String> annemasseZones = List.of("837108103",
+                "837108092",
+                "837108091",
+                "837108089",
+                "837108098",
+                "837108102",
+                "837108095",
+                "837108104",
+                "837108109",
+                "837108107",
+                "837108100",
+                "837108090",
+                "837108085",
+                "837108086");
+        if (annemasseZones.contains(zoneIdString)) {
+            factor = 0.4;
+        }
+        List<String> geneveTooUnatractiveZones = List.of("837108004", "837108151", "837108155", "837101004", "837108142", "837108121");
+        if (geneveTooUnatractiveZones.contains(zoneIdString)) {
+            factor = 5.0;
+        }
+
+
+
+
         return factor;
     }
 
