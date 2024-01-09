@@ -1,10 +1,11 @@
 package ch.sbb.matsim.analysis.skims;
 
 import com.google.common.io.Files;
+import org.junit.jupiter.api.Test;
+import org.locationtech.jts.util.Assert;
+
 import java.io.File;
 import java.io.IOException;
-import org.junit.Test;
-import org.locationtech.jts.util.Assert;
 
 public class CalculateIndicatorMatricesTest {
 

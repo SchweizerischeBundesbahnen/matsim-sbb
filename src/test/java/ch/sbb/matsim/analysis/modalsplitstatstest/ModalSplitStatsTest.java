@@ -10,8 +10,8 @@ import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.DefaultActivityTypes;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
@@ -38,7 +38,7 @@ public class ModalSplitStatsTest {
     private Population population;
     private String output;
 
-    @Before
+    @BeforeEach
     public void init() {
         System.setProperty("matsim.preferLocalDtds", "true");
         Config config = ConfigUtils.createConfig();

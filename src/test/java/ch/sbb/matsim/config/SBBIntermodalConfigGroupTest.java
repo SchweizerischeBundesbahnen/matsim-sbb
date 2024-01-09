@@ -1,7 +1,7 @@
 package ch.sbb.matsim.config;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
 import org.matsim.core.config.ConfigUtils;

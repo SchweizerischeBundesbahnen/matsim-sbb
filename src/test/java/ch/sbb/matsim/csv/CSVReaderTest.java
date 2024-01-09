@@ -4,12 +4,13 @@
 
 package ch.sbb.matsim.csv;
 
+import org.junit.Assert;
+import org.junit.jupiter.api.Test;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Map;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * @author mrieser / SBB

@@ -4,7 +4,7 @@ import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.HasPlansAndId;
 import org.matsim.core.config.ConfigUtils;

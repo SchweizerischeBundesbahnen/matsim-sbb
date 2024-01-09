@@ -2,8 +2,7 @@ package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -18,7 +17,7 @@ import org.matsim.testcases.MatsimTestUtils;
 
 public class NetworkMergerTest {
 
-	@Rule
+
 	public MatsimTestUtils utils = new MatsimTestUtils();
 
 	@Test

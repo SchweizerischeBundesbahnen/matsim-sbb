@@ -6,8 +6,8 @@ import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -40,11 +40,12 @@ import java.util.List;
  *
  * @author mrieser
  */
+
 public class TransferScoringTest {
 
 	private static final Logger log = LogManager.getLogger(TransferScoringTest.class);
 
-	@Rule
+	@RegisterExtension
 	public final MatsimTestUtils helper = new MatsimTestUtils();
 
 	@Test

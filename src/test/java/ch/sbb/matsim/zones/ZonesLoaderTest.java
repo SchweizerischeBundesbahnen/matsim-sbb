@@ -2,7 +2,7 @@ package ch.sbb.matsim.zones;
 
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;

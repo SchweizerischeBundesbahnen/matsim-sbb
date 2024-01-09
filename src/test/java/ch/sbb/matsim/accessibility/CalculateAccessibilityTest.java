@@ -2,7 +2,7 @@ package ch.sbb.matsim.accessibility;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.util.Assert;
 
 import java.io.File;

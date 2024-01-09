@@ -4,7 +4,7 @@ import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -156,9 +156,9 @@ public class SBBScoringFunctionTest {
 		params.addActivityParams(createActivityParams("home", 8 * 3600, 12 * 3600));
 		params.addActivityParams(createActivityParams("work", 3 * 3600, 8 * 3600));
 		params.addActivityParams(createActivityParams("edu", 3 * 3600, 6 * 3600));
-		params.addActivityParams(createActivityParams("shop", 1 * 3600, 2 * 3600));
-        params.addActivityParams(createActivityParams("leisure", 1 * 3600, 2 * 3600));
-        params.addActivityParams(createActivityParams("other", 1 * 3600, 3 * 3600));
+		params.addActivityParams(createActivityParams("shop", 3600, 2 * 3600));
+        params.addActivityParams(createActivityParams("leisure", 3600, 2 * 3600));
+        params.addActivityParams(createActivityParams("other", 3600, 3 * 3600));
 
         Scenario scenario = ScenarioUtils.createScenario(config);
         Population population = scenario.getPopulation();

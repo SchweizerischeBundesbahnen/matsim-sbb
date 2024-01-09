@@ -2,7 +2,8 @@ package ch.sbb.matsim.routing;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Activity;
@@ -42,13 +43,14 @@ public class SBBAnalysisMainModeIdentifierTest {
 
     }
 
-    @Test(expected = NullPointerException.class)
     public void testUnidentifiableMainMode() {
-        PopulationFactory pf = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation().getFactory();
-        Leg l1 = pf.createLeg(TransportMode.airplane);
-        List<PlanElement> feederTrip = List.of(l1);
-        MainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
-        mainModeIdentifier.identifyMainMode(feederTrip);
+        Assertions.assertThrows(NullPointerException.class, () -> {
+            PopulationFactory pf = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation().getFactory();
+            Leg l1 = pf.createLeg(TransportMode.airplane);
+            List<PlanElement> feederTrip = List.of(l1);
+            MainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
+            mainModeIdentifier.identifyMainMode(feederTrip);
+        });
 
     }
 
