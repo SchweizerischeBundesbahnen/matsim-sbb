@@ -68,6 +68,12 @@ public class BorderCrossingAgentsGenerator {
         bolzano.add(Id.create(842901005, Zone.class), 1.0);
         this.nuts3ToZoneSelector.put("ITH10", bolzano);
 
+        //Domodossola, all other zones are too far away
+        WeightedRandomSelection<Id<Zone>> domodossola = new WeightedRandomSelection(random);
+        domodossola.add(Id.create(841104011, Zone.class), 1.0);
+        this.nuts3ToZoneSelector.put("ITC14", domodossola);
+
+
         //tirolerOberland, all other zones are "far off behind the mountains"
         WeightedRandomSelection<Id<Zone>> tirolerOberland = new WeightedRandomSelection(random);
         tirolerOberland.add(Id.create(813304001, Zone.class), 1.0);

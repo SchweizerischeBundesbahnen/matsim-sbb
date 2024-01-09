@@ -1,12 +1,13 @@
 package ch.sbb.matsim.config;
 
-import java.io.ByteArrayInputStream;
-import java.util.Iterator;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
 import org.matsim.core.config.ConfigUtils;
+
+import java.io.ByteArrayInputStream;
+import java.util.Iterator;
 
 /**
  * @author mrieser

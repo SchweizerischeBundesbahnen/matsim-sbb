@@ -1,6 +1,6 @@
 package ch.sbb.matsim.rideshare;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RunSBBDRTScenarioIT {
 

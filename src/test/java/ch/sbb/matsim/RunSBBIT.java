@@ -1,6 +1,6 @@
 package ch.sbb.matsim;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.core.config.Config;
 
 /**

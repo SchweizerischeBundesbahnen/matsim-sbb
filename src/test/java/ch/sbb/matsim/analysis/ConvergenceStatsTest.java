@@ -7,8 +7,8 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import com.google.inject.Provider;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.analysis.CalcLinkStats;
 import org.matsim.analysis.IterationStopWatch;
 import org.matsim.analysis.ScoreStats;
@@ -41,8 +41,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ConvergenceStatsTest {
-
-	@Rule
+	@RegisterExtension
 	public final MatsimTestUtils utils = new MatsimTestUtils();
 
 	@Test
