@@ -21,19 +21,48 @@ package ch.sbb.matsim.routing.pt.raptor;
 
 import java.util.function.Supplier;
 
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.PathElement;
+
+
 /**
  * @author mrieser / Simunto
  */
 public class SBBRaptorTransferCostCalculator implements RaptorTransferCostCalculator {
+	private static final int TIME_UNDEFINED = -2147483648;
+
 	@Override
 	public double calcTransferCost(SwissRailRaptorCore.PathElement currentPE, Supplier<Transfer> transfer, RaptorStaticConfig staticConfig, RaptorParameters raptorParams, int totalTravelTime, int transferCount, double existingTransferCosts, double currentTime) {
 		double transferCostBase = raptorParams.getTransferPenaltyFixCostPerTransfer();
-		double transferCostModeToMode = staticConfig.isUseModeToModeTransferPenalty() ? staticConfig.getModeToModeTransferPenalty(transfer.get().getFromTransitRoute().getTransportMode(), transfer.get().getToTransitRoute().getTransportMode()) : 0.0;
 		double transferCostPerHour = raptorParams.getTransferPenaltyPerTravelTimeHour();
 		double transferCostMin = raptorParams.getTransferPenaltyMinimum();
 		double transferCostMax = raptorParams.getTransferPenaltyMaximum();
 
-		return (calcSingleTransferCost(transferCostBase + transferCostModeToMode, transferCostPerHour, transferCostMin, transferCostMax, totalTravelTime) * transferCount) - existingTransferCosts;
+		if (staticConfig.isUseModeToModeTransferPenalty()) {
+			double transferCostModeToMode = staticConfig.getModeToModeTransferPenalty(transfer.get().getFromTransitRoute().getTransportMode(), transfer.get().getToTransitRoute().getTransportMode());
+			SwissRailRaptorCore.PathElement firstPEOfTripPart = getFirstPEOfTripPart(currentPE, staticConfig);
+			double baseArrivalTransferCost = firstPEOfTripPart.arrivalTransferCost;
+			existingTransferCosts = existingTransferCosts - baseArrivalTransferCost;
+			int transferCountSinceModeChange = currentPE.transferCount - firstPEOfTripPart.transferCount;
+			double travelTimeSinceModeChange = totalTravelTime;
+			if (firstPEOfTripPart.arrivalTime != TIME_UNDEFINED) {
+				travelTimeSinceModeChange = totalTravelTime - firstPEOfTripPart.arrivalTime;
+			}
+
+			double singleTransferCost = calcSingleTransferCost(transferCostBase + transferCostModeToMode, transferCostPerHour, transferCostMin, transferCostMax, travelTimeSinceModeChange);
+			return (singleTransferCost * transferCountSinceModeChange) - existingTransferCosts + baseArrivalTransferCost;
+		} else {
+			return (calcSingleTransferCost(transferCostBase, transferCostPerHour, transferCostMin, transferCostMax, totalTravelTime) * transferCount) - existingTransferCosts;
+		}
+	}
+
+	public PathElement getFirstPEOfTripPart(SwissRailRaptorCore.PathElement fromPE, RaptorStaticConfig staticConfig) {
+		PathElement firstElement = fromPE;
+		String mode = firstElement.toRouteStop.route.getTransportMode();
+		while ((firstElement.comingFrom != null) && ((staticConfig.isUseModeToModeTransferPenalty() ? staticConfig.getModeToModeTransferPenalty(firstElement.comingFrom.toRouteStop.route.getTransportMode(), mode):0)>0)) {
+			firstElement = firstElement.comingFrom;
+		}
+
+		return firstElement;
 	}
 
 	private double calcSingleTransferCost(double costBase, double costPerHour, double costMin, double costMax, double travelTime) {
