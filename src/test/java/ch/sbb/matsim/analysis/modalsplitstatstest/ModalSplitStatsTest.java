@@ -9,24 +9,14 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.List;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.DefaultActivityTypes;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.Population;
-import org.matsim.api.core.v01.population.PopulationFactory;
-import org.matsim.api.core.v01.population.Route;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
@@ -36,6 +26,11 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
+
 public class ModalSplitStatsTest {
 
     private ModalSplitStats modalSplitStats;
@@ -43,14 +38,14 @@ public class ModalSplitStatsTest {
     private Population population;
     private String output;
 
-    @Before
+    @BeforeEach
     public void init() {
         System.setProperty("matsim.preferLocalDtds", "true");
         Config config = ConfigUtils.createConfig();
         Scenario scenario = ScenarioUtils.createScenario(config);
 
         config.qsim().setEndTime(30 * 3600);
-        config.controler().setRunId("ModalSplitStatsTest");
+        config.controller().setRunId("ModalSplitStatsTest");
 
         new PopulationReader(scenario).readFile("test/input/scenarios/mobi31test/output_plans.xml");
         new TransitScheduleReader(scenario).readFile("test/input/scenarios/mobi31test/transitSchedule.xml.gz");
@@ -66,7 +61,7 @@ public class ModalSplitStatsTest {
 
         this.populationFactory = scenario.getPopulation().getFactory();
         this.population = scenario.getPopulation();
-        this.output = RunSBB.buildConfig("test/input/scenarios/mobi31test/config.xml").controler().getOutputDirectory();
+        this.output = RunSBB.buildConfig("test/input/scenarios/mobi31test/config.xml").controller().getOutputDirectory();
 
         this.modalSplitStats = new ModalSplitStats(zonesCollection, config, scenario);
     }
@@ -169,11 +164,11 @@ public class ModalSplitStatsTest {
 
                 if (tmpLine[header.indexOf(MSVariables.subpopulation)].equals(Variables.REGULAR)) {
                     if (tmpLine[header.indexOf(MSVariables.mode)].equals(SBBModes.CAR)) {
-                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLable.get(2))]));
+                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLabel.get(2))]));
                     } else if (tmpLine[header.indexOf(MSVariables.mode)].equals(SBBModes.WALK_FOR_ANALYSIS)) {
-                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLable.get(1))]));
+                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLabel.get(1))]));
                     } else {
-                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLable.get(3))]));
+                        Assert.assertEquals(0, Long.parseLong(tmpLine[header.indexOf(MSVariables.distanceClassesLabel.get(3))]));
                     }
                 }
             }

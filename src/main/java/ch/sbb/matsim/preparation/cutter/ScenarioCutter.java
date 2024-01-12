@@ -954,10 +954,10 @@ public class ScenarioCutter {
 		}
 		// ignore startLink, we look for the route end and know that the route does not start inside
 		Collections.reverse(linkIds);
-		if (linkIds.size() == 0) {
+		if (linkIds.isEmpty()) {
 			return null;
 		}
-		return RouteUtils.createNetworkRoute(linkIds, network);
+		return RouteUtils.createNetworkRoute(linkIds);
 	}
 
 	private NetworkRoute findAvailableRouteStart(CutContext ctx, NetworkRoute route) {
@@ -975,11 +975,11 @@ public class ScenarioCutter {
 			}
 		}
 		// ignore endLink, we look for the route start and know that the route does not end inside
-		if (linkIds.size() == 0) {
+		if (linkIds.isEmpty()) {
 			return null;
 		}
 
-		return RouteUtils.createNetworkRoute(linkIds, network);
+		return RouteUtils.createNetworkRoute(linkIds);
 	}
 
 	private NetworkRoute findAvailableRoutePart(CutContext ctx, NetworkRoute route) {
@@ -994,16 +994,16 @@ public class ScenarioCutter {
 			if (isInside) {
 				linkIds.add(linkId);
 			} else if (!linkIds.isEmpty()) {
-				return RouteUtils.createNetworkRoute(linkIds, network);
+				return RouteUtils.createNetworkRoute(linkIds);
 			}
 		}
 		if (network.getLinks().containsKey(route.getEndLinkId())) {
 			linkIds.add(route.getEndLinkId());
 		}
-		if (linkIds.size() == 0) {
+		if (linkIds.isEmpty()) {
 			return null;
 		} else {
-			return RouteUtils.createNetworkRoute(linkIds, network);
+			return RouteUtils.createNetworkRoute(linkIds);
 		}
 	}
 

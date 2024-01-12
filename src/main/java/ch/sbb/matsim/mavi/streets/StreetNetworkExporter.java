@@ -144,7 +144,7 @@ public class StreetNetworkExporter {
         Set<Link> toRemove = network.getLinks().values().stream().filter(link -> link.getAllowedModes().isEmpty()).collect(Collectors.toSet());
         LogManager.getLogger(StreetNetworkExporter.class).info("Removing " + toRemove.size() + " links in multimodal cleanup.");
         toRemove.forEach(link -> network.removeLink(link.getId()));
-        Set<Node> nodesToRemove = network.getNodes().values().stream().filter(node -> node.getOutLinks().size() == 0 && node.getInLinks().size() == 0).collect(Collectors.toSet());
+        Set<Node> nodesToRemove = network.getNodes().values().stream().filter(node -> node.getOutLinks().isEmpty() && node.getInLinks().isEmpty()).collect(Collectors.toSet());
         LogManager.getLogger(StreetNetworkExporter.class).info("Removing " + nodesToRemove.size() + " nodes in multimodal cleanup.");
 
         nodesToRemove.forEach(node -> network.removeNode(node.getId()));
@@ -205,13 +205,13 @@ public class StreetNetworkExporter {
         cleaner.run(bikenet);
 
 
-        List<Link> deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().size() == 0 || link.getFromNode().getInLinks().size() == 0).collect(Collectors.toList());
+        List<Link> deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().isEmpty() || link.getFromNode().getInLinks().isEmpty()).collect(Collectors.toList());
 
         while (!deadEnds.isEmpty()) {
             for (var link : deadEnds) {
                 bikenet.removeLink(link.getId());
             }
-            deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().size() == 0 || link.getFromNode().getInLinks().size() == 0).collect(Collectors.toList());
+            deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().isEmpty() || link.getFromNode().getInLinks().isEmpty()).collect(Collectors.toList());
 
         }
         for (Link l : network.getLinks().values()) {

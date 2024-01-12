@@ -6,18 +6,6 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressPar
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.csv.CSVWriter;
-import java.awt.Font;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 import jakarta.inject.Inject;
 import org.apache.commons.math3.stat.Frequency;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -48,6 +36,13 @@ import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
+import java.awt.*;
+import java.io.IOException;
+import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 public class SBBTransferAnalysisListener implements IterationEndsListener {
 
     private final Set<String> monitoredPtModes;
@@ -76,7 +71,7 @@ public class SBBTransferAnalysisListener implements IterationEndsListener {
                 .collect(Collectors.toSet());
         monitoredAccessEgressModes.remove(SBBModes.ACCESS_EGRESS_WALK);
         monitoredPtModes = config.transit().getTransitModes();
-        writePng = config.controler().isCreateGraphs();
+        writePng = false;
         railLines = scenario.getTransitSchedule().getTransitLines().values()
                 .stream()
                 .flatMap(l -> l.getRoutes().values().stream())

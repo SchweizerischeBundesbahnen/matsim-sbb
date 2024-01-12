@@ -4,19 +4,10 @@
 
 package ch.sbb.matsim.preparation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import ch.sbb.matsim.config.variables.SBBModes;
-import java.io.ByteArrayInputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.junit.Rule;
-import org.junit.Test;
+import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
@@ -27,6 +18,13 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.testcases.MatsimTestUtils;
+
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author pmanser / SBB
@@ -41,7 +39,6 @@ public class CleanerTest {
 	private final static List<String> SUBPOP_ALL = Collections.singletonList("all");
 	private final static List<String> SUBPOP_CB = Collections.singletonList("cb");
 	private final static List<String> SUBPOP_FREIGHT = Collections.singletonList("freight");
-	@Rule
 	public MatsimTestUtils utils = new MatsimTestUtils();
 
 	@Test

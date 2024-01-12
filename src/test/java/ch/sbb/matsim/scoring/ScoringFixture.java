@@ -34,14 +34,14 @@ public class ScoringFixture {
     final Scenario scenario;
 
     ScoringFixture() {
-        this.config = ConfigUtils.createConfig();
-        this.config.planCalcScore().getModes().get(SBBModes.PT).setConstant(-1.0);
-        this.config.planCalcScore().getModes().get(SBBModes.PT).setMarginalUtilityOfTraveling(1.14);
-        this.config.planCalcScore().getModes().get(SBBModes.PT).setMarginalUtilityOfDistance(0.0);
-        this.config.planCalcScore().getModes().get(SBBModes.PT).setMonetaryDistanceRate(-0.000300);
-        this.scenario = ScenarioUtils.createScenario(this.config);
-        this.sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
-        addStageInteractionScoring(this.config);
+		this.config = ConfigUtils.createConfig();
+		this.config.scoring().getModes().get(SBBModes.PT).setConstant(-1.0);
+		this.config.scoring().getModes().get(SBBModes.PT).setMarginalUtilityOfTraveling(1.14);
+		this.config.scoring().getModes().get(SBBModes.PT).setMarginalUtilityOfDistance(0.0);
+		this.config.scoring().getModes().get(SBBModes.PT).setMonetaryDistanceRate(-0.000300);
+		this.scenario = ScenarioUtils.createScenario(this.config);
+		this.sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
+		addStageInteractionScoring(this.config);
 	}
 
 	static void addStageInteractionScoring(Config config) {

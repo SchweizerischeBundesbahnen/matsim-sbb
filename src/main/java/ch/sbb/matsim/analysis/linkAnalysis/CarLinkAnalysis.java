@@ -35,7 +35,6 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.utils.collections.Tuple;
-import org.matsim.core.utils.io.UncheckedIOException;
 
 import java.io.*;
 import java.util.Map;
@@ -71,17 +70,17 @@ public class CarLinkAnalysis {
 	}
 
 	public void writeMultiIterationCarStats(String filename, int iteration) {
-		try (OutputStream os = new GZIPOutputStream(new FileOutputStream(new File(filename), true))) {
-			BufferedWriter w = new BufferedWriter(new OutputStreamWriter(os));
-			if (firstcall) {
-				carlinks = network.getLinks().values()
-						.stream()
-						.filter(l -> l.getAllowedModes().contains(SBBModes.CAR))
-						.map(Identifiable::getId)
-						//.map(LinkStorage::new)
-						.collect(Collectors.toCollection(TreeSet::new));
-				w.write("Iteration;" + carlinks.stream().map(Objects::toString).collect(Collectors.joining(";")));
-				firstcall = false;
+		try (OutputStream os = new GZIPOutputStream(new FileOutputStream(filename, true))) {
+            BufferedWriter w = new BufferedWriter(new OutputStreamWriter(os));
+            if (firstcall) {
+                carlinks = network.getLinks().values()
+                        .stream()
+                        .filter(l -> l.getAllowedModes().contains(SBBModes.CAR))
+                        .map(Identifiable::getId)
+                        //.map(LinkStorage::new)
+                        .collect(Collectors.toCollection(TreeSet::new));
+                w.write("Iteration;" + carlinks.stream().map(Objects::toString).collect(Collectors.joining(";")));
+                firstcall = false;
 			}
 			var linkVolumes = linkAnalyzer.getIterationCounts();
 			w.newLine();

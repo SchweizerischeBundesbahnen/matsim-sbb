@@ -2,7 +2,7 @@ package ch.sbb.matsim.zones;
 
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -15,6 +15,13 @@ public class ZonesLoaderTest {
 	@Test
 	public void testLoadZones() {
 		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP", "ID");
+		Assert.assertEquals("testZones", zones.getId().toString());
+		Assert.assertEquals(5, zones.size());
+	}
+
+	@Test
+	public void testLoadZonesGeopackage() {
+		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.gpkg", "ID");
 		Assert.assertEquals("testZones", zones.getId().toString());
 		Assert.assertEquals(5, zones.size());
 	}

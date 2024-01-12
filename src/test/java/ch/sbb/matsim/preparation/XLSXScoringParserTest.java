@@ -9,16 +9,15 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.testcases.MatsimTestUtils;
 
 public class XLSXScoringParserTest {
 
-	@Rule
+
 	public MatsimTestUtils utils = new MatsimTestUtils();
 
 	/*
@@ -43,7 +42,7 @@ public class XLSXScoringParserTest {
 
 		XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 
-		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+		ScoringConfigGroup planCalcScore = config.scoring();
 
 		Assert.assertEquals(utilOfLineSwitch, planCalcScore.getUtilityOfLineSwitch(), 0);
 	}
@@ -71,7 +70,7 @@ public class XLSXScoringParserTest {
 
 		XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 
-		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+		ScoringConfigGroup planCalcScore = config.scoring();
 
 		Assert.assertEquals(constantCar, planCalcScore.getOrCreateModeParams(mode).getConstant(), 0);
 	}

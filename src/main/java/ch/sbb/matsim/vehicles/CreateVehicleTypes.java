@@ -14,7 +14,7 @@ import org.matsim.vehicles.VehiclesFactory;
 
 public class CreateVehicleTypes {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
 		Map<String, Double> typeToPCE = new HashMap<>();

@@ -1,11 +1,9 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import java.io.BufferedReader;
-import java.io.IOException;
 import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -18,10 +16,12 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.testcases.MatsimTestUtils;
 
-public class PopulationToCSVTest {
+import java.io.BufferedReader;
+import java.io.IOException;
 
-	@Rule
-	public MatsimTestUtils utils = new MatsimTestUtils();
+public class PopulationToCSVTest {
+	@RegisterExtension
+	public final MatsimTestUtils utils = new MatsimTestUtils();
 
 	@Test
 	public final void testPopulationPostProc() throws IOException {

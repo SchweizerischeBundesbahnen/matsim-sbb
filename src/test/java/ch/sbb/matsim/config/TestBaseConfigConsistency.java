@@ -20,7 +20,7 @@
 package ch.sbb.matsim.config;
 
 import ch.sbb.matsim.RunSBB;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 

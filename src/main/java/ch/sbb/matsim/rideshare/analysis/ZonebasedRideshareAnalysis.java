@@ -6,6 +6,7 @@ import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
+import jakarta.inject.Inject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.PersonArrivalEvent;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
@@ -25,8 +26,6 @@ import org.matsim.contrib.dvrp.passenger.PassengerRequestRejectedEventHandler;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-
-import jakarta.inject.Inject;
 
 import java.io.IOException;
 import java.util.DoubleSummaryStatistics;
@@ -82,8 +81,8 @@ public class ZonebasedRideshareAnalysis implements DrtRequestSubmittedEventHandl
 
 	@Override
 	public void handleEvent(DrtRequestSubmittedEvent drtRequestSubmittedEvent) {
-		openRequests.put(drtRequestSubmittedEvent.getRequestId(), drtRequestSubmittedEvent.getPersonId());
-		currentDepartures.get(drtRequestSubmittedEvent.getPersonId()).directTraveltime = drtRequestSubmittedEvent.getUnsharedRideTime();
+		openRequests.put(drtRequestSubmittedEvent.getRequestId(), drtRequestSubmittedEvent.getPersonIds().get(0));
+		currentDepartures.get(drtRequestSubmittedEvent.getPersonIds().get(0)).directTraveltime = drtRequestSubmittedEvent.getUnsharedRideTime();
 	}
 
 	@Override

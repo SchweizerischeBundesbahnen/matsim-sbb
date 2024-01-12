@@ -75,14 +75,14 @@ public final class MSVariables {
     public static final int travelTimeSplit = 10 * 60;
     public static final int lastTravelTimeValue = 5 * 60 * 60;
     public static final List<Integer> distanceClassesValue = List.of(2, 4, 6, 8, 10, 15, 20, 25, 30, 40, 50, 100, 150, 200, 250, 300);
-    public static final List<String> distanceClassesLable = List.of("0-2", "2-4", "4-6", "6-8", "8-10", "10-15", "15-20", "20-25", "25-30", "30-40", "40-50", "50-100", "100-150", "150-200", "200-250", "250-300", "300+");
+    public static final List<String> distanceClassesLabel = List.of("0-2", "2-4", "4-6", "6-8", "8-10", "10-15", "15-20", "20-25", "25-30", "30-40", "40-50", "50-100", "100-150", "150-200", "200-250", "250-300", "300+");
     public static final List<Integer> distanceClassesFeederValue = List.of(-1, 0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3200, 3400, 3600, 3800, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 20000, 30000, 9999999);
-    public static final List<String> distanceClassesFeederLable = List.of("na", "0", "0-200", "200-400", "400-600", "600-800", "800-1000", "1000-1200", "1200-1400", "1400-1600", "1600-1800",
+    public static final List<String> distanceClassesFeederLabel = List.of("na", "0", "0-200", "200-400", "400-600", "600-800", "800-1000", "1000-1200", "1200-1400", "1400-1600", "1600-1800",
             "1800-2000", "2000-2200", "2200-2400", "2400-2600", "2600-2800", "2800-3000", "3000-3200", "3200-3400",
             "3400-3600", "3600-3800", "3800-4000", "4000-5000", "5000-6000", "6000-7000", "7000-8000", "8000-9000",
             "9000-10000", "10000-20000", "20000-30000", "30000+");
     public static final List<String> changeOrderList = List.of(changeTrain, changeOPNV, changeOEV, changeTrainFQ, changeTrainAll);
-    public static final List<String> changeLableList = List.of("0", "1", "2", "3", "4", ">=5");
+    public static final List<String> changeLabelList = List.of("0", "1", "2", "3", "4", ">=5");
     public static final List<String> modesMS = List.of(walk, ride, car, pt, bike, avtaxi, drt);
     public static final List<String> submodes = List.of(rail, fqrail);
     public static final List<String> carAvailable = List.of(carAvailableTrue, carAvailableFalse);
@@ -93,7 +93,7 @@ public final class MSVariables {
     public static final List<String> ageCategory = List.of(ageCat17, ageCat24, ageCat44, ageCat64, ageCat74, ageCatXX);
     public static final List<String> toActTypeList = List.of(home, cbhome, leisure, other, freight, business, shopping, work, education, exogeneous, accompany);
     public static final List<List<String>> varList = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategory , toActTypeList, submodes);
-    public static final List<List<String>> varListFeeder = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategory , toActTypeList, distanceClassesFeederLable);
+    public static final List<List<String>> varListFeeder = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategory , toActTypeList, distanceClassesFeederLabel);
     public static final List<List<String>> varTimeList = List.of(modesMS, submodes, toActTypeList);
     public static final String oNMiddleTimeSteps = "middle_time_distribution.csv";
     public static final String oNTravelTimeDistribution = "travel_time_distribution.csv";
@@ -108,6 +108,11 @@ public final class MSVariables {
     public static final String oNChangesPKM = "changes_pkm.csv";
     public static final String oNStopStationsCount = "stop_stations_count.csv";
     public static final String oNTrainStrationsCount = "train_stations_count.csv";
+    public static final String STOP_AREA_CODE = "11_Stop_Area_Code";
+    public static final String STOP_AREA_NAME = "10_Stop_Area_Name";
+    public static final String STOP_NO = "02_Stop_No";
+    public static final String STOP_CODE = "03_Stop_Code";
+
     private MSVariables() {
     }
 

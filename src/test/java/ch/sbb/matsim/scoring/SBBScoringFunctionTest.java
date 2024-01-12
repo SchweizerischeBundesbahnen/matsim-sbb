@@ -3,27 +3,23 @@ package ch.sbb.matsim.scoring;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
-import java.util.List;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.Population;
-import org.matsim.api.core.v01.population.PopulationFactory;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.pt.PtConstants;
+
+import java.util.List;
 
 /**
  * @author mrieser
@@ -75,24 +71,24 @@ public class SBBScoringFunctionTest {
 
 		List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(plan);
 
-		PlanCalcScoreConfigGroup.ActivityParams homeParams = new PlanCalcScoreConfigGroup.ActivityParams("home");
+		ScoringConfigGroup.ActivityParams homeParams = new ScoringConfigGroup.ActivityParams("home");
 		homeParams.setTypicalDuration(12 * 3600);
 		homeParams.setMinimalDuration(8 * 3600);
-		config.planCalcScore().addActivityParams(homeParams);
+		config.scoring().addActivityParams(homeParams);
 
 		// set all leg and activity scoring to 0, so we can measure the transfers only
-		config.planCalcScore().setPerforming_utils_hr(0.0);
-		PlanCalcScoreConfigGroup.ModeParams ptScoring = new PlanCalcScoreConfigGroup.ModeParams("pt");
+		config.scoring().setPerforming_utils_hr(0.0);
+		ScoringConfigGroup.ModeParams ptScoring = new ScoringConfigGroup.ModeParams("pt");
 		ptScoring.setMarginalUtilityOfDistance(0.0);
 		ptScoring.setMarginalUtilityOfTraveling(0.0);
-		PlanCalcScoreConfigGroup.ModeParams walkScoring = new PlanCalcScoreConfigGroup.ModeParams("walk");
+		ScoringConfigGroup.ModeParams walkScoring = new ScoringConfigGroup.ModeParams("walk");
 		walkScoring.setMarginalUtilityOfDistance(0.0);
 		walkScoring.setMarginalUtilityOfTraveling(0.0);
-		config.planCalcScore().addModeParams(ptScoring);
-		config.planCalcScore().addModeParams(walkScoring);
+		config.scoring().addModeParams(ptScoring);
+		config.scoring().addModeParams(walkScoring);
 
 		// now set our transfer scoring parameters
-		config.planCalcScore().setUtilityOfLineSwitch(-3.0); // set this, but it should get ignored
+		config.scoring().setUtilityOfLineSwitch(-3.0); // set this, but it should get ignored
 		SBBBehaviorGroupsConfigGroup sbbParams = ConfigUtils.addOrGetModule(config, SBBBehaviorGroupsConfigGroup.class);
 		sbbParams.setBaseTransferUtility(-1.0);
 		sbbParams.setTransferUtilityPerTravelTime_utils_hr(-2.0);
@@ -156,13 +152,13 @@ public class SBBScoringFunctionTest {
 		SBBBehaviorGroupsConfigGroup sbbBehaviour = new SBBBehaviorGroupsConfigGroup();
 		Config config = ConfigUtils.createConfig(sbbBehaviour);
 		ScoringFixture.addStageInteractionScoring(config);
-		PlanCalcScoreConfigGroup.ScoringParameterSet params = config.planCalcScore().getOrCreateScoringParameters(null);
+		ScoringConfigGroup.ScoringParameterSet params = config.scoring().getOrCreateScoringParameters(null);
 		params.addActivityParams(createActivityParams("home", 8 * 3600, 12 * 3600));
 		params.addActivityParams(createActivityParams("work", 3 * 3600, 8 * 3600));
 		params.addActivityParams(createActivityParams("edu", 3 * 3600, 6 * 3600));
-		params.addActivityParams(createActivityParams("shop", 1 * 3600, 2 * 3600));
-        params.addActivityParams(createActivityParams("leisure", 1 * 3600, 2 * 3600));
-        params.addActivityParams(createActivityParams("other", 1 * 3600, 3 * 3600));
+		params.addActivityParams(createActivityParams("shop", 3600, 2 * 3600));
+        params.addActivityParams(createActivityParams("leisure", 3600, 2 * 3600));
+        params.addActivityParams(createActivityParams("other", 3600, 3 * 3600));
 
         Scenario scenario = ScenarioUtils.createScenario(config);
         Population population = scenario.getPopulation();
@@ -175,7 +171,7 @@ public class SBBScoringFunctionTest {
 
         int interactionActtypeCount = SBBActivities.stageActivityTypeList.size();
 
-        SBBCharyparNagelScoringParametersForPerson spfp = new SBBCharyparNagelScoringParametersForPerson(config.plans(), config.planCalcScore(), config.scenario(), sbbBehaviour);
+		SBBCharyparNagelScoringParametersForPerson spfp = new SBBCharyparNagelScoringParametersForPerson(config.plans(), config.scoring(), config.scenario(), sbbBehaviour);
 
         SBBScoringParameters sp1 = spfp.getSBBScoringParameters(w1);
         ActivityUtilityParameters home1 = sp1.getMatsimScoringParameters().utilParams.get("home");
@@ -209,18 +205,18 @@ public class SBBScoringFunctionTest {
 		Assert.assertSame("parameters for home should be the same object.", work1, work2);
 	}
 
-	private PlanCalcScoreConfigGroup.ActivityParams createActivityParams(String type, double minDuration, double typicalDuration) {
-        PlanCalcScoreConfigGroup.ActivityParams params = new PlanCalcScoreConfigGroup.ActivityParams(type);
-        params.setMinimalDuration(minDuration);
-        params.setTypicalDuration(typicalDuration);
-        return params;
-    }
+	private ScoringConfigGroup.ActivityParams createActivityParams(String type, double minDuration, double typicalDuration) {
+		ScoringConfigGroup.ActivityParams params = new ScoringConfigGroup.ActivityParams(type);
+		params.setMinimalDuration(minDuration);
+		params.setTypicalDuration(typicalDuration);
+		return params;
+	}
 
-    private Person createWorkPerson(PopulationFactory pf, String id) {
-        return createPerson(pf, id, "work");
-    }
+	private Person createWorkPerson(PopulationFactory pf, String id) {
+		return createPerson(pf, id, "work");
+	}
 
-    private Person createEduPerson(PopulationFactory pf) {
+	private Person createEduPerson(PopulationFactory pf) {
         return createPerson(pf, "e3", "edu");
     }
 

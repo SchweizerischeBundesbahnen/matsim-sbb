@@ -6,28 +6,19 @@ package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.SBBScoringParametersConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * XLSXScoringParser.
@@ -62,12 +53,13 @@ public class XLSXScoringParser {
 	static final String TRANSFER_UTILITY_BASE = "transferUtilityBase";
 	static final String TRANSFER_UTILITY_MINIMUM = "transferUtilityMinimum";
 	static final String TRANSFER_UTILITY_MAXIMUM = "transferUtilityMaximum";
+	static final String TRANSFER_UTILITY_RAIL_OEPNV = "transferUtilityRailOePNV";
 	static final String BEHAVIOR_GROUP_LABEL = "BehaviorGroup";
 	private static final String GLOBAL = "global";
 	private static final String[] GENERAL_PARAMS_ARRAY = new String[]{UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
 	private static final String[] MODE_PARAMS_ARRAY = new String[]{CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
 	private static final String[] SBB_GENERAL_PARAMS_ARRAY = new String[]{MARGINAL_UTILITY_OF_PARKINGPRICE, TRANSFER_UTILITY_PER_TRAVEL_TIME, TRANSFER_UTILITY_BASE, TRANSFER_UTILITY_MINIMUM,
-			TRANSFER_UTILITY_MAXIMUM};
+			TRANSFER_UTILITY_MAXIMUM, TRANSFER_UTILITY_RAIL_OEPNV};
 	private static final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
 	private static final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
 	private static final Set<String> SBB_GENERAL_PARAMS = new HashSet<>(Arrays.asList(SBB_GENERAL_PARAMS_ARRAY));
@@ -91,6 +83,21 @@ public class XLSXScoringParser {
 		new ConfigWriter(config).write(configOut);
 	}
 
+	public static void buildScoringBehaviourGroups(Config config) {
+		String excelPath = ConfigUtils.addOrGetModule(config, SBBScoringParametersConfigGroup.class).getScoringParametersExcelPath();
+		if (excelPath != null) {
+			try (FileInputStream inputStream = new FileInputStream(excelPath)) {
+				Workbook workbook = WorkbookFactory.create(inputStream);
+
+				XLSXScoringParser.parseXLSXWorkbook(workbook, config);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			log.info("Not parsing excel file, assuming scoring parameters are set in config.");
+		}
+	}
+
 	/**
 	 * parseXLSXWorkbook
 	 *
@@ -102,7 +109,7 @@ public class XLSXScoringParser {
 	 * @param config (required) MATSim config instance, must contain ALL configured config modules, otherwise their settings will be deleted from the config output.
 	 */
 	public static void parseXLSXWorkbook(Workbook workbook, Config config) {
-		PlanCalcScoreConfigGroup planCalcScore = config.planCalcScore();
+		ScoringConfigGroup planCalcScore = config.scoring();
 		SBBBehaviorGroupsConfigGroup behaviorGroupConfigGroup = ConfigUtils.addOrGetModule(config, SBBBehaviorGroupsConfigGroup.class);
 		SwissRailRaptorConfigGroup raptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
 
@@ -128,18 +135,18 @@ public class XLSXScoringParser {
 	 * first column. Strings found in the same row and present in the MODES array will be interpreted as modes</p>
 	 *
 	 * @param scoringParamsSheet (required) the workbook sheet, usually labelled "ScoringParams"
-	 * @param planCalcScore (required) MATSim configGroup instance
+	 * @param planCalcScore      (required) MATSim configGroup instance
 	 */
-	protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, PlanCalcScoreConfigGroup planCalcScore,
-			SBBBehaviorGroupsConfigGroup sbbParams, SwissRailRaptorConfigGroup raptorConfigGroup) {
-		Map<Integer, PlanCalcScoreConfigGroup.ModeParams> modeParamsConfig = new TreeMap<>();
+	protected static void parseScoringParamsSheet(Sheet scoringParamsSheet, ScoringConfigGroup planCalcScore,
+												  SBBBehaviorGroupsConfigGroup sbbParams, SwissRailRaptorConfigGroup raptorConfigGroup) {
+		Map<Integer, ScoringConfigGroup.ModeParams> modeParamsConfig = new TreeMap<>();
 		Set<String> modes = new TreeSet<>();
 		Integer generalParamsCol = null;
 
 		for (Row row : scoringParamsSheet) {
 			Cell firstCell = row.getCell(0);
 
-			if ((firstCell != null) && (firstCell.getCellTypeEnum() == CellType.STRING)) {
+			if ((firstCell != null) && (firstCell.getCellType() == CellType.STRING)) {
 				String rowLabel = firstCell.getStringCellValue();
 
 				if (rowLabel.equals(MATSIM_PARAMS_LABEL)) {
@@ -148,26 +155,26 @@ public class XLSXScoringParser {
 					for (int col = 1; col < lastColumn; col++) {
 						Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
 
-						if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
+						if ((cell != null) && (cell.getCellType() == CellType.STRING)) {
 							String mode = cell.getStringCellValue();
 
 							if (mode.equals(GENERAL_PARAMS_LABEL)) {
 								generalParamsCol = col;
 							} else if (!modes.contains(mode)) {
-								PlanCalcScoreConfigGroup.ModeParams modeParams = planCalcScore.getOrCreateModeParams(mode);
+								ScoringConfigGroup.ModeParams modeParams = planCalcScore.getOrCreateModeParams(mode);
 								modeParamsConfig.put(col, modeParams);
 								modes.add(mode);
 							}
 						}
 					}
 
-					log.info("found parameters for modes: " + modes.toString());
+					log.info("found parameters for modes: " + modes);
 				} else if (MODE_PARAMS.contains(rowLabel)) {
-					for (Map.Entry<Integer, PlanCalcScoreConfigGroup.ModeParams> entry : modeParamsConfig.entrySet()) {
+					for (Map.Entry<Integer, ScoringConfigGroup.ModeParams> entry : modeParamsConfig.entrySet()) {
 						Cell cell = row.getCell(entry.getKey());
-						PlanCalcScoreConfigGroup.ModeParams modeParams = entry.getValue();
+						ScoringConfigGroup.ModeParams modeParams = entry.getValue();
 
-						if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+						if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 							try {
 								double numericCellValue = cell.getNumericCellValue();
 
@@ -193,7 +200,7 @@ public class XLSXScoringParser {
 				} else if (GENERAL_PARAMS.contains(rowLabel)) {
 					Cell cell = row.getCell(generalParamsCol);
 
-					if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+					if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 						try {
 							planCalcScore.addParam(rowLabel, String.valueOf(cell.getNumericCellValue()));
 						} catch (IllegalStateException e) {
@@ -203,7 +210,7 @@ public class XLSXScoringParser {
 				} else if (SBB_GENERAL_PARAMS.contains(rowLabel)) {
 					Cell cell = row.getCell(generalParamsCol);
 
-					if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+					if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 						double paramValue = cell.getNumericCellValue();
 						switch (rowLabel) {
 							case MARGINAL_UTILITY_OF_PARKINGPRICE:
@@ -224,6 +231,10 @@ public class XLSXScoringParser {
 							case TRANSFER_UTILITY_MAXIMUM:
 								sbbParams.setMaximumTransferUtility(paramValue);
 								raptorConfigGroup.setTransferPenaltyMaxCost(-1.0 * paramValue);
+								break;
+							case TRANSFER_UTILITY_RAIL_OEPNV:
+								sbbParams.setTransferUtilityRailOePNV(paramValue);
+								 // raptorConfigGroup.setTransferPenaltyRailOePNV(-1.0 * paramValue);
 								break;
 							default:
 								log.error("Unsupported parameter: " + rowLabel);
@@ -267,9 +278,9 @@ public class XLSXScoringParser {
 
 			String rowLabel;
 
-			if (firstCell.getCellTypeEnum() == CellType.STRING) {
+			if (firstCell.getCellType() == CellType.STRING) {
 				rowLabel = firstCell.getStringCellValue();
-			} else if (firstCell.getCellTypeEnum() == CellType.NUMERIC) {
+			} else if (firstCell.getCellType() == CellType.NUMERIC) {
 				rowLabel = String.valueOf((int) firstCell.getNumericCellValue());
 			} else {
 				continue; // ignore rows not starting with a String or Numeric value (e.g. formula in A1)
@@ -279,7 +290,7 @@ public class XLSXScoringParser {
 				Row belowRow = behaviorGroupParamsSheet.getRow(row.getRowNum() + 1);
 				Cell belowCell = belowRow.getCell(0);
 
-				if (belowCell.getCellTypeEnum() == CellType.STRING) {
+				if (belowCell.getCellType() == CellType.STRING) {
 					personAttributeKey = belowCell.getStringCellValue();
 					behaviorGroupParams = new SBBBehaviorGroupsConfigGroup.BehaviorGroupParams();
 					behaviorGroupParams.setBehaviorGroupName(behaviorGroupParamsSheet.getSheetName());
@@ -296,7 +307,7 @@ public class XLSXScoringParser {
 				for (int col = 1; col < lastColumn; col++) {
 					Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
 
-					if ((cell != null) && (cell.getCellTypeEnum() == CellType.STRING)) {
+					if ((cell != null) && (cell.getCellType() == CellType.STRING)) {
 						String mode = cell.getStringCellValue();
 
 						if (GLOBAL.equals(mode)) {
@@ -312,7 +323,7 @@ public class XLSXScoringParser {
 				// this seems to be a row with actual values
 				Cell secondCell = row.getCell(1);
 
-				if ((secondCell != null) && (secondCell.getCellTypeEnum() == CellType.STRING)) {
+				if ((secondCell != null) && (secondCell.getCellType() == CellType.STRING)) {
 					String parameterLabel = secondCell.getStringCellValue();
 
 					if (MODE_PARAMS.contains(parameterLabel)) {
@@ -331,7 +342,7 @@ public class XLSXScoringParser {
 							SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = modeCorrections.get(rowLabel).get(entry.getValue());
 							Cell cell = row.getCell(entry.getKey());
 
-							if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+							if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 								try {
 									double numericCellValue = cell.getNumericCellValue();
 
@@ -359,7 +370,7 @@ public class XLSXScoringParser {
 						Cell cell = row.getCell(globalColumnIndex);
 						SBBBehaviorGroupsConfigGroup.PersonGroupValues groupCorrection = groupCorrections.computeIfAbsent(rowLabel, k -> new SBBBehaviorGroupsConfigGroup.PersonGroupValues());
 
-						if ((cell.getCellTypeEnum() == CellType.NUMERIC) || (cell.getCellTypeEnum() == CellType.FORMULA)) {
+						if ((cell.getCellType() == CellType.NUMERIC) || (cell.getCellType() == CellType.FORMULA)) {
 							try {
 								double numericCellValue = cell.getNumericCellValue();
 

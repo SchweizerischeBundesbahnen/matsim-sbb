@@ -6,8 +6,8 @@ import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesImpl;
 import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.population.HasPlansAndId;
@@ -20,9 +20,8 @@ import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
 public class VisumPuTSurveyIntegrationTest {
-
-	@Rule
-	public MatsimTestUtils utils = new MatsimTestUtils();
+	@RegisterExtension
+	public final MatsimTestUtils utils = new MatsimTestUtils();
 
 	/**
 	 * This test fails in IntelliJ when run as part of all tests in the project, but works if run individually. It always works if run with Maven. I guess there's no easy fix, as the test seems to be

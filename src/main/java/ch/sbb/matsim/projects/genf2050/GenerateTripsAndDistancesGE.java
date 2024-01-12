@@ -33,7 +33,7 @@ public class GenerateTripsAndDistancesGE {
         String zonesFile = args[2];
         Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
         final Config config = ConfigUtils.createConfig();
-        config.controler().setRunId(runId);
+        config.controller().setRunId(runId);
         Scenario scenario = ScenarioUtils.createScenario(config);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         scenario.getNetwork().getLinks().values().forEach(l ->

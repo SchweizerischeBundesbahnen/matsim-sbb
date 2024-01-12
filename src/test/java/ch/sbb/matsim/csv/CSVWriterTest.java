@@ -4,10 +4,11 @@
 
 package ch.sbb.matsim.csv;
 
+import org.junit.Assert;
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * @author mrieser / SBB

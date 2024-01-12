@@ -32,14 +32,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-class OSMRetailParser {
+public class OSMRetailParser {
 
     private static final Logger log = LogManager.getLogger(OSMRetailParser.class);
     final ExecutorService executor;
     private final CoordinateTransformation transformation;
     private Map<Long, BuildingData> buildingData;
     private Map<Long, BuildingDataWithShops> buildingDataWithShopsMap = new HashMap<>();
-    private Map<Long, CompleteBuildingData> completeBuildingDataMap = new HashMap<>();
+    private final Map<Long, CompleteBuildingData> completeBuildingDataMap = new HashMap<>();
     private Map<Long, Set<Long>> buildingDataNodeStorage;
     private Map<Long, ShopData> shopDataStorage;
     private Map<Long, Coord> nodeStorage;
@@ -122,18 +122,24 @@ class OSMRetailParser {
     }
 
 
+    public static Polygon getPolygon(GeometryFactory fac, List<Long> nodeIds, Map<Long, Coord> nodeStorage) {
+        Coordinate[] coords = new Coordinate[nodeIds.size() + 1];
+        for (int i = 0; i < nodeIds.size(); i++) {
+            long nodeid = nodeIds.get(i);
+            Coord coord = nodeStorage.get(nodeid);
+            coords[i] = new Coordinate(coord.getX(), coord.getY());
+        }
+        coords[nodeIds.size()] = coords[0];
+        Polygon polygon = fac.createPolygon(coords);
+        return polygon;
+    }
+
     private void assignShopsToBuildings(Zones zones) {
         GeometryFactory fac = new GeometryFactory();
         Network allBuildingsAsNodes = NetworkUtils.createNetwork();
         for (var data : buildingData.values()) {
-            Coordinate[] coords = new Coordinate[data.nodeIds.size() + 1];
-            for (int i = 0; i < data.nodeIds.size(); i++) {
-                long nodeid = data.nodeIds().get(i);
-                Coord coord = nodeStorage.get(nodeid);
-                coords[i] = new Coordinate(coord.getX(), coord.getY());
-            }
-            coords[data.nodeIds.size()] = coords[0];
-            Polygon polygon = fac.createPolygon(coords);
+            List<Long> nodeIds = data.nodeIds;
+            Polygon polygon = getPolygon(fac, nodeIds, this.nodeStorage);
             Coord centroid = MGC.point2Coord(polygon.getCentroid());
             Node node = allBuildingsAsNodes.getFactory().createNode(Id.createNodeId(data.wayId()), centroid);
             allBuildingsAsNodes.addNode(node);

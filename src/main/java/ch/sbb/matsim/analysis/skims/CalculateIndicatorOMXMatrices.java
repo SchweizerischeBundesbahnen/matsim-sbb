@@ -7,22 +7,23 @@ package ch.sbb.matsim.analysis.skims;
 import ch.sbb.matsim.analysis.skims.NetworkSkimMatrices.NetworkIndicators;
 import ch.sbb.matsim.analysis.skims.PTSkimMatrices.PtIndicators;
 import ch.sbb.matsim.config.variables.SBBModes;
+import omx.OmxFile;
+import omx.OmxLookup.OmxIntLookup;
+import omx.OmxMatrix.OmxFloatMatrix;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.utils.misc.Time;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
+
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
-import omx.OmxFile;
-import omx.OmxLookup.OmxIntLookup;
-import omx.OmxMatrix.OmxFloatMatrix;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.utils.misc.Time;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitRoute;
 
 /**
  * @author mrieser / SBB
@@ -93,7 +94,7 @@ public class CalculateIndicatorOMXMatrices {
                 String prefix = e.getKey();
                 double[] times = e.getValue();
                 var networkMatrices = skims
-                        .calculateNetworkMatrices(networkFilename, eventsFilename, times, config, l -> String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("0"));
+                        .prepareAndCalculateNetworkMatrices(networkFilename, eventsFilename, times, config, l -> String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("0"));
                 exportNetworkMatrices(omxFile, prefix, networkMatrices, lookupzones);
             }
             omxFile.save();

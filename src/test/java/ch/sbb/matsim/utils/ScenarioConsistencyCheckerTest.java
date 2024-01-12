@@ -1,14 +1,13 @@
 package ch.sbb.matsim.utils;
 
-import static org.junit.Assert.assertFalse;
-
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -19,6 +18,8 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.VehicleUtils;
+
+import static org.junit.Assert.assertFalse;
 
 public class ScenarioConsistencyCheckerTest {
 
@@ -50,44 +51,54 @@ public class ScenarioConsistencyCheckerTest {
 	}
 
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void checkWrongPlanElements() {
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		createPersons(scenario);
-		scenario.getPopulation().addPerson(personWithMismatchingLegs);
-		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		Assertions.assertThrows(RuntimeException.class, () -> {
+			Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+			createPersons(scenario);
+			scenario.getPopulation().addPerson(personWithMismatchingLegs);
+			ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		});
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void checkWrongModes() {
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		createPersons(scenario);
-		scenario.getPopulation().addPerson(personWithSpaceship);
-		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		Assertions.assertThrows(RuntimeException.class, () -> {
+			Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+			createPersons(scenario);
+			scenario.getPopulation().addPerson(personWithSpaceship);
+			ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		});
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void checkWrongActivities() {
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		createPersons(scenario);
-		scenario.getPopulation().addPerson(personWithUnknownActivity);
-		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		Assertions.assertThrows(RuntimeException.class, () -> {
+			Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+			createPersons(scenario);
+			scenario.getPopulation().addPerson(personWithUnknownActivity);
+			ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		});
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void checkMissingAttributes() {
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		createPersons(scenario);
-		scenario.getPopulation().addPerson(personWithLackingAttribute);
-		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		Assertions.assertThrows(RuntimeException.class, () -> {
+			Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+			createPersons(scenario);
+			scenario.getPopulation().addPerson(personWithLackingAttribute);
+			ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		});
     }
 
-    @Test(expected = RuntimeException.class)
+	@Test
     public void checkHasNoCar() {
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        createPersons(scenario);
-        scenario.getPopulation().addPerson(carlessPersonUsingCar);
-        ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		Assertions.assertThrows(RuntimeException.class, () -> {
+			Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+			createPersons(scenario);
+			scenario.getPopulation().addPerson(carlessPersonUsingCar);
+			ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
+		});
     }
 
     @Test
@@ -101,7 +112,7 @@ public class ScenarioConsistencyCheckerTest {
         swissRailRaptorConfigGroup.setUseIntermodalAccessEgress(true);
         config.addModule(swissRailRaptorConfigGroup);
         Scenario scenario = ScenarioUtils.createScenario(config);
-        Assert.assertEquals(false, ScenarioConsistencyChecker.checkIntermodalAttributesAtStops(scenario));
+        assertFalse(ScenarioConsistencyChecker.checkIntermodalAttributesAtStops(scenario));
     }
 
     private void createPersons(Scenario scenario) {

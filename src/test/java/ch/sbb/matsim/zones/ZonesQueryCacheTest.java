@@ -1,15 +1,12 @@
 package ch.sbb.matsim.zones;
 
+import org.junit.Assert;
+import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.*;
+import org.matsim.api.core.v01.Id;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-import org.matsim.api.core.v01.Id;
 
 /**
  * @author mrieser

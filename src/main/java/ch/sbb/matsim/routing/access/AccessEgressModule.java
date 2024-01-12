@@ -13,7 +13,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.AccessEgressType;
+import org.matsim.core.config.groups.RoutingConfigGroup.AccessEgressType;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.NetworkRoutingProvider;
@@ -100,7 +100,7 @@ public class AccessEgressModule extends AbstractModule {
 		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);
 
 		if (accessTimeConfigGroup.getInsertingAccessEgressWalk()) {
-			config.plansCalcRoute().setAccessEgressType(AccessEgressType.walkConstantTimeToLink);
+            config.routing().setAccessEgressType(AccessEgressType.walkConstantTimeToLink);
 			Collection<String> modes = accessTimeConfigGroup.getModesWithAccessTime();
 			final Set<String> routedModes = new HashSet<>(ConfigUtils.addOrGetModule(config, SBBNetworkRoutingConfigGroup.class).getNetworkRoutingModes());
 			routedModes.addAll(config.qsim().getMainModes());

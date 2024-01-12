@@ -21,8 +21,8 @@ package ch.sbb.matsim.routing;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
-import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
+import org.matsim.core.config.groups.RoutingConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
@@ -35,14 +35,17 @@ public final class BicycleTravelDisutilityFactory implements TravelDisutilityFac
 
 	private static final Logger LOG = LogManager.getLogger(BicycleTravelDisutilityFactory.class);
 
-	@Inject	PlanCalcScoreConfigGroup cnScoringGroup;
-	@Inject	PlansCalcRouteConfigGroup plansCalcRouteConfigGroup;
-	
+	@Inject
+	ScoringConfigGroup cnScoringGroup;
+	@Inject
+	RoutingConfigGroup plansCalcRouteConfigGroup;
+
 	private static int normalisationWrnCnt = 0;
 
 	/* package-private */
-	public BicycleTravelDisutilityFactory(){}
-	
+	public BicycleTravelDisutilityFactory() {
+	}
+
 	@Override
 	public TravelDisutility createTravelDisutility(TravelTime timeCalculator) {
 		double sigma = plansCalcRouteConfigGroup.getRoutingRandomness();

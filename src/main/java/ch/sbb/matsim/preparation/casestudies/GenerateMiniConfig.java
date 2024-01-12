@@ -40,7 +40,7 @@ public class GenerateMiniConfig {
         String plansFile = args[4];
 
         Config config = ConfigUtils.loadConfig(inputConfig, RunSBB.getSbbDefaultConfigGroups());
-        config.controler().setMobsim("qsim");
+        config.controller().setMobsim("qsim");
         config.network().setTimeVariantNetwork(true);
         config.network().setChangeEventsInputFile(changeEventsFile);
         PostProcessingConfigGroup ppc = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);

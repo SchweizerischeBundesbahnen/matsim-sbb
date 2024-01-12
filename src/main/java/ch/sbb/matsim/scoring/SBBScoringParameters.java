@@ -1,8 +1,8 @@
 package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
-import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.ScenarioConfigGroup;
+import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.scoring.functions.ScoringParameters;
 
 /**
@@ -17,16 +17,18 @@ public class SBBScoringParameters {
 	private final double transferUtilityPerTravelTime_utilsPerHour;
 	private final double transferUtilityMinimum;
 	private final double transferUtilityMaximum;
+	private final double transferUtilityRailOePNV;
 
 	private SBBScoringParameters(ScoringParameters matsimScoringParameters, double marginalUtilityOfParkingPrice,
-			double transferUtlityBase, double transferUtilityPerTravelTime_utilsPerHour,
-			double transferUtilityMinimum, double transferUtilityMaximum) {
+								 double transferUtlityBase, double transferUtilityPerTravelTime_utilsPerHour,
+								 double transferUtilityMinimum, double transferUtilityMaximum, double transferUtilityRailOePNV) {
 		this.matsimScoringParameters = matsimScoringParameters;
 		this.marginalUtilityOfParkingPrice = marginalUtilityOfParkingPrice;
 		this.transferUtilityBase = transferUtlityBase;
 		this.transferUtilityPerTravelTime_utilsPerHour = transferUtilityPerTravelTime_utilsPerHour;
 		this.transferUtilityMinimum = transferUtilityMinimum;
 		this.transferUtilityMaximum = transferUtilityMaximum;
+		this.transferUtilityRailOePNV = transferUtilityRailOePNV;
 	}
 
 	public ScoringParameters getMatsimScoringParameters() {
@@ -53,25 +55,31 @@ public class SBBScoringParameters {
 		return this.transferUtilityMaximum;
 	}
 
+	public double getTransferUtilityRailOePNV() {
+		return this.transferUtilityRailOePNV;
+	}
+
 	public static final class Builder {
 
-        private final ScoringParameters.Builder matsimBuilder;
-        private double marginalUtilityOfParkingPrice;
-        private double transferUtilityPerTravelTime;
-        private double transferUtilityBase;
-        private final double transferUtilityMinimum;
-        private final double transferUtilityMaximum;
+		private final ScoringParameters.Builder matsimBuilder;
+		private final double transferUtilityMinimum;
+		private final double transferUtilityMaximum;
+		private double marginalUtilityOfParkingPrice;
+		private double transferUtilityPerTravelTime;
+		private double transferUtilityBase;
+		private final double transferUtilityRailOePNV;
 
-        public Builder(final PlanCalcScoreConfigGroup configGroup,
-                final PlanCalcScoreConfigGroup.ScoringParameterSet scoringParameterSet,
-                final ScenarioConfigGroup scenarioConfig,
-                final SBBBehaviorGroupsConfigGroup sbbConfig) {
-            this.matsimBuilder = new ScoringParameters.Builder(configGroup, scoringParameterSet, scenarioConfig);
-            this.marginalUtilityOfParkingPrice = sbbConfig.getMarginalUtilityOfParkingPrice();
-            this.transferUtilityPerTravelTime = sbbConfig.getTransferUtilityPerTravelTime_utils_hr();
-            this.transferUtilityBase = sbbConfig.getBaseTransferUtility();
-            this.transferUtilityMinimum = Math.min(sbbConfig.getMinimumTransferUtility(), sbbConfig.getMaximumTransferUtility());
+		public Builder(final ScoringConfigGroup configGroup,
+					   final ScoringConfigGroup.ScoringParameterSet scoringParameterSet,
+					   final ScenarioConfigGroup scenarioConfig,
+					   final SBBBehaviorGroupsConfigGroup sbbConfig) {
+			this.matsimBuilder = new ScoringParameters.Builder(configGroup, scoringParameterSet, scenarioConfig);
+			this.marginalUtilityOfParkingPrice = sbbConfig.getMarginalUtilityOfParkingPrice();
+			this.transferUtilityPerTravelTime = sbbConfig.getTransferUtilityPerTravelTime_utils_hr();
+			this.transferUtilityBase = sbbConfig.getBaseTransferUtility();
+			this.transferUtilityMinimum = Math.min(sbbConfig.getMinimumTransferUtility(), sbbConfig.getMaximumTransferUtility());
 			this.transferUtilityMaximum = Math.max(sbbConfig.getMinimumTransferUtility(), sbbConfig.getMaximumTransferUtility());
+			this.transferUtilityRailOePNV = sbbConfig.getTransferUtilityRailOePNV();
 		}
 
 		public void setMarginalUtilityOfParkingPrice(double marginalUtilityOfParkingPrice) {
@@ -97,8 +105,8 @@ public class SBBScoringParameters {
 					this.transferUtilityBase,
 					this.transferUtilityPerTravelTime,
 					this.transferUtilityMinimum,
-					this.transferUtilityMaximum
-			);
+					this.transferUtilityMaximum,
+					this.transferUtilityRailOePNV);
 		}
 	}
 }

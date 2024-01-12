@@ -24,7 +24,9 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
-import org.matsim.analysis.TripsAndLegsCSVWriter.CustomTripsWriterExtension;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import org.matsim.analysis.TripsAndLegsWriter.CustomTripsWriterExtension;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
@@ -39,9 +41,6 @@ import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import java.util.*;
 
@@ -67,7 +66,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
         //this is always called before a new file is written, so the reset is added here.
         tripAttributes = Variables.MOBiTripAttributes.extractTripAttributes(scenario.getPopulation());
         return new String[]{"from_zone", "to_zone", "first_rail_stop", "last_rail_stop", "rail_pkm", "fq_rail_pkm", "rail_legs", "rail_access_modes", "rail_access_distance", "rail_egress_modes",
-                "rail_egress_distance", Variables.MOBiTripAttributes.TOUR_ID, Variables.MOBiTripAttributes.TRIP_ID, Variables.MOBiTripAttributes.PURPOSE, Variables.MOBiTripAttributes.DIRECTION};
+                "rail_egress_distance", Variables.MOBiTripAttributes.TOUR_ID, Variables.MOBiTripAttributes.TRIP_ID, Variables.MOBiTripAttributes.PURPOSE, Variables.MOBiTripAttributes.DIRECTION, "score"};
     }
 
     @Override
@@ -188,7 +187,11 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             egressDistance = Integer.toString(egress.getSecond());
         }
 
-        return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, rail_legs, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction);
+        double score=0.0;
+        for (Leg leg : trip.getLegsOnly()) {
+            //score += (float) leg.getAttributes().getAttribute("score");
+        }
+        return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, rail_legs, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction, Double.toString(score));
     }
 
 

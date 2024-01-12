@@ -201,9 +201,9 @@ public class RoutePedestrianLegs {
     }
 
     private static class Candidate {
-        LeastCostPathCalculator.Path path;
-        double distance;
-        Coord entranceCoord;
+        final LeastCostPathCalculator.Path path;
+        final double distance;
+        final Coord entranceCoord;
         double probability = 0.0;
 
         public Candidate(LeastCostPathCalculator.Path path, double distance, Coord entranceCoord) {

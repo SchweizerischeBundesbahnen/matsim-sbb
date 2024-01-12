@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.sbb</groupId>
     <artifactId>matsim-sbb</artifactId>
-    <version>4.0.6-SNAPSHOT</version>
+    <version>4.0.8-SNAPSHOT</version>
     <name>MATSim SBB Project</name>
     <description>MATSim for SIMBA MOBi</description>
 
@@ -28,11 +28,25 @@
             <!--<url>http://download.osgeo.org/webdav/geotools</url>-->
             <url>https://repo.osgeo.org/repository/release/</url>
         </repository>
+        <repository>
+            <id>msmobility-msm</id>
+            <url>https://dl.cloudsmith.io/public/msmobility/msm/maven/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
 
     </repositories>
 
     <properties>
-        <matsim.version>16.0-PR2659</matsim.version>
+        <matsim.version>16.0-PR3046</matsim.version>
+        <junit.version>5.10.1</junit.version>
+        <geotools.version>29.1</geotools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>17</maven.compiler.source>
@@ -72,6 +86,11 @@
             <artifactId>av</artifactId>
             <version>${matsim.version}</version>
         </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.matsim.contrib</groupId>-->
+        <!--            <artifactId>application</artifactId>-->
+        <!--            <version>${matsim.version}</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>osm</artifactId>
@@ -86,22 +105,26 @@
         <dependency> <!-- MATSim uses Guice .0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>31.1-jre</version>
+            <version>32.0.0-jre</version>
         </dependency>
-
-
-        <dependency>
-            <groupId>com.graphhopper</groupId>
-            <artifactId>graphhopper-isochrone</artifactId>
-            <version>0.13.0</version>
-        </dependency>
-
 
         <!-- Include the JUnit testing library -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -142,13 +165,18 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-geotiff</artifactId>
-            <version>28.1</version>
+            <version>${geotools.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.glassfish.jaxb</groupId>
                     <artifactId>jaxb-runtime</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-geopkg</artifactId>
+            <version>${geotools.version}</version>
         </dependency>
 
     </dependencies>
@@ -197,6 +225,7 @@
                         <manifestEntries>
                             <Specification-Vendor>SBB CFF FFS</Specification-Vendor>
                             <Implementation-Vendor>SBB CFF FFS</Implementation-Vendor>
+                            <Multi-Release>true</Multi-Release>
                         </manifestEntries>
                     </archive>
                 </configuration>

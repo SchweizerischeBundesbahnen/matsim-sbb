@@ -13,7 +13,7 @@ import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import com.google.inject.Inject;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
-import org.matsim.core.config.groups.ControlerConfigGroup;
+import org.matsim.core.config.groups.ControllerConfigGroup;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.events.StartupEvent;
@@ -23,7 +23,7 @@ import org.matsim.core.controler.listener.StartupListener;
 public class SBBDefaultAnalysisListener implements IterationEndsListener, StartupListener {
 
     private final OutputDirectoryHierarchy controlerIO;
-    private final ControlerConfigGroup config;
+    private final ControllerConfigGroup config;
     private final PostProcessingConfigGroup ppConfig;
 
     @Inject
@@ -46,14 +46,17 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     @Inject
     private ModalSplitStats modalSplitStats;
 
+    @Inject
+    private Scenario scenario;
     private final CarLinkAnalysis carLinkAnalysis;
+
 
     @Inject
     public SBBDefaultAnalysisListener(
             final EventsManager eventsManager,
             final Scenario scenario,
             final OutputDirectoryHierarchy controlerIO,
-            final ControlerConfigGroup config,
+            final ControllerConfigGroup config,
             final PostProcessingConfigGroup ppConfig,
             IterationLinkAnalyzer iterationLinkAnalyzer
     ) {
@@ -66,6 +69,10 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     @Override
     public void notifyStartup(StartupEvent event) {
         ScenarioConsistencyChecker.writeLog(controlerIO.getOutputFilename("scenarioCheck.log"));
+        String outputDirectory = this.controlerIO.getOutputFilename("");
+        if (this.ppConfig.getWriteAgentsCSV()) {
+            new PopulationToCSV(scenario).write(outputDirectory);
+        }
     }
 
     @Override
@@ -86,12 +93,14 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
                 String railDemandStationToStation = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandStationToStation.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandStationToStation.csv.gz");
+                String railDemandStationToStationFQ = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandStationToStationFQ.csv.gz")
+                        : controlerIO.getIterationFilename(event.getIteration(), "railDemandStationToStationFQ.csv.gz");
                 String tripsPerMunFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMun.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMun.csv.gz");
                 String tripsPerMSRFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMSR.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMSR.csv.gz");
 
-                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, tripsPerMunFile, tripsPerMSRFile);
+                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, railDemandStationToStationFQ, tripsPerMunFile, tripsPerMSRFile);
                 String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.att");
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
