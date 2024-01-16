@@ -39,17 +39,25 @@ public class SBBRaptorTransferCostCalculator implements RaptorTransferCostCalcul
 
 		if (staticConfig.isUseModeToModeTransferPenalty()) {
 			double transferCostModeToMode = staticConfig.getModeToModeTransferPenalty(transfer.get().getFromTransitRoute().getTransportMode(), transfer.get().getToTransitRoute().getTransportMode());
-			SwissRailRaptorCore.PathElement firstPEOfTripPart = getFirstPEOfTripPart(currentPE, staticConfig);
-			double baseArrivalTransferCost = firstPEOfTripPart.arrivalTransferCost;
-			existingTransferCosts = existingTransferCosts - baseArrivalTransferCost;
-			int transferCountSinceModeChange = currentPE.transferCount - firstPEOfTripPart.transferCount;
-			double travelTimeSinceModeChange = totalTravelTime;
-			if (firstPEOfTripPart.arrivalTime != TIME_UNDEFINED) {
-				travelTimeSinceModeChange = totalTravelTime - firstPEOfTripPart.arrivalTime;
+			if (transferCostModeToMode == 0) {
+				SwissRailRaptorCore.PathElement firstPEOfTripPart = getFirstPEOfTripPart(currentPE, staticConfig);
+				double baseArrivalTransferCost = firstPEOfTripPart.arrivalTransferCost;
+				int transferCountSinceModeChange = transferCount - firstPEOfTripPart.transferCount;
+				double travelTimeSinceModeChange = totalTravelTime;
+				if ((firstPEOfTripPart.comingFrom != null) & (baseArrivalTransferCost != 0)) {
+					if (firstPEOfTripPart.isTransfer) {
+						travelTimeSinceModeChange = currentTime + transfer.get().getTransferTime() - firstPEOfTripPart.arrivalTime;
+					} else {
+						travelTimeSinceModeChange = currentTime + transfer.get().getTransferTime() - firstPEOfTripPart.boardingTime;
+					}
+				}
+				double singleTransferCost = calcSingleTransferCost(transferCostBase, transferCostPerHour, transferCostMin, transferCostMax, travelTimeSinceModeChange);
+//				double oldCost = (calcSingleTransferCost(transferCostBase, transferCostPerHour, transferCostMin, transferCostMax, totalTravelTime) * transferCount) - existingTransferCosts - baseArrivalTransferCost;
+//				double newCost = (singleTransferCost * transferCountSinceModeChange) - existingTransferCosts + baseArrivalTransferCost;
+				return (singleTransferCost * transferCountSinceModeChange) - existingTransferCosts + baseArrivalTransferCost;
+			} else {
+				return existingTransferCosts + transferCostModeToMode;
 			}
-
-			double singleTransferCost = calcSingleTransferCost(transferCostBase + transferCostModeToMode, transferCostPerHour, transferCostMin, transferCostMax, travelTimeSinceModeChange);
-			return (singleTransferCost * transferCountSinceModeChange) - existingTransferCosts + baseArrivalTransferCost;
 		} else {
 			return (calcSingleTransferCost(transferCostBase, transferCostPerHour, transferCostMin, transferCostMax, totalTravelTime) * transferCount) - existingTransferCosts;
 		}
@@ -57,9 +65,13 @@ public class SBBRaptorTransferCostCalculator implements RaptorTransferCostCalcul
 
 	public PathElement getFirstPEOfTripPart(SwissRailRaptorCore.PathElement fromPE, RaptorStaticConfig staticConfig) {
 		PathElement firstElement = fromPE;
-		String mode = firstElement.toRouteStop.route.getTransportMode();
-		while ((firstElement.comingFrom != null) && ((staticConfig.isUseModeToModeTransferPenalty() ? staticConfig.getModeToModeTransferPenalty(firstElement.comingFrom.toRouteStop.route.getTransportMode(), mode):0)>0)) {
-			firstElement = firstElement.comingFrom;
+		PathElement checkElement = fromPE;
+		String mode = checkElement.toRouteStop.route.getTransportMode();
+		while ((checkElement.comingFrom != null) && ((staticConfig.isUseModeToModeTransferPenalty() ? staticConfig.getModeToModeTransferPenalty(checkElement.comingFrom.toRouteStop.route.getTransportMode(), mode):0)==0)) {
+			checkElement = checkElement.comingFrom;
+			if (checkElement.boardingTime != TIME_UNDEFINED) {
+				firstElement = checkElement;
+			}
 		}
 
 		return firstElement;
