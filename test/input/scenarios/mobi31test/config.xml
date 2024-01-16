@@ -616,6 +616,38 @@
             <param name="personFilterAttribute" value="ride2pt"/>
             <param name="personFilterValue" value="1"/>
         </parameterset>
+        <parameterset type="modeToModeTransferPenalty" >
+            <!-- from Transfer PT Sub-Mode -->
+            <param name="fromMode" value="bus" />
+            <!-- to Transfer PT Sub-Mode -->
+            <param name="toMode" value="rail" />
+            <!-- Transfer Penalty per Transfer between modes -->
+            <param name="transferPenalty" value="0.4" />
+        </parameterset>
+        <parameterset type="modeToModeTransferPenalty" >
+            <!-- from Transfer PT Sub-Mode -->
+            <param name="fromMode" value="rail" />
+            <!-- to Transfer PT Sub-Mode -->
+            <param name="toMode" value="bus" />
+            <!-- Transfer Penalty per Transfer between modes -->
+            <param name="transferPenalty" value="0.4" />
+        </parameterset>
+        <parameterset type="modeToModeTransferPenalty" >
+            <!-- from Transfer PT Sub-Mode -->
+            <param name="fromMode" value="tram" />
+            <!-- to Transfer PT Sub-Mode -->
+            <param name="toMode" value="rail" />
+            <!-- Transfer Penalty per Transfer between modes -->
+            <param name="transferPenalty" value="0.4" />
+        </parameterset>
+        <parameterset type="modeToModeTransferPenalty" >
+            <!-- from Transfer PT Sub-Mode -->
+            <param name="fromMode" value="rail" />
+            <!-- to Transfer PT Sub-Mode -->
+            <param name="toMode" value="tram" />
+            <!-- Transfer Penalty per Transfer between modes -->
+            <param name="transferPenalty" value="0.4" />
+        </parameterset>
     </module>
     <module name="transit">
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
