@@ -20,8 +20,11 @@
 package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,22 +32,18 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.HasPlansAndId;
 import org.matsim.api.core.v01.population.Plan;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
-import org.matsim.core.utils.io.IOUtils;
 import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
-
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
@@ -71,11 +70,22 @@ public class RailDemandReporting {
     private int railtrips = 0;
     private int domesticFQTrips = 0;
     private double domesticFQDistance = 0;
+    private static final String TOTAL = "_total.csv";
+    private static final String SPARTE = "_sparte.csv";
+    private static final String ABGRENZGRUPPE = "_abgrenzgruppe.csv";
+    private static final String LFP_BETREIBERKATEORIE = "_lfp_betreiberkategorie.csv";
+    private static final String runIDName = "runId";
+    private static final String categoryName = "category";
+    private static final String subCategoryName = "subcategory";
+    private static final String unitName = "unit";
+    private static final String valueName = "value";
+    private final String runId;
 
     @Inject
-    public RailDemandReporting(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule) {
+    public RailDemandReporting(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule, Config config) {
         this.railTripsAnalyzer = railTripsAnalyzer;
         prepareCategories(schedule);
+        runId = config.controller().getRunId();
     }
 
     public static void main(String[] args) {
@@ -96,9 +106,8 @@ public class RailDemandReporting {
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         new PopulationReader(scenario).readFile(experiencedPlansFile);
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
-        RailDemandReporting railDemandReporting = new RailDemandReporting(railTripsAnalyzer, scenario.getTransitSchedule());
-        railDemandReporting
-                .calcAndWriteDistanceReporting(outputFile, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(Collectors.toSet()), scaleFactor);
+        RailDemandReporting railDemandReporting = new RailDemandReporting(railTripsAnalyzer, scenario.getTransitSchedule(), scenario.getConfig());
+        railDemandReporting.calcAndWriteDistanceReporting(outputFile, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(Collectors.toSet()), scaleFactor);
     }
 
     private void reset() {
@@ -123,55 +132,54 @@ public class RailDemandReporting {
         calcAndWriteDistanceReporting(outputfile, experiencedPlansService.getExperiencedPlans().values(), scaleFactor);
     }
 
-    private void writeRailDistanceReporting(String outputfile, double scaleFactor) {
-        try (BufferedWriter bw = IOUtils.getBufferedWriter(outputfile)) {
-            bw.write("SIMBA MOBi Rail Reporting");
-            bw.newLine();
-            bw.newLine();
-            bw.write("Gesamt Bahn");
-            bw.newLine();
-            bw.write("PF;" + railtrips * scaleFactor);
-            bw.newLine();
-            bw.write("PKM;" + (int) Math.round(scaleFactor * railDistance / 1000.));
-            bw.newLine();
-            bw.newLine();
-            bw.write("FQ-relevante Werte");
-            bw.newLine();
-            bw.write("PF;" + fqTrips * scaleFactor);
-            bw.newLine();
-            bw.write("PKM;" + (int) Math.round(scaleFactor * fqDistance / 1000.));
-            bw.newLine();
-            bw.newLine();
-            bw.write("FQ-relevante Werte (Nur Inlandsreisen)");
-            bw.newLine();
-            bw.write("PF;" + domesticFQTrips * scaleFactor);
-            bw.newLine();
-            bw.write("PKM;" + (int) Math.round(scaleFactor * domesticFQDistance / 1000.));
-            bw.newLine();
-            bw.newLine();
-            bw.write("PKM je Sparte");
+    private void writeRailDistanceReporting(String outputFile, double scaleFactor) {
+
+        String pf = "PF";
+        String pkm = "PKM";
+        String[] columns = new String[]{runIDName, categoryName, subCategoryName, unitName, valueName};
+        try (CSVWriter writer = new CSVWriter(null, columns, outputFile)) {
+
+            String category = "Gesamt Bahn";
+            String subCategory = "all";
+            writeRow(writer, category, subCategory, pf, railtrips * scaleFactor);
+            writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * railDistance / 1000.));
+
+            category = "FQ-relevant";
+            writeRow(writer, category, subCategory, pf, fqTrips * scaleFactor);
+            writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * fqDistance / 1000.));
+
+            category = "FQ-relevant (Inland)";
+            writeRow(writer, category, subCategory, pf, domesticFQTrips * scaleFactor);
+            writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * domesticFQDistance / 1000.));
+
+            category = "Sparte";
             for (Entry<String, MutableDouble> e : pkmSparte.entrySet()) {
-                bw.newLine();
-                bw.write(e.getKey() + ";" + Math.round(scaleFactor * e.getValue().doubleValue()) / 1000);
-            }
-            bw.newLine();
-            bw.newLine();
-            bw.write("PKM je Abgrenzgrupe");
-            for (Entry<String, MutableDouble> e : pkmAbgrenzung.entrySet()) {
-                bw.newLine();
-                bw.write(e.getKey() + ";" + Math.round(scaleFactor * e.getValue().doubleValue()) / 1000);
+                writeRow(writer, category, e.getKey(), pkm, (int) Math.round(scaleFactor * e.getValue().doubleValue() / 1000.));
             }
 
-            bw.newLine();
-            bw.newLine();
-            bw.write("PKM je LFP-Betreiberkategorie");
+            category = "Abgrenzgrupe";
+            for (Entry<String, MutableDouble> e : pkmAbgrenzung.entrySet()) {
+                writeRow(writer, category, e.getKey(), pkm, (int) Math.round(scaleFactor * e.getValue().doubleValue() / 1000.));
+            }
+
+            category = "LFP-Betreiberkategorie";
             for (Entry<String, MutableDouble> e : pkmLfpCat.entrySet()) {
-                bw.newLine();
-                bw.write(e.getKey() + ";" + Math.round(scaleFactor * e.getValue().doubleValue()) / 1000);
+                writeRow(writer, category, e.getKey(), pkm, (int) Math.round(scaleFactor * e.getValue().doubleValue() / 1000.));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
+    }
+
+    private void writeRow(CSVWriter writer, String category, String subCategory, String unit, double value) {
+        writer.set(runIDName, runId);
+        writer.set(categoryName, category);
+        writer.set(subCategoryName, subCategory);
+        writer.set(unitName, unit);
+        writer.set(valueName, String.valueOf(value));
+        writer.writeRow();
     }
 
     private void prepareCategories(TransitSchedule schedule) {
@@ -208,13 +216,7 @@ public class RailDemandReporting {
     }
 
     private void aggregateRailDistances(Collection<Plan> plans) {
-        Set<DefaultTransitPassengerRoute> allRailRoutes = plans
-                .stream()
-                .flatMap(plan -> TripStructureUtils.getLegs(plan).stream())
-                .filter(leg -> leg.getRoute().getRouteType().equals(DefaultTransitPassengerRoute.ROUTE_TYPE))
-                .map(leg -> (DefaultTransitPassengerRoute) leg.getRoute())
-                .filter(defaultTransitPassengerRoute -> railTripsAnalyzer.isRailLine(defaultTransitPassengerRoute.getLineId()))
-                .collect(Collectors.toSet());
+        Set<DefaultTransitPassengerRoute> allRailRoutes = plans.stream().flatMap(plan -> TripStructureUtils.getLegs(plan).stream()).filter(leg -> leg.getRoute().getRouteType().equals(DefaultTransitPassengerRoute.ROUTE_TYPE)).map(leg -> (DefaultTransitPassengerRoute) leg.getRoute()).filter(defaultTransitPassengerRoute -> railTripsAnalyzer.isRailLine(defaultTransitPassengerRoute.getLineId())).collect(Collectors.toSet());
 
         for (var route : allRailRoutes) {
             double distance = railTripsAnalyzer.getDomesticRailDistance_m(route);
@@ -230,26 +232,24 @@ public class RailDemandReporting {
     }
 
     private void aggregateFQValues(Collection<Plan> plans) {
-            plans.stream()
-                .flatMap(plan -> TripStructureUtils.getTrips(plan).stream())
-                .forEach(trip -> {
-                    double tripFQDistance = railTripsAnalyzer.getFQDistance(trip, true);
-                    if (tripFQDistance > 0) {
-                        this.fqDistance += tripFQDistance;
-                        this.fqTrips++;
-                    }
-                    double domesticFQDistance = railTripsAnalyzer.getFQDistance(trip, false);
-                    if (domesticFQDistance > 0) {
-                        this.domesticFQDistance += domesticFQDistance;
-                        this.domesticFQTrips++;
-                    }
+        plans.stream().flatMap(plan -> TripStructureUtils.getTrips(plan).stream()).forEach(trip -> {
+            double tripFQDistance = railTripsAnalyzer.getFQDistance(trip, true);
+            if (tripFQDistance > 0) {
+                this.fqDistance += tripFQDistance;
+                this.fqTrips++;
+            }
+            double domesticFQDistance = railTripsAnalyzer.getFQDistance(trip, false);
+            if (domesticFQDistance > 0) {
+                this.domesticFQDistance += domesticFQDistance;
+                this.domesticFQTrips++;
+            }
 
-                    final double tripRailDistance = railTripsAnalyzer.calcRailDistance(trip);
-                    this.railDistance += tripRailDistance;
-                    if (tripRailDistance > 0) {
-                        this.railtrips++;
-                    }
-                });
+            final double tripRailDistance = railTripsAnalyzer.calcRailDistance(trip);
+            this.railDistance += tripRailDistance;
+            if (tripRailDistance > 0) {
+                this.railtrips++;
+            }
+        });
     }
 
 }
