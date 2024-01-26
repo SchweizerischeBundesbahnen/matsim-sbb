@@ -1,35 +1,14 @@
 package ch.sbb.matsim.scoring;
 
-import ch.sbb.matsim.analysis.SBBDefaultAnalysisListener;
-import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
-import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
-import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
-import ch.sbb.matsim.analysis.modalsplit.ModalSplitStats;
-import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
-import ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.intermodal.IntermodalModule;
-import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
-import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
-import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.ActivityParamsBuilder;
-import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
-import ch.sbb.matsim.replanning.SBBSubtourModeChoice;
-import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
-import ch.sbb.matsim.routing.SBBCapacityDependentInVehicleCostCalculator;
-import ch.sbb.matsim.routing.access.AccessEgressModule;
-import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
-import ch.sbb.matsim.routing.pt.raptor.*;
-import ch.sbb.matsim.zones.ZonesModule;
-import com.google.inject.Provides;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.matsim.analysis.TripsAndLegsWriter;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -38,23 +17,14 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.*;
-import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
-import org.matsim.contrib.parking.parkingcost.module.ParkingCostModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.ScoringConfigGroup;
-import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
-import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
-import org.matsim.core.population.algorithms.PermissibleModesCalculator;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
-import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
-import org.matsim.core.router.AnalysisMainModeIdentifier;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.routes.DefaultTransitPassengerRoute;
@@ -130,10 +100,17 @@ public class TransferScoringTest {
 		log.info("score with sbb-scoring: " + score2);
 		log.info("score with sbb-scoring and ModeToModePenalties: " + score3);
 
+		double defaultTransferScore = -6.0;
+		double sbbTransferScore = 2 * Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (945.0 / 3600.0)));
+		double sbbTransferScoreWithModeToModePenalty = -1.5 + Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (480.0 / 3600.0)));
+
 		double actualScoreDiff = score2 - score1;
-		double defaultTransferScore = -3.0;
-		double sbbTransferScore = Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (360.0 / 3600.0)));
 		double expectedScoreDiff = sbbTransferScore - defaultTransferScore;
+
+		Assert.assertEquals(expectedScoreDiff, actualScoreDiff, 1e-7);
+
+		actualScoreDiff = score3 - score1;
+		expectedScoreDiff = sbbTransferScoreWithModeToModePenalty - defaultTransferScore;
 
 		Assert.assertEquals(expectedScoreDiff, actualScoreDiff, 1e-7);
 	}
@@ -189,8 +166,8 @@ public class TransferScoringTest {
 
 			SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
 
-			srrConfig.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty("train", "bus", 1.3));
-			srrConfig.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty("bus", "train", 1.3));
+			srrConfig.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty("train", "bus", -1.5));
+			srrConfig.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty("bus", "train", -1.5));
 		}
 
 		public static void addSBBDefaultControlerModules(Controler controler) {
@@ -205,7 +182,8 @@ public class TransferScoringTest {
 			Node n3 = nf.createNode(Id.create("3", Node.class), new Coord(5000, 1000));
 			Node n4 = nf.createNode(Id.create("4", Node.class), new Coord(7000, 1000));
             Node n5 = nf.createNode(Id.create("5", Node.class), new Coord(9000, 1000));
-            Node n6 = nf.createNode(Id.create("6", Node.class), new Coord(9900, 1000));
+			Node n6 = nf.createNode(Id.create("6", Node.class), new Coord(11000, 1000));
+			Node n7 = nf.createNode(Id.create("7", Node.class), new Coord(11900, 1000));
 
             network.addNode(n1);
             network.addNode(n2);
@@ -213,18 +191,21 @@ public class TransferScoringTest {
             network.addNode(n4);
             network.addNode(n5);
             network.addNode(n6);
+			network.addNode(n7);
 
             Link l1 = createLink(nf, "1", n1, n2);
             Link l2 = createLink(nf, "2", n2, n3);
             Link l3 = createLink(nf, "3", n3, n4);
             Link l4 = createLink(nf, "4", n4, n5);
             Link l5 = createLink(nf, "5", n5, n6);
+			Link l6 = createLink(nf, "6", n6, n7);
 
             network.addLink(l1);
             network.addLink(l2);
             network.addLink(l3);
             network.addLink(l4);
             network.addLink(l5);
+			network.addLink(l6);
         }
 
         private Link createLink(NetworkFactory nf, String id, Node fromNode, Node toNode) {
@@ -246,6 +227,7 @@ public class TransferScoringTest {
 			vehicles.addVehicleType(vt);
 			vehicles.addVehicle(vf.createVehicle(Id.create("b1", Vehicle.class), vt));
 			vehicles.addVehicle(vf.createVehicle(Id.create("r1", Vehicle.class), vt));
+			vehicles.addVehicle(vf.createVehicle(Id.create("g1", Vehicle.class), vt));
 
 			TransitSchedule schedule = this.scenario.getTransitSchedule();
 			TransitScheduleFactory sf = schedule.getFactory();
@@ -261,6 +243,10 @@ public class TransferScoringTest {
 			TransitStopFacility stop3 = sf.createTransitStopFacility(Id.create("3", TransitStopFacility.class), new Coord(7000, 1000), false);
 			stop3.setLinkId(Id.create("3", Link.class));
 			schedule.addStopFacility(stop3);
+
+			TransitStopFacility stop4 = sf.createTransitStopFacility(Id.create("4", TransitStopFacility.class), new Coord(9000, 1000), false);
+			stop4.setLinkId(Id.create("4", Link.class));
+			schedule.addStopFacility(stop4);
 
 			TransitLine blueLine = sf.createTransitLine(Id.create("blue", TransitLine.class));
 			NetworkRoute blueNetRoute = RouteUtils.createLinkNetworkRouteImpl(Id.create(1, Link.class), Id.create(2, Link.class));
@@ -286,6 +272,18 @@ public class TransferScoringTest {
 			redRoute.addDeparture(redDeparture);
 			redLine.addRoute(redRoute);
 			schedule.addTransitLine(redLine);
+
+			TransitLine greenLine = sf.createTransitLine(Id.create("green", TransitLine.class));
+			NetworkRoute greenNetRoute = RouteUtils.createLinkNetworkRouteImpl(Id.create(3, Link.class), Id.create(4, Link.class));
+			List<TransitRouteStop> greenStops = new ArrayList<>();
+			greenStops.add(sf.createTransitRouteStopBuilder(stop3).departureOffset(0.).build());
+			greenStops.add(sf.createTransitRouteStopBuilder(stop4).arrivalOffset(120.).build());
+			TransitRoute greenRoute = sf.createTransitRoute(Id.create("green1", TransitRoute.class), greenNetRoute, greenStops, "bus");
+			Departure greenDeparture = sf.createDeparture(Id.create(1, Departure.class), 8 * 3600 + 480);
+			greenDeparture.setVehicleId(Id.create("g1", Vehicle.class));
+			greenRoute.addDeparture(greenDeparture);
+			greenLine.addRoute(greenRoute);
+			schedule.addTransitLine(greenLine);
 		}
 
 		private void createPopulation() {
@@ -293,10 +291,13 @@ public class TransferScoringTest {
 			TransitStopFacility stop1 = schedule.getFacilities().get(Id.create(1, TransitStopFacility.class));
 			TransitStopFacility stop2 = schedule.getFacilities().get(Id.create(2, TransitStopFacility.class));
 			TransitStopFacility stop3 = schedule.getFacilities().get(Id.create(3, TransitStopFacility.class));
+			TransitStopFacility stop4 = schedule.getFacilities().get(Id.create(4, TransitStopFacility.class));
 			TransitLine blueLine = schedule.getTransitLines().get(Id.create("blue", TransitLine.class));
 			TransitRoute blueRoute = blueLine.getRoutes().get(Id.create("blue1", TransitRoute.class));
 			TransitLine redLine = schedule.getTransitLines().get(Id.create("red", TransitLine.class));
 			TransitRoute redRoute = redLine.getRoutes().get(Id.create("red1", TransitRoute.class));
+			TransitLine greenLine = schedule.getTransitLines().get(Id.create("green", TransitLine.class));
+			TransitRoute greenRoute = greenLine.getRoutes().get(Id.create("green1", TransitRoute.class));
 
 			Population pop = this.scenario.getPopulation();
 			PopulationFactory pf = pop.getFactory();
@@ -307,14 +308,14 @@ public class TransferScoringTest {
 			person.addPlan(plan);
 
 			Coord home1Coord = new Coord(1000, 900);
-			Coord home2Coord = new Coord(9900, 900);
+			Coord home2Coord = new Coord(11900, 900);
 
 			Activity home1 = pf.createActivityFromCoord("home", home1Coord);
 			home1.setEndTime(8 * 3600 - 600);
 			home1.setLinkId(Id.create("1", Link.class));
 
 			Activity home2 = pf.createActivityFromCoord("home", home2Coord);
-			home2.setLinkId(Id.create("4", Link.class));
+			home2.setLinkId(Id.create("5", Link.class));
 
 			Activity ptAct1 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(3000, 1000));
 			ptAct1.setLinkId(Id.create(1, Link.class));
@@ -322,8 +323,11 @@ public class TransferScoringTest {
 			Activity transferAct = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(5000, 1000));
 			transferAct.setLinkId(Id.create(2, Link.class));
 			transferAct.setMaximumDuration(0.0);
-			Activity ptAct2 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(7000, 1000));
-			ptAct2.setLinkId(Id.create(3, Link.class));
+			Activity transferAct2 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(7000, 1000));
+			transferAct2.setLinkId(Id.create(3, Link.class));
+			transferAct2.setMaximumDuration(0.0);
+			Activity ptAct2 = pf.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(9000, 1000));
+			ptAct2.setLinkId(Id.create(4, Link.class));
 			ptAct2.setMaximumDuration(0.0);
 
 			plan.addActivity(home1);
@@ -341,8 +345,13 @@ public class TransferScoringTest {
 			pt2Leg.setRoute(new DefaultTransitPassengerRoute(stop2, redLine, redRoute, stop3));
 			plan.addLeg(pt2Leg);
 			plan.addActivity(ptAct2);
+			plan.addActivity(transferAct2);
+			Leg pt3Leg = pf.createLeg(SBBModes.PT);
+			pt3Leg.setRoute(new DefaultTransitPassengerRoute(stop3, greenLine, greenRoute, stop4));
+			plan.addLeg(pt3Leg);
+			plan.addActivity(ptAct2);
 			Leg egressLeg = pf.createLeg(SBBModes.ACCESS_EGRESS_WALK);
-			egressLeg.setRoute(RouteUtils.createGenericRouteImpl(Id.create("3", Link.class), Id.create("4", Link.class)));
+			egressLeg.setRoute(RouteUtils.createGenericRouteImpl(Id.create("4", Link.class), Id.create("5", Link.class)));
 			egressLeg.getRoute().setDistance(200);
 			egressLeg.getRoute().setTravelTime(300);
 			plan.addLeg(egressLeg);

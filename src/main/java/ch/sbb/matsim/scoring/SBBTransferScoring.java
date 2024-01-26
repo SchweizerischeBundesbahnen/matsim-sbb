@@ -46,8 +46,8 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 					nextMode = transitSchedule.getTransitLines().get(((TransitPassengerRoute) leg.getRoute()).getLineId()).getRoutes().get(((TransitPassengerRoute) leg.getRoute()).getRouteId()).getTransportMode();
 					if (mode != null) {
 						penalty = this.raptorStaticConfig.getModeToModeTransferPenalty(mode, nextMode);
-						if (penalty > 0) {
-							scoreTripPart(departureTime, legs.subList(first, i - 1));
+						if (penalty != 0) {
+							scoreTripPart(departureTime, legs.subList(first, i));
 							this.score += penalty;
 							first = i;
 							departureTime = leg.getDepartureTime();
@@ -57,7 +57,7 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 				}
 				i++;
 			}
-			scoreTripPart(departureTime, legs.subList(first, i - 1));
+			scoreTripPart(departureTime, legs.subList(first, i));
 		} else {
 			scoreTripPart(departureTime, trip.getLegsOnly());
 		}
