@@ -1,13 +1,35 @@
 package ch.sbb.matsim.scoring;
 
+import ch.sbb.matsim.analysis.SBBDefaultAnalysisListener;
+import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
+import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
+import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer;
+import ch.sbb.matsim.analysis.modalsplit.ModalSplitStats;
+import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
+import ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup;
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.intermodal.IntermodalModule;
+import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
+import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
+import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.ActivityParamsBuilder;
+import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
+import ch.sbb.matsim.replanning.SBBSubtourModeChoice;
+import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
+import ch.sbb.matsim.routing.SBBCapacityDependentInVehicleCostCalculator;
+import ch.sbb.matsim.routing.access.AccessEgressModule;
+import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
+import ch.sbb.matsim.routing.pt.raptor.*;
+import ch.sbb.matsim.zones.ZonesModule;
+import com.google.inject.Provides;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.matsim.analysis.TripsAndLegsWriter;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -16,14 +38,23 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.*;
+import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
+import org.matsim.contrib.parking.parkingcost.module.ParkingCostModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.ScoringConfigGroup;
+import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
+import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
+import org.matsim.core.population.algorithms.PermissibleModesCalculator;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
+import org.matsim.core.router.AnalysisMainModeIdentifier;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.routes.DefaultTransitPassengerRoute;
@@ -52,6 +83,7 @@ public class TransferScoringTest {
 	public void testTransferScoring() {
 		double score1;
 		double score2;
+		double score3;
 		{
             Fixture f1 = new Fixture(this.helper.getOutputDirectory() + "/run1/");
             f1.setLineSwitchConfig();
@@ -79,9 +111,24 @@ public class TransferScoringTest {
             Plan plan1 = p1.getSelectedPlan();
             score2 = plan1.getScore();
 		}
+		{
+			Fixture f3 = new Fixture(this.helper.getOutputDirectory() + "/run3/");
+			f3.setSBBTransferUtilityAndModeToModePenalties();
+
+			f3.config.controller().setLastIteration(0);
+
+			Controler controler = new Controler(f3.scenario);
+			controler.setScoringFunctionFactory(new SBBScoringFunctionFactory(f3.scenario));
+			controler.run();
+
+			Person p3 = f3.scenario.getPopulation().getPersons().get(Id.create(1, Person.class));
+			Plan plan3 = p3.getSelectedPlan();
+			score3 = plan3.getScore();
+		}
 
 		log.info("score with default scoring: " + score1);
 		log.info("score with sbb-scoring: " + score2);
+		log.info("score with sbb-scoring and ModeToModePenalties: " + score3);
 
 		double actualScoreDiff = score2 - score1;
 		double defaultTransferScore = -3.0;
@@ -132,7 +179,24 @@ public class TransferScoringTest {
             sbbConfig.setMaximumTransferUtility(-2.0);
         }
 
-        private void createNetwork() {
+		void setSBBTransferUtilityAndModeToModePenalties() {
+			SBBBehaviorGroupsConfigGroup sbbConfig = ConfigUtils.addOrGetModule(this.config, SBBBehaviorGroupsConfigGroup.class);
+
+			sbbConfig.setBaseTransferUtility(-1.0);
+			sbbConfig.setTransferUtilityPerTravelTime_utils_hr(-2.0);
+			sbbConfig.setMinimumTransferUtility(-12.0);
+			sbbConfig.setMaximumTransferUtility(-2.0);
+
+			SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
+
+			srrConfig.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty("train", "bus", 1.3));
+			srrConfig.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty("bus", "train", 1.3));
+		}
+
+		public static void addSBBDefaultControlerModules(Controler controler) {
+		}
+
+		private void createNetwork() {
             Network network = this.scenario.getNetwork();
 			NetworkFactory nf = network.getFactory();
 
@@ -216,7 +280,7 @@ public class TransferScoringTest {
 			List<TransitRouteStop> redStops = new ArrayList<>();
 			redStops.add(sf.createTransitRouteStopBuilder(stop2).departureOffset(0.).build());
 			redStops.add(sf.createTransitRouteStopBuilder(stop3).arrivalOffset(120.).build());
-			TransitRoute redRoute = sf.createTransitRoute(Id.create("red1", TransitRoute.class), redNetRoute, redStops, "train");
+			TransitRoute redRoute = sf.createTransitRoute(Id.create("red1", TransitRoute.class), redNetRoute, redStops, "bus");
 			Departure redDeparture = sf.createDeparture(Id.create(1, Departure.class), 8 * 3600 + 240);
 			redDeparture.setVehicleId(Id.create("r1", Vehicle.class));
 			redRoute.addDeparture(redDeparture);
