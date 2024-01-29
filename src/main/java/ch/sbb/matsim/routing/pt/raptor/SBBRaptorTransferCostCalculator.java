@@ -45,6 +45,9 @@ public class SBBRaptorTransferCostCalculator implements RaptorTransferCostCalcul
 			int transferCountSinceModeChange = transferCount;
 			double travelTimeSinceModeChange = totalTravelTime;
 			if (firstPEOfTripPart.comingFrom != null) {
+				if (currentPE.firstDepartureTime != TIME_UNDEFINED) {
+					currentTime = currentPE.firstDepartureTime + totalTravelTime;
+				}
 				travelTimeSinceModeChange = currentTime + transfer.get().getTransferTime() - firstPEOfTripPart.arrivalTime;
 				transferCountSinceModeChange = transferCount - firstPEOfTripPart.transferCount;
 			}
