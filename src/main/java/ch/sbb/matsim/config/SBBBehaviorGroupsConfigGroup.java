@@ -43,7 +43,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 	private double transferUtilityPerTravelTime_utilsPerHour = 0;
 	private double transferUtilityMinimum = Double.NEGATIVE_INFINITY;
 	private double transferUtilityMaximum = Double.POSITIVE_INFINITY;
-	private double transferUtilityRailOePNV= 0;
 
 	public SBBBehaviorGroupsConfigGroup() {
 		super(GROUP_NAME);
