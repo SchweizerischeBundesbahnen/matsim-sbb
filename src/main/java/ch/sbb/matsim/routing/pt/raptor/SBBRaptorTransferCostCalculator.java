@@ -28,7 +28,7 @@ import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.PathElement;
  * @author mrieser / Simunto
  */
 public class SBBRaptorTransferCostCalculator implements RaptorTransferCostCalculator {
-	private static final int TIME_UNDEFINED = -2147483648;
+	private static final int TIME_UNDEFINED =  Integer.MIN_VALUE;
 
 	@Override
 	public double calcTransferCost(SwissRailRaptorCore.PathElement currentPE, Supplier<Transfer> transfer, RaptorStaticConfig staticConfig, RaptorParameters raptorParams, int totalTravelTime, int transferCount, double existingTransferCosts, double currentTime) {
