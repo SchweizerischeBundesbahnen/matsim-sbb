@@ -8,6 +8,7 @@ import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import ch.sbb.matsim.config.SBBScoringParametersConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.config.variables.SBBModes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.*;
@@ -53,13 +54,13 @@ public class XLSXScoringParser {
 	static final String TRANSFER_UTILITY_BASE = "transferUtilityBase";
 	static final String TRANSFER_UTILITY_MINIMUM = "transferUtilityMinimum";
 	static final String TRANSFER_UTILITY_MAXIMUM = "transferUtilityMaximum";
-	static final String TRANSFER_UTILITY_RAIL_OEPNV = "transferUtilityRailOePNV";
+	static final String MODE_TO_MODE_TRANSFER_PENALTY_RAIL_X = "modeToModePenaltyRailX";
 	static final String BEHAVIOR_GROUP_LABEL = "BehaviorGroup";
 	private static final String GLOBAL = "global";
 	private static final String[] GENERAL_PARAMS_ARRAY = new String[]{UTL_OF_LINE_SWITCH, WAITING_PT, EARLY_DEPARTURE, LATE_ARRIVAL, WAITING, PERFORMING, MARGINAL_UTL_OF_MONEY};
 	private static final String[] MODE_PARAMS_ARRAY = new String[]{CONSTANT, MARGINAL_UTILITY_OF_DISTANCE, MARGINAL_UTILITY_OF_TRAVELING, MONETARY_DISTANCE_RATE};
 	private static final String[] SBB_GENERAL_PARAMS_ARRAY = new String[]{MARGINAL_UTILITY_OF_PARKINGPRICE, TRANSFER_UTILITY_PER_TRAVEL_TIME, TRANSFER_UTILITY_BASE, TRANSFER_UTILITY_MINIMUM,
-			TRANSFER_UTILITY_MAXIMUM, TRANSFER_UTILITY_RAIL_OEPNV};
+			TRANSFER_UTILITY_MAXIMUM, MODE_TO_MODE_TRANSFER_PENALTY_RAIL_X};
 	private static final Set<String> GENERAL_PARAMS = new HashSet<>(Arrays.asList(GENERAL_PARAMS_ARRAY));
 	private static final Set<String> MODE_PARAMS = new HashSet<>(Arrays.asList(MODE_PARAMS_ARRAY));
 	private static final Set<String> SBB_GENERAL_PARAMS = new HashSet<>(Arrays.asList(SBB_GENERAL_PARAMS_ARRAY));
@@ -232,9 +233,13 @@ public class XLSXScoringParser {
 								sbbParams.setMaximumTransferUtility(paramValue);
 								raptorConfigGroup.setTransferPenaltyMaxCost(-1.0 * paramValue);
 								break;
-							case TRANSFER_UTILITY_RAIL_OEPNV:
-								sbbParams.setTransferUtilityRailOePNV(paramValue);
-								 // raptorConfigGroup.setTransferPenaltyRailOePNV(-1.0 * paramValue);
+							case MODE_TO_MODE_TRANSFER_PENALTY_RAIL_X:
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.RAIL, SBBModes.PTSubModes.BUS, -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.BUS, SBBModes.PTSubModes.RAIL, -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.RAIL, SBBModes.PTSubModes.TRAM, -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.TRAM, SBBModes.PTSubModes.RAIL, -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.RAIL, SBBModes.PTSubModes.OTHER, -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.OTHER, SBBModes.PTSubModes.RAIL, -paramValue));
 								break;
 							default:
 								log.error("Unsupported parameter: " + rowLabel);
