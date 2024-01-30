@@ -70,10 +70,6 @@ public class RailDemandReporting {
     private int railtrips = 0;
     private int domesticFQTrips = 0;
     private double domesticFQDistance = 0;
-    private static final String TOTAL = "_total.csv";
-    private static final String SPARTE = "_sparte.csv";
-    private static final String ABGRENZGRUPPE = "_abgrenzgruppe.csv";
-    private static final String LFP_BETREIBERKATEORIE = "_lfp_betreiberkategorie.csv";
     private static final String runIDName = "runId";
     private static final String categoryName = "category";
     private static final String subCategoryName = "subcategory";
@@ -143,14 +139,28 @@ public class RailDemandReporting {
             String subCategory = "all";
             writeRow(writer, category, subCategory, pf, railtrips * scaleFactor);
             writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * railDistance / 1000.));
+            subCategory = "Inland";
+            double domesticRailDistance = pkmAbgrenzung.values().stream().mapToDouble(value -> value.doubleValue()).sum();
+            writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * domesticRailDistance / 1000.));
+
+            subCategory = "Ausland";
+            writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * (railDistance - domesticRailDistance) / 1000.));
+
 
             category = "FQ-relevant";
-            writeRow(writer, category, subCategory, pf, fqTrips * scaleFactor);
-            writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * fqDistance / 1000.));
+            subCategory = "Inlandsfahrten";
 
-            category = "FQ-relevant (Inland)";
             writeRow(writer, category, subCategory, pf, domesticFQTrips * scaleFactor);
             writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * domesticFQDistance / 1000.));
+
+            subCategory = "Inlandsanteil von Auslandsfahrten";
+            writeRow(writer, category, subCategory, pf, (fqTrips - domesticFQTrips) * scaleFactor);
+            writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * (fqDistance - domesticFQDistance) / 1000.));
+
+            subCategory = "nicht relevant (In- & Ausland)";
+            writeRow(writer, category, subCategory, pf, (railtrips - fqTrips) * scaleFactor);
+            writeRow(writer, category, subCategory, pkm, (int) Math.round(scaleFactor * (railDistance - fqDistance) / 1000.));
+
 
             category = "Sparte";
             for (Entry<String, MutableDouble> e : pkmSparte.entrySet()) {
