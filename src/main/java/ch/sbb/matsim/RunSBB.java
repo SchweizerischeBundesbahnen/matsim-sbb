@@ -137,6 +137,7 @@ public class RunSBB {
 		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
 		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
 		ZonesModule.addZonestoScenario(scenario);
+		TransferTimeChecker.addAdditionalTransferTimes(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		IntermodalModule.prepareIntermodalScenario(scenario);
 		AccessEgressModule.prepareLinkAttributes(scenario, true);
