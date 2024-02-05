@@ -1,4 +1,4 @@
-package ch.sbb.matsim.mavi.pt;
+package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;

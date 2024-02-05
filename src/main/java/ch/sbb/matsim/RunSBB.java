@@ -15,7 +15,6 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SamplesizeFactors;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
-import ch.sbb.matsim.mavi.pt.TransferTimeChecker;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.*;
