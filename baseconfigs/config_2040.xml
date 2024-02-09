@@ -558,7 +558,7 @@
         <param name="travelTimeBinSize" value="900"/>
     </module>
     <module name="vehicles">
-        <param name="vehiclesFile" value="&road_network;/av-vehicles.xml.gz"/>
+        <param name="vehiclesFile" value="&road_network;/vehicles.xml.gz"/>
     </module>
     <module name="zones">
         <parameterset type="zones">
