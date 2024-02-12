@@ -1,4 +1,4 @@
-package ch.sbb.matsim.preparation;
+package ch.sbb.matsim.projects.synpop.airports;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;

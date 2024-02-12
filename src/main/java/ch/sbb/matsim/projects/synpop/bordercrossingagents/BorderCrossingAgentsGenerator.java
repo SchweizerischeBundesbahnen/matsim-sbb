@@ -1,4 +1,4 @@
-package ch.sbb.matsim.projects.synpop;
+package ch.sbb.matsim.projects.synpop.bordercrossingagents;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.zones.Zone;

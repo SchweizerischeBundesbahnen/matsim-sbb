@@ -1,4 +1,4 @@
-package ch.sbb.matsim.projects.synpop;
+package ch.sbb.matsim.projects.synpop.bordercrossingagents;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
@@ -340,7 +340,7 @@ class ForeignBusinessOSMParser {
             Coord transformedCoord = transformation.transform(new Coord(osmNode.getLongitude(), osmNode.getLatitude()));
             String name = tags.get("name");
             String branch = tags.get("branch");
-            String shopName = name != null ? name : "" + " " + name != null ? branch : "";
+            String shopName = name != null ? name : " " + name != null ? branch : "";
             var shopData = new ShopData(osmNode.getId(), transformedCoord, shopName);
             shopDataStorage.put(osmNode.getId(), shopData);
             nodeStorage.put(osmNode.getId(), transformedCoord);

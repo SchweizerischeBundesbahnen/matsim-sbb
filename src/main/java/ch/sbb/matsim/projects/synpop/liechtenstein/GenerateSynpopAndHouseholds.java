@@ -2,9 +2,9 @@ package ch.sbb.matsim.projects.synpop.liechtenstein;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.projects.synpop.BorderCrossingAgentsOSMBuildingParser;
-import ch.sbb.matsim.projects.synpop.OSMRetailParser;
-import ch.sbb.matsim.projects.synpop.PopulationToSynpopexporter;
+import ch.sbb.matsim.projects.synpop.bordercrossingagents.BorderCrossingAgentsOSMBuildingParser;
+import ch.sbb.matsim.projects.synpop.bordercrossingagents.OSMRetailParser;
+import ch.sbb.matsim.projects.synpop.bordercrossingagents.PopulationToSynpopexporter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;

@@ -1,4 +1,4 @@
-package ch.sbb.matsim.projects.synpop;
+package ch.sbb.matsim.projects.synpop.bordercrossingagents;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import org.matsim.api.core.v01.Coord;
