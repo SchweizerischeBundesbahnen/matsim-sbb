@@ -264,6 +264,18 @@
                 <param name="typicalDurationScoreComputation" value="uniform"/>
             </parameterset>
             <parameterset type="activityParams">
+                <param name="activityType" value="airport"/>
+                <param name="scoringThisActivityAtAll" value="false"/>
+                <param name="typicalDuration" value="12:00:00"/>
+                <param name="typicalDurationScoreComputation" value="uniform"/>
+            </parameterset>
+            <parameterset type="activityParams">
+                <param name="activityType" value="airportDestination"/>
+                <param name="scoringThisActivityAtAll" value="false"/>
+                <param name="typicalDuration" value="12:00:00"/>
+                <param name="typicalDurationScoreComputation" value="uniform"/>
+            </parameterset>
+            <parameterset type="activityParams">
                 <param name="activityType" value="freight"/>
                 <param name="scoringThisActivityAtAll" value="false"/>
                 <param name="typicalDuration" value="12:00:00"/>
