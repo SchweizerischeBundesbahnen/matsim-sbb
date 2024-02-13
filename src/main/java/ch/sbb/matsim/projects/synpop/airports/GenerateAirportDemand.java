@@ -1,6 +1,7 @@
 package ch.sbb.matsim.projects.synpop.airports;
 
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
@@ -29,6 +30,8 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import java.io.IOException;
 import java.util.*;
+
+import static ch.sbb.matsim.utils.AssignExogeneousTripPurposes.*;
 
 public class GenerateAirportDemand {
 
@@ -164,6 +167,7 @@ public class GenerateAirportDemand {
         Plan plan = factory.createPlan();
         person.addPlan(plan);
         Activity activity = factory.createActivityFromCoord("airport", airportCoord);
+        drawAndAssignPurpose(activity);
         activity.setEndTime(departureTimeSelector.select() * 3600 + random.nextInt(3600));
         plan.addActivity(activity);
         plan.addLeg(factory.createLeg(mode));
@@ -187,6 +191,7 @@ public class GenerateAirportDemand {
         Plan plan = factory.createPlan();
         person.addPlan(plan);
         Activity activity = factory.createActivityFromCoord("airportDestination", facility.getCoord());
+        drawAndAssignPurpose(activity);
         int desiredArrivalTime = arrivalTimeSelector.select() * 3600 + random.nextInt(3600);
         int travelTimeEstimate = (int) (1800 + CoordUtils.calcEuclideanDistance(airportCoord, facility.getCoord()) / (17));
         int time = Math.max(desiredArrivalTime - travelTimeEstimate, 0);
@@ -195,6 +200,21 @@ public class GenerateAirportDemand {
         plan.addLeg(factory.createLeg(mode));
         plan.addActivity(factory.createActivityFromCoord("airport", airportCoord));
         setSubpopulation(person, mode);
+    }
+
+    private void drawAndAssignPurpose(Activity activity) {
+        double r = random.nextDouble();
+        String purpose;
+        //data source: ZRH airport, 2019
+        if (r <= 0.26) {
+            purpose = BUSINESS;
+        } else if (r <= 0.36) {
+            purpose = COMMUTE;
+        } else {
+            purpose = LEISURE;
+        }
+        activity.getAttributes().putAttribute(Variables.MOBiTripAttributes.PURPOSE, purpose);
+
     }
 
     private ActivityFacility drawActivityFacility(List<Id<ActivityFacility>> facilities, String mode, ActivityFacility facility) {
