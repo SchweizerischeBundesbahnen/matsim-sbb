@@ -3,10 +3,7 @@ package ch.sbb.matsim.projects.synpop;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
@@ -23,6 +20,14 @@ public class SingleTripAgentToCSVConverter {
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(inputPlansFile);
+        Population population = scenario.getPopulation();
+
+
+        writeSingleTripsAsCSV(outputCSVFile, population);
+
+    }
+
+    public static void writeSingleTripsAsCSV(String outputCSVFile, Population population) throws IOException {
         String tripPurpose = Variables.MOBiTripAttributes.PURPOSE;
         String direction = Variables.MOBiTripAttributes.DIRECTION;
         String toActivityY = "to_activity_y";
@@ -33,16 +38,20 @@ public class SingleTripAgentToCSVConverter {
         String fromActivityY = "from_activity_y";
         String fromActivityX = "from_activity_x";
         String fromActivityType = "from_activity_type";
-        List<String> columns = List.of(Variables.PERSONID, Variables.SUBPOPULATION, fromActivityType, fromActivityX, fromActivityY, fromActivityEndTime, legMode, toActivityType, toActivityX, toActivityY, direction, tripPurpose);
+        String vehicleType = "vehicle_type";
+        List<String> columns = List.of(Variables.PERSONID, Variables.SUBPOPULATION, vehicleType, fromActivityType, fromActivityX, fromActivityY, fromActivityEndTime, legMode, toActivityType, toActivityX, toActivityY, direction, tripPurpose);
 
         try (CSVWriter writer = new CSVWriter(columns, outputCSVFile)) {
-            for (Person person : scenario.getPopulation().getPersons().values()) {
+            for (Person person : population.getPersons().values()) {
+
                 Plan plan = person.getSelectedPlan();
                 if (plan.getPlanElements().size() != 3) {
                     throw new RuntimeException("Some plans have more or less than three plan elements. This code is not designed to transform them. Agent: " + person.getId());
                 }
                 writer.set(Variables.PERSONID, person.getId().toString());
                 writer.set(Variables.SUBPOPULATION, PopulationUtils.getSubpopulation(person));
+                String vt = (String) person.getAttributes().getAttribute(vehicleType);
+                writer.set(vehicleType, vt != null ? vt : "");
                 Activity start = (Activity) plan.getPlanElements().get(0);
                 Leg leg = (Leg) plan.getPlanElements().get(1);
                 Activity end = (Activity) plan.getPlanElements().get(2);
@@ -59,6 +68,5 @@ public class SingleTripAgentToCSVConverter {
                 writer.writeRow();
             }
         }
-
     }
 }
