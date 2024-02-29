@@ -143,6 +143,11 @@ public class ZonesQueryCacheTest {
 			}
 			return null;
 		}
+
+        @Override
+        public List<Zone> getZones() {
+            return this.zones;
+        }
 	}
 
 	private static class TestZone implements Zone {
