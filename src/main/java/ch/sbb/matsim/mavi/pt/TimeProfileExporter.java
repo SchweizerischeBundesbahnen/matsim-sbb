@@ -1,9 +1,11 @@
 package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -58,7 +60,7 @@ public class TimeProfileExporter {
 		this.network.addLink(link);
 	}
 
-	private static HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum, VisumPtExporterConfigGroup config) {
+	private HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum, VisumPtExporterConfigGroup config) {
 		HashMap<Integer, TimeProfile> timeProfileMap = new HashMap<>();
 
 		log.info("loading LineRouteItems");
@@ -100,6 +102,13 @@ public class TimeProfileExporter {
 							customAttributes[tp]));
 		}
 
+		log.info("loading nodes");
+		Visum.ComObject nodes = visum.getNetObject("Nodes");
+		String[][] nodesdata = Visum.getArrayFromAttributeList(nodes.countActive(), nodes, "No", "XCoord", "YCoord");
+		log.info("loading links");
+		Visum.ComObject links = visum.getNetObject("Links");
+		String[][] linksdata = Visum.getArrayFromAttributeList(links.countActive(), links, "FromNodeNo", "ToNodeNo", "No", "Length", "WKTPoly");
+		createNetwork(nodesdata, linksdata);
 		log.info("loading VehicleJourneys");
 		// vehicles journeys
 		Visum.ComObject vehJourneys = visum.getNetObject("VehicleJourneys");
@@ -129,7 +138,7 @@ public class TimeProfileExporter {
 		int lastLRItemIndex = 0;
 		for (int tpi = 0; tpi < nrOfTimeProfileItems; tpi++) {
 			String[] row = timeProfileItemAttributes[tpi];
-			String visumLinkSequence = "";
+			ArrayList<Id<Link>> visumLinks = new ArrayList<>();
 			String lineRouteKey = row[6] + "||" + row[7] + "||" + row[8];
 			List<LineRouteItem> tpLineRouteItems = lrItemsPerLineRoute.get(lineRouteKey);
 			if (tpLineRouteItems == null) {
@@ -137,7 +146,6 @@ public class TimeProfileExporter {
 			} else {
 				int thisLRItemIndex = Integer.parseInt(row[9]);
 				boolean useIt = false;
-				StringBuilder seq = new StringBuilder();
 				String lastLink = null;
 				for (LineRouteItem lri : tpLineRouteItems) {
 					if (!useIt && lri.index >= lastLRItemIndex) {
@@ -145,10 +153,9 @@ public class TimeProfileExporter {
 					}
 					if (useIt) {
 						if (!lri.outLink.equals(lastLink) && !lri.outLink.isBlank() && !lri.node.isBlank()) {
-							if (!seq.isEmpty()) {
-								seq.append(',');
-							}
-							seq.append(createLinkId(lri.node, lri.outLink).toString());
+
+							Id<Link> linkId = createLinkId(lri.node, lri.outLink);
+							visumLinks.add(linkId);
 							lastLink = lri.outLink;
 						}
 					}
@@ -156,7 +163,6 @@ public class TimeProfileExporter {
 						break;
 					}
 				}
-				visumLinkSequence = seq.toString();
 				lastLRItemIndex = thisLRItemIndex;
 			}
 
@@ -167,7 +173,8 @@ public class TimeProfileExporter {
 						Double.parseDouble(row[3]),
 						Double.parseDouble(row[4]),
 						Double.parseDouble(row[5]),
-						visumLinkSequence));
+						visumLinks.stream().map(linkId -> linkId.toString()).collect(Collectors.joining(",")),
+						visumLinks));
 			} catch (Exception e) {
 				LogManager.getLogger(TimeProfileExporter.class).error(" Could not add TPI for row " + Arrays.stream(row).toList());
 				e.printStackTrace();
@@ -175,6 +182,32 @@ public class TimeProfileExporter {
 		}
 
 		return timeProfileMap;
+	}
+
+	private void createNetwork(String[][] nodesdata, String[][] linksdata) {
+		for (var nodeData : nodesdata) {
+			Id<Node> nodeId = Id.createNodeId(nodeData[0]);
+			Coord coord = new Coord(Double.parseDouble(nodeData[1]), Double.parseDouble(nodeData[2]));
+			Node node = this.networkBuilder.createNode(nodeId, coord);
+			this.network.addNode(node);
+		}
+		for (var linkData : linksdata) {
+			//"FromNodeNo", "ToNodeNo", "No", "Length", "WKTPoly"
+			var linkId = createLinkId(linkData[0], linkData[1]);
+			var fromNodeId = Id.createNodeId(linkData[0]);
+			var toNodeId = Id.createNodeId(linkData[2]);
+			double length = Double.parseDouble(linkData[3]);
+			String wkt = linkData[4];
+			Link link = networkBuilder.createLink(linkId, network.getNodes().get(fromNodeId), network.getNodes().get(toNodeId));
+			link.setLength(length * 1000.);
+			link.setFreespeed(10000);
+			link.setCapacity(10000);
+			link.setNumberOfLanes(1);
+			link.getAttributes().putAttribute(PolylinesCreator.WKT_ATTRIBUTE, wkt);
+
+		}
+
+
 	}
 
 	private static void addAttribute(Attributes attributes, String name, String value, String dataType) {
@@ -454,22 +487,8 @@ public class TimeProfileExporter {
 		}
 	}
 
-	private static class TimeProfileItem {
+	private record TimeProfileItem(int index, int stopPoint, double dep, double arr, double length,
+								   String visumLinkSequence, ArrayList<Id<Link>> visumLinks) {
 
-		final int index;
-		final int stopPoint;
-		final double dep;
-		final double arr;
-		final double length;
-		final String visumLinkSequence;
-
-		public TimeProfileItem(int index, int stopPoint, double dep, double arr, double length, String visumLinkSequence) {
-			this.index = index;
-			this.stopPoint = stopPoint;
-			this.dep = dep;
-			this.arr = arr;
-			this.length = length;
-			this.visumLinkSequence = visumLinkSequence;
-		}
 	}
 }

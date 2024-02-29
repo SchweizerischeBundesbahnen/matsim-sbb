@@ -88,17 +88,17 @@ public class VisumStreetNetworkExporter {
 		visumToCounts.exportCountStations(net, file.getAbsolutePath(), csv.getAbsolutePath());
 	}
 
-	private String[][] importNodes(Dispatch net, String... attribute) {
+	public static String[][] importNodes(Dispatch net, String... attribute) {
 		Dispatch nodes = Dispatch.get(net, "Nodes").toDispatch();//import nodes
-		return this.toArray(nodes, attribute);
+		return toArray(nodes, attribute);
 	}
 
-	private String[][] importLinks(Dispatch net, String... attribute) {
+	public static String[][] importLinks(Dispatch net, String... attribute) {
 		Dispatch links = Dispatch.get(net, "Links").toDispatch();
 		return toArray(links, attribute);
 	}
 
-	private String[][] toArray(Dispatch objects, String... attributes) {
+	public static String[][] toArray(Dispatch objects, String... attributes) {
 		int n = Integer.parseInt(Dispatch.call(objects, "CountActive").toString()); //number of nodes
 
 		String[][] attarray = new String[n][attributes.length]; //2d array containing all attributes of all nodes
