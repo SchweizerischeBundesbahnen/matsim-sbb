@@ -1,12 +1,13 @@
 package ch.sbb.matsim.projects.synpop.airports;
 
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.projects.synpop.roadExogeneous.SingleTripAgentCreator;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
-import ch.sbb.matsim.zones.ZonesImpl;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Coord;
@@ -29,6 +30,8 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import java.io.IOException;
 import java.util.*;
+
+import static ch.sbb.matsim.utils.AssignExogeneousTripPurposes.*;
 
 public class GenerateAirportDemand {
 
@@ -72,8 +75,8 @@ public class GenerateAirportDemand {
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
         new MatsimFacilitiesReader(scenario).readFile(facilitiesFile);
         Zones zones = ZonesLoader.loadZones("zones", zonesFile);
-        WeightedRandomSelection<Integer> departureTimeSelector = readTimeDistribution(departureTimeDistribution, random);
-        WeightedRandomSelection<Integer> arrivalTimeSelector = readTimeDistribution(arrivalTimeDistribution, random);
+        WeightedRandomSelection<Integer> departureTimeSelector = SingleTripAgentCreator.readTimeDistribution(departureTimeDistribution, random);
+        WeightedRandomSelection<Integer> arrivalTimeSelector = SingleTripAgentCreator.readTimeDistribution(arrivalTimeDistribution, random);
         GenerateAirportDemand generateAirportDemand = new GenerateAirportDemand(scenario, zones, departureTimeSelector, arrivalTimeSelector, random);
 
         generateAirportDemand.generateForAirport("bsl", new Coord(2607176.8206491300, 1272138.9751427100), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\bsl.csv");
@@ -81,30 +84,6 @@ public class GenerateAirportDemand {
         generateAirportDemand.generateForAirport("mxp", new Coord(2699355, 1053646), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\mxp.csv");
         generateAirportDemand.generateForAirport("gva", new Coord(2497430, 1120813), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\gva.csv");
         new PopulationWriter(scenario.getPopulation()).write(outputDemand);
-    }
-
-    private static WeightedRandomSelection<Integer> readTimeDistribution(String timeDistributionFile, Random random) {
-        WeightedRandomSelection<Integer> selection = new WeightedRandomSelection<>(random);
-        try (CSVReader reader = new CSVReader(new String[]{"time", "weight"}, timeDistributionFile, ";")) {
-            var line = reader.readLine();
-            while (line != null) {
-                try {
-                    Integer time = Integer.valueOf(line.get("time"));
-                    Double weight = Double.valueOf(line.get("weight"));
-                    System.out.println(time + " " + weight);
-                    if (weight > 0) {
-                        selection.add(time, weight);
-                    }
-                } catch (Exception e) {
-
-                }
-
-                line = reader.readLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return selection;
     }
 
     private void prepareFacilities() {
@@ -115,7 +94,7 @@ public class GenerateAirportDemand {
                 facilitiesPerZoneId.computeIfAbsent(zoneId, z -> new ArrayList<>()).add(fac.getId());
             }
         }
-        for (Zone zone : ((ZonesImpl) zones).getZones()) {
+        for (Zone zone : zones.getZones()) {
             String amr = zone.getAttribute("amr_id").toString();
             Integer popTotal = (Integer) zone.getAttribute("pop_total");
             zonePerAmr.computeIfAbsent(amr, a -> new WeightedRandomSelection<>(random)).add(zone.getId().toString(), popTotal);
@@ -164,6 +143,7 @@ public class GenerateAirportDemand {
         Plan plan = factory.createPlan();
         person.addPlan(plan);
         Activity activity = factory.createActivityFromCoord("airport", airportCoord);
+        drawAndAssignPurpose(activity);
         activity.setEndTime(departureTimeSelector.select() * 3600 + random.nextInt(3600));
         plan.addActivity(activity);
         plan.addLeg(factory.createLeg(mode));
@@ -187,6 +167,7 @@ public class GenerateAirportDemand {
         Plan plan = factory.createPlan();
         person.addPlan(plan);
         Activity activity = factory.createActivityFromCoord("airportDestination", facility.getCoord());
+        drawAndAssignPurpose(activity);
         int desiredArrivalTime = arrivalTimeSelector.select() * 3600 + random.nextInt(3600);
         int travelTimeEstimate = (int) (1800 + CoordUtils.calcEuclideanDistance(airportCoord, facility.getCoord()) / (17));
         int time = Math.max(desiredArrivalTime - travelTimeEstimate, 0);
@@ -195,6 +176,21 @@ public class GenerateAirportDemand {
         plan.addLeg(factory.createLeg(mode));
         plan.addActivity(factory.createActivityFromCoord("airport", airportCoord));
         setSubpopulation(person, mode);
+    }
+
+    private void drawAndAssignPurpose(Activity activity) {
+        double r = random.nextDouble();
+        String purpose;
+        //data source: ZRH airport, 2019
+        if (r <= 0.26) {
+            purpose = BUSINESS;
+        } else if (r <= 0.36) {
+            purpose = COMMUTE;
+        } else {
+            purpose = LEISURE;
+        }
+        activity.getAttributes().putAttribute(Variables.MOBiTripAttributes.PURPOSE, purpose);
+
     }
 
     private ActivityFacility drawActivityFacility(List<Id<ActivityFacility>> facilities, String mode, ActivityFacility facility) {

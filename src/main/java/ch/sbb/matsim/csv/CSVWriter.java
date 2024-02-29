@@ -9,6 +9,7 @@ import org.matsim.core.utils.misc.Counter;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.List;
 
 public class CSVWriter implements AutoCloseable {
 
@@ -22,6 +23,10 @@ public class CSVWriter implements AutoCloseable {
 
 	public CSVWriter(final String header, final String[] columns, final String filename) throws IOException {
 		this(header, columns, IOUtils.getBufferedWriter(filename), DEFAULT_SEPARATOR);
+	}
+
+	public CSVWriter(final List<String> columns, final String filename) throws IOException {
+		this(null, columns.toArray(new String[columns.size()]), IOUtils.getBufferedWriter(filename), DEFAULT_SEPARATOR);
 	}
 
 	public CSVWriter(final String header, final String[] columns, final String filename, final String separator) throws IOException {
