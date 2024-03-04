@@ -48,7 +48,7 @@ public final class ZonesLoader {
 		try {
 			String filename = new File(filenameURL.toURI()).getAbsolutePath();
 			return loadZones(id, filename, idAttribute);
-		} catch (URISyntaxException e) {
+		} catch (URISyntaxException | IllegalArgumentException e) {
 			return loadZones(id, fileNameString, idAttribute);
 		}
 
