@@ -130,9 +130,9 @@
 
         <!-- Include the jacobs library to use the COM interface -->
         <dependency>
-            <groupId>com.hynnet</groupId>
+            <groupId>xyz.cofe</groupId>
             <artifactId>jacob</artifactId>
-            <version>1.18</version>
+            <version>1.20</version>
         </dependency>
 
         <dependency>

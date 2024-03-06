@@ -8,8 +8,8 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import ch.sbb.matsim.preparation.MobiTransitScheduleVerifiyer;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
@@ -106,10 +106,6 @@ public class RunVisumPtExporter {
 		if (exporterConfig.getAngebotName() != null) {
 			visum.filterForAngebot(exporterConfig.getAngebotName());
 		}
-
-		// currently not supported: additional filter for time profiles if desired
-		//if(exporterConfig.getTimeProfilFilterParams().size() != 0)
-		//    visum.setTimeProfilFilter(exporterConfig.getTimeProfilFilterConditions());
 
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 

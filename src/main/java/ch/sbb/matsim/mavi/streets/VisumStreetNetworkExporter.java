@@ -4,7 +4,7 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.counts.VisumToCounts;
-import com.jacob.activeX.ActiveXComponent;
+import ch.sbb.matsim.mavi.visum.Visum;
 import com.jacob.com.Dispatch;
 import com.jacob.com.SafeArray;
 import org.apache.logging.log4j.LogManager;
@@ -53,20 +53,17 @@ public class VisumStreetNetworkExporter {
 		}
 	}
 
-	public void run(String inputvisum, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {
-		ActiveXComponent visum = new ActiveXComponent("Visum.Visum." + visumVersion);
-		log.info("VISUM Client gestartet.");
-		Dispatch.call(visum, "LoadVersion", inputvisum);
+	public void run(Visum visumObject, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {
 
 		this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		this.nf = scenario.getNetwork().getFactory();
 
-		Dispatch net = Dispatch.get(visum, "Net").toDispatch();
+		Dispatch net = visumObject.getComObject("Net").getDispatch();
 
-		Dispatch filters = Dispatch.get(visum, "Filters").toDispatch();
+		Dispatch filters = visumObject.getComObject("Filters").getDispatch();
 		Dispatch.call(filters, "InitAll");
 		if (exportCounts) {
-			this.exportCountStations(visum, outputPath);
+			this.exportCountStations(visumObject, outputPath);
 		}
 		String[][] nodes = importNodes(net, "No", "XCoord", "YCoord", "ZCoord");
 		String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
@@ -80,12 +77,12 @@ public class VisumStreetNetworkExporter {
 	}
 
 
-	private void exportCountStations(Dispatch net, String outputFolder) throws IOException {
+	private void exportCountStations(Visum visum, String outputFolder) throws IOException {
 		VisumToCounts visumToCounts = new VisumToCounts();
 
 		File file = new File(outputFolder, "counts");
 		File csv = new File(outputFolder, "counts.csv");
-		visumToCounts.exportCountStations(net, file.getAbsolutePath(), csv.getAbsolutePath());
+		visumToCounts.exportCountStations(visum, file.getAbsolutePath(), csv.getAbsolutePath());
 	}
 
 	private String[][] importNodes(Dispatch net, String... attribute) {
