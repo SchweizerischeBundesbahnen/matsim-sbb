@@ -35,7 +35,7 @@ public class SBBScoringParametersConfigGroup extends ReflectiveConfigGroup {
 	}
 
 	public URL getScoringParametersExcelPathURL(URL context) {
-		return ConfigGroup.getInputFileURL(context, this.scoringParametersExcelPath);
+		return scoringParametersExcelPath != null ? ConfigGroup.getInputFileURL(context, this.scoringParametersExcelPath) : null;
 	}
 
 	@Override
