@@ -19,6 +19,8 @@ import org.matsim.core.config.groups.ScoringConfigGroup;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -85,11 +87,11 @@ public class XLSXScoringParser {
 	}
 
 	public static void buildScoringBehaviourGroups(Config config) {
-		String excelPath = ConfigUtils.addOrGetModule(config, SBBScoringParametersConfigGroup.class).getScoringParametersExcelPath();
+		URL excelPath = ConfigUtils.addOrGetModule(config, SBBScoringParametersConfigGroup.class).getScoringParametersExcelPathURL(config.getContext());
 		if (excelPath != null) {
-			try (FileInputStream inputStream = new FileInputStream(excelPath)) {
+			log.info("Parsing Scoring Paramters from Excel: " + excelPath);
+			try (InputStream inputStream = excelPath.openStream()) {
 				Workbook workbook = WorkbookFactory.create(inputStream);
-
 				XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 			} catch (IOException e) {
 				e.printStackTrace();
