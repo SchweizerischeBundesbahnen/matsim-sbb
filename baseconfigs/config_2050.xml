@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd"[
-        <!ENTITY PT_PATH "">
-        <!ENTITY STREETS_PATH "">
-        <!ENTITY RUNID "">
-        <!ENTITY LASTIT "200">
-        <!ENTITY ZONES "">
-        <!ENTITY POPULATIONSAMPLESIZE "0.1">
+        <!ENTITY plans "input\plans.xml.gz">
+        <!ENTITY facilities "input\facilities.xml.gz">
+        <!ENTITY transit_schedule "input\transitSchedule.xml.gz">
+        <!ENTITY road_network "input\roadNetwork.xml.gz">
+        <!ENTITY scoring_parameters "input\scoringParameters.xlsx">
+        <!ENTITY run_name "MOBi4.0_2050">
+        <!ENTITY iterations "200">
+        <!ENTITY zones "input\mobi-zones.shp">
+        <!ENTITY sample_size "0.1">
+        <!ENTITY output_folder "output">
         ]
         >
 <config>
 
     <module name="SBBSupply">
-        <param name="inputTransitNetworkFile" value="&PT_PATH;/transitNetwork.xml.gz"/>
+        <param name="inputTransitNetworkFile" value="&transit_schedule;/transitNetwork.xml.gz"/>
+    </module>
+
+    <module name="SBBScoringParameters">
+        <param name="scoringParametersExcelPath" value="&scoring_parameters;"/>
     </module>
 
     <module name="ConvergenceStats">
@@ -24,12 +32,12 @@
     </module>
 
     <module name="PostProcessing">
-        <param name="simulationSampleSize" value="&POPULATIONSAMPLESIZE;"/>
+        <param name="simulationSampleSize" value="&sample_size;"/>
         <param name="linkVolumes" value="true"/>
         <param name="personAttributes"
                value="subpopulation,pt_subscr,car_available,residence_msr_id,age_cat,current_edu,level_of_employment_cat"/>
         <param name="writeAgentsCSV" value="true"/>
-        <param name="writeOutputsInterval" value="&LASTIT;"/>
+        <param name="writeOutputsInterval" value="&iterations;"/>
         <param name="writeVisumPuTSurvey" value="true"/>
         <param name="writeDefaultAnalysis" value="true"/>
         <param name="zoneAttribute" value="zone_id"/>
@@ -106,7 +114,7 @@
     <module name="SBBPt">
         <!-- (iterationNumber % createLinkEventsInterval) == 0 defines in which iterations linkEnter- and linkLeave-events are created,
                 "useful for visualization or analysis purposes. Defaults to 0. `0' disables the creation of events completely. -->
-        <param name="createLinkEventsInterval" value="&LASTIT;"/>
+        <param name="createLinkEventsInterval" value="&iterations;"/>
         <!-- Leg modes used by the created transit drivers that should be simulated strictly according to the schedule. -->
         <param name="deterministicServiceModes" value="bus,other,rail,tram"/>
     </module>
@@ -144,26 +152,26 @@
         <!-- Default=0. First Iteration of a simulation. -->
         <param name="firstIteration" value="0"/>
         <!-- Default=1000. Last Iteration of a simulation. -->
-        <param name="lastIteration" value="&LASTIT;"/>
+        <param name="lastIteration" value="&iterations;"/>
         <!-- Defines which mobility simulation will be used. Currently supported: qsim JDEQSim hermes
         Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
         For 'qsim', add a module 'qsim' to the config. -->
         <param name="mobsim" value="hermes"/>
-        <param name="outputDirectory" value="output"/>
+        <param name="outputDirectory" value="&output_folder;"/>
         <!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
         <param name="overwriteFiles" value="deleteDirectoryIfExists"/>
         <!-- The type of routing (least cost path) algorithm used, may have the values: Dijkstra, FastDijkstra, AStarLandmarks or FastAStarLandmarks -->
         <param name="routingAlgorithmType" value="SpeedyALT"/>
         <!-- An identifier for the current run which is used as prefix for output files and mentioned in output xml files etc. -->
-        <param name="runId" value="&RUNID;"/>
+        <param name="runId" value="&run_name;"/>
         <!-- Comma-separated list of visualizer output file formats. `transims', `googleearth', and `otfvis'. -->
-        <param name="writeEventsInterval" value="&LASTIT;"/>
+        <param name="writeEventsInterval" value="&iterations;"/>
         <!-- iterationNumber % writePlansInterval == 0 defines (hopefully) in which iterations plans are written to a file. `0' disables plans writing completely.  Some plans in early iterations are always written -->
-        <param name="writePlansInterval" value="&LASTIT;"/>
+        <param name="writePlansInterval" value="&iterations;"/>
         <!-- iterationNumber % writeSnapshotsInterval == 0 defines in which iterations snapshots are written to a file. `0' disables snapshots writing completely -->
         <param name="writeSnapshotsInterval" value="0"/>
         <!-- iterationNumber % writeEventsInterval == 0 defines in which iterations trips CSV are written to a file. `0' disables trips writing completely. -->
-        <param name="writeTripsInterval" value="&LASTIT;"/>
+        <param name="writeTripsInterval" value="&iterations;"/>
     </module>
     <module name="counts">
         <!-- Transport modes that will be respected for the counts comparison. 'car' is default, which includes also bussed from the pt simulation module. Use this parameter in combination with 'filterModes' = true! -->
@@ -178,14 +186,14 @@
         <param name="filterModes" value="false"/>
 
         <!-- input file name to counts package -->
-        <param name="inputCountsFile" value="&STREETS_PATH;\counts.xml.gz"/>
+        <param name="inputCountsFile" value="&road_network;/counts.xml.gz"/>
         <!-- possible values: `html', `kml', `txt', `all' -->
         <param name="outputformat" value="txt"/>
         <!-- Specifies how often the counts comparison should be calculated and written. -->
-        <param name="writeCountsInterval" value="&LASTIT;"/>
+        <param name="writeCountsInterval" value="&iterations;"/>
     </module>
     <module name="facilities">
-        <param name="inputFacilitiesFile" value="prepared\facilities.xml.gz"/>
+        <param name="inputFacilitiesFile" value="&facilities;"/>
     </module>
     <module name="global">
         <param name="coordinateSystem" value="CH1903plus_LV95"/>
@@ -211,7 +219,7 @@
         <param name="writeLinkStatsInterval" value="0"/>
     </module>
     <module name="network">
-        <param name="inputNetworkFile" value="&STREETS_PATH;/network.xml.gz"/>
+        <param name="inputNetworkFile" value="&road_network;/network.xml.gz"/>
     </module>
     <module name="eventsManager">
         <!-- Estimated number of events during mobsim run. An optional optimization hint for the framework. -->
@@ -254,6 +262,18 @@
                 <!-- typical duration of activity.  needs to be defined and non-zero.  in sec. -->
                 <param name="typicalDuration" value="12:00:00"/>
                 <!-- method to compute score at typical duration.  Options: | uniform | relative | Use uniform for backwards compatibility (all activities same score; higher proba to drop long acts). -->
+                <param name="typicalDurationScoreComputation" value="uniform"/>
+            </parameterset>
+            <parameterset type="activityParams">
+                <param name="activityType" value="airport"/>
+                <param name="scoringThisActivityAtAll" value="false"/>
+                <param name="typicalDuration" value="12:00:00"/>
+                <param name="typicalDurationScoreComputation" value="uniform"/>
+            </parameterset>
+            <parameterset type="activityParams">
+                <param name="activityType" value="airportDestination"/>
+                <param name="scoringThisActivityAtAll" value="false"/>
+                <param name="typicalDuration" value="12:00:00"/>
                 <param name="typicalDurationScoreComputation" value="uniform"/>
             </parameterset>
             <parameterset type="activityParams">
@@ -301,7 +321,7 @@
         <!-- Possible values: reject, useMainModeIdentifier -->
         <param name="handlingOfPlansWithoutRoutingMode" value="reject"/>
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
-        <param name="inputPlansFile" value="prepared\plans.xml.gz"/>
+        <param name="inputPlansFile" value="&plans;"/>
         <param name="networkRouteType" value="LinkNetworkRoute"/>
     </module>
     <module name="routing">
@@ -537,12 +557,12 @@
     <module name="transit">
         <param name="transitModes" value="pt"/>
         <!-- Input file containing the transit schedule to be simulated. -->
-        <param name="transitScheduleFile" value="&PT_PATH;/transitSchedule.xml.gz"/>
+        <param name="transitScheduleFile" value="&transit_schedule;/transitSchedule.xml.gz"/>
         <!-- Optional input file containing additional attributes for transit stop facilities, stored as ObjectAttributes. -->
         <param name="useTransit" value="true"/>
         <param name="usingTransitInMobsim" value="true"/>
         <!-- Input file containing the vehicles used by the departures in the transit schedule. -->
-        <param name="vehiclesFile" value="&PT_PATH;/transitVehicles.xml.gz"/>
+        <param name="vehiclesFile" value="&transit_schedule;/transitVehicles.xml.gz"/>
     </module>
 
     <module name="travelTimeCalculator">
@@ -551,11 +571,11 @@
         <param name="travelTimeBinSize" value="900"/>
     </module>
     <module name="vehicles">
-        <param name="vehiclesFile" value="&STREETS_PATH;\av-vehicles.xml"/>
+        <param name="vehiclesFile" value="&road_network;/vehicles.xml.gz"/>
     </module>
     <module name="zones">
         <parameterset type="zones">
-            <param name="filename" value="&ZONES;"/>
+            <param name="filename" value="&zones;"/>
             <param name="id" value="zones"/>
             <param name="idAttributeName" value="zone_id"/>
         </parameterset>

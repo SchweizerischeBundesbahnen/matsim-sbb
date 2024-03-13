@@ -43,7 +43,7 @@ public class Variables {
     public static final String DEFAULT_OUTSIDE_ZONE = "999999999";
 
     public static final String INTERMODAL_ACCESS_LINK_ID = "accessLinkId";
-    public static final String PERSONID = "personId";
+    public static final String PERSONID = "person_id";
 
     public static final String CAR_AVAIL = "car_available";
     public static final String CAR_AVAL_TRUE = "1";

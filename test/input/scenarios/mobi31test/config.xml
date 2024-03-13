@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">
+<!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd"[
+        <!ENTITY plans "population_mobi_33.xml.gz">
+        <!ENTITY facilities "facilities.xml.gz">
+        <!ENTITY transit_schedule ".">
+        <!ENTITY road_network ".">
+        <!ENTITY scoring_parameters "scoringParametersIT.xlsx">
+        <!ENTITY run_name "MOBI33IT">
+        <!ENTITY iterations "1">
+        <!ENTITY zones "zones/andermatt-zones.shp">
+        <!ENTITY sample_size "0.1">
+        <!ENTITY output_folder "test/output/mobi-33-test">
+        ]
+        >
 <config>
     <module name="ConvergenceStats">
         <param name="activateConvergenceStats" value="false"/>
@@ -11,17 +23,21 @@
         <param name="testsToRun" value="kendall,cv,ks_normal"/>
     </module>
 
+    <module name="SBBScoringParameters">
+        <param name="scoringParametersExcelPath" value="&scoring_parameters;"/>
+    </module>
+
     <module name="PostProcessing">
         <!-- Run Screenline Analysis -->
 
-        <param name="simulationSampleSize" value="0.1"/>
+        <param name="simulationSampleSize" value="&sample_size;"/>
         <param name="linkVolumes" value="true"/>
         <param name="dailylinkVolumes" value="true"/>
         <param name="personAttributes"
                value="subpopulation,pt_subscr,car_available,residence_msr_id,age_cat,current_edu,level_of_employment_cat"/>
         <param name="writeAgentsCSV" value="true"/>
         <param name="writeDefaultAnalysis" value="true"/>
-        <param name="writeOutputsInterval" value="1"/>
+        <param name="writeOutputsInterval" value="&iterations;"/>
         <param name="writeVisumPuTSurvey" value="true"/>
         <param name="zoneAttribute" value="zone_id"/>
         <param name="zonesId" value="zones"/>
@@ -79,7 +95,7 @@
     <module name="SBBPt">
         <!-- (iterationNumber % createLinkEventsInterval) == 0 defines in which iterations linkEnter- and linkLeave-events are created,
                 "useful for visualization or analysis purposes. Defaults to 0. `0' disables the creation of events completely. -->
-        <param name="createLinkEventsInterval" value="1"/>
+        <param name="createLinkEventsInterval" value="&iterations;"/>
         <!-- Leg modes used by the created transit drivers that should be simulated strictly according to the schedule. -->
         <param name="deterministicServiceModes" value="bus,other,rail,tram"/>
     </module>
@@ -135,28 +151,28 @@
         <!-- Default=0. First Iteration of a simulation. -->
         <param name="firstIteration" value="0"/>
         <!-- Default=1000. Last Iteration of a simulation. -->
-        <param name="lastIteration" value="1"/>
+        <param name="lastIteration" value="&iterations;"/>
         <!-- Defines which mobility simulation will be used. Currently supported: qsim JDEQSim hermes
         Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
         For 'qsim', add a module 'qsim' to the config. -->
         <param name="mobsim" value="hermes"/>
-        <param name="outputDirectory" value="test/output/mobi-33-test"/>
+        <param name="outputDirectory" value="&output_folder;"/>
         <!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
         <param name="overwriteFiles" value="deleteDirectoryIfExists"/>
         <!-- The type of routing (least cost path) algorithm used, may have the values: Dijkstra, FastDijkstra, AStarLandmarks or FastAStarLandmarks -->
         <param name="routingAlgorithmType" value="SpeedyALT"/>
         <!-- An identifier for the current run which is used as prefix for output files and mentioned in output xml files etc. -->
-        <param name="runId" value="MOBI33IT"/>
+        <param name="runId" value="&run_name;"/>
         <!-- Comma-separated list of visualizer output file formats. `transims', `googleearth', and `otfvis'. -->
         <param name="snapshotFormat" value=""/>
         <!-- iterationNumber % writeEventsInterval == 0 defines in which iterations events are written to a file. `0' disables events writing completely. -->
-        <param name="writeEventsInterval" value="0"/>
+        <param name="writeEventsInterval" value="&iterations;"/>
         <!-- iterationNumber % writePlansInterval == 0 defines (hopefully) in which iterations plans are written to a file. `0' disables plans writing completely.  Some plans in early iterations are always written -->
-        <param name="writePlansInterval" value="1"/>
+        <param name="writePlansInterval" value="&iterations;"/>
         <!-- iterationNumber % writeSnapshotsInterval == 0 defines in which iterations snapshots are written to a file. `0' disables snapshots writing completely -->
         <param name="writeSnapshotsInterval" value="0"/>
         <!-- iterationNumber % writeEventsInterval == 0 defines in which iterations trips CSV are written to a file. `0' disables trips writing completely. -->
-        <param name="writeTripsInterval" value="1"/>
+        <param name="writeTripsInterval" value="&iterations;"/>
     </module>
 
     <module name="facilities">
@@ -166,7 +182,7 @@
         <param name="idPrefix" value="f_auto_"/>
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
         <param name="inputCRS" value="null"/>
-        <param name="inputFacilitiesFile" value="facilities.xml.gz"/>
+        <param name="inputFacilitiesFile" value="&facilities;"/>
         <param name="inputFacilityAttributesFile" value="null"/>
         <param name="insistingOnUsingDeprecatedFacilitiesAttributeFile" value="false"/>
     </module>
@@ -202,7 +218,7 @@
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
         <param name="inputCRS" value="null"/>
         <param name="inputChangeEventsFile" value="null"/>
-        <param name="inputNetworkFile" value="network.xml.gz"/>
+        <param name="inputNetworkFile" value="&road_network;/network.xml.gz"/>
         <param name="laneDefinitionsFile" value="null"/>
         <param name="timeVariantNetwork" value="false"/>
     </module>
@@ -233,7 +249,7 @@
         <!-- There used to be a plateau between duration=0 and duration=zeroUtilityDuration. This caused durations to evolve to zero once they were below zeroUtilityDuration, causing problems.  Only use this switch if you need to be backwards compatible with some old results.  (changed nov'13) -->
         <param name="usingOldScoringBelowZeroUtilityDuration" value="false"/>
         <!-- write a plans file in each iteration directory which contains what each agent actually did, and the score it received. -->
-        <param name="writeExperiencedPlans" value="false"/>
+        <param name="writeExperiencedPlans" value="true"/>
         <parameterset type="scoringParameters">
             <param name="earlyDeparture" value="0.0"/>
             <param name="lateArrival" value="-6.0"/>
@@ -341,7 +357,7 @@
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
         <param name="inputCRS" value="null"/>
         <param name="inputPersonAttributesFile" value="null"/>
-        <param name="inputPlansFile" value="population_mobi_33.xml.gz"/>
+        <param name="inputPlansFile" value="&plans;"/>
         <param name="insistingOnUsingDeprecatedPersonAttributeFile" value="false"/>
         <!-- Defines how routes are stored in memory. Currently supported: LinkNetworkRoute, CompressedNetworkRoute. -->
         <param name="networkRouteType" value="LinkNetworkRoute"/>
@@ -616,6 +632,38 @@
             <param name="personFilterAttribute" value="ride2pt"/>
             <param name="personFilterValue" value="1"/>
         </parameterset>
+        <parameterset type="modeToModeTransferPenalty" >
+            <!-- from Transfer PT Sub-Mode -->
+            <param name="fromMode" value="bus" />
+            <!-- to Transfer PT Sub-Mode -->
+            <param name="toMode" value="rail" />
+            <!-- Transfer Penalty per Transfer between modes -->
+            <param name="transferPenalty" value="0.4" />
+        </parameterset>
+        <parameterset type="modeToModeTransferPenalty" >
+            <!-- from Transfer PT Sub-Mode -->
+            <param name="fromMode" value="rail" />
+            <!-- to Transfer PT Sub-Mode -->
+            <param name="toMode" value="bus" />
+            <!-- Transfer Penalty per Transfer between modes -->
+            <param name="transferPenalty" value="0.4" />
+        </parameterset>
+        <parameterset type="modeToModeTransferPenalty" >
+            <!-- from Transfer PT Sub-Mode -->
+            <param name="fromMode" value="tram" />
+            <!-- to Transfer PT Sub-Mode -->
+            <param name="toMode" value="rail" />
+            <!-- Transfer Penalty per Transfer between modes -->
+            <param name="transferPenalty" value="0.4" />
+        </parameterset>
+        <parameterset type="modeToModeTransferPenalty" >
+            <!-- from Transfer PT Sub-Mode -->
+            <param name="fromMode" value="rail" />
+            <!-- to Transfer PT Sub-Mode -->
+            <param name="toMode" value="tram" />
+            <!-- Transfer Penalty per Transfer between modes -->
+            <param name="transferPenalty" value="0.4" />
+        </parameterset>
     </module>
     <module name="transit">
         <!-- The Coordinates Reference System in which the coordinates are expressed in the input file. At import, the coordinates will be converted to the coordinate system defined in "global", and willbe converted back at export. If not specified, no conversion happens. -->
@@ -626,14 +674,14 @@
         <!-- Comma-separated list of transportation modes that are handled as transit. Defaults to 'pt'. -->
         <param name="transitModes" value="pt"/>
         <!-- Input file containing the transit schedule to be simulated. -->
-        <param name="transitScheduleFile" value="transitSchedule.xml.gz"/>
+        <param name="transitScheduleFile" value="&transit_schedule;/transitSchedule.xml.gz"/>
         <!-- Optional input file containing additional attributes for transit stop facilities, stored as ObjectAttributes. -->
         <param name="transitStopsAttributesFile" value="null"/>
         <!-- Set this parameter to true if transit should be simulated, false if not. -->
         <param name="useTransit" value="true"/>
         <param name="usingTransitInMobsim" value="true"/>
         <!-- Input file containing the vehicles used by the departures in the transit schedule. -->
-        <param name="vehiclesFile" value="transitVehicles.xml.gz"/>
+        <param name="vehiclesFile" value="&transit_schedule;/transitVehicles.xml.gz"/>
     </module>
     <module name="transitRouter">
         <!-- additional time the router allocates when a line switch happens. Can be interpreted as a 'safety' time that agents need to safely transfer from one line to another -->
@@ -666,7 +714,7 @@
         <param name="travelTimeGetter" value="average"/>
     </module>
     <module name="vehicles">
-        <param name="vehiclesFile" value="vehicles.xml"/>
+        <param name="vehiclesFile" value="&road_network;/vehicles.xml"/>
     </module>
     <module name="vspExperimental">
         <!-- (do not use except of you have to) There was a problem with pt interaction scoring.  Some people solved it by overwriting the parameters of the pt interaction activity type.  Doing this now throws an Exception.  If you still insist on doing this, set the following to true. -->
@@ -682,7 +730,7 @@
     </module>
     <module name="zones">
         <parameterset type="zones">
-            <param name="filename" value="zones/andermatt-zones.shp"/>
+            <param name="filename" value="&zones;"/>
             <param name="id" value="zones"/>
             <param name="idAttributeName" value="zone_id"/>
         </parameterset>

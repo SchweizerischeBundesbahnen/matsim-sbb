@@ -105,7 +105,7 @@ public class CalculateIndicatorOMXMatrices {
             String prefix = e.getKey();
             double[] times = e.getValue();
 
-            PTSkimMatrices.PtIndicators<String> matrices = skims.calculatePTMatrices(networkFilename, transitScheduleFilename, times[0], times[1], config, trainLinePredictor);
+            PTSkimMatrices.PtIndicators<String> matrices = skims.calculatePTMatrices(networkFilename, transitScheduleFilename, times[0], times[1], config, trainLinePredictor, new DiameterBasedCoordCondenser());
             exportPtSkimMatrices(outputDirectory + "/" + prefix + "pt_skims.omx", matrices, lookupzones);
         }
 

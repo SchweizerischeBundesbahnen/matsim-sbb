@@ -1,19 +1,19 @@
 package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-
-import java.util.*;
-
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.contrib.common.util.DistanceUtils;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
-import org.matsim.pt.transitSchedule.api.*;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import java.util.*;
 
 /**
  * @author jbischoff / SBB
@@ -23,7 +23,7 @@ public class MobiTransitScheduleVerifiyer {
 	public static final Logger LOGGER = LogManager.getLogger(MobiTransitScheduleVerifiyer.class);
 
 	public static void main(String[] args) {
-		String scheduleFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_3.1\\sim\\3.1.3_25pct\\output_slice_0\\MOBI31.output_transitSchedule.xml.gz";
+        String scheduleFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2040\\pt\\BAVAK35\\output\\transitSchedule.xml.gz";
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new TransitScheduleReader(scenario).readFile(scheduleFile);
 		verifyTransitSchedule(scenario.getTransitSchedule());

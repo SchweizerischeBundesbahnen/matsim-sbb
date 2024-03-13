@@ -23,6 +23,7 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.mavi.PolylinesCreator;
+import ch.sbb.matsim.mavi.visum.Visum;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.logging.log4j.LogManager;
@@ -64,7 +65,13 @@ public class StreetNetworkExporter {
         String visumFile = streetsExporterConfigGroup.getVisumFileURL(config.getContext()).getPath()
                 .replace("////", "//")
                 .replace("/", "\\");
-        vse.run(visumFile, outputDir, Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
+        if (visumFile.contains(":")) {
+            visumFile = visumFile.substring(1);
+        }
+        Visum visum = new Visum(Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()));
+        visum.loadVersion(visumFile);
+
+        vse.run(visum, outputDir, Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
                 streetsExporterConfigGroup.isExportCounts(), true);
         Network network = vse.getNetwork();
         if (streetsExporterConfigGroup.getSmallRoadSpeedFactor() < 1.0 || streetsExporterConfigGroup.getMainRoadSpeedFactor() < 1.0) {

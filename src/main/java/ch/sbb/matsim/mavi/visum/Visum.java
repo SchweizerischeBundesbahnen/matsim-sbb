@@ -4,10 +4,11 @@ import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.SafeArray;
 import com.jacob.com.Variant;
-import java.util.List;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.locationtech.jts.util.Assert;
+
+import java.util.List;
 
 public class Visum {
 
@@ -117,6 +118,10 @@ public class Visum {
 		public ComObject(Dispatch dispatch) {
 			this.dispatch = dispatch;
 		}
+
+        public Dispatch getDispatch() {
+            return dispatch;
+        }
 
 		public int countActive() {
 			return Dispatch.call(this.dispatch, "CountActive").getInt();

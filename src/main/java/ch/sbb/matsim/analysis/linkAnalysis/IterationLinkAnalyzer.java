@@ -20,12 +20,6 @@
 package ch.sbb.matsim.analysis.linkAnalysis;
 
 import ch.sbb.matsim.config.variables.Variables;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
 import jakarta.inject.Inject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
@@ -35,7 +29,14 @@ import org.matsim.api.core.v01.events.VehicleEntersTrafficEvent;
 import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.events.handler.VehicleEntersTrafficEventHandler;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.vehicles.Vehicle;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Counts the vehicles per iteration on all links
@@ -49,7 +50,9 @@ public class IterationLinkAnalyzer implements LinkEnterEventHandler, VehicleEnte
     private final IdMap<Link, CarLinkAnalysis.LinkStorage> countPerLink = new IdMap<>(Link.class);
     private final Map<Id<Vehicle>, AnalysisVehicleType> identification = new HashMap<>();
 
-    public IterationLinkAnalyzer() {
+    @Inject
+    public IterationLinkAnalyzer(EventsManager manager) {
+        manager.addHandler(this);
     }
 
     public IterationLinkAnalyzer(Scenario scenario) {

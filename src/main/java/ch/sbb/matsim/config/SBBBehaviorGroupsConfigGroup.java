@@ -23,7 +23,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 	public static final String PARAM_TRANSFER_UTILITY_BASE = "transferUtilityBase";
 	public static final String PARAM_TRANSFER_UTILITY_MINIMUM = "transferUtilityMinimum";
 	public static final String PARAM_TRANSFER_UTILITY_MAXIMUM = "transferUtilityMaximum";
-	public static final String PARAM_TRANSFER_UTILITY_RAIL_OEPNV = "transferUtilityRailOePNV";
 	static private final String PARAMSET_BEHAVIORGROUP = "behaviorGroup";
 	static private final String PARAMSET_PERSONGROUPATTRIBUTE = "personGroupAttributeValues";
 	static private final String PARAMSET_ABSOLUTEMODECORRECTIONS = "absoluteModeCorrections";
@@ -44,7 +43,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 	private double transferUtilityPerTravelTime_utilsPerHour = 0;
 	private double transferUtilityMinimum = Double.NEGATIVE_INFINITY;
 	private double transferUtilityMaximum = Double.POSITIVE_INFINITY;
-	private double transferUtilityRailOePNV= 0;
 
 	public SBBBehaviorGroupsConfigGroup() {
 		super(GROUP_NAME);
@@ -109,7 +107,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 		map.put(PARAM_TRANSFER_UTILITY_PER_TRAVEL_TIME, "[utils/hour] transfer penalty in utils, depending on the total transit travel time. Will be added to the base transfer utility.");
 		map.put(PARAM_TRANSFER_UTILITY_MINIMUM, "[utils] minimum utility for transfers");
 		map.put(PARAM_TRANSFER_UTILITY_MAXIMUM, "[utils] maximum utility for transfers");
-		map.put(PARAM_TRANSFER_UTILITY_RAIL_OEPNV, "[utils] utility for transfers between rail and OePNV");
 		return map;
 	}
 
@@ -177,16 +174,6 @@ public class SBBBehaviorGroupsConfigGroup extends ReflectiveConfigGroup {
 	@StringSetter(PARAM_TRANSFER_UTILITY_MAXIMUM)
 	public void setMaximumTransferUtility(double transferUtilityMaximum) {
 		this.transferUtilityMaximum = transferUtilityMaximum;
-	}
-
-	@StringGetter(PARAM_TRANSFER_UTILITY_RAIL_OEPNV)
-	public double getTransferUtilityRailOePNV() {
-		return this.transferUtilityRailOePNV;
-	}
-
-	@StringSetter(PARAM_TRANSFER_UTILITY_RAIL_OEPNV)
-	public void setTransferUtilityRailOePNV(double transferUtilityRailOePNV) {
-		this.transferUtilityRailOePNV = transferUtilityRailOePNV;
 	}
 
 	public static class BehaviorGroupParams extends ReflectiveConfigGroup {

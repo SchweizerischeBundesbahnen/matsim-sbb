@@ -1,7 +1,7 @@
 package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
-import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
+import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -13,7 +13,6 @@ import org.matsim.core.scoring.SumScoringFunction;
 import org.matsim.core.scoring.functions.CharyparNagelAgentStuckScoring;
 import org.matsim.core.scoring.functions.ScoringParameters;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -45,7 +44,7 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 		sumScoringFunction.addScoringFunction(new SBBCharyparNagelLegScoring(params, this.scenario.getNetwork(), ptModes));
 		sumScoringFunction.addScoringFunction(new CharyparNagelAgentStuckScoring(params));
 		sumScoringFunction.addScoringFunction(new SBBParkingCostAndMoneyScoring(params, sbbParams.getMarginalUtilityOfParkingPrice()));
-		sumScoringFunction.addScoringFunction(new SBBTransferScoring(sbbParams, ptModes, this.scenario.getTransitSchedule()));
+		sumScoringFunction.addScoringFunction(new SBBTransferScoring(sbbParams, ptModes, this.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(this.scenario.getConfig())));
 		return sumScoringFunction;
 	}
 }

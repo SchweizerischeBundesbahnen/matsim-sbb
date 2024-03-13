@@ -26,6 +26,8 @@ import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingModule;
 import ch.sbb.matsim.routing.pt.raptor.RaptorInVehicleCostCalculator;
+import ch.sbb.matsim.routing.pt.raptor.RaptorTransferCostCalculator;
+import ch.sbb.matsim.routing.pt.raptor.SBBRaptorTransferCostCalculator;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
@@ -52,8 +54,6 @@ import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.router.AnalysisMainModeIdentifier;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author denism
@@ -137,6 +137,7 @@ public class RunSBB {
 		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
 		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
 		ZonesModule.addZonestoScenario(scenario);
+		TransferTimeChecker.addAdditionalTransferTimes(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		IntermodalModule.prepareIntermodalScenario(scenario);
 		AccessEgressModule.prepareLinkAttributes(scenario, true);
@@ -161,6 +162,7 @@ public class RunSBB {
 				addPlanStrategyBinding(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice).toProvider(SBBSubtourModeChoice.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
 				bind(AnalysisMainModeIdentifier.class).to(SBBAnalysisMainModeIdentifier.class);
+				bind(RaptorTransferCostCalculator.class).to(SBBRaptorTransferCostCalculator.class);
 				bind(RailTripsAnalyzer.class);
 				bind(DemandAggregator.class);
 				bind(RailDemandReporting.class);

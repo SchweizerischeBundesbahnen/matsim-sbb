@@ -3,6 +3,8 @@ package ch.sbb.matsim.zones;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 
+import java.util.List;
+
 /**
  * @author mrieser
  */
@@ -25,4 +27,6 @@ public interface Zones {
 	}
 
 	Zone getZone(Id<Zone> id);
+
+    List<Zone> getZones();
 }

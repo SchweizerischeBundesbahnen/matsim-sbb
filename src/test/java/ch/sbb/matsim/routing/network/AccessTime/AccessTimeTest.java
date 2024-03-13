@@ -52,7 +52,7 @@ public class AccessTimeTest {
 
 	@Test
 	public final void testScoringRideIfUsingAccess() {
-		assertScoring(0.0, -30, -1.935, "ride", "car,ride");
+		assertScoring(0.0, -30, -2.5783333333333336, "ride", "car,ride");
 	}
 
 }

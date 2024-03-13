@@ -1,4 +1,4 @@
-package ch.sbb.matsim.projects.synpop;
+package ch.sbb.matsim.projects.synpop.bordercrossingagents;
 
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
@@ -38,7 +38,7 @@ public class OSMRetailParser {
     final ExecutorService executor;
     private final CoordinateTransformation transformation;
     private Map<Long, BuildingData> buildingData;
-    private Map<Long, BuildingDataWithShops> buildingDataWithShopsMap = new HashMap<>();
+    private final Map<Long, BuildingDataWithShops> buildingDataWithShopsMap = new HashMap<>();
     private final Map<Long, CompleteBuildingData> completeBuildingDataMap = new HashMap<>();
     private Map<Long, Set<Long>> buildingDataNodeStorage;
     private Map<Long, ShopData> shopDataStorage;
@@ -187,7 +187,7 @@ public class OSMRetailParser {
             Coord transformedCoord = transformation.transform(new Coord(osmNode.getLongitude(), osmNode.getLatitude()));
             String name = tags.get("name");
             String branch = tags.get("branch");
-            String shopName = name != null ? name : "" + " " + name != null ? branch : "";
+            String shopName = name != null ? name : " " + name != null ? branch : "";
             var shopData = new ShopData(osmNode.getId(), transformedCoord, shopName);
             shopDataStorage.put(osmNode.getId(), shopData);
             nodeStorage.put(osmNode.getId(), transformedCoord);

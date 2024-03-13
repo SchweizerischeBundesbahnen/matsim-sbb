@@ -51,9 +51,11 @@ public class CarLinkAnalysis {
 	private static final String LINK_ID_SIM = "LINK_ID_SIM";
 	private static final String VOLUME_CAR = "VOLUME_CAR";
 	private static final String VOLUME_FREIGHT = "VOLUME_FREIGHT";
+	private static final String VOLUME_MOTORIZED_VEHICLES = "VOLUME_MOTORIZED_VEHICLES";
+
 	private static final String VOLUME_RIDE = "VOLUME_RIDE";
 	private static final String VOLUME_BIKE = "VOLUME_BIKE";
-	private static final String[] VOLUMES_COLUMNS = new String[]{LINK_NO, FROMNODENO, TONODENO, LINK_ID_SIM, VOLUME_CAR, VOLUME_RIDE, VOLUME_BIKE, VOLUME_FREIGHT};
+	private static final String[] VOLUMES_COLUMNS = new String[]{LINK_NO, FROMNODENO, TONODENO, LINK_ID_SIM, VOLUME_CAR, VOLUME_RIDE, VOLUME_BIKE, VOLUME_FREIGHT, VOLUME_MOTORIZED_VEHICLES};
 	private static final String HEADER = "$VISION\n* Schweizerische Bundesbahnen SBB Personenverkehr Bern\n* 12/09/22\n* \n* Table: Version block\n* \n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n12.00;Att;ENG;KM\n\n* \n* Table: Links\n* \n";
 	private final Network network;
 	private final Population population;
@@ -120,6 +122,9 @@ public class CarLinkAnalysis {
 						final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
 						final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
 
+						double carVolume = volume.getCarCount() / samplesize;
+						double freightVolume = volume.getFreightCount() / samplesize;
+
 						if (vnodes != null) {
 							String currentFromNode = fromNode;
 							String[] nodes = vnodes.split(",");
@@ -130,10 +135,11 @@ public class CarLinkAnalysis {
 								writer.set(FROMNODENO, currentFromNode);
 								writer.set(TONODENO, currentToNode);
 								writer.set(LINK_ID_SIM, id);
-								writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
+								writer.set(VOLUME_CAR, Integer.toString((int) carVolume));
 								writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
 								writer.set(VOLUME_BIKE, Integer.toString((int) (volume.getBikeCount() / samplesize)));
-								writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
+								writer.set(VOLUME_FREIGHT, Integer.toString((int) freightVolume));
+								writer.set(VOLUME_MOTORIZED_VEHICLES, Integer.toString((int) (carVolume + freightVolume)));
 								writer.writeRow();
 								currentFromNode = currentToNode;
 
@@ -148,10 +154,12 @@ public class CarLinkAnalysis {
 							writer.set(LINK_ID_SIM, id);
 						}
 						writer.set(TONODENO, toNode);
-						writer.set(VOLUME_CAR, Integer.toString((int) (volume.getCarCount() / samplesize)));
+						writer.set(VOLUME_CAR, Integer.toString((int) carVolume));
 						writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
 						writer.set(VOLUME_BIKE, Integer.toString((int) (volume.getBikeCount() / samplesize)));
 						writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
+						writer.set(VOLUME_MOTORIZED_VEHICLES, Integer.toString((int) (carVolume + freightVolume)));
+
 						writer.writeRow();
 					}
 				}

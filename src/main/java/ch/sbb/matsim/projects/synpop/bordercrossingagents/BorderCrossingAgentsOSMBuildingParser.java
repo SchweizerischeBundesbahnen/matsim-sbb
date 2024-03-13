@@ -1,4 +1,4 @@
-package ch.sbb.matsim.projects.synpop;
+package ch.sbb.matsim.projects.synpop.bordercrossingagents;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
@@ -242,11 +242,11 @@ public class BorderCrossingAgentsOSMBuildingParser {
                 "837108085",
                 "837108086");
         if (annemasseZones.contains(zoneIdString)) {
-            factor = 0.4;
+            factor = 0.25;
         }
         List<String> geneveTooUnatractiveZones = List.of("837108004", "837108151", "837108155", "837101004", "837108142", "837108121");
         if (geneveTooUnatractiveZones.contains(zoneIdString)) {
-            factor = 5.0;
+            factor = 7.0;
         }
 
 

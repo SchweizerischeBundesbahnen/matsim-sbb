@@ -79,8 +79,8 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     public void notifyIterationEnds(IterationEndsEvent event) {
         double scalefactor = 1.0 / ppConfig.getSimulationSampleSize();
 
-        String railTripsFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandReport.csv")
-                : controlerIO.getIterationFilename(event.getIteration(), "railDemandReport.csv");
+        String railTripsFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("SBB_railDemandReport.csv")
+                : controlerIO.getIterationFilename(event.getIteration(), "SBB_railDemandReport.csv");
         String putSurveyNew = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("putSurvey.csv")
                 : controlerIO.getIterationFilename(event.getIteration(), "putSurvey.csv");
         if (railDemandReporting != null) {
