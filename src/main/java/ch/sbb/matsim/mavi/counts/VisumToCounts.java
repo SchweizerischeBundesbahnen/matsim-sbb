@@ -54,7 +54,7 @@ public class VisumToCounts {
         } catch (IOException ignored) {
         }
 
-        new CountsWriter(countshourly).write(countsFilename + "_hourly.xml");
+        new CountsWriter(countshourly).write(countsFilename + ".xml.gz");
 
     }
 
