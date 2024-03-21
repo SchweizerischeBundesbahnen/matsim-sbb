@@ -23,11 +23,14 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesLoader;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.NetworkWriter;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.util.*;
@@ -48,61 +51,12 @@ public class MergeRuralLinks {
         this.zones = zones;
     }
 
-    public void mergeRuralLinks() {
-
-        for (Node node : network.getNodes().values()) {
-
-            if (node.getOutLinks().size() < 2) {
-                continue;
-            }
-
-            Zone zone = zones.findZone(node.getCoord());
-            boolean rural = true;
-            if (zone != null) {
-                if (zone.getAttribute("sl3_id").toString().equals("1")) {
-                    rural = false;
-                }
-            }
-
-            if (rural) {
-                for (Link l : node.getOutLinks().values()) {
-                    Link nextLink = l;
-                    List<Link> linksToMerge = new ArrayList<>();
-                    linksToMerge.add(l);
-                    while (nextLink.getToNode().getOutLinks().size() < 3) {
-                        Link outLink = findRealOutLink(nextLink);
-                        if (outLink != null) {
-                            if (nextLink.getNumberOfLanes() != outLink.getNumberOfLanes()) {
-                                linksToMerge.clear();
-                                break;
-                            }
-                            linksToMerge.add(outLink);
-                            nextLink = outLink;
-
-                        } else {
-                            linksToMerge.clear();
-                            break;
-                        }
-                    }
-                    if (linksToMerge.size() > 1) {
-                        mergeLinks(linksToMerge);
-                    }
-                }
-
-            }
-
-
-        }
-        for (Link l : linksToRemove) {
-            network.removeLink(l.getId());
-        }
-        for (Link l : linksToAdd.values()) {
-            network.addLink(l);
-        }
-        System.out.println(linksToRemove.size() + " removed");
-        System.out.println(linksToAdd.size() + " added");
-
-
+    public static void main(String[] args) {
+        Network net = NetworkUtils.createNetwork();
+        new MatsimNetworkReader(net).readFile(args[0]);
+        Zones zones1 = ZonesLoader.loadZones("", args[1]);
+        new MergeRuralLinks(net, zones1).mergeRuralLinks();
+        new NetworkWriter(net).write(args[2]);
     }
 
     private void mergeLinks(List<Link> linksToMerge) {
@@ -175,6 +129,63 @@ public class MergeRuralLinks {
             }
         }
         return outlink;
+    }
+
+    public void mergeRuralLinks() {
+
+        for (Node node : network.getNodes().values()) {
+
+            if (node.getOutLinks().size() < 2) {
+                continue;
+            }
+
+            Zone zone = zones.findZone(node.getCoord());
+            boolean rural = true;
+            if (zone != null) {
+                if (zone.getAttribute("sl3_id").toString().equals("1")) {
+                    rural = false;
+                }
+            }
+
+            if (rural) {
+                for (Link l : node.getOutLinks().values()) {
+                    Link nextLink = l;
+                    List<Link> linksToMerge = new ArrayList<>();
+                    linksToMerge.add(l);
+                    while (nextLink.getToNode().getOutLinks().size() < 3 && nextLink.getToNode().getInLinks().size() < 3) {
+                        Link outLink = findRealOutLink(nextLink);
+                        if (outLink != null) {
+                            if (nextLink.getNumberOfLanes() != outLink.getNumberOfLanes()) {
+                                linksToMerge.clear();
+                                break;
+                            }
+                            linksToMerge.add(outLink);
+                            nextLink = outLink;
+
+                        } else {
+                            linksToMerge.clear();
+                            break;
+                        }
+                    }
+                    if (linksToMerge.size() > 1) {
+                        mergeLinks(linksToMerge);
+                    }
+                }
+
+            }
+
+
+        }
+        for (Link l : linksToRemove) {
+            network.removeLink(l.getId());
+        }
+        for (Link l : linksToAdd.values()) {
+            network.addLink(l);
+        }
+        System.out.println(linksToRemove.size() + " removed");
+        System.out.println(linksToAdd.size() + " added");
+
+
     }
 
 }

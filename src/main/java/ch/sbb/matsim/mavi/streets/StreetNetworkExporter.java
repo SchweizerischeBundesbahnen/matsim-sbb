@@ -89,6 +89,9 @@ public class StreetNetworkExporter {
             cleaner.run(network);
         }
 
+        adjustRoundaboutLinks(network);
+
+        filterBikeNetwork(network, outputDir);
         if (streetsExporterConfigGroup.isMergeRuralLinks()) {
             LogManager.getLogger(StreetNetworkExporter.class).info("Merging rural links.");
             MergeRuralLinks l = new MergeRuralLinks(network, zones);
@@ -96,9 +99,6 @@ public class StreetNetworkExporter {
             NetworkCleaner cleaner = new NetworkCleaner();
             cleaner.run(network);
         }
-        adjustRoundaboutLinks(network);
-
-        filterBikeNetwork(network, outputDir);
         finalMultimodalCleanup(network);
         assureLinkLenghtsAndSpeedsAreSet(network);
 
