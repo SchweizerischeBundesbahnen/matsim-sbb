@@ -19,6 +19,8 @@
 
 package ch.sbb.matsim.preparation;
 
+import ch.sbb.matsim.preparation.slicer.PopulationSlicer;
+
 import java.io.IOException;
 import java.util.Set;
 

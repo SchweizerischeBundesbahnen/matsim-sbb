@@ -18,12 +18,14 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	private Id<Zones> zonesId = null;
 	private String zoneAttribute = "GMDNR";
 	private Boolean linkVolumes = false;
-	private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense";
+	static private final String POPULATION_SLICE_NO = "populationSlice";
 	private int writeOutputsInterval = 10;
 	private Boolean writeAgentsCSV = false;
 	private Boolean writeVisumPuTSurvey = false;
 	static private final String SIMULATION_SAMPLE_SIZE = "simulationSampleSize";
+	private String personAttributes = "season_ticket,subpopulation,carAvail,hasLicense,analysis_subpopulation";
 	private double simulationSampleSize;
+	private int populationSlice = 0;
 
 	static private final String WRITE_ANALYSIS = "writeDefaultAnalysis";
 	static private final String RAIL_DEMAND_MATRIX_AGGREGATE = "railDemandMatrixAggregateAttribute";
@@ -44,6 +46,18 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	public void setSimulationSampleSize(double simulationSampleSize) {
 		this.simulationSampleSize = simulationSampleSize;
 	}
+
+	@StringGetter(POPULATION_SLICE_NO)
+	public int getPopulationSlice() {
+		return populationSlice;
+	}
+
+	@StringSetter(POPULATION_SLICE_NO)
+	public void setPopulationSlice(int populationSlice) {
+		this.populationSlice = populationSlice;
+	}
+
+
 
 	@StringGetter(WRITE_ANALYSIS)
 	public boolean isWriteAnalsysis() {
