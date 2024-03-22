@@ -1,6 +1,6 @@
 package ch.sbb.matsim.projects.genf2050;
 
-import ch.sbb.matsim.preparation.PopulationSlicer;
+import ch.sbb.matsim.preparation.slicer.PopulationSlicer;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
