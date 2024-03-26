@@ -21,7 +21,6 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
-import ch.sbb.matsim.routing.access.AccessEgressModule;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
@@ -84,7 +83,7 @@ public class RailTripsAnalyzer {
                 .filter(stop -> {
                     Zone z = zones.findZone(stop.getCoord());
                     if (z == null) return false;
-                    else return AccessEgressModule.isSwissZone(z.getId());
+                    else return Variables.isSwissZone(z.getId());
                 })
                 .map(Identifiable::getId)
                 .collect(Collectors.toSet());
@@ -141,8 +140,7 @@ public class RailTripsAnalyzer {
         Id<TransitStopFacility> firstStop = null;
         Id<TransitStopFacility> lastStop = null;
         for (Leg leg : trip.getLegsOnly()) {
-            if (leg.getRoute() instanceof TransitPassengerRoute) {
-                TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+            if (leg.getRoute() instanceof TransitPassengerRoute route) {
                 if (railLines.contains(route.getLineId())) {
                     if (firstStop == null) {
                         firstStop = route.getAccessStopId();
@@ -166,8 +164,7 @@ public class RailTripsAnalyzer {
         int numberOfTransfers = 0;
         boolean lastLegWasRail = false;
         for (Leg leg : trip.getLegsOnly()) {
-            if (leg.getRoute() instanceof TransitPassengerRoute) {
-                TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+            if (leg.getRoute() instanceof TransitPassengerRoute route) {
                 if (railLines.contains(route.getLineId())) {
                     if (lastLegWasRail) {
                         numberOfTransfers++;

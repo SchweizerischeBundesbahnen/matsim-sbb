@@ -4,8 +4,10 @@
 
 package ch.sbb.matsim.config;
 
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
+import java.net.URL;
 import java.util.Map;
 
 /**
@@ -30,6 +32,10 @@ public class SBBScoringParametersConfigGroup extends ReflectiveConfigGroup {
 	@StringGetter(PARAM_SCORING_PARAMETERS_EXCEL_PATH)
 	public String getScoringParametersExcelPath() {
 		return this.scoringParametersExcelPath;
+	}
+
+	public URL getScoringParametersExcelPathURL(URL context) {
+		return scoringParametersExcelPath != null ? ConfigGroup.getInputFileURL(context, this.scoringParametersExcelPath) : null;
 	}
 
 	@Override

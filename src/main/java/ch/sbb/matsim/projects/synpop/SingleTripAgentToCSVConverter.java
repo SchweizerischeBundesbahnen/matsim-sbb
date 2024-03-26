@@ -49,7 +49,7 @@ public class SingleTripAgentToCSVConverter {
                     throw new RuntimeException("Some plans have more or less than three plan elements. This code is not designed to transform them. Agent: " + person.getId());
                 }
                 writer.set(Variables.PERSONID, person.getId().toString());
-                writer.set(Variables.SUBPOPULATION, PopulationUtils.getSubpopulation(person));
+                writer.set(Variables.SUBPOPULATION, String.valueOf(PopulationUtils.getSubpopulation(person)));
                 String vt = (String) person.getAttributes().getAttribute(vehicleType);
                 writer.set(vehicleType, vt != null ? vt : "");
                 Activity start = (Activity) plan.getPlanElements().get(0);

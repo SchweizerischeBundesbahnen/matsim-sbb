@@ -1,5 +1,6 @@
 package ch.sbb.matsim.config.variables;
 
+import ch.sbb.matsim.zones.Zone;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.population.Person;
@@ -84,6 +85,10 @@ public class Variables {
     public static final String AGE_CATEGORY_45_64 = "45_to_64";
     public static final String AGE_CATEGORY_65_74 = "65_to_74";
     public static final String AGE_CATEGORY_75_XX = "75_to_XX";
+
+    public static boolean isSwissZone(Id<Zone> id) {
+        return (Integer.parseInt(id.toString()) < 700000000);
+    }
 
     public static class MOBiTripAttributes {
         public static final String TOUR_ID = "next_trip_tour_id";

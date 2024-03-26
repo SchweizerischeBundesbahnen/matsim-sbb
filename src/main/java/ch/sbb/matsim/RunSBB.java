@@ -68,7 +68,7 @@ public class RunSBB {
 
 		final String configFile = args[0];
 		log.info(configFile);
-		final Config config = buildConfig(configFile);
+		final Config config = ConfigUtils.loadConfig(configFile, getSbbDefaultConfigGroups());
 
 		if (args.length > 1) {
 			config.controller().setOutputDirectory(args[1]);
@@ -120,6 +120,8 @@ public class RunSBB {
 	public static void run(Config config) {
 
 		new S3Downloader(config);
+		adjustMobiConfig(config);
+		config.checkConsistency();
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 		addSBBDefaultScenarioModules(scenario);
