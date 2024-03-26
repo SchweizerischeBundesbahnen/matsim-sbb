@@ -27,19 +27,15 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 	static private final String PARAMSET_ROUTEATTRIBUTES = "RouteAttributes";
 
 	static private final String PARAM_PATHTOVISUM = "PathToVisumVersion";
-	static private final String PARAM_PATHTOATTRIBUTES = "PathToVisumAttributeFile";
 	static private final String PARAM_OUTPUT_PATH = "OutputPath";
 	static private final String PARAM_NETWORK_MODE = "NetworkMode";
 	static private final String PARAM_TRANSFERTIMES = "ExportTransferTimes";
-	static private final String PARAM_ANGEBOT = "AngebotName";
 	static private final String PARAM_VISUMVERSION = "visumVersion";
 
 	private String pathToVisum = null;
-	private String pathToVisumAttributeFile = null;
 	private String outputPath = null;
 	private String networkMode = null;
 	private boolean exportTransferTimes = false;
-	private String angebot = null;
 	private int visumVersion = 21;
 
 	public VisumPtExporterConfigGroup() {
@@ -90,26 +86,6 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 		this.exportTransferTimes = value;
 	}
 
-	@StringGetter(PARAM_PATHTOATTRIBUTES)
-	public String getPathToAttributeFile() {
-		return this.pathToVisumAttributeFile;
-	}
-
-	@StringSetter(PARAM_PATHTOATTRIBUTES)
-	public void setPathToAttributeFile(String value) {
-		this.pathToVisumAttributeFile = value;
-	}
-
-	@StringGetter(PARAM_ANGEBOT)
-	public String getAngebotName() {
-		return this.angebot;
-	}
-
-	@StringSetter(PARAM_ANGEBOT)
-	public void setAngebotName(String name) {
-		this.angebot = name;
-	}
-
 	@StringGetter(PARAM_OUTPUT_PATH)
 	public String getOutputPath() {
 		return this.outputPath;
@@ -128,25 +104,18 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 	public Map<String, String> getComments() {
 		Map<String, String> comments = super.getComments();
 		comments.put(PARAM_PATHTOVISUM, "Path to the visum version.");
-		comments.put(PARAM_PATHTOATTRIBUTES,
-				"Provide an additional visum attribute file. IMPORTANT: the script can change EXISTING attributes only, but not load new ones. It is recommended to this manually.");
-		comments.put(PARAM_ANGEBOT, "Line attribute for the angebot which needs to be exported");
 		comments.put(PARAM_OUTPUT_PATH, "Set the path of the output directory.");
 		return comments;
 	}
 
 	@Override
 	public ConfigGroup createParameterSet(final String type) {
-		switch (type) {
-			case TimeProfilFilterParams.SET_TYPE:
-				return new TimeProfilFilterParams();
-			case StopAttributeParams.SET_TYPE:
-				return new StopAttributeParams();
-			case RouteAttributeParams.SET_TYPE:
-				return new RouteAttributeParams();
-			default:
-				throw new IllegalArgumentException(type);
-		}
+		return switch (type) {
+			case TimeProfilFilterParams.SET_TYPE -> new TimeProfilFilterParams();
+			case StopAttributeParams.SET_TYPE -> new StopAttributeParams();
+			case RouteAttributeParams.SET_TYPE -> new RouteAttributeParams();
+			default -> throw new IllegalArgumentException(type);
+		};
 	}
 
 	@Override

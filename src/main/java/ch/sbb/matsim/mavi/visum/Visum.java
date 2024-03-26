@@ -4,10 +4,8 @@ import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.SafeArray;
 import com.jacob.com.Variant;
-import java.util.List;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.locationtech.jts.util.Assert;
+import org.apache.logging.log4j.Logger;
 
 public class Visum {
 
@@ -39,45 +37,6 @@ public class Visum {
 		log.info("loading version " + path);
 		Dispatch.call(this.visum, "LoadVersion", new Variant(path));
 		log.info("finished loading version");
-	}
-
-	public void setSettings() {
-		Dispatch net = Dispatch.get(this.visum, "Net").toDispatch();
-
-		log.info("Setting projection to CH1903_LV03");
-		String value = "PROJCS[\"CH1903_LV03\",GEOGCS[\"GCS_CH1903\",DATUM[\"D_CH1903\",SPHEROID[\"Bessel_1841\",6377397.155,299.1528128]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.0174532925199432955]],PROJECTION[\"Hotine_Oblique_Mercator_Azimuth_Center\"],PARAMETER[\"False_Easting\",600000],PARAMETER[\"False_Northing\",200000],PARAMETER[\"Scale_Factor\",1],PARAMETER[\"Azimuth\",90],PARAMETER[\"Longitude_Of_Center\",7.439583333333333],PARAMETER[\"Latitude_Of_Center\",46.95240555555556],UNIT[\"Meter\",1]]";
-		//Dispatch.call(net, "SetProjection", value, true);
-
-		// This is currently not working
-		// Dispatch.call(net, "AttValue", "ConcatMaxLen").putDouble(99999);
-		int length = (int) Dispatch.call(net, "AttValue", "ConcatMaxLen").getDouble();
-		Assert.isTrue(length > 255, "Set the ConcatMaxLen manually in Visum: Network-> Network Settings -> Attributes -> Maximum text length");
-	}
-
-	public void filterForAngebot(String name) {
-		Visum.ComObject filters = getComObject("Filters");
-		Visum.ComObject filter = callComObject(filters, "LineGroupFilter");
-		Visum.ComObject tpFilter = callComObject(filter, "TimeProfileFilter");
-		initFilter(tpFilter);
-
-		Dispatch.call(tpFilter.dispatch, "AddCondition", "OP_NONE", false,
-				"LineRoute\\Line\\" + name, 9, 1, 0);
-		Dispatch.put(filter.dispatch, "UseFilterForTimeProfiles", true);
-		Dispatch.put(filter.dispatch, "UseFilterForTimeProfileItems", true);
-		Dispatch.put(filter.dispatch, "UseFilterForVehJourneys", true);
-	}
-
-	public void setTimeProfilFilter(List<FilterCondition> condition) {
-		Visum.ComObject filters = getComObject("Filters");
-		Visum.ComObject filter = callComObject(filters, "LineGroupFilter");
-		Visum.ComObject tpFilter = callComObject(filter, "TimeProfileFilter");
-		initFilter(tpFilter);
-
-		condition.forEach(c -> Dispatch.call(tpFilter.dispatch, "AddCondition", c.op, c.complement,
-				c.attribute, c.comparator, c.val, c.position));
-		Dispatch.put(filter.dispatch, "UseFilterForTimeProfiles", true);
-		Dispatch.put(filter.dispatch, "UseFilterForTimeProfileItems", true);
-		Dispatch.put(filter.dispatch, "UseFilterForVehJourneys", true);
 	}
 
 	public void setFilterCondition(ComObject filter, FilterCondition cond) {
