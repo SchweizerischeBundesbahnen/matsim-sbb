@@ -36,7 +36,7 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 	private String outputPath = null;
 	private String networkMode = null;
 	private boolean exportTransferTimes = false;
-	private int visumVersion = 21;
+    private int visumVersion = 24;
 
 	public VisumPtExporterConfigGroup() {
 		super(GROUP_NAME);

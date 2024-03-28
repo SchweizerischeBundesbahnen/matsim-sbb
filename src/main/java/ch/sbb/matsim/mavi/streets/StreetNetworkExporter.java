@@ -22,6 +22,7 @@ package ch.sbb.matsim.mavi.streets;
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import ch.sbb.matsim.zones.Zones;
@@ -196,12 +197,12 @@ public class StreetNetworkExporter {
         for (var linkId : needsBikeBackLink) {
             Link link = bikenet.getLinks().get(linkId);
             Link carNetLink = network.getLinks().get(linkId);
-            Tuple<Integer, Integer> visumLinkAndNodeId = VisumStreetNetworkExporter.extractVisumNodeAndLinkId(linkId);
+            Tuple<Integer, Integer> visumLinkAndNodeId = MaviHelper.extractVisumNodeAndLinkId(linkId);
             Integer visumLinkId = visumLinkAndNodeId != null ? visumLinkAndNodeId.getSecond() : null;
             if (visumLinkId == null) {
                 visumLinkId = Integer.MAX_VALUE - r.nextInt(5000);
             }
-            Id<Link> backLinkId = VisumStreetNetworkExporter.createLinkId(link.getToNode().getId().toString().split("_")[1], Integer.toString(visumLinkId));
+            Id<Link> backLinkId = MaviHelper.createLinkId(link.getToNode().getId().toString().split("_")[1], Integer.toString(visumLinkId));
             Link bikeBackLink = bikenet.getFactory().createLink(backLinkId, link.getToNode(), link.getFromNode());
             bikeBackLink.setLength(link.getLength());
             bikeBackLink.setAllowedModes(Set.of(SBBModes.BIKE));
@@ -285,7 +286,7 @@ public class StreetNetworkExporter {
         LogManager.getLogger(StreetNetworkExporter.class).info("Adjusted  " + i + " link capacities in roundabouts.");
     }
 
-    private static void removePolylines(Network network) {
+    public static void removePolylines(Network network) {
         network.getLinks().values().forEach(l -> l.getAttributes().removeAttribute(PolylinesCreator.WKT_ATTRIBUTE));
     }
 }

@@ -77,6 +77,10 @@ public class Visum {
 			this.dispatch = dispatch;
 		}
 
+		public Dispatch getDispatch() {
+			return dispatch;
+		}
+
 		public int countActive() {
 			return Dispatch.call(this.dispatch, "CountActive").getInt();
 		}

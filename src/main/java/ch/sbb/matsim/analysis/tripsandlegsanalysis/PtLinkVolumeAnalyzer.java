@@ -22,6 +22,8 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.mavi.MaviHelper;
+import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -33,19 +35,15 @@ import org.matsim.core.config.groups.NetworkConfigGroup;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
-import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
-import jakarta.inject.Inject;
-
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.extractVisumNodeAndLinkId;
 
 public class PtLinkVolumeAnalyzer {
 
@@ -97,24 +95,14 @@ public class PtLinkVolumeAnalyzer {
                 int scaledVolume = (int) Math.round((double) e.getValue() * scalefactor);
                 Link l = ptNetwork.getLinks().get(currentLinkId);
                 if (l != null) {
+                    var visumNodeAndLink = MaviHelper.extractVisumNodeAndLinkId(currentLinkId);
                     l.getAttributes().putAttribute(VOLUME, scaledVolume);
-                    String visumLinkSequence = (String) l.getAttributes().getAttribute("visum_link_sequence");
-                    if (visumLinkSequence == null || visumLinkSequence.isEmpty()) {
-                        visumLinkSequence = "-1_-1";  // parseable integers representing null
-                    }
-                    List<Tuple<Integer, Integer>> visumFromNodeToLinkTuples =
-                            Arrays.stream(visumLinkSequence.split(","))
-                                    .map(s -> extractVisumNodeAndLinkId(Id.createLinkId(s)))
-                                    .filter(Objects::nonNull)
-                                    .toList();
-                    for (Tuple<Integer, Integer> visumFromNodeToLinkIds : visumFromNodeToLinkTuples) {
-                        writer.set(LINK_ID_SIM, currentLinkId.toString());
-                        writer.set(VOLUME, Integer.toString(scaledVolume));
-                        writer.set(FROMNODENO, Integer.toString(visumFromNodeToLinkIds.getFirst()));
-                        writer.set(LINK_NO, Integer.toString(visumFromNodeToLinkIds.getSecond()));
-                        writer.writeRow();
-                    }
-                } else {
+                    writer.set(LINK_ID_SIM, currentLinkId.toString());
+                    writer.set(VOLUME, Integer.toString(scaledVolume));
+                    writer.set(FROMNODENO, Integer.toString(visumNodeAndLink.getFirst()));
+                    writer.set(LINK_NO, Integer.toString(visumNodeAndLink.getSecond()));
+                    writer.writeRow();
+                    } else {
                     log.warn("Could not find link " + currentLinkId + ". Skipping.");
                 }
             }
