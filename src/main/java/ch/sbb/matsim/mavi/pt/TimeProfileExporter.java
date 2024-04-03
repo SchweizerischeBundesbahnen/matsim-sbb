@@ -191,6 +191,7 @@ public class TimeProfileExporter {
 			link.setFreespeed(10000);
 			link.setCapacity(10000);
 			link.setNumberOfLanes(1);
+			link.setAllowedModes(Collections.EMPTY_SET);
 			link.getAttributes().putAttribute(PolylinesCreator.WKT_ATTRIBUTE, wkt);
 			this.network.addLink(link);
 
@@ -327,6 +328,7 @@ public class TimeProfileExporter {
 					NetworkRoute netRoute = RouteUtils.createLinkNetworkRouteImpl(startLink, endLink);
 					netRoute.setLinkIds(startLink, routeLinks, endLink);
 					createConsistentNetRoute(netRoute, routeLinks, finalLine);
+					setModeOnLinksAlongRoute(netRoute, mode);
 					route = this.scheduleBuilder.createTransitRoute(routeID, netRoute, transitRouteStops, mode);
 
 					finalLine.addRoute(route);
@@ -353,6 +355,20 @@ public class TimeProfileExporter {
 			});
 		}
 		log.info("Loading transit routes finished");
+	}
+
+	private void setModeOnLinksAlongRoute(NetworkRoute netRoute, String mode) {
+		Set<Id<Link>> allLinkIds = new HashSet<>();
+		allLinkIds.addAll(netRoute.getLinkIds());
+		allLinkIds.add(netRoute.getStartLinkId());
+		allLinkIds.add(netRoute.getEndLinkId());
+		allLinkIds.stream().map(linkId -> network.getLinks().get(linkId))
+				.filter(link -> !link.getAllowedModes().contains(mode))
+				.forEach(link -> {
+					Set<String> allowedModes = new HashSet<>(link.getAllowedModes());
+					allowedModes.add(mode);
+					link.setAllowedModes(allowedModes);
+				});
 	}
 
 	private void createConsistentNetRoute(NetworkRoute netRoute, List<Id<Link>> routeLinks, TransitLine line) {
