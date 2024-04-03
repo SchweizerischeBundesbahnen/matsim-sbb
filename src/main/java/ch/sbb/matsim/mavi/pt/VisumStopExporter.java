@@ -1,15 +1,9 @@
 package ch.sbb.matsim.mavi.pt;
 
+import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.visum.Visum;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -21,6 +15,9 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
+
+import java.util.*;
+import java.util.stream.IntStream;
 
 public class VisumStopExporter {
 
@@ -60,9 +57,6 @@ public class VisumStopExporter {
 		}
 	}
 
-	public HashMap<Integer, Set<Id<TransitStopFacility>>> getStopAreasToStopPoints() {
-		return this.stopAreasToStopPoints;
-	}
 
 	public void loadStopPoints(Visum visum, VisumPtExporterConfigGroup config) {
 		Visum.ComObject stopPoints = visum.getNetObject("StopPoints");
@@ -95,14 +89,13 @@ public class VisumStopExporter {
 		Node stopNode = null;
 		if (fromStopIsOnNode == 1.0) {
 			int stopNodeIDNo = (int) Double.parseDouble(stopPointAttributes[i][6]);
-			Id<Node> stopNodeID = Id.createNodeId(config.getNetworkMode() + "_" + stopNodeIDNo);
+			Id<Node> stopNodeID = MaviHelper.createPtNodeId(String.valueOf(stopNodeIDNo));
 			stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
-			this.network.addNode(stopNode);
+			if (!this.network.getNodes().containsKey(stopNodeID)) {
+				this.network.addNode(stopNode);
+			}
 		} else if (fromStopIsOnLink == 1.0) {
-			int stopLinkFromNodeNo = (int) Double.parseDouble(stopPointAttributes[i][7]);
-			Id<Node> stopNodeID = Id.createNodeId(config.getNetworkMode() + "_" + stopLinkFromNodeNo + "_" + stopPointNo);
-			stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
-			this.network.addNode(stopNode);
+			throw new RuntimeException("Convert Stops to Nodes before converting (One click within Visum)");
 		}
 
 		Id<Link> loopLinkID = Id.createLinkId(config.getNetworkMode() + "_" + stopPointNo);
@@ -129,5 +122,9 @@ public class VisumStopExporter {
 				values[j], custAttNames.get(j).getDataType()));
 
 		this.schedule.addStopFacility(st);
+	}
+
+	public HashMap<Integer, Set<Id<TransitStopFacility>>> getStopAreasToStopPoints() {
+		return stopAreasToStopPoints;
 	}
 }

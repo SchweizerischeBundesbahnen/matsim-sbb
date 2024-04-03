@@ -1,9 +1,12 @@
 package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.mavi.MaviHelper;
+import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -22,9 +25,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.createLinkId;
-import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.extractVisumNodeAndLinkId;
 
 public class TimeProfileExporter {
 
@@ -47,18 +47,7 @@ public class TimeProfileExporter {
 		this.vehicleBuilder = scenario.getVehicles().getFactory();
 	}
 
-	private void createLink(Id<Link> linkId, Node fromNode, Node toNode, String mode, double length, String visumLinkSequence) {
-		Link link = this.networkBuilder.createLink(linkId, fromNode, toNode);
-		link.setLength(length * 1000);
-		link.setFreespeed(10000);
-		link.setCapacity(10000);
-		link.setNumberOfLanes(10000);
-		link.setAllowedModes(Collections.singleton(mode));
-		link.getAttributes().putAttribute("visum_link_sequence", visumLinkSequence);
-		this.network.addLink(link);
-	}
-
-	private static HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum, VisumPtExporterConfigGroup config) {
+	private HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum, VisumPtExporterConfigGroup config) {
 		HashMap<Integer, TimeProfile> timeProfileMap = new HashMap<>();
 
 		log.info("loading LineRouteItems");
@@ -100,6 +89,13 @@ public class TimeProfileExporter {
 							customAttributes[tp]));
 		}
 
+		log.info("loading nodes");
+		Visum.ComObject nodes = visum.getNetObject("Nodes");
+		String[][] nodesdata = Visum.getArrayFromAttributeList(nodes.countActive(), nodes, "No", "XCoord", "YCoord");
+		log.info("loading links");
+		Visum.ComObject links = visum.getNetObject("Links");
+		String[][] linksdata = Visum.getArrayFromAttributeList(links.countActive(), links, "FromNodeNo", "ToNodeNo", "No", "Length", "WKTPoly");
+		createNetwork(nodesdata, linksdata);
 		log.info("loading VehicleJourneys");
 		// vehicles journeys
 		Visum.ComObject vehJourneys = visum.getNetObject("VehicleJourneys");
@@ -129,7 +125,7 @@ public class TimeProfileExporter {
 		int lastLRItemIndex = 0;
 		for (int tpi = 0; tpi < nrOfTimeProfileItems; tpi++) {
 			String[] row = timeProfileItemAttributes[tpi];
-			String visumLinkSequence = "";
+			ArrayList<Id<Link>> visumLinks = new ArrayList<>();
 			String lineRouteKey = row[6] + "||" + row[7] + "||" + row[8];
 			List<LineRouteItem> tpLineRouteItems = lrItemsPerLineRoute.get(lineRouteKey);
 			if (tpLineRouteItems == null) {
@@ -137,7 +133,6 @@ public class TimeProfileExporter {
 			} else {
 				int thisLRItemIndex = Integer.parseInt(row[9]);
 				boolean useIt = false;
-				StringBuilder seq = new StringBuilder();
 				String lastLink = null;
 				for (LineRouteItem lri : tpLineRouteItems) {
 					if (!useIt && lri.index >= lastLRItemIndex) {
@@ -145,10 +140,8 @@ public class TimeProfileExporter {
 					}
 					if (useIt) {
 						if (!lri.outLink.equals(lastLink) && !lri.outLink.isBlank() && !lri.node.isBlank()) {
-							if (!seq.isEmpty()) {
-								seq.append(',');
-							}
-							seq.append(createLinkId(lri.node, lri.outLink).toString());
+							Id<Link> linkId = MaviHelper.createPtLinkId(lri.node, lri.outLink);
+							visumLinks.add(linkId);
 							lastLink = lri.outLink;
 						}
 					}
@@ -156,7 +149,6 @@ public class TimeProfileExporter {
 						break;
 					}
 				}
-				visumLinkSequence = seq.toString();
 				lastLRItemIndex = thisLRItemIndex;
 			}
 
@@ -167,7 +159,8 @@ public class TimeProfileExporter {
 						Double.parseDouble(row[3]),
 						Double.parseDouble(row[4]),
 						Double.parseDouble(row[5]),
-						visumLinkSequence));
+						visumLinks.stream().map(linkId -> linkId.toString()).collect(Collectors.joining(",")),
+						visumLinks));
 			} catch (Exception e) {
 				LogManager.getLogger(TimeProfileExporter.class).error(" Could not add TPI for row " + Arrays.stream(row).toList());
 				e.printStackTrace();
@@ -175,6 +168,35 @@ public class TimeProfileExporter {
 		}
 
 		return timeProfileMap;
+	}
+
+	private void createNetwork(String[][] nodesdata, String[][] linksdata) {
+		for (var nodeData : nodesdata) {
+			Id<Node> nodeId = MaviHelper.createPtNodeId(nodeData[0]);
+			Coord coord = new Coord(Double.parseDouble(nodeData[1]), Double.parseDouble(nodeData[2]));
+			Node node = this.networkBuilder.createNode(nodeId, coord);
+			if (!this.network.getNodes().containsKey(node.getId())) {
+				this.network.addNode(node);
+			}
+		}
+		for (var linkData : linksdata) {
+			//"FromNodeNo", "ToNodeNo", "No", "Length", "WKTPoly"
+			var linkId = MaviHelper.createPtLinkId(linkData[0], linkData[2]);
+			var fromNodeId = Id.createNodeId(linkData[0] + "_pt");
+			var toNodeId = Id.createNodeId(linkData[1] + "_pt");
+			double length = Double.parseDouble(linkData[3]);
+			String wkt = linkData[4];
+			Link link = networkBuilder.createLink(linkId, network.getNodes().get(fromNodeId), network.getNodes().get(toNodeId));
+			link.setLength(length * 1000.);
+			link.setFreespeed(10000);
+			link.setCapacity(10000);
+			link.setNumberOfLanes(1);
+			link.getAttributes().putAttribute(PolylinesCreator.WKT_ATTRIBUTE, wkt);
+			this.network.addLink(link);
+
+		}
+
+
 	}
 
 	private static void addAttribute(Attributes attributes, String name, String value, String dataType) {
@@ -201,7 +223,7 @@ public class TimeProfileExporter {
                     writer.set("matsim_link", matsimLinkId.toString());
 					List<Tuple<Integer, Integer>> visumFromNodeToLinkTuples =
 							Arrays.stream(visumLinkSequence.split(","))
-									.map(s -> extractVisumNodeAndLinkId(Id.createLinkId(s)))
+									.map(s -> MaviHelper.extractVisumNodeAndLinkId(Id.createLinkId(s)))
 									.filter(Objects::nonNull)
 									.toList();
 					String fromNodeSequence = visumFromNodeToLinkTuples.stream().map(e -> String.valueOf(e.getFirst())).collect(Collectors.joining(","));
@@ -281,58 +303,30 @@ public class TimeProfileExporter {
 						transitRouteStops.add(rst);
 
 						if (fromStop != null) {
-							// non-routed links (fly from stop to stop)
-							Node fromNode = this.network.getLinks().get(fromStop.getLinkId()).getFromNode();
-							Node toNode = this.network.getLinks().get(stop.getLinkId()).getFromNode();
-							Id<Link> newLinkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString());
-							if (!this.network.getLinks().containsKey(newLinkID)) {
-								createLink(newLinkID, fromNode, toNode, mode, postlength, tpi.visumLinkSequence);
-								this.linkToVisumSequence.put(newLinkID, tpi.visumLinkSequence);
-							}
-							// differentiate between links with the same from- and to-node but different length
-							else {
-								boolean hasSameLinkSequence = false;
-								if (!this.linkToVisumSequence.get(newLinkID).equals(tpi.visumLinkSequence)) {
-									int m = 1;
-									Id<Link> linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
-									while (this.network.getLinks().containsKey(linkID)) {
-										if (this.linkToVisumSequence.get(linkID).equals(tpi.visumLinkSequence)) {
-											hasSameLinkSequence = true;
-											newLinkID = linkID;
-											Link link = this.network.getLinks().get(newLinkID);
-											Set<String> allowedModesOld = link.getAllowedModes();
-											if (!allowedModesOld.contains(mode)) {
-												Set<String> allowedModesNew = new HashSet<>(allowedModesOld);
-												allowedModesNew.add(mode);
-												link.setAllowedModes(allowedModesNew);
-											}
-											break;
-										}
-										m++;
-										linkID = Id.createLinkId(fromNode.getId().toString() + "-" + toNode.getId().toString() + "." + m);
-
-									}
-									if (!hasSameLinkSequence) {
-										createLink(linkID, fromNode, toNode, mode, postlength, tpi.visumLinkSequence);
-										this.linkToVisumSequence.put(linkID, tpi.visumLinkSequence);
-										newLinkID = linkID;
-									}
+							routeLinks.addAll(tpi.visumLinks());
+							if (!routeLinks.isEmpty()) {
+								var lastLinkId = routeLinks.get(routeLinks.size() - 1);
+								var lastLink = network.getLinks().get(lastLinkId);
+								if (!lastLink.getToNode().equals(network.getLinks().get(stop.getLinkId()).getFromNode())) {
+									routeLinks.remove(lastLinkId);
 								}
 							}
-							routeLinks.add(newLinkID);
+
 							routeLinks.add(stop.getLinkId());
 						}
-						postlength = tpi.length;
 						fromStop = stop;
 					}
 					if (!routeLinks.isEmpty()) {
 						routeLinks.remove(routeLinks.size() - 1);
+						// the last stop link id is added as a route link, but also as the end link of the Network Route,
+						// thus we're removing it here.
 					} else {
 						LogManager.getLogger(getClass()).warn(routeID + " has no links along route");
 					}
+
 					NetworkRoute netRoute = RouteUtils.createLinkNetworkRouteImpl(startLink, endLink);
 					netRoute.setLinkIds(startLink, routeLinks, endLink);
-
+					createConsistentNetRoute(netRoute, routeLinks, finalLine);
 					route = this.scheduleBuilder.createTransitRoute(routeID, netRoute, transitRouteStops, mode);
 
 					finalLine.addRoute(route);
@@ -361,6 +355,60 @@ public class TimeProfileExporter {
 		log.info("Loading transit routes finished");
 	}
 
+	private void createConsistentNetRoute(NetworkRoute netRoute, List<Id<Link>> routeLinks, TransitLine line) {
+		//the network model of visum and matsim works differently. Thus, some routes could lack one or two links
+		List<Id<Link>> consistentRoute = new ArrayList<>();
+		routeLinks.add(netRoute.getEndLinkId());
+		Link lastLink = network.getLinks().get(netRoute.getStartLinkId());
+		var iter = routeLinks.iterator();
+		while (iter.hasNext()) {
+			Link nextLink = network.getLinks().get(iter.next());
+			if (lastLink.getToNode().equals(nextLink.getFromNode())) {
+				consistentRoute.add(nextLink.getId());
+				lastLink = nextLink;
+			} else {
+
+				boolean foundSomething = false;
+				for (var outlink : lastLink.getToNode().getOutLinks().values()) {
+					if (outlink.getToNode().equals(nextLink.getFromNode())) {
+						consistentRoute.add(outlink.getId());
+						consistentRoute.add(nextLink.getId());
+						lastLink = nextLink;
+						foundSomething = true;
+						break;
+					}
+
+				}
+				if (!foundSomething) {
+					for (var outlink : lastLink.getToNode().getOutLinks().values()) {
+						if (!foundSomething) {
+							for (var outOutlink : outlink.getToNode().getOutLinks().values()) {
+								if (outOutlink.getToNode().equals(nextLink.getFromNode())) {
+									consistentRoute.add(outlink.getId());
+									consistentRoute.add(outOutlink.getId());
+									consistentRoute.add(nextLink.getId());
+									lastLink = nextLink;
+									foundSomething = true;
+									break;
+								}
+							}
+						}
+					}
+					if (!foundSomething) {
+
+						if (!lastLink.getId().equals(nextLink.getId()))
+							log.error("inconsistency on line " + line.getId() + " lastLink " + lastLink.getId() + " next link " + nextLink.getId());
+					}
+				}
+			}
+
+
+		}
+		if (consistentRoute.size() > 1 && consistentRoute.get(consistentRoute.size() - 1).equals(consistentRoute.size() - 2))
+			consistentRoute.remove(consistentRoute.size() - 1);
+		netRoute.setLinkIds(netRoute.getStartLinkId(), consistentRoute, netRoute.getEndLinkId());
+	}
+
 	private static class LineRouteItem {
 
 		final int index;
@@ -383,12 +431,12 @@ public class TimeProfileExporter {
 			VehicleUtils.setDoorOperationMode(vehType, DoorOperationMode.serial);
 			VehicleCapacity vehicleCapacity = vehType.getCapacity();
 			if (capacity < 0) {
-				vehicleCapacity.setSeats(150); // default in case of missing value
+				vehicleCapacity.setSeats(700); // default in case of missing value
 			} else {
 				vehicleCapacity.setSeats(capacity);
 			}
 			if (standingRoom < 0) {
-				vehicleCapacity.setStandingRoom(50); // default in case of missing value
+				vehicleCapacity.setStandingRoom(500); // default in case of missing value
 			} else {
 				vehicleCapacity.setStandingRoom(standingRoom);
 			}
@@ -435,41 +483,13 @@ public class TimeProfileExporter {
 		}
 	}
 
-	private static class VehicleJourney {
+	private record VehicleJourney(int no, int fromTProfItemIndex, int toTProfItemIndex, double dep, int vehCapacity,
+								  int standingRoom) {
 
-		final int no;
-		final int fromTProfItemIndex;
-		final int toTProfItemIndex;
-		final double dep;
-		final int vehCapacity;
-		final int standingRoom;
-
-		public VehicleJourney(int no, int fromTProfItemIndex, int toTProfItemIndex, double dep, int vehCapacity, int standingRoom) {
-			this.no = no;
-			this.fromTProfItemIndex = fromTProfItemIndex;
-			this.toTProfItemIndex = toTProfItemIndex;
-			this.dep = dep;
-			this.vehCapacity = vehCapacity;
-			this.standingRoom = standingRoom;
-		}
 	}
 
-	private static class TimeProfileItem {
+	private record TimeProfileItem(int index, int stopPoint, double dep, double arr, double length,
+								   String visumLinkSequence, ArrayList<Id<Link>> visumLinks) {
 
-		final int index;
-		final int stopPoint;
-		final double dep;
-		final double arr;
-		final double length;
-		final String visumLinkSequence;
-
-		public TimeProfileItem(int index, int stopPoint, double dep, double arr, double length, String visumLinkSequence) {
-			this.index = index;
-			this.stopPoint = stopPoint;
-			this.dep = dep;
-			this.arr = arr;
-			this.length = length;
-			this.visumLinkSequence = visumLinkSequence;
-		}
 	}
 }
