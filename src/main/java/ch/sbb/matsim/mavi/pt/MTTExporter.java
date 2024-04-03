@@ -2,20 +2,21 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.mavi.visum.Visum;
 import com.jacob.com.SafeArray;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.utils.collections.CollectionUtils;
 import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class MTTExporter {
 
@@ -29,7 +30,8 @@ public class MTTExporter {
 
 	private static List<Transfer> loadWithinTransfers(Visum visum) {
 		log.info("loading within stop transfers");
-		Visum.ComObject lists = visum.getComObject("Lists");
+		Visum.ComObject workbench = visum.getComObject("Workbench");
+		Visum.ComObject lists = visum.getComObject(workbench, "Lists");
 		Visum.ComObject walkTimes = visum.getComObject(lists, "CreateStopTransferWalkTimeList");
 		walkTimes.callMethod("AddColumn", "FromStopAreaNo");
 		walkTimes.callMethod("AddColumn", "ToStopAreaNo");

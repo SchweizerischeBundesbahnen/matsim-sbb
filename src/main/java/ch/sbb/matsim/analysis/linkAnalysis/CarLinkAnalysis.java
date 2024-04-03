@@ -23,8 +23,8 @@ import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer.AnalysisVehicle
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.streets.MergeRuralLinks;
-import ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -112,7 +112,7 @@ public class CarLinkAnalysis {
 				Link link = network.getLinks().get(entry.getKey());
 				if (link != null) {
 					var volume = entry.getValue();
-					Tuple<Integer, Integer> visumLinkNodeIds = VisumStreetNetworkExporter.extractVisumNodeAndLinkId(link.getId());
+                    Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(link.getId());
 					if (visumLinkNodeIds != null) {
 						String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
 						writer.set(LINK_NO, visumNo);

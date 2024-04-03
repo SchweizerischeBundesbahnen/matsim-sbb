@@ -121,6 +121,22 @@
             <!-- start value for annealing. -->
             <param name="startValue" value="0.6"/>
         </parameterset>
+        <parameterset type="AnnealingVariable">
+            <!-- list of config parameters that shall be annealed. Currently supported: globalInnovationRate, BrainExpBeta, PathSizeLogitBeta, learningRate. Default is globalInnovationRate -->
+            <param name="annealParameter" value="globalInnovationRate"/>
+            <!-- options: linear, exponential, geometric, msa, sigmoid and disabled (no annealing). -->
+            <param name="annealType" value="sigmoid"/>
+            <!-- subpopulation to have the global innovation rate adjusted. Not applicable when annealing with other parameters. -->
+            <param name="defaultSubpopulation" value="blabla"/>
+            <!-- final annealing value. When the annealing function reaches this value, further results remain constant. -->
+            <param name="endValue" value="0.03"/>
+            <!-- this parameter enters the exponential and sigmoid formulas. May be an iteration or a share, i.e. 0.5 for halfLife at 50% of iterations. Exponential: startValue / exp(it/halfLife) -->
+            <param name="halfLife" value="150.0"/>
+            <!-- sigmoid: 1/(1+e^(shapeFactor*(it - halfLife))); geometric: startValue * shapeFactor^it; msa: startValue / it^shapeFactor -->
+            <param name="shapeFactor" value="0.05"/>
+            <!-- start value for annealing. -->
+            <param name="startValue" value="0.6"/>
+        </parameterset>
     </module>
     <module name="TimeAllocationMutator">
         <!-- Default:true; Defines whether time mutation changes an activity's duration. -->

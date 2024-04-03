@@ -2,6 +2,7 @@ package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.counts.VisumToCounts;
 import ch.sbb.matsim.mavi.visum.Visum;
@@ -19,7 +20,6 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.File;
@@ -38,20 +38,6 @@ public class VisumStreetNetworkExporter {
 	private final Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
 	private Scenario scenario;
 	private NetworkFactory nf;
-
-	public static Id<Link> createLinkId(String fromNode, String visumLinkId) {
-		return Id.createLinkId(Integer.toString(Integer.parseInt(fromNode), 36) + "_" + Integer.toString(Integer.parseInt(visumLinkId), 36));
-	}
-
-	public static Tuple<Integer, Integer> extractVisumNodeAndLinkId(Id<Link> linkId) {
-		try {
-			int visumFromNodeId = Integer.parseInt(linkId.toString().split("_")[0], 36);
-			int visumLinkId = Integer.parseInt(linkId.toString().split("_")[1], 36);
-			return Tuple.of(visumFromNodeId, visumLinkId);
-		} catch (NumberFormatException e) {
-			return null;
-		}
-	}
 
 	public void run(Visum visumObject, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {
 
@@ -85,17 +71,17 @@ public class VisumStreetNetworkExporter {
 		visumToCounts.exportCountStations(visum, file.getAbsolutePath(), csv.getAbsolutePath());
 	}
 
-	private String[][] importNodes(Dispatch net, String... attribute) {
+	public static String[][] importNodes(Dispatch net, String... attribute) {
 		Dispatch nodes = Dispatch.get(net, "Nodes").toDispatch();//import nodes
-		return this.toArray(nodes, attribute);
+		return toArray(nodes, attribute);
 	}
 
-	private String[][] importLinks(Dispatch net, String... attribute) {
+	public static String[][] importLinks(Dispatch net, String... attribute) {
 		Dispatch links = Dispatch.get(net, "Links").toDispatch();
 		return toArray(links, attribute);
 	}
 
-	private String[][] toArray(Dispatch objects, String... attributes) {
+	public static String[][] toArray(Dispatch objects, String... attributes) {
 		int n = Integer.parseInt(Dispatch.call(objects, "CountActive").toString()); //number of nodes
 
 		String[][] attarray = new String[n][attributes.length]; //2d array containing all attributes of all nodes
@@ -142,7 +128,7 @@ public class VisumStreetNetworkExporter {
 				final String fromNode = anAttarraylink[0];
 				final String toNode = anAttarraylink[1];
 				final String visumLinkNo = anAttarraylink[10];
-				Id<Link> id = createLinkId(fromNode, visumLinkNo);
+				Id<Link> id = MaviHelper.createLinkId(fromNode, visumLinkNo);
 				Link link = createLink(id, fromNode, toNode, Double.parseDouble(anAttarraylink[2]),
 						Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
 						Integer.parseInt(anAttarraylink[6]));
