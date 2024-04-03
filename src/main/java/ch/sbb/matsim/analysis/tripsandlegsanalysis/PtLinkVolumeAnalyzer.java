@@ -96,13 +96,16 @@ public class PtLinkVolumeAnalyzer {
                 Link l = ptNetwork.getLinks().get(currentLinkId);
                 if (l != null) {
                     var visumNodeAndLink = MaviHelper.extractVisumNodeAndLinkId(currentLinkId);
+                    if (visumNodeAndLink!=null){
                     l.getAttributes().putAttribute(VOLUME, scaledVolume);
                     writer.set(LINK_ID_SIM, currentLinkId.toString());
                     writer.set(VOLUME, Integer.toString(scaledVolume));
                     writer.set(FROMNODENO, Integer.toString(visumNodeAndLink.getFirst()));
                     writer.set(LINK_NO, Integer.toString(visumNodeAndLink.getSecond()));
                     writer.writeRow();
-                    } else {
+                    }
+                }
+                else {
                     log.warn("Could not find link " + currentLinkId + ". Skipping.");
                 }
             }
