@@ -431,12 +431,12 @@ public class TimeProfileExporter {
 			VehicleUtils.setDoorOperationMode(vehType, DoorOperationMode.serial);
 			VehicleCapacity vehicleCapacity = vehType.getCapacity();
 			if (capacity < 0) {
-				vehicleCapacity.setSeats(150); // default in case of missing value
+				vehicleCapacity.setSeats(700); // default in case of missing value
 			} else {
 				vehicleCapacity.setSeats(capacity);
 			}
 			if (standingRoom < 0) {
-				vehicleCapacity.setStandingRoom(50); // default in case of missing value
+				vehicleCapacity.setStandingRoom(500); // default in case of missing value
 			} else {
 				vehicleCapacity.setStandingRoom(standingRoom);
 			}

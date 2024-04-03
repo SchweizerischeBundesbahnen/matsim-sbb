@@ -22,11 +22,20 @@ public class Visum {
 		String[][] array = new String[n][attributes.length]; //2d array containing all attributes of all nodes
 		int j = 0;
 		for (String att : attributes) {
-			SafeArray a = Dispatch.call(object.dispatch, "GetMultiAttValues", att).toSafeArray();
-			int i = 0;
-			while (i < n) {
-				array[i][j] = a.getString(i, 1);
-				i++;
+			try {
+				SafeArray a = Dispatch.call(object.dispatch, "GetMultiAttValues", att).toSafeArray();
+				int i = 0;
+				while (i < n) {
+					array[i][j] = a.getString(i, 1);
+					i++;
+				}
+			} catch (Exception e) {
+				log.error("Could not load Attribute " + att);
+				int i = 0;
+				while (i < n) {
+					array[i][j] = "";
+					i++;
+				}
 			}
 			j++;
 		}
