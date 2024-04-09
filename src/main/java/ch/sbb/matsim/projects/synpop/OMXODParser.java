@@ -56,11 +56,11 @@ public class OMXODParser {
     }
 
     public List<Id<Zone>> getAllZoneIdsInLookup() {
-        return zonalLookup.keySet().stream().map(s -> Id.create(s, Zone.class)).sorted().collect(Collectors.toList());
+        return zonalLookup.keySet().stream().map(s -> Id.create(s, Zone.class)).sorted().toList();
     }
 
     public List<String> getAllLookupValues() {
-        return zonalLookup.keySet().stream().collect(Collectors.toList());
+        return zonalLookup.keySet().stream().toList();
     }
 
     public double getMatrixValue(String fromZoneId, String toZoneId, String matrixName) {
