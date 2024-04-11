@@ -23,6 +23,13 @@
         <param name="testsToRun" value="kendall,cv,ks_normal"/>
     </module>
 
+    <module name="SBBReplanning">
+        <!-- Possible values: always,carAvailable,licenseAvailable -->
+        <param name="carModeAllowed" value="carAvailable"/>
+        <param name="maximumBikeTourDistance_m" value="45000"/>
+        <param name="maximumWalkTourDistance_m" value="12500"/>
+    </module>
+
     <module name="SBBScoringParameters">
         <param name="scoringParametersExcelPath" value="&scoring_parameters;"/>
     </module>
