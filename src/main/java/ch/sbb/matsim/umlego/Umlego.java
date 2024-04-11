@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Umlego {
 
@@ -64,6 +66,7 @@ public class Umlego {
 //		List<String> relevantZones = List.of("1", "14", "18");
 
 //		List<String> relevantZones = List.of("281", "979"); // Frick, ZH Oerlikon
+//		List<String> relevantZones = List.of("1", "85"); // Aarau, Bern
 
 		run(omxFilename, scenario, zoneConnectionsFilename, relevantZones, csvOutputFilename);
 	}
@@ -83,10 +86,8 @@ public class Umlego {
 
 		// load zoneConnections from file
 		Map<String, List<ConnectedStop>> stopsPerZone = readZoneConnections(zoneConnectionsFilename, scenario);
-		Map<TransitStopFacility, String> zonePerStop = new HashMap<>();
 		Map<TransitStopFacility, ConnectedStop> connectionPerStop = new HashMap<>();
 		stopsPerZone.forEach((zoneId, stops) -> stops.forEach(stop -> {
-			zonePerStop.put(stop.stopFacility, zoneId);
 			connectionPerStop.put(stop.stopFacility, stop);
 		}));
 
@@ -95,121 +96,157 @@ public class Umlego {
 		raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
 		raptorConfig.setBeelineWalkConnectionDistance(400.0);
 		SwissRailRaptorData raptorData = SwissRailRaptorData.create(scenario.getTransitSchedule(), scenario.getTransitVehicles(), raptorConfig, scenario.getNetwork(), null);
-		SwissRailRaptor raptor = new SwissRailRaptor.Builder(raptorData, scenario.getConfig()).build();
 
 		List<ODDemand> unroutableDemand = new ArrayList<>();
 		List<ConnectedStop> emptyList = Collections.emptyList();
 		List<String> allZoneIds = demand.getAllLookupValues();
 
 		List<String> zoneIds = relevantZones == null ? allZoneIds : relevantZones;
-		Set<TransitStopFacility> relevantDestinationStops = new HashSet<>();
-		if (relevantZones == null) {
-			relevantDestinationStops.addAll(scenario.getTransitSchedule().getFacilities().values());
-		} else {
-			for (String zoneId : zoneIds) {
-				List<TransitStopFacility> stops = stopsPerZone.getOrDefault(zoneId, emptyList).stream().map(connectedStop -> connectedStop.stopFacility).toList();
-				relevantDestinationStops.addAll(stops);
+
+		Set<TransitStopFacility> relevantStops = new HashSet<>();
+		for (String zoneId : zoneIds) {
+			List<TransitStopFacility> stops = stopsPerZone.getOrDefault(zoneId, emptyList).stream().map(stop -> stop.stopFacility).toList();
+			relevantStops.addAll(stops);
+		}
+		ConcurrentLinkedQueue<TransitStopFacility> stopsQueue = new ConcurrentLinkedQueue<>(relevantStops);
+
+		LOG.info("Detected {} stops as potential origin or destinations", relevantStops.size());
+
+		final Map<TransitStopFacility, Map<TransitStopFacility, Set<FoundRoute>>> foundRoutes = new ConcurrentHashMap<>();
+
+		Thread[] threads = new Thread[4];
+		for (int i = 0; i < threads.length; i++) {
+			SwissRailRaptor raptor = new SwissRailRaptor.Builder(raptorData, scenario.getConfig()).build();
+			threads[i] = new Thread(new StopsQueueWorker(stopsQueue, raptor, raptorParams, relevantStops, foundRoutes));
+			threads[i].start();
+		}
+		for (int i = 0; i < threads.length; i++) {
+			try {
+				threads[i].join();
+			} catch (InterruptedException e) {
+				LOG.error("Problem while waiting for worker {} to finish.", i, e);
 			}
 		}
+		LOG.info("All routes calculated");
 
-		final Map<TransitStopFacility, Map<TransitStopFacility, Set<FoundRoute>>> foundRoutes = new HashMap<>();
-		for (String originZoneId : zoneIds) {
-			LOG.info("calculating for origin-zone {}", originZoneId);
 
-			double[][] originDemand = new double[matrixCount][];
-			for (int i = 0; i < matrixCount; i++) {
-				originDemand[i] = demand.getMatrixRow(originZoneId, Integer.toString(i + 1));
-			}
+//		TransitStopFacility originStop;
+//		while ((originStop = stopsQueue.poll()) != null) {
+//			Map<TransitStopFacility, Set<FoundRoute>> destinationStopRoutes = foundRoutes.computeIfAbsent(originStop, s -> new HashMap<>());
+//			calcRoutesFromStop(originStop, destinationStopRoutes, raptor, raptorParams, relevantStops);
+//		}
 
-			List<ConnectedStop> stops = stopsPerZone.getOrDefault(originZoneId, emptyList);
+//		for (String originZoneId : zoneIds) {
+//			LOG.info("calculating for origin-zone {}", originZoneId);
+//
+//			double[][] originDemand = new double[matrixCount][];
+//			for (int i = 0; i < matrixCount; i++) {
+//				originDemand[i] = demand.getMatrixRow(originZoneId, Integer.toString(i + 1));
+//			}
+//
+//			List<ConnectedStop> stops = stopsPerZone.getOrDefault(originZoneId, emptyList);
+//
+//			if (stops.isEmpty()) {
+//				LOG.warn("no stops found for zone {}", originZoneId);
+//				unroutableDemand.add(new ODDemand(originZoneId, "*", sum(originDemand)));
+//			} else {
+//				// calculate connections
+//				for (ConnectedStop originStop : stops) {
+//					raptor.calcTreesObservable(
+//							originStop.stopFacility,
+//							0,
+//							Double.POSITIVE_INFINITY,
+//							raptorParams,
+//							null,
+//							(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
+//								if (relevantStops.contains(arrivalStop)) {
+//									foundRoutes
+//											.computeIfAbsent(originStop.stopFacility, s -> new HashMap<>())
+//											.computeIfAbsent(arrivalStop, s -> new HashSet<>())
+//											.add(new FoundRoute(originStop, connectionPerStop.get(arrivalStop), route.get()));
+//								}
+//							});
+//				}
+//			}
+//		}
 
-			if (stops.isEmpty()) {
-				LOG.warn("no stops found for zone {}", originZoneId);
-				unroutableDemand.add(new ODDemand(originZoneId, "*", sum(originDemand)));
-			} else {
-				// calculate connections
-				for (ConnectedStop originStop : stops) {
-					raptor.calcTreesObservable(
-							originStop.stopFacility,
-							0,
-							Double.POSITIVE_INFINITY,
-							raptorParams,
-							null,
-							(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
-								if (relevantDestinationStops.contains(arrivalStop)) {
-									foundRoutes
-											.computeIfAbsent(originStop.stopFacility, s -> new HashMap<>())
-											.computeIfAbsent(arrivalStop, s -> new HashSet<>())
-											.add(new FoundRoute(originZoneId, originStop, zonePerStop.get(arrivalStop), connectionPerStop.get(arrivalStop), route.get()));
-								}
-							});
-				}
-			}
-		}
-
-		LOG.info("unroutable demand:");
-		double sum = 0;
-		for (ODDemand dmd : unroutableDemand) {
-			LOG.info("- " + dmd.originZone() + " > " + dmd.destinationZone() + ": " + dmd.demand());
-			sum += dmd.demand();
-		}
-		LOG.info("total unroutable demand: " + sum);
+//		LOG.info("unroutable demand:");
+//		double sum = 0;
+//		for (ODDemand dmd : unroutableDemand) {
+//			LOG.info("- " + dmd.originZone() + " > " + dmd.destinationZone() + ": " + dmd.demand());
+//			sum += dmd.demand();
+//		}
+//		LOG.info("total unroutable demand: " + sum);
 
 		try (CSVWriter writer = new CSVWriter(IOUtils.getBufferedWriter(csvOutputFilename), ',', '"', '\\', "\n")) {
 			writer.writeNext(new String[]{"ORIGZONENO", "DESTZONENO", "ORIGNAME", "DESTNAME", "ACCESS_TIME", "EGRESS_TIME", "DEPTIME", "ARRTIME", "TRAVTIME", "NUMTRANSFERS", "DETAILS"});
-			for (Map.Entry<TransitStopFacility, Map<TransitStopFacility, Set<FoundRoute>>> entry : foundRoutes.entrySet()) {
-				TransitStopFacility originStop = entry.getKey();
-				String originZone = zonePerStop.get(originStop);
-				for (Map.Entry<TransitStopFacility, Set<FoundRoute>> destEntry : entry.getValue().entrySet()) {
-					TransitStopFacility destinationStop = destEntry.getKey();
-					String destinationZone = zonePerStop.get(destinationStop);
 
-					List<FoundRoute> routes = new ArrayList<>(destEntry.getValue());
-					routes.sort((o1, o2) -> {
-						if (o1.depTime < o2.depTime) {
-							return -1;
-						}
-						if (o1.depTime > o2.depTime) {
-							return +1;
-						}
-						if (o1.travelTime < o2.travelTime) {
-							return -1;
-						}
-						if (o1.travelTime > o2.travelTime) {
-							return +1;
-						}
-						return Integer.compare(o1.transfers, o2.transfers);
-					});
-
-					for (FoundRoute route : routes) {
-						StringBuilder details = new StringBuilder();
-						for (RaptorRoute.RoutePart part : route.routeParts) {
-							if (!details.isEmpty()) {
-								details.append(", ");
+			for (String origZone : zoneIds) {
+				for (String destZone : zoneIds) {
+					if (origZone.equals(destZone)) {
+						// we're not interested in intrazonal trips
+						continue;
+					}
+					for (ConnectedStop originStop : stopsPerZone.getOrDefault(origZone, emptyList)) {
+						Map<TransitStopFacility, Set<FoundRoute>> destinationStopRoutes = foundRoutes.get(originStop.stopFacility);
+						for (ConnectedStop destinationStop : stopsPerZone.getOrDefault(destZone, emptyList)) {
+							if (originStop.stopFacility.equals(destinationStop.stopFacility)) {
+								continue;
 							}
-							details.append(part.line.getId());
-							details.append(": ");
-							details.append(part.fromStop.getName());
-							details.append(' ');
-							details.append(Time.writeTime(part.vehicleDepTime));
-							details.append(" - ");
-							details.append(part.toStop.getName());
-							details.append(' ');
-							details.append(Time.writeTime(part.arrivalTime));
+							var routesToDestinationStop = destinationStopRoutes.get(destinationStop.stopFacility);
+							if (routesToDestinationStop == null) {
+//								LOG.info("no routes from {} ({}) to {} ({})", originStop.stopFacility.getName(), originStop.stopFacility.getId(), destinationStop.stopFacility.getName(), destinationStop.stopFacility.getId());
+								continue;
+							}
+							List<FoundRoute> routes = new ArrayList<>(routesToDestinationStop);
+
+							routes.sort((o1, o2) -> {
+								if (o1.depTime < o2.depTime) {
+									return -1;
+								}
+								if (o1.depTime > o2.depTime) {
+									return +1;
+								}
+								if (o1.travelTime < o2.travelTime) {
+									return -1;
+								}
+								if (o1.travelTime > o2.travelTime) {
+									return +1;
+								}
+								return Integer.compare(o1.transfers, o2.transfers);
+							});
+
+							for (FoundRoute route : routes) {
+								StringBuilder details = new StringBuilder();
+								for (RaptorRoute.RoutePart part : route.routeParts) {
+									if (!details.isEmpty()) {
+										details.append(", ");
+									}
+									details.append(part.line.getId());
+									details.append(": ");
+									details.append(part.fromStop.getName());
+									details.append(' ');
+									details.append(Time.writeTime(part.vehicleDepTime));
+									details.append(" - ");
+									details.append(part.toStop.getName());
+									details.append(' ');
+									details.append(Time.writeTime(part.arrivalTime));
+								}
+								writer.writeNext(new String[]{
+										origZone,
+										destZone,
+										route.originStop.getName(),
+										route.destinationStop.getName(),
+										Time.writeTime(originStop.walkTime),
+										Time.writeTime(destinationStop.walkTime),
+										Time.writeTime(route.depTime),
+										Time.writeTime(route.arrTime),
+										Time.writeTime(route.travelTime),
+										Integer.toString(route.transfers),
+										details.toString()
+								});
+							}
 						}
-						writer.writeNext(new String[]{
-								originZone,
-								destinationZone,
-								route.originStop.stopFacility.getName(),
-								route.destinationStop.stopFacility.getName(),
-								Time.writeTime(route.originStop.walkTime),
-								Time.writeTime(route.destinationStop.walkTime),
-								Time.writeTime(route.depTime),
-								Time.writeTime(route.arrTime),
-								Time.writeTime(route.travelTime),
-								Integer.toString(route.transfers),
-								details.toString()
-						});
 					}
 				}
 			}
@@ -218,6 +255,49 @@ public class Umlego {
 		}
 	}
 
+
+	private static class StopsQueueWorker implements Runnable {
+		final ConcurrentLinkedQueue<TransitStopFacility> stopsQueue;
+		final SwissRailRaptor raptor;
+		final RaptorParameters raptorParams;
+		final Set<TransitStopFacility> relevantStops;
+		final Map<TransitStopFacility, Map<TransitStopFacility, Set<FoundRoute>>> foundRoutes;
+
+		public StopsQueueWorker(ConcurrentLinkedQueue<TransitStopFacility> stopsQueue, SwissRailRaptor raptor, RaptorParameters raptorParams, Set<TransitStopFacility> relevantStops, Map<TransitStopFacility, Map<TransitStopFacility, Set<FoundRoute>>> foundRoutes) {
+			this.stopsQueue = stopsQueue;
+			this.raptor = raptor;
+			this.raptorParams = raptorParams;
+			this.relevantStops = relevantStops;
+			this.foundRoutes = foundRoutes;
+		}
+
+		public void run() {
+			TransitStopFacility originStop;
+			while ((originStop = stopsQueue.poll()) != null) {
+				Map<TransitStopFacility, Set<FoundRoute>> destinationStopRoutes = foundRoutes.computeIfAbsent(originStop, s -> new HashMap<>());
+				calcRoutesFromStop(originStop, destinationStopRoutes);
+			}
+		}
+
+		private void calcRoutesFromStop(TransitStopFacility originStop, Map<TransitStopFacility, Set<FoundRoute>> destinationStopRoutes) {
+			LOG.info("calculating routes starting at {} ({})", originStop.getName(), originStop.getId());
+			this.raptor.calcTreesObservable(
+					originStop,
+					0,
+					Double.POSITIVE_INFINITY,
+					this.raptorParams,
+					null,
+					(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
+						if (this.relevantStops.contains(arrivalStop)) {
+							destinationStopRoutes
+									.computeIfAbsent(arrivalStop, s -> new HashSet<>())
+									.add(new FoundRoute(originStop, arrivalStop, route.get()));
+						}
+					});
+		}
+	}
+
+
 	public record ConnectedStop(double walkTime, TransitStopFacility stopFacility) {
 	}
 
@@ -225,20 +305,16 @@ public class Umlego {
 	}
 
 	public static class FoundRoute {
-		public final String originZone;
-		public final ConnectedStop originStop;
-		public final String destinationZone;
-		public final ConnectedStop destinationStop;
+		public final TransitStopFacility originStop;
+		public final TransitStopFacility destinationStop;
 		public final double depTime;
 		public final double arrTime;
 		public final double travelTime;
 		public final int transfers;
 		public final List<RaptorRoute.RoutePart> routeParts = new ArrayList<>();
 
-		public FoundRoute(String originZone, ConnectedStop originStop, String destinationZone, ConnectedStop destinationStop, RaptorRoute route) {
-			this.originZone = originZone;
+		public FoundRoute(TransitStopFacility originStop, TransitStopFacility destinationStop, RaptorRoute route) {
 			this.originStop = originStop;
-			this.destinationZone = destinationZone;
 			this.destinationStop = destinationStop;
 
 			double firstDepTime = Double.NaN;
@@ -267,10 +343,8 @@ public class Umlego {
 			boolean isEqual = Double.compare(depTime, that.depTime) == 0
 					&& Double.compare(arrTime, that.arrTime) == 0
 					&& transfers == that.transfers
-					&& Objects.equals(originZone, that.originZone)
-					&& Objects.equals(destinationZone, that.destinationZone)
-					&& Objects.equals(originStop.stopFacility.getId(), that.originStop.stopFacility.getId())
-					&& Objects.equals(destinationStop.stopFacility.getId(), that.destinationStop.stopFacility.getId());
+					&& Objects.equals(originStop.getId(), that.originStop.getId())
+					&& Objects.equals(destinationStop.getId(), that.destinationStop.getId());
 			if (isEqual) {
 				// also check route parts
 				for (int i = 0; i < routeParts.size(); i++) {
@@ -290,7 +364,7 @@ public class Umlego {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(originZone, destinationZone, depTime, arrTime, transfers);
+			return Objects.hash(depTime, arrTime, transfers);
 		}
 	}
 
