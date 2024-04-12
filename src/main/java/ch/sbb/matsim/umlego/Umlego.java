@@ -179,7 +179,7 @@ public class Umlego {
 //		LOG.info("total unroutable demand: " + sum);
 
 		try (CSVWriter writer = new CSVWriter(IOUtils.getBufferedWriter(csvOutputFilename), ',', '"', '\\', "\n")) {
-			writer.writeNext(new String[]{"ORIGZONENO", "DESTZONENO", "ORIGNAME", "DESTNAME", "ACCESS_TIME", "EGRESS_TIME", "DEPTIME", "ARRTIME", "TRAVTIME", "NUMTRANSFERS", "DETAILS"});
+			writer.writeNext(new String[]{"ORIGZONENO", "DESTZONENO", "ORIGNAME", "DESTNAME", "ACCESS_TIME", "EGRESS_TIME", "DEPTIME", "ARRTIME", "TRAVTIME", "NUMTRANSFERS", "DISTANZ", "DETAILS"});
 
 			for (String origZone : zoneIds) {
 				for (String destZone : zoneIds) {
@@ -243,6 +243,7 @@ public class Umlego {
 										Time.writeTime(route.arrTime),
 										Time.writeTime(route.travelTime),
 										Integer.toString(route.transfers),
+										String.format("%.2f", route.distance / 1000.0),
 										details.toString()
 								});
 							}
@@ -311,6 +312,7 @@ public class Umlego {
 		public final double arrTime;
 		public final double travelTime;
 		public final int transfers;
+		public final double distance;
 		public final List<RaptorRoute.RoutePart> routeParts = new ArrayList<>();
 
 		public FoundRoute(TransitStopFacility originStop, TransitStopFacility destinationStop, RaptorRoute route) {
@@ -320,6 +322,7 @@ public class Umlego {
 			double firstDepTime = Double.NaN;
 			double lastArrTime = Double.NaN;
 
+			double distanceSum = 0;
 			for (RaptorRoute.RoutePart part : route.getParts()) {
 				if (part.line != null) {
 					if (routeParts.isEmpty()) {
@@ -327,12 +330,14 @@ public class Umlego {
 					}
 					this.routeParts.add(part);
 					lastArrTime = part.arrivalTime;
+					distanceSum += part.distance;
 				}
 			}
 			this.depTime = firstDepTime;
 			this.arrTime = lastArrTime;
 			this.travelTime = this.arrTime - this.depTime;
 			this.transfers = this.routeParts.size() - 1;
+			this.distance = distanceSum;
 		}
 
 		@Override
