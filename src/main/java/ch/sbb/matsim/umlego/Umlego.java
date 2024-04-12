@@ -46,6 +46,7 @@ public class Umlego {
 		String vehiclesFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitVehicles.xml.gz";
 		String zoneConnectionsFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/Anbindungszeiten.csv";
 		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/test_output.csv";
+		int threads = 4;
 
 		// load transit schedule
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
@@ -68,10 +69,10 @@ public class Umlego {
 //		List<String> relevantZones = List.of("281", "979"); // Frick, ZH Oerlikon
 //		List<String> relevantZones = List.of("1", "85"); // Aarau, Bern
 
-		run(omxFilename, scenario, zoneConnectionsFilename, relevantZones, csvOutputFilename);
+		run(omxFilename, scenario, zoneConnectionsFilename, relevantZones, csvOutputFilename, threads);
 	}
 
-	public static void run(String omxFilename, Scenario scenario, String zoneConnectionsFilename, List<String> relevantZones, String csvOutputFilename) {
+	public static void run(String omxFilename, Scenario scenario, String zoneConnectionsFilename, List<String> relevantZones, String csvOutputFilename, int threadCount) {
 
 		RaptorParameters raptorParams = RaptorUtils.createParameters(scenario.getConfig());
 		raptorParams.setTransferPenaltyFixCostPerTransfer(0);
@@ -114,7 +115,7 @@ public class Umlego {
 
 		final Map<TransitStopFacility, Map<TransitStopFacility, Set<FoundRoute>>> foundRoutes = new ConcurrentHashMap<>();
 
-		Thread[] threads = new Thread[4];
+		Thread[] threads = new Thread[threadCount];
 		for (int i = 0; i < threads.length; i++) {
 			SwissRailRaptor raptor = new SwissRailRaptor.Builder(raptorData, scenario.getConfig()).build();
 			threads[i] = new Thread(new StopsQueueWorker(stopsQueue, raptor, raptorParams, relevantStops, foundRoutes));
