@@ -43,6 +43,7 @@ public class Umlego {
 	private final OMXODParser demand;
 	private final Scenario scenario;
 	private final Map<String, Map<String, List<FoundRoute>>> foundRoutes = new ConcurrentHashMap<>();
+	private UmlegoParameters params;
 	private Map<String, List<ConnectedStop>> stopsPerZone;
 	private List<String> zoneIds;
 
@@ -52,7 +53,7 @@ public class Umlego {
 		String scheduleFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitSchedule.xml.gz";
 		String vehiclesFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitVehicles.xml.gz";
 		String zoneConnectionsFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/Anbindungszeiten.csv";
-		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_unfiltered.csv";
+		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_filtered_demand.csv";
 		int threads = 6;
 
 		// load transit schedule
@@ -79,10 +80,14 @@ public class Umlego {
 //		List<String> relevantZones = List.of("281", "979"); // Frick, ZH Oerlikon
 //		List<String> relevantZones = List.of("1", "85"); // Aarau, Bern
 
-		PerceivedJourneyTimeParameters pjtParams = new PerceivedJourneyTimeParameters(1.0, 2.94, 2.94, 2.25, 1.13, 1.0);
+		PerceivedJourneyTimeParameters pjt = new PerceivedJourneyTimeParameters(1.0, 2.94, 2.94, 2.25, 1.13, 1.0);
+		RouteImpedianceParameters impediance = new RouteImpedianceParameters(1.0, 1.85, 1.85);
+		RouteSelectionParameters routeSelection = new RouteSelectionParameters(3600.0, 3600.0); // take routes 1 hour before and after into account
+		BoxCoxParamters boxCox = new BoxCoxParamters(1.536, 0.5);
+		UmlegoParameters params = new UmlegoParameters(pjt, impediance, routeSelection, boxCox);
 
 		Map<String, List<ConnectedStop>> zoneConnections = Umlego.readZoneConnections(zoneConnectionsFilename, scenario);
-		new Umlego(demand, scenario, zoneConnections).run(relevantZones, pjtParams, threads, csvOutputFilename);
+		new Umlego(demand, scenario, zoneConnections).run(relevantZones, params, threads, csvOutputFilename);
 	}
 
 	public Umlego(OMXODParser demand, Scenario scenario, Map<String, List<ConnectedStop>> stopsPerZone) {
@@ -91,13 +96,15 @@ public class Umlego {
 		this.stopsPerZone = stopsPerZone;
 	}
 
-	public void run(List<String> relevantZones, PerceivedJourneyTimeParameters pjtParams, int threadCount, String csvOutputFilename) {
+	public void run(List<String> relevantZones, UmlegoParameters params, int threadCount, String csvOutputFilename) {
+		this.params = params;
 		this.foundRoutes.clear();
 		this.zoneIds = relevantZones == null ? demand.getAllLookupValues() : relevantZones;
 		calculateRoutes(threadCount);
 		filterRoutes();
 		sortRoutes();
-		calculatePerceivedJourneyTime(pjtParams, threadCount);
+		calculatePerceivedJourneyTime();
+		assignDemand();
 		writeRoutes(csvOutputFilename);
 	}
 
@@ -231,18 +238,18 @@ public class Umlego {
 		}
 	}
 
-	private void calculatePerceivedJourneyTime(PerceivedJourneyTimeParameters pjtParams, int threadCount) {
+	private void calculatePerceivedJourneyTime() {
 		LOG.info("Calculate perceived journey times for all routes");
 		for (Map<String, List<FoundRoute>> routesPerDestination : this.foundRoutes.values()) {
 			for (List<FoundRoute> routes : routesPerDestination.values()) {
 				for (FoundRoute route : routes) {
-					calculatePerceivedJourneyTime(pjtParams, route);
+					calculatePerceivedJourneyTime(route);
 				}
 			}
 		}
 	}
 
-	private void calculatePerceivedJourneyTime(PerceivedJourneyTimeParameters pjtParams, FoundRoute route) {
+	private void calculatePerceivedJourneyTime(FoundRoute route) {
 		double inVehicleTime = 0;
 		double accessTime = route.originConnectedStop.walkTime;
 		double egressTime = route.destinationConnectedStop.walkTime;
@@ -270,7 +277,8 @@ public class Umlego {
 			System.err.println("INCONSISTENT TIMES " + route.getRouteAsString());
 		}
 
-		route.perceivedTravelTime = pjtParams.betaInVehicleTime * (inVehicleTime / 60.0)
+		PerceivedJourneyTimeParameters pjtParams = this.params.pjt;
+		route.perceivedJourneyTime_min = pjtParams.betaInVehicleTime * (inVehicleTime / 60.0)
 				+ pjtParams.betaAccessTime * (accessTime / 60.0)
 				+ pjtParams.betaEgressTime * (egressTime / 60.0)
 				+ pjtParams.betaWalkTime * (walkTime / 60.0)
@@ -278,11 +286,83 @@ public class Umlego {
 				+ pjtParams.betaTransferCount * transferCount;
 	}
 
+	private void assignDemand() {
+		LOG.info("assign demand");
+		UnroutableDemand unroutableDemand = new UnroutableDemand();
+		for (String originZone : this.zoneIds) {
+			for (String destinationZone : this.zoneIds) {
+				for (String matrixName : this.demand.getMatrixNames()) {
+					double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
+					if (value > 0) {
+						int matrixNumber = Integer.parseInt(matrixName);
+						double startTime = (matrixNumber - 1) * 10 * 60; // 10-minute time slots, in seconds
+						double endTime = (matrixNumber) * 10 * 60;
+						assignDemand(originZone, destinationZone, startTime, endTime, value, unroutableDemand);
+					}
+				}
+			}
+		}
+		LOG.warn("Unroutable demand: " + unroutableDemand.demand);
+	}
+
+	private void assignDemand(String originZone, String destinationZone, double startTime, double endTime, double odDemand, UnroutableDemand unroutableDemand) {
+		var destinationRoutes = this.foundRoutes.get(originZone);
+		if (destinationRoutes == null) {
+			unroutableDemand.demand += odDemand;
+			return;
+		}
+		var routes = destinationRoutes.get(destinationZone);
+		if (routes == null) {
+			unroutableDemand.demand += odDemand;
+			return;
+		}
+
+		double earliestDeparture = startTime - this.params.routeSelection.beforeTimewindow;
+		double latestDeparture = endTime + this.params.routeSelection.afterTimewindow;
+		FoundRoute[] potentialRoutes = routes.stream().filter(route -> ((route.depTime - route.originConnectedStop.walkTime) >= earliestDeparture)
+				&& ((route.depTime - route.originConnectedStop.walkTime <= latestDeparture))).toList().toArray(new FoundRoute[0]);
+		if (potentialRoutes.length == 0) {
+			unroutableDemand.demand += odDemand;
+			return;
+		}
+
+		double timeWindow = endTime - startTime;
+		double stepSize = 60.0; // sample every minute
+		int samples = (int) (timeWindow / stepSize);
+		double sharePerSample = 1.0 / ((double) samples);
+		double[] routeUtilities = new double[potentialRoutes.length];
+		double beta = this.params.boxCox.beta;
+		double tau = this.params.boxCox.tau;
+		double betaPJT = this.params.impediance.betaPerceivedJourneyTime;
+		double betaDeltaTEarly = this.params.impediance.betaDeltaTEarly;
+		double betaDeltaTLate = this.params.impediance.betaDeltaTLate;
+		for (int sample = 0; sample < samples; sample++) {
+			double time = startTime + sample * stepSize;
+			double utilitiesSum = 0;
+			for (int i = 0; i < potentialRoutes.length; i++) {
+				FoundRoute route = potentialRoutes[i];
+				double routeDepTime = route.depTime - route.originConnectedStop.walkTime;
+				double deltaTEarly = (routeDepTime < time) ? (time - routeDepTime) : 0.0;
+				double deltaTLate = (routeDepTime > time) ? (routeDepTime - time) : 0.0;
+				double impediance = betaPJT * route.perceivedJourneyTime_min + betaDeltaTEarly * (deltaTEarly / 60.0) + betaDeltaTLate * (deltaTLate / 60.0);
+				double utility = Math.exp(-beta * (Math.pow(impediance, tau) - 1.0) / tau);
+				routeUtilities[i] = utility;
+				utilitiesSum += utility;
+			}
+			for (int i = 0; i < potentialRoutes.length; i++) {
+				double routeShare = routeUtilities[i] / utilitiesSum;
+				double routeDemand = odDemand * sharePerSample * routeShare;
+				FoundRoute route = potentialRoutes[i];
+				route.demand += routeDemand;
+			}
+		}
+	}
+
 	private void writeRoutes(String csvFilename) {
 		List<ConnectedStop> emptyList = Collections.emptyList();
 		LOG.info("writing output to {}", csvFilename);
 		try (CSVWriter writer = new CSVWriter(IOUtils.getBufferedWriter(csvFilename), ',', '"', '\\', "\n")) {
-			writer.writeNext(new String[]{"ORIGZONENO", "DESTZONENO", "ORIGNAME", "DESTNAME", "ACCESS_TIME", "EGRESS_TIME", "DEPTIME", "ARRTIME", "TRAVTIME", "NUMTRANSFERS", "DISTANZ", "DETAILS"});
+			writer.writeNext(new String[]{"ORIGZONENO", "DESTZONENO", "ORIGNAME", "DESTNAME", "ACCESS_TIME", "EGRESS_TIME", "DEPTIME", "ARRTIME", "TRAVTIME", "NUMTRANSFERS", "DISTANZ", "DEMAND", "DETAILS"});
 
 			for (String origZone : zoneIds) {
 				Map<String, List<FoundRoute>> routesPerDestination = this.foundRoutes.get(origZone);
@@ -314,6 +394,7 @@ public class Umlego {
 								Time.writeTime(route.travelTime),
 								Integer.toString(route.transfers),
 								String.format("%.2f", route.distance / 1000.0),
+								String.format("%.5f", route.demand),
 								route.getRouteAsString()
 						});
 					}
@@ -370,7 +451,8 @@ public class Umlego {
 	public record ConnectedStop(double walkTime, TransitStopFacility stopFacility) {
 	}
 
-	public record ODDemand(String originZone, String destinationZone, double demand) {
+	public static class UnroutableDemand {
+		double demand = 0;
 	}
 
 	public record PerceivedJourneyTimeParameters(
@@ -380,6 +462,29 @@ public class Umlego {
 			double betaWalkTime,
 			double betaTransferWaitTime,
 			double betaTransferCount
+	) {}
+
+	public record RouteImpedianceParameters(
+			double betaPerceivedJourneyTime,
+			double betaDeltaTEarly,
+			double betaDeltaTLate
+	) {}
+
+	public record RouteSelectionParameters(
+			double beforeTimewindow,
+			double afterTimewindow
+	) {}
+
+	public record BoxCoxParamters(
+			double beta,
+			double tau
+	) {}
+
+	public record UmlegoParameters(
+			PerceivedJourneyTimeParameters pjt,
+			RouteImpedianceParameters impediance,
+			RouteSelectionParameters routeSelection,
+			BoxCoxParamters boxCox
 	) {}
 
 	public static class FoundRoute {
@@ -393,7 +498,8 @@ public class Umlego {
 		public final int transfers;
 		public final double distance;
 		public final List<RaptorRoute.RoutePart> routeParts = new ArrayList<>();
-		public double perceivedTravelTime = Double.NaN;
+		public double perceivedJourneyTime_min = Double.NaN;
+		public double demand = 0;
 
 		public FoundRoute(RaptorRoute route) {
 			double firstDepTime = Double.NaN;
@@ -404,10 +510,13 @@ public class Umlego {
 
 			double distanceSum = 0;
 			RaptorRoute.RoutePart prevTransfer = null;
+			int stageCount = 0;
 			for (RaptorRoute.RoutePart part : route.getParts()) {
 				if (part.line == null) {
+					// it is a transfer
 					prevTransfer = part;
 				} else {
+					stageCount++;
 					if (routeParts.isEmpty()) {
 						// it is the first real stage
 						firstDepTime = part.vehicleDepTime;
@@ -426,7 +535,7 @@ public class Umlego {
 			this.depTime = firstDepTime;
 			this.arrTime = lastArrTime;
 			this.travelTime = this.arrTime - this.depTime;
-			this.transfers = this.routeParts.size() - 1;
+			this.transfers = stageCount - 1;
 			this.distance = distanceSum;
 		}
 
