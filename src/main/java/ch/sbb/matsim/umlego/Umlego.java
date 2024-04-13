@@ -42,10 +42,9 @@ public class Umlego {
 
 	private final OMXODParser demand;
 	private final Scenario scenario;
-	private final String zoneConnectionsFilename;
 	private final Map<String, Map<String, List<FoundRoute>>> foundRoutes = new ConcurrentHashMap<>();
 	private Map<String, List<ConnectedStop>> stopsPerZone;
-	private final List<String> zoneIds;
+	private List<String> zoneIds;
 
 	public static void main(String[] args) {
 		String omxFilename = "/Users/Shared/data/projects/Umlego/input_data/demand/demand_matrices.omx";
@@ -67,7 +66,7 @@ public class Umlego {
 
 //		List<String> relevantZones = null; // null will use all zones
 
-		List<String> relevantZones = java.util.List.of("1", "14", "18", "47", "48", "52", "68", "69", "85",
+		List<String> relevantZones = List.of("1", "14", "18", "47", "48", "52", "68", "69", "85",
 				"108", "123", "124", "132", "136", "162", "163", "187", "213", "220", "222", "237", "281", "288",
 				"302", "307", "318", "325", "329", "358", "361", "404", "439", "450", "467", "468", "480", "487", "492",
 				"500", "503", "504", "526", "534", "537", "539", "546", "565", "582", "587", "599", "623", "662", "681", "682",
@@ -80,26 +79,26 @@ public class Umlego {
 //		List<String> relevantZones = List.of("281", "979"); // Frick, ZH Oerlikon
 //		List<String> relevantZones = List.of("1", "85"); // Aarau, Bern
 
-		new Umlego(demand, scenario, zoneConnectionsFilename, relevantZones).run(csvOutputFilename, threads);
+		PerceivedJourneyTimeParameters pjtParams = new PerceivedJourneyTimeParameters(1.0, 2.94, 2.94, 2.25, 1.13, 1.0);
+
+		Map<String, List<ConnectedStop>> zoneConnections = Umlego.readZoneConnections(zoneConnectionsFilename, scenario);
+		new Umlego(demand, scenario, zoneConnections).run(relevantZones, pjtParams, threads, csvOutputFilename);
 	}
 
-	public Umlego(OMXODParser demand, Scenario scenario, String zoneConnectionsFilename, List<String> relevantZones) {
+	public Umlego(OMXODParser demand, Scenario scenario, Map<String, List<ConnectedStop>> stopsPerZone) {
 		this.demand = demand;
 		this.scenario = scenario;
-		this.zoneConnectionsFilename = zoneConnectionsFilename;
-		this.zoneIds = relevantZones == null ? demand.getAllLookupValues() : relevantZones;
+		this.stopsPerZone = stopsPerZone;
 	}
 
-	public void run(String csvOutputFilename, int threadCount) {
-		loadZoneConnections();
+	public void run(List<String> relevantZones, PerceivedJourneyTimeParameters pjtParams, int threadCount, String csvOutputFilename) {
+		this.foundRoutes.clear();
+		this.zoneIds = relevantZones == null ? demand.getAllLookupValues() : relevantZones;
 		calculateRoutes(threadCount);
 		filterRoutes();
 		sortRoutes();
+		calculatePerceivedJourneyTime(pjtParams, threadCount);
 		writeRoutes(csvOutputFilename);
-	}
-
-	private void loadZoneConnections() {
-		this.stopsPerZone = readZoneConnections(zoneConnectionsFilename, scenario);
 	}
 
 	private void calculateRoutes(int threadCount) {
@@ -188,6 +187,7 @@ public class Umlego {
 	}
 
 	private void filterRoutes() {
+		LOG.info("filter routes");
 		for (Map<String, List<FoundRoute>> routesPerDestination : this.foundRoutes.values()) {
 			for (List<FoundRoute> routes : routesPerDestination.values()) {
 				routes.sort(this::compareFoundRoutesByArrivalTimeAndTravelTime);
@@ -223,11 +223,59 @@ public class Umlego {
 	}
 
 	private void sortRoutes() {
+		LOG.info("sort routes");
 		for (Map<String, List<FoundRoute>> routesPerDestination : this.foundRoutes.values()) {
 			for (List<FoundRoute> routes : routesPerDestination.values()) {
 				routes.sort(this::compareFoundRoutesByDepartureTime);
 			}
 		}
+	}
+
+	private void calculatePerceivedJourneyTime(PerceivedJourneyTimeParameters pjtParams, int threadCount) {
+		LOG.info("Calculate perceived journey times for all routes");
+		for (Map<String, List<FoundRoute>> routesPerDestination : this.foundRoutes.values()) {
+			for (List<FoundRoute> routes : routesPerDestination.values()) {
+				for (FoundRoute route : routes) {
+					calculatePerceivedJourneyTime(pjtParams, route);
+				}
+			}
+		}
+	}
+
+	private void calculatePerceivedJourneyTime(PerceivedJourneyTimeParameters pjtParams, FoundRoute route) {
+		double inVehicleTime = 0;
+		double accessTime = route.originConnectedStop.walkTime;
+		double egressTime = route.destinationConnectedStop.walkTime;
+		double walkTime = 0;
+		double transferWaitTime = 0;
+		double transferCount = route.transfers;
+
+		boolean hadTransferBefore = false;
+		for (RaptorRoute.RoutePart part : route.routeParts) {
+			if (part.line == null) {
+				// it is a transfer
+				walkTime += (part.arrivalTime - part.depTime);
+				hadTransferBefore = true;
+			} else {
+				if (hadTransferBefore) {
+					transferWaitTime += (part.vehicleDepTime - part.depTime);
+				}
+				inVehicleTime += (part.arrivalTime - part.vehicleDepTime);
+				hadTransferBefore = false;
+			}
+		}
+
+		double expectedTotalTime = route.routeParts.get(route.routeParts.size() - 1).arrivalTime - route.routeParts.get(0).vehicleDepTime;
+		if ((walkTime + transferWaitTime + inVehicleTime) != expectedTotalTime) {
+			System.err.println("INCONSISTENT TIMES " + route.getRouteAsString());
+		}
+
+		route.perceivedTravelTime = pjtParams.betaInVehicleTime * (inVehicleTime / 60.0)
+				+ pjtParams.betaAccessTime * (accessTime / 60.0)
+				+ pjtParams.betaEgressTime * (egressTime / 60.0)
+				+ pjtParams.betaWalkTime * (walkTime / 60.0)
+				+ pjtParams.betaTransferWaitTime * (transferWaitTime / 60.0)
+				+ pjtParams.betaTransferCount * transferCount;
 	}
 
 	private void writeRoutes(String csvFilename) {
@@ -254,21 +302,6 @@ public class Umlego {
 					}
 
 					for (FoundRoute route : routesToDestination) {
-						StringBuilder details = new StringBuilder();
-						for (RaptorRoute.RoutePart part : route.routeParts) {
-							if (!details.isEmpty()) {
-								details.append(", ");
-							}
-							details.append(part.line.getId());
-							details.append(": ");
-							details.append(part.fromStop.getName());
-							details.append(' ');
-							details.append(Time.writeTime(part.vehicleDepTime));
-							details.append(" - ");
-							details.append(part.toStop.getName());
-							details.append(' ');
-							details.append(Time.writeTime(part.arrivalTime));
-						}
 						writer.writeNext(new String[]{
 								origZone,
 								destZone,
@@ -281,7 +314,7 @@ public class Umlego {
 								Time.writeTime(route.travelTime),
 								Integer.toString(route.transfers),
 								String.format("%.2f", route.distance / 1000.0),
-								details.toString()
+								route.getRouteAsString()
 						});
 					}
 				}
@@ -334,12 +367,20 @@ public class Umlego {
 		}
 	}
 
-
 	public record ConnectedStop(double walkTime, TransitStopFacility stopFacility) {
 	}
 
 	public record ODDemand(String originZone, String destinationZone, double demand) {
 	}
+
+	public record PerceivedJourneyTimeParameters(
+			double betaInVehicleTime,
+			double betaAccessTime,
+			double betaEgressTime,
+			double betaWalkTime,
+			double betaTransferWaitTime,
+			double betaTransferCount
+	) {}
 
 	public static class FoundRoute {
 		public final TransitStopFacility originStop;
@@ -352,6 +393,7 @@ public class Umlego {
 		public final int transfers;
 		public final double distance;
 		public final List<RaptorRoute.RoutePart> routeParts = new ArrayList<>();
+		public double perceivedTravelTime = Double.NaN;
 
 		public FoundRoute(RaptorRoute route) {
 			double firstDepTime = Double.NaN;
@@ -361,11 +403,17 @@ public class Umlego {
 			TransitStopFacility destinationStopFacility = null;
 
 			double distanceSum = 0;
+			RaptorRoute.RoutePart prevTransfer = null;
 			for (RaptorRoute.RoutePart part : route.getParts()) {
-				if (part.line != null) {
+				if (part.line == null) {
+					prevTransfer = part;
+				} else {
 					if (routeParts.isEmpty()) {
+						// it is the first real stage
 						firstDepTime = part.vehicleDepTime;
 						originStopFacility = part.fromStop;
+					} else if (prevTransfer != null) {
+						this.routeParts.add(prevTransfer);
 					}
 					this.routeParts.add(part);
 					lastArrTime = part.arrivalTime;
@@ -397,8 +445,10 @@ public class Umlego {
 				for (int i = 0; i < routeParts.size(); i++) {
 					RaptorRoute.RoutePart routePartThis = this.routeParts.get(i);
 					RaptorRoute.RoutePart routePartThat = that.routeParts.get(i);
-					boolean partIsEqual = Objects.equals(routePartThis.line.getId(), routePartThat.line.getId())
-							&& Objects.equals(routePartThis.route.getId(), routePartThat.route.getId())
+
+					boolean partIsEqual =
+							((routePartThis.line == null && routePartThat.line == null) || (routePartThis.line != null && routePartThat.line != null && Objects.equals(routePartThis.line.getId(), routePartThat.line.getId())))
+							&& ((routePartThis.route == null && routePartThat.route == null) || (routePartThis.route != null && routePartThat.route != null && Objects.equals(routePartThis.route.getId(), routePartThat.route.getId())))
 							&& Objects.equals(routePartThis.fromStop.getId(), routePartThat.fromStop.getId())
 							&& Objects.equals(routePartThis.toStop.getId(), routePartThat.toStop.getId());
 					if (!partIsEqual) {
@@ -413,9 +463,31 @@ public class Umlego {
 		public int hashCode() {
 			return Objects.hash(depTime, arrTime, transfers);
 		}
+
+		public String getRouteAsString() {
+			StringBuilder details = new StringBuilder();
+			for (RaptorRoute.RoutePart part : this.routeParts) {
+				if (part.line == null) {
+					continue;
+				}
+				if (!details.isEmpty()) {
+					details.append(", ");
+				}
+				details.append(part.line.getId());
+				details.append(": ");
+				details.append(part.fromStop.getName());
+				details.append(' ');
+				details.append(Time.writeTime(part.vehicleDepTime));
+				details.append(" - ");
+				details.append(part.toStop.getName());
+				details.append(' ');
+				details.append(Time.writeTime(part.arrivalTime));
+			}
+			return details.toString();
+		}
 	}
 
-	private static Map<String, List<ConnectedStop>> readZoneConnections(String filename, Scenario scenario) {
+	public static Map<String, List<ConnectedStop>> readZoneConnections(String filename, Scenario scenario) {
 		Map<String, List<ConnectedStop>> stopsPerZone = new HashMap<>();
 		Map<Id<TransitStopFacility>, TransitStopFacility> stops = scenario.getTransitSchedule().getFacilities();
 		try (CSVReader reader = new CSVReader(filename, ",")) {
