@@ -8,7 +8,6 @@ import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
-import com.opencsv.CSVWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -16,7 +15,6 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -31,12 +29,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author mrieser / Simunto
@@ -51,12 +49,13 @@ public class Umlego {
 	private List<String> zoneIds;
 
 	public static void main(String[] args) {
+		long startTime = System.currentTimeMillis();
 		String omxFilename = "/Users/Shared/data/projects/Umlego/input_data/demand/demand_matrices.omx";
 		String networkFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitNetwork.xml.gz";
 		String scheduleFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitSchedule.xml.gz";
 		String vehiclesFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitVehicles.xml.gz";
 		String zoneConnectionsFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/Anbindungszeiten.csv";
-		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_filtered_demand_allZones.csv";
+		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_testoutput.csv";
 		int threads = 6;
 
 		// load transit schedule
@@ -68,15 +67,15 @@ public class Umlego {
 		OMXODParser demand = new OMXODParser();
 		demand.openMatrix(omxFilename);
 
-		List<String> relevantZones = null; // null uses all zones
+//		List<String> relevantZones = null; // null uses all zones
 
-//		List<String> relevantZones = List.of("1", "14", "18", "47", "48", "52", "68", "69", "85",
-//				"108", "123", "124", "132", "136", "162", "163", "187", "213", "220", "222", "237", "281", "288",
-//				"302", "307", "318", "325", "329", "358", "361", "404", "439", "450", "467", "468", "480", "487", "492",
-//				"500", "503", "504", "526", "534", "537", "539", "546", "565", "582", "587", "599", "623", "662", "681", "682",
-//				"700", "718", "748", "763", "768", "778", "785", "786", "797", "835", "844", "863", "877", "893",
-//				"907", "909", "910", "914", "938", "960", "962", "967", "971", "973", "979", "985", "996",
-//				"3182", "6025");
+		List<String> relevantZones = List.of("1", "14", "18", "47", "48", "52", "68", "69", "85",
+				"108", "123", "124", "132", "136", "162", "163", "187", "213", "220", "222", "237", "281", "288",
+				"302", "307", "318", "325", "329", "358", "361", "404", "439", "450", "467", "468", "480", "487", "492",
+				"500", "503", "504", "526", "534", "537", "539", "546", "565", "582", "587", "599", "623", "662", "681", "682",
+				"700", "718", "748", "763", "768", "778", "785", "786", "797", "835", "844", "863", "877", "893",
+				"907", "909", "910", "914", "938", "960", "962", "967", "971", "973", "979", "985", "996",
+				"3182", "6025");
 
 //		List<String> relevantZones = List.of("1", "14", "18");
 
@@ -87,10 +86,16 @@ public class Umlego {
 		RouteImpedianceParameters impediance = new RouteImpedianceParameters(1.0, 1.85, 1.85);
 		RouteSelectionParameters routeSelection = new RouteSelectionParameters(3600.0, 3600.0); // take routes 1 hour before and after into account
 		BoxCoxParamters boxCox = new BoxCoxParamters(1.536, 0.5);
-		UmlegoParameters params = new UmlegoParameters(pjt, impediance, routeSelection, boxCox);
+		WriterParameters writer = new WriterParameters(false, true);
+		UmlegoParameters params = new UmlegoParameters(pjt, impediance, routeSelection, boxCox, writer);
 
 		Map<String, List<ConnectedStop>> zoneConnections = Umlego.readZoneConnections(zoneConnectionsFilename, scenario);
+		long calcStartTime = System.currentTimeMillis();
 		new Umlego(demand, scenario, zoneConnections).run(relevantZones, params, threads, csvOutputFilename);
+		long endTime = System.currentTimeMillis();
+		LOG.info("total time: {} seconds", (endTime - startTime) / 1000.0);
+		LOG.info("calculation+write time: {} seconds", (endTime - calcStartTime) / 1000.0);
+		LOG.info("threads: {}, writeRoutesWithoutDemand {}, writeDetails {}", threads, writer.writeRoutesWithoutDemand, writer.writeDetails);
 	}
 
 	public Umlego(OMXODParser demand, Scenario scenario, Map<String, List<ConnectedStop>> stopsPerZone) {
@@ -124,14 +129,16 @@ public class Umlego {
 		SwissRailRaptorData raptorData = SwissRailRaptorData.create(this.scenario.getTransitSchedule(), this.scenario.getTransitVehicles(), raptorConfig, this.scenario.getNetwork(), null);
 
 		// prepare queues with work items
-		ConcurrentLinkedQueue<UmlegoWorker.WorkItem> workerQueue = new ConcurrentLinkedQueue<>();
-		ConcurrentLinkedQueue<Future<UmlegoWorker.WorkResult>> writerQueue = new ConcurrentLinkedQueue<>();
-		for (String originZoneId : zoneIds) {
-			CompletableFuture<UmlegoWorker.WorkResult> future = new CompletableFuture<>();
-			UmlegoWorker.WorkItem workItem = new UmlegoWorker.WorkItem(originZoneId, future);
-			workerQueue.add(workItem);
-			writerQueue.add(future);
-		}
+		/* Writing might actually be slower than the computation, resulting in more and more
+		   memory being used for the found routes until they get written. To prevent
+		   OutOfMemoryErrors, we use a blocking queue for the writer with a limited capacity.
+		 */
+		UmlegoWorker.WorkItem workEndMarker = new UmlegoWorker.WorkItem(null, null);
+		CompletableFuture<UmlegoWorker.WorkResult> writeEndMarker = new CompletableFuture<>();
+		writeEndMarker.complete(new UmlegoWorker.WorkResult(null, null, null));
+
+		BlockingQueue<UmlegoWorker.WorkItem> workerQueue = new LinkedBlockingQueue<>(4 * threadCount);
+		BlockingQueue<Future<UmlegoWorker.WorkResult>> writerQueue = new LinkedBlockingQueue<>(3 * threadCount);
 
 		// start worker threads
 		Thread[] threads = new Thread[threadCount];
@@ -141,74 +148,44 @@ public class Umlego {
 			threads[i].start();
 		}
 
-		UnroutableDemand unroutableDemand = writeRoutes(csvOutputFilename, writerQueue);
+		// start writer threads
+		UmlegoWriter writer = new UmlegoWriter(writerQueue, csvOutputFilename, this.zoneIds, params.writer);
+		new Thread(writer).start();
+
+		// submit work items into queues
+		for (String originZoneId : zoneIds) {
+			try {
+				CompletableFuture<UmlegoWorker.WorkResult> future = new CompletableFuture<>();
+				UmlegoWorker.WorkItem workItem = new UmlegoWorker.WorkItem(originZoneId, future);
+				writerQueue.put(future);
+				workerQueue.put(workItem);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		// once all zones are submitted for calculation, add the end-markers to the queues
+		try {
+			for (int i = 0; i < threadCount; i++) {
+				workerQueue.put(workEndMarker);
+			}
+			writerQueue.put(writeEndMarker);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		// once the unroutable demand becomes available, the calculation and writing has finished
+		UnroutableDemand unroutableDemand;
+		try {
+			unroutableDemand = writer.getUnroutableDemand().get();
+		} catch (InterruptedException | ExecutionException e) {
+			throw new RuntimeException(e);
+		}
 
 		if (unroutableDemand.demand >= 0) {
 			LOG.warn("Unroutable demand: {}", unroutableDemand.demand);
 		} else {
 			LOG.info("Unroutable demand: {}", unroutableDemand.demand);
 		}
-	}
-
-	private UnroutableDemand writeRoutes(String csvFilename, Queue<Future<UmlegoWorker.WorkResult>> queue) {
-		LOG.info("writing output to {}", csvFilename);
-		UnroutableDemand unroutableDemand = new UnroutableDemand();
-		int totalItems = queue.size();
-		int counter = 0;
-		try (CSVWriter writer = new CSVWriter(IOUtils.getBufferedWriter(csvFilename), ',', '"', '\\', "\n")) {
-			writer.writeNext(new String[]{"ORIGZONENO", "DESTZONENO", "ORIGNAME", "DESTNAME", "ACCESS_TIME", "EGRESS_TIME", "DEPTIME", "ARRTIME", "TRAVTIME", "NUMTRANSFERS", "DISTANZ", "DEMAND", "DETAILS"});
-
-			Future<UmlegoWorker.WorkResult> futureResult;
-			while ((futureResult = queue.poll()) != null) {
-				UmlegoWorker.WorkResult result = futureResult.get();
-				counter++;
-				LOG.info(" - writing routes starting in zone {} ({}/{})", result.originZone(), counter, totalItems);
-				unroutableDemand.demand += result.unroutableDemand().demand;
-
-				String origZone = result.originZone();
-				Map<String, List<FoundRoute>> routesPerDestination = result.routesPerDestinationZone();
-				if (routesPerDestination == null) {
-					// looks like this zone cannot reach any destination
-					continue;
-				}
-				for (String destZone : zoneIds) {
-					if (origZone.equals(destZone)) {
-						// we're not interested in intrazonal trips
-						continue;
-					}
-					List<FoundRoute> routesToDestination = routesPerDestination.get(destZone);
-					if (routesToDestination == null) {
-						// looks like there are no routes to this destination from the given origin zone
-						continue;
-					}
-
-					for (FoundRoute route : routesToDestination) {
-						if (route.demand > 0) {
-							writer.writeNext(new String[]{
-									origZone,
-									destZone,
-									route.originStop.getName(),
-									route.destinationStop.getName(),
-									Time.writeTime(route.originConnectedStop.walkTime),
-									Time.writeTime(route.destinationConnectedStop.walkTime),
-									Time.writeTime(route.depTime),
-									Time.writeTime(route.arrTime),
-									Time.writeTime(route.travelTime),
-									Integer.toString(route.transfers),
-									String.format("%.2f", route.distance / 1000.0),
-									String.format("%.5f", route.demand),
-									route.getRouteAsString()
-							});
-						}
-					}
-				}
-			}
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		} catch (ExecutionException | InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		return unroutableDemand;
 	}
 
 	public record ConnectedStop(double walkTime, TransitStopFacility stopFacility) {
@@ -247,11 +224,17 @@ public class Umlego {
 	) {
 	}
 
+	public record WriterParameters(
+			boolean writeRoutesWithoutDemand,
+			boolean writeDetails
+	) {}
+
 	public record UmlegoParameters(
 			PerceivedJourneyTimeParameters pjt,
 			RouteImpedianceParameters impediance,
 			RouteSelectionParameters routeSelection,
-			BoxCoxParamters boxCox
+			BoxCoxParamters boxCox,
+			WriterParameters writer
 	) {
 	}
 

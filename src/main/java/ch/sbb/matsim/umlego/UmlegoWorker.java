@@ -14,16 +14,16 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author mrieser / Simunto
  */
 class UmlegoWorker implements Runnable {
 
-	private final ConcurrentLinkedQueue<WorkItem> workerQueue;
+	private final BlockingQueue<WorkItem> workerQueue;
 	private final Umlego.UmlegoParameters params;
 	private final OMXODParser demand;
 	private final SwissRailRaptor raptor;
@@ -32,7 +32,7 @@ class UmlegoWorker implements Runnable {
 	private final List<String> zoneIds;
 	private final Map<String, List<Umlego.ConnectedStop>> stopsPerZone;
 
-	public UmlegoWorker(ConcurrentLinkedQueue<WorkItem> workerQueue,
+	public UmlegoWorker(BlockingQueue<WorkItem> workerQueue,
 											Umlego.UmlegoParameters params,
 											OMXODParser demand,
 											SwissRailRaptor raptor,
@@ -51,10 +51,18 @@ class UmlegoWorker implements Runnable {
 	}
 
 	public void run() {
-		WorkItem item;
-		while ((item = this.workerQueue.poll()) != null) {
-			WorkResult result = processOriginZone(item);
-			item.result.complete(result);
+		while (true) {
+			WorkItem item = null;
+			try {
+				item = this.workerQueue.take();
+				if (item.originZone == null) {
+					return;
+				}
+				WorkResult result = processOriginZone(item);
+				item.result.complete(result);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
