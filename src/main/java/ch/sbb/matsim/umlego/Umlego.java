@@ -29,22 +29,25 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
+/**
+ * @author mrieser / Simunto
+ */
 public class Umlego {
 
 	private static final Logger LOG = LogManager.getLogger(Umlego.class);
 
 	private final OMXODParser demand;
 	private final Scenario scenario;
-	private final Map<String, Map<String, List<FoundRoute>>> foundRoutes = new ConcurrentHashMap<>();
-	private UmlegoParameters params;
-	private Map<String, List<ConnectedStop>> stopsPerZone;
+	private final Map<String, List<ConnectedStop>> stopsPerZone;
 	private List<String> zoneIds;
 
 	public static void main(String[] args) {
@@ -53,7 +56,7 @@ public class Umlego {
 		String scheduleFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitSchedule.xml.gz";
 		String vehiclesFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitVehicles.xml.gz";
 		String zoneConnectionsFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/Anbindungszeiten.csv";
-		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_filtered_demand.csv";
+		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_filtered_demand_allZones.csv";
 		int threads = 6;
 
 		// load transit schedule
@@ -65,15 +68,15 @@ public class Umlego {
 		OMXODParser demand = new OMXODParser();
 		demand.openMatrix(omxFilename);
 
-//		List<String> relevantZones = null; // null will use all zones
+		List<String> relevantZones = null; // null uses all zones
 
-		List<String> relevantZones = List.of("1", "14", "18", "47", "48", "52", "68", "69", "85",
-				"108", "123", "124", "132", "136", "162", "163", "187", "213", "220", "222", "237", "281", "288",
-				"302", "307", "318", "325", "329", "358", "361", "404", "439", "450", "467", "468", "480", "487", "492",
-				"500", "503", "504", "526", "534", "537", "539", "546", "565", "582", "587", "599", "623", "662", "681", "682",
-				"700", "718", "748", "763", "768", "778", "785", "786", "797", "835", "844", "863", "877", "893",
-				"907", "909", "910", "914", "938", "960", "962", "967", "971", "973", "979", "985", "996",
-				"3182", "6025");
+//		List<String> relevantZones = List.of("1", "14", "18", "47", "48", "52", "68", "69", "85",
+//				"108", "123", "124", "132", "136", "162", "163", "187", "213", "220", "222", "237", "281", "288",
+//				"302", "307", "318", "325", "329", "358", "361", "404", "439", "450", "467", "468", "480", "487", "492",
+//				"500", "503", "504", "526", "534", "537", "539", "546", "565", "582", "587", "599", "623", "662", "681", "682",
+//				"700", "718", "748", "763", "768", "778", "785", "786", "797", "835", "844", "863", "877", "893",
+//				"907", "909", "910", "914", "938", "960", "962", "967", "971", "973", "979", "985", "996",
+//				"3182", "6025");
 
 //		List<String> relevantZones = List.of("1", "14", "18");
 
@@ -97,275 +100,73 @@ public class Umlego {
 	}
 
 	public void run(List<String> relevantZones, UmlegoParameters params, int threadCount, String csvOutputFilename) {
-		this.params = params;
-		this.foundRoutes.clear();
-		this.zoneIds = relevantZones == null ? demand.getAllLookupValues() : relevantZones;
-		calculateRoutes(threadCount);
-		filterRoutes();
-		sortRoutes();
-		calculatePerceivedJourneyTime();
-		assignDemand();
-		writeRoutes(csvOutputFilename);
-	}
+		this.zoneIds = relevantZones == null ? new ArrayList<>(demand.getAllLookupValues()) : new ArrayList<>(relevantZones);
+		this.zoneIds.sort(String::compareTo);
 
-	private void calculateRoutes(int threadCount) {
-		RaptorParameters raptorParams = RaptorUtils.createParameters(scenario.getConfig());
-		raptorParams.setTransferPenaltyFixCostPerTransfer(0);
-		raptorParams.setTransferPenaltyMinimum(0);
-		raptorParams.setTransferPenaltyMaximum(0);
-
-		// initialize SwissRailRaptor
-		RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(scenario.getConfig());
-		raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
-		raptorConfig.setBeelineWalkConnectionDistance(400.0);
-		SwissRailRaptorData raptorData = SwissRailRaptorData.create(this.scenario.getTransitSchedule(), this.scenario.getTransitVehicles(), raptorConfig, this.scenario.getNetwork(), null);
-
+		// detect relevant stops
 		List<ConnectedStop> emptyList = Collections.emptyList();
-
 		Set<TransitStopFacility> relevantStops = new HashSet<>();
 		for (String zoneId : this.zoneIds) {
 			List<TransitStopFacility> stops = this.stopsPerZone.getOrDefault(zoneId, emptyList).stream().map(stop -> stop.stopFacility).toList();
 			relevantStops.addAll(stops);
 		}
-		ConcurrentLinkedQueue<TransitStopFacility> stopsQueue = new ConcurrentLinkedQueue<>(relevantStops);
-
 		LOG.info("Detected {} stops as potential origin or destinations", relevantStops.size());
 
-		// there is no good concurrent set, thus use ConcurrentHashMap<T, Boolean> instead
-		Map<TransitStopFacility, Map<TransitStopFacility, Map<FoundRoute, Boolean>>> foundRoutesByStops = new ConcurrentHashMap<>();
+		// prepare SwissRailRaptor
+		RaptorParameters raptorParams = RaptorUtils.createParameters(scenario.getConfig());
+		raptorParams.setTransferPenaltyFixCostPerTransfer(0);
+		raptorParams.setTransferPenaltyMinimum(0);
+		raptorParams.setTransferPenaltyMaximum(0);
+
+		RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(scenario.getConfig());
+		raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
+		raptorConfig.setBeelineWalkConnectionDistance(400.0);
+		SwissRailRaptorData raptorData = SwissRailRaptorData.create(this.scenario.getTransitSchedule(), this.scenario.getTransitVehicles(), raptorConfig, this.scenario.getNetwork(), null);
+
+		// prepare queues with work items
+		ConcurrentLinkedQueue<UmlegoWorker.WorkItem> workerQueue = new ConcurrentLinkedQueue<>();
+		ConcurrentLinkedQueue<Future<UmlegoWorker.WorkResult>> writerQueue = new ConcurrentLinkedQueue<>();
+		for (String originZoneId : zoneIds) {
+			CompletableFuture<UmlegoWorker.WorkResult> future = new CompletableFuture<>();
+			UmlegoWorker.WorkItem workItem = new UmlegoWorker.WorkItem(originZoneId, future);
+			workerQueue.add(workItem);
+			writerQueue.add(future);
+		}
+
+		// start worker threads
 		Thread[] threads = new Thread[threadCount];
 		for (int i = 0; i < threads.length; i++) {
 			SwissRailRaptor raptor = new SwissRailRaptor.Builder(raptorData, this.scenario.getConfig()).build();
-			threads[i] = new Thread(new StopsQueueWorker(stopsQueue, raptor, raptorParams, relevantStops, foundRoutesByStops));
+			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, relevantStops, this.zoneIds, this.stopsPerZone));
 			threads[i].start();
 		}
-		for (int i = 0; i < threads.length; i++) {
-			try {
-				threads[i].join();
-			} catch (InterruptedException e) {
-				LOG.error("Problem while waiting for worker {} to finish.", i, e);
-			}
-		}
 
-		LOG.info("Aggregate to zones");
-		for (String originZoneId : zoneIds) {
-			Map<String, List<FoundRoute>> routesPerOrigin = this.foundRoutes.computeIfAbsent(originZoneId, zoneId -> new HashMap<>());
+		UnroutableDemand unroutableDemand = writeRoutes(csvOutputFilename, writerQueue);
 
-			List<ConnectedStop> stopsPerOriginZone = this.stopsPerZone.getOrDefault(originZoneId, emptyList);
-			Map<TransitStopFacility, ConnectedStop> originStopLookup = new HashMap<>();
-			for (ConnectedStop stop : stopsPerOriginZone) {
-				originStopLookup.put(stop.stopFacility, stop);
-			}
-
-			for (String destinationZoneId : zoneIds) {
-
-				List<ConnectedStop> stopsPerDestinationZone = this.stopsPerZone.getOrDefault(destinationZoneId, emptyList);
-				Map<TransitStopFacility, ConnectedStop> destinationStopLookup = new HashMap<>();
-				for (ConnectedStop stop : stopsPerDestinationZone) {
-					destinationStopLookup.put(stop.stopFacility, stop);
-				}
-
-				Set<FoundRoute> allRoutesFromTo = new HashSet<>();
-				for (ConnectedStop originStop : stopsPerOriginZone) {
-					Map<TransitStopFacility, Map<FoundRoute, Boolean>> routesPerDestinationStop = foundRoutesByStops.get(originStop.stopFacility);
-					if (routesPerDestinationStop != null) {
-						for (ConnectedStop destinationStop : this.stopsPerZone.getOrDefault(destinationZoneId, emptyList)) {
-							Map<FoundRoute, Boolean> routesPerOriginDestinationStop = routesPerDestinationStop.get(destinationStop.stopFacility);
-							if (routesPerOriginDestinationStop != null) {
-								for (FoundRoute route : routesPerOriginDestinationStop.keySet()) {
-									ConnectedStop originConnectedStop = originStopLookup.get(route.originStop);
-									ConnectedStop destinationConnectedStop = destinationStopLookup.get(route.destinationStop);
-
-									if (originConnectedStop != null && destinationConnectedStop != null) {
-										// otherwise the route would not be valid, e.g. due to an additional transfer at the start or end
-										route.originConnectedStop = originConnectedStop;
-										route.destinationConnectedStop = destinationConnectedStop;
-										allRoutesFromTo.add(route);
-									}
-								}
-							}
-						}
-					}
-				}
-				routesPerOrigin.put(destinationZoneId, new ArrayList<>(allRoutesFromTo));
-			}
-		}
-		LOG.info("All routes calculated");
-	}
-
-	private void filterRoutes() {
-		LOG.info("filter routes");
-		for (Map<String, List<FoundRoute>> routesPerDestination : this.foundRoutes.values()) {
-			for (List<FoundRoute> routes : routesPerDestination.values()) {
-				routes.sort(this::compareFoundRoutesByArrivalTimeAndTravelTime);
-				// routs are now sorted by arrival time (ascending) and travel time (ascending) and transfers (ascending)
-				double lastArrivalTime = -1;
-				FoundRoute thisBestRoute = null; // best route with
-				FoundRoute lastBestRoute = null;
-				for (ListIterator<FoundRoute> iterator = routes.listIterator(); iterator.hasNext(); ) {
-					FoundRoute route = iterator.next();
-					if (route.arrTime != lastArrivalTime) {
-						lastArrivalTime = route.arrTime;
-						lastBestRoute = route;
-						thisBestRoute = route;
-					} else {
-						if (route.transfers > thisBestRoute.transfers) {
-							if (route.travelTime > lastBestRoute.travelTime) {
-								// route has a longer travelTime and more transfers than lastBestRoute, get rid of it
-								iterator.remove();
-							} else {
-								lastBestRoute = thisBestRoute;
-								thisBestRoute = route;
-							}
-						} else {
-							if (route.travelTime > lastBestRoute.travelTime) {
-								// route has a longer travelTime and more transfers than lastBestRoute, get rid of it
-								iterator.remove();
-							}
-						}
-					}
-				}
-			}
+		if (unroutableDemand.demand >= 0) {
+			LOG.warn("Unroutable demand: {}", unroutableDemand.demand);
+		} else {
+			LOG.info("Unroutable demand: {}", unroutableDemand.demand);
 		}
 	}
 
-	private void sortRoutes() {
-		LOG.info("sort routes");
-		for (Map<String, List<FoundRoute>> routesPerDestination : this.foundRoutes.values()) {
-			for (List<FoundRoute> routes : routesPerDestination.values()) {
-				routes.sort(this::compareFoundRoutesByDepartureTime);
-			}
-		}
-	}
-
-	private void calculatePerceivedJourneyTime() {
-		LOG.info("Calculate perceived journey times for all routes");
-		for (Map<String, List<FoundRoute>> routesPerDestination : this.foundRoutes.values()) {
-			for (List<FoundRoute> routes : routesPerDestination.values()) {
-				for (FoundRoute route : routes) {
-					calculatePerceivedJourneyTime(route);
-				}
-			}
-		}
-	}
-
-	private void calculatePerceivedJourneyTime(FoundRoute route) {
-		double inVehicleTime = 0;
-		double accessTime = route.originConnectedStop.walkTime;
-		double egressTime = route.destinationConnectedStop.walkTime;
-		double walkTime = 0;
-		double transferWaitTime = 0;
-		double transferCount = route.transfers;
-
-		boolean hadTransferBefore = false;
-		for (RaptorRoute.RoutePart part : route.routeParts) {
-			if (part.line == null) {
-				// it is a transfer
-				walkTime += (part.arrivalTime - part.depTime);
-				hadTransferBefore = true;
-			} else {
-				if (hadTransferBefore) {
-					transferWaitTime += (part.vehicleDepTime - part.depTime);
-				}
-				inVehicleTime += (part.arrivalTime - part.vehicleDepTime);
-				hadTransferBefore = false;
-			}
-		}
-
-		double expectedTotalTime = route.routeParts.get(route.routeParts.size() - 1).arrivalTime - route.routeParts.get(0).vehicleDepTime;
-		if ((walkTime + transferWaitTime + inVehicleTime) != expectedTotalTime) {
-			System.err.println("INCONSISTENT TIMES " + route.getRouteAsString());
-		}
-
-		PerceivedJourneyTimeParameters pjtParams = this.params.pjt;
-		route.perceivedJourneyTime_min = pjtParams.betaInVehicleTime * (inVehicleTime / 60.0)
-				+ pjtParams.betaAccessTime * (accessTime / 60.0)
-				+ pjtParams.betaEgressTime * (egressTime / 60.0)
-				+ pjtParams.betaWalkTime * (walkTime / 60.0)
-				+ pjtParams.betaTransferWaitTime * (transferWaitTime / 60.0)
-				+ pjtParams.betaTransferCount * transferCount;
-	}
-
-	private void assignDemand() {
-		LOG.info("assign demand");
-		UnroutableDemand unroutableDemand = new UnroutableDemand();
-		for (String originZone : this.zoneIds) {
-			for (String destinationZone : this.zoneIds) {
-				for (String matrixName : this.demand.getMatrixNames()) {
-					double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
-					if (value > 0) {
-						int matrixNumber = Integer.parseInt(matrixName);
-						double startTime = (matrixNumber - 1) * 10 * 60; // 10-minute time slots, in seconds
-						double endTime = (matrixNumber) * 10 * 60;
-						assignDemand(originZone, destinationZone, startTime, endTime, value, unroutableDemand);
-					}
-				}
-			}
-		}
-		LOG.warn("Unroutable demand: " + unroutableDemand.demand);
-	}
-
-	private void assignDemand(String originZone, String destinationZone, double startTime, double endTime, double odDemand, UnroutableDemand unroutableDemand) {
-		var destinationRoutes = this.foundRoutes.get(originZone);
-		if (destinationRoutes == null) {
-			unroutableDemand.demand += odDemand;
-			return;
-		}
-		var routes = destinationRoutes.get(destinationZone);
-		if (routes == null) {
-			unroutableDemand.demand += odDemand;
-			return;
-		}
-
-		double earliestDeparture = startTime - this.params.routeSelection.beforeTimewindow;
-		double latestDeparture = endTime + this.params.routeSelection.afterTimewindow;
-		FoundRoute[] potentialRoutes = routes.stream().filter(route -> ((route.depTime - route.originConnectedStop.walkTime) >= earliestDeparture)
-				&& ((route.depTime - route.originConnectedStop.walkTime <= latestDeparture))).toList().toArray(new FoundRoute[0]);
-		if (potentialRoutes.length == 0) {
-			unroutableDemand.demand += odDemand;
-			return;
-		}
-
-		double timeWindow = endTime - startTime;
-		double stepSize = 60.0; // sample every minute
-		int samples = (int) (timeWindow / stepSize);
-		double sharePerSample = 1.0 / ((double) samples);
-		double[] routeUtilities = new double[potentialRoutes.length];
-		double beta = this.params.boxCox.beta;
-		double tau = this.params.boxCox.tau;
-		double betaPJT = this.params.impediance.betaPerceivedJourneyTime;
-		double betaDeltaTEarly = this.params.impediance.betaDeltaTEarly;
-		double betaDeltaTLate = this.params.impediance.betaDeltaTLate;
-		for (int sample = 0; sample < samples; sample++) {
-			double time = startTime + sample * stepSize;
-			double utilitiesSum = 0;
-			for (int i = 0; i < potentialRoutes.length; i++) {
-				FoundRoute route = potentialRoutes[i];
-				double routeDepTime = route.depTime - route.originConnectedStop.walkTime;
-				double deltaTEarly = (routeDepTime < time) ? (time - routeDepTime) : 0.0;
-				double deltaTLate = (routeDepTime > time) ? (routeDepTime - time) : 0.0;
-				double impediance = betaPJT * route.perceivedJourneyTime_min + betaDeltaTEarly * (deltaTEarly / 60.0) + betaDeltaTLate * (deltaTLate / 60.0);
-				double utility = Math.exp(-beta * (Math.pow(impediance, tau) - 1.0) / tau);
-				routeUtilities[i] = utility;
-				utilitiesSum += utility;
-			}
-			for (int i = 0; i < potentialRoutes.length; i++) {
-				double routeShare = routeUtilities[i] / utilitiesSum;
-				double routeDemand = odDemand * sharePerSample * routeShare;
-				FoundRoute route = potentialRoutes[i];
-				route.demand += routeDemand;
-			}
-		}
-	}
-
-	private void writeRoutes(String csvFilename) {
-		List<ConnectedStop> emptyList = Collections.emptyList();
+	private UnroutableDemand writeRoutes(String csvFilename, Queue<Future<UmlegoWorker.WorkResult>> queue) {
 		LOG.info("writing output to {}", csvFilename);
+		UnroutableDemand unroutableDemand = new UnroutableDemand();
+		int totalItems = queue.size();
+		int counter = 0;
 		try (CSVWriter writer = new CSVWriter(IOUtils.getBufferedWriter(csvFilename), ',', '"', '\\', "\n")) {
 			writer.writeNext(new String[]{"ORIGZONENO", "DESTZONENO", "ORIGNAME", "DESTNAME", "ACCESS_TIME", "EGRESS_TIME", "DEPTIME", "ARRTIME", "TRAVTIME", "NUMTRANSFERS", "DISTANZ", "DEMAND", "DETAILS"});
 
-			for (String origZone : zoneIds) {
-				Map<String, List<FoundRoute>> routesPerDestination = this.foundRoutes.get(origZone);
+			Future<UmlegoWorker.WorkResult> futureResult;
+			while ((futureResult = queue.poll()) != null) {
+				UmlegoWorker.WorkResult result = futureResult.get();
+				counter++;
+				LOG.info(" - writing routes starting in zone {} ({}/{})", result.originZone(), counter, totalItems);
+				unroutableDemand.demand += result.unroutableDemand().demand;
+
+				String origZone = result.originZone();
+				Map<String, List<FoundRoute>> routesPerDestination = result.routesPerDestinationZone();
 				if (routesPerDestination == null) {
 					// looks like this zone cannot reach any destination
 					continue;
@@ -382,70 +183,32 @@ public class Umlego {
 					}
 
 					for (FoundRoute route : routesToDestination) {
-						writer.writeNext(new String[]{
-								origZone,
-								destZone,
-								route.originStop.getName(),
-								route.destinationStop.getName(),
-								Time.writeTime(route.originConnectedStop.walkTime),
-								Time.writeTime(route.destinationConnectedStop.walkTime),
-								Time.writeTime(route.depTime),
-								Time.writeTime(route.arrTime),
-								Time.writeTime(route.travelTime),
-								Integer.toString(route.transfers),
-								String.format("%.2f", route.distance / 1000.0),
-								String.format("%.5f", route.demand),
-								route.getRouteAsString()
-						});
+						if (route.demand > 0) {
+							writer.writeNext(new String[]{
+									origZone,
+									destZone,
+									route.originStop.getName(),
+									route.destinationStop.getName(),
+									Time.writeTime(route.originConnectedStop.walkTime),
+									Time.writeTime(route.destinationConnectedStop.walkTime),
+									Time.writeTime(route.depTime),
+									Time.writeTime(route.arrTime),
+									Time.writeTime(route.travelTime),
+									Integer.toString(route.transfers),
+									String.format("%.2f", route.distance / 1000.0),
+									String.format("%.5f", route.demand),
+									route.getRouteAsString()
+							});
+						}
 					}
 				}
 			}
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
+		} catch (ExecutionException | InterruptedException e) {
+			throw new RuntimeException(e);
 		}
-	}
-
-	private static class StopsQueueWorker implements Runnable {
-		final ConcurrentLinkedQueue<TransitStopFacility> stopsQueue;
-		final SwissRailRaptor raptor;
-		final RaptorParameters raptorParams;
-		final Set<TransitStopFacility> relevantStops;
-		final Map<TransitStopFacility, Map<TransitStopFacility, Map<FoundRoute, Boolean>>> foundRoutes;
-
-		public StopsQueueWorker(ConcurrentLinkedQueue<TransitStopFacility> stopsQueue, SwissRailRaptor raptor, RaptorParameters raptorParams, Set<TransitStopFacility> relevantStops, Map<TransitStopFacility, Map<TransitStopFacility, Map<FoundRoute, Boolean>>> foundRoutes) {
-			this.stopsQueue = stopsQueue;
-			this.raptor = raptor;
-			this.raptorParams = raptorParams;
-			this.relevantStops = relevantStops;
-			this.foundRoutes = foundRoutes;
-		}
-
-		public void run() {
-			TransitStopFacility originStop;
-			while ((originStop = stopsQueue.poll()) != null) {
-				calcRoutesFromStop(originStop);
-			}
-		}
-
-		private void calcRoutesFromStop(TransitStopFacility originStop) {
-			LOG.info("calculating routes starting at {} ({})", originStop.getName(), originStop.getId());
-			// use Set to collect individual FoundRoutes
-			this.raptor.calcTreesObservable(
-					originStop,
-					0,
-					Double.POSITIVE_INFINITY,
-					this.raptorParams,
-					null,
-					(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
-						if (this.relevantStops.contains(arrivalStop)) {
-							FoundRoute foundRoute = new FoundRoute(route.get());
-							this.foundRoutes
-											.computeIfAbsent(foundRoute.originStop, stop -> new ConcurrentHashMap<>())
-													.computeIfAbsent(foundRoute.destinationStop, stop -> new ConcurrentHashMap<>())
-															.put(foundRoute, Boolean.TRUE);
-						}
-					});
-		}
+		return unroutableDemand;
 	}
 
 	public record ConnectedStop(double walkTime, TransitStopFacility stopFacility) {
@@ -462,30 +225,35 @@ public class Umlego {
 			double betaWalkTime,
 			double betaTransferWaitTime,
 			double betaTransferCount
-	) {}
+	) {
+	}
 
 	public record RouteImpedianceParameters(
 			double betaPerceivedJourneyTime,
 			double betaDeltaTEarly,
 			double betaDeltaTLate
-	) {}
+	) {
+	}
 
 	public record RouteSelectionParameters(
 			double beforeTimewindow,
 			double afterTimewindow
-	) {}
+	) {
+	}
 
 	public record BoxCoxParamters(
 			double beta,
 			double tau
-	) {}
+	) {
+	}
 
 	public record UmlegoParameters(
 			PerceivedJourneyTimeParameters pjt,
 			RouteImpedianceParameters impediance,
 			RouteSelectionParameters routeSelection,
 			BoxCoxParamters boxCox
-	) {}
+	) {
+	}
 
 	public static class FoundRoute {
 		public final TransitStopFacility originStop;
@@ -557,9 +325,9 @@ public class Umlego {
 
 					boolean partIsEqual =
 							((routePartThis.line == null && routePartThat.line == null) || (routePartThis.line != null && routePartThat.line != null && Objects.equals(routePartThis.line.getId(), routePartThat.line.getId())))
-							&& ((routePartThis.route == null && routePartThat.route == null) || (routePartThis.route != null && routePartThat.route != null && Objects.equals(routePartThis.route.getId(), routePartThat.route.getId())))
-							&& Objects.equals(routePartThis.fromStop.getId(), routePartThat.fromStop.getId())
-							&& Objects.equals(routePartThis.toStop.getId(), routePartThat.toStop.getId());
+									&& ((routePartThis.route == null && routePartThat.route == null) || (routePartThis.route != null && routePartThat.route != null && Objects.equals(routePartThis.route.getId(), routePartThat.route.getId())))
+									&& Objects.equals(routePartThis.fromStop.getId(), routePartThat.fromStop.getId())
+									&& Objects.equals(routePartThis.toStop.getId(), routePartThat.toStop.getId());
 					if (!partIsEqual) {
 						return false;
 					}
@@ -617,53 +385,5 @@ public class Umlego {
 		}
 		return stopsPerZone;
 	}
-
-	private static double sum(double[][] values) {
-		double sum = 0;
-		for (double[] nested : values) {
-			sum += sum(nested);
-		}
-		return sum;
-	}
-
-	private static double sum(double[] values) {
-		double sum = 0;
-		for (double value : values) {
-			sum += value;
-		}
-		return sum;
-	}
-
-	private int compareFoundRoutesByDepartureTime(FoundRoute o1, FoundRoute o2) {
-		if (o1.depTime < o2.depTime) {
-			return -1;
-		}
-		if (o1.depTime > o2.depTime) {
-			return +1;
-		}
-		if (o1.travelTime < o2.travelTime) {
-			return -1;
-		}
-		if (o1.travelTime > o2.travelTime) {
-			return +1;
-		}
-		return Integer.compare(o1.transfers, o2.transfers);
-	};
-
-	private int compareFoundRoutesByArrivalTimeAndTravelTime(FoundRoute o1, FoundRoute o2) {
-		if (o1.arrTime < o2.arrTime) {
-			return -1;
-		}
-		if (o1.arrTime > o2.arrTime) {
-			return +1;
-		}
-		if (o1.travelTime < o2.travelTime) {
-			return -1;
-		}
-		if (o1.travelTime > o2.travelTime) {
-			return +1;
-		}
-		return Integer.compare(o1.transfers, o2.transfers);
-	};
 
 }
