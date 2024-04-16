@@ -1278,13 +1278,10 @@ public class ModalSplitStats {
                     name = "";
                 }
                 csvWriter.set(trainStationName, name.replaceAll(",", " "));
-                String stpName;
-                try {
-                    stpName = entry.getValue().getStop().getAttributes().getAttribute(STOP_AREA_NAME).toString();
-                } catch (Error e) {
-                    stpName = "";
-                }
-                csvWriter.set(stopName, stpName.replaceAll(",", " "));
+                var stpName = entry.getValue().getStop().getAttributes().getAttribute(STOP_AREA_NAME);
+                String stpNameString = stpName != null ? stpName.toString() : "";
+
+                csvWriter.set(stopName, stpNameString.replaceAll(",", " "));
                 csvWriter.set(x, Double.toString(entry.getValue().getStop().getCoord().getX()));
                 csvWriter.set(y, Double.toString(entry.getValue().getStop().getCoord().getY()));
                 csvWriter.set(zone, entry.getValue().getZoneId());

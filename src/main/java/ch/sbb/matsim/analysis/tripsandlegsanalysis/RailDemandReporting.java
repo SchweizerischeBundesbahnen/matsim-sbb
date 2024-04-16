@@ -81,7 +81,7 @@ public class RailDemandReporting {
     public RailDemandReporting(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule, Config config) {
         this.railTripsAnalyzer = railTripsAnalyzer;
         prepareCategories(schedule);
-        runId = config.controller().getRunId();
+        runId = config.controller().getRunId() != null ? config.controller().getRunId() : "";
     }
 
     public static void main(String[] args) {
