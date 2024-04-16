@@ -21,7 +21,7 @@ public class CantonalDemandAggregator {
         String transitScheduleFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2017\\sim\\3.3.2017.7.50pct\\output_slice0\\M332017.7.output_transitSchedule.xml.gz";
         String zonesShapeFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230825_Grenzguertel\\plans\\v7\\mobi-zones.shp";
         String networkFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2017\\sim\\3.3.2017.7.50pct\\output_slice0\\M332017.7.output_network.xml.gz";
-        String aggregationId = "kt_name";
+        String aggregationId = "amr_id";
         double scaleFactor = 0.25;
         String outputFile = "trip_demand_per_canton.csv";
 
@@ -38,7 +38,7 @@ public class CantonalDemandAggregator {
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         DemandAggregator demandAggregator = new DemandAggregator(scenario, zonesCollection, ppcg, railTripsAnalyzer);
         demandAggregator.aggregateTripDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(person -> person.getSelectedPlan()).collect(Collectors.toList()));
-        demandAggregator.writeTripDemand("kt_name", "kt_name", outputFile);
+        demandAggregator.writeTripDemand("amr_id", "amr_name", outputFile);
 
 
     }
