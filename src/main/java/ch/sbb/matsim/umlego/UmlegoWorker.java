@@ -4,6 +4,7 @@ import ch.sbb.matsim.projects.synpop.OMXODParser;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 import java.util.ArrayList;
@@ -200,6 +201,7 @@ class UmlegoWorker implements Runnable {
 		double transferCount = route.transfers;
 
 		boolean hadTransferBefore = false;
+		int additionalStopCount = 0;
 		for (RaptorRoute.RoutePart part : route.routeParts) {
 			if (part.line == null) {
 				// it is a transfer
@@ -211,6 +213,22 @@ class UmlegoWorker implements Runnable {
 				}
 				inVehicleTime += (part.arrivalTime - part.vehicleDepTime);
 				hadTransferBefore = false;
+				int startIndex = -1;
+				int endIndex = -1;
+				List<TransitRouteStop> stops = part.route.getStops();
+				for (int i = 0; i < stops.size(); i++) {
+					TransitRouteStop routeStop = stops.get(i);
+					if (routeStop.getStopFacility().getId().equals(part.toStop.getId()) && startIndex >= 0) {
+						endIndex = i;
+						break;
+					}
+					if (routeStop.getStopFacility().getId().equals(part.fromStop.getId())) {
+						startIndex = i;
+					}
+				}
+				if (startIndex >= 0 && endIndex >= 0) {
+					additionalStopCount += (endIndex - startIndex - 1);
+				}
 			}
 		}
 
@@ -218,6 +236,7 @@ class UmlegoWorker implements Runnable {
 		if ((walkTime + transferWaitTime + inVehicleTime) != expectedTotalTime) {
 			System.err.println("INCONSISTENT TIMES " + route.getRouteAsString());
 		}
+		double totalTravelTime = expectedTotalTime + accessTime + egressTime;
 
 		Umlego.PerceivedJourneyTimeParameters pjtParams = this.params.pjt();
 		route.perceivedJourneyTime_min = pjtParams.betaInVehicleTime() * (inVehicleTime / 60.0)
@@ -225,7 +244,8 @@ class UmlegoWorker implements Runnable {
 				+ pjtParams.betaEgressTime() * (egressTime / 60.0)
 				+ pjtParams.betaWalkTime() * (walkTime / 60.0)
 				+ pjtParams.betaTransferWaitTime() * (transferWaitTime / 60.0)
-				+ pjtParams.betaTransferCount() * transferCount;
+				+ transferCount * (pjtParams.transferFix() + pjtParams.transferTraveltimeFactor() * (totalTravelTime / 60.0))
+				+ (pjtParams.secondsPerAdditionalStop() / 60.0) * additionalStopCount;
 	}
 
 	private WorkResult assignDemand(String originZone, Map<String, List<Umlego.FoundRoute>> foundRoutes) {

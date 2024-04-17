@@ -82,7 +82,7 @@ public class Umlego {
 //		List<String> relevantZones = List.of("281", "979"); // Frick, ZH Oerlikon
 //		List<String> relevantZones = List.of("1", "85"); // Aarau, Bern
 
-		PerceivedJourneyTimeParameters pjt = new PerceivedJourneyTimeParameters(1.0, 2.94, 2.94, 2.25, 1.13, 1.0);
+		PerceivedJourneyTimeParameters pjt = new PerceivedJourneyTimeParameters(1.0, 2.94, 2.94, 2.25, 1.13, 17.24, 0.03, 58.0);
 		RouteImpedianceParameters impediance = new RouteImpedianceParameters(1.0, 1.85, 1.85);
 		RouteSelectionParameters routeSelection = new RouteSelectionParameters(3600.0, 3600.0); // take routes 1 hour before and after into account
 		BoxCoxParamters boxCox = new BoxCoxParamters(1.536, 0.5);
@@ -201,7 +201,9 @@ public class Umlego {
 			double betaEgressTime,
 			double betaWalkTime,
 			double betaTransferWaitTime,
-			double betaTransferCount
+			double transferFix,
+			double transferTraveltimeFactor,
+			double secondsPerAdditionalStop
 	) {
 	}
 
