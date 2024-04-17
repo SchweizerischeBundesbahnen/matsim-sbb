@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 
 public class MergeRuralLinks {
 
-    public static final String VNODES = "vnodes";
+    public static final String vlinks = "vlinks";
     final Zones zones;
 
     private final Network network;
@@ -90,9 +90,8 @@ public class MergeRuralLinks {
             newLink.setNumberOfLanes(lanes);
             NetworkUtils.setType(newLink, type);
             newLink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, accessControl);
-            List<String> intermediateNodes = linksToMerge.stream().map(l -> l.getToNode().getId().toString()).collect(Collectors.toList());
-            intermediateNodes.remove(toNode.getId().toString());
-            newLink.getAttributes().putAttribute(VNODES, String.join(",", intermediateNodes));
+            List<String> mergedLinks = linksToMerge.stream().map(l -> l.getId().toString()).collect(Collectors.toList());
+            newLink.getAttributes().putAttribute(vlinks, String.join(",", mergedLinks));
             String wkt = mergeWKTPolygons(linksToMerge);
             if (wkt != null) {
                 newLink.getAttributes().putAttribute(PolylinesCreator.WKT_ATTRIBUTE, wkt);

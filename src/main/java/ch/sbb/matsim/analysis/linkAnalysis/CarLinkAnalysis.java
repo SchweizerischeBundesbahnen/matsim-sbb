@@ -37,9 +37,7 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.utils.collections.Tuple;
 
 import java.io.*;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
@@ -112,56 +110,56 @@ public class CarLinkAnalysis {
 				Link link = network.getLinks().get(entry.getKey());
 				if (link != null) {
 					var volume = entry.getValue();
-                    Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(link.getId());
-					if (visumLinkNodeIds != null) {
+					double carVolume = volume.getCarCount() / samplesize;
+					double freightVolume = volume.getFreightCount() / samplesize;
+					Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(link.getId());
+					final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
+					final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+					String id = link.getId().toString();
+					String vLinks = (String) link.getAttributes().getAttribute(MergeRuralLinks.vlinks);
+					if (vLinks != null) {
+						String[] vlinksList = vLinks.split(",");
+						List<VirtualVisumLink> virtualVisumLinkList = new ArrayList<>();
+						int previousFromNode = -1;
+						int previousLinkNo = -1;
+						for (String vlink : vlinksList) {
+							Tuple<Integer, Integer> virtualVisumLink = MaviHelper.extractVisumNodeAndLinkId(vlink);
+							int currentFromNode = virtualVisumLink.getFirst();
+							int currentLinkNo = virtualVisumLink.getSecond();
+							if (previousFromNode > -1) {
+								virtualVisumLinkList.add(new VirtualVisumLink(previousFromNode, currentFromNode, previousLinkNo));
+							}
+							previousLinkNo = currentLinkNo;
+							previousFromNode = currentFromNode;
+						}
+						virtualVisumLinkList.add(new VirtualVisumLink(previousFromNode, Integer.parseInt(toNode), previousLinkNo));
+						for (var vLink : virtualVisumLinkList) {
+							writer.set(LINK_NO, String.valueOf(vLink.visumLinkNo()));
+							writer.set(FROMNODENO, String.valueOf(vLink.fromNode()));
+							writer.set(TONODENO, String.valueOf(vLink.toNode()));
+							writer.set(LINK_ID_SIM, id);
+							writer.set(VOLUME_CAR, Integer.toString((int) carVolume));
+							writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
+							writer.set(VOLUME_BIKE, Integer.toString((int) (volume.getBikeCount() / samplesize)));
+							writer.set(VOLUME_FREIGHT, Integer.toString((int) freightVolume));
+							writer.set(VOLUME_MOTORIZED_VEHICLES, Integer.toString((int) (carVolume + freightVolume)));
+							writer.writeRow();
+						}
+
+					} else if (visumLinkNodeIds != null) {
 						String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
 						writer.set(LINK_NO, visumNo);
-						String id = link.getId().toString();
-						writer.set(LINK_ID_SIM, id);
-						String vnodes = (String) link.getAttributes().getAttribute(MergeRuralLinks.VNODES);
-						final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
-						final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
-
-						double carVolume = volume.getCarCount() / samplesize;
-						double freightVolume = volume.getFreightCount() / samplesize;
-
-						if (vnodes != null) {
-							String currentFromNode = fromNode;
-							String[] nodes = vnodes.split(",");
-							for (String node : nodes) {
-								String currentToNode = node;
-								currentToNode = currentToNode.startsWith("C_") ? currentToNode.substring(2) : currentToNode;
-								writer.set(LINK_NO, visumNo);
-								writer.set(FROMNODENO, currentFromNode);
-								writer.set(TONODENO, currentToNode);
-								writer.set(LINK_ID_SIM, id);
-								writer.set(VOLUME_CAR, Integer.toString((int) carVolume));
-								writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
-								writer.set(VOLUME_BIKE, Integer.toString((int) (volume.getBikeCount() / samplesize)));
-								writer.set(VOLUME_FREIGHT, Integer.toString((int) freightVolume));
-								writer.set(VOLUME_MOTORIZED_VEHICLES, Integer.toString((int) (carVolume + freightVolume)));
-								writer.writeRow();
-								currentFromNode = currentToNode;
-
-							}
-							writer.set(LINK_NO, visumNo);
-							writer.set(FROMNODENO, currentFromNode);
-							writer.set(LINK_ID_SIM, id);
-
-						} else {
-							writer.set(LINK_NO, visumNo);
-							writer.set(FROMNODENO, fromNode);
-							writer.set(LINK_ID_SIM, id);
-						}
 						writer.set(TONODENO, toNode);
+						writer.set(FROMNODENO, fromNode);
+						writer.set(LINK_ID_SIM, id);
 						writer.set(VOLUME_CAR, Integer.toString((int) carVolume));
 						writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
 						writer.set(VOLUME_BIKE, Integer.toString((int) (volume.getBikeCount() / samplesize)));
 						writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
 						writer.set(VOLUME_MOTORIZED_VEHICLES, Integer.toString((int) (carVolume + freightVolume)));
-
 						writer.writeRow();
 					}
+
 				}
 			}
 
@@ -170,7 +168,10 @@ public class CarLinkAnalysis {
 		}
 	}
 
-	private void calculateVolumesPerLinkForNonNetworkModes(Map<Id<Link>, LinkStorage> linkVolumes, String mode, IterationLinkAnalyzer.AnalysisVehicleType vehicleType) {
+	record VirtualVisumLink(int fromNode, int toNode, int visumLinkNo) {
+	}
+
+    private void calculateVolumesPerLinkForNonNetworkModes(Map<Id<Link>, LinkStorage> linkVolumes, String mode, IterationLinkAnalyzer.AnalysisVehicleType vehicleType) {
 		for (var person : population.getPersons().values()) {
 			var plan = person.getSelectedPlan();
 			var legs = TripStructureUtils.getLegs(plan);

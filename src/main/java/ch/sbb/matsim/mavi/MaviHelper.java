@@ -23,9 +23,14 @@ public class MaviHelper {
     }
 
     public static Tuple<Integer, Integer> extractVisumNodeAndLinkId(Id<Link> linkId) {
+        return extractVisumNodeAndLinkId(linkId.toString());
+    }
+
+    public static Tuple<Integer, Integer> extractVisumNodeAndLinkId(String linkIdString) {
+        if (linkIdString.contains("merged")) return null;
         try {
-            int visumFromNodeId = Integer.parseInt(linkId.toString().split("_")[0], 36);
-            int visumLinkId = Integer.parseInt(linkId.toString().split("_")[1], 36);
+            int visumFromNodeId = Integer.parseInt(linkIdString.split("_")[0], 36);
+            int visumLinkId = Integer.parseInt(linkIdString.split("_")[1], 36);
             return Tuple.of(visumFromNodeId, visumLinkId);
         } catch (NumberFormatException e) {
             return null;
