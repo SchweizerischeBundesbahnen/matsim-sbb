@@ -205,7 +205,9 @@ public class DemandAggregator {
     }
 
     public void aggregateTripDemand(double scalefactor, Collection<Plan> experiencedPlans) {
-
+        if (scalefactor < 1.0) {
+            throw new RuntimeException("Scalefactor set below 1. This will scale traffic down and should not be intended.");
+        }
         experiencedPlans.parallelStream().forEach(plan ->
         {
             for (Trip trip : TripStructureUtils.getTrips(plan)) {

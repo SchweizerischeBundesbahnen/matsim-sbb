@@ -37,7 +37,7 @@ public class CantonalDemandAggregator {
         ppcg.setSimulationSampleSize(scaleFactor);
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         DemandAggregator demandAggregator = new DemandAggregator(scenario, zonesCollection, ppcg, railTripsAnalyzer);
-        demandAggregator.aggregateTripDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(person -> person.getSelectedPlan()).collect(Collectors.toList()));
+        demandAggregator.aggregateTripDemand(1.0 / scaleFactor, scenario.getPopulation().getPersons().values().stream().map(person -> person.getSelectedPlan()).collect(Collectors.toList()));
         demandAggregator.writeTripDemand("amr_id", "amr_name", outputFile);
 
 
