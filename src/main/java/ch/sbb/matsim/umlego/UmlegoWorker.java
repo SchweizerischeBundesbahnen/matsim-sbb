@@ -147,11 +147,38 @@ class UmlegoWorker implements Runnable {
 
 	private void filterRoutes(Map<String, List<Umlego.FoundRoute>> foundRoutes) {
 		for (List<Umlego.FoundRoute> routes : foundRoutes.values()) {
-			routes.sort(UmlegoWorker::compareFoundRoutesByArrivalTimeAndTravelTime);
-			// routs are now sorted by arrival time (ascending) and travel time (ascending) and transfers (ascending)
-			double lastArrivalTime = -1;
+			// sort ascending by departure time, transfers and arrival time
+			// the first route for each departure time is the best in terms of transfers
+			// later routes with the same departure time should be feaster or equal to provide any benefit over the first
+			routes.sort(UmlegoWorker::compareFoundRoutesByDepartureTimeTransferArrivalTime);
+			double lastDepartureTime = -1;
 			Umlego.FoundRoute thisBestRoute = null; // best route with
 			Umlego.FoundRoute lastBestRoute = null;
+			for (ListIterator<Umlego.FoundRoute> iterator = routes.listIterator(); iterator.hasNext(); ) {
+				Umlego.FoundRoute route = iterator.next();
+				if (route.depTime != lastDepartureTime || thisBestRoute == null) {
+					lastDepartureTime = route.depTime;
+					lastBestRoute = route;
+					thisBestRoute = route;
+				} else {
+					if (route.transfers > thisBestRoute.transfers && route.arrTime >= thisBestRoute.arrTime) {
+						iterator.remove();
+						continue;
+					}
+					double thisTraveltime = route.arrTime - route.depTime;
+					double bestTraveltime = thisBestRoute.arrTime - thisBestRoute.depTime;
+					if ((bestTraveltime * 2 + 21*60) < thisTraveltime) {
+						iterator.remove();
+						continue;
+					}
+				}
+			}
+
+			routes.sort(UmlegoWorker::compareFoundRoutesByArrivalTimeAndTravelTime);
+			// routes are now sorted by arrival time (ascending) and travel time (ascending) and transfers (ascending)
+			double lastArrivalTime = -1;
+			thisBestRoute = null; // best route with
+			lastBestRoute = null;
 			for (ListIterator<Umlego.FoundRoute> iterator = routes.listIterator(); iterator.hasNext(); ) {
 				Umlego.FoundRoute route = iterator.next();
 				if (route.arrTime != lastArrivalTime || thisBestRoute == null) {
@@ -342,6 +369,22 @@ class UmlegoWorker implements Runnable {
 			return +1;
 		}
 		return Integer.compare(o1.transfers, o2.transfers);
+	}
+
+	private static int compareFoundRoutesByDepartureTimeTransferArrivalTime(Umlego.FoundRoute o1, Umlego.FoundRoute o2) {
+		if (o1.depTime < o2.depTime) {
+			return -1;
+		}
+		if (o1.depTime > o2.depTime) {
+			return +1;
+		}
+		if (o1.transfers < o2.transfers) {
+			return -1;
+		}
+		if (o1.transfers > o2.transfers) {
+			return +1;
+		}
+		return Double.compare(o1.arrTime, o2.arrTime);
 	}
 
 	public record WorkItem(

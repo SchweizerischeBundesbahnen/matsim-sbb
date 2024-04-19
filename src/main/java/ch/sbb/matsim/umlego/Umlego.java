@@ -119,9 +119,9 @@ public class Umlego {
 
 		// prepare SwissRailRaptor
 		RaptorParameters raptorParams = RaptorUtils.createParameters(scenario.getConfig());
-		raptorParams.setTransferPenaltyFixCostPerTransfer(0);
-		raptorParams.setTransferPenaltyMinimum(0);
-		raptorParams.setTransferPenaltyMaximum(0);
+		raptorParams.setTransferPenaltyFixCostPerTransfer(0.01);
+		raptorParams.setTransferPenaltyMinimum(0.01);
+		raptorParams.setTransferPenaltyMaximum(0.01);
 
 		RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(scenario.getConfig());
 		raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
