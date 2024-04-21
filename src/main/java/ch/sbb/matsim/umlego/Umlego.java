@@ -81,6 +81,7 @@ public class Umlego {
 
 //		List<String> relevantZones = List.of("281", "979"); // Frick, ZH Oerlikon
 //		List<String> relevantZones = List.of("1", "85"); // Aarau, Bern
+//		List<String> relevantZones = List.of("85", "503"); // Bern, Luzern
 
 		PerceivedJourneyTimeParameters pjt = new PerceivedJourneyTimeParameters(1.0, 2.94, 2.94, 2.25, 1.13, 17.24, 0.03, 58.0);
 		RouteImpedianceParameters impediance = new RouteImpedianceParameters(1.0, 1.85, 1.85);
@@ -311,8 +312,9 @@ public class Umlego {
 					boolean partIsEqual =
 							((routePartThis.line == null && routePartThat.line == null) || (routePartThis.line != null && routePartThat.line != null && Objects.equals(routePartThis.line.getId(), routePartThat.line.getId())))
 									&& ((routePartThis.route == null && routePartThat.route == null) || (routePartThis.route != null && routePartThat.route != null && Objects.equals(routePartThis.route.getId(), routePartThat.route.getId())))
-									&& Objects.equals(routePartThis.fromStop.getId(), routePartThat.fromStop.getId())
-									&& Objects.equals(routePartThis.toStop.getId(), routePartThat.toStop.getId());
+//									&& Objects.equals(routePartThis.fromStop.getId(), routePartThat.fromStop.getId())
+//									&& Objects.equals(routePartThis.toStop.getId(), routePartThat.toStop.getId());
+					;
 					if (!partIsEqual) {
 						return false;
 					}
