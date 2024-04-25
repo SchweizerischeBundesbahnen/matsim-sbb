@@ -44,8 +44,6 @@ import static ch.sbb.matsim.config.variables.SBBModes.PT;
 
 public class ModalSplitStats {
 
-    private static final Logger log = LogManager.getLogger(RunSBB.class);
-
     @Inject
     private ExperiencedPlansService experiencedPlansService;
     @Inject
@@ -527,100 +525,95 @@ public class ModalSplitStats {
 
             double[][] pfArray = subpopulaionMSPFMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
             double[][] pkmArray = subpopulaionMSPKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-            if ((pfArray == null) | (pkmArray == null)) {
-                log.info("subpopulation '" + attributes.getAttribute(Variables.SUBPOPULATION).toString() + "' not found.");
-            }
-            if ((pfArray != null) & (pkmArray != null)) {
-                pfArray[modeId][variablesMSMap.get(all)]++;
+            pfArray[modeId][variablesMSMap.get(all)]++;
 
-                pkmArray[modeId][variablesMSMap.get(all)] += distance;
+            pkmArray[modeId][variablesMSMap.get(all)] += distance;
 
-                if(tmpIsRail) {
-                    String submode = MSVariables.submode + separator + SBBModes.RAIL;
+            if (tmpIsRail) {
+                String submode = MSVariables.submode + separator + SBBModes.RAIL;
+                pfArray[modeId][variablesMSMap.get(submode)]++;
+                pkmArray[modeId][variablesMSMap.get(submode)] += railDistance;
+                if (tmpIsFQRail) {
+                    submode = MSVariables.submode + separator + SBBModes.FQRAIL;
                     pfArray[modeId][variablesMSMap.get(submode)]++;
-                    pkmArray[modeId][variablesMSMap.get(submode)] += railDistance;
-                    if (tmpIsFQRail) {
-                        submode = MSVariables.submode + separator + SBBModes.FQRAIL;
-                        pfArray[modeId][variablesMSMap.get(submode)]++;
-                        pkmArray[modeId][variablesMSMap.get(submode)] += fqDistance;
-                    }
+                    pkmArray[modeId][variablesMSMap.get(submode)] += fqDistance;
                 }
+            }
 
-                // car available
-                String carAva = "0";
-                if (attributes.getAttribute(Variables.CAR_AVAIL) != null) {
-                    carAva = attributes.getAttribute(Variables.CAR_AVAIL).toString();
+            // car available
+            String carAva = "0";
+            if (attributes.getAttribute(Variables.CAR_AVAIL) != null) {
+                carAva = attributes.getAttribute(Variables.CAR_AVAIL).toString();
+            }
+            for (String attCarAva : carAvailable) {
+                if ((Variables.CAR_AVAIL + "_" + carAva).equals(attCarAva)) {
+                    pfArray[modeId][variablesMSMap.get(attCarAva)]++;
+                    pkmArray[modeId][variablesMSMap.get(attCarAva)] += distance;
+                    break;
                 }
-                for (String attCarAva : carAvailable) {
-                    if ((Variables.CAR_AVAIL + "_" + carAva).equals(attCarAva)) {
-                        pfArray[modeId][variablesMSMap.get(attCarAva)]++;
-                        pkmArray[modeId][variablesMSMap.get(attCarAva)] += distance;
-                        break;
-                    }
+            }
+            // pt subscription
+            String ptSub = "none";
+            if (attributes.getAttribute(Variables.PT_SUBSCRIPTION) != null) {
+                ptSub = attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString();
+            }
+            for (String attPtSub : ptSubscription) {
+                if ((Variables.PT_SUBSCRIPTION + "_" + ptSub).equals(attPtSub)) {
+                    pfArray[modeId][variablesMSMap.get(attPtSub)]++;
+                    pkmArray[modeId][variablesMSMap.get(attPtSub)] += distance;
+                    break;
                 }
-                // pt subscription
-                String ptSub = "none";
-                if (attributes.getAttribute(Variables.PT_SUBSCRIPTION) != null) {
-                    ptSub = attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString();
+            }
+            // combination car available and pt subscription
+            for (String attCarPT : carAndPt) {
+                if ((Variables.CAR_AVAIL + "_" + carAva + "_" + Variables.PT_SUBSCRIPTION + "_" + ptSub).equals(attCarPT)) {
+                    pfArray[modeId][variablesMSMap.get(attCarPT)]++;
+                    pkmArray[modeId][variablesMSMap.get(attCarPT)] += distance;
+                    break;
                 }
-                for (String attPtSub : ptSubscription) {
-                    if ((Variables.PT_SUBSCRIPTION + "_" + ptSub).equals(attPtSub)) {
-                        pfArray[modeId][variablesMSMap.get(attPtSub)]++;
-                        pkmArray[modeId][variablesMSMap.get(attPtSub)] += distance;
-                        break;
-                    }
+            }
+            // kind of education
+            String edu = "null";
+            if (attributes.getAttribute(Variables.CURRENT_EDUCATION) != null) {
+                edu = attributes.getAttribute(Variables.CURRENT_EDUCATION).toString();
+            }
+            for (String attEdu : educationType) {
+                if ((Variables.CURRENT_EDUCATION + "_" + edu).equals(attEdu)) {
+                    pfArray[modeId][variablesMSMap.get(attEdu)]++;
+                    pkmArray[modeId][variablesMSMap.get(attEdu)] += distance;
+                    break;
                 }
-                // combination car available and pt subscription
-                for (String attCarPT : carAndPt) {
-                    if ((Variables.CAR_AVAIL + "_" + carAva + "_" + Variables.PT_SUBSCRIPTION + "_" + ptSub).equals(attCarPT)) {
-                        pfArray[modeId][variablesMSMap.get(attCarPT)]++;
-                        pkmArray[modeId][variablesMSMap.get(attCarPT)] += distance;
-                        break;
-                    }
+            }
+            // employment rate
+            String empRate = "0";
+            if (attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT) != null) {
+                empRate = attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT).toString();
+            }
+            for (String attEmpRate : employmentRate) {
+                if ((Variables.LEVEL_OF_EMPLOYMENT_CAT + "_" + empRate).equals(attEmpRate)) {
+                    pfArray[modeId][variablesMSMap.get(attEmpRate)]++;
+                    pkmArray[modeId][variablesMSMap.get(attEmpRate)] += distance;
+                    break;
                 }
-                // kind of education
-                String edu = "null";
-                if (attributes.getAttribute(Variables.CURRENT_EDUCATION) != null) {
-                    edu = attributes.getAttribute(Variables.CURRENT_EDUCATION).toString();
+            }
+            // age category
+            for (String age : ageCategory) {
+                if (attributes.getAttribute(Variables.AGE_CATEGORY) != null && (Variables.AGE_CATEGORY + "_" + attributes.getAttribute(Variables.AGE_CATEGORY).toString()).equals(age)) {
+                    pfArray[modeId][variablesMSMap.get(age)]++;
+                    pkmArray[modeId][variablesMSMap.get(age)] += distance;
+                    break;
                 }
-                for (String attEdu : educationType) {
-                    if ((Variables.CURRENT_EDUCATION + "_" + edu).equals(attEdu)) {
-                        pfArray[modeId][variablesMSMap.get(attEdu)]++;
-                        pkmArray[modeId][variablesMSMap.get(attEdu)] += distance;
-                        break;
-                    }
+            }
+            // activity type for end activity
+            String acttype = trip.getDestinationActivity().getType();
+            for (String act : toActTypeList) {
+                if (acttype.contains(separator)) {
+                    acttype = acttype.substring(0, acttype.indexOf("_"));
                 }
-                // employment rate
-                String empRate = "0";
-                if (attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT) != null) {
-                    empRate = attributes.getAttribute(Variables.LEVEL_OF_EMPLOYMENT_CAT).toString();
-                }
-                for (String attEmpRate : employmentRate) {
-                    if ((Variables.LEVEL_OF_EMPLOYMENT_CAT + "_" + empRate).equals(attEmpRate)) {
-                        pfArray[modeId][variablesMSMap.get(attEmpRate)]++;
-                        pkmArray[modeId][variablesMSMap.get(attEmpRate)] += distance;
-                        break;
-                    }
-                }
-                // age category
-                for (String age : ageCategory) {
-                    if (attributes.getAttribute(Variables.AGE_CATEGORY) != null && (Variables.AGE_CATEGORY + "_" + attributes.getAttribute(Variables.AGE_CATEGORY).toString()).equals(age)) {
-                        pfArray[modeId][variablesMSMap.get(age)]++;
-                        pkmArray[modeId][variablesMSMap.get(age)] += distance;
-                        break;
-                    }
-                }
-                // activity type for end activity
-                String acttype = trip.getDestinationActivity().getType();
-                for (String act : toActTypeList) {
-                    if (acttype.contains(separator)) {
-                        acttype = acttype.substring(0, acttype.indexOf("_"));
-                    }
-                    if ((toActType + separator + acttype).equals(act)) {
-                        pfArray[modeId][variablesMSMap.get(act)]++;
-                        pkmArray[modeId][variablesMSMap.get(act)] += distance;
-                        break;
-                    }
+                if ((toActType + separator + acttype).equals(act)) {
+                    pfArray[modeId][variablesMSMap.get(act)]++;
+                    pkmArray[modeId][variablesMSMap.get(act)] += distance;
+                    break;
                 }
             }
         }
@@ -849,38 +842,36 @@ public class ModalSplitStats {
             }
             int disCl = distanceClassesValue.size();
             double[][] disArray = this.subpopulaionDistanceMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
-            if (disArray != null) {
-                for (int disClass : distanceClassesValue) {
-                    if (distance <= disClass) {
-                        disCl = distanceClassesValue.indexOf(disClass);
-                        break;
-                    }
+            for (int disClass : distanceClassesValue) {
+                if (distance <= disClass) {
+                    disCl = distanceClassesValue.indexOf(disClass);
+                    break;
                 }
-                disArray[modeID][disCl]++;
-                if (tmpMode.equals(SBBModes.PT)) {
-                    List<Leg> legs = trip.getLegsOnly();
-                    int firstRailLeg = findFirstRailLeg(legs);
-                    int lastRailLeg = findLastRailLeg(legs);
-                    if (firstRailLeg > -1) {
-                        double railDistance = 0;
-                        for (int i = firstRailLeg; i <= lastRailLeg; i++) {
-                            Leg leg = legs.get(i);
-                            railDistance += leg.getRoute().getDistance() / 1000;
+            }
+            disArray[modeID][disCl]++;
+            if (tmpMode.equals(SBBModes.PT)) {
+                List<Leg> legs = trip.getLegsOnly();
+                int firstRailLeg = findFirstRailLeg(legs);
+                int lastRailLeg = findLastRailLeg(legs);
+                if (firstRailLeg > -1) {
+                    double railDistance = 0;
+                    for (int i = firstRailLeg; i <= lastRailLeg; i++) {
+                        Leg leg = legs.get(i);
+                        railDistance += leg.getRoute().getDistance() / 1000;
+                    }
+                    int railDisCl = distanceClassesValue.size();
+                    for (int disClass : distanceClassesValue) {
+                        if (railDistance <= disClass) {
+                            railDisCl = distanceClassesValue.indexOf(disClass);
+                            break;
                         }
-                        int railDisCl = distanceClassesValue.size();
-                        for (int disClass : distanceClassesValue) {
-                            if (railDistance <= disClass) {
-                                railDisCl = distanceClassesValue.indexOf(disClass);
-                                break;
-                            }
-                        }
-                        int modeRailID = this.modesInclRailFQMap.get(PTSubModes.RAIL);
-                        disArray[modeRailID][railDisCl]++;
-                        double railFQdist = railTripsAnalyzer.getFQDistance(trip, true) / 1000;
-                        if (railFQdist > 0) {
-                            int modeRailFQID = this.modesInclRailFQMap.get("railFQ");
-                            disArray[modeRailFQID][railDisCl]++;
-                        }
+                    }
+                    int modeRailID = this.modesInclRailFQMap.get(PTSubModes.RAIL);
+                    disArray[modeRailID][railDisCl]++;
+                    double railFQdist = railTripsAnalyzer.getFQDistance(trip, true) / 1000;
+                    if (railFQdist > 0) {
+                        int modeRailFQID = this.modesInclRailFQMap.get("railFQ");
+                        disArray[modeRailFQID][railDisCl]++;
                     }
                 }
             }
