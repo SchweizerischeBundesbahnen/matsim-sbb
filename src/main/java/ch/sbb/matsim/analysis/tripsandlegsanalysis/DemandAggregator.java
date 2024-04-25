@@ -138,7 +138,7 @@ public class DemandAggregator {
         allModesOdDemand.clear();
     }
 
-    private void writeTripDemand(String aggregationString, String aggregationStringName, String outputfile) {
+    public void writeTripDemand(String aggregationString, String aggregationStringName, String outputfile) {
         ZonesImpl zonesImpl = (ZonesImpl) zones;
         Map<Id<Zone>, String> zoneAggregate = zonesImpl.getZones().stream().collect(Collectors.toMap(zone -> zone.getId(), zone -> String.valueOf(zone.getAttribute(aggregationString))));
         Map<String, String> zoneAggregateNameString = zonesImpl.getZones().stream().collect(Collectors.toMap(zone -> String.valueOf(zone.getAttribute(aggregationString)), zone -> String.valueOf(zone.getAttribute(aggregationStringName)), (a, b) -> a));
@@ -204,9 +204,10 @@ public class DemandAggregator {
 
     }
 
-    void aggregateTripDemand(double scalefactor, Collection<Plan> experiencedPlans) {
-        //for (Plan plan : experiencedPlans)
-
+    public void aggregateTripDemand(double scalefactor, Collection<Plan> experiencedPlans) {
+        if (scalefactor < 1.0) {
+            throw new RuntimeException("Scalefactor set below 1. This will scale traffic down and should not be intended.");
+        }
         experiencedPlans.parallelStream().forEach(plan ->
         {
             for (Trip trip : TripStructureUtils.getTrips(plan)) {
@@ -246,10 +247,10 @@ public class DemandAggregator {
         String number_of_transfers = "number_of_rail_transfers";
         try (CSVWriter writer = new CSVWriter(null, new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFile)) {
             for (var entry : this.odRailDemandMatrix.entrySet()) {
-                String fromZoneId = this.zoneStop.get(entry.getKey()).toString();
+                String fromZoneId = this.zoneStop.get(entry.getKey());
                 String fromStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getName());
                 for (var stopEntry : entry.getValue().entrySet()) {
-                    String toZoneId = this.zoneStop.get(stopEntry.getKey()).toString();
+                    String toZoneId = this.zoneStop.get(stopEntry.getKey());
                     String toStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(stopEntry.getKey()).getName());
 
                     writer.set(from, entry.getKey().toString());
@@ -274,10 +275,10 @@ public class DemandAggregator {
 
         try (CSVWriter writer = new CSVWriter(null, new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFileFQ)) {
             for (var entry : this.odRailDemandMatrixFQ.entrySet()) {
-                String fromZoneId = this.zoneStop.get(entry.getKey()).toString();
+                String fromZoneId = this.zoneStop.get(entry.getKey());
                 String fromStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getName());
                 for (var stopEntry : entry.getValue().entrySet()) {
-                    String toZoneId = this.zoneStop.get(stopEntry.getKey()).toString();
+                    String toZoneId = this.zoneStop.get(stopEntry.getKey());
                     String toStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(stopEntry.getKey()).getName());
                     writer.set(from, entry.getKey().toString());
                     writer.set(fromZone, fromZoneId);

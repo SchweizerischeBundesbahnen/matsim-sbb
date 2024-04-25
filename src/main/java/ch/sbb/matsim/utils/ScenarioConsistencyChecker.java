@@ -19,23 +19,15 @@
 
 package ch.sbb.matsim.utils;
 
+import ch.sbb.matsim.config.SBBReplanningConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
@@ -46,6 +38,16 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.vehicles.Vehicle;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class ScenarioConsistencyChecker {
 
 	public static final Logger LOGGER = LogManager.getLogger(ScenarioConsistencyChecker.class);
@@ -53,7 +55,7 @@ public class ScenarioConsistencyChecker {
 
 	public static void checkScenarioConsistency(Scenario scenario) {
         checkExogeneousShares(scenario);
-        if (!(checkVehicles(scenario) && checkPlans(scenario) && checkIntermodalAttributesAtStops(scenario) && checkIntermodalPopulationExists(scenario))) {
+		if (!(checkVehicles(scenario) && checkPlans(scenario) && checkIntermodalAttributesAtStops(scenario) && checkIntermodalPopulationExists(scenario) && checkCarAvailableAttributesAreSetProperly(scenario))) {
             throw new RuntimeException(" Error found while checking consistency of plans. Check log!");
         }
 
@@ -162,6 +164,23 @@ public class ScenarioConsistencyChecker {
 			return false;
 		}
 		return true;
+	}
+
+	public static boolean checkCarAvailableAttributesAreSetProperly(Scenario scenario) {
+		var carModeAllowedSetting = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBReplanningConfigGroup.class).getCarModeAllowedSetting();
+		boolean setProperly = switch (carModeAllowedSetting) {
+			case always -> true;
+			case carAvailable ->
+					scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.CAR_AVAL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.CAR_AVAIL))));
+			case licenseAvailable ->
+					scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.CAR_AVAL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.HAS_DRIVING_LICENSE))));
+
+
+		};
+		if (!setProperly) {
+			LogManager.getLogger(ScenarioConsistencyChecker.class).error("carModeAllowedSetting in config is set to " + carModeAllowedSetting + " but corresponding attributes are not set for any person in the population.");
+		}
+		return setProperly;
 	}
 
 	public static boolean checkIntermodalAttributesAtStops(Scenario scenario) {

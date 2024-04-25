@@ -18,6 +18,7 @@ import ch.sbb.matsim.intermodal.analysis.SBBTransferAnalysisListener;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
 import ch.sbb.matsim.preparation.*;
+import ch.sbb.matsim.preparation.slicer.PopulationSlicerByAttribute;
 import ch.sbb.matsim.replanning.SBBPermissibleModesCalculator;
 import ch.sbb.matsim.replanning.SBBSubtourModeChoice;
 import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
@@ -68,7 +69,7 @@ public class RunSBB {
 
 		final String configFile = args[0];
 		log.info(configFile);
-		final Config config = buildConfig(configFile);
+		final Config config = ConfigUtils.loadConfig(configFile, getSbbDefaultConfigGroups());
 
 		if (args.length > 1) {
 			config.controller().setOutputDirectory(args[1]);
@@ -120,6 +121,8 @@ public class RunSBB {
 	public static void run(Config config) {
 
 		new S3Downloader(config);
+		adjustMobiConfig(config);
+		config.checkConsistency();
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 		addSBBDefaultScenarioModules(scenario);
@@ -131,6 +134,8 @@ public class RunSBB {
 	}
 
 	public static void addSBBDefaultScenarioModules(Scenario scenario) {
+		PostProcessingConfigGroup postProcessingConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), PostProcessingConfigGroup.class);
+		PopulationSlicerByAttribute.filterPopulationBySlice(scenario.getPopulation(), postProcessingConfigGroup.getPopulationSlice(), postProcessingConfigGroup.getSimulationSampleSize());
 		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork(), scenario.getConfig());
 		SBBXY2LinksAssigner.run(scenario.getPopulation(), scenario.getNetwork(), scenario.getConfig().network());
 		LinkToStationsAssigner.runAssignment(scenario);

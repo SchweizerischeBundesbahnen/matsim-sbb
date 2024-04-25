@@ -32,7 +32,6 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -140,10 +139,8 @@ public class ModalSplitStats {
 
     public void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
 
-        // prepare necessary information
-        File file = new File(outputLocation);
-        file.mkdirs();
-        this.outputLocation = outputLocation + "/SBB_";
+
+        this.outputLocation = outputLocation + "SBB_";
         this.stopStationsMap = generateStopStationMap();
         this.trainStationMap = generateTrainStationMap();
         this.modesMap = getModesMap();
@@ -1293,13 +1290,10 @@ public class ModalSplitStats {
                     name = "";
                 }
                 csvWriter.set(trainStationName, name.replaceAll(",", " "));
-                String stpName;
-                try {
-                    stpName = entry.getValue().getStop().getAttributes().getAttribute(STOP_AREA_NAME).toString();
-                } catch (Error e) {
-                    stpName = "";
-                }
-                csvWriter.set(stopName, stpName.replaceAll(",", " "));
+                var stpName = entry.getValue().getStop().getAttributes().getAttribute(STOP_AREA_NAME);
+                String stpNameString = stpName != null ? stpName.toString() : "";
+
+                csvWriter.set(stopName, stpNameString.replaceAll(",", " "));
                 csvWriter.set(x, Double.toString(entry.getValue().getStop().getCoord().getX()));
                 csvWriter.set(y, Double.toString(entry.getValue().getStop().getCoord().getY()));
                 csvWriter.set(zone, entry.getValue().getZoneId());

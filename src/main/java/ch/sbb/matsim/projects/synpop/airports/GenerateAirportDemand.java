@@ -153,7 +153,7 @@ public class GenerateAirportDemand {
     }
 
     private void setSubpopulation(Person person, String mode) {
-        String subpopulation = mode.equals(SBBModes.PT) ? "airport_rail" : "airport_car";
+        String subpopulation = mode.equals(SBBModes.PT) ? Variables.AIRPORT_RAIL : Variables.AIRPORT_ROAD;
         PopulationUtils.putSubpopulation(person, subpopulation);
     }
 

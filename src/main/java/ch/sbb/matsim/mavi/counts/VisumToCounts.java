@@ -5,7 +5,7 @@
 package ch.sbb.matsim.mavi.counts;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter;
+import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -30,7 +30,7 @@ public class VisumToCounts {
                 String stationName = countData[0];
                 String fromNode = countData[1];
                 String visumLinkId = countData[2];
-                Id<Link> linkId = VisumStreetNetworkExporter.createLinkId(fromNode, visumLinkId);
+                Id<Link> linkId = MaviHelper.createLinkId(fromNode, visumLinkId);
                 double xcoord = Double.parseDouble(countData[3]);
                 double ycoord = Double.parseDouble(countData[4]);
                 Coord coord = new Coord(xcoord, ycoord);
@@ -54,7 +54,7 @@ public class VisumToCounts {
         } catch (IOException ignored) {
         }
 
-        new CountsWriter(countshourly).write(countsFilename + "_hourly.xml");
+        new CountsWriter(countshourly).write(countsFilename + ".xml.gz");
 
     }
 

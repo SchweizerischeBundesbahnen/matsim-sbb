@@ -22,6 +22,7 @@ package ch.sbb.matsim.mavi.streets;
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import ch.sbb.matsim.zones.Zones;
@@ -74,6 +75,7 @@ public class StreetNetworkExporter {
         vse.run(visum, outputDir, Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
                 streetsExporterConfigGroup.isExportCounts(), true);
         Network network = vse.getNetwork();
+        setAccessControlled(network);
         if (streetsExporterConfigGroup.getSmallRoadSpeedFactor() < 1.0 || streetsExporterConfigGroup.getMainRoadSpeedFactor() < 1.0) {
             ReduceNetworkSpeeds reduceNetworkSpeeds = new ReduceNetworkSpeeds(network, zones, streetsExporterConfigGroup.getSmallRoadSpeedFactor(),
                     streetsExporterConfigGroup.getMainRoadSpeedFactor());
@@ -88,6 +90,9 @@ public class StreetNetworkExporter {
             cleaner.run(network);
         }
 
+        adjustRoundaboutLinks(network);
+
+        filterBikeNetwork(network, outputDir);
         if (streetsExporterConfigGroup.isMergeRuralLinks()) {
             LogManager.getLogger(StreetNetworkExporter.class).info("Merging rural links.");
             MergeRuralLinks l = new MergeRuralLinks(network, zones);
@@ -95,9 +100,6 @@ public class StreetNetworkExporter {
             NetworkCleaner cleaner = new NetworkCleaner();
             cleaner.run(network);
         }
-        adjustRoundaboutLinks(network);
-
-        filterBikeNetwork(network, outputDir);
         finalMultimodalCleanup(network);
         assureLinkLenghtsAndSpeedsAreSet(network);
 
@@ -108,6 +110,23 @@ public class StreetNetworkExporter {
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network without polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK);
 
+    }
+
+    private static void setAccessControlled(Network network) {
+        Set<Integer> accessControlledTypes = new HashSet<>();
+        for (int i = 0; i < 20; i++) {
+            accessControlledTypes.add(i);
+        }
+        for (int i = 62; i < 78; i++) {
+            accessControlledTypes.add(i);
+        }
+        for (int i = 97; i < 100; i++) {
+            accessControlledTypes.add(i);
+        }
+        network.getLinks().values().stream().filter(link -> accessControlledTypes.contains(Integer.parseInt(NetworkUtils.getType(link)))).forEach(link -> {
+            link.setAllowedModes(modeSetWithoutBike);
+            link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
+        });
     }
 
     private static void assureLinkLenghtsAndSpeedsAreSet(Network network) {
@@ -156,7 +175,9 @@ public class StreetNetworkExporter {
 
         nodesToRemove.forEach(node -> network.removeNode(node.getId()));
 
-        network.getLinks().values().stream().filter(l -> (!String.valueOf(l.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED)).equals("1"))).filter(l -> l.getAllowedModes().size() < 3).forEach(link -> link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 0));
+        network.getLinks().values().stream()
+                .filter(l -> l.getAllowedModes().size() < 3)
+                .forEach(link -> link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1));
 
     }
 
@@ -176,12 +197,12 @@ public class StreetNetworkExporter {
         for (var linkId : needsBikeBackLink) {
             Link link = bikenet.getLinks().get(linkId);
             Link carNetLink = network.getLinks().get(linkId);
-            Tuple<Integer, Integer> visumLinkAndNodeId = VisumStreetNetworkExporter.extractVisumNodeAndLinkId(linkId);
+            Tuple<Integer, Integer> visumLinkAndNodeId = MaviHelper.extractVisumNodeAndLinkId(linkId);
             Integer visumLinkId = visumLinkAndNodeId != null ? visumLinkAndNodeId.getSecond() : null;
             if (visumLinkId == null) {
                 visumLinkId = Integer.MAX_VALUE - r.nextInt(5000);
             }
-            Id<Link> backLinkId = VisumStreetNetworkExporter.createLinkId(link.getToNode().getId().toString().split("_")[1], Integer.toString(visumLinkId));
+            Id<Link> backLinkId = MaviHelper.createLinkId(link.getToNode().getId().toString().split("_")[1], Integer.toString(visumLinkId));
             Link bikeBackLink = bikenet.getFactory().createLink(backLinkId, link.getToNode(), link.getFromNode());
             bikeBackLink.setLength(link.getLength());
             bikeBackLink.setAllowedModes(Set.of(SBBModes.BIKE));
@@ -265,7 +286,7 @@ public class StreetNetworkExporter {
         LogManager.getLogger(StreetNetworkExporter.class).info("Adjusted  " + i + " link capacities in roundabouts.");
     }
 
-    private static void removePolylines(Network network) {
+    public static void removePolylines(Network network) {
         network.getLinks().values().forEach(l -> l.getAttributes().removeAttribute(PolylinesCreator.WKT_ATTRIBUTE));
     }
 }
