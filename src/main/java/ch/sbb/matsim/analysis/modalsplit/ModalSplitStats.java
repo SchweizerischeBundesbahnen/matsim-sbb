@@ -1,6 +1,5 @@
 package ch.sbb.matsim.analysis.modalsplit;
 
-import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
@@ -12,8 +11,6 @@ import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
 import jakarta.inject.Inject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
