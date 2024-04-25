@@ -1,7 +1,5 @@
 package ch.sbb.matsim.preparation.casestudies;
 
-import org.apache.logging.log4j.LogManager;
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
@@ -13,6 +11,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class AddSlice {
+	// adds attribute "slice" to existing population
 
 	String pathPlans;
 	String pathPlansOut;
