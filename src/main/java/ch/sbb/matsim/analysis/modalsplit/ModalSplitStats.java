@@ -521,12 +521,12 @@ public class ModalSplitStats {
             }
 
             double[][] pfArray = subpopulaionMSPFMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
+            double[][] pkmArray = subpopulaionMSPKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
             pfArray[modeId][variablesMSMap.get(all)]++;
 
-            double[][] pkmArray = subpopulaionMSPKMMap.get(attributes.getAttribute(Variables.SUBPOPULATION).toString());
             pkmArray[modeId][variablesMSMap.get(all)] += distance;
 
-            if(tmpIsRail) {
+            if (tmpIsRail) {
                 String submode = MSVariables.submode + separator + SBBModes.RAIL;
                 pfArray[modeId][variablesMSMap.get(submode)]++;
                 pkmArray[modeId][variablesMSMap.get(submode)] += railDistance;
@@ -866,7 +866,7 @@ public class ModalSplitStats {
                     int modeRailID = this.modesInclRailFQMap.get(PTSubModes.RAIL);
                     disArray[modeRailID][railDisCl]++;
                     double railFQdist = railTripsAnalyzer.getFQDistance(trip, true) / 1000;
-                    if (railFQdist>0) {
+                    if (railFQdist > 0) {
                         int modeRailFQID = this.modesInclRailFQMap.get("railFQ");
                         disArray[modeRailFQID][railDisCl]++;
                     }
