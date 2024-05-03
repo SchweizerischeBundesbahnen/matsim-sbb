@@ -28,6 +28,7 @@ public class PopulationSlicerByAttribute {
         int numberOfRequiredSlices = (int) (maximumNumberOfSlices * sampleSize);
         int startSlice = sliceNo * numberOfRequiredSlices;
         int endSlice = startSlice + numberOfRequiredSlices;
+        LogManager.getLogger(PopulationSlicerByAttribute.class).warn("Only agents between slice " + startSlice + " and " + endSlice + " will be simulated.");
         Set<Id<Person>> personsToRemove = new HashSet<>();
         for (Person p : population.getPersons().values()) {
             Integer slice = (Integer) p.getAttributes().getAttribute(SLICE);
@@ -43,6 +44,7 @@ public class PopulationSlicerByAttribute {
         if (population.getPersons().isEmpty()) {
             throw new RuntimeException("Resulting population is empty. Probably a non-useful slice has been selected.");
         }
+        LogManager.getLogger(PopulationSlicerByAttribute.class).warn("Resulting population has " + population.getPersons().size() + "agents. " + personsToRemove.size() + " agents have been removed from input population.");
 
     }
 }
