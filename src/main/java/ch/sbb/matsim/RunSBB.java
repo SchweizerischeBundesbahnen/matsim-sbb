@@ -32,7 +32,7 @@ import ch.sbb.matsim.routing.pt.raptor.SBBRaptorTransferCostCalculator;
 import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
-import ch.sbb.matsim.vehicles.CreateVehiclesFromType;
+import ch.sbb.matsim.vehicles.CreateAgentVehicles;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import org.apache.logging.log4j.LogManager;
@@ -147,8 +147,7 @@ public class RunSBB {
 		IntermodalModule.prepareIntermodalScenario(scenario);
 		AccessEgressModule.prepareLinkAttributes(scenario, true);
 		// vehicle types
-		new CreateVehiclesFromType(scenario.getPopulation(), scenario.getVehicles(), "vehicleType", "car",
-				scenario.getConfig().routing().getNetworkModes()).createVehicles();
+        new CreateAgentVehicles(scenario.getPopulation(), scenario.getVehicles(), scenario.getConfig().routing().getNetworkModes()).createVehicles();
 		scenario.getConfig().qsim().setVehiclesSource(QSimConfigGroup.VehiclesSource.fromVehiclesData);
 
 
