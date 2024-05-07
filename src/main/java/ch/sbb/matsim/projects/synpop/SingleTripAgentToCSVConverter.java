@@ -38,8 +38,7 @@ public class SingleTripAgentToCSVConverter {
         String fromActivityY = "from_activity_y";
         String fromActivityX = "from_activity_x";
         String fromActivityType = "from_activity_type";
-        String vehicleType = "vehicle_type";
-        List<String> columns = List.of(Variables.PERSONID, Variables.SUBPOPULATION, vehicleType, fromActivityType, fromActivityX, fromActivityY, fromActivityEndTime, legMode, toActivityType, toActivityX, toActivityY, direction, tripPurpose);
+        List<String> columns = List.of(Variables.PERSONID, Variables.SUBPOPULATION, fromActivityType, fromActivityX, fromActivityY, fromActivityEndTime, legMode, toActivityType, toActivityX, toActivityY, direction, tripPurpose);
 
         try (CSVWriter writer = new CSVWriter(columns, outputCSVFile)) {
             for (Person person : population.getPersons().values()) {
@@ -50,8 +49,6 @@ public class SingleTripAgentToCSVConverter {
                 }
                 writer.set(Variables.PERSONID, person.getId().toString());
                 writer.set(Variables.SUBPOPULATION, String.valueOf(PopulationUtils.getSubpopulation(person)));
-                String vt = (String) person.getAttributes().getAttribute(vehicleType);
-                writer.set(vehicleType, vt != null ? vt : "");
                 Activity start = (Activity) plan.getPlanElements().get(0);
                 Leg leg = (Leg) plan.getPlanElements().get(1);
                 Activity end = (Activity) plan.getPlanElements().get(2);
