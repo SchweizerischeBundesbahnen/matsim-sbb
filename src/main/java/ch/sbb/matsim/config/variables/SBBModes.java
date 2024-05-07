@@ -13,6 +13,7 @@ public class SBBModes {
 	public static final String RIDE = TransportMode.ride;
 	public static final String PT = TransportMode.pt;
 	public static final String BIKE = TransportMode.bike;
+	public static final String EBIKE = "ebike";
 	public static final String AVTAXI = "avtaxi";
 	public static final String AVFEEDER = "av_feeder";
 	public static final String BIKEFEEDER = "bike_feeder";
