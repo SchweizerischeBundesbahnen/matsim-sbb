@@ -685,7 +685,7 @@ public class ModalSplitStats {
                 int lastRailLeg = findLastRailLeg(legs);
 
                 if (firstRailLeg > -1) {
-                    int subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf(SBBModes.ACCESS_EGRESS_WALK);
+                    int subPTModeEntered = feederModesMap.get(SBBModes.ACCESS_EGRESS_WALK);
                     double distanceEnter = 0;
                     for (int i = 0; i < firstRailLeg; i++) {
                         Leg leg = legs.get(i);
@@ -694,15 +694,15 @@ public class ModalSplitStats {
                         }
                         if (leg.getMode().equals(PT)) {
                             String subPTMode = getModeOfTransitRoute(leg.getRoute());
-                            subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf(subPTMode);
+                            subPTModeEntered = feederModesMap.get(subPTMode);
                         } else {
                             if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
-                                subPTModeEntered = SBBModes.TRAIN_FEEDER_MODES.indexOf(leg.getMode());
+                                subPTModeEntered = feederModesMap.get(leg.getMode());
                             }
                         }
                     }
 
-                    int subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf(SBBModes.ACCESS_EGRESS_WALK);
+                    int subPTModeExited = feederModesMap.get(SBBModes.ACCESS_EGRESS_WALK);
                     double distanceExit = 0;
                     for (int i = lastRailLeg + 1; i < legs.size(); i++) {
                         Leg leg = legs.get(i);
@@ -711,10 +711,10 @@ public class ModalSplitStats {
                         }
                         if (leg.getMode().equals(PT)) {
                             String subPTMode = getModeOfTransitRoute(leg.getRoute());
-                            subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf(subPTMode);
+                            subPTModeExited = feederModesMap.get(subPTMode);
                         } else {
                             if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
-                                subPTModeExited = SBBModes.TRAIN_FEEDER_MODES.indexOf(leg.getMode());
+                                subPTModeExited = feederModesMap.get(leg.getMode());
                             }
 
 
@@ -1256,13 +1256,14 @@ public class ModalSplitStats {
         final String isRailStop = "isRailStop";
 
 
-        StringBuilder head = new StringBuilder(
-            String.join(",", runID, hstNummer, stopNumber, code, stopCode, trainStationName, stopName, isRailStop, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
+        List<String> headColumns = new ArrayList<>(List.of(runID, hstNummer, stopNumber, code, stopCode, trainStationName, stopName, isRailStop, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
         for (String mode : possibleOriginDestinationModesAtStop) {
-            head.append(",").append("Zielaustieg_").append(mode);
-            head.append(",").append("Quelleinstieg_").append(mode);
+            headColumns.add("Zielaustieg_" + mode);
+            headColumns.add("Quelleinstieg_" + mode);
         }
-        String[] columns = head.toString().split(",");
+        String[] columns = headColumns.toArray(new String[0]);
+
+
         try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNStopStationsCount)) {
             for (Entry<Id<TransitStopFacility>, StopStation> entry : stopStationsMap.entrySet()) {
                 csvWriter.set(runID, config.controller().getRunId());
@@ -1502,7 +1503,7 @@ public class ModalSplitStats {
     }
     private Map<String, Integer> getFeederModesMap() {
         Map<String, Integer> coding = new HashMap<>();
-        Set<String> modesSet = new HashSet<>(SBBModes.TRAIN_FEEDER_MODES);
+        Set<String> modesSet = new HashSet<>(SBBModes.TRAIN_STATION_MODES);
         Set<String> additionalFeederModes = getFeederModesinConfig();
         modesSet.addAll(additionalFeederModes);
         List<String> modes = new ArrayList<>(modesSet);
