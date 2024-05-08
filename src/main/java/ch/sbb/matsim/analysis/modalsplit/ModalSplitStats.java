@@ -162,7 +162,7 @@ public class ModalSplitStats {
         this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 1, this.variablesTimeStepsMap.size());
 
         // analyzing
-        startAnalyze(experiencedPlans);
+        analyze(experiencedPlans);
 
         // writing the different files
         writeStopStationAnalysis();
@@ -175,7 +175,7 @@ public class ModalSplitStats {
 
     }
 
-    private void startAnalyze(IdMap<Person, Plan> experiencedPlans) {
+    private void analyze(IdMap<Person, Plan> experiencedPlans) {
         for (Entry<Id<Person>, Plan> entry : experiencedPlans.entrySet()) {
 
             // analysis for access and egress mode for each stop station
@@ -406,7 +406,7 @@ public class ModalSplitStats {
         Attributes attributes = population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             int ptLegs = 0;
-            int raillegs = 0;
+            int railLegs = 0;
             double distance = 0;
             boolean isFQ = false;
             for (Leg leg : trip.getLegsOnly()) {
@@ -416,13 +416,13 @@ public class ModalSplitStats {
                         ptLegs++;
                         TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
                         if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
-                            raillegs++;
+                            railLegs++;
                         }
                     }
                 }
             }
             double fqDistance = 0;
-            if (raillegs > 0) {
+            if (railLegs > 0) {
                 fqDistance = railTripsAnalyzer.getFQDistance(trip, true);
                 isFQ = (fqDistance > 0);
             }
@@ -443,34 +443,34 @@ public class ModalSplitStats {
 
             offsetDistance = offsetDistance * changeOrderList.size();
 
-            boolean isMixed = ((raillegs > 0) & (ptLegs > raillegs));
+            boolean isMixed = ((railLegs > 0) & (ptLegs > railLegs));
             if (ptLegs > 6) {
                 ptLegs = 6;
-                if (raillegs > 6) {
-                    raillegs = 6;
+                if (railLegs > 6) {
+                    railLegs = 6;
                 }
             }
-            if (raillegs > 0) {
-                changeArray[changeOrderList.indexOf(changeTrainAll)][raillegs - 1]++;
-                changeArrayPKM[changeOrderList.indexOf(changeTrainAll)][raillegs - 1] += distance;
-                changeDistanceArray[offsetDistance + changeOrderList.indexOf(changeTrainAll)][raillegs - 1]++;
-                changeDistanceArrayPKM[offsetDistance + changeOrderList.indexOf(changeTrainAll)][raillegs - 1] += distance;
+            if (railLegs > 0) {
+                changeArray[changeOrderList.indexOf(changeTrainAll)][railLegs - 1]++;
+                changeArrayPKM[changeOrderList.indexOf(changeTrainAll)][railLegs - 1] += distance;
+                changeDistanceArray[offsetDistance + changeOrderList.indexOf(changeTrainAll)][railLegs - 1]++;
+                changeDistanceArrayPKM[offsetDistance + changeOrderList.indexOf(changeTrainAll)][railLegs - 1] += distance;
                 if (isMixed) {
                     changeArray[changeOrderList.indexOf(changeOEV)][ptLegs - 1]++;
                     changeArrayPKM[changeOrderList.indexOf(changeOEV)][ptLegs - 1]+=distance;
                     changeDistanceArray[offsetDistance + changeOrderList.indexOf(changeOEV)][ptLegs - 1]++;
                     changeDistanceArrayPKM[offsetDistance + changeOrderList.indexOf(changeOEV)][ptLegs - 1]+=distance;
                 } else {
-                    changeArray[changeOrderList.indexOf(changeTrain)][raillegs - 1]++;
-                    changeArrayPKM[changeOrderList.indexOf(changeTrain)][raillegs - 1] += distance;
-                    changeDistanceArray[offsetDistance + changeOrderList.indexOf(changeTrain)][raillegs - 1]++;
-                    changeDistanceArrayPKM[offsetDistance + changeOrderList.indexOf(changeTrain)][raillegs - 1] += distance;
+                    changeArray[changeOrderList.indexOf(changeTrain)][railLegs - 1]++;
+                    changeArrayPKM[changeOrderList.indexOf(changeTrain)][railLegs - 1] += distance;
+                    changeDistanceArray[offsetDistance + changeOrderList.indexOf(changeTrain)][railLegs - 1]++;
+                    changeDistanceArrayPKM[offsetDistance + changeOrderList.indexOf(changeTrain)][railLegs - 1] += distance;
                 }
                 if (isFQ) {
-                    changeArray[changeOrderList.indexOf(changeTrainFQ)][raillegs - 1]++;
-                    changeArrayPKM[changeOrderList.indexOf(changeTrainFQ)][raillegs - 1] += fqDistance;
-                    changeDistanceArray[offsetDistance +changeOrderList.indexOf(changeTrainFQ)][raillegs - 1]++;
-                    changeDistanceArrayPKM[offsetDistance +changeOrderList.indexOf(changeTrainFQ)][raillegs - 1] += fqDistance;
+                    changeArray[changeOrderList.indexOf(changeTrainFQ)][railLegs - 1]++;
+                    changeArrayPKM[changeOrderList.indexOf(changeTrainFQ)][railLegs - 1] += fqDistance;
+                    changeDistanceArray[offsetDistance + changeOrderList.indexOf(changeTrainFQ)][railLegs - 1]++;
+                    changeDistanceArrayPKM[offsetDistance + changeOrderList.indexOf(changeTrainFQ)][railLegs - 1] += fqDistance;
                 }
             } else if (ptLegs > 0) {
                 changeArray[changeOrderList.indexOf(changeOPNV)][ptLegs - 1]++;
@@ -601,12 +601,12 @@ public class ModalSplitStats {
                 }
             }
             // activity type for end activity
-            String acttype = trip.getDestinationActivity().getType();
+            String actType = trip.getDestinationActivity().getType();
             for (String act : toActTypeList) {
-                if (acttype.contains(separator)) {
-                    acttype = acttype.substring(0, acttype.indexOf("_"));
+                if (actType.contains(separator)) {
+                    actType = actType.substring(0, actType.indexOf("_"));
                 }
-                if ((toActType + separator + acttype).equals(act)) {
+                if ((toActType + separator + actType).equals(act)) {
                     pfArray[modeId][variablesMSMap.get(act)]++;
                     pkmArray[modeId][variablesMSMap.get(act)] += distance;
                     break;
@@ -780,12 +780,12 @@ public class ModalSplitStats {
                             }
                         }
                         // activity type for end activity
-                        String acttype = trip.getDestinationActivity().getType();
-                        if (acttype.contains(separator)) {
-                            acttype = acttype.substring(0, acttype.indexOf("_"));
+                        String actType = trip.getDestinationActivity().getType();
+                        if (actType.contains(separator)) {
+                            actType = actType.substring(0, actType.indexOf("_"));
                         }
                         for (String act : toActTypeList) {
-                            if ((toActType + separator + acttype).equals(act)) {
+                            if ((toActType + separator + actType).equals(act)) {
                                 pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(act)]++;
                                 pfEgressArray[subPTModeExited][variablesMSFeederMap.get(act)]++;
                                 pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(act)] += distanceEnter;
@@ -1482,7 +1482,7 @@ public class ModalSplitStats {
     private Map<String, Integer> getFeederModesMap() {
         Map<String, Integer> coding = new HashMap<>();
         Set<String> modesSet = new HashSet<>(SBBModes.TRAIN_FEEDER_MODES);
-        Set<String> additionalFeederModes = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getIntermodalAccessEgressParameterSets().stream().map(set -> set.getMode()).collect(Collectors.toSet());
+        Set<String> additionalFeederModes = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getIntermodalAccessEgressParameterSets().stream().map(SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet::getMode).collect(Collectors.toSet());
         modesSet.addAll(additionalFeederModes);
         List<String> modes = new ArrayList<>(modesSet);
         for (int i = 0; i < modes.size(); i++) {
