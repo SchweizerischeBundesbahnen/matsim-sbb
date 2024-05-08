@@ -2,6 +2,7 @@ package ch.sbb.matsim.analysis.modalsplit;
 
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.RailTripsAnalyzer;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
@@ -30,11 +31,9 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
 import static ch.sbb.matsim.config.variables.SBBModes.PT;
@@ -1459,7 +1458,9 @@ public class ModalSplitStats {
 
     private Map<String, Integer> getModesMap() {
         Map<String, Integer> coding = new HashMap<>();
-        List<String> modes = SBBModes.MAIN_MODES;
+        Set<String> modesSet = new HashSet<>(SBBModes.MAIN_MODES);
+        modesSet.addAll(config.scoring().getAllModes());
+        List<String> modes = new ArrayList<>(modesSet);
         for (int i = 0; i < modes.size(); i++) {
             coding.put(modes.get(i), i);
         }
@@ -1468,7 +1469,9 @@ public class ModalSplitStats {
 
     private Map<String, Integer> getModesInclRailFQMap() {
         Map<String, Integer> coding = new HashMap<>();
-        List<String> modes = SBBModes.MAIN_MODES;
+        Set<String> modesSet = new HashSet<>(SBBModes.MAIN_MODES);
+        modesSet.addAll(config.scoring().getAllModes());
+        List<String> modes = new ArrayList<>(modesSet);
         for (int i = 0; i < modes.size(); i++) {
             coding.put(modes.get(i), i);
         }
@@ -1478,7 +1481,10 @@ public class ModalSplitStats {
     }
     private Map<String, Integer> getFeederModesMap() {
         Map<String, Integer> coding = new HashMap<>();
-        List<String> modes = SBBModes.TRAIN_FEEDER_MODES;
+        Set<String> modesSet = new HashSet<>(SBBModes.TRAIN_FEEDER_MODES);
+        Set<String> additionalFeederModes = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class).getIntermodalAccessEgressParameterSets().stream().map(set -> set.getMode()).collect(Collectors.toSet());
+        modesSet.addAll(additionalFeederModes);
+        List<String> modes = new ArrayList<>(modesSet);
         for (int i = 0; i < modes.size(); i++) {
             coding.put(modes.get(i), i);
         }
