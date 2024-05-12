@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author mrieser / Simunto
@@ -69,9 +70,8 @@ class UmlegoWorker implements Runnable {
 
 	private WorkResult processOriginZone(WorkItem workItem) {
 		Map<String, List<Umlego.FoundRoute>> foundRoutes = calculateRoutesForZone(workItem.originZone);
+		calculateRouteCharacteristics(foundRoutes);
 		filterRoutes(foundRoutes);
-		sortRoutes(foundRoutes);
-		calculatePerceivedJourneyTime(foundRoutes);
 		return assignDemand(workItem.originZone, foundRoutes);
 	}
 
@@ -89,14 +89,17 @@ class UmlegoWorker implements Runnable {
 				0,
 				Double.POSITIVE_INFINITY,
 				this.raptorParams,
+				this.params.maxTransfers(),
 				null,
 				(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
 					if (this.relevantStops.contains(arrivalStop)) {
 						Umlego.FoundRoute foundRoute = new Umlego.FoundRoute(route.get());
-						foundRoutes
-								.computeIfAbsent(foundRoute.originStop, stop -> new ConcurrentHashMap<>())
-								.computeIfAbsent(foundRoute.destinationStop, stop -> new ConcurrentHashMap<>())
-								.put(foundRoute, Boolean.TRUE);
+						if (!UmlegoUtils.isUselessRoute(foundRoute)) {
+							foundRoutes
+									.computeIfAbsent(foundRoute.originStop, stop -> new ConcurrentHashMap<>())
+									.computeIfAbsent(foundRoute.destinationStop, stop -> new ConcurrentHashMap<>())
+									.put(foundRoute, Boolean.TRUE);
+						}
 					}
 				});
 	}
@@ -133,6 +136,7 @@ class UmlegoWorker implements Runnable {
 									// otherwise the route would not be valid, e.g. due to an additional transfer at the start or end
 									route.originConnectedStop = originConnectedStop;
 									route.destinationConnectedStop = destinationConnectedStop;
+									route.travelTimeWithAccess = route.travelTimeWithoutAccess + originConnectedStop.walkTime() + destinationConnectedStop.walkTime();
 									allRoutesFromTo.add(route);
 								}
 							}
@@ -146,80 +150,128 @@ class UmlegoWorker implements Runnable {
 	}
 
 	private void filterRoutes(Map<String, List<Umlego.FoundRoute>> foundRoutes) {
-		for (List<Umlego.FoundRoute> routes : foundRoutes.values()) {
-			// sort ascending by departure time, transfers and arrival time
-			// the first route for each departure time is the best in terms of transfers
-			// later routes with the same departure time should be feaster or equal to provide any benefit over the first
-			routes.sort(UmlegoWorker::compareFoundRoutesByDepartureTimeTransferArrivalTime);
-			double lastDepartureTime = -1;
-			Umlego.FoundRoute thisBestRoute = null; // best route with
-			Umlego.FoundRoute lastBestRoute = null;
-			for (ListIterator<Umlego.FoundRoute> iterator = routes.listIterator(); iterator.hasNext(); ) {
-				Umlego.FoundRoute route = iterator.next();
-				if (route.depTime != lastDepartureTime || thisBestRoute == null) {
-					lastDepartureTime = route.depTime;
-					lastBestRoute = route;
-					thisBestRoute = route;
-				} else {
-					if (route.transfers > thisBestRoute.transfers && route.arrTime >= thisBestRoute.arrTime) {
-						iterator.remove();
-						continue;
-					}
-					double thisTraveltime = route.arrTime - route.depTime;
-					double bestTraveltime = thisBestRoute.arrTime - thisBestRoute.depTime;
-					if ((bestTraveltime * 2 + 21*60) < thisTraveltime) {
-						iterator.remove();
-						continue;
-					}
+		for (Map.Entry<String, List<Umlego.FoundRoute>> e : foundRoutes.entrySet()) {
+			String destinationZoneId = e.getKey();
+			List<Umlego.FoundRoute> routes = e.getValue();
+			filterRoutes(destinationZoneId, routes);
+		}
+	}
+
+	private void filterRoutes(String destinationZoneId, List<Umlego.FoundRoute> routes) {
+		Set<TransitStopFacility> destinationStops = this.stopsPerZone.get(destinationZoneId).stream().map(stop -> stop.stopFacility()).collect(Collectors.toSet());
+		routes.removeIf(route -> UmlegoUtils.isUselessRoute(route, destinationStops));
+
+		removeDominatedRoutes(routes);
+		preselectRoute(routes);
+	}
+
+	private void removeDominatedRoutes(List<Umlego.FoundRoute> routes) {
+		// sort ascending by departure time, then descending by arrival time
+		// if a later route is fully contained in an earlier route, remove the earlier route except it is a direct route (no transfers)
+		routes.sort((o1, o2) -> {
+			if (o1.depTime < o2.depTime) {
+				return -1;
+			}
+			if (o1.depTime > o2.depTime) {
+				return +1;
+			}
+			if (o1.arrTime < o2.arrTime) {
+				return +1; // descending
+			}
+			if (o1.arrTime > o2.arrTime) {
+				return -1; // descending
+			}
+			return Integer.compare(o1.transfers, o2.transfers);
+		});
+
+		List<Umlego.FoundRoute> dominatedRoutes = new ArrayList<>();
+		for (int i = 0, n = routes.size(); i < n; i++) {
+			Umlego.FoundRoute route1 = routes.get(i);
+			if (route1.transfers == 0) {
+				// always keep direct routes
+				continue;
+			}
+			for (int j = i + 1; j < n; j++) {
+				Umlego.FoundRoute route2 = routes.get(j);
+
+				if (route2.depTime > route1.arrTime) {
+					// no further route can be contained in route 1
+					break;
+				}
+
+				if (route2DominatesRoute1(route2, route1)) {
+					dominatedRoutes.add(route1);
 				}
 			}
+		}
+		routes.removeAll(dominatedRoutes);
+	}
 
-			routes.sort(UmlegoWorker::compareFoundRoutesByArrivalTimeAndTravelTime);
-			// routes are now sorted by arrival time (ascending) and travel time (ascending) and transfers (ascending)
-			double lastArrivalTime = -1;
-			thisBestRoute = null; // best route with
-			lastBestRoute = null;
-			for (ListIterator<Umlego.FoundRoute> iterator = routes.listIterator(); iterator.hasNext(); ) {
-				Umlego.FoundRoute route = iterator.next();
-				if (route.arrTime != lastArrivalTime || thisBestRoute == null) {
-					lastArrivalTime = route.arrTime;
-					lastBestRoute = route;
-					thisBestRoute = route;
-				} else {
-					if (route.transfers > thisBestRoute.transfers) {
-						if (route.travelTime > lastBestRoute.travelTime) {
-							// route has a longer travelTime and more transfers than lastBestRoute, get rid of it
-							iterator.remove();
-						} else {
-							lastBestRoute = thisBestRoute;
-							thisBestRoute = route;
-						}
-					} else {
-						if (route.travelTime > lastBestRoute.travelTime) {
-							// route has a longer travelTime and more transfers than lastBestRoute, get rid of it
-							iterator.remove();
-						}
-					}
-				}
+	private void preselectRoute(List<Umlego.FoundRoute> routes) {
+		int minTransfers = Integer.MAX_VALUE;
+		double minSearchImpedance = Double.POSITIVE_INFINITY;
+		double minTraveltime = Double.POSITIVE_INFINITY;
+		for (Umlego.FoundRoute route : routes) {
+			if (route.transfers < minTransfers) {
+				minTransfers = route.transfers;
+			}
+			if (route.searchImpedance < minSearchImpedance) {
+				minSearchImpedance = route.searchImpedance;
+			}
+			if (route.travelTimeWithAccess < minTraveltime) {
+				minTraveltime = route.travelTimeWithAccess;
+			}
+		}
+
+		ListIterator<Umlego.FoundRoute> it = routes.listIterator();
+		while (it.hasNext()) {
+			Umlego.FoundRoute route = it.next();
+			boolean remove = false;
+			if (route.searchImpedance > (this.params.preselection().betaMinImpedance() * minSearchImpedance + this.params.preselection().constImpedance())) {
+				remove = true;
+			}
+//			if (route.travelTimeWithAccess > (2.0 * minTraveltime + + 21.0 * 60) && (route.transfers > minTransfers)) {
+//				remove = true;
+//			}
+			if (route.transfers > (minTransfers + 3) && (route.travelTimeWithAccess > minTraveltime)) {
+				remove = true;
+			}
+			if (remove) {
+				it.remove();
 			}
 		}
 	}
 
-	private void sortRoutes(Map<String, List<Umlego.FoundRoute>> foundRoutes) {
+	private static boolean route2DominatesRoute1(Umlego.FoundRoute route2, Umlego.FoundRoute route1) {
+		boolean isContained = route2.depTime >= route1.depTime && route2.arrTime <= route1.arrTime;
+		boolean isStrictlyContained = isContained && (route2.depTime > route1.depTime || route2.arrTime < route1.arrTime);
+
+		boolean equalOrLessTransfers = route2.transfers <= route1.transfers;
+		boolean lessTransfers = route2.transfers < route1.transfers;
+
+		boolean equalOrBetterSearchImpedance = route1.searchImpedance >= 1.0 * route2.searchImpedance + 0.0;
+		boolean betterSearchImpedance = route1.searchImpedance > 1.0 * route2.searchImpedance + 0.0;
+
+		boolean hasStrictInequality = isStrictlyContained || lessTransfers || betterSearchImpedance;
+
+		return isContained && equalOrLessTransfers && equalOrBetterSearchImpedance && hasStrictInequality;
+	}
+
+	private void sortRoutesByDepartureTime(Map<String, List<Umlego.FoundRoute>> foundRoutes) {
 		for (List<Umlego.FoundRoute> routes : foundRoutes.values()) {
 			routes.sort(UmlegoWorker::compareFoundRoutesByDepartureTime);
 		}
 	}
 
-	private void calculatePerceivedJourneyTime(Map<String, List<Umlego.FoundRoute>> foundRoutes) {
+	private void calculateRouteCharacteristics(Map<String, List<Umlego.FoundRoute>> foundRoutes) {
 		for (List<Umlego.FoundRoute> routes : foundRoutes.values()) {
 			for (Umlego.FoundRoute route : routes) {
-				calculatePerceivedJourneyTime(route);
+				calculateRouteCharacteristics(route);
 			}
 		}
 	}
 
-	private void calculatePerceivedJourneyTime(Umlego.FoundRoute route) {
+	private void calculateRouteCharacteristics(Umlego.FoundRoute route) {
 		double inVehicleTime = 0;
 		double accessTime = route.originConnectedStop.walkTime();
 		double egressTime = route.destinationConnectedStop.walkTime();
@@ -273,9 +325,19 @@ class UmlegoWorker implements Runnable {
 				+ pjtParams.betaTransferWaitTime() * (transferWaitTime / 60.0)
 				+ transferCount * (pjtParams.transferFix() + pjtParams.transferTraveltimeFactor() * (totalTravelTime / 60.0))
 				+ (pjtParams.secondsPerAdditionalStop() / 60.0) * additionalStopCount;
+
+		Umlego.SearchImpedanceParameters searchParams = this.params.search();
+		route.searchImpedance =
+				searchParams.betaInVehicleTime() * (inVehicleTime / 60.0)
+						+ searchParams.betaAccessTime() * (accessTime / 60.0)
+						+ searchParams.betaEgressTime() * (egressTime / 60.0)
+						+ searchParams.betaWalkTime() * (walkTime / 60.0)
+						+ searchParams.betaTransferWaitTime() * (transferWaitTime / 60.0)
+						+ searchParams.betaTransferCount() * transferCount;
 	}
 
 	private WorkResult assignDemand(String originZone, Map<String, List<Umlego.FoundRoute>> foundRoutes) {
+		sortRoutesByDepartureTime(foundRoutes);
 		Umlego.UnroutableDemand unroutableDemand = new Umlego.UnroutableDemand();
 		for (String destinationZone : this.zoneIds) {
 			for (String matrixName : this.demand.getMatrixNames()) {
@@ -311,12 +373,13 @@ class UmlegoWorker implements Runnable {
 		double stepSize = 60.0; // sample every minute
 		int samples = (int) (timeWindow / stepSize);
 		double sharePerSample = 1.0 / ((double) samples);
+		double[] impedances = new double[potentialRoutes.length];
+		double minImpedance = Double.POSITIVE_INFINITY;
 		double[] routeUtilities = new double[potentialRoutes.length];
-		double beta = this.params.boxCox().beta();
-		double tau = this.params.boxCox().tau();
-		double betaPJT = this.params.impediance().betaPerceivedJourneyTime();
-		double betaDeltaTEarly = this.params.impediance().betaDeltaTEarly();
-		double betaDeltaTLate = this.params.impediance().betaDeltaTLate();
+		double betaPJT = this.params.impedance().betaPerceivedJourneyTime();
+		double betaDeltaTEarly = this.params.impedance().betaDeltaTEarly();
+		double betaDeltaTLate = this.params.impedance().betaDeltaTLate();
+		RouteUtilityCalculator utilityCalculator = this.params.routeSelection().utilityCalculator();
 		for (int sample = 0; sample < samples; sample++) {
 			double time = startTime + sample * stepSize;
 			double utilitiesSum = 0;
@@ -325,8 +388,15 @@ class UmlegoWorker implements Runnable {
 				double routeDepTime = route.depTime - route.originConnectedStop.walkTime();
 				double deltaTEarly = (routeDepTime < time) ? (time - routeDepTime) : 0.0;
 				double deltaTLate = (routeDepTime > time) ? (routeDepTime - time) : 0.0;
-				double impediance = betaPJT * route.perceivedJourneyTime_min + betaDeltaTEarly * (deltaTEarly / 60.0) + betaDeltaTLate * (deltaTLate / 60.0);
-				double utility = Math.exp(-beta * (Math.pow(impediance, tau) - 1.0) / tau);
+				double impedance = betaPJT * route.perceivedJourneyTime_min + betaDeltaTEarly * (deltaTEarly / 60.0) + betaDeltaTLate * (deltaTLate / 60.0);
+				impedances[i] = impedance;
+				if (impedance < minImpedance) {
+					minImpedance = impedance;
+				}
+			}
+			for (int i = 0; i < potentialRoutes.length; i++) {
+				double impedance = impedances[i];
+				double utility = utilityCalculator.calculateUtility(impedance, minImpedance);
 				routeUtilities[i] = utility;
 				utilitiesSum += utility;
 			}
@@ -346,45 +416,13 @@ class UmlegoWorker implements Runnable {
 		if (o1.depTime > o2.depTime) {
 			return +1;
 		}
-		if (o1.travelTime < o2.travelTime) {
+		if (o1.travelTimeWithoutAccess < o2.travelTimeWithoutAccess) {
 			return -1;
 		}
-		if (o1.travelTime > o2.travelTime) {
+		if (o1.travelTimeWithoutAccess > o2.travelTimeWithoutAccess) {
 			return +1;
 		}
 		return Integer.compare(o1.transfers, o2.transfers);
-	}
-
-	private static int compareFoundRoutesByArrivalTimeAndTravelTime(Umlego.FoundRoute o1, Umlego.FoundRoute o2) {
-		if (o1.arrTime < o2.arrTime) {
-			return -1;
-		}
-		if (o1.arrTime > o2.arrTime) {
-			return +1;
-		}
-		if (o1.travelTime < o2.travelTime) {
-			return -1;
-		}
-		if (o1.travelTime > o2.travelTime) {
-			return +1;
-		}
-		return Integer.compare(o1.transfers, o2.transfers);
-	}
-
-	private static int compareFoundRoutesByDepartureTimeTransferArrivalTime(Umlego.FoundRoute o1, Umlego.FoundRoute o2) {
-		if (o1.depTime < o2.depTime) {
-			return -1;
-		}
-		if (o1.depTime > o2.depTime) {
-			return +1;
-		}
-		if (o1.transfers < o2.transfers) {
-			return -1;
-		}
-		if (o1.transfers > o2.transfers) {
-			return +1;
-		}
-		return Double.compare(o1.arrTime, o2.arrTime);
 	}
 
 	public record WorkItem(

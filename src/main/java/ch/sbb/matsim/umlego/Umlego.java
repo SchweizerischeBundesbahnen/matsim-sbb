@@ -46,7 +46,6 @@ public class Umlego {
 	private final OMXODParser demand;
 	private final Scenario scenario;
 	private final Map<String, List<ConnectedStop>> stopsPerZone;
-	private List<String> zoneIds;
 
 	public static void main(String[] args) {
 		long startTime = System.currentTimeMillis();
@@ -82,13 +81,15 @@ public class Umlego {
 //		List<String> relevantZones = List.of("281", "979"); // Frick, ZH Oerlikon
 //		List<String> relevantZones = List.of("1", "85"); // Aarau, Bern
 //		List<String> relevantZones = List.of("85", "503"); // Bern, Luzern
+//		List<String> relevantZones = List.of("237", "985"); // Dietikon, ZUE
 
+		SearchImpedanceParameters search = new SearchImpedanceParameters(1.0, 1.0, 1.0, 1.0, 1.0, 10.0);
+		PreselectionParameters preselection = new PreselectionParameters(2.0, 60.0);
 		PerceivedJourneyTimeParameters pjt = new PerceivedJourneyTimeParameters(1.0, 2.94, 2.94, 2.25, 1.13, 17.24, 0.03, 58.0);
-		RouteImpedianceParameters impediance = new RouteImpedianceParameters(1.0, 1.85, 1.85);
-		RouteSelectionParameters routeSelection = new RouteSelectionParameters(3600.0, 3600.0); // take routes 1 hour before and after into account
-		BoxCoxParamters boxCox = new BoxCoxParamters(1.536, 0.5);
+		RouteImpedanceParameters impedance = new RouteImpedanceParameters(1.0, 1.85, 1.85);
+		RouteSelectionParameters routeSelection = new RouteSelectionParameters(3600.0, 3600.0, RouteUtilityCalculators.boxcox(1.536, 0.5)); // take routes 1 hour before and after into account
 		WriterParameters writer = new WriterParameters(false, true);
-		UmlegoParameters params = new UmlegoParameters(pjt, impediance, routeSelection, boxCox, writer);
+		UmlegoParameters params = new UmlegoParameters(5, search, preselection, pjt, impedance, routeSelection, writer);
 
 		Map<String, List<ConnectedStop>> zoneConnections = Umlego.readZoneConnections(zoneConnectionsFilename, scenario);
 		long calcStartTime = System.currentTimeMillis();
@@ -106,13 +107,13 @@ public class Umlego {
 	}
 
 	public void run(List<String> relevantZones, UmlegoParameters params, int threadCount, String csvOutputFilename) {
-		this.zoneIds = relevantZones == null ? new ArrayList<>(demand.getAllLookupValues()) : new ArrayList<>(relevantZones);
-		this.zoneIds.sort(String::compareTo);
+		List<String> zoneIds = relevantZones == null ? new ArrayList<>(demand.getAllLookupValues()) : new ArrayList<>(relevantZones);
+		zoneIds.sort(String::compareTo);
 
 		// detect relevant stops
 		List<ConnectedStop> emptyList = Collections.emptyList();
 		Set<TransitStopFacility> relevantStops = new HashSet<>();
-		for (String zoneId : this.zoneIds) {
+		for (String zoneId : zoneIds) {
 			List<TransitStopFacility> stops = this.stopsPerZone.getOrDefault(zoneId, emptyList).stream().map(stop -> stop.stopFacility).toList();
 			relevantStops.addAll(stops);
 		}
@@ -145,12 +146,12 @@ public class Umlego {
 		Thread[] threads = new Thread[threadCount];
 		for (int i = 0; i < threads.length; i++) {
 			SwissRailRaptor raptor = new SwissRailRaptor.Builder(raptorData, this.scenario.getConfig()).build();
-			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, relevantStops, this.zoneIds, this.stopsPerZone));
+			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, relevantStops, zoneIds, this.stopsPerZone));
 			threads[i].start();
 		}
 
 		// start writer threads
-		UmlegoWriter writer = new UmlegoWriter(writerQueue, csvOutputFilename, this.zoneIds, params.writer);
+		UmlegoWriter writer = new UmlegoWriter(writerQueue, csvOutputFilename, zoneIds, params.writer);
 		new Thread(writer).start();
 
 		// submit work items into queues
@@ -196,6 +197,22 @@ public class Umlego {
 		double demand = 0;
 	}
 
+	public record SearchImpedanceParameters(
+			double betaInVehicleTime,
+			double betaAccessTime,
+			double betaEgressTime,
+			double betaWalkTime,
+			double betaTransferWaitTime,
+			double betaTransferCount
+	) {
+	}
+
+	public record PreselectionParameters(
+			double betaMinImpedance,
+			double constImpedance
+	) {
+	}
+
 	public record PerceivedJourneyTimeParameters(
 			double betaInVehicleTime,
 			double betaAccessTime,
@@ -208,7 +225,7 @@ public class Umlego {
 	) {
 	}
 
-	public record RouteImpedianceParameters(
+	public record RouteImpedanceParameters(
 			double betaPerceivedJourneyTime,
 			double betaDeltaTEarly,
 			double betaDeltaTLate
@@ -217,13 +234,8 @@ public class Umlego {
 
 	public record RouteSelectionParameters(
 			double beforeTimewindow,
-			double afterTimewindow
-	) {
-	}
-
-	public record BoxCoxParamters(
-			double beta,
-			double tau
+			double afterTimewindow,
+			RouteUtilityCalculator utilityCalculator
 	) {
 	}
 
@@ -233,10 +245,12 @@ public class Umlego {
 	) {}
 
 	public record UmlegoParameters(
+			int maxTransfers,
+			SearchImpedanceParameters search,
+			PreselectionParameters preselection,
 			PerceivedJourneyTimeParameters pjt,
-			RouteImpedianceParameters impediance,
+			RouteImpedanceParameters impedance,
 			RouteSelectionParameters routeSelection,
-			BoxCoxParamters boxCox,
 			WriterParameters writer
 	) {
 	}
@@ -248,10 +262,12 @@ public class Umlego {
 		public ConnectedStop destinationConnectedStop;
 		public final double depTime;
 		public final double arrTime;
-		public final double travelTime;
+		public final double travelTimeWithoutAccess;
+		public double travelTimeWithAccess = Double.NaN;
 		public final int transfers;
 		public final double distance;
 		public final List<RaptorRoute.RoutePart> routeParts = new ArrayList<>();
+		public double searchImpedance = Double.NaN;
 		public double perceivedJourneyTime_min = Double.NaN;
 		public double demand = 0;
 
@@ -288,7 +304,7 @@ public class Umlego {
 			this.destinationStop = destinationStopFacility;
 			this.depTime = firstDepTime;
 			this.arrTime = lastArrTime;
-			this.travelTime = this.arrTime - this.depTime;
+			this.travelTimeWithoutAccess = this.arrTime - this.depTime;
 			this.transfers = stageCount - 1;
 			this.distance = distanceSum;
 		}

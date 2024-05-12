@@ -86,7 +86,7 @@ class UmlegoWriter implements Runnable {
 									Time.writeTime(route.destinationConnectedStop.walkTime()),
 									Time.writeTime(route.depTime),
 									Time.writeTime(route.arrTime),
-									Time.writeTime(route.travelTime),
+									Time.writeTime(route.travelTimeWithoutAccess),
 									Integer.toString(route.transfers),
 									String.format("%.2f", route.distance / 1000.0),
 									String.format("%.5f", route.demand),
