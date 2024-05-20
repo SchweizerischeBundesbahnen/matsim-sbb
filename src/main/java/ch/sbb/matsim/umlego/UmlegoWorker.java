@@ -84,12 +84,12 @@ class UmlegoWorker implements Runnable {
 	}
 
 	private void calcRoutesFromStop(TransitStopFacility originStop, Map<TransitStopFacility, Map<TransitStopFacility, Map<Umlego.FoundRoute, Boolean>>> foundRoutes) {
+		this.raptorParams.setMaxTransfers(this.params.maxTransfers());
 		this.raptor.calcTreesObservable(
 				originStop,
 				0,
 				Double.POSITIVE_INFINITY,
 				this.raptorParams,
-				this.params.maxTransfers(),
 				null,
 				(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
 					if (this.relevantStops.contains(arrivalStop)) {
