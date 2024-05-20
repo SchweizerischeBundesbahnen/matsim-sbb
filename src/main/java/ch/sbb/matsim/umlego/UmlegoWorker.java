@@ -360,8 +360,9 @@ class UmlegoWorker implements Runnable {
 			return;
 		}
 
-		double earliestDeparture = startTime - this.params.routeSelection().beforeTimewindow();
-		double latestDeparture = endTime + this.params.routeSelection().afterTimewindow();
+		boolean limit = this.params.routeSelection().limitSelectionToTimewindow();
+		double earliestDeparture = limit ? (startTime - this.params.routeSelection().beforeTimewindow()) : Integer.MIN_VALUE;
+		double latestDeparture = limit ? (endTime + this.params.routeSelection().afterTimewindow()) : Integer.MAX_VALUE;
 		Umlego.FoundRoute[] potentialRoutes = routes.stream().filter(route -> ((route.depTime - route.originConnectedStop.walkTime()) >= earliestDeparture)
 				&& ((route.depTime - route.originConnectedStop.walkTime() <= latestDeparture))).toList().toArray(new Umlego.FoundRoute[0]);
 		if (potentialRoutes.length == 0) {
