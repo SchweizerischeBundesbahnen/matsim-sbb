@@ -71,9 +71,10 @@ public class UmlegoUtils {
 				// it is a transfer
 				continue;
 			}
+			Set<TransitStopFacility> stageReachedStops = new HashSet<>();
 			boolean boarded = false;
 			for (TransitRouteStop routeStop : stage.route.getStops()) {
-				if (routeStop.getStopFacility() == stage.toStop) {
+				if (boarded && (routeStop.getStopFacility() == stage.toStop)) {
 					if (!reachedStops.add(stage.toStop)) {
 						// we already started or arrived at this stop in a previous stage
 						return true;
@@ -86,9 +87,11 @@ public class UmlegoUtils {
 					break;
 				}
 				if (boarded) {
-					reachedStops.add(routeStop.getStopFacility());
+					// collect the reached stops in this stage separately, in case the route contains a loop and serves a stop multiple times
+					stageReachedStops.add(routeStop.getStopFacility());
 				}
 			}
+			reachedStops.addAll(stageReachedStops);
 		}
 		return false;
 	}
