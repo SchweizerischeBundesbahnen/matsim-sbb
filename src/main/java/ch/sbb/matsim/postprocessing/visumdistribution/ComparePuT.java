@@ -14,9 +14,9 @@ public class ComparePuT {
         String visum = "Z:/99_Playgrounds/MD/Umlegung/visum/PathRoutesVisumLines.csv";
         String matsim = "Z:/99_Playgrounds/MD/Umlegung/alle/treeRoutesvLines.csv";
 
-        Set<String> matSimRoutesSet = new HashSet<>();
+        Set<String> matsimRoutesSet = new HashSet<>();
         Set<String> visumRoutesSet = new HashSet<>();
-        List<String> matSimRoutesList = new ArrayList<>();
+        List<String> matsimRoutesList = new ArrayList<>();
         List<String> visumRoutesList = new ArrayList<>();
 
         Map<String, Double> matsimMap = new HashMap<>();
@@ -42,13 +42,13 @@ public class ComparePuT {
                     continue;
                 }
                 //newLine.deleteCharAt(newLine.length() - 1);
-                if (matSimRoutesSet.add(newLine.toString())) {
+                if (matsimRoutesSet.add(newLine.toString())) {
                     matsimMap.put(newLine.toString(), Double.parseDouble(splitLine[splitLine.length - 1]));
                 } else {
                     double tmp = matsimMap.get(newLine.toString());
                     matsimMap.put(newLine.toString(), Double.parseDouble(splitLine[splitLine.length - 1]) + tmp);
                 }
-                matSimRoutesList.add(newLine.toString());
+                matsimRoutesList.add(newLine.toString());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -110,9 +110,9 @@ public class ComparePuT {
             e.printStackTrace();
         }
 
-        System.out.println("matsim list: " + matSimRoutesList.size());
+        System.out.println("matsim list: " + matsimRoutesList.size());
         System.out.println("visum list: " + visumRoutesList.size());
-        System.out.println("matsim set: " + matSimRoutesSet.size());
+        System.out.println("matsim set: " + matsimRoutesSet.size());
         System.out.println("visum set: " + visumRoutesSet.size());
 
         System.out.println("----------------------------------");
@@ -134,7 +134,7 @@ public class ComparePuT {
         double demandMatsimTotal = 0;
 
         for (String line : visumRoutesSet) {
-            if (!matSimRoutesSet.contains(line)) {
+            if (!matsimRoutesSet.contains(line)) {
                 demandNichtGefunden += visumMap.get(line);
                 if (line.startsWith("2;")) {
                     error++;
