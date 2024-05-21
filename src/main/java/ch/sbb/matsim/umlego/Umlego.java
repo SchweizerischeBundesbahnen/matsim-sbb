@@ -50,9 +50,9 @@ public class Umlego {
 	public static void main(String[] args) {
 		long startTime = System.currentTimeMillis();
 		String omxFilename = "/Users/Shared/data/projects/Umlego/input_data/demand/demand_matrices.omx";
-		String networkFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitNetwork.xml.gz";
-		String scheduleFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitSchedule.xml.gz";
-		String vehiclesFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/output/transitVehicles.xml.gz";
+		String networkFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable_v2/output/transitNetwork.xml.gz";
+		String scheduleFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable_v2/output/transitSchedule.xml.gz";
+		String vehiclesFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable_v2/output/transitVehicles.xml.gz";
 		String zoneConnectionsFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/Anbindungszeiten.csv";
 		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_testoutput.csv";
 		int threads = 6;
@@ -82,6 +82,9 @@ public class Umlego {
 //		List<String> relevantZones = List.of("1", "85"); // Aarau, Bern
 //		List<String> relevantZones = List.of("85", "503"); // Bern, Luzern
 //		List<String> relevantZones = List.of("237", "985"); // Dietikon, ZUE
+//		List<String> relevantZones = List.of("910", "700"); // Wattwil, Rapperswil
+//		List<String> relevantZones = List.of("404", "361"); // Interlaken Ost, Gstaad
+//		List<String> relevantZones = List.of("281", "361"); // Frick, Gstaad
 
 		SearchImpedanceParameters search = new SearchImpedanceParameters(1.0, 1.0, 1.0, 1.0, 1.0, 10.0);
 		PreselectionParameters preselection = new PreselectionParameters(2.0, 60.0);
