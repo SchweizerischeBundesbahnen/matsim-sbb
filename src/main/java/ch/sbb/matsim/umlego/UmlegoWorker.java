@@ -4,6 +4,7 @@ import ch.sbb.matsim.projects.synpop.OMXODParser;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.matsim.pt.transitSchedule.api.TransitRouteStop;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
@@ -18,7 +19,6 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * @author mrieser / Simunto
@@ -30,7 +30,7 @@ class UmlegoWorker implements Runnable {
 	private final OMXODParser demand;
 	private final SwissRailRaptor raptor;
 	private final RaptorParameters raptorParams;
-	private final Set<TransitStopFacility> relevantStops;
+	private final IntSet relevantStopIndices;
 	private final List<String> zoneIds;
 	private final Map<String, List<Umlego.ConnectedStop>> stopsPerZone;
 
@@ -39,7 +39,7 @@ class UmlegoWorker implements Runnable {
 											OMXODParser demand,
 											SwissRailRaptor raptor,
 											RaptorParameters raptorParams,
-											Set<TransitStopFacility> relevantStops,
+											IntSet relevantStopIndices,
 											List<String> zoneIds,
 											Map<String, List<Umlego.ConnectedStop>> stopsPerZone) {
 		this.workerQueue = workerQueue;
@@ -47,7 +47,7 @@ class UmlegoWorker implements Runnable {
 		this.demand = demand;
 		this.raptor = raptor;
 		this.raptorParams = raptorParams;
-		this.relevantStops = relevantStops;
+		this.relevantStopIndices = relevantStopIndices;
 		this.zoneIds = zoneIds;
 		this.stopsPerZone = stopsPerZone;
 	}
@@ -92,7 +92,7 @@ class UmlegoWorker implements Runnable {
 				this.raptorParams,
 				null,
 				(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
-					if (this.relevantStops.contains(arrivalStop)) {
+					if (this.relevantStopIndices.contains(arrivalStop.getId().index())) {
 						Umlego.FoundRoute foundRoute = new Umlego.FoundRoute(route.get());
 						foundRoutes
 								.computeIfAbsent(foundRoute.originStop, stop -> new ConcurrentHashMap<>())
@@ -178,15 +178,15 @@ class UmlegoWorker implements Runnable {
 			return Integer.compare(o1.transfers, o2.transfers);
 		});
 
-		List<Umlego.FoundRoute> dominatedRoutes = new ArrayList<>();
-		for (int i = 0, n = routes.size(); i < n; i++) {
-			Umlego.FoundRoute route1 = routes.get(i);
+		ArrayList<Integer> dominatedRouteIndices = new ArrayList<>(routes.size());
+		for (int route1Index = 0, n = routes.size(); route1Index < n; route1Index++) {
+			Umlego.FoundRoute route1 = routes.get(route1Index);
 			if (route1.transfers == 0) {
 				// always keep direct routes
 				continue;
 			}
-			for (int j = i + 1; j < n; j++) {
-				Umlego.FoundRoute route2 = routes.get(j);
+			for (int route2Index = route1Index + 1; route2Index < n; route2Index++) {
+				Umlego.FoundRoute route2 = routes.get(route2Index);
 
 				if (route2.depTime > route1.arrTime) {
 					// no further route can be contained in route 1
@@ -194,11 +194,16 @@ class UmlegoWorker implements Runnable {
 				}
 
 				if (route2DominatesRoute1(route2, route1)) {
-					dominatedRoutes.add(route1);
+					dominatedRouteIndices.add(route1Index);
+					break;
 				}
 			}
 		}
-		routes.removeAll(dominatedRoutes);
+
+		dominatedRouteIndices.sort((i1, i2) -> Integer.compare(i2, i1)); // reverse sort, descending
+		for (Integer routeIndex : dominatedRouteIndices) {
+			routes.remove(routeIndex.intValue());
+		}
 	}
 
 	private void preselectRoute(List<Umlego.FoundRoute> routes) {
@@ -220,17 +225,9 @@ class UmlegoWorker implements Runnable {
 		ListIterator<Umlego.FoundRoute> it = routes.listIterator();
 		while (it.hasNext()) {
 			Umlego.FoundRoute route = it.next();
-			boolean remove = false;
-			if (route.searchImpedance > (this.params.preselection().betaMinImpedance() * minSearchImpedance + this.params.preselection().constImpedance())) {
-				remove = true;
-			}
-//			if (route.travelTimeWithAccess > (2.0 * minTraveltime + + 21.0 * 60) && (route.transfers > minTransfers)) {
-//				remove = true;
-//			}
-			if (route.transfers > (minTransfers + 3) && (route.travelTimeWithAccess > minTraveltime)) {
-				remove = true;
-			}
-			if (remove) {
+			if ((route.searchImpedance > (this.params.preselection().betaMinImpedance() * minSearchImpedance + this.params.preselection().constImpedance()))
+				|| (route.transfers > (minTransfers + 3) && (route.travelTimeWithAccess > minTraveltime))
+			) {
 				it.remove();
 			}
 		}
@@ -354,11 +351,16 @@ class UmlegoWorker implements Runnable {
 			return;
 		}
 
+		Umlego.FoundRoute[] potentialRoutes;
 		boolean limit = this.params.routeSelection().limitSelectionToTimewindow();
-		double earliestDeparture = limit ? (startTime - this.params.routeSelection().beforeTimewindow()) : Integer.MIN_VALUE;
-		double latestDeparture = limit ? (endTime + this.params.routeSelection().afterTimewindow()) : Integer.MAX_VALUE;
-		Umlego.FoundRoute[] potentialRoutes = routes.stream().filter(route -> ((route.depTime - route.originConnectedStop.walkTime()) >= earliestDeparture)
-				&& ((route.depTime - route.originConnectedStop.walkTime() <= latestDeparture))).toList().toArray(new Umlego.FoundRoute[0]);
+		if (limit) {
+			double earliestDeparture = startTime - this.params.routeSelection().beforeTimewindow();
+			double latestDeparture = endTime + this.params.routeSelection().afterTimewindow();
+			potentialRoutes = routes.stream().filter(route -> ((route.depTime - route.originConnectedStop.walkTime()) >= earliestDeparture)
+					&& ((route.depTime - route.originConnectedStop.walkTime() <= latestDeparture))).toList().toArray(new Umlego.FoundRoute[0]);
+		} else {
+			potentialRoutes = routes.toArray(new Umlego.FoundRoute[0]);
+		}
 		if (potentialRoutes.length == 0) {
 			unroutableDemand.demand += odDemand;
 			return;

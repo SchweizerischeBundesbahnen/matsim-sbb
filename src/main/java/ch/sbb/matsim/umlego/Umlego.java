@@ -8,6 +8,8 @@ import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -25,11 +27,9 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -115,12 +115,14 @@ public class Umlego {
 
 		// detect relevant stops
 		List<ConnectedStop> emptyList = Collections.emptyList();
-		Set<TransitStopFacility> relevantStops = new HashSet<>();
+		IntSet relevantStopIndices = new IntOpenHashSet();
 		for (String zoneId : zoneIds) {
 			List<TransitStopFacility> stops = this.stopsPerZone.getOrDefault(zoneId, emptyList).stream().map(stop -> stop.stopFacility).toList();
-			relevantStops.addAll(stops);
+			for (TransitStopFacility stop : stops) {
+				relevantStopIndices.add(stop.getId().index());
+			}
 		}
-		LOG.info("Detected {} stops as potential origin or destinations", relevantStops.size());
+		LOG.info("Detected {} stops as potential origin or destinations", relevantStopIndices.size());
 
 		// prepare SwissRailRaptor
 		RaptorParameters raptorParams = RaptorUtils.createParameters(scenario.getConfig());
@@ -142,14 +144,15 @@ public class Umlego {
 		CompletableFuture<UmlegoWorker.WorkResult> writeEndMarker = new CompletableFuture<>();
 		writeEndMarker.complete(new UmlegoWorker.WorkResult(null, null, null));
 
-		BlockingQueue<UmlegoWorker.WorkItem> workerQueue = new LinkedBlockingQueue<>(4 * threadCount);
-		BlockingQueue<Future<UmlegoWorker.WorkResult>> writerQueue = new LinkedBlockingQueue<>(3 * threadCount);
+		BlockingQueue<UmlegoWorker.WorkItem> workerQueue = new LinkedBlockingQueue<>(5 * threadCount);
+		BlockingQueue<Future<UmlegoWorker.WorkResult>> writerQueue = new LinkedBlockingQueue<>(4 * threadCount);
 
 		// start worker threads
 		Thread[] threads = new Thread[threadCount];
 		for (int i = 0; i < threads.length; i++) {
 			SwissRailRaptor raptor = new SwissRailRaptor.Builder(raptorData, this.scenario.getConfig()).build();
-			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, relevantStops, zoneIds, this.stopsPerZone));
+//			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, relevantStops, zoneIds, this.stopsPerZone));
+			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, relevantStopIndices, zoneIds, this.stopsPerZone));
 			threads[i].start();
 		}
 
@@ -332,8 +335,6 @@ public class Umlego {
 					boolean partIsEqual =
 							((routePartThis.line == null && routePartThat.line == null) || (routePartThis.line != null && routePartThat.line != null && Objects.equals(routePartThis.line.getId(), routePartThat.line.getId())))
 									&& ((routePartThis.route == null && routePartThat.route == null) || (routePartThis.route != null && routePartThat.route != null && Objects.equals(routePartThis.route.getId(), routePartThat.route.getId())))
-//									&& Objects.equals(routePartThis.fromStop.getId(), routePartThat.fromStop.getId())
-//									&& Objects.equals(routePartThis.toStop.getId(), routePartThat.toStop.getId());
 					;
 					if (!partIsEqual) {
 						return false;
