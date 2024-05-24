@@ -94,12 +94,10 @@ class UmlegoWorker implements Runnable {
 				(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
 					if (this.relevantStops.contains(arrivalStop)) {
 						Umlego.FoundRoute foundRoute = new Umlego.FoundRoute(route.get());
-						if (!UmlegoUtils.isUselessRoute(foundRoute)) {
-							foundRoutes
-									.computeIfAbsent(foundRoute.originStop, stop -> new ConcurrentHashMap<>())
-									.computeIfAbsent(foundRoute.destinationStop, stop -> new ConcurrentHashMap<>())
-									.put(foundRoute, Boolean.TRUE);
-						}
+						foundRoutes
+								.computeIfAbsent(foundRoute.originStop, stop -> new ConcurrentHashMap<>())
+								.computeIfAbsent(foundRoute.destinationStop, stop -> new ConcurrentHashMap<>())
+								.put(foundRoute, Boolean.TRUE);
 					}
 				});
 	}
@@ -151,19 +149,12 @@ class UmlegoWorker implements Runnable {
 
 	private void filterRoutes(Map<String, List<Umlego.FoundRoute>> foundRoutes) {
 		for (Map.Entry<String, List<Umlego.FoundRoute>> e : foundRoutes.entrySet()) {
-			String destinationZoneId = e.getKey();
 			List<Umlego.FoundRoute> routes = e.getValue();
-			filterRoutes(destinationZoneId, routes);
+			filterRoutes(routes);
 		}
 	}
 
-	private void filterRoutes(String destinationZoneId, List<Umlego.FoundRoute> routes) {
-		List<Umlego.ConnectedStop> stops = this.stopsPerZone.get(destinationZoneId);
-		if (stops != null) {
-			Set<TransitStopFacility> destinationStops = stops.stream().map(Umlego.ConnectedStop::stopFacility).collect(Collectors.toSet());
-			routes.removeIf(route -> UmlegoUtils.isUselessRoute(route, destinationStops));
-		}
-
+	private void filterRoutes(List<Umlego.FoundRoute> routes) {
 		removeDominatedRoutes(routes);
 		preselectRoute(routes);
 	}
