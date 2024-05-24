@@ -158,8 +158,11 @@ class UmlegoWorker implements Runnable {
 	}
 
 	private void filterRoutes(String destinationZoneId, List<Umlego.FoundRoute> routes) {
-		Set<TransitStopFacility> destinationStops = this.stopsPerZone.get(destinationZoneId).stream().map(stop -> stop.stopFacility()).collect(Collectors.toSet());
-		routes.removeIf(route -> UmlegoUtils.isUselessRoute(route, destinationStops));
+		List<Umlego.ConnectedStop> stops = this.stopsPerZone.get(destinationZoneId);
+		if (stops != null) {
+			Set<TransitStopFacility> destinationStops = stops.stream().map(Umlego.ConnectedStop::stopFacility).collect(Collectors.toSet());
+			routes.removeIf(route -> UmlegoUtils.isUselessRoute(route, destinationStops));
+		}
 
 		removeDominatedRoutes(routes);
 		preselectRoute(routes);
