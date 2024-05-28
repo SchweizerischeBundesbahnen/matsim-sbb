@@ -274,9 +274,11 @@ public class Umlego {
 		public final int transfers;
 		public final double distance;
 		public final List<RaptorRoute.RoutePart> routeParts = new ArrayList<>();
-		public double searchImpedance = Double.NaN;
-		public double perceivedJourneyTime_min = Double.NaN;
+		public double searchImpedance = Double.NaN; // Suchwiderstand
+		public double perceivedJourneyTime_min = Double.NaN; // Empfundene Reisezeit
+		public double utility = Double.NaN; // Nutzen der Verbindung in einem spezifischen Zeitinterval
 		public double demand = 0;
+		public double originality = 0; // Eigenständigkeit
 
 		public FoundRoute(RaptorRoute route) {
 			double firstDepTime = Double.NaN;

@@ -259,6 +259,7 @@ class UmlegoWorker implements Runnable {
 			for (Umlego.FoundRoute route : routes) {
 				calculateRouteCharacteristics(route);
 			}
+			calculateOriginality(routes);
 		}
 	}
 
@@ -325,6 +326,25 @@ class UmlegoWorker implements Runnable {
 						+ searchParams.betaWalkTime() * (walkTime / 60.0)
 						+ searchParams.betaTransferWaitTime() * (transferWaitTime / 60.0)
 						+ searchParams.betaTransferCount() * transferCount;
+	}
+
+	private void calculateOriginality(List<Umlego.FoundRoute> routes) {
+		for (int i = 0; i < routes.size(); i++) {
+			Umlego.FoundRoute route1 = routes.get(i);
+			int countEqualRoutes = 0;
+			for (int j = 0; j < routes.size(); j++) {
+				Umlego.FoundRoute route2 = routes.get(j);
+
+				boolean areEqual = (route1.depTime == route2.depTime)
+						&& (route1.arrTime == route2.arrTime)
+						&& (route1.searchImpedance == route2.searchImpedance)
+						&& route1.transfers == route2.transfers;
+				if (areEqual) {
+					countEqualRoutes++;
+				}
+			}
+			route1.originality = 1.0 / countEqualRoutes;
+		}
 	}
 
 	private WorkResult assignDemand(String originZone, Map<String, List<Umlego.FoundRoute>> foundRoutes) {
@@ -394,8 +414,8 @@ class UmlegoWorker implements Runnable {
 			for (int i = 0; i < potentialRoutes.length; i++) {
 				double impedance = impedances[i];
 				double utility = utilityCalculator.calculateUtility(impedance, minImpedance);
-				routeUtilities[i] = utility;
-				utilitiesSum += utility;
+				routeUtilities[i] = utility * potentialRoutes[i].originality;
+				utilitiesSum += routeUtilities[i];
 			}
 			for (int i = 0; i < potentialRoutes.length; i++) {
 				double routeShare = routeUtilities[i] / utilitiesSum;
