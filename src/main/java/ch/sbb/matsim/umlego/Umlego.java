@@ -54,7 +54,7 @@ public class Umlego {
 		String scheduleFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable_v2/output/transitSchedule.xml.gz";
 		String vehiclesFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable_v2/output/transitVehicles.xml.gz";
 		String zoneConnectionsFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/Anbindungszeiten.csv";
-		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_testoutput.csv";
+		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_putsurvey_83zones.txt";
 		int threads = 6;
 
 		// load transit schedule

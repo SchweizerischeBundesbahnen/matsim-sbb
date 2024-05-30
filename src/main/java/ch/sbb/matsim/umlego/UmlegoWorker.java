@@ -95,8 +95,8 @@ class UmlegoWorker implements Runnable {
 					if (this.destinationStopIndices.contains(arrivalStop.getId().index())) {
 						Umlego.FoundRoute foundRoute = new Umlego.FoundRoute(route.get());
 						foundRoutes
-								.computeIfAbsent(foundRoute.originStop, stop -> new ConcurrentHashMap<>())
-								.computeIfAbsent(foundRoute.destinationStop, stop -> new ConcurrentHashMap<>())
+								.computeIfAbsent(foundRoute.originStop, stop -> new HashMap<>())
+								.computeIfAbsent(foundRoute.destinationStop, stop -> new HashMap<>())
 								.put(foundRoute, Boolean.TRUE);
 					}
 				});
@@ -148,8 +148,7 @@ class UmlegoWorker implements Runnable {
 	}
 
 	private void filterRoutes(Map<String, List<Umlego.FoundRoute>> foundRoutes) {
-		for (Map.Entry<String, List<Umlego.FoundRoute>> e : foundRoutes.entrySet()) {
-			List<Umlego.FoundRoute> routes = e.getValue();
+		for (List<Umlego.FoundRoute> routes : foundRoutes.values()) {
 			filterRoutes(routes);
 		}
 	}
@@ -329,11 +328,32 @@ class UmlegoWorker implements Runnable {
 	}
 
 	private void calculateOriginality(List<Umlego.FoundRoute> routes) {
+		routes.sort(UmlegoWorker::compareFoundRoutesByDepartureTime);
 		for (int i = 0; i < routes.size(); i++) {
 			Umlego.FoundRoute route1 = routes.get(i);
-			int countEqualRoutes = 0;
-			for (int j = 0; j < routes.size(); j++) {
+			int countEqualRoutes = 1; // comparison with itself would always result in equality
+
+			// search for equal routes before this route
+			for (int j = i-1; j >= 0; j--) {
 				Umlego.FoundRoute route2 = routes.get(j);
+				if (route1.depTime != route2.depTime) {
+					break; // because the routes are sorted, there cannot be any more equal routes
+				}
+
+				boolean areEqual = (route1.depTime == route2.depTime)
+						&& (route1.arrTime == route2.arrTime)
+						&& (route1.searchImpedance == route2.searchImpedance)
+						&& route1.transfers == route2.transfers;
+				if (areEqual) {
+					countEqualRoutes++;
+				}
+			}
+			// search for equal routes after this route
+			for (int j = i+1; j < routes.size(); j++) {
+				Umlego.FoundRoute route2 = routes.get(j);
+				if (route1.depTime != route2.depTime) {
+					break; // because the routes are sorted, there cannot be any more equal routes
+				}
 
 				boolean areEqual = (route1.depTime == route2.depTime)
 						&& (route1.arrTime == route2.arrTime)
