@@ -66,7 +66,7 @@ public class Umlego {
 		OMXODParser demand = new OMXODParser();
 		demand.openMatrix(omxFilename);
 
-//		List<String> relevantZones = null; // null uses all zones
+		List<String> allZones = null; // null uses all zones
 
 		List<String> relevantZones = List.of("1", "14", "18", "47", "48", "52", "68", "69", "85",
 				"108", "123", "124", "132", "136", "162", "163", "187", "213", "220", "222", "237", "281", "288",
@@ -96,7 +96,7 @@ public class Umlego {
 
 		Map<String, List<ConnectedStop>> zoneConnections = Umlego.readZoneConnections(zoneConnectionsFilename, scenario);
 		long calcStartTime = System.currentTimeMillis();
-		new Umlego(demand, scenario, zoneConnections).run(relevantZones, params, threads, csvOutputFilename);
+		new Umlego(demand, scenario, zoneConnections).run(relevantZones, allZones, params, threads, csvOutputFilename);
 		long endTime = System.currentTimeMillis();
 		LOG.info("total time: {} seconds", (endTime - startTime) / 1000.0);
 		LOG.info("calculation+write time: {} seconds", (endTime - calcStartTime) / 1000.0);
@@ -109,20 +109,22 @@ public class Umlego {
 		this.stopsPerZone = stopsPerZone;
 	}
 
-	public void run(List<String> relevantZones, UmlegoParameters params, int threadCount, String csvOutputFilename) {
-		List<String> zoneIds = relevantZones == null ? new ArrayList<>(demand.getAllLookupValues()) : new ArrayList<>(relevantZones);
-		zoneIds.sort(String::compareTo);
+	public void run(List<String> originZones, List<String> destinationZones, UmlegoParameters params, int threadCount, String csvOutputFilename) {
+		List<String> originZoneIds = originZones == null ? new ArrayList<>(demand.getAllLookupValues()) : new ArrayList<>(originZones);
+		originZoneIds.sort(String::compareTo);
+		List<String> destinationZoneIds = destinationZones == null ? new ArrayList<>(demand.getAllLookupValues()) : new ArrayList<>(destinationZones);
+		destinationZoneIds.sort(String::compareTo);
 
 		// detect relevant stops
 		List<ConnectedStop> emptyList = Collections.emptyList();
-		IntSet relevantStopIndices = new IntOpenHashSet();
-		for (String zoneId : zoneIds) {
+		IntSet destinationStopIndices = new IntOpenHashSet();
+		for (String zoneId : destinationZoneIds) {
 			List<TransitStopFacility> stops = this.stopsPerZone.getOrDefault(zoneId, emptyList).stream().map(stop -> stop.stopFacility).toList();
 			for (TransitStopFacility stop : stops) {
-				relevantStopIndices.add(stop.getId().index());
+				destinationStopIndices.add(stop.getId().index());
 			}
 		}
-		LOG.info("Detected {} stops as potential origin or destinations", relevantStopIndices.size());
+		LOG.info("Detected {} stops as potential destinations", destinationStopIndices.size());
 
 		// prepare SwissRailRaptor
 		RaptorParameters raptorParams = RaptorUtils.createParameters(scenario.getConfig());
@@ -151,17 +153,16 @@ public class Umlego {
 		Thread[] threads = new Thread[threadCount];
 		for (int i = 0; i < threads.length; i++) {
 			SwissRailRaptor raptor = new SwissRailRaptor.Builder(raptorData, this.scenario.getConfig()).build();
-//			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, relevantStops, zoneIds, this.stopsPerZone));
-			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, relevantStopIndices, zoneIds, this.stopsPerZone));
+			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, destinationStopIndices, destinationZoneIds, this.stopsPerZone));
 			threads[i].start();
 		}
 
 		// start writer threads
-		UmlegoWriter writer = new UmlegoWriter(writerQueue, csvOutputFilename, zoneIds, params.writer);
+		UmlegoWriter writer = new UmlegoWriter(writerQueue, csvOutputFilename, originZoneIds, destinationZoneIds, params.writer);
 		new Thread(writer).start();
 
 		// submit work items into queues
-		for (String originZoneId : zoneIds) {
+		for (String originZoneId : originZoneIds) {
 			try {
 				CompletableFuture<UmlegoWorker.WorkResult> future = new CompletableFuture<>();
 				UmlegoWorker.WorkItem workItem = new UmlegoWorker.WorkItem(originZoneId, future);

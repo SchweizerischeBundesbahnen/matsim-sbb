@@ -30,8 +30,8 @@ class UmlegoWorker implements Runnable {
 	private final OMXODParser demand;
 	private final SwissRailRaptor raptor;
 	private final RaptorParameters raptorParams;
-	private final IntSet relevantStopIndices;
-	private final List<String> zoneIds;
+	private final IntSet destinationStopIndices;
+	private final List<String> destinationZoneIds;
 	private final Map<String, List<Umlego.ConnectedStop>> stopsPerZone;
 
 	public UmlegoWorker(BlockingQueue<WorkItem> workerQueue,
@@ -39,16 +39,16 @@ class UmlegoWorker implements Runnable {
 											OMXODParser demand,
 											SwissRailRaptor raptor,
 											RaptorParameters raptorParams,
-											IntSet relevantStopIndices,
-											List<String> zoneIds,
+											IntSet destinationStopIndices,
+											List<String> destinationZoneIds,
 											Map<String, List<Umlego.ConnectedStop>> stopsPerZone) {
 		this.workerQueue = workerQueue;
 		this.params = params;
 		this.demand = demand;
 		this.raptor = raptor;
 		this.raptorParams = raptorParams;
-		this.relevantStopIndices = relevantStopIndices;
-		this.zoneIds = zoneIds;
+		this.destinationStopIndices = destinationStopIndices;
+		this.destinationZoneIds = destinationZoneIds;
 		this.stopsPerZone = stopsPerZone;
 	}
 
@@ -92,7 +92,7 @@ class UmlegoWorker implements Runnable {
 				this.raptorParams,
 				null,
 				(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
-					if (this.relevantStopIndices.contains(arrivalStop.getId().index())) {
+					if (this.destinationStopIndices.contains(arrivalStop.getId().index())) {
 						Umlego.FoundRoute foundRoute = new Umlego.FoundRoute(route.get());
 						foundRoutes
 								.computeIfAbsent(foundRoute.originStop, stop -> new ConcurrentHashMap<>())
@@ -112,7 +112,7 @@ class UmlegoWorker implements Runnable {
 			originStopLookup.put(stop.stopFacility(), stop);
 		}
 
-		for (String destinationZoneId : zoneIds) {
+		for (String destinationZoneId : destinationZoneIds) {
 			List<Umlego.ConnectedStop> stopsPerDestinationZone = this.stopsPerZone.getOrDefault(destinationZoneId, emptyList);
 			Map<TransitStopFacility, Umlego.ConnectedStop> destinationStopLookup = new HashMap<>();
 			for (Umlego.ConnectedStop stop : stopsPerDestinationZone) {
@@ -350,7 +350,7 @@ class UmlegoWorker implements Runnable {
 	private WorkResult assignDemand(String originZone, Map<String, List<Umlego.FoundRoute>> foundRoutes) {
 		sortRoutesByDepartureTime(foundRoutes);
 		Umlego.UnroutableDemand unroutableDemand = new Umlego.UnroutableDemand();
-		for (String destinationZone : this.zoneIds) {
+		for (String destinationZone : this.destinationZoneIds) {
 			for (String matrixName : this.demand.getMatrixNames()) {
 				double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
 				if (value > 0) {

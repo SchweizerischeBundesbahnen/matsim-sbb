@@ -1,10 +1,7 @@
 package ch.sbb.matsim.umlego;
 
-import com.opencsv.CSVWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.matsim.core.utils.io.IOUtils;
-import org.matsim.core.utils.misc.Time;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -12,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 class UmlegoWriter implements Runnable {
@@ -21,14 +17,16 @@ class UmlegoWriter implements Runnable {
 
 	private final BlockingQueue<Future<UmlegoWorker.WorkResult>> queue;
 	private final String filename;
-	private final List<String> zoneIds;
+	private final List<String> originZoneIds;
+	private final List<String> destinationZoneIds;
 	private final CompletableFuture<Umlego.UnroutableDemand> futureUnroutableDemand = new CompletableFuture<>();
 	private final Umlego.WriterParameters params;
 
-	public UmlegoWriter(BlockingQueue<Future<UmlegoWorker.WorkResult>> queue, String filename, List<String> zoneIds, Umlego.WriterParameters params) {
+	public UmlegoWriter(BlockingQueue<Future<UmlegoWorker.WorkResult>> queue, String filename, List<String> originZoneIds, List<String> destinationZoneIds, Umlego.WriterParameters params) {
 		this.queue = queue;
 		this.filename = filename;
-		this.zoneIds = zoneIds;
+		this.originZoneIds = originZoneIds;
+		this.destinationZoneIds = destinationZoneIds;
 		this.params = params;
 	}
 
@@ -41,7 +39,7 @@ class UmlegoWriter implements Runnable {
 	private Umlego.UnroutableDemand writeRoutes() {
 		LOG.info("writing output to {}", this.filename);
 		Umlego.UnroutableDemand unroutableDemand = new Umlego.UnroutableDemand();
-		int totalItems = this.zoneIds.size();
+		int totalItems = this.originZoneIds.size();
 		int counter = 0;
 		try (PutSurveyWriter writer = new PutSurveyWriter(this.filename)) {
 			while (true) {
@@ -62,7 +60,7 @@ class UmlegoWriter implements Runnable {
 					// looks like this zone cannot reach any destination
 					continue;
 				}
-				for (String destZone : zoneIds) {
+				for (String destZone : destinationZoneIds) {
 					if (origZone.equals(destZone)) {
 						// we're not interested in intrazonal trips
 						continue;
