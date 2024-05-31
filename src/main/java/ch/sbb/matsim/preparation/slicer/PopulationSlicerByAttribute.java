@@ -11,7 +11,7 @@ import java.util.Set;
 public class PopulationSlicerByAttribute {
 
     public static final String SLICE = "slice";
-    private static final int maximumNumberOfSlices = 20;
+
 
     /**
      * Filters agents by slice number
@@ -25,6 +25,9 @@ public class PopulationSlicerByAttribute {
             LogManager.getLogger(PopulationSlicerByAttribute.class).warn("Population is empty.");
             return;
         }
+        int maximumNumberOfSlices = 200;
+        LogManager.getLogger(PopulationSlicerByAttribute.class).info("Assuming" + maximumNumberOfSlices + " number of slices.");
+
         int numberOfRequiredSlices = (int) (maximumNumberOfSlices * sampleSize);
         int startSlice = sliceNo * numberOfRequiredSlices;
         int endSlice = startSlice + numberOfRequiredSlices;

@@ -22,7 +22,7 @@ class PopulationSlicerByAttributeTest {
         var fac = population.getFactory();
         for (int i = 0; i < 1000; i++) {
             Person p = fac.createPerson(Id.createPersonId(i));
-            p.getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, i % 20);
+            p.getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, i % 200);
             population.addPerson(p);
         }
         return population;
@@ -35,7 +35,7 @@ class PopulationSlicerByAttributeTest {
         assertEquals(100, population.getPersons().size());
         Set<Id<Person>> expectedPersons = new HashSet<>();
         for (int i = 0; i < 1000; i++) {
-            if (i % 20 < 2) expectedPersons.add(Id.createPersonId(i));
+            if (i % 200 < 20) expectedPersons.add(Id.createPersonId(i));
         }
         Set<Id<Person>> actualPersons = new HashSet<>();
         actualPersons.addAll(population.getPersons().keySet());
@@ -51,7 +51,7 @@ class PopulationSlicerByAttributeTest {
         assertEquals(250, population.getPersons().size());
         Set<Id<Person>> expectedPersons = new HashSet<>();
         for (int i = 0; i < 1000; i++) {
-            if (i % 20 >= 15) expectedPersons.add(Id.createPersonId(i));
+            if (i % 200 >= 150) expectedPersons.add(Id.createPersonId(i));
         }
         Set<Id<Person>> actualPersons = new HashSet<>();
         actualPersons.addAll(population.getPersons().keySet());
