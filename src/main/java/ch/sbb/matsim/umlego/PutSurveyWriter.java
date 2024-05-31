@@ -85,7 +85,9 @@ public class PutSurveyWriter implements AutoCloseable {
 				String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
 
 				String teilweg_kennung = legId > 1 ? "N" : "E";
-				String einhstabfahrtstag = getDayIndex(routePart.boardingTime);
+				// always use day = 1
+				String einhstabfahrtstag = "1";
+//				String einhstabfahrtstag = getDayIndex(routePart.boardingTime);
 				String einhstabfahrtszeit = getTime(routePart.boardingTime);
 
 				String origGem = route.originStop.getName();
