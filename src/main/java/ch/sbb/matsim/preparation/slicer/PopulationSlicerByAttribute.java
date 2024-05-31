@@ -26,7 +26,7 @@ public class PopulationSlicerByAttribute {
             return;
         }
         int maximumNumberOfSlices = 200;
-        LogManager.getLogger(PopulationSlicerByAttribute.class).info("Assuming" + maximumNumberOfSlices + " number of slices.");
+        LogManager.getLogger(PopulationSlicerByAttribute.class).info("Assuming " + maximumNumberOfSlices + " number of slices.");
 
         int numberOfRequiredSlices = (int) (maximumNumberOfSlices * sampleSize);
         int startSlice = sliceNo * numberOfRequiredSlices;
@@ -47,7 +47,7 @@ public class PopulationSlicerByAttribute {
         if (population.getPersons().isEmpty()) {
             throw new RuntimeException("Resulting population is empty. Probably a non-useful slice has been selected.");
         }
-        LogManager.getLogger(PopulationSlicerByAttribute.class).warn("Resulting population has " + population.getPersons().size() + "agents. " + personsToRemove.size() + " agents have been removed from input population.");
+        LogManager.getLogger(PopulationSlicerByAttribute.class).warn("Resulting population has " + population.getPersons().size() + " agents. " + personsToRemove.size() + " agents have been removed from input population.");
 
     }
 }
