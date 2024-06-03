@@ -126,6 +126,16 @@ public class Umlego {
 		}
 		LOG.info("Detected {} stops as potential destinations", destinationStopIndices.size());
 
+		Map<String, Map<TransitStopFacility, Umlego.ConnectedStop>> stopLookupPerDestination = new HashMap<>();
+		for (String destinationZoneId : destinationZoneIds) {
+			List<Umlego.ConnectedStop> stopsPerDestinationZone = this.stopsPerZone.getOrDefault(destinationZoneId, emptyList);
+			Map<TransitStopFacility, Umlego.ConnectedStop> destinationStopLookup = new HashMap<>();
+			for (Umlego.ConnectedStop stop : stopsPerDestinationZone) {
+				destinationStopLookup.put(stop.stopFacility(), stop);
+			}
+			stopLookupPerDestination.put(destinationZoneId, destinationStopLookup);
+		}
+
 		// prepare SwissRailRaptor
 		RaptorParameters raptorParams = RaptorUtils.createParameters(scenario.getConfig());
 		raptorParams.setTransferPenaltyFixCostPerTransfer(0.01);
@@ -153,7 +163,7 @@ public class Umlego {
 		Thread[] threads = new Thread[threadCount];
 		for (int i = 0; i < threads.length; i++) {
 			SwissRailRaptor raptor = new SwissRailRaptor.Builder(raptorData, this.scenario.getConfig()).build();
-			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, destinationStopIndices, destinationZoneIds, this.stopsPerZone));
+			threads[i] = new Thread(new UmlegoWorker(workerQueue, params, this.demand, raptor, raptorParams, destinationStopIndices, destinationZoneIds, this.stopsPerZone, stopLookupPerDestination));
 			threads[i].start();
 		}
 

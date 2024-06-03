@@ -42,6 +42,7 @@ class UmlegoWriter implements Runnable {
 		int totalItems = this.originZoneIds.size();
 		int counter = 0;
 		try (PutSurveyWriter writer = new PutSurveyWriter(this.filename)) {
+//		try (UmlegoCsvWriter writer = new UmlegoCsvWriter(this.filename, true)) {
 			while (true) {
 				Future<UmlegoWorker.WorkResult> futureResult = this.queue.take();
 				UmlegoWorker.WorkResult result = futureResult.get();

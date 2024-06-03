@@ -33,6 +33,7 @@ class UmlegoWorker implements Runnable {
 	private final IntSet destinationStopIndices;
 	private final List<String> destinationZoneIds;
 	private final Map<String, List<Umlego.ConnectedStop>> stopsPerZone;
+	private final Map<String, Map<TransitStopFacility, Umlego.ConnectedStop>> stopLookupPerDestination;
 
 	public UmlegoWorker(BlockingQueue<WorkItem> workerQueue,
 											Umlego.UmlegoParameters params,
@@ -41,7 +42,8 @@ class UmlegoWorker implements Runnable {
 											RaptorParameters raptorParams,
 											IntSet destinationStopIndices,
 											List<String> destinationZoneIds,
-											Map<String, List<Umlego.ConnectedStop>> stopsPerZone) {
+											Map<String, List<Umlego.ConnectedStop>> stopsPerZone,
+											Map<String, Map<TransitStopFacility, Umlego.ConnectedStop>> stopLookupPerDestination) {
 		this.workerQueue = workerQueue;
 		this.params = params;
 		this.demand = demand;
@@ -50,6 +52,7 @@ class UmlegoWorker implements Runnable {
 		this.destinationStopIndices = destinationStopIndices;
 		this.destinationZoneIds = destinationZoneIds;
 		this.stopsPerZone = stopsPerZone;
+		this.stopLookupPerDestination = stopLookupPerDestination;
 	}
 
 	public void run() {
@@ -133,12 +136,7 @@ class UmlegoWorker implements Runnable {
 		}
 
 		for (String destinationZoneId : destinationZoneIds) {
-			List<Umlego.ConnectedStop> stopsPerDestinationZone = this.stopsPerZone.getOrDefault(destinationZoneId, emptyList);
-			Map<TransitStopFacility, Umlego.ConnectedStop> destinationStopLookup = new HashMap<>();
-			for (Umlego.ConnectedStop stop : stopsPerDestinationZone) {
-				destinationStopLookup.put(stop.stopFacility(), stop);
-			}
-
+			Map<TransitStopFacility, Umlego.ConnectedStop> destinationStopLookup = this.stopLookupPerDestination.get(destinationZoneId);
 			Set<Umlego.FoundRoute> allRoutesFromTo = new HashSet<>();
 			for (Umlego.ConnectedStop originStop : stopsPerOriginZone) {
 				Map<TransitStopFacility, Map<Umlego.FoundRoute, Boolean>> routesPerDestinationStop = foundRoutesPerStop.get(originStop.stopFacility());
