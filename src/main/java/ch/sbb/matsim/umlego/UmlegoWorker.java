@@ -4,6 +4,7 @@ import ch.sbb.matsim.projects.synpop.OMXODParser;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParameters;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRoute;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.matsim.pt.transitSchedule.api.TransitRouteStop;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -18,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author mrieser / Simunto
@@ -76,14 +76,34 @@ class UmlegoWorker implements Runnable {
 	}
 
 	private Map<String, List<Umlego.FoundRoute>> calculateRoutesForZone(String originZone) {
+		IntSet activeDestinationStopIndices = getActiveDestinationStopIndices(originZone);
 		Map<TransitStopFacility, Map<TransitStopFacility, Map<Umlego.FoundRoute, Boolean>>> foundRoutes = new HashMap<>();
 		for (Umlego.ConnectedStop stop : stopsPerZone.getOrDefault(originZone, Collections.emptyList())) {
-			calcRoutesFromStop(stop.stopFacility(), foundRoutes);
+			calcRoutesFromStop(stop.stopFacility(), activeDestinationStopIndices, foundRoutes);
 		}
 		return aggregateOnZoneLevel(originZone, foundRoutes);
 	}
 
-	private void calcRoutesFromStop(TransitStopFacility originStop, Map<TransitStopFacility, Map<TransitStopFacility, Map<Umlego.FoundRoute, Boolean>>> foundRoutes) {
+	private IntSet getActiveDestinationStopIndices(String originZone) {
+		List<Umlego.ConnectedStop> emptyList = Collections.emptyList();
+		IntSet destinationStopIndices = new IntOpenHashSet();
+
+		for (String destinationZone : this.destinationZoneIds) {
+			for (String matrixName : this.demand.getMatrixNames()) {
+				double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
+				if (value > 0) {
+					List<TransitStopFacility> stops = this.stopsPerZone.getOrDefault(destinationZone, emptyList).stream().map(stop -> stop.stopFacility()).toList();
+					for (TransitStopFacility stop : stops) {
+						destinationStopIndices.add(stop.getId().index());
+					}
+					break;
+				}
+			}
+		}
+		return destinationStopIndices;
+	}
+
+	private void calcRoutesFromStop(TransitStopFacility originStop, IntSet destinationStopIndices, Map<TransitStopFacility, Map<TransitStopFacility, Map<Umlego.FoundRoute, Boolean>>> foundRoutes) {
 		this.raptorParams.setMaxTransfers(this.params.maxTransfers());
 		this.raptor.calcTreesObservable(
 				originStop,
@@ -92,7 +112,7 @@ class UmlegoWorker implements Runnable {
 				this.raptorParams,
 				null,
 				(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
-					if (this.destinationStopIndices.contains(arrivalStop.getId().index())) {
+					if (destinationStopIndices.contains(arrivalStop.getId().index())) {
 						Umlego.FoundRoute foundRoute = new Umlego.FoundRoute(route.get());
 						foundRoutes
 								.computeIfAbsent(foundRoute.originStop, stop -> new HashMap<>())
