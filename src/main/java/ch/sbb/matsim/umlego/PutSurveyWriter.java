@@ -48,9 +48,11 @@ public class PutSurveyWriter implements AutoCloseable {
 	private static final String COL_TOURID = "TOURID";
 	private static final String COL_TRIPID = "TRIPID";
 	private static final String COL_DIRECTION = "DIRECTION";
+	private static final String COL_QBEZIRK = "QBEZIRK";
+	private static final String COL_ZBEZIRK = "ZBEZIRK";
 	private static final String[] COLUMNS = new String[]{COL_PATH_ID, COL_LEG_ID, COL_FROM_STOP, COL_TO_STOP, COL_VSYSCODE, COL_LINNAME, COL_LINROUTENAME, COL_RICHTUNGSCODE, COL_FZPROFILNAME,
 			COL_TEILWEG_KENNUNG, COL_EINHSTNR, COL_EINHSTABFAHRTSTAG, COL_EINHSTABFAHRTSZEIT, COL_PFAHRT, COL_ORIG_GEM, COL_DEST_GEM,
-			COL_TOURID, COL_TRIPID, COL_DIRECTION};
+			COL_TOURID, COL_TRIPID, COL_DIRECTION, COL_QBEZIRK, COL_ZBEZIRK};
 
 	private static final String HEADER = "$VISION\n* VisumInst\n* 10.11.06\n*\n*\n* Tabelle: Versionsblock\n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n4.00;Att;DEU;KM\n*\n*\n* Tabelle: ÖV-Teilwege\n";
 
@@ -112,6 +114,8 @@ public class PutSurveyWriter implements AutoCloseable {
 				writer.set(COL_TOURID, "");
 				writer.set(COL_TRIPID, "");
 				writer.set(COL_DIRECTION, "");
+				writer.set(COL_QBEZIRK, fromZone);
+				writer.set(COL_ZBEZIRK, toZone);
 				writer.writeRow();
 			}
 		}
