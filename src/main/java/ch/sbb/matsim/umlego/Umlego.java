@@ -10,6 +10,8 @@ import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
+import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -91,7 +93,7 @@ public class Umlego {
 		PerceivedJourneyTimeParameters pjt = new PerceivedJourneyTimeParameters(1.0, 2.94, 2.94, 2.25, 1.13, 17.24, 0.03, 58.0);
 		RouteImpedanceParameters impedance = new RouteImpedanceParameters(1.0, 1.85, 1.85);
 		RouteSelectionParameters routeSelection = new RouteSelectionParameters(false,3600.0, 3600.0, RouteUtilityCalculators.boxcox(1.536, 0.5)); // take routes 1 hour before and after into account
-		WriterParameters writer = new WriterParameters(false, true);
+		WriterParameters writer = new WriterParameters(1e-5);
 		UmlegoParameters params = new UmlegoParameters(5, search, preselection, pjt, impedance, routeSelection, writer);
 
 		Map<String, List<ConnectedStop>> zoneConnections = Umlego.readZoneConnections(zoneConnectionsFilename, scenario);
@@ -100,7 +102,7 @@ public class Umlego {
 		long endTime = System.currentTimeMillis();
 		LOG.info("total time: {} seconds", (endTime - startTime) / 1000.0);
 		LOG.info("calculation+write time: {} seconds", (endTime - calcStartTime) / 1000.0);
-		LOG.info("threads: {}, writeRoutesWithoutDemand {}, writeDetails {}", threads, writer.writeRoutesWithoutDemand, writer.writeDetails);
+		LOG.info("threads: {}, minimalDemandForWriting {}", threads, writer.minimalDemandForWriting());
 	}
 
 	public Umlego(OMXODParser demand, Scenario scenario, Map<String, List<ConnectedStop>> stopsPerZone) {
@@ -258,8 +260,7 @@ public class Umlego {
 	}
 
 	public record WriterParameters(
-			boolean writeRoutesWithoutDemand,
-			boolean writeDetails
+			double minimalDemandForWriting
 	) {}
 
 	public record UmlegoParameters(

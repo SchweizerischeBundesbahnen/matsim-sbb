@@ -73,7 +73,7 @@ class UmlegoWriter implements Runnable {
 					}
 
 					for (Umlego.FoundRoute route : routesToDestination) {
-						if (this.params.writeRoutesWithoutDemand() || route.demand.getDouble(destZone) > 0) {
+						if (route.demand.getDouble(destZone) >= this.params.minimalDemandForWriting()) {
 							writer.writeRoute(origZone, destZone, route);
 						}
 					}
