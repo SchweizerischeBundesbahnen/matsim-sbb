@@ -47,7 +47,7 @@ public class UmlegoCsvWriter implements AutoCloseable {
 				Time.writeTime(route.travelTimeWithoutAccess),
 				Integer.toString(route.transfers),
 				String.format("%.2f", route.distance / 1000.0),
-				String.format("%.5f", route.demand),
+				String.format("%.5f", route.demand.getDouble(destZone)),
 				this.writeDetails ? route.getRouteAsString() : ""
 		});
 	}

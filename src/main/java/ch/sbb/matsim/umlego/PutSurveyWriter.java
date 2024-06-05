@@ -66,6 +66,11 @@ public class PutSurveyWriter implements AutoCloseable {
 	public void writeRoute(String fromZone, String toZone, Umlego.FoundRoute route) {
 		String pathId = String.valueOf(this.teilwegNr.incrementAndGet());
 		int legId = 0;
+		String teilweg_kennung = "E"; // first teilweg should have E, all later ones N
+
+		double demand = route.demand.get(toZone);
+		String demandString = Double.toString(demand);
+
 		for (RaptorRoute.RoutePart routePart : route.routeParts) {
 			if (routePart.line != null) {
 				legId++;
@@ -80,14 +85,10 @@ public class PutSurveyWriter implements AutoCloseable {
 
 				String fzprofilname = String.valueOf(transitRoute.getAttributes().getAttribute(FZPNAME));
 
-				String teilweg_kennung = legId > 1 ? "N" : "E";
 				// always use day = 1
 				String einhstabfahrtstag = "1";
 //				String einhstabfahrtstag = getDayIndex(routePart.boardingTime);
 				String einhstabfahrtszeit = getTime(routePart.boardingTime);
-
-				String origGem = route.originStop.getName();
-				String destGem = route.destinationStop.getName();
 
 				writer.set(COL_PATH_ID, pathId);
 				writer.set(COL_LEG_ID, Integer.toString(legId));
@@ -102,10 +103,12 @@ public class PutSurveyWriter implements AutoCloseable {
 				writer.set(COL_EINHSTNR, fromStop);
 				writer.set(COL_EINHSTABFAHRTSTAG, einhstabfahrtstag);
 				writer.set(COL_EINHSTABFAHRTSZEIT, einhstabfahrtszeit);
-				writer.set(COL_PFAHRT, Double.toString(route.demand));
+				writer.set(COL_PFAHRT, demandString);
 				writer.set(COL_QBEZIRK, fromZone);
 				writer.set(COL_ZBEZIRK, toZone);
 				writer.writeRow();
+
+				teilweg_kennung = "N";
 			}
 		}
 

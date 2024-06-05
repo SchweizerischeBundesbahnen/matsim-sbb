@@ -459,7 +459,7 @@ class UmlegoWorker implements Runnable {
 				double routeShare = routeUtilities[i] / utilitiesSum;
 				double routeDemand = odDemand * sharePerSample * routeShare;
 				Umlego.FoundRoute route = potentialRoutes[i];
-				route.demand += routeDemand;
+				route.demand.mergeDouble(destinationZone, routeDemand, Double::sum);
 			}
 		}
 	}

@@ -288,7 +288,7 @@ public class Umlego {
 		public double searchImpedance = Double.NaN; // Suchwiderstand
 		public double perceivedJourneyTime_min = Double.NaN; // Empfundene Reisezeit
 		public double utility = Double.NaN; // Nutzen der Verbindung in einem spezifischen Zeitinterval
-		public double demand = 0;
+		public Object2DoubleMap<String> demand = new Object2DoubleOpenHashMap<>();
 		public double originality = 0; // Eigenständigkeit
 
 		public FoundRoute(RaptorRoute route) {
