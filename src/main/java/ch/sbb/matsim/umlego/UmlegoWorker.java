@@ -92,14 +92,17 @@ class UmlegoWorker implements Runnable {
 		IntSet destinationStopIndices = new IntOpenHashSet();
 
 		for (String destinationZone : this.destinationZoneIds) {
-			for (String matrixName : this.demand.getMatrixNames()) {
-				double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
-				if (value > 0) {
-					List<TransitStopFacility> stops = this.stopsPerZone.getOrDefault(destinationZone, emptyList).stream().map(stop -> stop.stopFacility()).toList();
-					for (TransitStopFacility stop : stops) {
-						destinationStopIndices.add(stop.getId().index());
+			// exclude intrazonal demand
+			if (!destinationZone.equals(originZone)) {
+				for (String matrixName : this.demand.getMatrixNames()) {
+					double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
+					if (value > 0) {
+						List<TransitStopFacility> stops = this.stopsPerZone.getOrDefault(destinationZone, emptyList).stream().map(stop -> stop.stopFacility()).toList();
+						for (TransitStopFacility stop : stops) {
+							destinationStopIndices.add(stop.getId().index());
+						}
+						break;
 					}
-					break;
 				}
 			}
 		}
