@@ -28,6 +28,7 @@ class UmlegoWorker implements Runnable {
 	private final BlockingQueue<WorkItem> workerQueue;
 	private final Umlego.UmlegoParameters params;
 	private final OMXODParser demand;
+	private final List<String> demandMatrixNames;
 	private final SwissRailRaptor raptor;
 	private final RaptorParameters raptorParams;
 	private final IntSet destinationStopIndices;
@@ -47,6 +48,7 @@ class UmlegoWorker implements Runnable {
 		this.workerQueue = workerQueue;
 		this.params = params;
 		this.demand = demand;
+		this.demandMatrixNames = this.demand.getMatrixNames();
 		this.raptor = raptor;
 		this.raptorParams = raptorParams;
 		this.destinationStopIndices = destinationStopIndices;
@@ -94,7 +96,7 @@ class UmlegoWorker implements Runnable {
 		for (String destinationZone : this.destinationZoneIds) {
 			// exclude intrazonal demand
 			if (!destinationZone.equals(originZone)) {
-				for (String matrixName : this.demand.getMatrixNames()) {
+				for (String matrixName : this.demandMatrixNames) {
 					double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
 					if (value > 0) {
 						List<TransitStopFacility> stops = this.stopsPerZone.getOrDefault(destinationZone, emptyList).stream().map(stop -> stop.stopFacility()).toList();
@@ -392,7 +394,7 @@ class UmlegoWorker implements Runnable {
 		sortRoutesByDepartureTime(foundRoutes);
 		Umlego.UnroutableDemand unroutableDemand = new Umlego.UnroutableDemand();
 		for (String destinationZone : this.destinationZoneIds) {
-			for (String matrixName : this.demand.getMatrixNames()) {
+			for (String matrixName : this.demandMatrixNames) {
 				double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
 				if (value > 0) {
 					int matrixNumber = Integer.parseInt(matrixName);
