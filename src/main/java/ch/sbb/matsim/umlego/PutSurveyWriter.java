@@ -87,8 +87,8 @@ public class PutSurveyWriter implements AutoCloseable {
 
 				// always use day = 1
 				String einhstabfahrtstag = "1";
-//				String einhstabfahrtstag = getDayIndex(routePart.boardingTime);
-				String einhstabfahrtszeit = getTime(routePart.boardingTime);
+//				String einhstabfahrtstag = getDayIndex(routePart.vehicleDepTime);
+				String einhstabfahrtszeit = getTime(routePart.vehicleDepTime);
 
 				writer.set(COL_PATH_ID, pathId);
 				writer.set(COL_LEG_ID, Integer.toString(legId));
