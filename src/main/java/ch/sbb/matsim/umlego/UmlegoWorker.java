@@ -400,17 +400,17 @@ class UmlegoWorker implements Runnable {
 					int matrixNumber = Integer.parseInt(matrixName);
 					double startTime = (matrixNumber - 1) * 10 * 60; // 10-minute time slots, in seconds
 					double endTime = (matrixNumber) * 10 * 60;
-					assignDemand(destinationZone, startTime, endTime, value, foundRoutes, unroutableDemand);
+					assignDemand(originZone, destinationZone, startTime, endTime, value, foundRoutes, unroutableDemand);
 				}
 			}
 		}
 		return new WorkResult(originZone, foundRoutes, unroutableDemand);
 	}
 
-	private void assignDemand(String destinationZone, double startTime, double endTime, double odDemand, Map<String, List<Umlego.FoundRoute>> foundRoutes, Umlego.UnroutableDemand unroutableDemand) {
+	private void assignDemand(String originZone, String destinationZone, double startTime, double endTime, double odDemand, Map<String, List<Umlego.FoundRoute>> foundRoutes, Umlego.UnroutableDemand unroutableDemand) {
 		var routes = foundRoutes.get(destinationZone);
 		if (routes == null) {
-			unroutableDemand.demand += odDemand;
+			unroutableDemand.parts.add(new Umlego.UnroutableDemandPart(originZone, destinationZone, odDemand));
 			return;
 		}
 
@@ -425,7 +425,7 @@ class UmlegoWorker implements Runnable {
 			potentialRoutes = routes.toArray(new Umlego.FoundRoute[0]);
 		}
 		if (potentialRoutes.length == 0) {
-			unroutableDemand.demand += odDemand;
+			unroutableDemand.parts.add(new Umlego.UnroutableDemandPart(originZone, destinationZone, odDemand));
 			return;
 		}
 

@@ -19,11 +19,13 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.vehicles.MatsimVehicleReader;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -56,7 +58,8 @@ public class Umlego {
 		String scheduleFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable_v2/output/transitSchedule.xml.gz";
 		String vehiclesFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable_v2/output/transitVehicles.xml.gz";
 		String zoneConnectionsFilename = "/Users/Shared/data/projects/Umlego/input_data/timetable/Anbindungszeiten.csv";
-		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_putsurvey_83zones.txt";
+		String csvOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_putsurvey_allZones.txt";
+		String unroutableDemandOutputFilename = "/Users/Shared/data/projects/Umlego/umlego_unroutable.csv";
 		int threads = 6;
 
 		// load transit schedule
@@ -98,7 +101,7 @@ public class Umlego {
 
 		Map<String, List<ConnectedStop>> zoneConnections = Umlego.readZoneConnections(zoneConnectionsFilename, scenario);
 		long calcStartTime = System.currentTimeMillis();
-		new Umlego(demand, scenario, zoneConnections).run(relevantZones, allZones, params, threads, csvOutputFilename);
+		new Umlego(demand, scenario, zoneConnections).run(relevantZones, allZones, params, threads, csvOutputFilename, unroutableDemandOutputFilename);
 		long endTime = System.currentTimeMillis();
 		LOG.info("total time: {} seconds", (endTime - startTime) / 1000.0);
 		LOG.info("calculation+write time: {} seconds", (endTime - calcStartTime) / 1000.0);
@@ -111,7 +114,7 @@ public class Umlego {
 		this.stopsPerZone = stopsPerZone;
 	}
 
-	public void run(List<String> originZones, List<String> destinationZones, UmlegoParameters params, int threadCount, String csvOutputFilename) {
+	public void run(List<String> originZones, List<String> destinationZones, UmlegoParameters params, int threadCount, String csvOutputFilename, String unroutableDemandOutputFilename) {
 		List<String> originZoneIds = originZones == null ? new ArrayList<>(demand.getAllLookupValues()) : new ArrayList<>(originZones);
 		originZoneIds.sort(String::compareTo);
 		List<String> destinationZoneIds = destinationZones == null ? new ArrayList<>(demand.getAllLookupValues()) : new ArrayList<>(destinationZones);
@@ -202,18 +205,33 @@ public class Umlego {
 			throw new RuntimeException(e);
 		}
 
-		if (unroutableDemand.demand >= 0) {
-			LOG.warn("Unroutable demand: {}", unroutableDemand.demand);
-		} else {
-			LOG.info("Unroutable demand: {}", unroutableDemand.demand);
+		LOG.warn("Unroutable demand");
+		LOG.warn("=================");
+		LOG.warn("From,To,Demand");
+		double sum = 0;
+		try (BufferedWriter unroutableWriter = IOUtils.getBufferedWriter(unroutableDemandOutputFilename)) {
+			unroutableWriter.write("from,to,demand" + System.lineSeparator());
+			for (UnroutableDemandPart part : unroutableDemand.parts) {
+				LOG.warn("{},{},{}", part.fromZone, part.toZone, part.demand);
+				unroutableWriter.write(part.fromZone + "," + part.toZone + "," + part.demand + System.lineSeparator());
+				sum += part.demand;
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
+		LOG.warn("-----------------");
+		LOG.warn("Total {}", sum);
+		LOG.warn("=================");
 	}
 
 	public record ConnectedStop(double walkTime, TransitStopFacility stopFacility) {
 	}
 
 	public static class UnroutableDemand {
-		double demand = 0;
+		List<UnroutableDemandPart> parts = new ArrayList<>();
+	}
+
+	public record UnroutableDemandPart(String fromZone, String toZone, double demand) {
 	}
 
 	public record SearchImpedanceParameters(

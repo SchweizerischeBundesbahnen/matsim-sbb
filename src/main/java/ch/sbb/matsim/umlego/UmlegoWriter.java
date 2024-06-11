@@ -53,8 +53,7 @@ class UmlegoWriter implements Runnable {
 
 				counter++;
 				LOG.info(" - writing routes starting in zone {} ({}/{})", result.originZone(), counter, totalItems);
-				unroutableDemand.demand += result.unroutableDemand().demand;
-
+				unroutableDemand.parts.addAll(result.unroutableDemand().parts);
 				String origZone = result.originZone();
 				Map<String, List<Umlego.FoundRoute>> routesPerDestination = result.routesPerDestinationZone();
 				if (routesPerDestination == null) {
