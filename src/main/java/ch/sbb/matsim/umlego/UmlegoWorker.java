@@ -394,26 +394,32 @@ class UmlegoWorker implements Runnable {
 		sortRoutesByDepartureTime(foundRoutes);
 		Umlego.UnroutableDemand unroutableDemand = new Umlego.UnroutableDemand();
 		for (String destinationZone : this.destinationZoneIds) {
-			for (String matrixName : this.demandMatrixNames) {
-				double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
-				if (value > 0) {
-					int matrixNumber = Integer.parseInt(matrixName);
-					double startTime = (matrixNumber - 1) * 10 * 60; // 10-minute time slots, in seconds
-					double endTime = (matrixNumber) * 10 * 60;
-					assignDemand(originZone, destinationZone, startTime, endTime, value, foundRoutes, unroutableDemand);
+			var routes = foundRoutes.get(destinationZone);
+			if (routes == null || routes.isEmpty()) {
+				double sum = 0;
+				for (String matrixName : this.demandMatrixNames) {
+					double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
+					sum += value;
+				}
+				if (sum > 0) {
+					unroutableDemand.parts.add(new Umlego.UnroutableDemandPart(originZone, destinationZone, sum));
+				}
+			} else {
+				for (String matrixName : this.demandMatrixNames) {
+					double value = this.demand.getMatrixValue(originZone, destinationZone, matrixName);
+					if (value > 0) {
+						int matrixNumber = Integer.parseInt(matrixName);
+						double startTime = (matrixNumber - 1) * 10 * 60; // 10-minute time slots, in seconds
+						double endTime = (matrixNumber) * 10 * 60;
+						assignDemand(originZone, destinationZone, startTime, endTime, value, routes, unroutableDemand);
+					}
 				}
 			}
 		}
 		return new WorkResult(originZone, foundRoutes, unroutableDemand);
 	}
 
-	private void assignDemand(String originZone, String destinationZone, double startTime, double endTime, double odDemand, Map<String, List<Umlego.FoundRoute>> foundRoutes, Umlego.UnroutableDemand unroutableDemand) {
-		var routes = foundRoutes.get(destinationZone);
-		if (routes == null) {
-			unroutableDemand.parts.add(new Umlego.UnroutableDemandPart(originZone, destinationZone, odDemand));
-			return;
-		}
-
+	private void assignDemand(String originZone, String destinationZone, double startTime, double endTime, double odDemand, List<Umlego.FoundRoute> routes, Umlego.UnroutableDemand unroutableDemand) {
 		Umlego.FoundRoute[] potentialRoutes;
 		boolean limit = this.params.routeSelection().limitSelectionToTimewindow();
 		if (limit) {
