@@ -149,7 +149,8 @@ public class Umlego {
 
 		RaptorStaticConfig raptorConfig = RaptorUtils.createStaticConfig(scenario.getConfig());
 		raptorConfig.setOptimization(RaptorStaticConfig.RaptorOptimization.OneToAllRouting);
-		raptorConfig.setBeelineWalkConnectionDistance(400.0);
+		// make sure SwissRailRaptor does not add any more transfers than what is specified in minimal transfer times:
+		raptorConfig.setBeelineWalkConnectionDistance(10.0);
 		SwissRailRaptorData raptorData = SwissRailRaptorData.create(this.scenario.getTransitSchedule(), this.scenario.getTransitVehicles(), raptorConfig, this.scenario.getNetwork(), null);
 
 		// prepare queues with work items
