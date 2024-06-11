@@ -55,7 +55,7 @@ public class GenerateSynpopAndHouseholds {
     private final Population population;
     private final Households households;
     private final ActivityFacilities facilities;
-    private final double employmentProbability = 18103. / 24479.;
+    private final double employmentProbability = (18103. + 670.) / 25185;
     private final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus);
     final Logger log = LogManager.getLogger(GenerateSynpopAndHouseholds.class);
     final Map<Id<Zone>, WeightedRandomSelection<Id<ActivityFacility>>> facilitySelector = new HashMap<>();
@@ -136,12 +136,13 @@ public class GenerateSynpopAndHouseholds {
                     HouseholdImpl household = new HouseholdImpl(householdId);
                     household.getAttributes().putAttribute(PopulationToSynpopexporter.ZONE_ID, zoneId);
                     this.households.getHouseholds().put(householdId, household);
-                    List<Integer> childAges = selectAges(children, ageDistribution, 18, 7);
+                    List<Integer> childAges = selectAges(children, ageDistribution, 0, 20, 8);
                     for (int age : childAges) {
                         Person p = generatePerson(age, householdId, zoneId);
                         personsInHousehold.add(p.getId());
                     }
-                    List<Integer> adultAges = selectAges(adults, ageDistribution, children > 0 ? 60 : 102, 20);
+                    int maxChildAge = childAges.stream().mapToInt(value -> value).max().orElse(0);
+                    List<Integer> adultAges = selectAges(adults, ageDistribution, 20 + maxChildAge, children > 0 ? 65 : 102, 40);
                     for (int age : adultAges) {
                         Person p = generatePerson(age, householdId, zoneId);
                         personsInHousehold.add(p.getId());
@@ -165,7 +166,7 @@ public class GenerateSynpopAndHouseholds {
         boolean isEmployed = false;
         int levelOfEmployment = 0;
         String currentEdu = "null";
-        if (age < 6) currentEdu = "kindergarten";
+        if (age > 4 && age < 7) currentEdu = "kindergarten";
         else if (age < 12) currentEdu = "pupil_primary";
         else if (age < 16) currentEdu = "pupil_secondary";
         else if (age < 20) currentEdu = random.nextDouble() < 0.3 ? APPRENTICE : "pupil_secondary";
@@ -178,7 +179,7 @@ public class GenerateSynpopAndHouseholds {
             curent_job_rank = "employee";
 
             if (random.nextDouble() < 0.34) {
-                levelOfEmployment = 40 + random.nextInt(50);
+                levelOfEmployment = 20 + random.nextInt(70);
             } else {
                 levelOfEmployment = 90 + random.nextInt(11);
             }
@@ -188,7 +189,7 @@ public class GenerateSynpopAndHouseholds {
             levelOfEmployment = 100;
             curent_job_rank = APPRENTICE;
         }
-        person.getAttributes().putAttribute("is_employed", Boolean.toString(isEmployed));
+        person.getAttributes().putAttribute("is_employed", isEmployed);
         person.getAttributes().putAttribute("current_edu", currentEdu);
         person.getAttributes().putAttribute("current_job_rank", curent_job_rank);
         person.getAttributes().putAttribute("level_of_employment", levelOfEmployment);
@@ -198,17 +199,17 @@ public class GenerateSynpopAndHouseholds {
         return person;
     }
 
-    private List<Integer> selectAges(int i, WeightedRandomSelection<Integer> ageDistribution, int maxAge, int maxSpread) {
+    private List<Integer> selectAges(int i, WeightedRandomSelection<Integer> ageDistribution, int minAge, int maxAge, int maxSpread) {
         if (i == 0) return Collections.emptyList();
         List<Integer> ages = new ArrayList<>();
         int firstAge = ageDistribution.select();
-        while (firstAge > maxAge) {
+        while (firstAge > maxAge && firstAge < minAge) {
             firstAge = ageDistribution.select();
         }
         ages.add(firstAge);
         for (int j = 1; j < i; j++) {
             int age = ageDistribution.select();
-            while (age > maxAge && Math.abs(firstAge - age) > maxSpread) {
+            while (age > maxAge && age < minAge && Math.abs(firstAge - age) > maxSpread) {
                 age = ageDistribution.select();
             }
             ages.add(age);
@@ -340,7 +341,11 @@ public class GenerateSynpopAndHouseholds {
                 for (String attribute : populationAttributes) {
                     Object value = p.getAttributes().getAttribute(attribute);
                     if (value != null) {
-                        writer.set(attribute, value.toString());
+                        String outString = value.toString();
+                        if (value instanceof Boolean) {
+                            outString = outString.toUpperCase();
+                        }
+                        writer.set(attribute, outString);
 
                     }
                 }
