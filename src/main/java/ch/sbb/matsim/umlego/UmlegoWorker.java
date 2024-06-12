@@ -452,8 +452,17 @@ class UmlegoWorker implements Runnable {
 			for (int i = 0; i < potentialRoutes.length; i++) {
 				Umlego.FoundRoute route = potentialRoutes[i];
 				double routeDepTime = route.depTime - route.originConnectedStop.walkTime();
-				double deltaTEarly = (routeDepTime < time) ? (time - routeDepTime) : 0.0;
-				double deltaTLate = (routeDepTime > time) ? (routeDepTime - time) : 0.0;
+				// assume wrap-around of 24 hours for schedule
+				// normalize the delta in the range of -12h ... +12h
+				double delta = time - routeDepTime;
+				while (delta > 12*3600) {
+					delta -= 24*3600;
+				}
+				while (delta < -12*3600) {
+					delta += 24*3600;
+				}
+				double deltaTEarly = (delta < 0) ? Math.abs(delta) : 0.0;
+				double deltaTLate = (delta > 0) ? delta : 0.0;
 				double impedance = betaPJT * route.perceivedJourneyTime_min + betaDeltaTEarly * (deltaTEarly / 60.0) + betaDeltaTLate * (deltaTLate / 60.0);
 				impedances[i] = impedance;
 				if (impedance < minImpedance) {
