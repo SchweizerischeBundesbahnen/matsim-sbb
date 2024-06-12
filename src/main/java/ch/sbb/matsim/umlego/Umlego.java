@@ -325,6 +325,8 @@ public class Umlego {
 				if (part.line == null) {
 					// it is a transfer
 					prevTransfer = part;
+					// still update the destination stop in case we arrive the destination by a transfer / walk-link
+					destinationStopFacility = part.toStop;
 				} else {
 					stageCount++;
 					if (routeParts.isEmpty()) {
