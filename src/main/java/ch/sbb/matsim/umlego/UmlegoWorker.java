@@ -122,10 +122,12 @@ class UmlegoWorker implements Runnable {
 				(departureTime, arrivalStop, arrivalTime, transferCount, route) -> {
 					if (destinationStopIndices.contains(arrivalStop.getId().index())) {
 						Umlego.FoundRoute foundRoute = new Umlego.FoundRoute(route.get());
-						foundRoutes
-								.computeIfAbsent(foundRoute.originStop, stop -> new HashMap<>())
-								.computeIfAbsent(foundRoute.destinationStop, stop -> new HashMap<>())
-								.put(foundRoute, Boolean.TRUE);
+						if (foundRoute.originStop != null) {
+							foundRoutes
+									.computeIfAbsent(foundRoute.originStop, stop -> new HashMap<>())
+									.computeIfAbsent(foundRoute.destinationStop, stop -> new HashMap<>())
+									.put(foundRoute, Boolean.TRUE);
+						}
 					}
 				});
 	}
