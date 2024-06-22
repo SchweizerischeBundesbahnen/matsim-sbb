@@ -44,13 +44,13 @@
     </repositories>
 
     <properties>
-        <matsim.version>16.0-SNAPSHOT</matsim.version>
+        <matsim.version>2025.0-SNAPSHOT</matsim.version>
         <junit.version>5.10.1</junit.version>
-        <geotools.version>29.1</geotools.version>
+        <geotools.version>31.2</geotools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
     <dependencies>

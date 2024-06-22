@@ -3,10 +3,10 @@ package ch.sbb.matsim.zones;
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.config.variables.Variables;
 import org.apache.logging.log4j.LogManager;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.File;
 import java.net.URISyntaxException;

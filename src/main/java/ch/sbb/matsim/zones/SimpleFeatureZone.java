@@ -1,11 +1,11 @@
 package ch.sbb.matsim.zones;
 
 import org.apache.logging.log4j.LogManager;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.matsim.api.core.v01.Id;
-import org.opengis.feature.simple.SimpleFeature;
 
 public class SimpleFeatureZone implements Zone {
 
