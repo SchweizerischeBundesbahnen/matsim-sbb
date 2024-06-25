@@ -10,7 +10,7 @@ public class SimpleFeatureZoneTest {
 
 	@Test
 	public void testFindZones() {
-		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP", "ID");
+		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.shp", "ID");
 		Assert.assertEquals(5, zones.size());
 
 		Zone z = zones.findZone(541588, 159160); // 5 / Lausanne

@@ -14,7 +14,7 @@ public class ZonesLoaderTest {
 
 	@Test
 	public void testLoadZones() {
-		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP", "ID");
+		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.shp", "ID");
 		Assert.assertEquals("testZones", zones.getId().toString());
 		Assert.assertEquals(5, zones.size());
 	}
@@ -30,7 +30,7 @@ public class ZonesLoaderTest {
 	public void testLoadAllZones() {
 		Config config = ConfigUtils.createConfig();
 		ZonesListConfigGroup cfg = new ZonesListConfigGroup();
-		cfg.addZones(new ZonesListConfigGroup.ZonesParameterSet("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP", "ID"));
+		cfg.addZones(new ZonesListConfigGroup.ZonesParameterSet("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.shp", "ID"));
 		ZonesCollection zonesCollection = new ZonesCollection();
 		config.addModule(cfg);
 		ZonesLoader.loadAllZones(config, zonesCollection);
