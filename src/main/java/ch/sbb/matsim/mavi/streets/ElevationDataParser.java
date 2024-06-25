@@ -18,13 +18,14 @@
  * *********************************************************************** */
 package ch.sbb.matsim.mavi.streets;
 
+import org.geotools.api.referencing.operation.TransformException;
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.coverage.grid.InvalidGridGeometryException;
-import org.geotools.data.DataSourceException;
+import org.geotools.api.data.DataSourceException;
 import org.geotools.gce.geotiff.GeoTiffReader;
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.geometry.Position2D;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.network.NetworkUtils;
@@ -32,7 +33,6 @@ import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
-import org.opengis.referencing.operation.TransformException;
 
 import java.awt.image.Raster;
 import java.io.IOException;
@@ -119,11 +119,11 @@ public class ElevationDataParser {
         Coord transformedCoord = ct.transform(coord);
         GridCoordinates2D posGrid = null;
         try {
-            posGrid = gg.worldToGrid(new DirectPosition2D(transformedCoord.getX(), transformedCoord.getY()));
+            posGrid = gg.worldToGrid(new Position2D(transformedCoord.getX(), transformedCoord.getY()));
         } catch (InvalidGridGeometryException e) {
             e.printStackTrace();
         } catch (TransformException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         double[] pixel = new double[1];

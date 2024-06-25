@@ -26,6 +26,7 @@ import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
 import org.matsim.core.router.speedy.LeastCostPathTree;
 import org.matsim.core.router.speedy.SpeedyALTFactory;
 import org.matsim.core.router.speedy.SpeedyGraph;
+import org.matsim.core.router.speedy.SpeedyGraphBuilder;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -124,8 +125,8 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     void calculateGridTraveltimesViaTree() {
         Gbl.printMemoryUsage();
         bikenet.getLinks().values().stream().filter(link -> link.getFreespeed() > bikeFreespeed).forEach(link -> link.setFreespeed(bikeFreespeed));
-        SpeedyGraph carGraph = new SpeedyGraph(carnet);
-        SpeedyGraph bikeGraph = new SpeedyGraph(bikenet);
+        SpeedyGraph carGraph = SpeedyGraphBuilder.build(carnet);
+        SpeedyGraph bikeGraph = SpeedyGraphBuilder.build(bikenet);
         SpeedyALTFactory factory = new SpeedyALTFactory();
         logger.info("Building Cache Structure for " + cachedStops.size() + " stops.");
 
