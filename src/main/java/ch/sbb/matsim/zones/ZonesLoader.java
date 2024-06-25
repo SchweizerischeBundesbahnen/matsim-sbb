@@ -4,10 +4,13 @@ import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.config.variables.Variables;
 import org.apache.logging.log4j.LogManager;
 import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.type.Name;
+import org.geotools.feature.NameImpl;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.gis.GeoFileReader;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -58,7 +61,11 @@ public final class ZonesLoader {
 	private static Zones loadZonesFromFile(String id, String filename, String idAttribute) {
 		boolean noZoneId = idAttribute == null || idAttribute.isEmpty();
 		ZonesImpl zones = new ZonesImpl(Id.create(id, Zones.class));
-		for (SimpleFeature sf : GeoFileReader.getAllFeatures(filename)) {
+		Name layerName = null;
+		if (!FilenameUtils.getExtension(filename).equals("shp")) {
+			layerName = new NameImpl(FilenameUtils.getBaseName(filename));
+		}
+		for (SimpleFeature sf : GeoFileReader.getAllFeatures(filename, layerName)) {
 			String zoneId = noZoneId ? null : sf.getAttribute(idAttribute).toString();
 			Zone zone = new SimpleFeatureZone(noZoneId ? null : Id.create(zoneId, Zone.class), sf);
 			zones.add(zone);
