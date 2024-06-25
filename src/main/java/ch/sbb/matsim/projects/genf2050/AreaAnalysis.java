@@ -48,23 +48,24 @@ public class AreaAnalysis {
 
     public static void main(String[] args) {
         Map<String, String> runs = new TreeMap<>();
-        String root = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\";
-        runs.put("10.0", root + "10.0-sans_I_avec_Furet");
-        runs.put("10.5", root + "10.5-sans_I_avec_Furet_miv");
-        runs.put("5.0", root + "5.0-ref_ak_35");
-        runs.put("5.5", root + "5.5-ref_ak_35_miv");
-        runs.put("6.0", root + "6.0-netzplan-sma");
-        runs.put("6.5", root + "6.5-netzplan-sma_miv");
-        runs.put("7.0", root + "7.0-metroX");
-        runs.put("7.5", root + "7.5-metroX_miv");
-        runs.put("8.0", root + "8.0-max");
-        runs.put("8.5", root + "8.5-max_miv");
-        runs.put("9.0", root + "9.0-x4_champel");
-        runs.put("9.5", root + "9.5-x4_champel_miv");
+//        String root = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\sim\\";
+        String root = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2050\\sim\\";
+        runs.put("M332050.2", root + "3.3.2050.2.50pct");
+//        runs.put("VB", root + "vollbahn_v2");
+//        runs.put("5.0", root + "5.0-ref_ak_35");
+//        runs.put("5.5", root + "5.5-ref_ak_35_miv");
+//        runs.put("6.0", root + "6.0-netzplan-sma");
+//        runs.put("6.5", root + "6.5-netzplan-sma_miv");
+//        runs.put("7.0", root + "7.0-metroX");
+//        runs.put("7.5", root + "7.5-metroX_miv");
+//        runs.put("8.0", root + "8.0-max");
+//        runs.put("8.5", root + "8.5-max_miv");
+//        runs.put("9.0", root + "9.0-x4_champel");
+//        runs.put("9.5", root + "9.5-x4_champel_miv");
 
-        String roadNet = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\streets\\ref\\output\\network.xml.gz";
-        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\Auswertungen\\zonen\\kanton_ge.shp";
-        String outputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220411_Genf_2050\\sim\\Auswertungen\\Modalsplit\\perimeter-ge.csv";
+        String roadNet = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\streets\\ref\\output\\network.xml.gz";
+        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\Auswertungen\\zonen\\kanton_GE.shp";
+        String outputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\Auswertungen\\zonen\\perimeter-ge-ref.csv";
         Network network = NetworkUtils.createNetwork();
         new MatsimNetworkReader(network).readFile(roadNet);
         Zones zones = ZonesLoader.loadZones(Variables.ZONE_ID, zonesFile);
