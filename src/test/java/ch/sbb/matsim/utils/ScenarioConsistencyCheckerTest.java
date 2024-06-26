@@ -43,10 +43,10 @@ public class ScenarioConsistencyCheckerTest {
 	@Test
 	public void checkVehicleNamespace() {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		scenario.getVehicles().addVehicleType(VehicleUtils.getDefaultVehicleType());
-		scenario.getTransitVehicles().addVehicleType(VehicleUtils.getDefaultVehicleType());
-		scenario.getVehicles().addVehicle(VehicleUtils.createVehicle(Id.createVehicleId(1),VehicleUtils.getDefaultVehicleType()));
-		scenario.getTransitVehicles().addVehicle(VehicleUtils.createVehicle(Id.createVehicleId(1),VehicleUtils.getDefaultVehicleType()));
+		scenario.getVehicles().addVehicleType(VehicleUtils.createDefaultVehicleType());
+		scenario.getTransitVehicles().addVehicleType(VehicleUtils.createDefaultVehicleType());
+		scenario.getVehicles().addVehicle(VehicleUtils.createVehicle(Id.createVehicleId(1),VehicleUtils.createDefaultVehicleType()));
+		scenario.getTransitVehicles().addVehicle(VehicleUtils.createVehicle(Id.createVehicleId(1),VehicleUtils.createDefaultVehicleType()));
 		assertFalse(ScenarioConsistencyChecker.checkVehicles(scenario));
 	}
 

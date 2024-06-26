@@ -30,6 +30,7 @@ import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.speedy.LeastCostPathTree;
 import org.matsim.core.router.speedy.SpeedyGraph;
+import org.matsim.core.router.speedy.SpeedyGraphBuilder;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -202,7 +203,7 @@ public class Accessibility {
 			loadScenario(requiresCar);
 		}
 
-		SpeedyGraph carGraph = new SpeedyGraph(this.carNetwork);
+		SpeedyGraph carGraph = SpeedyGraphBuilder.build(this.carNetwork);
 		log.info("filter car-only network for assigning links to locations");
 		Network xy2linksNetwork = extractXy2LinksNetwork(this.carNetwork);
 

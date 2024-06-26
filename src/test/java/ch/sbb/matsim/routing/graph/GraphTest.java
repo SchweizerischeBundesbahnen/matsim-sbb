@@ -12,6 +12,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.speedy.SpeedyGraph;
 import org.matsim.core.router.speedy.SpeedyGraph.LinkIterator;
+import org.matsim.core.router.speedy.SpeedyGraphBuilder;
 
 /**
  * @author mrieser
@@ -23,7 +24,7 @@ public class GraphTest {
 		Fixture f = new Fixture();
 		Network network = f.network;
 
-		SpeedyGraph graph = new SpeedyGraph(network);
+		SpeedyGraph graph = SpeedyGraphBuilder.build(network);
 
 		// test out-links
 
