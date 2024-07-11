@@ -134,7 +134,7 @@ public class ScenarioConsistencyChecker {
 					checkPassed = false;
 				}
 			}
-			if (!String.valueOf(p.getAttributes().getAttribute(Variables.CAR_AVAIL)).equals(Variables.CAR_AVAL_TRUE)){
+            if (!String.valueOf(p.getAttributes().getAttribute(Variables.CAR_AVAIL)).equals(Variables.AVAIL_TRUE)) {
 				var usesCar = TripStructureUtils.getLegs(p.getSelectedPlan()).stream().anyMatch(leg -> leg.getMode().equals(SBBModes.CAR));
 				if (usesCar) {
 					LOGGER.error("Person " + p.getId() + " has no car available, but at least one car trip in initial plan");
@@ -175,9 +175,9 @@ public class ScenarioConsistencyChecker {
 		boolean setProperly = switch (carModeAllowedSetting) {
 			case always -> true;
 			case carAvailable ->
-					scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.CAR_AVAL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.CAR_AVAIL))));
+                    scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.AVAIL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.CAR_AVAIL))));
 			case licenseAvailable ->
-					scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.CAR_AVAL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.HAS_DRIVING_LICENSE))));
+                    scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.AVAIL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.HIGHEST_EDUCATION))));
 
 
 		};

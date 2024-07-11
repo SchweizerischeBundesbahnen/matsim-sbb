@@ -47,9 +47,12 @@ public class Variables {
     public static final String PERSONID = "person_id";
 
     public static final String CAR_AVAIL = "car_available";
-    public static final String CAR_AVAL_TRUE = "1";
-    public static final String CAR_AVAL_FALSE = "0";
+    public static final String EBIKE_AVAIL = "has_ebike";
+    public static final String AVAIL_TRUE = "1";
+    public static final String AVAIL_FALSE = "0";
     public static final String HAS_DRIVING_LICENSE = "has_driving_license";
+
+    public static final String HIGHEST_EDUCATION = "highest_education";
 
     public static final String OUTSIDE = "outside";
 
