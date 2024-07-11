@@ -1,5 +1,6 @@
 package ch.sbb.matsim.projects.synpop.liechtenstein;
 
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.projects.synpop.bordercrossingagents.BorderCrossingAgentsOSMBuildingParser;
@@ -55,7 +56,7 @@ public class GenerateSynpopAndHouseholds {
     private final Population population;
     private final Households households;
     private final ActivityFacilities facilities;
-    private final double employmentProbability = 18103. / 24479.;
+    private final double employmentProbability = 0.96;
     private final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus);
     final Logger log = LogManager.getLogger(GenerateSynpopAndHouseholds.class);
     final Map<Id<Zone>, WeightedRandomSelection<Id<ActivityFacility>>> facilitySelector = new HashMap<>();
@@ -165,10 +166,13 @@ public class GenerateSynpopAndHouseholds {
         boolean isEmployed = false;
         int levelOfEmployment = 0;
         String currentEdu = "null";
+        String highestEdu = "1";
         if (age < 6) currentEdu = "kindergarten";
         else if (age < 12) currentEdu = "pupil_primary";
         else if (age < 16) currentEdu = "pupil_secondary";
         else if (age < 20) currentEdu = random.nextDouble() < 0.3 ? APPRENTICE : "pupil_secondary";
+
+
         String curent_job_rank = "null";
 
         if (age > 17 && age < 65) {
@@ -188,12 +192,25 @@ public class GenerateSynpopAndHouseholds {
             levelOfEmployment = 100;
             curent_job_rank = APPRENTICE;
         }
+
+        if (currentEdu.equals("null")) {
+            double eduProbability = random.nextDouble();
+            if (eduProbability < 0.2) {
+                highestEdu = "1";
+            } else if (eduProbability < 0.55) {
+                highestEdu = "2";
+            } else {
+                highestEdu = "3";
+            }
+        }
+
         person.getAttributes().putAttribute("is_employed", Boolean.toString(isEmployed));
         person.getAttributes().putAttribute("current_edu", currentEdu);
         person.getAttributes().putAttribute("current_job_rank", curent_job_rank);
         person.getAttributes().putAttribute("level_of_employment", levelOfEmployment);
         person.getAttributes().putAttribute("language", "german");
         person.getAttributes().putAttribute("is_swiss", false);
+        person.getAttributes().putAttribute(Variables.HIGHEST_EDUCATION, highestEdu);
         personNo++;
         return person;
     }
