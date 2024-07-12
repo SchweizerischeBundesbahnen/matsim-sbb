@@ -50,8 +50,10 @@ public class GenerateAdditionalTripsFromAbroad {
     private final Map<String, WeightedRandomSelection<Id<Zone>>> weightedZonesPerAggregate = new HashMap<>();
     private final Map<String, Map<String, MutableInt>> endogenousDemand = new HashMap<>();
     private final Map<String, Map<String, Double>> missingDemand = new HashMap<>();
+    private final double growthFactor;
 
-    GenerateAdditionalTripsFromAbroad(OMXODParser omxodParser, Population population, List<String> relevantModes, Zones zones, int sampleFactor, Random random) {
+    GenerateAdditionalTripsFromAbroad(OMXODParser omxodParser, Population population, List<String> relevantModes, Zones zones, int sampleFactor, Random random, double growthFactor) {
+        this.growthFactor = growthFactor;
         this.omxodParser = omxodParser;
         this.population = population;
         this.relevantModes = relevantModes;
@@ -66,15 +68,16 @@ public class GenerateAdditionalTripsFromAbroad {
     }
 
     public static void main(String[] args) {
-        String inputPopulationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230825_Grenzguertel\\plans\\v7\\plans.xml.gz";
-        String inputFacilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230825_Grenzguertel\\plans\\v7\\facilities.xml.gz";
-        String inputZonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230825_Grenzguertel\\plans\\v7\\mobi-zones.shp";
+        String inputPopulationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\sim\\9_skims\\output\\9_skims.output_plans.xml.gz";
+        String inputFacilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\sim\\9_skims\\output\\9_skims.output_facilities.xml.gz";
+        String inputZonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans\\9_skims\\output\\9_skims.mobi-zones.shp";
         String npvmMatrixFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\NPVM_2017_7_QZD.omx";
         String outputMissingDemandStatsFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\output\\missingDemand_amr.csv";
         String foreignConnectorsLocationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\Anbindungen_Pseudozonen_Ausland.csv";
         String timeDistributionFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\2016_Ganglinie.csv";
         String outputPopulationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\output\\cb_road.xml.gz";
-        int sampleFactor = 1;
+        int sampleFactor = 10;
+        double growthFactor = 1.15;
 
 
         Random random = MatsimRandom.getRandom();
@@ -85,7 +88,7 @@ public class GenerateAdditionalTripsFromAbroad {
         OMXODParser parser = new OMXODParser();
         parser.openMatrix(npvmMatrixFile);
         Zones zs = ZonesLoader.loadZones("z", inputZonesFile);
-        GenerateAdditionalTripsFromAbroad generator = new GenerateAdditionalTripsFromAbroad(parser, scenario.getPopulation(), relevantModes, zs, sampleFactor, random);
+        GenerateAdditionalTripsFromAbroad generator = new GenerateAdditionalTripsFromAbroad(parser, scenario.getPopulation(), relevantModes, zs, sampleFactor, random, growthFactor);
         generator.calculateMissingDemand();
         generator.writeMissingDemandReport(generator.getMissingDemand(), outputMissingDemandStatsFile);
         var coordinateSelector = SingleTripAgentCreator.createCoordinateSelector(scenario, zs, random, foreignConnectorsLocationFile);
@@ -103,7 +106,7 @@ public class GenerateAdditionalTripsFromAbroad {
         Map<Id<Zone>, Map<Id<Zone>, Double>> disaggregatedMissingDemand = new HashMap<>();
         for (var fromAgg : this.missingDemand.entrySet()) {
             for (var toAgg : fromAgg.getValue().entrySet()) {
-                Double trips = toAgg.getValue();
+                Double trips = toAgg.getValue() * growthFactor;
                 for (double i = 0.0; i < trips; i++) {
                     double leftoverTrips = trips - i;
                     if (leftoverTrips < 1.0) {
@@ -178,8 +181,8 @@ public class GenerateAdditionalTripsFromAbroad {
                     if (fromZone != null) {
                         String fromAgg = SingleTripAgentCreator.getAggregateZone(zones, fromZone.getId());
                         Zone toZone = zones.findZone(trip.getDestinationActivity().getCoord());
-                        String toAgg = SingleTripAgentCreator.getAggregateZone(zones, toZone.getId());
                         if (toZone != null) {
+                            String toAgg = SingleTripAgentCreator.getAggregateZone(zones, toZone.getId());
                             endogenousDemand.computeIfAbsent(fromAgg, a -> new HashMap<>()).computeIfAbsent(toAgg, a -> new MutableInt()).add(sampleFactor);
                         }
                     }
