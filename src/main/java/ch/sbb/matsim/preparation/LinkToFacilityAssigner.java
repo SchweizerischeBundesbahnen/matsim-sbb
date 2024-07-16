@@ -39,7 +39,8 @@ public class LinkToFacilityAssigner {
 
     private static void assignLinkToFacility(ActivityFacilities facilities, Network network) {
         facilities.getFacilities().values().
-                forEach(f -> FacilitiesUtils.setLinkID(f, NetworkUtils.getNearestLink(network,
+                stream().filter(f -> f.getLinkId() == null)
+                .forEach(f -> FacilitiesUtils.setLinkID(f, NetworkUtils.getNearestLink(network,
                         f.getCoord()).getId()));
     }
 

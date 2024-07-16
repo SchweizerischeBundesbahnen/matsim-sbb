@@ -22,6 +22,7 @@ package ch.sbb.matsim.analysis.linkAnalysis;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer.AnalysisVehicleType;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.streets.MergeRuralLinks;
@@ -53,7 +54,9 @@ public class CarLinkAnalysis {
 
 	private static final String VOLUME_RIDE = "VOLUME_RIDE";
 	private static final String VOLUME_BIKE = "VOLUME_BIKE";
-	private static final String[] VOLUMES_COLUMNS = new String[]{LINK_NO, FROMNODENO, TONODENO, LINK_ID_SIM, VOLUME_CAR, VOLUME_RIDE, VOLUME_BIKE, VOLUME_FREIGHT, VOLUME_MOTORIZED_VEHICLES};
+	private static final String VOLUME_BIKE_TOTAL = "VOLUME_BIKE_TOTAL";
+	private static final String VOLUME_EBIKE = "VOLUME_EBIKE";
+	private static final String[] VOLUMES_COLUMNS = new String[]{LINK_NO, FROMNODENO, TONODENO, LINK_ID_SIM, VOLUME_CAR, VOLUME_RIDE, VOLUME_BIKE, VOLUME_EBIKE, VOLUME_BIKE_TOTAL, VOLUME_FREIGHT, VOLUME_MOTORIZED_VEHICLES};
 	private static final String HEADER = "$VISION\n* Schweizerische Bundesbahnen SBB Personenverkehr Bern\n* 12/09/22\n* \n* Table: Version block\n* \n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n12.00;Att;ENG;KM\n\n* \n* Table: Links\n* \n";
 	private final Network network;
 	private final Population population;
@@ -117,6 +120,9 @@ public class CarLinkAnalysis {
 					final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
 					String id = link.getId().toString();
 					String vLinks = (String) link.getAttributes().getAttribute(MergeRuralLinks.vlinks);
+					double bikeCount = volume.getBikeCount() / samplesize;
+					double ebikeCount = volume.getEbikeCount() / samplesize;
+					double totalBikeCount = bikeCount + ebikeCount;
 					if (vLinks != null) {
 						String[] vlinksList = vLinks.split(",");
 						List<VirtualVisumLink> virtualVisumLinkList = new ArrayList<>();
@@ -137,12 +143,7 @@ public class CarLinkAnalysis {
 							writer.set(LINK_NO, String.valueOf(vLink.visumLinkNo()));
 							writer.set(FROMNODENO, String.valueOf(vLink.fromNode()));
 							writer.set(TONODENO, String.valueOf(vLink.toNode()));
-							writer.set(LINK_ID_SIM, id);
-							writer.set(VOLUME_CAR, Integer.toString((int) carVolume));
-							writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
-							writer.set(VOLUME_BIKE, Integer.toString((int) (volume.getBikeCount() / samplesize)));
-							writer.set(VOLUME_FREIGHT, Integer.toString((int) freightVolume));
-							writer.set(VOLUME_MOTORIZED_VEHICLES, Integer.toString((int) (carVolume + freightVolume)));
+							setVolumes(writer, id, carVolume, volume, (int) bikeCount, (int) ebikeCount, (int) totalBikeCount, freightVolume);
 							writer.writeRow();
 						}
 
@@ -151,12 +152,7 @@ public class CarLinkAnalysis {
 						writer.set(LINK_NO, visumNo);
 						writer.set(TONODENO, toNode);
 						writer.set(FROMNODENO, fromNode);
-						writer.set(LINK_ID_SIM, id);
-						writer.set(VOLUME_CAR, Integer.toString((int) carVolume));
-						writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
-						writer.set(VOLUME_BIKE, Integer.toString((int) (volume.getBikeCount() / samplesize)));
-						writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
-						writer.set(VOLUME_MOTORIZED_VEHICLES, Integer.toString((int) (carVolume + freightVolume)));
+						setVolumes(writer, id, carVolume, volume, (int) bikeCount, (int) ebikeCount, (int) totalBikeCount, freightVolume);
 						writer.writeRow();
 					}
 
@@ -166,6 +162,17 @@ public class CarLinkAnalysis {
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
+	}
+
+	private void setVolumes(CSVWriter writer, String id, double carVolume, LinkStorage volume, int bikeCount, int ebikeCount, int totalBikeCount, double freightVolume) {
+		writer.set(LINK_ID_SIM, id);
+		writer.set(VOLUME_CAR, Integer.toString((int) carVolume));
+		writer.set(VOLUME_RIDE, Integer.toString((int) (volume.getRideCount() / samplesize)));
+		writer.set(VOLUME_BIKE, Integer.toString(bikeCount));
+		writer.set(VOLUME_EBIKE, Integer.toString(ebikeCount));
+		writer.set(VOLUME_BIKE_TOTAL, Integer.toString(totalBikeCount));
+		writer.set(VOLUME_FREIGHT, Integer.toString((int) (volume.getFreightCount() / samplesize)));
+		writer.set(VOLUME_MOTORIZED_VEHICLES, Integer.toString((int) (carVolume + freightVolume)));
 	}
 
 	record VirtualVisumLink(int fromNode, int toNode, int visumLinkNo) {
@@ -183,6 +190,13 @@ public class CarLinkAnalysis {
 						for (var link : linkIds) {
 							var linkId = Id.createLinkId(link);
 							var linkStorage = linkVolumes.getOrDefault(linkId, new LinkStorage(linkId));
+							if (mode.equals(SBBModes.BIKE)) {
+								boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.EBIKE_AVAIL)).equals(Variables.AVAIL_TRUE);
+								if (hasEBike) {
+									vehicleType = AnalysisVehicleType.ebike;
+								}
+
+							}
 							linkStorage.increase(vehicleType);
 							linkVolumes.put(linkId, linkStorage);
 						}
@@ -202,6 +216,7 @@ public class CarLinkAnalysis {
 		private int carCount = 0;
 		private int rideCount = 0;
 		private int bikeCount = 0;
+		private int ebikeCount = 0;
 
 		LinkStorage(Id<Link> linkId) {
 			this.linkId = linkId;
@@ -213,6 +228,7 @@ public class CarLinkAnalysis {
 				case car -> carCount++;
 				case ride -> rideCount++;
 				case bike -> bikeCount++;
+				case ebike -> ebikeCount++;
 				default -> log.warn("Vehicle type cannot be recognized");
 			}
 		}
@@ -235,6 +251,10 @@ public class CarLinkAnalysis {
 
 		public int getBikeCount() {
 			return bikeCount;
+		}
+
+		public int getEbikeCount() {
+			return ebikeCount;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 package ch.sbb.matsim.projects.synpop.bordercrossingagents;
 
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -129,6 +130,7 @@ public class BorderCrossingAgentsGenerator {
                 person.getAttributes().putAttribute("language", language);
                 person.getAttributes().putAttribute("zone_id", zoneId.toString());
                 person.getAttributes().putAttribute("is_employed", "True");
+                person.getAttributes().putAttribute(Variables.HIGHEST_EDUCATION, "2");
                 this.population.addPerson(person);
                 Plan plan = fac.createPlan();
                 person.addPlan(plan);

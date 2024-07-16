@@ -1,5 +1,6 @@
 package ch.sbb.matsim.projects.synpop.liechtenstein;
 
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.projects.synpop.bordercrossingagents.BorderCrossingAgentsOSMBuildingParser;
@@ -55,7 +56,7 @@ public class GenerateSynpopAndHouseholds {
     private final Population population;
     private final Households households;
     private final ActivityFacilities facilities;
-    private final double employmentProbability = (18103. + 670.) / 25185;
+    private final double employmentProbability = 0.96;
     private final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus);
     final Logger log = LogManager.getLogger(GenerateSynpopAndHouseholds.class);
     final Map<Id<Zone>, WeightedRandomSelection<Id<ActivityFacility>>> facilitySelector = new HashMap<>();
@@ -136,13 +137,12 @@ public class GenerateSynpopAndHouseholds {
                     HouseholdImpl household = new HouseholdImpl(householdId);
                     household.getAttributes().putAttribute(PopulationToSynpopexporter.ZONE_ID, zoneId);
                     this.households.getHouseholds().put(householdId, household);
-                    List<Integer> childAges = selectAges(children, ageDistribution, 0, 20, 8);
+                    List<Integer> childAges = selectAges(children, ageDistribution, 18, 7);
                     for (int age : childAges) {
                         Person p = generatePerson(age, householdId, zoneId);
                         personsInHousehold.add(p.getId());
                     }
-                    int maxChildAge = childAges.stream().mapToInt(value -> value).max().orElse(0);
-                    List<Integer> adultAges = selectAges(adults, ageDistribution, 20 + maxChildAge, children > 0 ? 65 : 102, 40);
+                    List<Integer> adultAges = selectAges(adults, ageDistribution, children > 0 ? 60 : 102, 20);
                     for (int age : adultAges) {
                         Person p = generatePerson(age, householdId, zoneId);
                         personsInHousehold.add(p.getId());
@@ -166,10 +166,13 @@ public class GenerateSynpopAndHouseholds {
         boolean isEmployed = false;
         int levelOfEmployment = 0;
         String currentEdu = "null";
-        if (age > 4 && age < 7) currentEdu = "kindergarten";
+        String highestEdu = "1";
+        if (age < 6) currentEdu = "kindergarten";
         else if (age < 12) currentEdu = "pupil_primary";
         else if (age < 16) currentEdu = "pupil_secondary";
         else if (age < 20) currentEdu = random.nextDouble() < 0.3 ? APPRENTICE : "pupil_secondary";
+
+
         String curent_job_rank = "null";
 
         if (age > 17 && age < 65) {
@@ -179,7 +182,7 @@ public class GenerateSynpopAndHouseholds {
             curent_job_rank = "employee";
 
             if (random.nextDouble() < 0.34) {
-                levelOfEmployment = 20 + random.nextInt(70);
+                levelOfEmployment = 40 + random.nextInt(50);
             } else {
                 levelOfEmployment = 90 + random.nextInt(11);
             }
@@ -189,27 +192,40 @@ public class GenerateSynpopAndHouseholds {
             levelOfEmployment = 100;
             curent_job_rank = APPRENTICE;
         }
-        person.getAttributes().putAttribute("is_employed", isEmployed);
+
+        if (currentEdu.equals("null")) {
+            double eduProbability = random.nextDouble();
+            if (eduProbability < 0.2) {
+                highestEdu = "1";
+            } else if (eduProbability < 0.55) {
+                highestEdu = "2";
+            } else {
+                highestEdu = "3";
+            }
+        }
+
+        person.getAttributes().putAttribute("is_employed", Boolean.toString(isEmployed));
         person.getAttributes().putAttribute("current_edu", currentEdu);
         person.getAttributes().putAttribute("current_job_rank", curent_job_rank);
         person.getAttributes().putAttribute("level_of_employment", levelOfEmployment);
         person.getAttributes().putAttribute("language", "german");
         person.getAttributes().putAttribute("is_swiss", false);
+        person.getAttributes().putAttribute(Variables.HIGHEST_EDUCATION, highestEdu);
         personNo++;
         return person;
     }
 
-    private List<Integer> selectAges(int i, WeightedRandomSelection<Integer> ageDistribution, int minAge, int maxAge, int maxSpread) {
+    private List<Integer> selectAges(int i, WeightedRandomSelection<Integer> ageDistribution, int maxAge, int maxSpread) {
         if (i == 0) return Collections.emptyList();
         List<Integer> ages = new ArrayList<>();
         int firstAge = ageDistribution.select();
-        while (firstAge > maxAge && firstAge < minAge) {
+        while (firstAge > maxAge) {
             firstAge = ageDistribution.select();
         }
         ages.add(firstAge);
         for (int j = 1; j < i; j++) {
             int age = ageDistribution.select();
-            while (age > maxAge && age < minAge && Math.abs(firstAge - age) > maxSpread) {
+            while (age > maxAge && Math.abs(firstAge - age) > maxSpread) {
                 age = ageDistribution.select();
             }
             ages.add(age);
@@ -341,11 +357,7 @@ public class GenerateSynpopAndHouseholds {
                 for (String attribute : populationAttributes) {
                     Object value = p.getAttributes().getAttribute(attribute);
                     if (value != null) {
-                        String outString = value.toString();
-                        if (value instanceof Boolean) {
-                            outString = outString.toUpperCase();
-                        }
-                        writer.set(attribute, outString);
+                        writer.set(attribute, value.toString());
 
                     }
                 }

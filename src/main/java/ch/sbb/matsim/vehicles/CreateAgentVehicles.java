@@ -66,16 +66,13 @@ public class CreateAgentVehicles {
 			this.vehicles.addVehicle(vehicle);
 
 			Id<Vehicle> vehicleIdBike = Id.create("v_bike_" + personId, Vehicle.class);
-			Id<Vehicle> vehicleIdEBike = Id.create("v_ebike_" + personId, Vehicle.class);
+			boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.EBIKE_AVAIL)).equals(Variables.AVAIL_TRUE);
 
-			Vehicle vehicleBike = vf.createVehicle(vehicleIdBike, vehicleTypeBike);
-			Vehicle vehicleEBike = vf.createVehicle(vehicleIdEBike, vehicleTypeEBike);
+			Vehicle vehicleBike = vf.createVehicle(vehicleIdBike, hasEBike ? vehicleTypeEBike : vehicleTypeBike);
 			this.vehicles.addVehicle(vehicleBike);
-			this.vehicles.addVehicle(vehicleEBike);
 
 			var vehicleMap = this.mainModes.stream().collect(Collectors.toMap(s -> s, t -> vehicleId));
 			vehicleMap.put(SBBModes.BIKE, vehicleIdBike);
-			vehicleMap.put(SBBModes.EBIKE, vehicleIdEBike);
 			VehicleUtils.insertVehicleIdsIntoAttributes(person, vehicleMap);
 
 		}

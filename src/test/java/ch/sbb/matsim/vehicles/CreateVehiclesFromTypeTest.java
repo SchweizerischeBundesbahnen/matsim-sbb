@@ -74,14 +74,12 @@ public class CreateVehiclesFromTypeTest {
 				scenario.getConfig().qsim().getMainModes());
 		vehicleCreator.createVehicles();
 
-        Assert.assertEquals(6, scenario.getVehicles().getVehicles().size());
+        Assert.assertEquals(4, scenario.getVehicles().getVehicles().size());
         Assert.assertEquals(SBBModes.CAR, scenario.getVehicles().getVehicles().get(Id.create("v" + 1, Vehicle.class)).getType().getId().toString());
         Assert.assertEquals(SBBModes.BIKE, scenario.getVehicles().getVehicles().get(Id.create("v_bike_" + 1, Vehicle.class)).getType().getId().toString());
-        Assert.assertEquals(SBBModes.EBIKE, scenario.getVehicles().getVehicles().get(Id.create("v_ebike_" + 1, Vehicle.class)).getType().getId().toString());
 
         Assert.assertEquals("hgva", scenario.getVehicles().getVehicles().get(Id.create("v5_LZ_1", Vehicle.class)).getType().getId().toString());
         Assert.assertEquals(SBBModes.BIKE, scenario.getVehicles().getVehicles().get(Id.create("v_bike_5_LZ_1", Vehicle.class)).getType().getId().toString());
-        Assert.assertEquals(SBBModes.EBIKE, scenario.getVehicles().getVehicles().get(Id.create("v_ebike_5_LZ_1", Vehicle.class)).getType().getId().toString());
 
 	}
 
