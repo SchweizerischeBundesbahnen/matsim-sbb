@@ -66,7 +66,7 @@ public class CreateAgentVehicles {
 			this.vehicles.addVehicle(vehicle);
 
 			Id<Vehicle> vehicleIdBike = Id.create("v_bike_" + personId, Vehicle.class);
-			boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.EBIKE_AVAIL)).equals(Variables.AVAIL_TRUE);
+			boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.HAS_EBIKE_45)).equals(Variables.AVAIL_TRUE);
 
 			Vehicle vehicleBike = vf.createVehicle(vehicleIdBike, hasEBike ? vehicleTypeEBike : vehicleTypeBike);
 			this.vehicles.addVehicle(vehicleBike);

@@ -191,7 +191,7 @@ public class CarLinkAnalysis {
 							var linkId = Id.createLinkId(link);
 							var linkStorage = linkVolumes.getOrDefault(linkId, new LinkStorage(linkId));
 							if (mode.equals(SBBModes.BIKE)) {
-								boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.EBIKE_AVAIL)).equals(Variables.AVAIL_TRUE);
+								boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.HAS_EBIKE_45)).equals(Variables.AVAIL_TRUE);
 								if (hasEBike) {
 									vehicleType = AnalysisVehicleType.ebike;
 								}
