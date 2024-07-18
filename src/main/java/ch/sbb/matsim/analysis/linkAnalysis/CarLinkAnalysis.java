@@ -180,6 +180,13 @@ public class CarLinkAnalysis {
 
     private void calculateVolumesPerLinkForNonNetworkModes(Map<Id<Link>, LinkStorage> linkVolumes, String mode, IterationLinkAnalyzer.AnalysisVehicleType vehicleType) {
 		for (var person : population.getPersons().values()) {
+			var personVehicleType = vehicleType;
+			if (mode.equals(SBBModes.BIKE)) {
+				boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.HAS_EBIKE_45)).equals(Variables.AVAIL_TRUE);
+				if (hasEBike) {
+					personVehicleType = AnalysisVehicleType.ebike;
+				}
+			}
 			var plan = person.getSelectedPlan();
 			var legs = TripStructureUtils.getLegs(plan);
 			for (var leg : legs) {
@@ -190,14 +197,7 @@ public class CarLinkAnalysis {
 						for (var link : linkIds) {
 							var linkId = Id.createLinkId(link);
 							var linkStorage = linkVolumes.getOrDefault(linkId, new LinkStorage(linkId));
-							if (mode.equals(SBBModes.BIKE)) {
-								boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.HAS_EBIKE_45)).equals(Variables.AVAIL_TRUE);
-								if (hasEBike) {
-									vehicleType = AnalysisVehicleType.ebike;
-								}
-
-							}
-							linkStorage.increase(vehicleType);
+							linkStorage.increase(personVehicleType);
 							linkVolumes.put(linkId, linkStorage);
 						}
 					}
