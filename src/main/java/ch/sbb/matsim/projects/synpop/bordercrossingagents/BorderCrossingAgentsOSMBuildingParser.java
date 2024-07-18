@@ -114,7 +114,6 @@ public class BorderCrossingAgentsOSMBuildingParser {
             }
             catch (Exception e){
                 errors++;
-                e.printStackTrace();
             }
 
             if (zone != null) {
@@ -130,8 +129,8 @@ public class BorderCrossingAgentsOSMBuildingParser {
             }
 
         }
-        System.out.println("Errors in Zone Mapping "+errors);
-        System.out.println("Errors in Building Mapping " + buildingErrors);
+        log.info("Errors in Zone Mapping " + errors);
+        log.info("Errors in Building Mapping " + buildingErrors);
         System.out.println("Buildings: " + buildingData.size());
 
 
