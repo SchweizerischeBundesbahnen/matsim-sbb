@@ -18,6 +18,7 @@ import org.matsim.api.core.v01.population.PopulationWriter;
 import org.matsim.contrib.common.util.WeightedRandomSelection;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.MainModeIdentifier;
 import org.matsim.core.router.TripStructureUtils;
@@ -157,11 +158,13 @@ public class GenerateAdditionalTripsFromAbroad {
         for (var fromZoneId : allZoneIds) {
             String fromAggregate = SingleTripAgentCreator.getAggregateZone(zones, fromZoneId);
             for (var toZoneId : allZoneIds) {
-                String toAggregate = SingleTripAgentCreator.getAggregateZone(zones, toZoneId);
-                double npvmValue = omxodParser.getMatrixValue(fromZoneId, toZoneId, MATRIX_NAME);
-                double endogenousValue = endogenousDemand.getOrDefault(fromAggregate, new HashMap<>()).getOrDefault(toAggregate, new MutableInt()).doubleValue();
-                double diff = npvmValue - endogenousValue;
-                missingDemand.computeIfAbsent(fromAggregate, a -> new HashMap<>()).put(toAggregate, diff);
+                if (Integer.parseInt(fromZoneId.toString()) > 730101001 || Integer.parseInt(toZoneId.toString()) > 730101001) {
+                    String toAggregate = SingleTripAgentCreator.getAggregateZone(zones, toZoneId);
+                    double npvmValue = omxodParser.getMatrixValue(fromZoneId, toZoneId, MATRIX_NAME);
+                    double endogenousValue = endogenousDemand.getOrDefault(fromAggregate, new HashMap<>()).getOrDefault(toAggregate, new MutableInt()).doubleValue();
+                    double diff = npvmValue - endogenousValue;
+                    missingDemand.computeIfAbsent(fromAggregate, a -> new HashMap<>()).put(toAggregate, diff);
+                }
             }
         }
         logger.info("Done.");
@@ -174,6 +177,7 @@ public class GenerateAdditionalTripsFromAbroad {
         population.getPersons()
                 .values()
                 .stream()
+                .filter(person -> PopulationUtils.getSubpopulation(person).equals(Variables.REGULAR))
                 .flatMap(person -> TripStructureUtils.getTrips(person.getSelectedPlan()).stream())
                 .filter(trip -> relevantModes.contains(mainModeIdentifier.identifyMainMode(trip.getTripElements())))
                 .forEach(trip -> {
