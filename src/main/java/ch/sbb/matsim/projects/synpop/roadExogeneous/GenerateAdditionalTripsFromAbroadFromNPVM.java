@@ -38,7 +38,7 @@ import java.util.Random;
     - If two zones show insufficient or no endogenous demand, additional single-trip agents are generated
 
  */
-public class GenerateAdditionalTripsFromAbroad {
+public class GenerateAdditionalTripsFromAbroadFromNPVM {
     public static final String MATRIX_NAME = "7";
     private final OMXODParser omxodParser;
     private final Population population;
@@ -47,13 +47,13 @@ public class GenerateAdditionalTripsFromAbroad {
     private final MainModeIdentifier mainModeIdentifier;
     private final int sampleFactor;
     private final Random random;
-    private final Logger logger = LogManager.getLogger(GenerateAdditionalTripsFromAbroad.class);
+    private final Logger logger = LogManager.getLogger(GenerateAdditionalTripsFromAbroadFromNPVM.class);
     private final Map<String, WeightedRandomSelection<Id<Zone>>> weightedZonesPerAggregate = new HashMap<>();
     private final Map<String, Map<String, MutableInt>> endogenousDemand = new HashMap<>();
     private final Map<String, Map<String, Double>> missingDemand = new HashMap<>();
     private final double growthFactor;
 
-    GenerateAdditionalTripsFromAbroad(OMXODParser omxodParser, Population population, List<String> relevantModes, Zones zones, int sampleFactor, Random random, double growthFactor) {
+    GenerateAdditionalTripsFromAbroadFromNPVM(OMXODParser omxodParser, Population population, List<String> relevantModes, Zones zones, int sampleFactor, Random random, double growthFactor) {
         this.growthFactor = growthFactor;
         this.omxodParser = omxodParser;
         this.population = population;
@@ -89,7 +89,7 @@ public class GenerateAdditionalTripsFromAbroad {
         OMXODParser parser = new OMXODParser();
         parser.openMatrix(npvmMatrixFile);
         Zones zs = ZonesLoader.loadZones("z", inputZonesFile);
-        GenerateAdditionalTripsFromAbroad generator = new GenerateAdditionalTripsFromAbroad(parser, scenario.getPopulation(), relevantModes, zs, sampleFactor, random, growthFactor);
+        GenerateAdditionalTripsFromAbroadFromNPVM generator = new GenerateAdditionalTripsFromAbroadFromNPVM(parser, scenario.getPopulation(), relevantModes, zs, sampleFactor, random, growthFactor);
         generator.calculateMissingDemand();
         generator.writeMissingDemandReport(generator.getMissingDemand(), outputMissingDemandStatsFile);
         var coordinateSelector = SingleTripAgentCreator.createCoordinateSelector(scenario, zs, random, foreignConnectorsLocationFile);
