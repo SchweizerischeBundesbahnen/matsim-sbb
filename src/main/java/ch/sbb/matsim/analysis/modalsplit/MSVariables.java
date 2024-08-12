@@ -10,7 +10,7 @@ public final class MSVariables {
 
     public static final String separator = "_";
     public static final String runID = "runID";
-    public static final String subpopulation = "subpopulation";
+    public static final String subpopulation = Variables.SUBPOPULATION;
     public static final String all = "all";
     public static final String carAvailableTrue = Variables.CAR_AVAIL + separator + Variables.AVAIL_TRUE;
     public static final String carAvailableFalse = Variables.CAR_AVAIL + separator + Variables.AVAIL_FALSE;
