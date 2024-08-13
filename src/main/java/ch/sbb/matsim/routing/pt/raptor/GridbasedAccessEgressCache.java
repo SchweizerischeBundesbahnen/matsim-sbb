@@ -3,6 +3,7 @@ package ch.sbb.matsim.routing.pt.raptor;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -33,9 +34,10 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleType;
 
-import jakarta.inject.Inject;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -43,21 +45,21 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
     public static final double CAR_FREESPEED_TRAVELTIME_FACTOR = 1.25;
     final double bikeFreespeed = 16 / 3.6;
-    private final Network carnet;
-    private final Network bikenet;
+    private Network carnet;
+    private Network bikenet;
     private final int gridsizeInM = 200;
     private final int diameterInM = 30000;
-    private final int cellSize;
-    private final int rowSize;
-    private final String linkIdAttribute;
+    private int cellSize;
+    private int rowSize;
+    private String linkIdAttribute;
     private final Scenario scenario;
     private final SBBIntermodalConfiggroup sbbIntermodalConfiggroup;
     final FreespeedTravelTimeAndDisutility disutility = new FreespeedTravelTimeAndDisutility(-0.1, 0.1, -0.01);
     private int threads;
     private final Map<Id<TransitStopFacility>, Map<String, Integer>> accessTimesAtStops = new HashMap<>();
     private final Logger logger = LogManager.getLogger(getClass());
-    private final Vehicle bike;
-    private final List<Id<TransitStopFacility>> cachedStops;
+    private Vehicle bike;
+    private List<Id<TransitStopFacility>> cachedStops;
     private final Map<Id<TransitStopFacility>, int[][]> cachedDistancesAndTimes = new ConcurrentHashMap<>();
 
 
@@ -67,42 +69,40 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         this.scenario = scenario;
         this.sbbIntermodalConfiggroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SBBIntermodalConfiggroup.class);
         this.threads = scenario.getConfig().global().getNumberOfThreads();
-        var railRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
-        SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet carInterModalSet = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().filter(set -> set.getMode().equals(SBBModes.CARFEEDER)).findAny().get();
-        this.linkIdAttribute = carInterModalSet.getLinkIdAttribute();
-        String stopFilterValue = carInterModalSet.getStopFilterValue();
-        String stopFilterAttribute = carInterModalSet.getStopFilterAttribute();
-        scenario.getNetwork().getLinks().values().stream().filter(link -> link.getLength() < 0.1).forEach(link -> link.setLength(0.1));
-        this.cachedStops = scenario.getTransitSchedule().getFacilities().values().stream().filter(transitStopFacility -> transitStopFacility.getAttributes().getAttribute(stopFilterAttribute).equals(stopFilterValue)).map(TransitStopFacility::getId).collect(Collectors.toList());
-        logger.info("Cache will consist of " + cachedStops.size() + " stops.");
+        boolean buildCache = sbbIntermodalConfiggroup.getModeParameterSets().stream().anyMatch(sbbIntermodalModeParameterSet -> sbbIntermodalModeParameterSet.isRoutedOnNetwork() && !sbbIntermodalModeParameterSet.isSimulatedOnNetwork());
 
-        rowSize = diameterInM / gridsizeInM;
-        cellSize = rowSize * rowSize;
-        NetworkFilterManager nfm = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
-        nfm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.CAR));
-        this.carnet = nfm.applyFilters();
+        if (buildCache) {
+            var railRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
+            SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet carInterModalSet = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().filter(set -> set.getMode().equals(SBBModes.CARFEEDER)).findAny().get();
+            this.linkIdAttribute = carInterModalSet.getLinkIdAttribute();
+            String stopFilterValue = carInterModalSet.getStopFilterValue();
+            String stopFilterAttribute = carInterModalSet.getStopFilterAttribute();
+            scenario.getNetwork().getLinks().values().stream().filter(link -> link.getLength() < 0.1).forEach(link -> link.setLength(0.1));
+            this.cachedStops = scenario.getTransitSchedule().getFacilities().values().stream().filter(transitStopFacility -> transitStopFacility.getAttributes().getAttribute(stopFilterAttribute).equals(stopFilterValue)).map(TransitStopFacility::getId).collect(Collectors.toList());
+            logger.info("Cache will consist of " + cachedStops.size() + " stops.");
 
-
-        VehicleType bikeType = scenario.getVehicles().getFactory().createVehicleType(Id.create("bikeType", VehicleType.class));
-        bikeType.setNetworkMode(SBBModes.BIKE);
-        bikeType.setMaximumVelocity(bikeFreespeed);
-        this.bike = scenario.getVehicles().getFactory().createVehicle(Id.create("bike", Vehicle.class), bikeType);
-
-        //TODO: fix this to pure bike net once our data is ready for it
-        //  this.carnet.getLinks().values().forEach(link -> {
-        //    Set<String> allowedModes = new HashSet<>(link.getAllowedModes());
-        //  allowedModes.add(SBBModes.BIKE);
-        //   link.setAllowedModes(allowedModes);
-        // });
-        //TODO: use scenario.getNetwork((
-        NetworkFilterManager nfm2 = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
-        nfm2.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
-        this.bikenet = nfm2.applyFilters();
+            rowSize = diameterInM / gridsizeInM;
+            cellSize = rowSize * rowSize;
+            NetworkFilterManager nfm = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
+            nfm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.CAR));
+            this.carnet = nfm.applyFilters();
 
 
-        prepareAccessTimes();
-        calculateGridTraveltimesViaTree();
+            VehicleType bikeType = scenario.getVehicles().getFactory().createVehicleType(Id.create("bikeType", VehicleType.class));
+            bikeType.setNetworkMode(SBBModes.BIKE);
+            bikeType.setMaximumVelocity(bikeFreespeed);
+            this.bike = scenario.getVehicles().getFactory().createVehicle(Id.create("bike", Vehicle.class), bikeType);
 
+            NetworkFilterManager nfm2 = new NetworkFilterManager(scenario.getNetwork(), scenario.getConfig().network());
+            nfm2.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
+            this.bikenet = nfm2.applyFilters();
+
+
+            prepareAccessTimes();
+            calculateGridTraveltimesViaTree();
+        } else {
+            logger.info("No modes with intermodal caching are being used. Will not build a cache.");
+        }
     }
 
     private void prepareAccessTimes() {

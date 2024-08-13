@@ -223,8 +223,8 @@ public class ModalSplitStats {
                 for (Leg leg : legs) {
                     if (leg.getMode().equals(PT)) {
                         Route route = leg.getRoute();
-                        String startTrainStationId = getStartTrainFacility(route).getAttributes().getAttribute(STOP_NO).toString();
-                        String endTrainStationId = getEndTrainFacility(route).getAttributes().getAttribute(STOP_NO).toString();
+                        String startTrainStationId = String.valueOf(getStartTrainFacility(route).getAttributes().getAttribute(STOP_NO));
+                        String endTrainStationId = String.valueOf(getEndTrainFacility(route).getAttributes().getAttribute(STOP_NO));
                         String subMode = getModeOfTransitRoute(leg.getRoute());
                         Leg legAfter = getLegAfter(legs, legs.indexOf(leg));
                         if (railTripsAnalyzer.hasFQRelevantLeg(List.of((TransitPassengerRoute) leg.getRoute()))) {
@@ -1551,18 +1551,13 @@ public class ModalSplitStats {
     }
 
     private TransitStopFacility getStartTrainFacility(Route route) {
-        String description = route.getRouteDescription();
-        int startIndex = description.indexOf("\"accessFacilityId\":\"") + "\"accessFacilityId\":\"".length();
-        int endIndex = description.indexOf("\",\"egressFacilityId");
-        int startString = Integer.parseInt(description.substring(startIndex, endIndex));
-        return transitSchedule.getFacilities().get(Id.create(startString, TransitStopFacility.class));
+        TransitPassengerRoute transitPassengerRoute = (TransitPassengerRoute) route;
+        return transitSchedule.getFacilities().get(transitPassengerRoute.getAccessStopId());
     }
 
     private TransitStopFacility getEndTrainFacility(Route route) {
-        String description = route.getRouteDescription();
-        int endIndex = description.indexOf("egressFacilityId\":\"") + "\",\"egressFacilityId".length();
-        int endString = Integer.parseInt(description.substring(endIndex, description.length() - 2));
-        return transitSchedule.getFacilities().get(Id.create(endString, TransitStopFacility.class));
+        TransitPassengerRoute transitPassengerRoute = (TransitPassengerRoute) route;
+        return transitSchedule.getFacilities().get(transitPassengerRoute.getEgressStopId());
     }
 
     private String getModeOfTransitRoute(Route route) {
