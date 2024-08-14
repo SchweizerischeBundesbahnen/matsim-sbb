@@ -1,5 +1,7 @@
 package ch.sbb.matsim.routing.pt.raptor;
 
+import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
+import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import org.junit.Assert;
@@ -22,6 +24,13 @@ public class GridbasedAccessEgressCacheTest {
         carSet.setLinkIdAttribute("accessLinkId");
         raptorConfig.addIntermodalAccessEgress(carSet);
         config.addModule(raptorConfig);
+        var sbbIntermodalConfigGroup = new SBBIntermodalConfiggroup();
+        var carSetI = new SBBIntermodalModeParameterSet();
+        carSetI.setMode(SBBModes.CARFEEDER);
+        carSetI.setRoutedOnNetwork(true);
+        carSetI.setSimulatedOnNetwork(false);
+        sbbIntermodalConfigGroup.addModeParameters(carSetI);
+        config.addModule(sbbIntermodalConfigGroup);
         Scenario scenario = createScenario(config);
         GridbasedAccessEgressCache cache = new GridbasedAccessEgressCache(scenario);
         return cache;
