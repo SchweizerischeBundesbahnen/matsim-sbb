@@ -1,5 +1,6 @@
 package ch.sbb.matsim.projects.synpop.tourismRail;
 
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.projects.synpop.SingleTripAgentToCSVConverter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -10,14 +11,12 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class AdjustTourists {
 
@@ -43,12 +42,13 @@ public class AdjustTourists {
     public static void main(String[] args) throws IOException {
         String inputPopulation = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2017\\plans_exogeneous\\tourism_rail\\100pct\\plans.xml.gz";
         String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans\\20_ebikes_imp\\output\\20_ebikes_imp.mobi-zones.shp";
-        String outputPopulation = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\tourism_rail\\plans.xml.gz";
+        String outputPopulation = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\tourism_rail\\tourism_rail.xml.gz";
         Scenario scenario = ScenarioUtils.loadScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(inputPopulation);
         var zones = ZonesLoader.loadZones("id", zonesFile);
         AdjustTourists adjustTourists = new AdjustTourists(scenario.getPopulation(), zones, 3.0);
         adjustTourists.adjust();
+
         new PopulationWriter(scenario.getPopulation()).write(outputPopulation);
         SingleTripAgentToCSVConverter.writeSingleTripsAsCSV(outputPopulation.replace("xml.gz", "csv"), scenario.getPopulation());
     }
@@ -56,15 +56,19 @@ public class AdjustTourists {
     private void adjust() {
 
         Map<Id<Person>, Double> requiredClones = new HashMap<>();
+        Set<Id<Person>> toBeRemoved = new HashSet<>();
         for (Person person : population.getPersons().values()) {
             Plan plan = person.getSelectedPlan();
             double requiredClonesForPerson = determineNumberOfClones(plan);
             if (requiredClonesForPerson > 0.0) {
                 requiredClones.put(person.getId(), requiredClonesForPerson);
+            } else if (requiredClonesForPerson < 0.0) {
+                toBeRemoved.add(person.getId());
             }
         }
         createClones(requiredClones);
-
+        toBeRemoved.forEach(personId -> population.removePerson(personId));
+        population.getPersons().values().forEach(person -> PopulationUtils.putSubpopulation(person, Variables.TOURISM_RAIL));
     }
 
     private void createClones(Map<Id<Person>, Double> requiredClones) {
@@ -119,6 +123,12 @@ public class AdjustTourists {
         if (fromZone != null && toZone != null) {
             if (airportZones.contains(fromZone.getId()) || airportZones.contains(toZone.getId())) {
                 numberOfClones = 0.0;
+            }
+            if (String.valueOf(fromZone.getAttribute("kt_name")).equals("ZH") && String.valueOf(toZone.getAttribute("kt_name")).equals("GE")) {
+                numberOfClones = -1.0;
+            }
+            if (String.valueOf(fromZone.getAttribute("kt_name")).equals("GE") && String.valueOf(toZone.getAttribute("kt_name")).equals("ZH")) {
+                numberOfClones = -1.0;
             }
             if (String.valueOf(fromZone.getAttribute("kt_name")).equals("GR") || String.valueOf(toZone.getAttribute("kt_name")).equals("GR")) {
                 numberOfClones = 3.0;
