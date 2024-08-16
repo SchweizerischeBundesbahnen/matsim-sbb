@@ -1,6 +1,7 @@
 package ch.sbb.matsim.preparation.casestudies;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.preparation.slicer.PopulationSlicerByAttribute;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.logging.log4j.LogManager;
@@ -10,11 +11,15 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.gbl.MatsimRandom;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.FacilitiesWriter;
+import org.matsim.facilities.MatsimFacilitiesReader;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +36,7 @@ public class CutPlansForCasestudies {
     private final Set<String> whitelistZones;
     private final List<PlansCase> plansCases;
     private final Set<Id<Person>> commonPersonsWhitelist = new HashSet<>();
+    private final Random random = MatsimRandom.getLocalInstance();
 
     public CutPlansForCasestudies(Zones zones, Set<Id<ActivityFacility>> facilityWhiteList, Set<String> whitelistZones, List<PlansCase> plansCases) {
         this.zones = zones;
@@ -51,23 +57,70 @@ public class CutPlansForCasestudies {
             PlansCase plansCase = new PlansCase();
             plansCase.inputFile = args[i];
             plansCase.outputFile = args[i + 1];
+            plansCase.outputFacilitiesFile = plansCase.outputFile.replace(".xml.gz", "_facilities.xml.gz");
             plansCases.add(plansCase);
         }
 
         Zones zones = ZonesLoader.loadZones("zone", zonesFile, Variables.ZONE_ID);
         Set<String> whitelistZones = MergeRoutedAndUnroutedPlans.readWhiteListZones(relevantZonesFile);
         Set<Id<ActivityFacility>> facilityWhiteList = MergeRoutedAndUnroutedPlans.prepareRelevantFacilities(whitelistZones, zones, Collections.singletonList(facilitiesFile));
+
         CutPlansForCasestudies cutPlansForCasestudies = new CutPlansForCasestudies(zones, facilityWhiteList, whitelistZones, plansCases);
         cutPlansForCasestudies.readPlans();
         cutPlansForCasestudies.findRelevantPersonsForEachCase();
         cutPlansForCasestudies.mergePersonList();
-        cutPlansForCasestudies.writePlans();
+
+        cutPlansForCasestudies.writePlans(facilitiesFile);
 
     }
 
-    private void writePlans() {
+    private void reArrangeSlices(Population population) {
+        int maxSliceNoEndogeneous = getMaxSliceNo(population, true);
+        if (maxSliceNoEndogeneous == -1) return;
+
+        int maxSliceNoExogeneous = getMaxSliceNo(population, false);
+        if (maxSliceNoExogeneous == -1) return;
+
+        var endogeneousPersonList = getPersonList(population, true);
+        var exogeneousPersonList = getPersonList(population, false);
+
+        shuffleAndReassignSlices(population, endogeneousPersonList, maxSliceNoEndogeneous);
+        shuffleAndReassignSlices(population, exogeneousPersonList, maxSliceNoExogeneous);
+    }
+
+    private int getMaxSliceNo(Population population, boolean isEndogeneous) {
+        return population.getPersons().values().stream()
+                .filter(person -> isEndogeneous == Variables.REGULAR.equals(PopulationUtils.getSubpopulation(person)))
+                .mapToInt(person -> (int) person.getAttributes().getAttribute(PopulationSlicerByAttribute.SLICE))
+                .max().orElse(-1);
+    }
+
+    private List<Id<Person>> getPersonList(Population population, boolean isEndogeneous) {
+        return population.getPersons().values().stream()
+                .filter(person -> isEndogeneous == Variables.REGULAR.equals(PopulationUtils.getSubpopulation(person)))
+                .map(Person::getId)
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private void shuffleAndReassignSlices(Population population, List<Id<Person>> personList, int maxSliceNo) {
+        Collections.shuffle(personList, random);
+        int counter = 0;
+        for (var personId : personList) {
+            if (counter == maxSliceNo) {
+                counter = 0;
+            }
+            population.getPersons().get(personId).getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, counter);
+            counter++;
+        }
+    }
+
+
+    private void writePlans(String facilitiesFile) {
         plansCases.parallelStream().forEach(plansCase -> {
             Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+            if (!"-".equals(facilitiesFile)) {
+                new MatsimFacilitiesReader(scenario).readFile(facilitiesFile);
+            }
             Population outPopulation = scenario.getPopulation();
             for (Id<Person> personId : commonPersonsWhitelist) {
                 Person p = plansCase.population.getPersons().get(personId);
@@ -77,7 +130,10 @@ public class CutPlansForCasestudies {
                     LogManager.getLogger(getClass()).warn("Person " + personId + " not found in Population " + plansCase.inputFile);
                 }
             }
+            reArrangeSlices(outPopulation);
+            new CutFacilitiesToPlans(scenario).cut();
             new PopulationWriter(outPopulation).write(plansCase.outputFile);
+            new FacilitiesWriter(scenario.getActivityFacilities()).write(plansCase.outputFacilitiesFile);
         });
     }
 
@@ -116,6 +172,7 @@ public class CutPlansForCasestudies {
     private static class PlansCase {
         String inputFile;
         String outputFile;
+        String outputFacilitiesFile;
         Population population;
         Set<Id<Person>> relevantPersons;
 
