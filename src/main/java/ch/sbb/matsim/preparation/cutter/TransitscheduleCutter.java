@@ -10,30 +10,29 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.pt.transitSchedule.api.TransitLine;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
-import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.vehicles.MatsimVehicleReader;
 import org.matsim.vehicles.MatsimVehicleWriter;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TransitscheduleCutter {
 
     public static void main(String[] args) {
-        String inputSchedule = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2020\\pt\\NPVM2020\\output\\transitSchedule.xml.gz";
-        String outputSchedule = "c:\\devsbb\\transitSchedule.xml.gz";
-        String outputNetwork = "c:\\devsbb\\transitNetwork.xml.gz";
-        String outputVehicles = "c:\\devsbb\\transitVehicles.xml.gz";
-        String inputNetwork = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2020\\pt\\NPVM2020\\output\\transitNetwork.xml.gz";
+        String inputSchedule = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\pt\\NPVM2023\\output\\transitSchedule.xml.gz";
+        String outputSchedule = "C:\\devsbb\\code\\matsim-sbb\\test\\input\\scenarios\\mobi50test\\pt\\transitSchedule.xml.gz";
+        String outputNetwork = "C:\\devsbb\\code\\matsim-sbb\\test\\input\\scenarios\\mobi50test\\pt\\transitNetwork.xml.gz";
+        String outputVehicles = "C:\\devsbb\\code\\matsim-sbb\\test\\input\\scenarios\\mobi50test\\pt\\transitVehicles.xml.gz";
+        String inputNetwork = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\pt\\NPVM2023\\output\\transitNetwork.xml.gz";
         String zonesFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2017\\plans\\3.3.2017.7.100pct\\mobi-zones.shp";
-        String inputVehicles = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2020\\pt\\NPVM2020\\output\\transitVehicles.xml.gz";
+        String inputVehicles = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\pt\\NPVM2023\\output\\transitVehicles.xml.gz";
 
         String attribute = "kt_name";
-        String attributeValue = "AI";
+        List<String> attributeValues = List.of("UR");
+
         Zones zones = ZonesLoader.loadZones("", zonesFile);
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
@@ -47,7 +46,7 @@ public class TransitscheduleCutter {
                 .filter(transitStopFacility -> {
                     var zone = zones.findZone(transitStopFacility.getCoord());
                     if (zone != null) {
-                        return (String.valueOf(zone.getAttribute(attribute)).equals(attributeValue));
+                        return (attributeValues.contains(String.valueOf(zone.getAttribute(attribute))));
                     }
                     return false;
                 })
@@ -73,6 +72,8 @@ public class TransitscheduleCutter {
                 .stream().filter(transitStopFacility -> !stopsToKeep.contains(transitStopFacility.getId()))
                 .collect(Collectors.toSet());
         stopsToDelete.forEach(stop -> scenario.getTransitSchedule().removeStopFacility(stop));
+        validateTransferTimes(scenario.getTransitSchedule());
+
         new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(outputSchedule);
         Set<Id<Link>> linksToKeep = new HashSet<>();
         scenario.getTransitSchedule().getTransitLines().values().stream().flatMap(transitLine -> transitLine.getRoutes().values().stream())
@@ -94,5 +95,20 @@ public class TransitscheduleCutter {
         var vehiclesToRemove = scenario.getTransitVehicles().getVehicles().keySet().stream().filter(v -> !vehiclesToKeep.contains(v)).collect(Collectors.toSet());
         vehiclesToRemove.forEach(v -> scenario.getTransitVehicles().removeVehicle(v));
         new MatsimVehicleWriter(scenario.getTransitVehicles()).writeFile(outputVehicles);
+    }
+
+    public static void validateTransferTimes(TransitSchedule transitSchedule) {
+        var it = transitSchedule.getMinimalTransferTimes().iterator();
+        int i = 0;
+        while (it.hasNext()) {
+            it.next();
+            var fromStopId = it.getFromStopId();
+            var toStopId = it.getToStopId();
+            if ((!transitSchedule.getFacilities().containsKey(fromStopId)) || (!transitSchedule.getFacilities().containsKey(toStopId))) {
+                transitSchedule.getMinimalTransferTimes().remove(fromStopId, toStopId);
+                i++;
+            }
+        }
+        System.out.println("Removed " + i + " invalid transfer times.");
     }
 }
