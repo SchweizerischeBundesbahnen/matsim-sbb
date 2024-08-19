@@ -33,13 +33,15 @@ public class GenerateTruckDemand {
     private final Map<String, Map<String, Double>> aggregatedDemand = new HashMap<>();
     private final Map<Id<Zone>, Map<Id<Zone>, Double>> disaggregatedDemand = new HashMap<>();
     private final Logger logger = LogManager.getLogger(getClass());
+    private final double growthRate;
 
-    public GenerateTruckDemand(String matrixNo, OMXODParser parser, Zones zones, Random random) {
+    public GenerateTruckDemand(String matrixNo, OMXODParser parser, Zones zones, Random random, double growthRate) {
         logger.info("Matrix " + matrixNo);
         this.matrixNo = matrixNo;
         this.parser = parser;
         this.zones = zones;
         this.random = random;
+        this.growthRate = growthRate;
         prepareZoneAggregates();
     }
 
@@ -54,6 +56,7 @@ public class GenerateTruckDemand {
 
         Random random = MatsimRandom.getRandom();
         Map<String, String> matricesToModeMap = Map.of("10", "LI", "11", "LW", "12", "LZ");
+        Map<String, Double> growthRates = Map.of("10", 1.16, "11", 1.045, "12", 1.045);
         Zones zones = ZonesLoader.loadZones("zones", inputZonesFile);
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimFacilitiesReader(scenario).readFile(inputFacilitiesFile);
@@ -63,7 +66,7 @@ public class GenerateTruckDemand {
         OMXODParser parser = new OMXODParser();
         parser.openMatrix(npvmMatrixFile);
         for (var demandSegment : matricesToModeMap.entrySet()) {
-            GenerateTruckDemand generateTruckDemand = new GenerateTruckDemand(demandSegment.getKey(), parser, zones, random);
+            GenerateTruckDemand generateTruckDemand = new GenerateTruckDemand(demandSegment.getKey(), parser, zones, random, growthRates.get(demandSegment.getKey()));
             generateTruckDemand.aggregateDemand();
             generateTruckDemand.disaggregateDemand();
             singleTripAgentCreator.generateAgents(generateTruckDemand.getDisaggregatedDemand(), SBBModes.CAR, "freight_road", demandSegment.getValue());
@@ -108,6 +111,7 @@ public class GenerateTruckDemand {
             for (var toZoneId : parser.getAllZoneIdsInLookup()) {
                 double value = parser.getMatrixValue(fromZoneId, toZoneId, matrixNo);
                 if (value > 0.0) {
+                    value = growthRate * value;
                     String toAggregate = SingleTripAgentCreator.getAggregateZone(zones, fromZoneId);
                     double aggregateValue = fromAggregateMap.getOrDefault(toAggregate, 0.0) + value;
                     fromAggregateMap.put(toAggregate, aggregateValue);

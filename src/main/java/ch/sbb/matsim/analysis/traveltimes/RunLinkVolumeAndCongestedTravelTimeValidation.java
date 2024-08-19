@@ -2,11 +2,6 @@ package ch.sbb.matsim.analysis.traveltimes;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -23,13 +18,14 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
-import org.matsim.core.utils.geometry.transformations.CH1903LV03PlustoWGS84;
-import org.matsim.counts.Count;
-import org.matsim.counts.CountSimComparison;
-import org.matsim.counts.CountSimComparisonImpl;
-import org.matsim.counts.Counts;
-import org.matsim.counts.MatsimCountsReader;
+import org.matsim.counts.*;
 import org.matsim.counts.algorithms.CountSimComparisonTableWriter;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jbischoff / SBB
@@ -117,7 +113,7 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 
 					}
 					JFreeChart chart = countsLoadCurveGraph.createChart();
-					String chartfilename = link.getId().toString() + "_" + count.getCsLabel().replace(",", "").replace("\\", "-").replace("/", "-").toLowerCase();
+					String chartfilename = link.getId().toString() + "_" + count.getCsLabel().replace(",", "").replace("\\", "-").replace("/", "-").replace(":", "-").toLowerCase();
 					ChartUtils.writeChartAsPNG(Files.newOutputStream(Paths.get(outputFolder + "/" + chartfilename + ".png")), chart, 1200, 750);
 				} else {
 					LogManager.getLogger(getClass()).warn(count.getId() + " , " + count.getCsLabel() + " was not found in network, but is in counts. Skipping.");

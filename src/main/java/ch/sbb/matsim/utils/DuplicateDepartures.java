@@ -45,6 +45,7 @@ public class DuplicateDepartures {
                         Id<Vehicle> vehicleId = Id.create("addV_" + i, Vehicle.class);
                         Vehicle vehicle = scenario.getTransitVehicles().getFactory().createVehicle(vehicleId, type);
                         scenario.getTransitVehicles().addVehicle(vehicle);
+                        departure.setVehicleId(vehicleId);
                         route.addDeparture(departure);
                         i++;
                     }

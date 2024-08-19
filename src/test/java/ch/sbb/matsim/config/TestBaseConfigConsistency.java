@@ -34,6 +34,13 @@ public class TestBaseConfigConsistency {
     }
 
     @Test
+    public void check2023Config() {
+        Config config_2023 = ConfigUtils.loadConfig("baseconfigs/config_2023.xml", RunSBB.getSbbDefaultConfigGroups());
+        config_2023.checkConsistency();
+
+    }
+
+    @Test
     public void check2030Config() {
         Config config_2030 = ConfigUtils.loadConfig("baseconfigs/config_2030.xml", RunSBB.getSbbDefaultConfigGroups());
         config_2030.checkConsistency();

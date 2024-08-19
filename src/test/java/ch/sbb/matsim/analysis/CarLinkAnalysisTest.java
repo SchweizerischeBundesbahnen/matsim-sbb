@@ -84,7 +84,7 @@ public class CarLinkAnalysisTest {
     }
 
     /**
-     * Creates a simple test scenario matching the accesstime_zone.SHP test file.
+     * Creates a simple test scenario matching the accesstime_zone.shp test file.
      */
     private static class Fixture {
 

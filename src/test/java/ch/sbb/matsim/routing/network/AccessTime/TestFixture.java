@@ -145,7 +145,7 @@ public class TestFixture {
 		scenario.getConfig().replanning().addStrategySettings(settings);
 
 		ZonesListConfigGroup zonesConfigGroup = ConfigUtils.addOrGetModule(config, ZonesListConfigGroup.class);
-		String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP";
+		String shapefile = "src/test/resources/shapefiles/AccessTime/accesstime_zone.shp";
 		zonesConfigGroup.addZones(new ZonesListConfigGroup.ZonesParameterSet("zones", shapefile, "ID"));
 
 		SBBAccessTimeConfigGroup accessTimeConfigGroup = ConfigUtils.addOrGetModule(config, SBBAccessTimeConfigGroup.GROUP_NAME, SBBAccessTimeConfigGroup.class);

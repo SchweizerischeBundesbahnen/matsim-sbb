@@ -170,9 +170,6 @@ public class TransferScoringTest {
 			srrConfig.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty("bus", "train", -1.5));
 		}
 
-		public static void addSBBDefaultControlerModules(Controler controler) {
-		}
-
 		private void createNetwork() {
             Network network = this.scenario.getNetwork();
 			NetworkFactory nf = network.getFactory();
@@ -200,13 +197,23 @@ public class TransferScoringTest {
             Link l5 = createLink(nf, "5", n5, n6);
 			Link l6 = createLink(nf, "6", n6, n7);
 
+
             network.addLink(l1);
             network.addLink(l2);
             network.addLink(l3);
             network.addLink(l4);
             network.addLink(l5);
 			network.addLink(l6);
-        }
+
+			network.addLink(createLink(nf, "7", n2, n1));
+			network.addLink(createLink(nf, "8", n3, n2));
+			network.addLink(createLink(nf, "9", n4, n3));
+			network.addLink(createLink(nf, "10", n5, n4));
+			network.addLink(createLink(nf, "11", n6, n5));
+			network.addLink(createLink(nf, "12", n7, n6));
+
+
+		}
 
         private Link createLink(NetworkFactory nf, String id, Node fromNode, Node toNode) {
             Link l = nf.createLink(Id.create(id, Link.class), fromNode, toNode);

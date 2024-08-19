@@ -120,7 +120,7 @@ public class ParkingCostScoringTest {
 	}
 
 	/**
-     * Creates a simple test scenario matching the accesstime_zone.SHP test file.
+     * Creates a simple test scenario matching the accesstime_zone.shp test file.
      */
     private static class Fixture {
 
@@ -141,7 +141,7 @@ public class ParkingCostScoringTest {
 			ActivityParamsBuilder.buildStageActivityModeParams(this.config);
 			ZonesListConfigGroup zonesConfig = ConfigUtils.addOrGetModule(this.config, ZonesListConfigGroup.class);
 			ZonesListConfigGroup.ZonesParameterSet parkingZonesConfig = new ZonesListConfigGroup.ZonesParameterSet();
-			parkingZonesConfig.setFilename("src/test/resources/shapefiles/AccessTime/accesstime_zone.SHP");
+			parkingZonesConfig.setFilename("src/test/resources/shapefiles/AccessTime/accesstime_zone.shp");
 			parkingZonesConfig.setId("parkingZones");
 			parkingZonesConfig.setIdAttributeName("ID");
 			zonesConfig.addZones(parkingZonesConfig);

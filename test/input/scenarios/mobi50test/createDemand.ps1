@@ -1,0 +1,1 @@
+java -Xmx20g -cp matsim-sbb-4.2.3-SNAPSHOT-jar-with-dependencies.jar ch.sbb.matsim.preparation.casestudies.CutPlansForCasestudies zones\mobi-zones.shp relevant_zones.txt C:\devsbb\21_va_distances.facilities.xml.gz C:\devsbb\21_va_distances.plans.xml.gz plans.xml.gz

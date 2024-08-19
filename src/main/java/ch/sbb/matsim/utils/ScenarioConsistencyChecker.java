@@ -41,11 +41,8 @@ import org.matsim.vehicles.Vehicle;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ScenarioConsistencyChecker {
@@ -54,12 +51,11 @@ public class ScenarioConsistencyChecker {
 	private static String logmessage = "";
 
 	public static void checkScenarioConsistency(Scenario scenario) {
-        checkExogeneousShares(scenario);
-		if (!(checkVehicles(scenario) && checkPlans(scenario) && checkIntermodalAttributesAtStops(scenario) && checkIntermodalPopulationExists(scenario) && checkCarAvailableAttributesAreSetProperly(scenario))) {
-            throw new RuntimeException(" Error found while checking consistency of plans. Check log!");
-        }
+		if (!(checkExogeneousShares(scenario) && checkVehicles(scenario) && checkPlans(scenario) && checkIntermodalAttributesAtStops(scenario) && checkIntermodalPopulationExists(scenario) && checkCarAvailableAttributesAreSetProperly(scenario))) {
+			throw new RuntimeException(" Error found while checking consistency of plans. Check log!");
+		}
 
-    }
+	}
 
 	public static void writeLog(String path) {
 		try {
@@ -70,11 +66,18 @@ public class ScenarioConsistencyChecker {
 		}
 	}
 
-	private static void checkExogeneousShares(Scenario scenario) {
+	private static boolean checkExogeneousShares(Scenario scenario) {
+		boolean checkPassed = true;
 		double sum = scenario.getPopulation().getPersons().size();
 		Map<String, Integer> subpops = scenario.getPopulation().getPersons().values().stream().map(PopulationUtils::getSubpopulation).filter(Objects::nonNull)
 				.collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
 		LOGGER.info("Found the following subpopulations: " + subpops.keySet());
+
+		List<String> invalidSubpopulations = subpops.keySet().stream().filter(k -> !Variables.SUBPOPULATIONS.contains(k)).toList();
+		if (invalidSubpopulations.size()>0) {
+			LOGGER.error("Invalid subpopulations found: " + String.join(",", invalidSubpopulations));
+			checkPassed = false;
+		}
 		Map<String, Double> shares = Map.of("regular", 0.65, "freight_road", 0.25, "cb_road", 0.08, "cb_rail", 0.0067, "airport_road", 0.0033, "airport_rail", 0.0024);
 
 		final String persons_per_subpopulation = "Persons per Subpopulation";
@@ -90,6 +93,7 @@ public class ScenarioConsistencyChecker {
 		}
 		logmessage = logmessage + "\n";
 
+		return checkPassed;
 	}
 
 	private static boolean checkPlans(Scenario scenario) {
@@ -130,13 +134,13 @@ public class ScenarioConsistencyChecker {
 					checkPassed = false;
 				}
 			}
-		if (!String.valueOf(p.getAttributes().getAttribute(Variables.CAR_AVAIL)).equals(Variables.CAR_AVAL_TRUE)){
-			var usesCar = TripStructureUtils.getLegs(p.getSelectedPlan()).stream().anyMatch(leg -> leg.getMode().equals(SBBModes.CAR));
-			if (usesCar) {
-				LOGGER.error("Person " + p.getId() + " has no car available, but at least one car trip in initial plan");
-				checkPassed = false;
+            if (!String.valueOf(p.getAttributes().getAttribute(Variables.CAR_AVAIL)).equals(Variables.AVAIL_TRUE)) {
+				var usesCar = TripStructureUtils.getLegs(p.getSelectedPlan()).stream().anyMatch(leg -> leg.getMode().equals(SBBModes.CAR));
+				if (usesCar) {
+					LOGGER.error("Person " + p.getId() + " has no car available, but at least one car trip in initial plan");
+					checkPassed = false;
+				}
 			}
-		}
 
 
 		}
@@ -171,9 +175,9 @@ public class ScenarioConsistencyChecker {
 		boolean setProperly = switch (carModeAllowedSetting) {
 			case always -> true;
 			case carAvailable ->
-					scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.CAR_AVAL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.CAR_AVAIL))));
+                    scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.AVAIL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.CAR_AVAIL))));
 			case licenseAvailable ->
-					scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.CAR_AVAL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.HAS_DRIVING_LICENSE))));
+                    scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.AVAIL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.HIGHEST_EDUCATION))));
 
 
 		};
@@ -200,42 +204,42 @@ public class ScenarioConsistencyChecker {
 					checkPassed = false;
 					LOGGER.error("No stop has a value defined for  " + att);
 				} else {
-                    final String message = "Found " + count + " stops with intermodal access attribute " + att;
-                    logmessage = logmessage + message + "\n";
-                    LOGGER.info(message);
-                }
-            }
-        }
-        return checkPassed;
+					final String message = "Found " + count + " stops with intermodal access attribute " + att;
+					logmessage = logmessage + message + "\n";
+					LOGGER.info(message);
+				}
+			}
+		}
+		return checkPassed;
 
-    }
+	}
 
-    public static boolean checkIntermodalPopulationExists(Scenario scenario) {
+	public static boolean checkIntermodalPopulationExists(Scenario scenario) {
 		SwissRailRaptorConfigGroup swissRailRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
 		Set<String> modeAtts = swissRailRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().map(IntermodalAccessEgressParameterSet::getPersonFilterAttribute).filter(Objects::nonNull)
 				.collect(Collectors.toSet());
 		double persons = scenario.getPopulation().getPersons().values().stream().filter(p -> PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)).count();
-        Map<String, Double> mobi32values = Map.of("car2pt", 0.52, "bike2pt", 0.34, "ride2pt", 0.23);
-        logmessage = logmessage + "\nMode\tCount\tShare\tShareInMobi3.2\n";
-        boolean checkPassed = true;
+		Map<String, Double> mobi32values = Map.of("car2pt", 0.52, "bike2pt", 0.34, "ride2pt", 0.23);
+		logmessage = logmessage + "\nMode\tCount\tShare\tShareInMobi3.2\n";
+		boolean checkPassed = true;
 
-        for (String att : modeAtts) {
-            int count = scenario.getPopulation().getPersons().values().stream().map(p -> p.getAttributes().getAttribute(att)).filter(Objects::nonNull).mapToInt(a -> Integer.parseInt(a.toString()))
-                    .sum();
-            if (count == 0) {
-                final String s = "No person has a value defined for  " + att;
-                LOGGER.error(s);
-                logmessage = logmessage + s + "\n";
-                checkPassed = false;
-            } else {
+		for (String att : modeAtts) {
+			int count = scenario.getPopulation().getPersons().values().stream().map(p -> p.getAttributes().getAttribute(att)).filter(Objects::nonNull).mapToInt(a -> Integer.parseInt(a.toString()))
+					.sum();
+			if (count == 0) {
+				final String s = "No person has a value defined for  " + att;
+				LOGGER.error(s);
+				logmessage = logmessage + s + "\n";
+				checkPassed = false;
+			} else {
 
-                LOGGER.info("Found " + count + " persons with intermodal access attribute " + att);
-                double share = count / persons;
-                Double share32 = mobi32values.get(att);
-                final String message = att + "\t" + count + "\t" + share + "\t" + share32;
-                logmessage = logmessage + message + "\n";
-            }
-        }
-        return checkPassed;
-    }
+				LOGGER.info("Found " + count + " persons with intermodal access attribute " + att);
+				double share = count / persons;
+				Double share32 = mobi32values.get(att);
+				final String message = att + "\t" + count + "\t" + share + "\t" + share32;
+				logmessage = logmessage + message + "\n";
+			}
+		}
+		return checkPassed;
+	}
 }

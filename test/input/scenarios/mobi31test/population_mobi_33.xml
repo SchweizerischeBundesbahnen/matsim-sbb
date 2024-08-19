@@ -4,1373 +4,1598 @@
 <population>
 
 
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="105603">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">0</attribute>
+            <attribute name="car2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car_available" class="java.lang.Integer">0</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">40_to_79</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="139093" x="2688115.0" y="1165388.0" start_time="08:34:38"
+                      end_time="08:34:38">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="work" facility="1921639" x="2688500.0" y="1165500.0" start_time="08:43:59"
+                      end_time="15:01:58">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="139093" x="2688115.0" y="1165388.0" start_time="15:11:19"
+                      end_time="15:11:19">
+            </activity>
+        </plan>
 
-	<person id="105603">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">0</attribute>
-			<attribute name="car2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">40_to_79</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="139093" x="2688115.0" y="1165388.0" start_time="08:34:38" end_time="08:34:38" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="work" facility="1921639" x="2688500.0" y="1165500.0" start_time="08:43:59" end_time="15:01:58" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="home" facility="139093" x="2688115.0" y="1165388.0" start_time="15:11:19" end_time="15:11:19" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="2005177">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="1109250" x="2689144.0" y="1165601.0" start_time="08:48:23"
+                      end_time="08:48:23">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1956128" x="2688675.0" y="1165320.0" start_time="08:51:32"
+                      end_time="09:11:09">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="1109250" x="2689144.0" y="1165601.0" start_time="09:14:18"
+                      end_time="09:43:55">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="work" facility="1480362" x="2688407.0" y="1165714.0" start_time="09:47:04"
+                      end_time="16:41:03">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1920628" x="2688552.0" y="1165457.0" start_time="16:44:12"
+                      end_time="17:23:46">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1388568" x="2688455.0" y="1165176.0" start_time="17:26:55"
+                      end_time="17:39:40">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">4</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1476993" x="2688720.0" y="1165427.0" start_time="17:42:49"
+                      end_time="18:21:41">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">5</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="other" facility="850704" x="2686502.0" y="1163647.0" start_time="18:28:21"
+                      end_time="19:49:11">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">6</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="1109250" x="2689144.0" y="1165601.0" start_time="19:55:51"
+                      end_time="19:55:51">
+            </activity>
+        </plan>
 
-	<person id="2005177">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="1109250" x="2689144.0" y="1165601.0" start_time="08:48:23" end_time="08:48:23" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1956128" x="2688675.0" y="1165320.0" start_time="08:51:32" end_time="09:11:09" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="1109250" x="2689144.0" y="1165601.0" start_time="09:14:18" end_time="09:43:55" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="work" facility="1480362" x="2688407.0" y="1165714.0" start_time="09:47:04" end_time="16:41:03" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1920628" x="2688552.0" y="1165457.0" start_time="16:44:12" end_time="17:23:46" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1388568" x="2688455.0" y="1165176.0" start_time="17:26:55" end_time="17:39:40" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">4</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1476993" x="2688720.0" y="1165427.0" start_time="17:42:49" end_time="18:21:41" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">5</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="other" facility="850704" x="2686502.0" y="1163647.0" start_time="18:28:21" end_time="19:49:11" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">6</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="1109250" x="2689144.0" y="1165601.0" start_time="19:55:51" end_time="19:55:51" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="2184982">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">1</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String">home</attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="923981" x="2688648.0" y="1165528.0" start_time="14:45:03"
+                      end_time="14:45:03">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="other" facility="1570998" x="2688489.0" y="1165550.0" start_time="14:48:12"
+                      end_time="15:04:31">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="leisure" facility="365561" x="2688207.0" y="1165449.0" start_time="15:07:40"
+                      end_time="15:48:20">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1999863" x="2688639.0" y="1165348.0" start_time="15:51:29"
+                      end_time="16:26:34">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">4</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="other" facility="1556151" x="2694395.0" y="1168245.0" start_time="16:55:23"
+                      end_time="18:06:33">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">5</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="accompany" facility="1791546" x="2706926.0" y="1172375.0" start_time="18:17:10"
+                      end_time="18:33:31">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">6</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="923981" x="2688648.0" y="1165528.0" start_time="19:11:00"
+                      end_time="19:11:00">
+            </activity>
+        </plan>
 
-	<person id="2184982">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">1</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String">home</attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="923981" x="2688648.0" y="1165528.0" start_time="14:45:03" end_time="14:45:03" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="other" facility="1570998" x="2688489.0" y="1165550.0" start_time="14:48:12" end_time="15:04:31" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="leisure" facility="365561" x="2688207.0" y="1165449.0" start_time="15:07:40" end_time="15:48:20" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1999863" x="2688639.0" y="1165348.0" start_time="15:51:29" end_time="16:26:34" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">4</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="other" facility="1556151" x="2694395.0" y="1168245.0" start_time="16:55:23" end_time="18:06:33" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">5</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="accompany" facility="1791546" x="2706926.0" y="1172375.0" start_time="18:17:10" end_time="18:33:31" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">6</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="923981" x="2688648.0" y="1165528.0" start_time="19:11:00" end_time="19:11:00" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="2643470">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">75_to_XX</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">1</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String">accompany,business,home,work</attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="1209332" x="2688324.0" y="1165421.0" start_time="13:47:05"
+                      end_time="13:47:05">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="leisure" facility="1921639" x="2688500.0" y="1165500.0" start_time="13:50:14"
+                      end_time="14:13:41">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="1209332" x="2688324.0" y="1165421.0" start_time="14:16:50"
+                      end_time="14:16:50">
+            </activity>
+        </plan>
 
-	<person id="2643470">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">75_to_XX</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">1</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String">accompany,business,home,work</attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="1209332" x="2688324.0" y="1165421.0" start_time="13:47:05" end_time="13:47:05" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="leisure" facility="1921639" x="2688500.0" y="1165500.0" start_time="13:50:14" end_time="14:13:41" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="1209332" x="2688324.0" y="1165421.0" start_time="14:16:50" end_time="14:16:50" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="2644734">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">18_to_24</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">0</attribute>
+            <attribute name="car2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car_available" class="java.lang.Integer">0</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">VA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="1047604" x="2688606.0" y="1165464.0" start_time="17:59:50"
+                      end_time="17:59:50">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="shopping" facility="1389369" x="2688720.0" y="1165427.0" start_time="18:09:11"
+                      end_time="18:33:25">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="1047604" x="2688606.0" y="1165464.0" start_time="18:42:46"
+                      end_time="18:42:46">
+            </activity>
+        </plan>
 
-	<person id="2644734">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">18_to_24</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">0</attribute>
-			<attribute name="car2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">VA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="1047604" x="2688606.0" y="1165464.0" start_time="17:59:50" end_time="17:59:50" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="shopping" facility="1389369" x="2688720.0" y="1165427.0" start_time="18:09:11" end_time="18:33:25" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="home" facility="1047604" x="2688606.0" y="1165464.0" start_time="18:42:46" end_time="18:42:46" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="2720155">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">0_to_17</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">0</attribute>
+            <attribute name="car2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car_available" class="java.lang.Integer">0</attribute>
+            <attribute name="current_edu" class="java.lang.String">pupil_secondary</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">VA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="325121" x="2688142.0" y="1165311.0" start_time="05:14:26"
+                      end_time="05:14:26">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="pt">
+            </leg>
+            <activity type="education" facility="1529814" x="2643167.0" y="1130786.0" start_time="07:55:12"
+                      end_time="13:54:47">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="pt">
+            </leg>
+            <activity type="home" facility="325121" x="2688142.0" y="1165311.0" start_time="16:35:33"
+                      end_time="16:35:33">
+            </activity>
+        </plan>
 
-	<person id="2720155">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">0_to_17</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">0</attribute>
-			<attribute name="car2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="current_edu" class="java.lang.String">pupil_secondary</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">VA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="325121" x="2688142.0" y="1165311.0" start_time="05:14:26" end_time="05:14:26" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="pt">
-			</leg>
-			<activity type="education" facility="1529814" x="2643167.0" y="1130786.0" start_time="07:55:12" end_time="13:54:47" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="pt">
-			</leg>
-			<activity type="home" facility="325121" x="2688142.0" y="1165311.0" start_time="16:35:33" end_time="16:35:33" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="3434436">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">1</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String">education,home</attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">40_to_79</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="121982" x="2688375.0" y="1165233.0" start_time="08:39:02"
+                      end_time="08:39:02">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="work" facility="1570998" x="2688489.0" y="1165550.0" start_time="08:42:11"
+                      end_time="16:05:54">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1983546" x="2688240.0" y="1165623.0" start_time="16:09:03"
+                      end_time="16:29:47">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="121982" x="2688375.0" y="1165233.0" start_time="16:32:56"
+                      end_time="16:32:56">
+            </activity>
+        </plan>
 
-	<person id="3434436">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">1</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String">education,home</attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">40_to_79</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="121982" x="2688375.0" y="1165233.0" start_time="08:39:02" end_time="08:39:02" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="work" facility="1570998" x="2688489.0" y="1165550.0" start_time="08:42:11" end_time="16:05:54" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1983546" x="2688240.0" y="1165623.0" start_time="16:09:03" end_time="16:29:47" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="121982" x="2688375.0" y="1165233.0" start_time="16:32:56" end_time="16:32:56" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="3501927">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">18_to_24</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">1</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String">business,home</attribute>
+            <attribute name="car2pt" class="java.lang.String">0</attribute>
+            <attribute name="car2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car_available" class="java.lang.Integer">0</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">1</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String">accompany,business,home,leisure,shopping</attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="365561" x="2688207.0" y="1165449.0" start_time="08:44:54"
+                      end_time="08:44:54">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="work" facility="1737917" x="2688568.0" y="1165287.0" start_time="08:54:15"
+                      end_time="18:26:29">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="365561" x="2688207.0" y="1165449.0" start_time="18:35:50"
+                      end_time="19:36:27">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="shopping" facility="1614265" x="2688637.0" y="1165578.0" start_time="19:45:48"
+                      end_time="20:17:59">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="365561" x="2688207.0" y="1165449.0" start_time="20:27:20"
+                      end_time="20:27:20">
+            </activity>
+        </plan>
 
-	<person id="3501927">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">18_to_24</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">1</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String">business,home</attribute>
-			<attribute name="car2pt" class="java.lang.String">0</attribute>
-			<attribute name="car2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">1</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String">accompany,business,home,leisure,shopping</attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="365561" x="2688207.0" y="1165449.0" start_time="08:44:54" end_time="08:44:54" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="work" facility="1737917" x="2688568.0" y="1165287.0" start_time="08:54:15" end_time="18:26:29" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="home" facility="365561" x="2688207.0" y="1165449.0" start_time="18:35:50" end_time="19:36:27" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="shopping" facility="1614265" x="2688637.0" y="1165578.0" start_time="19:45:48" end_time="20:17:59" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="home" facility="365561" x="2688207.0" y="1165449.0" start_time="20:27:20" end_time="20:27:20" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="3532535">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="1292301" x="2688545.0" y="1165303.0" start_time="08:51:35"
+                      end_time="08:51:35">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="business" facility="1515418" x="2688552.0" y="1165457.0" start_time="08:54:44"
+                      end_time="10:38:40">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="1292301" x="2688545.0" y="1165303.0" start_time="10:41:49"
+                      end_time="15:57:56">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1482310" x="2688442.0" y="1165727.0" start_time="16:01:05"
+                      end_time="16:27:58">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="1292301" x="2688545.0" y="1165303.0" start_time="16:31:07"
+                      end_time="18:02:30">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1485813" x="2688648.0" y="1165528.0" start_time="18:05:39"
+                      end_time="18:18:45">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="1292301" x="2688545.0" y="1165303.0" start_time="18:21:54"
+                      end_time="18:21:54">
+            </activity>
+        </plan>
 
-	<person id="3532535">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="1292301" x="2688545.0" y="1165303.0" start_time="08:51:35" end_time="08:51:35" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="business" facility="1515418" x="2688552.0" y="1165457.0" start_time="08:54:44" end_time="10:38:40" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="1292301" x="2688545.0" y="1165303.0" start_time="10:41:49" end_time="15:57:56" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1482310" x="2688442.0" y="1165727.0" start_time="16:01:05" end_time="16:27:58" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="1292301" x="2688545.0" y="1165303.0" start_time="16:31:07" end_time="18:02:30" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1485813" x="2688648.0" y="1165528.0" start_time="18:05:39" end_time="18:18:45" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="1292301" x="2688545.0" y="1165303.0" start_time="18:21:54" end_time="18:21:54" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="3687838">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">1</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String">accompany,business,home,leisure</attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="63013" x="2688455.0" y="1165176.0" start_time="05:33:25"
+                      end_time="05:33:25">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="work" facility="1629202" x="2759104.0" y="1261868.0" start_time="08:06:10"
+                      end_time="12:06:56">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="63013" x="2688455.0" y="1165176.0" start_time="14:39:12"
+                      end_time="18:31:18">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="leisure" facility="2016020" x="2688945.0" y="1165656.0" start_time="18:40:39"
+                      end_time="22:36:45">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="63013" x="2688455.0" y="1165176.0" start_time="22:46:06"
+                      end_time="22:46:06">
+            </activity>
+        </plan>
 
-	<person id="3687838">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">1</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String">accompany,business,home,leisure</attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="63013" x="2688455.0" y="1165176.0" start_time="05:33:25" end_time="05:33:25" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="work" facility="1629202" x="2759104.0" y="1261868.0" start_time="08:06:10" end_time="12:06:56" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="63013" x="2688455.0" y="1165176.0" start_time="14:39:12" end_time="18:31:18" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="leisure" facility="2016020" x="2688945.0" y="1165656.0" start_time="18:40:39" end_time="22:36:45" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="home" facility="63013" x="2688455.0" y="1165176.0" start_time="22:46:06" end_time="22:46:06" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="4154008">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="1164228" x="2688338.0" y="1165357.0" start_time="10:25:44"
+                      end_time="10:25:44">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="leisure" facility="1476867" x="2688853.0" y="1163626.0" start_time="10:28:53"
+                      end_time="11:26:14">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="1164228" x="2688338.0" y="1165357.0" start_time="11:29:23"
+                      end_time="13:08:06">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1389153" x="2688773.0" y="1165378.0" start_time="13:11:15"
+                      end_time="13:27:49">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="1164228" x="2688338.0" y="1165357.0" start_time="13:30:58"
+                      end_time="13:30:58">
+            </activity>
+        </plan>
 
-	<person id="4154008">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="1164228" x="2688338.0" y="1165357.0" start_time="10:25:44" end_time="10:25:44" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="leisure" facility="1476867" x="2688853.0" y="1163626.0" start_time="10:28:53" end_time="11:26:14" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="1164228" x="2688338.0" y="1165357.0" start_time="11:29:23" end_time="13:08:06" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1389153" x="2688773.0" y="1165378.0" start_time="13:11:15" end_time="13:27:49" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="1164228" x="2688338.0" y="1165357.0" start_time="13:30:58" end_time="13:30:58" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="434624">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">1</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String">business,home</attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="240251" x="2688266.0" y="1165626.0" start_time="08:19:15"
+                      end_time="08:19:15">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="accompany" facility="1500648" x="2688584.0" y="1165316.0" start_time="08:22:24"
+                      end_time="08:40:47">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="240251" x="2688266.0" y="1165626.0" start_time="08:43:56"
+                      end_time="12:12:38">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="leisure" facility="1921639" x="2688500.0" y="1165500.0" start_time="12:15:47"
+                      end_time="16:19:58">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="240251" x="2688266.0" y="1165626.0" start_time="16:23:07"
+                      end_time="18:02:03">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="leisure" facility="1389370" x="2688585.0" y="1165652.0" start_time="18:05:12"
+                      end_time="19:16:14">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1623132" x="2688671.0" y="1165470.0" start_time="19:19:23"
+                      end_time="20:11:08">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="240251" x="2688266.0" y="1165626.0" start_time="20:14:17"
+                      end_time="20:14:17">
+            </activity>
+        </plan>
 
-	<person id="434624">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">1</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String">business,home</attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="240251" x="2688266.0" y="1165626.0" start_time="08:19:15" end_time="08:19:15" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="accompany" facility="1500648" x="2688584.0" y="1165316.0" start_time="08:22:24" end_time="08:40:47" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="240251" x="2688266.0" y="1165626.0" start_time="08:43:56" end_time="12:12:38" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="leisure" facility="1921639" x="2688500.0" y="1165500.0" start_time="12:15:47" end_time="16:19:58" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="240251" x="2688266.0" y="1165626.0" start_time="16:23:07" end_time="18:02:03" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="leisure" facility="1389370" x="2688585.0" y="1165652.0" start_time="18:05:12" end_time="19:16:14" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1623132" x="2688671.0" y="1165470.0" start_time="19:19:23" end_time="20:11:08" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">3</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="240251" x="2688266.0" y="1165626.0" start_time="20:14:17" end_time="20:14:17" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="4414079">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">0</attribute>
+            <attribute name="car2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car_available" class="java.lang.Integer">0</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">1_to_39</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="683001" x="2688256.0" y="1165609.0" start_time="11:08:08"
+                      end_time="11:08:08">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="shopping" facility="1626084" x="2688566.0" y="1165715.0" start_time="11:17:29"
+                      end_time="11:45:54">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="683001" x="2688256.0" y="1165609.0" start_time="11:55:15"
+                      end_time="11:55:15">
+            </activity>
+        </plan>
 
-	<person id="4414079">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">0</attribute>
-			<attribute name="car2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car_available" class="java.lang.Integer">0</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">1_to_39</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="683001" x="2688256.0" y="1165609.0" start_time="11:08:08" end_time="11:08:08" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="shopping" facility="1626084" x="2688566.0" y="1165715.0" start_time="11:17:29" end_time="11:45:54" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="home" facility="683001" x="2688256.0" y="1165609.0" start_time="11:55:15" end_time="11:55:15" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="4630858">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">1</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String">home</attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="1229005" x="2688178.0" y="1165254.0" start_time="07:21:45"
+                      end_time="07:21:45">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="other" facility="1411879" x="2668888.0" y="1215679.0" start_time="08:32:06"
+                      end_time="09:09:25">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="leisure" facility="271810" x="2669686.0" y="1216467.0" start_time="09:13:32"
+                      end_time="09:27:44">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1759925" x="2664109.0" y="1209531.0" start_time="09:51:23"
+                      end_time="10:18:07">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">4</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="leisure" facility="16252" x="2663615.0" y="1209421.0" start_time="10:25:40"
+                      end_time="12:59:33">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">5</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="1229005" x="2688178.0" y="1165254.0" start_time="13:59:41"
+                      end_time="13:59:41">
+            </activity>
+        </plan>
 
-	<person id="4630858">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">1</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String">home</attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="1229005" x="2688178.0" y="1165254.0" start_time="07:21:45" end_time="07:21:45" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="other" facility="1411879" x="2668888.0" y="1215679.0" start_time="08:32:06" end_time="09:09:25" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Ge</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="leisure" facility="271810" x="2669686.0" y="1216467.0" start_time="09:13:32" end_time="09:27:44" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1759925" x="2664109.0" y="1209531.0" start_time="09:51:23" end_time="10:18:07" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">4</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="leisure" facility="16252" x="2663615.0" y="1209421.0" start_time="10:25:40" end_time="12:59:33" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">5</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="1229005" x="2688178.0" y="1165254.0" start_time="13:59:41" end_time="13:59:41" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="4885468">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="542876" x="2688850.0" y="1165555.0" start_time="09:07:22"
+                      end_time="09:07:22">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="shopping" facility="1462672" x="2688525.0" y="1165296.0" start_time="09:16:43"
+                      end_time="09:41:41">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="shopping" facility="1524465" x="2688600.0" y="1165295.0" start_time="09:51:02"
+                      end_time="10:35:35">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="542876" x="2688850.0" y="1165555.0" start_time="10:44:56"
+                      end_time="13:02:03">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="work" facility="1520028" x="2688338.0" y="1165357.0" start_time="13:05:26"
+                      end_time="20:21:52">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="home" facility="542876" x="2688850.0" y="1165555.0" start_time="20:25:15"
+                      end_time="20:25:15">
+            </activity>
+        </plan>
 
-	<person id="4885468">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="542876" x="2688850.0" y="1165555.0" start_time="09:07:22" end_time="09:07:22" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="shopping" facility="1462672" x="2688525.0" y="1165296.0" start_time="09:16:43" end_time="09:41:41" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="shopping" facility="1524465" x="2688600.0" y="1165295.0" start_time="09:51:02" end_time="10:35:35" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="home" facility="542876" x="2688850.0" y="1165555.0" start_time="10:44:56" end_time="13:02:03" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="bike">
-			</leg>
-			<activity type="work" facility="1520028" x="2688338.0" y="1165357.0" start_time="13:05:26" end_time="20:21:52" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="bike">
-			</leg>
-			<activity type="home" facility="542876" x="2688850.0" y="1165555.0" start_time="20:25:15" end_time="20:25:15" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="4894557">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="1221037" x="2688418.0" y="1165448.0" start_time="09:15:46"
+                      end_time="09:15:46">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="pt">
+            </leg>
+            <activity type="leisure" facility="1500662" x="2688648.0" y="1165528.0" start_time="09:18:55"
+                      end_time="10:03:28">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="pt">
+            </leg>
+            <activity type="home" facility="1221037" x="2688418.0" y="1165448.0" start_time="10:06:37"
+                      end_time="14:31:56">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="shopping" facility="1484328" x="2688640.0" y="1165448.0" start_time="14:41:17"
+                      end_time="15:35:29">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="1221037" x="2688418.0" y="1165448.0" start_time="15:44:50"
+                      end_time="15:44:50">
+            </activity>
+        </plan>
 
-	<person id="4894557">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="1221037" x="2688418.0" y="1165448.0" start_time="09:15:46" end_time="09:15:46" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="pt">
-			</leg>
-			<activity type="leisure" facility="1500662" x="2688648.0" y="1165528.0" start_time="09:18:55" end_time="10:03:28" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="pt">
-			</leg>
-			<activity type="home" facility="1221037" x="2688418.0" y="1165448.0" start_time="10:06:37" end_time="14:31:56" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="shopping" facility="1484328" x="2688640.0" y="1165448.0" start_time="14:41:17" end_time="15:35:29" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="home" facility="1221037" x="2688418.0" y="1165448.0" start_time="15:44:50" end_time="15:44:50" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="541658">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home,leisure</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="548405" x="2688917.0" y="1165665.0" start_time="13:06:20"
+                      end_time="13:06:20">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="work" facility="1921639" x="2688500.0" y="1165500.0" start_time="13:15:41"
+                      end_time="18:51:11">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="walk_main">
+            </leg>
+            <activity type="home" facility="548405" x="2688917.0" y="1165665.0" start_time="19:00:32"
+                      end_time="19:00:32">
+            </activity>
+        </plan>
 
-	<person id="541658">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home,leisure</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="548405" x="2688917.0" y="1165665.0" start_time="13:06:20" end_time="13:06:20" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="work" facility="1921639" x="2688500.0" y="1165500.0" start_time="13:15:41" end_time="18:51:11" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="walk_main">
-			</leg>
-			<activity type="home" facility="548405" x="2688917.0" y="1165665.0" start_time="19:00:32" end_time="19:00:32" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="865047">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="742813" x="2688687.0" y="1165448.0" start_time="13:16:06"
+                      end_time="13:16:06">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="leisure" facility="1615574" x="2688552.0" y="1165457.0" start_time="13:19:15"
+                      end_time="15:40:04">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="742813" x="2688687.0" y="1165448.0" start_time="15:43:13"
+                      end_time="15:43:13">
+            </activity>
+        </plan>
 
-	<person id="865047">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">0</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="742813" x="2688687.0" y="1165448.0" start_time="13:16:06" end_time="13:16:06" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="leisure" facility="1615574" x="2688552.0" y="1165457.0" start_time="13:19:15" end_time="15:40:04" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="742813" x="2688687.0" y="1165448.0" start_time="15:43:13" end_time="15:43:13" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="92887">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="76369" x="2688569.0" y="1165278.0" start_time="07:41:13"
+                      end_time="07:41:13">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="shopping" facility="1614265" x="2688637.0" y="1165578.0" start_time="07:44:22"
+                      end_time="08:01:29">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="76369" x="2688569.0" y="1165278.0" start_time="08:04:38"
+                      end_time="13:13:09">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="work" facility="1500662" x="2688648.0" y="1165528.0" start_time="13:16:32"
+                      end_time="21:31:41">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="leisure" facility="841377" x="2688326.0" y="1165528.0" start_time="21:35:04"
+                      end_time="23:56:05">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="home" facility="76369" x="2688569.0" y="1165278.0" start_time="23:59:28"
+                      end_time="23:59:28">
+            </activity>
+        </plan>
 
-	<person id="92887">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home,shopping</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="76369" x="2688569.0" y="1165278.0" start_time="07:41:13" end_time="07:41:13" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="shopping" facility="1614265" x="2688637.0" y="1165578.0" start_time="07:44:22" end_time="08:01:29" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="76369" x="2688569.0" y="1165278.0" start_time="08:04:38" end_time="13:13:09" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="bike">
-			</leg>
-			<activity type="work" facility="1500662" x="2688648.0" y="1165528.0" start_time="13:16:32" end_time="21:31:41" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="bike">
-			</leg>
-			<activity type="leisure" facility="841377" x="2688326.0" y="1165528.0" start_time="21:35:04" end_time="23:56:05" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="bike">
-			</leg>
-			<activity type="home" facility="76369" x="2688569.0" y="1165278.0" start_time="23:59:28" end_time="23:59:28" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
+    <!-- ====================================================================== -->
 
-<!-- ====================================================================== -->
+    <person id="983734">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="413514" x="2688510.0" y="1165257.0" start_time="08:16:01"
+                      end_time="08:16:01">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="work" facility="1921639" x="2688500.0" y="1165500.0" start_time="08:19:10"
+                      end_time="14:44:16">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="car">
+            </leg>
+            <activity type="home" facility="413514" x="2688510.0" y="1165257.0" start_time="14:47:25"
+                      end_time="14:47:25">
+            </activity>
+        </plan>
 
-	<person id="983734">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">25_to_44</attribute>
-			<attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
-			<attribute name="avtaxi2pt_act" class="java.lang.String">accompany,business,education,home,leisure,other,shopping,work</attribute>
-			<attribute name="bike2pt" class="java.lang.String">0</attribute>
-			<attribute name="bike2pt_act" class="java.lang.String"></attribute>
-			<attribute name="car2pt" class="java.lang.String">1</attribute>
-			<attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">none</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="ride2pt" class="java.lang.String">0</attribute>
-			<attribute name="ride2pt_act" class="java.lang.String"></attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute>
-		</attributes>
-		<plan selected="yes">
-			<activity type="home" facility="413514" x="2688510.0" y="1165257.0" start_time="08:16:01" end_time="08:16:01" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="work" facility="1921639" x="2688500.0" y="1165500.0" start_time="08:19:10" end_time="14:44:16" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="car">
-			</leg>
-			<activity type="home" facility="413514" x="2688510.0" y="1165257.0" start_time="14:47:25" end_time="14:47:25" >
-			</activity>
-		</plan>
+    </person>
 
-	</person>
-	
-	<person id="mobi-test1">
-		<attributes>
-			<attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
-			<attribute name="car_available" class="java.lang.Integer">1</attribute>
-			<attribute name="current_edu" class="java.lang.String">null</attribute>
-			<attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
-			<attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
-			<attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
-			<attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
-			<attribute name="subpopulation" class="java.lang.String">regular</attribute><attribute name="car2pt" class="java.lang.String">1</attribute><attribute name="bike2pt" class="java.lang.String">1</attribute><attribute name="ride2pt" class="java.lang.String">1</attribute></attributes>
-		<plan selected="yes">
-			<activity type="home" x="2681622.522142" y="1161336.37470735" start_time="08:01:27" end_time="08:01:27" >
-				<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="pt">
-				</leg>		
-			<activity type="leisure"  x="2690325.96495644" y="1195194.6463738" start_time="09:24:06" end_time="14:19:56">
-							<attributes>
-					<attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
-					<attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
-					<attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
-					<attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
-				</attributes>
-			</activity>
-			<leg mode="pt">
-				</leg>
-			<activity type="home" x="2681622.522142" y="1161336.37470735" start_time="16:01:27"/>	
-			
-		</plan>
-		</person>
+    <person id="mobi-test1">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">45_to_64</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">HTA</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="bike2pt" class="java.lang.String">1</attribute>
+            <attribute name="ride2pt" class="java.lang.String">1</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" x="2681622.522142" y="1161336.37470735" start_time="08:01:27" end_time="08:01:27">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="pt">
+            </leg>
+            <activity type="leisure" x="2690325.96495644" y="1195194.6463738" start_time="09:24:06" end_time="14:19:56">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="pt">
+            </leg>
+            <activity type="home" x="2681622.522142" y="1161336.37470735" start_time="16:01:27"/>
 
-<!-- ====================================================================== -->
+        </plan>
+    </person>
+
+    <person id="ebike-guy">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">0</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String"></attribute>
+            <attribute name="has_ebike45" class="java.lang.String">1</attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">80_to_100</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120201001</attribute>
+            <attribute name="ride2pt" class="java.lang.String">0</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String"></attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="542876" x="2688850.0" y="1165555.0" start_time="09:07:22"
+                      end_time="09:07:22">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="shopping" facility="1462672" x="2688525.0" y="1165296.0" start_time="09:16:43"
+                      end_time="09:41:41">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Undefined</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="shopping" facility="1524465" x="2688600.0" y="1165295.0" start_time="09:51:02"
+                      end_time="10:35:35">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">3</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">2</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="home" facility="542876" x="2688850.0" y="1165555.0" start_time="10:44:56"
+                      end_time="13:02:03">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="work" facility="1520028" x="2688338.0" y="1165357.0" start_time="13:05:26"
+                      end_time="20:21:52">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Pe</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="bike">
+            </leg>
+            <activity type="home" facility="542876" x="2688850.0" y="1165555.0" start_time="20:25:15"
+                      end_time="20:25:15">
+            </activity>
+        </plan>
+
+    </person>
+
+    <!-- ====================================================================== -->
 
 </population>

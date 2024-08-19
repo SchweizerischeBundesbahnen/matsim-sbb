@@ -20,7 +20,7 @@ public class SBBNetworkRoutingModule extends AbstractModule {
 
 	public static void addNetworkMode(Network network, String transportMode, String routingMode) {
 		for (Link l : network.getLinks().values()) {
-			if (!l.getId().toString().startsWith("pt_")) {
+			if (l.getAllowedModes().contains(routingMode)) {
 				Set<String> allowedModes = new HashSet<>(l.getAllowedModes());
 				allowedModes.add(transportMode);
 				l.setAllowedModes(allowedModes);

@@ -1,17 +1,17 @@
 package ch.sbb.matsim.vehicles;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
-
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.config.variables.Variables;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.vehicles.Vehicle;
-import org.matsim.vehicles.VehicleType;
-import org.matsim.vehicles.VehicleUtils;
-import org.matsim.vehicles.Vehicles;
-import org.matsim.vehicles.VehiclesFactory;
+import org.matsim.core.population.PopulationUtils;
+import org.matsim.vehicles.*;
+
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * Creates vehicles for each agent, based on the vehicle type in an agent attribute. This class expects the referred vehicle types to already exist in the Vehicles container, and will add a
@@ -20,20 +20,18 @@ import org.matsim.vehicles.VehiclesFactory;
  *
  * @author mrieser
  */
-public class CreateVehiclesFromType {
+public class CreateAgentVehicles {
 
 	private final Population population;
 	private final Vehicles vehicles;
-	private final String vehicleTypeAttributeName;
 	private final String defaultVehicleType;
 	private final Collection<String> mainModes;
+	private final Logger log = LogManager.getLogger(CreateAgentVehicles.class);
 
-	public CreateVehiclesFromType(Population population, Vehicles vehicles, String vehicleTypeAttributeName,
-			String defaultVehicleType, Collection<String> mainModes) {
+	public CreateAgentVehicles(Population population, Vehicles vehicles, Collection<String> mainModes) {
 		this.population = population;
 		this.vehicles = vehicles;
-		this.vehicleTypeAttributeName = vehicleTypeAttributeName;
-		this.defaultVehicleType = defaultVehicleType;
+		this.defaultVehicleType = SBBModes.CAR;
 		this.mainModes = mainModes;
 	}
 
@@ -43,24 +41,34 @@ public class CreateVehiclesFromType {
 	public void createVehicles() {
 		VehiclesFactory vf = this.vehicles.getFactory();
 		VehicleType vehicleTypeBike = this.vehicles.getVehicleTypes().get(Id.create(SBBModes.BIKE, VehicleType.class));
+		VehicleType vehicleTypeEBike = this.vehicles.getVehicleTypes().get(Id.create(SBBModes.EBIKE, VehicleType.class));
 		for (Person person : population.getPersons().values()) {
+			String vehicleTypeName = defaultVehicleType;
+			if (Variables.FREIGHT_ROAD.equals(PopulationUtils.getSubpopulation(person))) {
+				String lowerCasePersonId = person.getId().toString().toLowerCase();
+				if (lowerCasePersonId.contains("_li_")) {
+					vehicleTypeName = "van";
+				} else if (lowerCasePersonId.contains("_lz_")) {
+					vehicleTypeName = "hgva";
+				} else if (lowerCasePersonId.contains("_lw_")) {
+					vehicleTypeName = "hgv";
+				} else {
+					//should not happen in any typical mobi setup
+					log.error("Could not determine vehicle type for freight agent id=" + person.getId() + ". Assuming van...");
+					vehicleTypeName = "van";
+				}
+			}
 			Id<Person> personId = person.getId();
 			Id<Vehicle> vehicleId = Id.create("v"+personId.toString(), Vehicle.class);
-			String vehicleTypeName = (String) person.getAttributes().getAttribute(this.vehicleTypeAttributeName);
-			if (vehicleTypeName == null) {
-				vehicleTypeName = this.defaultVehicleType;
-			}
 			Id<VehicleType> vehicleTypeId = Id.create(vehicleTypeName, VehicleType.class);
 			VehicleType vehicleType = this.vehicles.getVehicleTypes().get(vehicleTypeId);
-			if (vehicleType == null) {
-				throw new RuntimeException("VehicleType not found: " + vehicleTypeName);
-			}
 			Vehicle vehicle = vf.createVehicle(vehicleId, vehicleType);
 			this.vehicles.addVehicle(vehicle);
 
-			Id<Vehicle> vehicleIdBike = Id.create("vb"+ personId, Vehicle.class);
+			Id<Vehicle> vehicleIdBike = Id.create("v_bike_" + personId, Vehicle.class);
+			boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.HAS_EBIKE_45)).equals(Variables.AVAIL_TRUE);
 
-			Vehicle vehicleBike = vf.createVehicle(vehicleIdBike, vehicleTypeBike);
+			Vehicle vehicleBike = vf.createVehicle(vehicleIdBike, hasEBike ? vehicleTypeEBike : vehicleTypeBike);
 			this.vehicles.addVehicle(vehicleBike);
 
 			var vehicleMap = this.mainModes.stream().collect(Collectors.toMap(s -> s, t -> vehicleId));

@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class Variables {
 
     public static final String SUBPOPULATION = "subpopulation";
+    public static final String ANALYSIS_SUBPOPULATION = "analysis_subpopulation";
     public static final String REGULAR = "regular";
     public static final String NO_REPLANNING = "no_replanning";
     public static final String AIRPORT_RAIL = "airport_rail";
@@ -27,6 +28,7 @@ public class Variables {
     public static final String FREIGHT_ROAD = "freight_road";
     public static final List<String> EXOGENEOUS_DEMAND = List.of(AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
     public static final List<String> SUBPOPULATIONS = List.of(REGULAR, AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
+    public static final List<String> ANALYSIS_SUBPOPULATIONS = List.of(REGULAR, AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD, "foreign", "tourist");
 
     public static final String PT_SUBSCRIPTION = "pt_subscr";
     public static final String PT_SUBSCRIPTION_NONE = "none";
@@ -47,9 +49,12 @@ public class Variables {
     public static final String PERSONID = "person_id";
 
     public static final String CAR_AVAIL = "car_available";
-    public static final String CAR_AVAL_TRUE = "1";
-    public static final String CAR_AVAL_FALSE = "0";
+    public static final String HAS_EBIKE_45 = "has_ebike45";
+    public static final String AVAIL_TRUE = "1";
+    public static final String AVAIL_FALSE = "0";
     public static final String HAS_DRIVING_LICENSE = "has_driving_license";
+
+    public static final String HIGHEST_EDUCATION = "highest_education";
 
     public static final String OUTSIDE = "outside";
 

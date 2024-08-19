@@ -3,16 +3,17 @@ package ch.sbb.matsim.analysis.modalsplit;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+
 import java.util.List;
 
 public final class MSVariables {
 
     public static final String separator = "_";
     public static final String runID = "runID";
-    public static final String subpopulation = "subpopulation";
+    public static final String subpopulation = Variables.SUBPOPULATION;
     public static final String all = "all";
-    public static final String carAvailableTrue = Variables.CAR_AVAIL + separator + Variables.CAR_AVAL_TRUE;
-    public static final String carAvailableFalse = Variables.CAR_AVAIL + separator + Variables.CAR_AVAL_FALSE;
+    public static final String carAvailableTrue = Variables.CAR_AVAIL + separator + Variables.AVAIL_TRUE;
+    public static final String carAvailableFalse = Variables.CAR_AVAIL + separator + Variables.AVAIL_FALSE;
     public static final String ptSubNone = Variables.PT_SUBSCRIPTION + separator + Variables.PT_SUBSCRIPTION_NONE;
     public static final String ptSubGA = Variables.PT_SUBSCRIPTION + separator + Variables.GA;
     public static final String ptSubVA = Variables.PT_SUBSCRIPTION + separator + Variables.VA;

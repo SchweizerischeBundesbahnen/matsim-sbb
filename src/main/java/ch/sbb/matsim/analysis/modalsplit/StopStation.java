@@ -1,29 +1,30 @@
 package ch.sbb.matsim.analysis.modalsplit;
 
-import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.zones.Zone;
-import java.util.List;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class StopStation {
 
-    private static final List<String> modes = SBBModes.TRAIN_STATION_MODES;
-    private static final List<String> origdestModes = SBBModes.TRAIN_STATION_ORIGDEST_MODES;
     private int entered = 0;
     private int exited = 0;
     private int enteredFQ = 0;
     private int exitedFQ = 0;
-    private final int[] enteredMode = new int[modes.size()];
-    private final int[] exitedMode = new int[modes.size()];
+    private final int[] enteredMode;
+    private final int[] exitedMode;
     private int umsteigeBahnBahn = 0;
     private int umsteigeAHPBahn = 0;
     private int umsteigeBahnAHP = 0;
     private boolean isRailStation = false;
     private final Zone zone;
     private final TransitStopFacility stop;
-    public StopStation(TransitStopFacility trainStation, Zone zone) {
+
+    public StopStation(TransitStopFacility trainStation, Zone zone, int noOfPossibleModesAtStop) {
         this.stop = trainStation;
         this.zone = zone;
+        this.enteredMode = new int[noOfPossibleModesAtStop];
+        this.exitedMode = new int[noOfPossibleModesAtStop];
+
+
     }
 
     public String getZoneId(){
@@ -83,14 +84,6 @@ public class StopStation {
 
     public TransitStopFacility getStop() {
         return stop;
-    }
-
-    public static List<String> getModes() {
-        return modes;
-    }
-
-    public static List<String> getOrigDestModes() {
-        return origdestModes;
     }
 
     public int[] getEnteredMode() {

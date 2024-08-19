@@ -1,100 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <vehicleDefinitions xmlns="http://www.matsim.org/files/dtd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.matsim.org/files/dtd http://www.matsim.org/files/dtd/vehicleDefinitions_v2.0.xsd">
-
-    <vehicleType id="bike">
-        <attributes>
-            <attribute name="accessTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-            <attribute name="doorOperationMode" class="org.matsim.vehicles.VehicleType$DoorOperationMode">serial</attribute>
-            <attribute name="egressTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-        </attributes>
-        <capacity seats="0" standingRoomInPersons="0">
-
-        </capacity>
+    <vehicleType id="van">
         <length meter="7.5"/>
         <width meter="1.0"/>
-        <maximumVelocity meterPerSecond="4.166666666666667"/>
-        <costInformation>
-
-        </costInformation>
-        <passengerCarEquivalents pce="0.1"/>
-        <networkMode networkMode="bike"/>
+        <passengerCarEquivalents pce="1.2"/>
+        <flowEfficiencyFactor factor="1.0"/>
+    </vehicleType>
+    <vehicleType id="LI">
+        <length meter="7.5"/>
+        <width meter="1.0"/>
+        <passengerCarEquivalents pce="1.2"/>
         <flowEfficiencyFactor factor="1.0"/>
     </vehicleType>
 
     <vehicleType id="car">
-        <attributes>
-            <attribute name="accessTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-            <attribute name="doorOperationMode" class="org.matsim.vehicles.VehicleType$DoorOperationMode">serial</attribute>
-            <attribute name="egressTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-        </attributes>
-        <capacity seats="0" standingRoomInPersons="0">
-
-        </capacity>
         <length meter="7.5"/>
         <width meter="1.0"/>
-        <costInformation>
-
-        </costInformation>
         <passengerCarEquivalents pce="1.0"/>
-        <networkMode networkMode="car"/>
         <flowEfficiencyFactor factor="1.0"/>
-    </vehicleType>
 
+    </vehicleType>
     <vehicleType id="hgv">
-        <attributes>
-            <attribute name="accessTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-            <attribute name="doorOperationMode" class="org.matsim.vehicles.VehicleType$DoorOperationMode">serial</attribute>
-            <attribute name="egressTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-        </attributes>
-        <capacity seats="0" standingRoomInPersons="0">
-
-        </capacity>
         <length meter="7.5"/>
         <width meter="1.0"/>
-        <costInformation>
-
-        </costInformation>
         <passengerCarEquivalents pce="2.0"/>
-        <networkMode networkMode="car"/>
         <flowEfficiencyFactor factor="1.0"/>
-    </vehicleType>
 
+    </vehicleType>
+    <vehicleType id="LW">
+        <length meter="7.5"/>
+        <width meter="1.0"/>
+        <passengerCarEquivalents pce="2.0"/>
+        <flowEfficiencyFactor factor="1.0"/>
+
+    </vehicleType>
     <vehicleType id="hgva">
-        <attributes>
-            <attribute name="accessTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-            <attribute name="doorOperationMode" class="org.matsim.vehicles.VehicleType$DoorOperationMode">serial</attribute>
-            <attribute name="egressTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-        </attributes>
-        <capacity seats="0" standingRoomInPersons="0">
-
-        </capacity>
         <length meter="7.5"/>
         <width meter="1.0"/>
-        <costInformation>
-
-        </costInformation>
         <passengerCarEquivalents pce="2.5"/>
-        <networkMode networkMode="car"/>
+        <flowEfficiencyFactor factor="1.0"/>
+
+    </vehicleType>
+    <vehicleType id="LZ">
+        <length meter="7.5"/>
+        <width meter="1.0"/>
+        <passengerCarEquivalents pce="2.5"/>
+        <flowEfficiencyFactor factor="1.0"/>
+
+    </vehicleType>
+    <vehicleType id="bike">
+        <!-- ordinary bicycle or slow ebike -->
+        <length meter="2.5"/>
+        <width meter="1.0"/>
+        <maximumVelocity meterPerSecond="3.694444"/>
+        <passengerCarEquivalents pce="0.2"/>
+        <networkMode networkMode="bike"/>
         <flowEfficiencyFactor factor="1.0"/>
     </vehicleType>
-
-    <vehicleType id="van">
-        <attributes>
-            <attribute name="accessTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-            <attribute name="doorOperationMode" class="org.matsim.vehicles.VehicleType$DoorOperationMode">serial</attribute>
-            <attribute name="egressTimeInSecondsPerPerson" class="java.lang.Double">1.0</attribute>
-        </attributes>
-        <capacity seats="0" standingRoomInPersons="0">
-
-        </capacity>
-        <length meter="7.5"/>
+    <vehicleType id="ebike">
+        <!-- fast ebike type. Assuming 30km/h max speed. -->
+        <length meter="2.5"/>
         <width meter="1.0"/>
-        <costInformation>
-
-        </costInformation>
-        <passengerCarEquivalents pce="1.2"/>
-        <networkMode networkMode="car"/>
+        <maximumVelocity meterPerSecond="8.3333"/>
+        <passengerCarEquivalents pce="0.2"/>
+        <networkMode networkMode="bike"/>
         <flowEfficiencyFactor factor="1.0"/>
     </vehicleType>
 </vehicleDefinitions>

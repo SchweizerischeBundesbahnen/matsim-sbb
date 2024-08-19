@@ -45,9 +45,9 @@ public class SBBPermissibleModesCalculator implements PermissibleModesCalculator
 			final boolean carAvailToAgent = switch (carModeAllowedSetting) {
 				case always -> true;
 				case carAvailable ->
-						Objects.equals(String.valueOf(person.getAttributes().getAttribute(Variables.CAR_AVAIL)), Variables.CAR_AVAL_TRUE);
+                        Objects.equals(String.valueOf(person.getAttributes().getAttribute(Variables.CAR_AVAIL)), Variables.AVAIL_TRUE);
 				case licenseAvailable ->
-						Objects.equals(String.valueOf(person.getAttributes().getAttribute(Variables.HAS_DRIVING_LICENSE)), Variables.CAR_AVAL_TRUE);
+						Objects.equals(String.valueOf(person.getAttributes().getAttribute(Variables.HAS_DRIVING_LICENSE)), Variables.AVAIL_TRUE);
 			};
 
 			return carAvailToAgent ? availableModes : availableModesWithoutCar;

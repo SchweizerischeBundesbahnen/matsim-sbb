@@ -42,17 +42,11 @@ public class SingleTripAgentCreator {
     }
 
     public static String getAggregateZone(Zones zones, Id<Zone> fromZoneId) {
-        Integer zoneIdNo = Integer.parseInt(fromZoneId.toString());
-        if (zoneIdNo < 700101001) {
-            return String.valueOf(zones.getZone(fromZoneId).getAttribute("amr_id"));
-        } else if (zoneIdNo < 710101001) {
-            return "Liechtenstein";
-        } else {
-            Zone zone = zones.getZone(fromZoneId);
-            if (zone != null) {
-                return String.valueOf(zone.getAttribute("mun_name"));
-            } else return fromZoneId.toString();
-        }
+        Zone zone = zones.getZone(fromZoneId);
+        if (zone != null) {
+            return String.valueOf(zone.getAttribute("amr_name"));
+        } else return fromZoneId.toString();
+
     }
 
     public static Map<Id<Zone>, WeightedRandomSelection<Coord>> createCoordinateSelector(Scenario scenario, Zones zones, Random random, String foreignConnectorsLocationFile) {
