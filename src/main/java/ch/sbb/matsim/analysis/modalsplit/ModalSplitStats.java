@@ -863,6 +863,13 @@ public class ModalSplitStats {
     private void analyzeDistanceClasses(Entry<Id<Person>, Plan> entry) {
         Attributes attributes = this.population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+            // skip home office activities, it seems that the facility id can be null
+            if (trip.getOriginActivity().getFacilityId() != null || trip.getDestinationActivity().getFacilityId() != null) {
+                if (trip.getOriginActivity().getFacilityId().equals(trip.getDestinationActivity().getFacilityId())) {
+                    continue;
+                }
+            }
+
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
             if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
