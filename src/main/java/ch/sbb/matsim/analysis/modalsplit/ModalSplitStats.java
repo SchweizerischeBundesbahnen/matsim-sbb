@@ -749,12 +749,16 @@ public class ModalSplitStats {
                         Zone destZone = zones.findZone(trip.getDestinationActivity().getCoord());
                         String originZoneId = "";
                         String destZoneId = "";
+                        String originZonesl3 = "";
+                        String destZonesl3 = "";
 
                         if (originZone != null) {
                             originZoneId = String.valueOf(originZone.getId());
+                            originZonesl3 = originZone.getAttribute("sl3_id").toString();
                         }
                         if (destZone != null) {
                             destZoneId = String.valueOf(destZone.getId());
+                            destZonesl3 = destZone.getAttribute("sl3_id").toString();
                         }
 
                         if (zonesAccessMSPFMap.get(originZoneId) == null) {
@@ -854,6 +858,29 @@ public class ModalSplitStats {
                                 break;
                             }
                         }
+
+                        // sl3
+                        String enterType = "";
+                        if (originZonesl3.equals("1")) enterType = sl3Urban;
+                        if (originZonesl3.equals("2")) enterType = sl3Suburban;
+                        if (originZonesl3.equals("3")) enterType = sl3Rural;
+                        if (!enterType.equals("")) {
+                            pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(enterType)]++;
+                            pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(enterType)] += distanceEnter;
+                            pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(enterType)]++;
+                            pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(enterType)] += distanceEnter;
+                        }
+                        String exitType = "";
+                        if (destZonesl3.equals("1")) exitType = sl3Urban;
+                        if (destZonesl3.equals("2")) exitType = sl3Suburban;
+                        if (destZonesl3.equals("3")) exitType = sl3Rural;
+                        if (!enterType.equals("")) {
+                            pfAccessArray[subPTModeExited][variablesMSFeederMap.get(exitType)]++;
+                            pkmAccessArray[subPTModeExited][variablesMSFeederMap.get(exitType)] += distanceExit;
+                            pfOriginZoneArray[subPTModeExited][variablesMSFeederMap.get(exitType)]++;
+                            pkmOriginZoneArray[subPTModeExited][variablesMSFeederMap.get(exitType)] += distanceExit;
+                        }
+
                     }
                 }
             }
