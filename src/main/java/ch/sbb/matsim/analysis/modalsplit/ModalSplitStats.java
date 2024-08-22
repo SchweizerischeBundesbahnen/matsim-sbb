@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import static ch.sbb.matsim.RunSBB.getSbbDefaultConfigGroups;
 import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
 import static ch.sbb.matsim.config.variables.SBBModes.PT;
 
@@ -104,8 +105,10 @@ public class ModalSplitStats {
         String plansFile = args[5];
         double sampleSize = Double.parseDouble(args[6]);
         String outputFile = args[7];
+        String configFile = args[8];
 
-        final Config config = ConfigUtils.createConfig();
+        final Config config = ConfigUtils.loadConfig(configFile, getSbbDefaultConfigGroups());
+        // final Config config = ConfigUtils.createConfig();
         config.controller().setRunId(runId);
         config.qsim().setEndTime(30 * 3600);
         config.controller().setOutputDirectory(outputFile);
@@ -733,8 +736,6 @@ public class ModalSplitStats {
                             if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
                                 subPTModeExited = feederModesMap.get(leg.getMode());
                             }
-
-
                         }
                     }
 
@@ -874,11 +875,11 @@ public class ModalSplitStats {
                         if (destZonesl3.equals("1")) exitType = sl3Urban;
                         if (destZonesl3.equals("2")) exitType = sl3Suburban;
                         if (destZonesl3.equals("3")) exitType = sl3Rural;
-                        if (!enterType.equals("")) {
-                            pfAccessArray[subPTModeExited][variablesMSFeederMap.get(exitType)]++;
-                            pkmAccessArray[subPTModeExited][variablesMSFeederMap.get(exitType)] += distanceExit;
-                            pfOriginZoneArray[subPTModeExited][variablesMSFeederMap.get(exitType)]++;
-                            pkmOriginZoneArray[subPTModeExited][variablesMSFeederMap.get(exitType)] += distanceExit;
+                        if (!exitType.equals("")) {
+                            pfEgressArray[subPTModeExited][variablesMSFeederMap.get(exitType)]++;
+                            pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(exitType)] += distanceExit;
+                            pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(exitType)]++;
+                            pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(exitType)] += distanceExit;
                         }
 
                     }
