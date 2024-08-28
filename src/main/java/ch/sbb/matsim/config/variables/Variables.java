@@ -26,9 +26,12 @@ public class Variables {
     public static final String CB_RAIL = "cb_rail";
     public static final String TOURISM_RAIL = "tourism_rail";
     public static final String FREIGHT_ROAD = "freight_road";
-    public static final List<String> EXOGENEOUS_DEMAND = List.of(AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
+    public static final String TOURIST = "tourist";
+    public static final String CB_COMMUTER = "cb_commuter";
+    public static final String LIECHTENSTEIN = "liechtenstein";
+
+    public static final List<String> EXOGENEOUS_DEMAND = List.of(AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, CB_COMMUTER);
     public static final List<String> SUBPOPULATIONS = List.of(REGULAR, AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD);
-    public static final List<String> ANALYSIS_SUBPOPULATIONS = List.of(REGULAR, AIRPORT_RAIL, AIRPORT_ROAD, CB_RAIL, CB_ROAD, TOURISM_RAIL, FREIGHT_ROAD, "foreign", "tourist");
 
     public static final String PT_SUBSCRIPTION = "pt_subscr";
     public static final String PT_SUBSCRIPTION_NONE = "none";
