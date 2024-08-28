@@ -46,7 +46,7 @@ public class AdjustTourists {
         Scenario scenario = ScenarioUtils.loadScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(inputPopulation);
         var zones = ZonesLoader.loadZones("id", zonesFile);
-        AdjustTourists adjustTourists = new AdjustTourists(scenario.getPopulation(), zones, 3.0);
+        AdjustTourists adjustTourists = new AdjustTourists(scenario.getPopulation(), zones, 4.0);
         adjustTourists.adjust();
 
         new PopulationWriter(scenario.getPopulation()).write(outputPopulation);
@@ -131,7 +131,11 @@ public class AdjustTourists {
                 numberOfClones = -1.0;
             }
             if (String.valueOf(fromZone.getAttribute("kt_name")).equals("GR") || String.valueOf(toZone.getAttribute("kt_name")).equals("GR")) {
-                numberOfClones = 3.0;
+                numberOfClones = 6.0;
+            }
+
+            if (String.valueOf(fromZone.getAttribute("kt_name")).equals("NW") || String.valueOf(toZone.getAttribute("kt_name")).equals("GR")) {
+                numberOfClones = 4.0;
             }
             if (specialZones.contains(fromZone.getId()) || specialZones.contains(toZone.getId())) {
                 numberOfClones = 9.0;

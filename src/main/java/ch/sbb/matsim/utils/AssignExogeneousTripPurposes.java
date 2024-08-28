@@ -50,7 +50,7 @@ public class AssignExogeneousTripPurposes {
                     assignAirportTripPurpose(scenario.getPopulation(), r);
                 } else if (s.contains(Variables.CB_RAIL) || s.contains(Variables.CB_ROAD)) {
                     assignCBPurpose(scenario.getPopulation(), r, zones);
-                } else if (s.contains(Variables.FREIGHT_ROAD)) {
+                } else if (s.contains(Variables.CB_COMMUTER)) {
                     assignFreightPurpose(scenario.getPopulation());
                 } else if (s.contains(Variables.TOURISM_RAIL)) {
                     assignTouristPurpose(scenario.getPopulation());
@@ -185,8 +185,7 @@ public class AssignExogeneousTripPurposes {
         int planelements = selectedPlan.getPlanElements().size();
         for (int i = 0; i < planelements - 1; i++) {
             var planElement = selectedPlan.getPlanElements().get(i);
-            if (planElement instanceof Activity) {
-                Activity activity = (Activity) planElement;
+            if (planElement instanceof Activity activity) {
                 activity.getAttributes().putAttribute(Variables.MOBiTripAttributes.PURPOSE, purpose);
             }
         }
