@@ -40,7 +40,7 @@ import static ch.sbb.matsim.config.variables.SBBModes.PT;
 
 public class ModalSplitStats {
 
-    private final List<String> analysisSubpopulations = List.of(Variables.REGULAR, Variables.AIRPORT_RAIL, Variables.AIRPORT_ROAD, Variables.CB_RAIL, Variables.CB_ROAD, Variables.TOURISM_RAIL, Variables.CB_COMMUTER, "foreign", Variables.CB_COMMUTER, Variables.LIECHTENSTEIN, Variables.TOURIST);
+    private final List<String> analysisSubpopulations = List.of(Variables.REGULAR, Variables.AIRPORT_RAIL, Variables.AIRPORT_ROAD, Variables.CB_RAIL, Variables.CB_ROAD, Variables.TOURISM_RAIL, Variables.FREIGHT_ROAD, "foreign", Variables.CB_COMMUTER, Variables.LIECHTENSTEIN, Variables.TOURIST);
     @Inject
     private ExperiencedPlansService experiencedPlansService;
     @Inject
