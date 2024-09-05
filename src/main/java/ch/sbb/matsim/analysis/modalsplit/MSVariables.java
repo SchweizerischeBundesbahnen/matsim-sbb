@@ -72,6 +72,9 @@ public final class MSVariables {
     public static final String changeTrainAll = "trainAll";
     public static final String changeOEV = "oev";
     public static final String changeOPNV = "opnv";
+    public static final String sl3Urban = "Urban";
+    public static final String sl3Suburban = "Suburban";
+    public static final String sl3Rural = "Rural";
     public static final int timeSplit = 15 * 60;
     public static final int travelTimeSplit = 10 * 60;
     public static final int lastTravelTimeValue = 5 * 60 * 60;
@@ -93,8 +96,9 @@ public final class MSVariables {
     public static final List<String> employmentRate = List.of(employment0, employment39, employment79, employment100);
     public static final List<String> ageCategory = List.of(ageCat17, ageCat24, ageCat44, ageCat64, ageCat74, ageCatXX);
     public static final List<String> toActTypeList = List.of(home, cbhome, leisure, other, freight, business, shopping, work, education, exogeneous, accompany);
+    public static final List<String> sl3Type = List.of(sl3Urban, sl3Suburban, sl3Rural);
     public static final List<List<String>> varList = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategory , toActTypeList, submodes);
-    public static final List<List<String>> varListFeeder = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategory , toActTypeList, distanceClassesFeederLabel);
+    public static final List<List<String>> varListFeeder = List.of(carAvailable, ptSubscription, carAndPt, educationType, employmentRate, ageCategory , toActTypeList, distanceClassesFeederLabel, sl3Type);
     public static final List<List<String>> varTimeList = List.of(modesMS, submodes, toActTypeList);
     public static final String oNMiddleTimeSteps = "middle_time_distribution.csv";
     public static final String oNTravelTimeDistribution = "travel_time_distribution.csv";

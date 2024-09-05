@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import static ch.sbb.matsim.RunSBB.getSbbDefaultConfigGroups;
 import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
 import static ch.sbb.matsim.config.variables.SBBModes.PT;
 
@@ -105,8 +106,10 @@ public class ModalSplitStats {
         String plansFile = args[5];
         double sampleSize = Double.parseDouble(args[6]);
         String outputFile = args[7];
+        String configFile = args[8];
 
-        final Config config = ConfigUtils.createConfig();
+        final Config config = ConfigUtils.loadConfig(configFile, getSbbDefaultConfigGroups());
+        // final Config config = ConfigUtils.createConfig();
         config.controller().setRunId(runId);
         config.qsim().setEndTime(30 * 3600);
         config.controller().setOutputDirectory(outputFile);
@@ -734,8 +737,6 @@ public class ModalSplitStats {
                             if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
                                 subPTModeExited = feederModesMap.get(leg.getMode());
                             }
-
-
                         }
                     }
 
@@ -750,12 +751,16 @@ public class ModalSplitStats {
                         Zone destZone = zones.findZone(trip.getDestinationActivity().getCoord());
                         String originZoneId = "";
                         String destZoneId = "";
+                        String originZonesl3 = "";
+                        String destZonesl3 = "";
 
                         if (originZone != null) {
                             originZoneId = String.valueOf(originZone.getId());
+                            originZonesl3 = originZone.getAttribute("sl3_id").toString();
                         }
                         if (destZone != null) {
                             destZoneId = String.valueOf(destZone.getId());
+                            destZonesl3 = destZone.getAttribute("sl3_id").toString();
                         }
 
                         if (zonesAccessMSPFMap.get(originZoneId) == null) {
@@ -855,6 +860,29 @@ public class ModalSplitStats {
                                 break;
                             }
                         }
+
+                        // sl3
+                        String enterType = "";
+                        if (originZonesl3.equals("1")) enterType = sl3Urban;
+                        if (originZonesl3.equals("2")) enterType = sl3Suburban;
+                        if (originZonesl3.equals("3")) enterType = sl3Rural;
+                        if (!enterType.equals("")) {
+                            pfAccessArray[subPTModeEntered][variablesMSFeederMap.get(enterType)]++;
+                            pkmAccessArray[subPTModeEntered][variablesMSFeederMap.get(enterType)] += distanceEnter;
+                            pfOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(enterType)]++;
+                            pkmOriginZoneArray[subPTModeEntered][variablesMSFeederMap.get(enterType)] += distanceEnter;
+                        }
+                        String exitType = "";
+                        if (destZonesl3.equals("1")) exitType = sl3Urban;
+                        if (destZonesl3.equals("2")) exitType = sl3Suburban;
+                        if (destZonesl3.equals("3")) exitType = sl3Rural;
+                        if (!exitType.equals("")) {
+                            pfEgressArray[subPTModeExited][variablesMSFeederMap.get(exitType)]++;
+                            pkmEgressArray[subPTModeExited][variablesMSFeederMap.get(exitType)] += distanceExit;
+                            pfDestZoneArray[subPTModeExited][variablesMSFeederMap.get(exitType)]++;
+                            pkmDestZoneArray[subPTModeExited][variablesMSFeederMap.get(exitType)] += distanceExit;
+                        }
+
                     }
                 }
             }
@@ -864,6 +892,13 @@ public class ModalSplitStats {
     private void analyzeDistanceClasses(Entry<Id<Person>, Plan> entry) {
         Attributes attributes = this.population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
+            // skip home office activities, it seems that the facility id can be null
+            if (trip.getOriginActivity().getFacilityId() != null || trip.getDestinationActivity().getFacilityId() != null) {
+                if (trip.getOriginActivity().getFacilityId().equals(trip.getDestinationActivity().getFacilityId())) {
+                    continue;
+                }
+            }
+
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
             if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
