@@ -132,7 +132,7 @@ public class DemandAggregator {
         writeMatrix(matrix, outputMatrixFile);
         writeStationToStationDemand(stationToStationFile, stationToStationFQFile);
         writeTripDemand("mun_id", "mun_name", tripsPerMunFile);
-        writeTripDemand("msr_id", "msr_name", tripsPerMSRFile);
+        writeTripDemand("amr_id", "amr_name", tripsPerMSRFile);
         LOG.info("Done.");
         odRailDemandMatrix.clear();
         allModesOdDemand.clear();
