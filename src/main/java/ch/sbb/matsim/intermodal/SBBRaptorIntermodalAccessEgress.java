@@ -104,7 +104,13 @@ public class SBBRaptorIntermodalAccessEgress implements RaptorIntermodalAccessEg
 	private double getDetourFactor(Id<Link> startLinkId, String mode) {
 		SBBIntermodalModeParameterSet parameterSet = getIntermodalModeParameters(mode);
 		if (parameterSet.getDetourFactorZoneId() != null) {
-			return ((Number) network.getLinks().get(startLinkId).getAttributes().getAttribute(parameterSet.getDetourFactorZoneId())).doubleValue();
+			Object detourFactorObject = network.getLinks().get(startLinkId).getAttributes().getAttribute(parameterSet.getDetourFactorZoneId());
+			if (detourFactorObject != null) {
+				return ((Number) detourFactorObject).doubleValue();
+			} else {
+				// Missing attribute or missing zone.
+				return 1.0;
+			}
 		}
 		return 1.0;
 	}
