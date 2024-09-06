@@ -92,7 +92,7 @@ public class StreetNetworkExporter {
 
         adjustRoundaboutLinks(network);
 
-        filterBikeNetwork(network, outputDir);
+        filterBikeNetwork(network);
         if (streetsExporterConfigGroup.isMergeRuralLinks()) {
             LogManager.getLogger(StreetNetworkExporter.class).info("Merging rural links.");
             MergeRuralLinks l = new MergeRuralLinks(network, zones);
@@ -139,7 +139,7 @@ public class StreetNetworkExporter {
         }
     }
 
-    private static void finalMultimodalCleanup(Network network) {
+    public static void finalMultimodalCleanup(Network network) {
         NetworkFilterManager fm = new NetworkFilterManager(network, new NetworkConfigGroup());
         fm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
         Network bikenet = fm.applyFilters();
@@ -182,7 +182,7 @@ public class StreetNetworkExporter {
     }
 
 
-    private static void filterBikeNetwork(Network network, String outputDir) {
+    private static void filterBikeNetwork(Network network) {
         NetworkFilterManager fm = new NetworkFilterManager(network, new NetworkConfigGroup());
         fm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
         Network bikenet = fm.applyFilters();

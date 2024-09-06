@@ -183,8 +183,14 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
                 found++;
             } else {
                 var carpath = carlcp.calcLeastCostPath(nearestCarNode, carFromNode, 0, null, null);
-                carTravelTime = carpath.travelTime * CAR_FREESPEED_TRAVELTIME_FACTOR;
-                carDistance = carpath.links.stream().mapToDouble(l -> l.getLength()).sum();
+                if (carpath != null) {
+                    carTravelTime = carpath.travelTime * CAR_FREESPEED_TRAVELTIME_FACTOR;
+                    carDistance = carpath.links.stream().mapToDouble(l -> l.getLength()).sum();
+                } else {
+                    carTravelTime = 9999;
+                    carDistance = 99999;
+                }
+
             }
 
 
@@ -195,8 +201,13 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
                 bikeDistance = bikeLeastCostPathTree.getDistance(nearestBikeNodeIndex);
             } else {
                 var bikepath = bikelcp.calcLeastCostPath(nearestBikeNode, bikeFromNode, 0, null, bike);
-                bikeTravelTime = bikepath.travelTime;
-                bikeDistance = bikepath.links.stream().mapToDouble(l -> l.getLength()).sum();
+                if (bikepath != null) {
+                    bikeTravelTime = bikepath.travelTime;
+                    bikeDistance = bikepath.links.stream().mapToDouble(l -> l.getLength()).sum();
+                } else {
+                    bikeTravelTime = 9999;
+                    bikeDistance = 99999;
+                }
             }
             dist[i][0] = (int) carTravelTime;
             dist[i][1] = (int) carDistance;

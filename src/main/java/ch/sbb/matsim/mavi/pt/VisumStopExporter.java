@@ -1,5 +1,6 @@
 package ch.sbb.matsim.mavi.pt;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.visum.Visum;
 import org.apache.logging.log4j.LogManager;
@@ -104,7 +105,7 @@ public class VisumStopExporter {
 		loopLink.setFreespeed(10000);
 		loopLink.setCapacity(10000);
 		loopLink.setNumberOfLanes(10000);
-		loopLink.setAllowedModes(Collections.singleton(config.getNetworkMode()));
+        loopLink.setAllowedModes(Set.of(config.getNetworkMode(), SBBModes.PT));
 		this.network.addLink(loopLink);
 
 		int stopAreaNo = (int) Double.parseDouble(stopPointAttributes[i][8]);

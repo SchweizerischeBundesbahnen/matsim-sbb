@@ -84,11 +84,17 @@ public class MobiTransitScheduleVerifiyer {
 				}));
 		Set<String> timeProfilesVisum = new TreeSet<>(routeNames);
 
-		Coord bernCoord = schedule.getFacilities().get(Id.create(1311, TransitStopFacility.class)).getCoord();
-		LOGGER.info(" - Coordinates of the rail station Bern: " + bernCoord.toString());
-		LOGGER.info("\t - MOBi 3.1 (2017): " + bernCoord31 + "; Distance: " + CoordUtils.calcEuclideanDistance(bernCoord, bernCoord));
-		if (CoordUtils.calcEuclideanDistance(bernCoord, bernCoord) > 200)	{
-			throw new RuntimeException("Bern has not the same coordinates as in 2017 (the station moved more than 200m).");
+        TransitStopFacility bernFacility = schedule.getFacilities().get(Id.create(1311, TransitStopFacility.class));
+
+        if (bernFacility != null) {
+            Coord bernCoord = bernFacility.getCoord();
+            LOGGER.info(" - Coordinates of the rail station Bern: " + bernCoord.toString());
+            LOGGER.info("\t - MOBi 3.1 (2017): " + bernCoord31 + "; Distance: " + CoordUtils.calcEuclideanDistance(bernCoord, bernCoord));
+            if (CoordUtils.calcEuclideanDistance(bernCoord, bernCoord) > 200) {
+                throw new RuntimeException("Bern has not the same coordinates as in 2017 (the station moved more than 200m).");
+            }
+        } else {
+            LOGGER.warn("Station in Bern does not exist. Assuming this is intended.");
 		}
 
 		LOGGER.info(" - Existing transit modes: " + departuresPerMode.keySet());

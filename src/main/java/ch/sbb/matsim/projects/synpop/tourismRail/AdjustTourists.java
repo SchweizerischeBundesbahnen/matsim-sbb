@@ -46,7 +46,7 @@ public class AdjustTourists {
         Scenario scenario = ScenarioUtils.loadScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(inputPopulation);
         var zones = ZonesLoader.loadZones("id", zonesFile);
-        AdjustTourists adjustTourists = new AdjustTourists(scenario.getPopulation(), zones, 4.0);
+        AdjustTourists adjustTourists = new AdjustTourists(scenario.getPopulation(), zones, 2.0);
         adjustTourists.adjust();
 
         new PopulationWriter(scenario.getPopulation()).write(outputPopulation);
@@ -74,7 +74,6 @@ public class AdjustTourists {
     private void createClones(Map<Id<Person>, Double> requiredClones) {
         for (var personClones : requiredClones.entrySet()) {
             Person originalPerson = population.getPersons().get(personClones.getKey());
-            int i = 1;
             double clonesLeft = personClones.getValue();
             for (int j = 0; j <= personClones.getValue(); j++) {
                 if (clonesLeft > 1.0) {
@@ -138,7 +137,7 @@ public class AdjustTourists {
                 numberOfClones = 4.0;
             }
             if (specialZones.contains(fromZone.getId()) || specialZones.contains(toZone.getId())) {
-                numberOfClones = 9.0;
+                numberOfClones = 5.0;
             }
         }
         return numberOfClones;
