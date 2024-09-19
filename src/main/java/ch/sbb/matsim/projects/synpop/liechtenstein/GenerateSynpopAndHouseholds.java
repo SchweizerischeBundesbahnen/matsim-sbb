@@ -199,9 +199,12 @@ public class GenerateSynpopAndHouseholds {
                 highestEdu = "1";
             } else if (eduProbability < 0.55) {
                 highestEdu = "2";
-            } else {
+            } else if (eduProbability < 0.85) {
                 highestEdu = "3";
+            } else {
+                highestEdu = "4";
             }
+
         }
 
         person.getAttributes().putAttribute("is_employed", Boolean.toString(isEmployed));
