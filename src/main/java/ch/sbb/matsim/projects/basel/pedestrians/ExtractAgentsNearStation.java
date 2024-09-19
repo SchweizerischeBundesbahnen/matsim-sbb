@@ -33,15 +33,14 @@ public class ExtractAgentsNearStation {
     }
 
     public static void main(String[] args) {
-        String inputPlans1 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\v310\\output_slice0\\v3310.output_experienced_plans.xml.gz";
-        //String inputPlans2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\4.0-v101-50pct\\output_slice1\\v401.output_experienced_plans.xml.gz";
-        String networkFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\v310\\output_slice0\\v3310.output_network.xml.gz";
-//        String extractedTrips = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220114_MOBi_3.3\\2050\\pedestrians_basel_sbb\\outputplans-basel-sbb.xml.gz";
-        String extractedTrips = "c:\\devsbb\\v310-outputplans-experienced-basel-sbb.xml.gz";
+        String inputPlans1 = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2040\\sim\\3.3.2040.11.50pct\\output_slice0\\M3340.11.output_experienced_plans.xml.gz";
+        String inputPlans2 = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2040\\sim\\3.3.2040.11.50pct\\output_slice1\\M3340.11.output_experienced_plans.xml.gz";
+        String networkFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2040\\sim\\3.3.2040.11.50pct\\output_slice1\\M3340.11.output_network.xml.gz";
+        String extractedTrips = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240911_Fussgaenger_Oberwinterthur\\plans\\plans-near-station.xml.gz";
         Network network = NetworkUtils.createNetwork();
         new MatsimNetworkReader(network).readFile(networkFile);
-        List<String> plans = List.of(inputPlans1);
-        Coord basel = new Coord(2611360.86388353, 1266277.81032902);
+        List<String> plans = List.of(inputPlans1, inputPlans2);
+        Coord basel = new Coord(2699593.415, 1262742.062);
         new ExtractAgentsNearStation(plans, basel, extractedTrips, network);
 
 

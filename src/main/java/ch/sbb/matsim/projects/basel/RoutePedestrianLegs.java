@@ -37,14 +37,16 @@ public class RoutePedestrianLegs {
     private final Map<Coord, MutableInt> stationEntranceDistribution = new HashMap<>();
     private final LeastCostPathCalculator lcp;
     private final Map<Id<Link>, MutableInt> linkUse = new HashMap<>();
+    private final Id<Link> stationLinkId;
     int additionalLinks = 0;
     int additionalNodes = 0;
 
-    public RoutePedestrianLegs(Scenario scenario, List<Coord> stationEntrances, double walkSpeed) {
+    public RoutePedestrianLegs(Scenario scenario, List<Coord> stationEntrances, double walkSpeed, Id<Link> stationLinkId) {
         this.population = scenario.getPopulation();
         this.network = scenario.getNetwork();
         this.walkSpeed = walkSpeed;
         this.stationEntrances = stationEntrances;
+        this.stationLinkId = stationLinkId;
 
         prepareNetwork();
         var disutility = new FreespeedTravelTimeAndDisutility(0.0, 0, -0.01);
@@ -53,22 +55,21 @@ public class RoutePedestrianLegs {
     }
 
     public static void main(String[] args) {
-        String path = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\";
-        String networkFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\biel.xml.gz";
-        String inputPlansFile = path + "biel-legs.xml.gz";
+        String path = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240911_Fussgaenger_Oberwinterthur\\plans\\";
+        String networkFile = path + "winterthur_puneu.xml";
+        String inputPlansFile = path + "walk-legs.xml.gz";
         String outputPlansFile = path + "routed-plans.xml.gz";
-        String outputNetFile = path + "biel-net_with_station_exits.xml.gz";
+        String outputNetFile = path + "winterthur-net_with_station_exits_v2.xml.gz";
+        Id<Link> stationLinkId = Id.createLinkId("pt_2440");
         double walkSpeed = 4.2 / 3.6;
-        Coord murtenstr = new Coord(2585399.862850578, 1220063.0303093693);
-        Coord zentral = new Coord(2585150.7279656795, 1220229.8680819331);
-        Coord sued = new Coord(2585094.6465606242, 1220103.5361372966);
-        Coord aldi = new Coord(2585056.697442964, 1220269.2606236746);
+        Coord nord = new Coord(2699624.25, 1262793.125);
+        Coord zentral = new Coord(2699527.5, 1262621.75);
 
-        List<Coord> stationEntrances = List.of(murtenstr, aldi, zentral, sued);
+        List<Coord> stationEntrances = List.of(nord, zentral);
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         new PopulationReader(scenario).readFile(inputPlansFile);
-        RoutePedestrianLegs routePedestrianLegs = new RoutePedestrianLegs(scenario, stationEntrances, walkSpeed);
+        RoutePedestrianLegs routePedestrianLegs = new RoutePedestrianLegs(scenario, stationEntrances, walkSpeed, stationLinkId);
         routePedestrianLegs.routePlans(outputPlansFile);
         routePedestrianLegs.writeNetwork(outputNetFile);
 
@@ -128,20 +129,23 @@ public class RoutePedestrianLegs {
             Plan plan = p.getSelectedPlan();
             if (plan.getPlanElements().size() == 3) {
                 Activity fromAct = (Activity) plan.getPlanElements().get(0);
-
+                LeastCostPathCalculator.Path bestPath;
                 Activity toAct = (Activity) plan.getPlanElements().get(2);
-                boolean egress = fromAct.getType().equals(ExtractLegsAtStation.STATION_ACT);
-                Coord toCoord = egress ? toAct.getCoord() : fromAct.getCoord();
-                LeastCostPathCalculator.Path bestPath = selectEntranceAndCalcPath(egress, toCoord);
-                fromAct.setCoord(bestPath.getFromNode().getCoord());
-                fromAct.setFacilityId(null);
-                fromAct.setLinkId(null);
-                toAct.setLinkId(null);
-                if (toAct.getCoord() == null) {
-                    toAct.setCoord(bestPath.getToNode().getCoord());
+                if (stationLinkId.equals(fromAct.getLinkId())) {
+                    bestPath = selectEntranceAndCalcPath(true, fromAct.getCoord());
+
+                } else if (stationLinkId.equals(toAct.getLinkId())) {
+                    bestPath = selectEntranceAndCalcPath(false, toAct.getCoord());
+
+                } else {
+                    var fromNode = NetworkUtils.getNearestNode(this.network, fromAct.getCoord());
+                    var toNode = NetworkUtils.getNearestNode(this.network, toAct.getCoord());
+                    bestPath = lcp.calcLeastCostPath(fromNode, toNode, 0.0, null, null);
                 }
+
+
                 Leg walkLeg = (Leg) plan.getPlanElements().get(1);
-                walkLeg.setDepartureTime(fromAct.getEndTime().seconds());
+                walkLeg.setDepartureTime(fromAct.getEndTime().orElse(0));
                 Link startLink = bestPath.getFromNode().getInLinks().values().stream().findAny().get();
 
                 Link endLink = bestPath.links.size() > 0 ? bestPath.links.get(bestPath.links.size() - 1) : startLink;
@@ -169,7 +173,7 @@ public class RoutePedestrianLegs {
             Candidate c = new Candidate(path, distance, e.getKey());
             candidatePaths.add(c);
         }
-//        useShortestWay(candidatePaths);
+        useShortestWay(candidatePaths);
         calcProbabilities(candidatePaths);
         WeightedRandomSelection<Candidate> weightedRandomSelection = new WeightedRandomSelection(MatsimRandom.getRandom());
         candidatePaths

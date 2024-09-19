@@ -11,6 +11,7 @@ import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * 1. It is possible to apply a link filter. The below example includes all links which are of hierarchy level "motorway".
@@ -26,8 +27,8 @@ import java.util.HashSet;
  */
 public class BaselOSMNetworkReader {
 
-    private static final String inputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\biel.osm.pbf";
-    private static final String outputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230201_Biel_2040\\sim\\pedsim\\biel.xml.gz";
+    private static final String inputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240911_Fussgaenger_Oberwinterthur\\plans\\winterthur.pbf";
+    private static final String outputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240911_Fussgaenger_Oberwinterthur\\plans\\winterthur.xml.gz";
     private static final CoordinateTransformation coordinateTransformation = TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, "EPSG:2056");
 
     public static void main(String[] args) {
@@ -36,7 +37,7 @@ public class BaselOSMNetworkReader {
                 .setCoordinateTransformation(coordinateTransformation)
                 .addOverridingLinkProperties("corridor", new LinkProperties(12, 1, 1 / 3.6, 10000, false))
                 .addOverridingLinkProperties("platform", new LinkProperties(13, 1, 1 / 3.6, 10000, false))
-                .setAfterLinkCreated((link, osmTags, isReverse) -> link.setAllowedModes(new HashSet<>(Arrays.asList(SBBModes.WALK_MAIN_MAINMODE))))
+                .setAfterLinkCreated((link, osmTags, isReverse) -> link.setAllowedModes(new HashSet<>(List.of(SBBModes.WALK_MAIN_MAINMODE))))
                 .build()
                 .read(inputFile);
         new NetworkCleaner().run(network);

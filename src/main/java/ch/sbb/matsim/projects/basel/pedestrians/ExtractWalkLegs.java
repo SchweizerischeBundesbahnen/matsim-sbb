@@ -51,15 +51,13 @@ public class ExtractWalkLegs {
     }
 
     public static void main(String[] args) {
-        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\v310\\pedsim\\v310-outputplans-experienced-basel-sbb.xml.gz";
-//        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\testperson.xml";
-        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\sim\\v310\\pedsim\\v310-basel-sbb-legs.xml.gz";
-//        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\pedestrians_basel_sbb\\testconversion.xml";
-        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20220412_Basel_2050\\plans\\v200\\mobi-zones.shp";
-        List<Id<Link>> stopFacilityIds = List.of(Id.create("pt_1388", Link.class), Id.create("pt_100001204", Link.class));
-        Set<String> relevantZones = Set.of("27010106");
-        int scaleFactor = 4;
-        Coord basel = new Coord(2611360.86388353, 1266277.81032902);
+        String inputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240911_Fussgaenger_Oberwinterthur\\plans\\plans-near-station.xml.gz";
+        String outputPlans = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240911_Fussgaenger_Oberwinterthur\\plans\\walk-legs.xml.gz";
+        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans\\29_kalif_corrections\\output\\29_kalif_corrections.mobi-zones.shp";
+        List<Id<Link>> stopFacilityIds = List.of(Id.create("pt_2440", Link.class));
+        Set<String> relevantZones = Collections.EMPTY_SET;
+        int scaleFactor = 2;
+        Coord basel = new Coord(2699593.415, 1262742.062);
 
 
         Zones zones = ZonesLoader.loadZones("zones", zonesFile, Variables.ZONE_ID);
@@ -89,8 +87,7 @@ public class ExtractWalkLegs {
                     if (planElement instanceof Leg) {
                         leg = (Leg) planElement;
                     }
-                    if (planElement instanceof Activity) {
-                        Activity currentActivity = (Activity) planElement;
+                    if (planElement instanceof Activity currentActivity) {
                         if (checkLeg(previousActivity, leg, currentActivity)) {
                             copy += addLegToPopulation(p.getId(), previousActivity, leg, currentActivity, copy);
                         }
@@ -162,7 +159,7 @@ public class ExtractWalkLegs {
             if (!relevantStops.contains(f)) f = "out";
             String t = ((Activity) plan.getPlanElements().get(2)).getLinkId().toString();
             if (!relevantStops.contains(t)) t = "out";
-            return new StringBuilder().append(f).append("-").append(t).toString();
+            return f + "-" + t;
         }).forEach(s -> relevantRelations.get(s).increment());
 
         relevantRelations.forEach((s, i) -> System.out.println(s + " \t " + i));
