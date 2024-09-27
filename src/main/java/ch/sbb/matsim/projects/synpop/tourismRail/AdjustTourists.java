@@ -14,6 +14,7 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -124,20 +125,23 @@ public class AdjustTourists {
                 numberOfClones = 0.0;
             }
             if (String.valueOf(fromZone.getAttribute("kt_name")).equals("ZH") && String.valueOf(toZone.getAttribute("kt_name")).equals("GE")) {
-                numberOfClones = -1.0;
+                numberOfClones = 0.0;
             }
             if (String.valueOf(fromZone.getAttribute("kt_name")).equals("GE") && String.valueOf(toZone.getAttribute("kt_name")).equals("ZH")) {
-                numberOfClones = -1.0;
+                numberOfClones = 0.0;
             }
             if (String.valueOf(fromZone.getAttribute("kt_name")).equals("GR") || String.valueOf(toZone.getAttribute("kt_name")).equals("GR")) {
-                numberOfClones = 6.0;
+                numberOfClones = 8.0;
             }
 
             if (String.valueOf(fromZone.getAttribute("kt_name")).equals("NW") || String.valueOf(toZone.getAttribute("kt_name")).equals("GR")) {
-                numberOfClones = 4.0;
+                numberOfClones = 6.0;
             }
             if (specialZones.contains(fromZone.getId()) || specialZones.contains(toZone.getId())) {
-                numberOfClones = 5.0;
+                numberOfClones = 4.0;
+            }
+            if (CoordUtils.calcEuclideanDistance(fromCoord, toCoord) < 5000) {
+                numberOfClones = 10.0;
             }
         }
         return numberOfClones;

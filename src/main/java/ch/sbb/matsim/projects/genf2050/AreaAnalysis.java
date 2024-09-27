@@ -48,10 +48,10 @@ public class AreaAnalysis {
 
     public static void main(String[] args) {
         Map<String, String> runs = new TreeMap<>();
-//        String root = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\sim\\";
-        String root = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2050\\sim\\";
-        runs.put("M332050.2", root + "3.3.2050.2.50pct");
-//        runs.put("VB", root + "vollbahn_v2");
+        String root = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\sim\\";
+        //String root = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2050\\sim\\";
+//        runs.put("M332050.2", root + "3.3.2050.2.50pct");
+        runs.put("VIV02", root + "Angebot_v02_GCR_LR");
 //        runs.put("5.0", root + "5.0-ref_ak_35");
 //        runs.put("5.5", root + "5.5-ref_ak_35_miv");
 //        runs.put("6.0", root + "6.0-netzplan-sma");
