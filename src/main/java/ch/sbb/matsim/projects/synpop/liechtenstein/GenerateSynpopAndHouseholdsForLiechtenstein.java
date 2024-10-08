@@ -45,7 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class GenerateSynpopAndHouseholds {
+public class GenerateSynpopAndHouseholdsForLiechtenstein {
 
 
     public static final String FACILITY_ID = "facilityId";
@@ -58,17 +58,17 @@ public class GenerateSynpopAndHouseholds {
     private final ActivityFacilities facilities;
     private final double employmentProbability = 0.96;
     private final CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus);
-    final Logger log = LogManager.getLogger(GenerateSynpopAndHouseholds.class);
+    final Logger log = LogManager.getLogger(GenerateSynpopAndHouseholdsForLiechtenstein.class);
     final Map<Id<Zone>, WeightedRandomSelection<Id<ActivityFacility>>> facilitySelector = new HashMap<>();
     private final Map<Id<Zone>, Map<String, Integer>> householdSizesPerZone = new HashMap<>();
     private final Map<Id<Zone>, WeightedRandomSelection<Integer>> ageDistributionPerZone = new HashMap<>();
-    private int personNo = 11_000_000;
+    private int personNo = 15_000_000;
     private Map<Long, Set<Long>> buildingDataNodeStorage;
     private Map<Long, Coord> nodeStorage;
     private Map<Long, GenerateBusinessesPerZone.OSDMBuildingData> buildingData;
 
 
-    public GenerateSynpopAndHouseholds(String osmInputFile, String householdFile, String agedistributionFile, Zones zones, Random random) {
+    public GenerateSynpopAndHouseholdsForLiechtenstein(String osmInputFile, String householdFile, String agedistributionFile, Zones zones, Random random) {
         this.zones = zones;
         this.random = random;
         population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
@@ -90,7 +90,7 @@ public class GenerateSynpopAndHouseholds {
         String outputPopulation = args[4];
         String outputHouseholds = args[5];
         var zones = ZonesLoader.loadZones("zones", zonesFile, "ID_Zone");
-        GenerateSynpopAndHouseholds synpopAndHouseholds = new GenerateSynpopAndHouseholds(osmInputFile, householdFile, agedistributionFile, zones, MatsimRandom.getRandom());
+        GenerateSynpopAndHouseholdsForLiechtenstein synpopAndHouseholds = new GenerateSynpopAndHouseholdsForLiechtenstein(osmInputFile, householdFile, agedistributionFile, zones, MatsimRandom.getRandom());
         synpopAndHouseholds.exportHouseholds(outputHouseholds);
         synpopAndHouseholds.exportPopulation(outputPopulation);
     }
@@ -122,7 +122,7 @@ public class GenerateSynpopAndHouseholds {
     }
 
     private void generateHouseholdsAndPopulation() {
-        int householdNo = 9_000_000;
+        int householdNo = 15_000_000;
         for (var entry : this.householdSizesPerZone.entrySet()) {
             var zoneId = entry.getKey();
             WeightedRandomSelection<Integer> ageDistribution = this.ageDistributionPerZone.get(zoneId);

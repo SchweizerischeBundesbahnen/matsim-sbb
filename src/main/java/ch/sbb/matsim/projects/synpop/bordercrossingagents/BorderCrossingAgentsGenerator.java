@@ -26,7 +26,7 @@ public class BorderCrossingAgentsGenerator {
 
     private final Random random;
     private final WeightedRandomSelection<Integer> ageDistribution;
-    final int initialPersonId = 11_100_000;
+    final int initialPersonId = 16_000_000;
     Map<Id<Zone>, WeightedRandomSelection<Long>> zonalBuildingSelector;
     private final Map<String, Integer> commutersPerNuts3 = new HashMap<>();
     private Population population;
@@ -43,7 +43,7 @@ public class BorderCrossingAgentsGenerator {
         String zonesFile = args[1];
         String nuts3Demand = args[2];
         String ageDistributionFile = args[3];
-        String outputPlans = args[4];
+        String outputPath = args[4];
         Random random = MatsimRandom.getRandom();
         BorderCrossingAgentsGenerator borderCrossingAgentsGenerator = new BorderCrossingAgentsGenerator(random);
         borderCrossingAgentsGenerator.readNuts3Demand(nuts3Demand);
@@ -51,7 +51,11 @@ public class BorderCrossingAgentsGenerator {
         borderCrossingAgentsGenerator.prepareOSMData(osmFile, zonesFile);
         borderCrossingAgentsGenerator.manuallyAdjustDistribution();
         borderCrossingAgentsGenerator.generatePersons();
-        new PopulationWriter(borderCrossingAgentsGenerator.getPopulation()).write(outputPlans);
+        new PopulationWriter(borderCrossingAgentsGenerator.getPopulation()).write(outputPath + "/cb_commuter_plans.xml.gz");
+        PopulationToSynpopexporter exporter = new PopulationToSynpopexporter(borderCrossingAgentsGenerator.getPopulation());
+        exporter.prepareHouseholds();
+        exporter.exportPopulation(outputPath + "/persons.csv");
+        exporter.exportHouseholds(outputPath + "/households.csv");
         System.out.println("done");
 
     }
@@ -130,6 +134,7 @@ public class BorderCrossingAgentsGenerator {
                 person.getAttributes().putAttribute("language", language);
                 person.getAttributes().putAttribute("zone_id", zoneId.toString());
                 person.getAttributes().putAttribute("is_employed", "True");
+                person.getAttributes().putAttribute(Variables.CB_COMMUTER, "1");
                 person.getAttributes().putAttribute(Variables.HIGHEST_EDUCATION, "2");
                 this.population.addPerson(person);
                 Plan plan = fac.createPlan();

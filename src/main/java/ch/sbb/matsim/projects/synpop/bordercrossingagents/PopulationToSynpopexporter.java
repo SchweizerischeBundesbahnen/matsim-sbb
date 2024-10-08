@@ -74,7 +74,7 @@ public class PopulationToSynpopexporter {
         return householdId;
     }
 
-    private void exportHouseholds(String outputHouseholdCSVFile) {
+    void exportHouseholds(String outputHouseholdCSVFile) {
         String[] columns = new String[]{HOUSEHOLD_ID, ZONE_ID, "xcoord", "ycoord"};
         try (CSVWriter writer = new CSVWriter(null, columns, outputHouseholdCSVFile)) {
 
@@ -92,7 +92,7 @@ public class PopulationToSynpopexporter {
 
     }
 
-    private void exportPopulation(String outputPopulationCSVFile) {
+    void exportPopulation(String outputPopulationCSVFile) {
         List<String> header = new ArrayList<>();
         header.add(PERSON_ID);
         if (!populationAttributes.contains(HOUSEHOLD_ID)) {
@@ -121,7 +121,7 @@ public class PopulationToSynpopexporter {
         }
     }
 
-    private void prepareHouseholds() {
+    void prepareHouseholds() {
         for (Person p : population.getPersons().values()) {
             Coord homeCoord = ((Activity) p.getSelectedPlan().getPlanElements().get(0)).getCoord();
             Id<Household> householdId = getHouseholdId(p);
