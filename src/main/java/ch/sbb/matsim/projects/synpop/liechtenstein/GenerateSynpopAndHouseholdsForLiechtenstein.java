@@ -213,6 +213,7 @@ public class GenerateSynpopAndHouseholdsForLiechtenstein {
         person.getAttributes().putAttribute("level_of_employment", levelOfEmployment);
         person.getAttributes().putAttribute("language", "german");
         person.getAttributes().putAttribute("is_swiss", false);
+        person.getAttributes().putAttribute(Variables.ANALYSIS_SUBPOPULATION, Variables.LIECHTENSTEIN);
         person.getAttributes().putAttribute(Variables.HIGHEST_EDUCATION, highestEdu);
         personNo++;
         return person;

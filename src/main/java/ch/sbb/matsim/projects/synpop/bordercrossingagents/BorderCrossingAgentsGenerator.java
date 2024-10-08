@@ -134,7 +134,7 @@ public class BorderCrossingAgentsGenerator {
                 person.getAttributes().putAttribute("language", language);
                 person.getAttributes().putAttribute("zone_id", zoneId.toString());
                 person.getAttributes().putAttribute("is_employed", "True");
-                person.getAttributes().putAttribute(Variables.CB_COMMUTER, "1");
+                person.getAttributes().putAttribute(Variables.ANALYSIS_SUBPOPULATION, Variables.CB_COMMUTER);
                 person.getAttributes().putAttribute(Variables.HIGHEST_EDUCATION, "2");
                 this.population.addPerson(person);
                 Plan plan = fac.createPlan();
