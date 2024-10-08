@@ -6,6 +6,7 @@ import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
+import com.google.common.util.concurrent.AtomicDouble;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -14,6 +15,8 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
+import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.tabularFileParser.TabularFileParser;
 import org.matsim.core.utils.io.tabularFileParser.TabularFileParserConfig;
@@ -51,8 +54,10 @@ public class AreaAnalysis {
         String root = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\sim\\";
         //String root = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2050\\sim\\";
 //        runs.put("M332050.2", root + "3.3.2050.2.50pct");
+        runs.put("REF", root + "ref_v2");
+        runs.put("VIV", root + "vivaldi_v2");
+        runs.put("VB", root + "vollbahn_v2");
         runs.put("VIV02", root + "Angebot_v02_GCR_LR");
-//        runs.put("5.0", root + "5.0-ref_ak_35");
 //        runs.put("5.5", root + "5.5-ref_ak_35_miv");
 //        runs.put("6.0", root + "6.0-netzplan-sma");
 //        runs.put("6.5", root + "6.5-netzplan-sma_miv");
@@ -180,6 +185,18 @@ public class AreaAnalysis {
             }
 
             writer.writeRow();
+            writer.set("means", SBBModes.WALK_MAIN_MAINMODE);
+            for (RunVolumeData d : runVolumeDataMap.values()) {
+                writer.set(d.run, Double.toString(d.walkVolume()));
+            }
+
+            writer.writeRow();
+            writer.set("means", SBBModes.BIKE);
+            for (RunVolumeData d : runVolumeDataMap.values()) {
+                writer.set(d.run, Double.toString(d.bikeVolume()));
+            }
+
+            writer.writeRow();
             writer.writeRow();
             writer.set("means", "AKM");
             writer.writeRow();
@@ -216,6 +233,7 @@ public class AreaAnalysis {
             String ptNet = path + "/output/" + runId + ".ptlinkvolumes_network.xml.gz";
             String scheduleFile = path + "/output/" + runId + ".output_transitSchedule.xml.gz";
             String carVolumesFile = path + "/output/" + runId + ".car_volumes.att";
+            String outputPopulation = path + "/output/" + runId + ".output_plans.xml.gz";
             Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
             new TransitScheduleReader(scenario).readFile(scheduleFile);
             var departuresPerLink = calcDeparturesPerLink(scenario.getTransitSchedule());
@@ -226,6 +244,28 @@ public class AreaAnalysis {
             List<Link> relevantPtLinks = ptNetwork.getLinks().values().stream().filter(link -> (double) link.getAttributes().getAttribute(IS_IN) > 0.0).collect(Collectors.toList());
             String attribute = runId + "_ptVolume";
             System.out.println(attribute);
+            new PopulationReader(scenario).readFile(outputPopulation);
+            List<String> slowModes = List.of(SBBModes.WALK_MAIN_MAINMODE, SBBModes.BIKE);
+            AtomicDouble walkKM = new AtomicDouble();
+            AtomicDouble bikeKM = new AtomicDouble();
+            scenario.getPopulation().getPersons().values()
+                    .stream()
+                    .map(person -> person.getSelectedPlan())
+                    .flatMap(plan -> TripStructureUtils.getTrips(plan).stream())
+                    .filter(trip -> trip.getLegsOnly().stream().anyMatch(leg -> slowModes.contains(leg.getMode())))
+                    .filter(trip -> zones.findZone(trip.getOriginActivity().getCoord()) != null && zones.findZone(trip.getDestinationActivity().getCoord()) != null)
+                    .forEach(trip -> {
+                        for (var leg : trip.getLegsOnly()) {
+                            if (leg.getMode().equals(SBBModes.WALK_MAIN_MAINMODE)) {
+                                walkKM.addAndGet(leg.getRoute().getDistance());
+                            } else if (leg.getMode().equals(SBBModes.BIKE)) {
+                                bikeKM.addAndGet(leg.getRoute().getDistance());
+                            }
+                        }
+                    });
+
+
+
             double tramVolume = relevantPtLinks.stream().filter(link -> link.getAllowedModes().contains(SBBModes.PTSubModes.TRAM)).mapToDouble(link -> getPKM(attribute, link)).sum();
             double tramKM = getAKM(departuresPerLink, relevantPtLinks, SBBModes.PTSubModes.TRAM);
 
@@ -236,7 +276,8 @@ public class AreaAnalysis {
             double otherVolume = relevantPtLinks.stream().filter(link -> link.getAllowedModes().contains(SBBModes.PTSubModes.OTHER)).mapToDouble(link -> getPKM(attribute, link)).sum();
             double otherKM = getAKM(departuresPerLink, relevantPtLinks, SBBModes.PTSubModes.OTHER);
             double carVolumes = relevantCarLinks.stream().mapToDouble(link -> allCarVolumes.getOrDefault(link.getId(), 0.0) * link.getLength() * 0.001).sum();
-            RunVolumeData runVolume = new RunVolumeData(runId, carVolumes, tramVolume, trainVolume, otherVolume, busVolume, trainKM, busKM, tramKM, otherKM);
+
+            RunVolumeData runVolume = new RunVolumeData(runId, carVolumes, tramVolume, trainVolume, otherVolume, busVolume, trainKM, busKM, tramKM, otherKM, bikeKM.get() / 1000.0, walkKM.get() / 1000.0);
             runVolumeDataMap.put(runId, runVolume);
         }
     }
@@ -257,7 +298,8 @@ public class AreaAnalysis {
     }
 
     record RunVolumeData(String run, double carVolume, double tramVolume, double trainVolume, double otherVolume,
-                         double busVolume, double railAKM, double busAKM, double tramAKM, double otherAKM) {
+                         double busVolume, double railAKM, double busAKM, double tramAKM, double otherAKM,
+                         double bikeVolume, double walkVolume) {
     }
 
 }
