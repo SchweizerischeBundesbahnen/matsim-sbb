@@ -17,11 +17,11 @@ public class MergeSchedules {
         String network1 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\viv-nolines\\output\\transitNetwork.xml.gz";
         String vehicles1 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\viv-nolines\\output\\transitVehicles.xml.gz";
 
-        String schedule2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\neue-linien-7min\\output-bus\\transitSchedule.xml";
-        String network2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\neue-linien-7min\\output-bus\\transitNetwork.xml";
-        String vehicles2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\neue-linien-7min\\output-bus\\transitVehicles.xml";
+        String schedule2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\neue-linien-7min-v2\\output-bus\\transitSchedule.xml";
+        String network2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\neue-linien-7min-v2\\output-bus\\transitNetwork.xml";
+        String vehicles2 = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\neue-linien-7min-v2\\output-bus\\transitVehicles.xml";
 
-        String outputPath = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\neue-linien-7min\\output\\";
+        String outputPath = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240722_Vivaldi_DRT\\pt\\neue-linien-7min-v2\\output\\";
 
         Scenario scenario1 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario1.getNetwork()).readFile(network1);

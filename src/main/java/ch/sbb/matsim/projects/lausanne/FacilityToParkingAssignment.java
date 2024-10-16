@@ -24,7 +24,7 @@ public class FacilityToParkingAssignment {
         Random random = MatsimRandom.getRandom();
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimFacilitiesReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240226_Lausanne\\Etappe_2\\sim\\ref\\prepared\\plans_facilities.xml.gz");
-        double threshold = 200d;
+        double threshold = 300d;
         List<ParkingGarage> parkingGarageList = new ArrayList<>();
 
         WeightedRandomSelection<Id<Link>> flonParking = new WeightedRandomSelection<>(random);
@@ -33,8 +33,8 @@ public class FacilityToParkingAssignment {
         parkingGarageList.add(new ParkingGarage("flon", new Coord(2537659.26141681, 1152603.01554034), flonParking));
 
         WeightedRandomSelection<Id<Link>> riponneParking = new WeightedRandomSelection<>(random);
-        riponneParking.add(Id.createLinkId("1hql_7abq"), 0.3);
-        riponneParking.add(Id.createLinkId("1hsw_fmms"), 0.7);
+        riponneParking.add(Id.createLinkId("1hql_7abq"), 1.0);
+        //riponneParking.add(Id.createLinkId("1hsw_fmms"), 0.7);
         parkingGarageList.add(new ParkingGarage("riponne", new Coord(2538151.99941723, 1152795.25284032), riponneParking));
         WeightedRandomSelection<Id<Link>> centraleParking = new WeightedRandomSelection<>(random);
         centraleParking.add(Id.createLinkId("1ilz_cvkc"), 1.0);
@@ -50,7 +50,7 @@ public class FacilityToParkingAssignment {
                 }
         );
         System.out.println("Set the facility link id for " + mutableInt);
-        new FacilitiesWriter(scenario.getActivityFacilities()).write("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240226_Lausanne\\Etappe_2\\sim\\ref\\plans_facilities_mappedToParking_pplus.xml.gz");
+        new FacilitiesWriter(scenario.getActivityFacilities()).write("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240226_Lausanne\\Etappe_2\\sim\\ref\\plans_facilities_mappedToParking_pplus_v2.xml.gz");
 
     }
 
