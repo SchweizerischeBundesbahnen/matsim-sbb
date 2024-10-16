@@ -69,16 +69,16 @@ public class GenerateAdditionalTripsFromAbroadFromNPVM {
     }
 
     public static void main(String[] args) {
-        String inputPopulationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\sim\\9_skims\\output\\9_skims.output_plans.xml.gz";
-        String inputFacilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\sim\\9_skims\\output\\9_skims.output_facilities.xml.gz";
-        String inputZonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans\\9_skims\\output\\9_skims.mobi-zones.shp";
+        String inputPopulationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\05_kalif2023_mtools2040\\output\\05_kalif2023_mtools2040.plans.xml.gz";
+        String inputFacilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\05_kalif2023_mtools2040\\output\\05_kalif2023_mtools2040.facilities.xml.gz";
+        String inputZonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\05_kalif2023_mtools2040\\output\\05_kalif2023_mtools2040.mobi-zones.shp";
         String npvmMatrixFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\NPVM_2017_7_QZD.omx";
         String outputMissingDemandStatsFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\output\\missingDemand_amr.csv";
         String foreignConnectorsLocationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\Anbindungen_Pseudozonen_Ausland.csv";
         String timeDistributionFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\2016_Ganglinie.csv";
-        String outputPopulationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\output\\cb_road.xml.gz";
+        String outputPopulationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans_exogenous\\cb_road.xml.gz";
         int sampleFactor = 10;
-        double growthFactor = 1.15;
+        double growthFactor = 1.50;
 
 
         Random random = MatsimRandom.getRandom();

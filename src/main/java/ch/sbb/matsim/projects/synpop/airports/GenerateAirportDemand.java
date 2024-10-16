@@ -3,6 +3,7 @@ package ch.sbb.matsim.projects.synpop.airports;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
+import ch.sbb.matsim.projects.synpop.SingleTripAgentToCSVConverter;
 import ch.sbb.matsim.projects.synpop.roadExogeneous.SingleTripAgentCreator;
 import ch.sbb.matsim.routing.pt.raptor.RaptorUtils;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData;
@@ -43,8 +44,10 @@ public class GenerateAirportDemand {
     private final Random random;
     private final Map<String, List<Id<ActivityFacility>>> facilitiesPerZoneId = new HashMap<>();
     private final Map<String, WeightedRandomSelection<String>> zonePerAmr = new HashMap<>();
+    private final double globalFactor;
 
-    public GenerateAirportDemand(Scenario scenario, Zones zones, WeightedRandomSelection<Integer> departureTimeSelector, WeightedRandomSelection<Integer> arrivalTimeSelector, Random random) {
+    public GenerateAirportDemand(Scenario scenario, Zones zones, WeightedRandomSelection<Integer> departureTimeSelector, WeightedRandomSelection<Integer> arrivalTimeSelector, Random random, double globalFactor) {
+        this.globalFactor = globalFactor;
         this.random = random;
         this.scenario = scenario;
         this.zones = zones;
@@ -56,19 +59,20 @@ public class GenerateAirportDemand {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         Random random = MatsimRandom.getRandom();
-        String network = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2020\\pt\\NPVM2020\\output\\transitNetwork.xml.gz";
-        String transitScheduleFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2020\\pt\\NPVM2020\\output\\transitSchedule.xml.gz";
+        String network = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\pt\\AK35k_2404\\output\\transitNetwork.xml.gz";
+        String transitScheduleFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\pt\\AK35k_2404\\output\\transitSchedule.xml.gz";
 
-        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230825_Grenzguertel\\plans\\v7\\mobi-zones.shp";
-        String facilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230825_Grenzguertel\\plans\\v7\\facilities.xml.gz";
+        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\05_kalif2023_mtools2040\\output\\05_kalif2023_mtools2040.mobi-zones.shp";
+        String facilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\05_kalif2023_mtools2040\\output\\05_kalif2023_mtools2040.facilities.xml.gz";
 
-        String outputDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\output\\airport-demand.xml.gz";
+        String outputDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans_exogenous\\airport-demand_2040.xml.gz";
 
         String departureTimeDistribution = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\Tagesgang_GVA_dep.csv";
         String arrivalTimeDistribution = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\Tagesgang_GVA_arr.csv";
+        double globalFactor = 1.29;
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(network);
@@ -77,13 +81,15 @@ public class GenerateAirportDemand {
         Zones zones = ZonesLoader.loadZones("zones", zonesFile);
         WeightedRandomSelection<Integer> departureTimeSelector = SingleTripAgentCreator.readTimeDistribution(departureTimeDistribution, random);
         WeightedRandomSelection<Integer> arrivalTimeSelector = SingleTripAgentCreator.readTimeDistribution(arrivalTimeDistribution, random);
-        GenerateAirportDemand generateAirportDemand = new GenerateAirportDemand(scenario, zones, departureTimeSelector, arrivalTimeSelector, random);
+
+        GenerateAirportDemand generateAirportDemand = new GenerateAirportDemand(scenario, zones, departureTimeSelector, arrivalTimeSelector, random, globalFactor);
 
         generateAirportDemand.generateForAirport("bsl", new Coord(2607176.8206491300, 1272138.9751427100), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\bsl.csv");
         generateAirportDemand.generateForAirport("zrh", new Coord(2684750, 1256341), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\zrh.csv");
         generateAirportDemand.generateForAirport("mxp", new Coord(2699355, 1053646), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\mxp.csv");
         generateAirportDemand.generateForAirport("gva", new Coord(2497430, 1120813), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\gva.csv");
         new PopulationWriter(scenario.getPopulation()).write(outputDemand);
+        SingleTripAgentToCSVConverter.writeSingleTripsAsCSV(outputDemand.replace("xml.gz", ".csv"), scenario.getPopulation());
     }
 
     private void prepareFacilities() {
@@ -107,14 +113,14 @@ public class GenerateAirportDemand {
         List<ZonalDemand> zonalDemand = readZonalDemand(demandFile);
         int count = 0;
         for (ZonalDemand demand : zonalDemand) {
-            for (int i = 0; i < demand.ptDemand(); i++) {
+            for (int i = 0; i < demand.ptDemand() * globalFactor; i++) {
                 generateAgentToAirport(prefix, count, destinationCoord, selectFacilityCandidates(demand), SBBModes.PT);
                 count++;
                 generateAgentFromAirport(prefix, count, destinationCoord, selectFacilityCandidates(demand), SBBModes.PT);
                 count++;
 
             }
-            for (int i = 0; i < demand.carDemand(); i++) {
+            for (int i = 0; i < demand.carDemand() * globalFactor; i++) {
                 generateAgentToAirport(prefix, count, destinationCoord, selectFacilityCandidates(demand), SBBModes.CAR);
                 count++;
                 generateAgentFromAirport(prefix, count, destinationCoord, selectFacilityCandidates(demand), SBBModes.CAR);
