@@ -44,10 +44,10 @@ import java.util.zip.GZIPOutputStream;
 
 public class CarLinkAnalysis {
 
-	private static final String LINK_NO = "$LINK:NO";
-	private static final String FROMNODENO = "FROMNODENO";
-	private static final String TONODENO = "TONODENO";
-	private static final String LINK_ID_SIM = "LINK_ID_SIM";
+    static final String LINK_NO = "$LINK:NO";
+    static final String FROMNODENO = "FROMNODENO";
+    static final String TONODENO = "TONODENO";
+    static final String LINK_ID_SIM = "LINK_ID_SIM";
 	private static final String VOLUME_CAR = "VOLUME_CAR";
 	private static final String VOLUME_FREIGHT = "VOLUME_FREIGHT";
 	private static final String VOLUME_MOTORIZED_VEHICLES = "VOLUME_MOTORIZED_VEHICLES";
@@ -57,7 +57,7 @@ public class CarLinkAnalysis {
 	private static final String VOLUME_BIKE_TOTAL = "VOLUME_BIKE_TOTAL";
 	private static final String VOLUME_EBIKE = "VOLUME_EBIKE";
 	private static final String[] VOLUMES_COLUMNS = new String[]{LINK_NO, FROMNODENO, TONODENO, LINK_ID_SIM, VOLUME_CAR, VOLUME_RIDE, VOLUME_BIKE, VOLUME_EBIKE, VOLUME_BIKE_TOTAL, VOLUME_FREIGHT, VOLUME_MOTORIZED_VEHICLES};
-	private static final String HEADER = "$VISION\n* Schweizerische Bundesbahnen SBB Personenverkehr Bern\n* 12/09/22\n* \n* Table: Version block\n* \n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n12.00;Att;ENG;KM\n\n* \n* Table: Links\n* \n";
+    static final String HEADER = "$VISION\n* Schweizerische Bundesbahnen SBB Personenverkehr Bern\n* 12/09/22\n* \n* Table: Version block\n* \n$VERSION:VERSNR;FILETYPE;LANGUAGE;UNIT\n12.00;Att;ENG;KM\n\n* \n* Table: Links\n* \n";
 	private final Network network;
 	private final Population population;
 	private final double samplesize;
