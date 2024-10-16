@@ -290,6 +290,13 @@
                 <param name="typicalDurationScoreComputation" value="uniform"/>
             </parameterset>
             <parameterset type="activityParams">
+                <param name="activityType" value="exogenous"/>
+                <param name="minimalDuration" value="00:10:00"/>
+                <param name="scoringThisActivityAtAll" value="false"/>
+                <param name="typicalDuration" value="00:40:00"/>
+                <param name="typicalDurationScoreComputation" value="uniform"/>
+            </parameterset>
+            <parameterset type="activityParams">
                 <param name="activityType" value="pt interaction"/>
                 <param name="scoringThisActivityAtAll" value="false"/>
                 <param name="typicalDuration" value="undefined"/>
@@ -571,7 +578,7 @@
         <param name="travelTimeBinSize" value="900"/>
     </module>
     <module name="vehicles">
-        <param name="vehiclesFile" value="&road_network;/vehicles.xml.gz"/>
+        <param name="vehiclesFile" value="&road_network;/av-vehicles.xml.gz"/>
     </module>
     <module name="zones">
         <parameterset type="zones">
