@@ -17,17 +17,23 @@ public class SingleTripAgentToCSVConverter {
     public static void main(String[] args) throws IOException {
         String inputPlansFile = args[0];
         String outputCSVFile = args[1];
+        String subpopulationToSet = "freight_road";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(inputPlansFile);
         Population population = scenario.getPopulation();
 
 
-        writeSingleTripsAsCSV(outputCSVFile, population);
+        writeSingleTripsAsCSV(outputCSVFile, population, subpopulationToSet);
 
     }
 
     public static void writeSingleTripsAsCSV(String outputCSVFile, Population population) throws IOException {
+        writeSingleTripsAsCSV(outputCSVFile, population, "");
+
+    }
+
+    public static void writeSingleTripsAsCSV(String outputCSVFile, Population population, String subpulationToSet) throws IOException {
         String tripPurpose = Variables.MOBiTripAttributes.PURPOSE;
         String direction = Variables.MOBiTripAttributes.DIRECTION;
         String toActivityY = "to_activity_y";
@@ -48,7 +54,8 @@ public class SingleTripAgentToCSVConverter {
                     throw new RuntimeException("Some plans have more or less than three plan elements. This code is not designed to transform them. Agent: " + person.getId());
                 }
                 writer.set(Variables.PERSONID, person.getId().toString());
-                writer.set(Variables.SUBPOPULATION, String.valueOf(PopulationUtils.getSubpopulation(person)));
+                String subpopulation = PopulationUtils.getSubpopulation(person) != null ? PopulationUtils.getSubpopulation(person) : subpulationToSet;
+                writer.set(Variables.SUBPOPULATION, subpopulation);
                 Activity start = (Activity) plan.getPlanElements().get(0);
                 Leg leg = (Leg) plan.getPlanElements().get(1);
                 Activity end = (Activity) plan.getPlanElements().get(2);

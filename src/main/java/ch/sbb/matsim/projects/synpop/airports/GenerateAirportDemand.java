@@ -68,11 +68,11 @@ public class GenerateAirportDemand {
         String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\05_kalif2023_mtools2040\\output\\05_kalif2023_mtools2040.mobi-zones.shp";
         String facilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\05_kalif2023_mtools2040\\output\\05_kalif2023_mtools2040.facilities.xml.gz";
 
-        String outputDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans_exogenous\\airport-demand_2040.xml.gz";
+        String outputDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2050\\plans_exogenous\\airport-demand_2050.xml.gz";
 
         String departureTimeDistribution = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\Tagesgang_GVA_dep.csv";
         String arrivalTimeDistribution = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\Tagesgang_GVA_arr.csv";
-        double globalFactor = 1.29;
+        double globalFactor = 1.49;
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(network);

@@ -23,7 +23,7 @@ import java.util.Random;
 public class GenerateAdditionalTransitTrips {
     public static void main(String[] args) throws IOException {
         String timeDistributionFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\2016_Ganglinie.csv";
-        double globalFactor = 1.2;
+        double globalFactor = 1.30;
         Random random = MatsimRandom.getRandom();
         List<MissingDemand> missingDemandList = new ArrayList<>();
         var timeDistribution = SingleTripAgentCreator.readTimeDistribution(timeDistributionFile, random);
@@ -31,7 +31,7 @@ public class GenerateAdditionalTransitTrips {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         generatePopulation(globalFactor, missingDemandList, scenario.getPopulation(), timeDistribution, random);
         //new PopulationWriter(scenario.getPopulation()).write("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\output\\cb_road_additional.xml.gz");
-        SingleTripAgentToCSVConverter.writeSingleTripsAsCSV("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans_exogenous\\cb_road_additional.csv", scenario.getPopulation());
+        SingleTripAgentToCSVConverter.writeSingleTripsAsCSV("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2050\\plans_exogenous\\cb_road_additional.csv", scenario.getPopulation());
     }
 
     private static void fillMissingDemandList(Random random, List<MissingDemand> missingDemandList) {
