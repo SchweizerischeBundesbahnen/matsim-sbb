@@ -25,6 +25,9 @@ public class SBBModes {
 	public static final String PT_FALLBACK_MODE = TransportMode.transit_walk;
 	public static final String ACCESS_EGRESS_WALK = TransportMode.walk;
 	public static final String WALK_MAIN_MAINMODE = "walk_main";
+	//AV: New passenger modes: PT differentiation
+	public static final String ROAD = "road";
+	public static final String TRAIN = "train";
 	//in analysis code, all walk mode are set to this mode
 	public static final String WALK_FOR_ANALYSIS = TransportMode.walk;
 	public static final int DEFAULT_MODE_HIERARCHY = 99;
@@ -49,6 +52,11 @@ public class SBBModes {
 		mode2HierarchalNumber.put(WALK_MAIN_MAINMODE, 40);
 		mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 41);
 
+		//AV: PT differentiation 
+		//routing/SBBAnalysisMainModeIdentifier.java (if (modeNo >= 90 && modeNo < 99) return SBBModes.PT;)
+		mode2HierarchalNumber.put(ROAD, 95);
+		mode2HierarchalNumber.put(TRAIN, 96);
+
 		//purely pt access-egress
 		mode2HierarchalNumber.put(AVFEEDER, 90);
 		mode2HierarchalNumber.put(BIKEFEEDER, 91);
@@ -66,7 +74,7 @@ public class SBBModes {
 	}
 
 	public static class PTSubModes {
-
+		//AV: Should be Train rather than Rail -> easier to understand
 		public static final String RAIL = "rail";
 		public static final String TRAM = "tram";
 		public static final String BUS = "bus";
