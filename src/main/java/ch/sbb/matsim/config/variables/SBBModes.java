@@ -28,13 +28,16 @@ public class SBBModes {
 	//AV: New passenger modes: PT differentiation
 	public static final String ROAD = "road";
 	public static final String TRAIN = "train";
+	public static final String BUS = "bus";
+	public static final String TRAM = "tram";
+	public static final String OTHER = "other";
 	//in analysis code, all walk mode are set to this mode
 	public static final String WALK_FOR_ANALYSIS = TransportMode.walk;
 	public static final int DEFAULT_MODE_HIERARCHY = 99;
 	public final static Map<String, Integer> mode2HierarchalNumber;
 	public final static Map<Integer, String> hierarchalNumber2Mode;
 
-	public static final List<String> MAIN_MODES = List.of(RIDE, CAR, PT, BIKE, AVTAXI, WALK_FOR_ANALYSIS, DRT);
+	public static final List<String> MAIN_MODES = List.of(RIDE, CAR, PT, BIKE, AVTAXI, WALK_FOR_ANALYSIS, DRT, RAIL, BUS, OTHER, TRAM, ROAD, TRAIN);
 	public static final List<String> TRAIN_STATION_MODES = List.of(WALK_FOR_ANALYSIS, PT, PTSubModes.RAIL, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> TRAIN_STATION_ORIGDEST_MODES = List.of(WALK_FOR_ANALYSIS, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 
@@ -52,17 +55,21 @@ public class SBBModes {
 		mode2HierarchalNumber.put(WALK_MAIN_MAINMODE, 40);
 		mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 41);
 
-		//AV: PT differentiation 
-		//routing/SBBAnalysisMainModeIdentifier.java (if (modeNo >= 90 && modeNo < 99) return SBBModes.PT;)
-		mode2HierarchalNumber.put(ROAD, 95);
-		mode2HierarchalNumber.put(TRAIN, 96);
-
 		//purely pt access-egress
 		mode2HierarchalNumber.put(AVFEEDER, 90);
 		mode2HierarchalNumber.put(BIKEFEEDER, 91);
 		mode2HierarchalNumber.put(RIDEFEEDER, 92);
 		mode2HierarchalNumber.put(CARFEEDER, 93);
 		mode2HierarchalNumber.put(PT_FALLBACK_MODE, 94);
+
+		//AV: PT differentiation 
+		//routing/SBBAnalysisMainModeIdentifier.java (if (modeNo >= 90 && modeNo < 99) return SBBModes.PT;)
+		mode2HierarchalNumber.put(RAIL, 1);
+		mode2HierarchalNumber.put(BUS, 2);
+		mode2HierarchalNumber.put(TRAM, 3);
+		mode2HierarchalNumber.put(OTHER, 4);
+		mode2HierarchalNumber.put(TRAIN, 5);
+		mode2HierarchalNumber.put(ROAD, 6);
 
 		//access-egress for all kind of modes
 		mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 99);
