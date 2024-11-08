@@ -133,11 +133,8 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
 
     @Override
     public void notifyIterationStarts(IterationStartsEvent event) {
-        int interval = this.ppConfig.getWriteOutputsInterval();
-        if (ppConfig.isWriteAnalsysis()) {
-            if (((interval > 0) && (event.getIteration() % interval == 0)) || event.getIteration() == this.config.getLastIteration()) {
+        if (this.config.getWriteTripsInterval() > 0 && (event.getIteration() % this.config.getWriteTripsInterval() == 0)) {
                 ((SBBTripsExtension) sbbTripsExtension).prepareAddtionalTripAttributes();
             }
         }
-    }
 }

@@ -50,7 +50,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final Zones zones;
     private final Scenario scenario;
-    private IdMap<Person, LinkedList<Variables.MOBiTripAttributes>> additionalTripAttributes;
+    private IdMap<Person, LinkedList<Variables.MOBiTripAttributes>> additionalTripAttributes = new IdMap<>(Person.class, 100);
 
     @Inject
     public SBBTripsExtension(RailTripsAnalyzer railTripsAnalyzer, PostProcessingConfigGroup ppConfig, ZonesCollection zonesCollection, Scenario scenario) {
