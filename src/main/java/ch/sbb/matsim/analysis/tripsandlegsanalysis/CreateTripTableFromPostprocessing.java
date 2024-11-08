@@ -64,6 +64,7 @@ public class CreateTripTableFromPostprocessing {
         BetterPopulationReader.readSelectedPlansOnly(scenario, new File(populationFile));
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         SBBTripsExtension sbbTripsExtension = new SBBTripsExtension(railTripsAnalyzer, postProcessingConfigGroup, zonesCollection, scenario);
+        sbbTripsExtension.prepareAddtionalTripAttributes();
         SBBLegsExtension sbbLegsExtension = new SBBLegsExtension(railTripsAnalyzer);
         TripsAndLegsWriter tripsAndLegsCSVWriter = new TripsAndLegsWriter(scenario, sbbTripsExtension, sbbLegsExtension, null, v -> Long.toString((long) v));
         IdMap<Person, Plan> plans = new IdMap<>(Person.class);

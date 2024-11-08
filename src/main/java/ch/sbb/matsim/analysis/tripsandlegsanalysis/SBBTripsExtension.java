@@ -50,7 +50,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final Zones zones;
     private final Scenario scenario;
-    private IdMap<Person, LinkedList<Variables.MOBiTripAttributes>> tripAttributes;
+    private IdMap<Person, LinkedList<Variables.MOBiTripAttributes>> additionalTripAttributes;
 
     @Inject
     public SBBTripsExtension(RailTripsAnalyzer railTripsAnalyzer, PostProcessingConfigGroup ppConfig, ZonesCollection zonesCollection, Scenario scenario) {
@@ -58,13 +58,11 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
         this.zones = zonesCollection.getZones(ppConfig.getZonesId());
         this.scenario = scenario;
 
-
     }
 
     @Override
     public String[] getAdditionalTripHeader() {
-        //this is always called before a new file is written, so the reset is added here.
-        tripAttributes = Variables.MOBiTripAttributes.extractTripAttributes(scenario.getPopulation());
+
         return new String[]{"from_zone", "to_zone", "first_rail_stop", "last_rail_stop", "rail_pkm", "fq_rail_pkm", "rail_legs", "rail_access_modes", "rail_access_distance", "rail_egress_modes",
                 "rail_egress_distance", Variables.MOBiTripAttributes.TOUR_ID, Variables.MOBiTripAttributes.TRIP_ID, Variables.MOBiTripAttributes.PURPOSE, Variables.MOBiTripAttributes.DIRECTION, "score"};
     }
@@ -91,8 +89,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
         double accesDistance = 0.;
 
         for (Leg leg : trip.getLegsOnly()) {
-            if (leg.getRoute() instanceof TransitPassengerRoute) {
-                TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+            if (leg.getRoute() instanceof TransitPassengerRoute route) {
                 if (accessStop.equals(route.getAccessStopId())) {
                     break;
                 }
@@ -116,8 +113,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
                 egressModes.add(leg.getMode());
                 egressDistance += leg.getRoute().getDistance();
             }
-            if (leg.getRoute() instanceof TransitPassengerRoute) {
-                TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+            if (leg.getRoute() instanceof TransitPassengerRoute route) {
                 if (egressStop.equals(route.getEgressStopId())) {
                     startCount = true;
                 }
@@ -153,7 +149,7 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
         var railOd = railTripsAnalyzer.getOriginDestination(trip);
         String fromStation = railOd != null ? railOd.getFirst().toString() : "";
         String toStation = railOd != null ? railOd.getSecond().toString() : "";
-        var visumTripIds = tripAttributes.get(personId);
+        var visumTripIds = additionalTripAttributes.get(personId);
         String tourId = "";
         String tripId = "";
         String direction = "";
@@ -192,6 +188,10 @@ public class SBBTripsExtension implements CustomTripsWriterExtension {
             //score += (float) leg.getAttributes().getAttribute("score");
         }
         return List.of(fromZoneString, toZoneString, fromStation, toStation, rail_pkm, fq_rail_pkm, rail_legs, accessModes, accessDistance, egressModes, egressDistance, tourId, tripId, purpose, direction, Double.toString(score));
+    }
+
+    public void prepareAddtionalTripAttributes() {
+        additionalTripAttributes = Variables.MOBiTripAttributes.extractTripAttributes(scenario.getPopulation());
     }
 
 
