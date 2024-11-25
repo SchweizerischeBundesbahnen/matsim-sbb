@@ -40,7 +40,7 @@ public class SBBModes {
 	public static final List<String> MAIN_MODES = List.of(RIDE, CAR, PT, BIKE, AVTAXI, WALK_FOR_ANALYSIS, DRT, RAIL, BUS, OTHER, TRAM, ROAD, TRAIN);
 	public static final List<String> TRAIN_STATION_MODES = List.of(WALK_FOR_ANALYSIS, PT, PTSubModes.RAIL, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> TRAIN_STATION_ORIGDEST_MODES = List.of(WALK_FOR_ANALYSIS, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
-
+	public static final List<String> PT_PASSENGER_MODES = List.of(PT,TRAIN,BUS,TRAM,OTHER);
 
 	static {
 		mode2HierarchalNumber = new HashMap<>();
