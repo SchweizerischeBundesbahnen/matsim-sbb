@@ -26,6 +26,7 @@ import ch.sbb.matsim.zones.ZonesLoader;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.apache.commons.lang3.mutable.MutableDouble;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -62,6 +63,10 @@ public class RailDemandReporting {
     private final Map<Id<TransitLine>, String> lineSparte = new HashMap<>();
     private final Map<Id<TransitLine>, String> lineLfpCat = new HashMap<>();
     private final Map<Id<TransitLine>, String> lineAbgrenzung = new HashMap<>();
+    private final Map<Id<TransitLine>, String> line2Mode = new HashMap<>();
+    private final Map<String, MutableDouble> modeDistances = new HashMap<>();
+    private final Map<String, MutableInt> modeBoardings = new HashMap<>();
+
     @Inject
     private ExperiencedPlansService experiencedPlansService;
     private double fqDistance = 0;
@@ -110,6 +115,8 @@ public class RailDemandReporting {
         pkmSparte.values().forEach(d -> d.setValue(0));
         pkmAbgrenzung.values().forEach(d -> d.setValue(0));
         pkmLfpCat.values().forEach(d -> d.setValue(0));
+        modeDistances.values().forEach(d -> d.setValue(0));
+        modeBoardings.values().forEach(d -> d.setValue(0));
         fqDistance = .0;
         fqTrips = 0;
         domesticFQDistance = 0;
@@ -132,6 +139,7 @@ public class RailDemandReporting {
 
         String pf = "PF";
         String pkm = "PKM";
+        String boardings = "Einstiege";
         String[] columns = new String[]{runIDName, categoryName, subCategoryName, unitName, valueName};
         try (CSVWriter writer = new CSVWriter(null, columns, outputFile)) {
 
@@ -176,6 +184,11 @@ public class RailDemandReporting {
             for (Entry<String, MutableDouble> e : pkmLfpCat.entrySet()) {
                 writeRow(writer, category, e.getKey(), pkm, (int) Math.round(scaleFactor * e.getValue().doubleValue() / 1000.));
             }
+            category = "oeV Insgesamt";
+            for (var modalDemand : modeDistances.entrySet()) {
+                writeRow(writer, category, modalDemand.getKey(), boardings, modeBoardings.get(modalDemand.getKey()).intValue() * scaleFactor);
+                writeRow(writer, category, modalDemand.getKey(), pkm, (int) Math.round(scaleFactor * modalDemand.getValue().doubleValue() / 1000.));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -193,10 +206,14 @@ public class RailDemandReporting {
     }
 
     private void prepareCategories(TransitSchedule schedule) {
-
+        Set<String> allModes = new HashSet<>();
         for (TransitLine line : schedule.getTransitLines().values()) {
+            var route = line.getRoutes().values().stream().findFirst().get();
+            var mode = route.getTransportMode();
+            line2Mode.put(line.getId(), mode);
+            allModes.add(mode);
+
             if (railTripsAnalyzer.isRailLine(line.getId())) {
-                var route = line.getRoutes().values().stream().findFirst().get();
                 String sparte = (String) route.getAttributes().getAttribute(Variables.SPARTE);
                 if (sparte == null) {
                     logger.warn("No " + Variables.SPARTE + " defined for transit line " + line.getId());
@@ -223,11 +240,13 @@ public class RailDemandReporting {
 
             }
         }
+        allModes.forEach(mode -> modeDistances.put(mode, new MutableDouble()));
+        allModes.forEach(mode -> modeBoardings.put(mode, new MutableInt()));
     }
 
     private void aggregateRailDistances(Collection<Plan> plans) {
-        Set<DefaultTransitPassengerRoute> allRailRoutes = plans.stream().flatMap(plan -> TripStructureUtils.getLegs(plan).stream()).filter(leg -> leg.getRoute().getRouteType().equals(DefaultTransitPassengerRoute.ROUTE_TYPE)).map(leg -> (DefaultTransitPassengerRoute) leg.getRoute()).filter(defaultTransitPassengerRoute -> railTripsAnalyzer.isRailLine(defaultTransitPassengerRoute.getLineId())).collect(Collectors.toSet());
-
+        Set<DefaultTransitPassengerRoute> allPtRoutes = plans.stream().flatMap(plan -> TripStructureUtils.getLegs(plan).stream()).filter(leg -> leg.getRoute().getRouteType().equals(DefaultTransitPassengerRoute.ROUTE_TYPE)).map(leg -> (DefaultTransitPassengerRoute) leg.getRoute()).collect(Collectors.toSet());
+        Set<DefaultTransitPassengerRoute> allRailRoutes = allPtRoutes.stream().filter(defaultTransitPassengerRoute -> railTripsAnalyzer.isRailLine(defaultTransitPassengerRoute.getLineId())).collect(Collectors.toSet());
         for (var route : allRailRoutes) {
             double distance = railTripsAnalyzer.getDomesticRailDistance_m(route);
             if (distance > 0.0) {
@@ -238,7 +257,12 @@ public class RailDemandReporting {
             }
         }
         aggregateFQValues(plans);
+        for (var route : allPtRoutes) {
+            String mode = line2Mode.get(route.getLineId());
+            modeDistances.get(mode).add(route.getDistance());
+            modeBoardings.get(mode).increment();
 
+        }
     }
 
     private void aggregateFQValues(Collection<Plan> plans) {
