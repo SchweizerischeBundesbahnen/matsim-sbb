@@ -24,12 +24,10 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.preparation.casestudies.MixExperiencedPlansFromSeveralSimulations;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesLoader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import jakarta.inject.Inject;
 import org.matsim.api.core.v01.*;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
@@ -48,8 +46,6 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
-
-import jakarta.inject.Inject;
 
 import java.io.IOException;
 import java.util.*;
@@ -243,7 +239,7 @@ public class PutSurveyWriter {
 
                             List<PutSurveyEntry> tripEntry = new ArrayList<>();
 
-                            if (trip.getLegsOnly().stream().anyMatch(l -> l.getMode().equals(SBBModes.PT) )) {
+                            if (trip.getLegsOnly().stream().anyMatch(l -> SBBModes.ALL_PT_MODES.contains(l.getMode()))) {
                                 String path_id = String.valueOf(teilwegNr.incrementAndGet());
                                 Set<String> railAccessModes = new HashSet<>();
                                 Set<String> railEgresssModes = new HashSet<>();
@@ -268,8 +264,7 @@ public class PutSurveyWriter {
                                 double railEgressDist = 0.;
                                 for (Leg leg : trip.getLegsOnly()) {
                                     boolean isRail = false;
-                                    if (leg.getRoute() instanceof TransitPassengerRoute) {
-                                        TransitPassengerRoute r = (TransitPassengerRoute) leg.getRoute();
+                                    if (leg.getRoute() instanceof TransitPassengerRoute r) {
                                         TransitLine line = schedule.getTransitLines().get(r.getLineId());
                                         TransitRoute transitRoute = line.getRoutes().get(r.getRouteId());
                                         String from_stop = String.valueOf(schedule.getFacilities().get(r.getAccessStopId()).getAttributes().getAttribute(STOP_NO));
