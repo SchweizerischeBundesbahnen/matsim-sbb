@@ -20,6 +20,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.router.Transit;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.Trip;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -85,6 +86,7 @@ public class ModalSplitStats {
     private Set<String> feederModesFromConfig;
     private List<String> possibleModesAtStop;
     private List<String> possibleOriginDestinationModesAtStop;
+    private Map<Id<TransitStopFacility>, Set<String>> actualModesAtStop;
 
 
     @Inject
@@ -170,7 +172,7 @@ public class ModalSplitStats {
         this.subpopulationDistanceChangePKMMap = createArrayForSubpopulationMap(changeOrderList.size()* distanceClassesLabel.size(), changeLabelList.size());
         this.timeMap = createTimeStepsForSubpopulaitonMap((int) (this.config.qsim().getEndTime().seconds() / timeSplit), this.variablesTimeStepsMap.size());
         this.travelTimeMap = createTimeStepsForSubpopulaitonMap((lastTravelTimeValue / travelTimeSplit) + 1, this.variablesTimeStepsMap.size());
-
+        this.actualModesAtStop = getActualModesAtStop();
         // analyzing
         analyze(experiencedPlans);
 
@@ -182,6 +184,22 @@ public class ModalSplitStats {
 //        writeFeederModalSplit();
 //        writeChanges();
 //        writeTimeSteps();
+
+    }
+
+    private Map<Id<TransitStopFacility>, Set<String>> getActualModesAtStop() {
+        Map<Id<TransitStopFacility>, Set<String>> actualModesAtStop = new HashMap<>();
+        this.transitSchedule.getTransitLines().values()
+                .stream()
+                .flatMap(transitLine -> transitLine.getRoutes().values().stream())
+                .forEach(transitRoute -> {
+                    transitRoute.getStops().stream().map(stop-> stop.getStopFacility().getId()).forEach(
+                            stopId->actualModesAtStop.computeIfAbsent(stopId,a->new HashSet<>()).add(transitRoute.getTransportMode())
+                    );
+                });
+
+        return actualModesAtStop;
+
 
     }
 
@@ -1311,9 +1329,10 @@ public class ModalSplitStats {
         final String zustiege = "Umsteige_AHP_Bahn";
         final String wegstiege = "Umsteige_Bahn_AHP";
         final String isRailStop = "isRailStop";
+        final String modesAtStop = "modesAtStop";
 
 
-        List<String> headColumns = new ArrayList<>(List.of(runID, hstNummer, stopNumber, code, stopCode, trainStationName, stopName, isRailStop, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
+        List<String> headColumns = new ArrayList<>(List.of(runID, hstNummer, stopNumber, code, stopCode, trainStationName, stopName, isRailStop,modesAtStop, x, y, zone, einstiege, ausstiege, einstiegeFQ, ausstiegeFQ, umstiege, zustiege, wegstiege));
         for (String mode : possibleOriginDestinationModesAtStop) {
             headColumns.add("Zielaustieg_" + mode);
             headColumns.add("Quelleinstieg_" + mode);
@@ -1374,6 +1393,7 @@ public class ModalSplitStats {
                 csvWriter.set(umstiege, Integer.toString((int) (entry.getValue().getUmsteigeBahnBahn() / sampleSize)));
                 csvWriter.set(zustiege, Integer.toString((int) (entry.getValue().getUmsteigeAHPBahn() / sampleSize)));
                 csvWriter.set(wegstiege, Integer.toString((int) (entry.getValue().getUmsteigeBahnAHP() / sampleSize)));
+                csvWriter.set(modesAtStop, String.join(",", actualModesAtStop.get(stopId)));
                 csvWriter.writeRow();
             }
         } catch (Exception e) {
