@@ -239,7 +239,7 @@ public class PutSurveyWriter {
 
                             List<PutSurveyEntry> tripEntry = new ArrayList<>();
 
-                            if (trip.getLegsOnly().stream().anyMatch(l -> SBBModes.ALL_PT_MODES.contains(l.getMode()))) {
+                            if (trip.getLegsOnly().stream().anyMatch(l -> SBBModes.PT_PASSENGER_MODES.contains(l.getMode()))) {
                                 String path_id = String.valueOf(teilwegNr.incrementAndGet());
                                 Set<String> railAccessModes = new HashSet<>();
                                 Set<String> railEgresssModes = new HashSet<>();
