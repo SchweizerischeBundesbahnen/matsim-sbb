@@ -175,7 +175,7 @@ public class RunSBB {
 				bind(ActivityWriter.class).asEagerSingleton();
 				bind(ModalSplitStats.class);
 				bind(IterationLinkAnalyzer.class).asEagerSingleton();
-				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class);
+				bind(CustomTripsWriterExtension.class).to(SBBTripsExtension.class).asEagerSingleton();
 				bind(TripsAndLegsWriter.CustomLegsWriterExtension.class).to(SBBLegsExtension.class);
 				bind(TripsAndLegsWriter.CustomTimeWriter.class).toInstance(v -> Long.toString((long) v));
 				install(new SBBTransitModule());

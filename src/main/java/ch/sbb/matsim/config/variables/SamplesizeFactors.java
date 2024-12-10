@@ -48,8 +48,8 @@ public class SamplesizeFactors {
         hermesStorageCapacityFactor.put(0.005, 0.015);
 
         hermesFlowCapacityFactor = new HashMap<>();
-        hermesFlowCapacityFactor.put(0.10, 0.1075);
-        hermesFlowCapacityFactor.put(0.05, 0.055);
+        hermesFlowCapacityFactor.put(0.10, 0.12);
+        hermesFlowCapacityFactor.put(0.05, 0.065);
         hermesFlowCapacityFactor.put(0.033, 0.036);
         hermesFlowCapacityFactor.put(0.005, 0.01);
 

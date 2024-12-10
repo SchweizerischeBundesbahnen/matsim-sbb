@@ -11,16 +11,19 @@ import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import com.google.inject.Inject;
+import org.matsim.analysis.TripsAndLegsWriter;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.groups.ControllerConfigGroup;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationEndsEvent;
+import org.matsim.core.controler.events.IterationStartsEvent;
 import org.matsim.core.controler.events.StartupEvent;
 import org.matsim.core.controler.listener.IterationEndsListener;
+import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.controler.listener.StartupListener;
 
-public class SBBDefaultAnalysisListener implements IterationEndsListener, StartupListener {
+public class SBBDefaultAnalysisListener implements IterationEndsListener, StartupListener, IterationStartsListener {
 
     private final OutputDirectoryHierarchy controlerIO;
     private final ControllerConfigGroup config;
@@ -48,6 +51,10 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
 
     @Inject
     private Scenario scenario;
+
+    @Inject
+    private TripsAndLegsWriter.CustomTripsWriterExtension sbbTripsExtension;
+
     private final CarLinkAnalysis carLinkAnalysis;
 
 
@@ -124,4 +131,10 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
         }
     }
 
+    @Override
+    public void notifyIterationStarts(IterationStartsEvent event) {
+        if (this.config.getWriteTripsInterval() > 0 && (event.getIteration() % this.config.getWriteTripsInterval() == 0)) {
+                ((SBBTripsExtension) sbbTripsExtension).prepareAddtionalTripAttributes();
+            }
+        }
 }
