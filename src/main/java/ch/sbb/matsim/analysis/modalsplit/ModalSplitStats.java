@@ -179,10 +179,10 @@ public class ModalSplitStats {
         writeStopStationAnalysis();
         writeTrainStationAnalysis();
         writeDistanceClassesAnalysis();
-//        writeModalSplit();
-//        writeFeederModalSplit();
-//        writeChanges();
-//        writeTimeSteps();
+        writeModalSplit();
+        writeFeederModalSplit();
+        writeChanges();
+        writeTimeSteps();
 
     }
 
@@ -223,15 +223,15 @@ public class ModalSplitStats {
             // analysis for access and egress mode for each train station
             analyzeTrainsStations(entry);
             // analysis for distance classes
-//            analyzeDistanceClasses(entry);
+            analyzeDistanceClasses(entry);
 //            // analysis modal split for persons trips and person km
-//            analyzeModalSplit(entry);
+            analyzeModalSplit(entry);
 //            // analysis access/egress modal split for persons trips and person km
-//            analyzeFeederModalSplit(entry);
+            analyzeFeederModalSplit(entry);
 //            // analysis public transport changes
-//            analyzeChanges(entry);
+            analyzeChanges(entry);
 //            // analyze travel time and middle time between to activities
-//            analyzeTimes(entry);
+            analyzeTimes(entry);
 
         }
     }
@@ -1574,7 +1574,6 @@ public class ModalSplitStats {
             coding.put(modes.get(i), i);
         }
         coding.put("railFQ", modes.size());
-        coding.put("rail", modes.size()+1);
         return coding;
     }
     private Map<String, Integer> getFeederModesMap() {
