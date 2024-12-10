@@ -25,7 +25,6 @@ public class SBBModes {
 	public static final String PT_FALLBACK_MODE = TransportMode.transit_walk;
 	public static final String ACCESS_EGRESS_WALK = TransportMode.walk;
 	public static final String WALK_MAIN_MAINMODE = "walk_main";
-	//AV: New passenger modes: PT differentiation
 	public static final String BUS = "bus";
 	public static final String TRAM = "tram";
 	public static final String OTHER = "other";
@@ -37,6 +36,10 @@ public class SBBModes {
 	public static final List<String> TRAIN_STATION_MODES = List.of(WALK_FOR_ANALYSIS, PT, PTSubModes.RAIL, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> TRAIN_STATION_ORIGDEST_MODES = List.of(WALK_FOR_ANALYSIS, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> PT_PASSENGER_MODES = List.of(PT, RAIL, BUS, TRAM, OTHER);
+
+	public static boolean isPTMode(String mode) {
+		return PT_PASSENGER_MODES.contains(mode);
+	}
 
 
 	static {
@@ -76,7 +79,6 @@ public class SBBModes {
 	}
 
 	public static class PTSubModes {
-		//AV: Should be Train rather than Rail -> easier to understand
 		public static final String RAIL = "rail";
 		public static final String TRAM = "tram";
 		public static final String BUS = "bus";

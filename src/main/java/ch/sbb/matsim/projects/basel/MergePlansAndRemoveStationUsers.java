@@ -14,8 +14,8 @@ import org.matsim.core.router.RoutingModeMainModeIdentifier;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class MergePlansAndRemoveStationUsers {
 
@@ -29,7 +29,7 @@ public class MergePlansAndRemoveStationUsers {
 
         StreamingPopulationWriter spw = new StreamingPopulationWriter();
         spw.startStreaming(outputFile);
-        SBBTripsToLegsAlgorithm tripsToLegsAlgorithm = new SBBTripsToLegsAlgorithm(new RoutingModeMainModeIdentifier(), Set.of(SBBModes.PT));
+        SBBTripsToLegsAlgorithm tripsToLegsAlgorithm = new SBBTripsToLegsAlgorithm(new RoutingModeMainModeIdentifier(), new HashSet<>(SBBModes.PT_PASSENGER_MODES));
         for (String s : plans) {
             Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
             StreamingPopulationReader spr = new StreamingPopulationReader(scenario);

@@ -30,6 +30,7 @@ public class SBBAnalysisMainModeIdentifier implements AnalysisMainModeIdentifier
         if (modeNo >= 90 && modeNo < 99) return SBBModes.PT;
 
         String mode = SBBModes.hierarchalNumber2Mode.get(modeNo);
+        if (SBBModes.PT_PASSENGER_MODES.contains(mode)) return SBBModes.PT;
         return mode;
     }
 }

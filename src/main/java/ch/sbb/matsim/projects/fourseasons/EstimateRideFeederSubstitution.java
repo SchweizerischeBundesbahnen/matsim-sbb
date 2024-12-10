@@ -172,7 +172,7 @@ public class EstimateRideFeederSubstitution {
         substitionData.endingTrips = endingTrips.size();
         for (Trip trip : endingTrips) {
             Leg railLegStarting = trip.getLegsOnly().stream()
-                    .filter(leg -> leg.getMode().equals(SBBModes.PT))
+                    .filter(leg -> SBBModes.isPTMode(leg.getMode()))
                     .filter(leg -> {
                         TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
                         return route.getEgressStopId().equals(substitionData.stopFacilityId);
@@ -210,7 +210,7 @@ public class EstimateRideFeederSubstitution {
         substitionData.startingTrips = startingTrips.size();
         for (Trip trip : startingTrips) {
             Leg railLegStarting = trip.getLegsOnly().stream()
-                    .filter(leg -> leg.getMode().equals(SBBModes.PT))
+                    .filter(leg -> SBBModes.isPTMode(leg.getMode()))
                     .filter(leg -> {
                         TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
                         return route.getAccessStopId().equals(substitionData.stopFacilityId);
@@ -297,7 +297,7 @@ public class EstimateRideFeederSubstitution {
         return this.scenario.getPopulation().getPersons().values().stream()
                 .map(HasPlansAndId::getSelectedPlan)
                 .flatMap(plan -> TripStructureUtils.getLegs(plan).stream())
-                .filter(leg -> leg.getMode().equals(SBBModes.PT))
+                .filter(leg -> SBBModes.isPTMode(leg.getMode()))
                 .map(leg -> (TransitPassengerRoute) leg.getRoute())
                 .flatMap(transitPassengerRoute -> railTripsAnalyzer.getPtLinkIdsTraveledOnExludingAccessEgressStop(transitPassengerRoute).stream())
                 .filter(stopLinks::containsKey)

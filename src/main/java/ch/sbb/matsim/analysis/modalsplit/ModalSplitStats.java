@@ -294,7 +294,7 @@ public class ModalSplitStats {
     }
 
     private static boolean isPtMode(Leg leg) {
-        return leg.getMode().equals(PT) || PTSubModes.submodes.contains(leg.getMode()) ;
+        return SBBModes.isPTMode(leg.getMode());
     }
 
     private void analyzeStopsStations(Entry<Id<Person>, Plan> entry) {
@@ -404,12 +404,11 @@ public class ModalSplitStats {
             }
             boolean tmpIsRail = false;
             for (Leg leg : trip.getLegsOnly()) {
-                if (PT.contains(leg.getMode())) {
                     if (isPtMode(leg)) {
                         TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
                         if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
                             tmpIsRail = true;
-                        }
+
                     }
                 }
             }
@@ -469,7 +468,6 @@ public class ModalSplitStats {
             double distance = 0;
             boolean isFQ = false;
             for (Leg leg : trip.getLegsOnly()) {
-                if (PT.contains(leg.getMode())) {
                     if (isPtMode(leg)) {
                         distance += leg.getRoute().getDistance() / 1000;
                         ptLegs++;
@@ -477,8 +475,8 @@ public class ModalSplitStats {
                         if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
                             railLegs++;
                         }
+
                     }
-                }
             }
             double fqDistance = 0;
             if (railLegs > 0) {
@@ -564,14 +562,12 @@ public class ModalSplitStats {
             double fqDistance = 0;
 
             for (Leg leg : trip.getLegsOnly()) {
-                if (PT.contains(leg.getMode())) {
                     if (isPtMode(leg)) {
                         TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
                         if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
                             railDistance += leg.getRoute().getDistance() / 1000;
                             tmpIsRail = true;
                         }
-                    }
                 }
                 distance += leg.getRoute().getDistance() / 1000;
             }
@@ -939,7 +935,7 @@ public class ModalSplitStats {
                 }
             }
             disArray[modeID][disCl]++;
-            if (tmpMode.equals(SBBModes.PT)) {
+            if (tmpMode.equals(PT)) {
                 List<Leg> legs = trip.getLegsOnly();
                 int firstRailLeg = findFirstRailLeg(legs);
                 int lastRailLeg = findLastRailLeg(legs);
