@@ -26,21 +26,17 @@ public class SBBModes {
 	public static final String ACCESS_EGRESS_WALK = TransportMode.walk;
 	public static final String WALK_MAIN_MAINMODE = "walk_main";
 	//AV: New passenger modes: PT differentiation
-	public static final String ROAD = "road";
-	public static final String TRAIN = "train";
 	public static final String BUS = "bus";
 	public static final String TRAM = "tram";
 	public static final String OTHER = "other";
 	//in analysis code, all walk mode are set to this mode
 	public static final String WALK_FOR_ANALYSIS = TransportMode.walk;
-	public static final int DEFAULT_MODE_HIERARCHY = 99;
 	public final static Map<String, Integer> mode2HierarchalNumber;
 	public final static Map<Integer, String> hierarchalNumber2Mode;
 
-	public static final List<String> MAIN_MODES = List.of(RIDE, CAR, PT, BIKE, AVTAXI, WALK_FOR_ANALYSIS, DRT, RAIL, BUS, OTHER, TRAM, ROAD, TRAIN);
 	public static final List<String> TRAIN_STATION_MODES = List.of(WALK_FOR_ANALYSIS, PT, PTSubModes.RAIL, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> TRAIN_STATION_ORIGDEST_MODES = List.of(WALK_FOR_ANALYSIS, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
-	public static final List<String> PT_PASSENGER_MODES = List.of(PT,TRAIN,BUS,TRAM,OTHER);
+	public static final List<String> PT_PASSENGER_MODES = List.of(PT, RAIL, BUS, TRAM, OTHER);
 
 
 	static {
@@ -69,8 +65,6 @@ public class SBBModes {
 		mode2HierarchalNumber.put(BUS, 2);
 		mode2HierarchalNumber.put(TRAM, 3);
 		mode2HierarchalNumber.put(OTHER, 4);
-		mode2HierarchalNumber.put(TRAIN, 5);
-		mode2HierarchalNumber.put(ROAD, 6);
 
 		//access-egress for all kind of modes
 		mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 99);
@@ -90,8 +84,7 @@ public class SBBModes {
 		public final static Set<String> submodes;
 
 		static {
-			// TODO: remove detPt as soon as we merged the pt-submodeset
-			submodes = Set.of(RAIL, TRAM, BUS, OTHER, "detPt");
+			submodes = Set.of(RAIL, TRAM, BUS, OTHER);
 		}
 
 		private PTSubModes() {

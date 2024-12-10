@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import static ch.sbb.matsim.RunSBB.getSbbDefaultConfigGroups;
 import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
 import static ch.sbb.matsim.config.variables.SBBModes.PT;
+import static ch.sbb.matsim.config.variables.SBBModes.RAIL;
 
 public class ModalSplitStats {
 
@@ -148,7 +149,7 @@ public class ModalSplitStats {
         this.outputLocation = outputLocation + "SBB_";
         this.stopStationsMap = generateStopStationMap();
         this.trainStationMap = generateTrainStationMap();
-        this.modesMap = getModesMap();
+        this.modesMap = getAnalysisMainModesMap();
         this.modesInclRailFQMap = getModesInclRailFQMap();
         this.feederModesMap = getFeederModesMap();
         this.variablesMSMap = createVariablesModalSplitMap();
@@ -1554,26 +1555,38 @@ public class ModalSplitStats {
         return legAfter;
     }
 
-    private Map<String, Integer> getModesMap() {
+    /*
+        Returns a map of modes we want to analyze as main modes. No submodes or feeder modes.
+     */
+    private Map<String, Integer> getAnalysisMainModesMap() {
         Map<String, Integer> coding = new HashMap<>();
-        Set<String> modesSet = new HashSet<>(SBBModes.MAIN_MODES);
+        Set<String> modesSet = new HashSet<>();
+        var raptorConfigGroup = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
+        var interModalModes = raptorConfigGroup.getIntermodalAccessEgressParameterSets()
+                .stream()
+                .map(set -> set.getMode())
+                .collect(Collectors.toSet());
         modesSet.addAll(config.scoring().getAllModes());
-        List<String> modes = new ArrayList<>(modesSet);
-        for (int i = 0; i < modes.size(); i++) {
-            coding.put(modes.get(i), i);
+        modesSet.remove(SBBModes.WALK_MAIN_MAINMODE);
+        modesSet.removeAll(PTSubModes.submodes);
+        modesSet.removeAll(interModalModes);
+        modesSet.add(SBBModes.WALK_FOR_ANALYSIS);
+
+        int i = 0;
+        for (String mode : modesSet) {
+            coding.put(mode, i);
+            i++;
         }
+
         return coding;
     }
 
     private Map<String, Integer> getModesInclRailFQMap() {
         Map<String, Integer> coding = new HashMap<>();
-        Set<String> modesSet = new HashSet<>(SBBModes.MAIN_MODES);
-        modesSet.addAll(config.scoring().getAllModes());
-        List<String> modes = new ArrayList<>(modesSet);
-        for (int i = 0; i < modes.size(); i++) {
-            coding.put(modes.get(i), i);
-        }
-        coding.put("railFQ", modes.size());
+        coding.putAll(modesMap);
+        int numberOfModes = coding.values().stream().max(Integer::compare).get();
+        coding.put(RAIL, numberOfModes + 1);
+        coding.put("railFQ", numberOfModes + 2);
         return coding;
     }
     private Map<String, Integer> getFeederModesMap() {
