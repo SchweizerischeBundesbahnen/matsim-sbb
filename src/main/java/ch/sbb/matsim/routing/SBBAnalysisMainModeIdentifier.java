@@ -6,6 +6,7 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.router.AnalysisMainModeIdentifier;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class SBBAnalysisMainModeIdentifier implements AnalysisMainModeIdentifier {
@@ -16,21 +17,25 @@ public class SBBAnalysisMainModeIdentifier implements AnalysisMainModeIdentifier
      */
     @Override
     public String identifyMainMode(List<? extends PlanElement> tripElements) {
-        int modeNo = tripElements.stream()
-                .filter(t -> t instanceof Leg)
-                .map(t -> ((Leg) t))
-                .mapToInt(leg -> {
-                    Integer i = SBBModes.mode2HierarchalNumber.get(leg.getMode());
-                    if (i != null) return i;
-                    else throw new NullPointerException(leg.getMode() + " is not a known mode in the mode hierarchy.");
-                })
-                .min()
-                .getAsInt();
+        List<Leg> legs = tripElements.stream().
+                filter(planElement -> planElement instanceof Leg).
+                map(planElement -> (Leg) planElement).
+                collect(Collectors.toList());
+        String routingMode = legs.get(0).getRoutingMode();
+        if (routingMode != null) {
+            return routingMode;
+        } else {
+            //this fallback should not be needed unless for totally unrouted plans
+            if (legs.stream().anyMatch(leg -> SBBModes.PT_PASSENGER_MODES.contains(leg.getMode()))) return SBBModes.PT;
+            else if (legs.stream().anyMatch(leg -> SBBModes.CAR.equals(leg.getMode()))) return SBBModes.CAR;
+            else if (legs.stream().anyMatch(leg -> SBBModes.RIDE.equals(leg.getMode()))) return SBBModes.RIDE;
+            else if (legs.stream().anyMatch(leg -> SBBModes.AVTAXI.equals(leg.getMode()))) return SBBModes.AVTAXI;
+            else if (legs.stream().anyMatch(leg -> SBBModes.PT_FEEDER_MODES.contains(leg.getMode())))
+                return SBBModes.PT;
+            else if (legs.size() == 1) return legs.get(0).getMode();
 
-        if (modeNo >= 90 && modeNo < 99) return SBBModes.PT;
+        }
 
-        String mode = SBBModes.hierarchalNumber2Mode.get(modeNo);
-        if (SBBModes.PT_PASSENGER_MODES.contains(mode)) return SBBModes.PT;
-        return mode;
+        throw new RuntimeException("mode could not be found.");
     }
 }
