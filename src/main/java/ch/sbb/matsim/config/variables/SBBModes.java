@@ -3,7 +3,6 @@ package ch.sbb.matsim.config.variables;
 import org.matsim.api.core.v01.TransportMode;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class SBBModes {
@@ -29,8 +28,6 @@ public class SBBModes {
 	public static final String OTHER = "other";
 	//in analysis code, all walk mode are set to this mode
 	public static final String WALK_FOR_ANALYSIS = TransportMode.walk;
-	public final static Map<String, Integer> mode2HierarchalNumber;
-
 	public static final List<String> TRAIN_STATION_MODES = List.of(WALK_FOR_ANALYSIS, PT, PTSubModes.RAIL, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> TRAIN_STATION_ORIGDEST_MODES = List.of(WALK_FOR_ANALYSIS, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> PT_PASSENGER_MODES = List.of(PT, RAIL, BUS, TRAM, OTHER);
