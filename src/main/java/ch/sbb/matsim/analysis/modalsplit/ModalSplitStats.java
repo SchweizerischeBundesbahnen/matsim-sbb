@@ -921,7 +921,10 @@ public class ModalSplitStats {
             if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
-            int modeID = this.modesInclRailFQMap.get(tmpMode);
+            Integer modeID = this.modesInclRailFQMap.get(tmpMode);
+            if (modeID == null) {
+                throw new RuntimeException(tmpMode + " not listed");
+            }
             double distance = 0;
             for (Leg leg : trip.getLegsOnly()) {
                 distance += leg.getRoute().getDistance() / 1000;
@@ -1567,6 +1570,7 @@ public class ModalSplitStats {
         modesSet.removeAll(PTSubModes.submodes);
         modesSet.removeAll(interModalModes);
         modesSet.add(SBBModes.WALK_FOR_ANALYSIS);
+        modesSet.add(SBBModes.PT);
 
         int i = 0;
         for (String mode : modesSet) {
