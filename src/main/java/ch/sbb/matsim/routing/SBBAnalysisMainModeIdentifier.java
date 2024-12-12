@@ -30,6 +30,8 @@ public class SBBAnalysisMainModeIdentifier implements AnalysisMainModeIdentifier
             else if (legs.stream().anyMatch(leg -> SBBModes.CAR.equals(leg.getMode()))) return SBBModes.CAR;
             else if (legs.stream().anyMatch(leg -> SBBModes.RIDE.equals(leg.getMode()))) return SBBModes.RIDE;
             else if (legs.stream().anyMatch(leg -> SBBModes.AVTAXI.equals(leg.getMode()))) return SBBModes.AVTAXI;
+            else if (legs.stream().anyMatch(leg -> SBBModes.WALK_MAIN_MAINMODE.equals(leg.getMode())))
+                return SBBModes.WALK_MAIN_MAINMODE;
             else if (legs.stream().anyMatch(leg -> SBBModes.PT_FEEDER_MODES.contains(leg.getMode())))
                 return SBBModes.PT;
             else if (legs.size() == 1) return legs.get(0).getMode();
