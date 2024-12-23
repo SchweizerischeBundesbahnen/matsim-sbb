@@ -5,7 +5,6 @@
 package ch.sbb.matsim.scoring;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.Event;
@@ -19,6 +18,8 @@ import org.matsim.core.scoring.functions.ModeUtilityParameters;
 import org.matsim.core.scoring.functions.ScoringParameters;
 import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.pt.PtConstants;
+
+import java.util.Set;
 
 /**
  * THIS IS A COPY of the default CharyparNagelLegScoring with the following modifications: - replace hard-coded <code>SBBModes.PT</code> with the set of pt modes configured in the transit config
@@ -40,6 +41,7 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 	private boolean nextStartPtLegIsFirstOfTrip = true;
 	private boolean currentLegIsPtLeg = false;
 	private OptionalTime lastActivityEndTime = OptionalTime.undefined();
+	private String currentPtMode = SBBModes.PT;
 
 	public SBBCharyparNagelLegScoring(final ScoringParameters params, Network network, Set<String> ptModes) {
 		this.params = params;
@@ -107,13 +109,14 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 		if (event instanceof PersonEntersVehicleEvent && currentLegIsPtLeg) {
 			// add score of waiting, _minus_ score of travelling (since it is added in the legscoring above):
 			this.score +=
-					(event.getTime() - this.lastActivityEndTime.seconds()) * (this.params.marginalUtilityOfWaitingPt_s - this.params.modeParams.get(SBBModes.PT).marginalUtilityOfTraveling_s);
+					(event.getTime() - this.lastActivityEndTime.seconds()) * (this.params.marginalUtilityOfWaitingPt_s - this.params.modeParams.get(currentPtMode).marginalUtilityOfTraveling_s);
 		}
 
 		if (event instanceof PersonDepartureEvent) {
 			String mode = ((PersonDepartureEvent) event).getLegMode();
 			this.currentLegIsPtLeg = this.ptModes.contains(mode);
 			if (currentLegIsPtLeg) {
+				this.currentPtMode = mode;
 				if (!this.nextStartPtLegIsFirstOfTrip) {
 					this.score -= params.modeParams.get(mode).constant;
 					// (yyyy deducting this again, since is it wrongly added above.  should be consolidated; this is so the code
