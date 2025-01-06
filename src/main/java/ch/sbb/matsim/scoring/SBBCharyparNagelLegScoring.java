@@ -91,8 +91,6 @@ public class SBBCharyparNagelLegScoring implements org.matsim.core.scoring.SumSc
 			tmpScore += modeParams.monetaryDistanceCostRate * this.params.marginalUtilityOfMoney * dist;
 		}
 		tmpScore += modeParams.constant;
-		// (yyyy once we have multiple legs without "real" activities in between, this will produce wrong results.  kai, dec'12)
-		// (yy NOTE: the constant is added for _every_ pt leg.  This is not how such models are estimated.  kai, nov'12)
 		return tmpScore;
 	}
 
