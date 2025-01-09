@@ -39,7 +39,8 @@ public class SBBScoringFunctionFactory implements ScoringFunctionFactory {
 		final ScoringParameters params = sbbParams.getMatsimScoringParameters();
 		SumScoringFunction sumScoringFunction = new SumScoringFunction();
 		sumScoringFunction.addScoringFunction(new CharyparNagelActivityScoring(params));
-		sumScoringFunction.addScoringFunction(new SBBCharyparNagelLegScoring(params, this.scenario.getNetwork(), ptModes));
+		//sumScoringFunction.addScoringFunction(new SBBCharyparNagelLegScoring(params, this.scenario.getNetwork(), ptModes));
+		sumScoringFunction.addScoringFunction(new SBBTripScoring(sbbParams, ptModes));
 		sumScoringFunction.addScoringFunction(new CharyparNagelAgentStuckScoring(params));
 		sumScoringFunction.addScoringFunction(new SBBParkingCostAndMoneyScoring(params, sbbParams.getMarginalUtilityOfParkingPrice()));
 		sumScoringFunction.addScoringFunction(new SBBTransferScoring(sbbParams, ptModes, this.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(this.scenario.getConfig())));

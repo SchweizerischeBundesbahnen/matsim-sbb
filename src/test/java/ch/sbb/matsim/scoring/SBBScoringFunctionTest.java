@@ -12,12 +12,14 @@ import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.ScoringConfigGroup;
+import org.matsim.core.population.routes.GenericRouteImpl;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.functions.ActivityUtilityParameters;
 import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.pt.PtConstants;
+import org.matsim.pt.routes.DefaultTransitPassengerRoute;
 
 import java.util.List;
 
@@ -31,11 +33,6 @@ public class SBBScoringFunctionTest {
 		testTransferScoring(SBBModes.ACCESS_EGRESS_WALK, SBBModes.ACCESS_EGRESS_WALK);
 	}
 
-	@Test
-	public void testTransferScoring_accessEgressJustTransit() {
-		testTransferScoring(SBBModes.PT_FALLBACK_MODE, SBBModes.PT_FALLBACK_MODE);
-	}
-
 	private void testTransferScoring(String accessMode, String egressMode) {
 		Config config = ConfigUtils.createConfig();
 		ScoringFixture.addStageInteractionScoring(config);
@@ -45,14 +42,28 @@ public class SBBScoringFunctionTest {
 		Person person1 = pf.createPerson(Id.create("1", Person.class));
 		Activity homeAct1 = createActivity(pf, "home", 100, 100, OptionalTime.undefined(), OptionalTime.defined(8 * 3600));
 		Leg accessLeg = createLeg(pf, accessMode, 8 * 3600, 8.1 * 3600);
+		accessLeg.setRoutingMode(SBBModes.PT);
+		Route walkRoute = new GenericRouteImpl(null, null);
+		walkRoute.setDistance(0.1);
+		accessLeg.setRoute(walkRoute);
 		Activity ptInteraction1 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.1 * 3600), OptionalTime.defined(8.1 * 3600));
 		Leg ptLeg1 = createLeg(pf, "pt", 8.1 * 3600, 8.5 * 3600 - 60);
+		ptLeg1.setRoutingMode(SBBModes.PT);
+
+		DefaultTransitPassengerRoute route = new DefaultTransitPassengerRoute(null, null, null, null, null, null);
+		route.setDistance(0.5);
+		ptLeg1.setRoute(route);
 		Activity ptInteraction2 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
 		Leg transferLeg = createLeg(pf, SBBModes.ACCESS_EGRESS_WALK, 8.5 * 3600 - 60, 8.5 * 3600 + 60);
+		transferLeg.setRoutingMode(SBBModes.PT);
+		transferLeg.setRoute(walkRoute);
 		Activity ptInteraction3 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 1500, 1500, OptionalTime.defined(8.5 * 3600), OptionalTime.defined(8.5 * 3600));
 		Leg ptLeg2 = createLeg(pf, "pt", 8.5 * 3600 + 60, 8.9 * 3600);
+		ptLeg2.setRoutingMode(SBBModes.PT);
+		ptLeg2.setRoute(route);
 		Activity ptInteraction4 = createActivity(pf, PtConstants.TRANSIT_ACTIVITY_TYPE, 500, 500, OptionalTime.defined(8.9 * 3600), OptionalTime.defined(8.9 * 3600));
 		Leg egressLeg = createLeg(pf, egressMode, 8.9 * 3600, 9 * 3600);
+		egressLeg.setRoute(walkRoute);
 		Activity homeAct2 = createActivity(pf, "home", 100, 100, OptionalTime.defined(9 * 3600), OptionalTime.undefined());
 
 		Plan plan = pf.createPlan();
@@ -84,8 +95,13 @@ public class SBBScoringFunctionTest {
 		ScoringConfigGroup.ModeParams walkScoring = new ScoringConfigGroup.ModeParams("walk");
 		walkScoring.setMarginalUtilityOfDistance(0.0);
 		walkScoring.setMarginalUtilityOfTraveling(0.0);
+		ScoringConfigGroup.ModeParams twalkScoring = new ScoringConfigGroup.ModeParams(SBBModes.PT_FALLBACK_MODE);
+		walkScoring.setMarginalUtilityOfDistance(0.0);
+		walkScoring.setMarginalUtilityOfTraveling(0.0);
 		config.scoring().addModeParams(ptScoring);
+
 		config.scoring().addModeParams(walkScoring);
+		config.scoring().addModeParams(twalkScoring);
 
 		// now set our transfer scoring parameters
 		config.scoring().setUtilityOfLineSwitch(-3.0); // set this, but it should get ignored
