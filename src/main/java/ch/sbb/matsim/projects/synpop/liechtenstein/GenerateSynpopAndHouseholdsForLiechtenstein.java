@@ -62,7 +62,8 @@ public class GenerateSynpopAndHouseholdsForLiechtenstein {
     final Map<Id<Zone>, WeightedRandomSelection<Id<ActivityFacility>>> facilitySelector = new HashMap<>();
     private final Map<Id<Zone>, Map<String, Integer>> householdSizesPerZone = new HashMap<>();
     private final Map<Id<Zone>, WeightedRandomSelection<Integer>> ageDistributionPerZone = new HashMap<>();
-    private int personNo = 15_000_000;
+    private int personNo = 20_900_000;
+    private int householdNo = 20_900_000;
     private Map<Long, Set<Long>> buildingDataNodeStorage;
     private Map<Long, Coord> nodeStorage;
     private Map<Long, GenerateBusinessesPerZone.OSDMBuildingData> buildingData;
@@ -122,7 +123,6 @@ public class GenerateSynpopAndHouseholdsForLiechtenstein {
     }
 
     private void generateHouseholdsAndPopulation() {
-        int householdNo = 15_000_000;
         for (var entry : this.householdSizesPerZone.entrySet()) {
             var zoneId = entry.getKey();
             WeightedRandomSelection<Integer> ageDistribution = this.ageDistributionPerZone.get(zoneId);
