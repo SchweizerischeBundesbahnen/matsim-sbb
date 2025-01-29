@@ -4,7 +4,7 @@
         <!ENTITY facilities "facilities.xml.gz">
         <!ENTITY transit_schedule "pt">
         <!ENTITY road_network "streets">
-        <!ENTITY scoring_parameters "scoringParametersIT_PTSubModes.xlsx">
+        <!ENTITY scoring_parameters "scoringParametersIT.xlsx">
         <!ENTITY run_name "mobi50IT">
         <!ENTITY iterations "1">
         <!ENTITY zones "zones/mobi-zones.shp">
@@ -137,7 +137,7 @@
         <!-- Default=0. First Iteration of a simulation. -->
         <param name="firstIteration" value="0"/>
         <!-- Default=1000. Last Iteration of a simulation. -->
-        <param name="lastIteration" value="1"/>
+        <param name="lastIteration" value="&iterations;"/>
         <!-- Defines which mobility simulation will be used. Currently supported: qsim JDEQSim hermes
         Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
         For 'qsim', add a module 'qsim' to the config. -->
