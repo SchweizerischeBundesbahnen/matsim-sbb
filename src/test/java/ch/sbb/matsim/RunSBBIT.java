@@ -12,7 +12,7 @@ public class RunSBBIT {
 	@Test
 	public void runSBBIt() {
 		System.setProperty("matsim.preferLocalDtds", "true");
-		Config config = RunSBB.buildConfig("test/input/scenarios/mobi50test/config_2023_AV.xml");
+		Config config = RunSBB.buildConfig("test/input/scenarios/mobi50test/config_2023.xml");
 		config.scoring().setWriteExperiencedPlans(true);
 		config.scoring().setExplainScores(true);
 		RunSBB.run(config);
