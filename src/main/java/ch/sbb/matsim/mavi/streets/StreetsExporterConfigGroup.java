@@ -32,8 +32,6 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
     public final static String DESC_visumFile = "visumFile";
     public final static String DESC_visumVersion = "visumVersion";
     public final static String DESC_outputDir = "outputDir";
-    public final static String DESC_mergeRuralLinks = "mergeRuralLinks";
-    public final static String DESC_reduceForeignLinks = "reduceForeignLinks";
     public final static String DESC_exportCounts = "exportCounts";
     double mainRoadSpeedFactor = 1.0;
     double smallRoadSpeedFactor = 1.0;
@@ -41,8 +39,6 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
     String visumFile = null;
     String visumVersion = "21";
     String outputDir = null;
-    boolean mergeRuralLinks = true;
-    boolean reduceForeignLinks = true;
     boolean exportCounts = true;
 
     public StreetsExporterConfigGroup() {
@@ -122,26 +118,6 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
     @StringSetter(DESC_outputDir)
     public void setOutputDir(String outputDir) {
         this.outputDir = outputDir;
-    }
-
-    @StringGetter(DESC_mergeRuralLinks)
-    public boolean isMergeRuralLinks() {
-        return mergeRuralLinks;
-    }
-
-    @StringSetter(DESC_mergeRuralLinks)
-    public void setMergeRuralLinks(boolean mergeRuralLinks) {
-        this.mergeRuralLinks = mergeRuralLinks;
-    }
-
-    @StringGetter(DESC_reduceForeignLinks)
-    public boolean isReduceForeignLinks() {
-        return reduceForeignLinks;
-    }
-
-    @StringSetter(DESC_reduceForeignLinks)
-    public void setReduceForeignLinks(boolean reduceForeignLinks) {
-        this.reduceForeignLinks = reduceForeignLinks;
     }
 
     @StringGetter(DESC_exportCounts)

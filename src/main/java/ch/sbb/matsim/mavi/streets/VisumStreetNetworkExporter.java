@@ -1,7 +1,6 @@
 package ch.sbb.matsim.mavi.streets;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.counts.VisumToCounts;
@@ -24,10 +23,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class VisumStreetNetworkExporter {
 
@@ -35,6 +31,7 @@ public class VisumStreetNetworkExporter {
 	public static final Set<String> modeSetWithoutBike = Set.of(SBBModes.CAR, SBBModes.RIDE);
 	public static final Set<String> modeSetBikeOnly = Set.of(SBBModes.BIKE);
 	private final static Logger log = LogManager.getLogger(VisumStreetNetworkExporter.class);
+	public static final String MOBI_REMOVAL_CANDIDATE = "mobiRemovalCandidate";
 	private final Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
 	private Scenario scenario;
 	private NetworkFactory nf;
@@ -53,7 +50,8 @@ public class VisumStreetNetworkExporter {
 		}
 		String[][] nodes = importNodes(net, "No", "XCoord", "YCoord", "ZCoord");
 		String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
-				"NumLanes", "TSysSet", Variables.ACCESS_CONTROLLED, "WKTPoly", "No");
+				"NumLanes", "TSysSet", "WKTPoly", "No", "MOBI_REMOVAL_CANDIDATE");
+		//extracts the VISUM network as it is and transfers VISUM attributes to its MATSim counterparts
 		createNetwork(nodes, links);
 		// Export Polylines
 		if (exportPolylines) {
@@ -121,40 +119,32 @@ public class VisumStreetNetworkExporter {
 
 		boolean carAllowed;
 		boolean bikeAllowed;
+		boolean mobiRemovalCandidate;
 		for (String[] anAttarraylink : attarraylink) {
 			carAllowed = (anAttarraylink[7].contains("P"));
 			bikeAllowed = (anAttarraylink[7].contains("V"));
-			if (carAllowed | bikeAllowed) {
-				final String fromNode = anAttarraylink[0];
-				final String toNode = anAttarraylink[1];
-				final String visumLinkNo = anAttarraylink[10];
-				Id<Link> id = MaviHelper.createLinkId(fromNode, visumLinkNo);
-				Link link = createLink(id, fromNode, toNode, Double.parseDouble(anAttarraylink[2]),
+			mobiRemovalCandidate = (("1").equals(anAttarraylink[10]));
+			final String fromNode = anAttarraylink[0];
+			final String toNode = anAttarraylink[1];
+			final String visumLinkNo = anAttarraylink[9];
+			Id<Link> id = MaviHelper.createLinkId(fromNode, visumLinkNo);
+			Link link = createLink(id, fromNode, toNode, Double.parseDouble(anAttarraylink[2]),
 						Double.parseDouble(anAttarraylink[3]), (Double.parseDouble(anAttarraylink[4])),
 						Integer.parseInt(anAttarraylink[6]));
-				if (link != null) {
-					NetworkUtils.setType(link, anAttarraylink[5]);
-					int ac;
-					try {
-						ac = Integer.parseInt(anAttarraylink[8]);
-					} catch (NumberFormatException e) {
-						log.warn("Access Control not defined for link " + link.getId() + ". Assuming = 1");
-						ac = 1;
-					}
-					link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, ac);
-					if (ac == 1) {
-						if (carAllowed) {
-							link.setAllowedModes(modeSetWithoutBike);
-						}
-					} else if (!carAllowed) {
-						link.setAllowedModes(modeSetBikeOnly);
-					} else {
-						link.setAllowedModes(fullModeset);
-					}
-					network.addLink(link);
+			if (link != null) {
+				NetworkUtils.setType(link, anAttarraylink[5]);
+				Set<String> modes = new HashSet<>();
+				if (carAllowed) {
+					modes.add(SBBModes.CAR);
 				}
-				this.wktLineStringPerVisumLink.put(id, anAttarraylink[9]);
-			}
+				if (bikeAllowed) {
+					modes.add(SBBModes.BIKE);
+				}
+				link.setAllowedModes(modes);
+				link.getAttributes().putAttribute(MOBI_REMOVAL_CANDIDATE, mobiRemovalCandidate);
+				network.addLink(link);
+				}
+			this.wktLineStringPerVisumLink.put(id, anAttarraylink[8]);
 		}
 	}
 
@@ -167,13 +157,13 @@ public class VisumStreetNetworkExporter {
 		}
 
 		Link link = nf.createLink(id, fnode, tnode);
-		if (length < 0.01) {
-			length = 0.01;
+		length *= 1000.;
+		if (length < 0.1) {
+			length = 0.1;
 		}
 		if (numlanes < 1) {
 			numlanes = 1;
 		}
-		length *= 1000.;
 		double beelineDistance = CoordUtils.calcEuclideanDistance(fnode.getCoord(), tnode.getCoord());
 		if (length < beelineDistance) {
 			length = Math.max(beelineDistance, 1.0);
@@ -182,7 +172,6 @@ public class VisumStreetNetworkExporter {
 		link.setCapacity(cap);
 		link.setFreespeed(v / 3.6);
 		link.setNumberOfLanes(numlanes);
-		link.setAllowedModes(fullModeset);
 
 		return link;
 	}

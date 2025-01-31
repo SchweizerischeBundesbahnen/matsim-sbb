@@ -25,7 +25,6 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
-import ch.sbb.matsim.mavi.streets.MergeRuralLinks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -38,7 +37,9 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.utils.collections.Tuple;
 
 import java.io.*;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
@@ -119,35 +120,10 @@ public class CarLinkAnalysis {
 					final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
 					final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
 					String id = link.getId().toString();
-					String vLinks = (String) link.getAttributes().getAttribute(MergeRuralLinks.vlinks);
 					double bikeCount = volume.getBikeCount() / samplesize;
 					double ebikeCount = volume.getEbikeCount() / samplesize;
 					double totalBikeCount = bikeCount + ebikeCount;
-					if (vLinks != null) {
-						String[] vlinksList = vLinks.split(",");
-						List<VirtualVisumLink> virtualVisumLinkList = new ArrayList<>();
-						int previousFromNode = -1;
-						int previousLinkNo = -1;
-						for (String vlink : vlinksList) {
-							Tuple<Integer, Integer> virtualVisumLink = MaviHelper.extractVisumNodeAndLinkId(vlink);
-							int currentFromNode = virtualVisumLink.getFirst();
-							int currentLinkNo = virtualVisumLink.getSecond();
-							if (previousFromNode > -1) {
-								virtualVisumLinkList.add(new VirtualVisumLink(previousFromNode, currentFromNode, previousLinkNo));
-							}
-							previousLinkNo = currentLinkNo;
-							previousFromNode = currentFromNode;
-						}
-						virtualVisumLinkList.add(new VirtualVisumLink(previousFromNode, Integer.parseInt(toNode), previousLinkNo));
-						for (var vLink : virtualVisumLinkList) {
-							writer.set(LINK_NO, String.valueOf(vLink.visumLinkNo()));
-							writer.set(FROMNODENO, String.valueOf(vLink.fromNode()));
-							writer.set(TONODENO, String.valueOf(vLink.toNode()));
-							setVolumes(writer, id, carVolume, volume, (int) bikeCount, (int) ebikeCount, (int) totalBikeCount, freightVolume);
-							writer.writeRow();
-						}
-
-					} else if (visumLinkNodeIds != null) {
+					if (visumLinkNodeIds != null) {
 						String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
 						writer.set(LINK_NO, visumNo);
 						writer.set(TONODENO, toNode);

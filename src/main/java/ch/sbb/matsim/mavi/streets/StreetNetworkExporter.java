@@ -51,8 +51,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.fullModeset;
-import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.modeSetWithoutBike;
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.*;
 
 public class StreetNetworkExporter {
 
@@ -75,31 +74,17 @@ public class StreetNetworkExporter {
         vse.run(visum, outputDir, Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
                 streetsExporterConfigGroup.isExportCounts(), true);
         Network network = vse.getNetwork();
+        removeIrrelevantLinks(network, zones);
         setAccessControlled(network);
+        setModes(network, zones);
+
         if (streetsExporterConfigGroup.getSmallRoadSpeedFactor() < 1.0 || streetsExporterConfigGroup.getMainRoadSpeedFactor() < 1.0) {
             ReduceNetworkSpeeds reduceNetworkSpeeds = new ReduceNetworkSpeeds(network, zones, streetsExporterConfigGroup.getSmallRoadSpeedFactor(),
                     streetsExporterConfigGroup.getMainRoadSpeedFactor());
             reduceNetworkSpeeds.reduceSpeeds();
         }
 
-        if (streetsExporterConfigGroup.isReduceForeignLinks()) {
-            LogManager.getLogger(StreetNetworkExporter.class).info("Removing foreign rural links.");
-            RemoveForeignRuralLinks r = new RemoveForeignRuralLinks(network, zones);
-            r.removeLinks();
-            NetworkCleaner cleaner = new NetworkCleaner();
-            cleaner.run(network);
-        }
-
         adjustRoundaboutLinks(network);
-
-        filterBikeNetwork(network);
-        if (streetsExporterConfigGroup.isMergeRuralLinks()) {
-            LogManager.getLogger(StreetNetworkExporter.class).info("Merging rural links.");
-            MergeRuralLinks l = new MergeRuralLinks(network, zones);
-            l.mergeRuralLinks();
-            NetworkCleaner cleaner = new NetworkCleaner();
-            cleaner.run(network);
-        }
         finalMultimodalCleanup(network);
         assureLinkLenghtsAndSpeedsAreSet(network);
 
@@ -109,6 +94,76 @@ public class StreetNetworkExporter {
 
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network without polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK);
+
+    }
+
+    private static void removeIrrelevantLinks(Network network, Zones zones) {
+        Set<Link> linksForRemoval = network.getLinks().values().stream()
+                .filter(link -> (boolean) link.getAttributes().getAttribute(MOBI_REMOVAL_CANDIDATE))
+                .filter(link -> {
+                    var zone = zones.findZone(link.getCoord());
+                    if (zone == null) return true;
+                    else {
+                        return !zone.getAttribute("sl3_id").toString().equals("1");
+                    }
+                })
+                .collect(Collectors.toSet());
+        linksForRemoval.forEach(link -> network.removeLink(link.getId()));
+        LogManager.getLogger(StreetNetworkExporter.class).info("Removed " + linksForRemoval.size() + " links that were flagged irrelevant and are in non-urban areas.");
+
+    }
+
+    private static void setModes(Network network, Zones zones) {
+        Set<Id<Link>> linksForRemoval = new HashSet<>();
+        for (Link link : network.getLinks().values()) {
+            int accessControlled = (int) link.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED);
+            if (accessControlled == 0) {
+                if (link.getAllowedModes().contains(SBBModes.CAR)) {
+                    link.setAllowedModes(fullModeset);
+                }
+            }
+            if (accessControlled == 1) {
+                if (link.getAllowedModes().contains(SBBModes.CAR)) {
+                    link.setAllowedModes(modeSetWithoutBike);
+                }
+            }
+
+        }
+        for (Link link : network.getLinks().values()) {
+            if (link.getAllowedModes().isEmpty()) {
+                Link backLink = NetworkUtils.findLinkInOppositeDirection(link);
+                if (backLink != null) {
+                    if (backLink.getAllowedModes().contains(SBBModes.BIKE) && backLink.getFreespeed() <= 30 / 3.6) {
+                        link.setAllowedModes(modeSetBikeOnly);
+                        link.setCapacity(600);
+                        link.setFreespeed(backLink.getFreespeed());
+
+                    } else if (backLink.getAllowedModes().isEmpty()) {
+                        var zone = zones.findZone(link.getCoord());
+                        if (zone != null) {
+                            if (zone.getAttribute("sl3_id").toString().equals("1")) {
+                                //these are urban roads that are closed in NPVM because they are open for local access only
+                                link.setFreespeed(15 / 3.6);
+                                link.setAllowedModes(fullModeset);
+                                link.setCapacity(300);
+                                link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 0);
+                                backLink.setFreespeed(15 / 3.6);
+                                backLink.setAllowedModes(fullModeset);
+                                backLink.setCapacity(300);
+                                backLink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 0);
+                            }
+
+                        }
+                    } else {
+                        linksForRemoval.add(link.getId());
+                    }
+                } else {
+                    linksForRemoval.add(link.getId());
+                }
+
+            }
+        }
+        linksForRemoval.forEach(linkId -> network.removeLink(linkId));
 
     }
 
@@ -123,10 +178,13 @@ public class StreetNetworkExporter {
         for (int i = 97; i < 100; i++) {
             accessControlledTypes.add(i);
         }
-        network.getLinks().values().stream().filter(link -> accessControlledTypes.contains(Integer.parseInt(NetworkUtils.getType(link)))).forEach(link -> {
-            link.setAllowedModes(modeSetWithoutBike);
-            link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
-        });
+        network.getLinks()
+                .values()
+                .forEach(link -> {
+                    int accessControlled = accessControlledTypes.contains(Integer.parseInt(NetworkUtils.getType(link))) ? 1 : 0;
+                    link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, accessControlled);
+                });
+
     }
 
     private static void assureLinkLenghtsAndSpeedsAreSet(Network network) {
