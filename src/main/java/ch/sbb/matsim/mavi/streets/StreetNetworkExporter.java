@@ -188,13 +188,30 @@ public class StreetNetworkExporter {
     }
 
     private static void assureLinkLenghtsAndSpeedsAreSet(Network network) {
-
+        int adjustedLinks = 0;
         for (Link link : network.getLinks().values()){
             double beelineDistance = CoordUtils.calcEuclideanDistance(link.getFromNode().getCoord(),link.getToNode().getCoord());
+            boolean adjusted = false;
             if (link.getLength()==0.0 || link.getLength()<beelineDistance){
                 link.setLength(Math.max(0.1,beelineDistance));
+                adjusted = true;
             }
+            if (link.getFreespeed() <= 0.1) {
+                link.setFreespeed(15 / 3.6);
+                adjusted = true;
+
+            }
+            if (link.getNumberOfLanes() < 1) {
+                link.setNumberOfLanes(1.0);
+                adjusted = true;
+            }
+            if (link.getCapacity() < 300) {
+                link.setCapacity(300);
+                adjusted = true;
+            }
+            if (adjusted) adjustedLinks++;
         }
+        LogManager.getLogger(StreetNetworkExporter.class).info("Adjusted lengths, capacities, lanes or freespeed for " + adjustedLinks + " links.");
     }
 
     public static void finalMultimodalCleanup(Network network) {
