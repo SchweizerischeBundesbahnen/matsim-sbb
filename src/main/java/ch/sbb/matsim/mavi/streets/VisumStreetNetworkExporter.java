@@ -36,7 +36,7 @@ public class VisumStreetNetworkExporter {
 	private Scenario scenario;
 	private NetworkFactory nf;
 
-	public void run(Visum visumObject, String outputPath, int visumVersion, boolean exportCounts, boolean exportPolylines) throws IOException {
+	public void run(Visum visumObject, String outputPath, boolean exportCounts, boolean exportPolylines) throws IOException {
 
 		this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		this.nf = scenario.getNetwork().getFactory();

@@ -22,7 +22,6 @@ package ch.sbb.matsim.mavi.streets;
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
-import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import ch.sbb.matsim.zones.Zones;
@@ -36,18 +35,14 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.NetworkConfigGroup;
-import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.filter.NetworkFilterManager;
-import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.geometry.CoordUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -71,8 +66,7 @@ public class StreetNetworkExporter {
         Visum visum = new Visum(Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()));
         visum.loadVersion(visumFile);
 
-        vse.run(visum, outputDir, Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
-                streetsExporterConfigGroup.isExportCounts(), true);
+        vse.run(visum, outputDir, streetsExporterConfigGroup.isExportCounts(), true);
         Network network = vse.getNetwork();
         removeIrrelevantLinks(network, zones);
         setAccessControlled(network);
@@ -163,7 +157,7 @@ public class StreetNetworkExporter {
 
             }
         }
-        linksForRemoval.forEach(linkId -> network.removeLink(linkId));
+        linksForRemoval.forEach(network::removeLink);
 
     }
 
@@ -257,81 +251,9 @@ public class StreetNetworkExporter {
     }
 
 
-    private static void filterBikeNetwork(Network network) {
-        NetworkFilterManager fm = new NetworkFilterManager(network, new NetworkConfigGroup());
-        fm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
-        Network bikenet = fm.applyFilters();
-        Set<Id<Link>> needsBikeBackLink = new HashSet<>();
-        Random r = MatsimRandom.getRandom();
-        for (Link link : bikenet.getLinks().values()) {
-            if (NetworkUtils.findLinkInOppositeDirection(link) == null) {
-                needsBikeBackLink.add(link.getId());
-            }
-        }
-
-        for (var linkId : needsBikeBackLink) {
-            Link link = bikenet.getLinks().get(linkId);
-            Link carNetLink = network.getLinks().get(linkId);
-            Tuple<Integer, Integer> visumLinkAndNodeId = MaviHelper.extractVisumNodeAndLinkId(linkId);
-            Integer visumLinkId = visumLinkAndNodeId != null ? visumLinkAndNodeId.getSecond() : null;
-            if (visumLinkId == null) {
-                visumLinkId = Integer.MAX_VALUE - r.nextInt(5000);
-            }
-            Id<Link> backLinkId = MaviHelper.createLinkId(link.getToNode().getId().toString().split("_")[1], Integer.toString(visumLinkId));
-            Link bikeBackLink = bikenet.getFactory().createLink(backLinkId, link.getToNode(), link.getFromNode());
-            bikeBackLink.setLength(link.getLength());
-            bikeBackLink.setAllowedModes(Set.of(SBBModes.BIKE));
-            bikeBackLink.setFreespeed(link.getFreespeed());
-            bikeBackLink.setNumberOfLanes(link.getNumberOfLanes());
-            bikeBackLink.setCapacity(link.getCapacity());
-            bikeBackLink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
-            bikenet.addLink(bikeBackLink);
-
-
-            Link carNetBacklink = NetworkUtils.findLinkInOppositeDirection(carNetLink);
-            if (carNetBacklink == null) {
-                carNetBacklink = network.getFactory().createLink(backLinkId, carNetLink.getToNode(), carNetLink.getFromNode());
-                carNetBacklink.setLength(link.getLength());
-                carNetBacklink.setAllowedModes(Set.of(SBBModes.BIKE));
-                carNetBacklink.setFreespeed(link.getFreespeed());
-                carNetBacklink.setNumberOfLanes(link.getNumberOfLanes());
-                carNetBacklink.setCapacity(link.getCapacity());
-                carNetBacklink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
-                network.addLink(carNetBacklink);
-            } else {
-                network.getLinks().get(backLinkId).setAllowedModes(fullModeset);
-            }
-
-        }
-
-        org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
-        cleaner.run(bikenet);
-
-
-        List<Link> deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().isEmpty() || link.getFromNode().getInLinks().isEmpty()).collect(Collectors.toList());
-
-        while (!deadEnds.isEmpty()) {
-            for (var link : deadEnds) {
-                bikenet.removeLink(link.getId());
-            }
-            deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().isEmpty() || link.getFromNode().getInLinks().isEmpty()).collect(Collectors.toList());
-
-        }
-        for (Link l : network.getLinks().values()) {
-            if (!bikenet.getLinks().containsKey(l.getId())) {
-                l.setAllowedModes(modeSetWithoutBike);
-                l.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
-
-            }
-        }
-
-
-    }
-
     public static void adjustRoundaboutLinks(Network network) {
         LogManager.getLogger(StreetNetworkExporter.class).info("Adjusting capacities of roundabouts.");
         int i = 0;
-        Set<Id<Link>> adjustedLinks = new HashSet<>();
         for (Link l : network.getLinks().values()) {
             if (l.getLength() > 27) {
                 continue;
@@ -352,7 +274,6 @@ public class StreetNetworkExporter {
                 }
                 if (!hasbacklink) {
                     l.setCapacity(1500);
-                    adjustedLinks.add(l.getId());
                     i++;
                 }
             }
