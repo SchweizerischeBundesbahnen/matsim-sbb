@@ -65,14 +65,14 @@ public class GenerateAirportDemand {
         String network = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\pt\\AK35k_2404\\output\\transitNetwork.xml.gz";
         String transitScheduleFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\pt\\AK35k_2404\\output\\transitSchedule.xml.gz";
 
-        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\05_kalif2023_mtools2040\\output\\05_kalif2023_mtools2040.mobi-zones.shp";
-        String facilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\05_kalif2023_mtools2040\\output\\05_kalif2023_mtools2040.facilities.xml.gz";
+        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\zones\\zones_2040.shp";
+        String facilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2040\\plans\\13_100percent\\output\\13_100percent.facilities.xml.gz";
 
-        String outputDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2050\\plans_exogenous\\airport-demand_2050.xml.gz";
+        String outputDemand = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2030\\plans_exogenous\\airport-demand_2030.xml.gz";
 
-        String departureTimeDistribution = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\Tagesgang_GVA_dep.csv";
-        String arrivalTimeDistribution = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\Tagesgang_GVA_arr.csv";
-        double globalFactor = 1.49;
+        String departureTimeDistribution = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\Tagesgang_GVA_dep.csv";
+        String arrivalTimeDistribution = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\Tagesgang_GVA_arr.csv";
+        double globalFactor = 1.23;
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimNetworkReader(scenario.getNetwork()).readFile(network);
@@ -84,10 +84,10 @@ public class GenerateAirportDemand {
 
         GenerateAirportDemand generateAirportDemand = new GenerateAirportDemand(scenario, zones, departureTimeSelector, arrivalTimeSelector, random, globalFactor);
 
-        generateAirportDemand.generateForAirport("bsl", new Coord(2607176.8206491300, 1272138.9751427100), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\bsl.csv");
-        generateAirportDemand.generateForAirport("zrh", new Coord(2684750, 1256341), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\zrh.csv");
-        generateAirportDemand.generateForAirport("mxp", new Coord(2699355, 1053646), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\mxp.csv");
-        generateAirportDemand.generateForAirport("gva", new Coord(2497430, 1120813), "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\gva.csv");
+        generateAirportDemand.generateForAirport("bsl", new Coord(2607176.8206491300, 1272138.9751427100), "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\bsl.csv");
+        generateAirportDemand.generateForAirport("zrh", new Coord(2684750, 1256341), "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\zrh.csv");
+        generateAirportDemand.generateForAirport("mxp", new Coord(2699355, 1053646), "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\mxp.csv");
+        generateAirportDemand.generateForAirport("gva", new Coord(2497430, 1120813), "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\Flughafenverkehr\\input\\gva.csv");
         new PopulationWriter(scenario.getPopulation()).write(outputDemand);
         SingleTripAgentToCSVConverter.writeSingleTripsAsCSV(outputDemand.replace("xml.gz", ".csv"), scenario.getPopulation());
     }

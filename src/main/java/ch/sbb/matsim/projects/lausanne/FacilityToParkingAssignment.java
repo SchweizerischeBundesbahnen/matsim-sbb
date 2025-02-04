@@ -23,7 +23,7 @@ public class FacilityToParkingAssignment {
     public static void main(String[] args) {
         Random random = MatsimRandom.getRandom();
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new MatsimFacilitiesReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240226_Lausanne\\Etappe_2\\sim\\ref\\prepared\\plans_facilities.xml.gz");
+        new MatsimFacilitiesReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240226_Lausanne\\Etappe_2\\sim\\projets_connexes_looped\\prepared\\plans_facilities.xml.gz");
         double threshold = 300d;
         List<ParkingGarage> parkingGarageList = new ArrayList<>();
 
@@ -50,7 +50,7 @@ public class FacilityToParkingAssignment {
                 }
         );
         System.out.println("Set the facility link id for " + mutableInt);
-        new FacilitiesWriter(scenario.getActivityFacilities()).write("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240226_Lausanne\\Etappe_2\\sim\\ref\\plans_facilities_mappedToParking_pplus_v2.xml.gz");
+        new FacilitiesWriter(scenario.getActivityFacilities()).write("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240226_Lausanne\\Etappe_2\\sim\\projets_connexes_looped\\prepared\\plans_facilities_mappedToParking.xml.gz");
 
     }
 

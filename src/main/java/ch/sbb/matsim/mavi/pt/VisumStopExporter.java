@@ -105,7 +105,10 @@ public class VisumStopExporter {
 		loopLink.setFreespeed(10000);
 		loopLink.setCapacity(10000);
 		loopLink.setNumberOfLanes(10000);
-        loopLink.setAllowedModes(Set.of(config.getNetworkMode(), SBBModes.PT));
+        Set<String> allowedModes = new HashSet<>();
+        allowedModes.add(config.getNetworkMode());
+        allowedModes.add(SBBModes.PT);
+        loopLink.setAllowedModes(allowedModes);
 		this.network.addLink(loopLink);
 
 		int stopAreaNo = (int) Double.parseDouble(stopPointAttributes[i][8]);

@@ -248,13 +248,11 @@ public class TripsAndDistanceStats {
                 for (Leg leg : trip.getLegsOnly()) {
                     Link routeStartLink = network.getLinks().get(leg.getRoute().getStartLinkId());
                     Link routeEndLink = network.getLinks().get(leg.getRoute().getEndLinkId());
-                    if (leg.getRoute() instanceof NetworkRoute) {
-                        NetworkRoute nr = (NetworkRoute) leg.getRoute();
+                    if (leg.getRoute() instanceof NetworkRoute nr) {
                         Tuple<Double, Double> distances = calcNetworkRouteDistances(nr, routeStartLink, routeEndLink);
                         stats.domesticDistance.computeIfAbsent(mainmode, (a) -> new MutableDouble()).add(distances.getFirst());
                         stats.overallDistance.computeIfAbsent(mainmode, (a) -> new MutableDouble()).add(distances.getSecond());
-                    } else if (leg.getRoute() instanceof TransitPassengerRoute) {
-                        TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                    } else if (leg.getRoute() instanceof TransitPassengerRoute route) {
                         TransitRoute transitRoute = transitSchedule.getTransitLines().get(route.getLineId()).getRoutes().get(route.getRouteId());
                         Tuple<Double, Double> distances = calcTransitDistances(transitRoute, transitSchedule.getFacilities().get(route.getAccessStopId()),
                                 transitSchedule.getFacilities().get(route.getEgressStopId()), network);
@@ -341,7 +339,7 @@ public class TripsAndDistanceStats {
     }
 
     private String findMainMode(List<Leg> legsOnly) {
-        if (legsOnly.stream().anyMatch(leg -> leg.getMode().equals(SBBModes.PT))) {
+        if (legsOnly.stream().anyMatch(leg -> SBBModes.PT_PASSENGER_MODES.contains(leg.getMode()))) {
             return SBBModes.PT;
         }
         if (legsOnly.stream().anyMatch(leg -> leg.getMode().equals(SBBModes.CAR))) {

@@ -120,7 +120,7 @@ public class ScenarioConsistencyChecker {
 				.flatMap(person -> TripStructureUtils.getLegs(person.getSelectedPlan()).stream())
 				.map(Leg::getMode)
 				.collect(Collectors.toSet());
-		Set<String> permissiblemodes = new HashSet<>(SBBModes.mode2HierarchalNumber.keySet());
+		Set<String> permissiblemodes = new HashSet<>(scenario.getConfig().scoring().getAllModes());
 		permissiblemodes.add(Variables.OUTSIDE);
 		if (!permissiblemodes.containsAll(modes)) {
 			LOGGER.error("Detected unknown modes: \n" + modes + "\n Permissible Types: " + permissiblemodes);

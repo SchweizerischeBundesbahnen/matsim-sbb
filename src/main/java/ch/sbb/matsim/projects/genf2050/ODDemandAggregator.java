@@ -27,6 +27,8 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesImpl;
 import ch.sbb.matsim.zones.ZonesLoader;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.HasPlansAndId;
@@ -38,9 +40,6 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.Trip;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import java.io.IOException;
 import java.util.*;
@@ -129,7 +128,8 @@ public class ODDemandAggregator {
         SBBAnalysisMainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
         this.matrixPerMode = new HashMap<>();
         this.pkmMatrixPerMode = new HashMap<>();
-        List<String> modes = List.of(SBBModes.PT, SBBModes.CAR, SBBModes.AVTAXI, SBBModes.BIKE, SBBModes.RIDE, SBBModes.WALK_FOR_ANALYSIS, "sum", "miv_total");
+        List<String> modes = List.of(SBBModes.CAR, SBBModes.AVTAXI, SBBModes.BIKE, SBBModes.RIDE, SBBModes.WALK_FOR_ANALYSIS, "sum", "miv_total");
+        modes.addAll(SBBModes.PT_PASSENGER_MODES);
         List<String> carmodes = List.of(SBBModes.CAR, SBBModes.AVTAXI, SBBModes.RIDE);
         for (String mode : modes) {
             float[][] matrix = new float[aggregateZones.size()][aggregateZones.size()];
