@@ -43,13 +43,17 @@ public class SBBAnalysisMainModeIdentifierTest {
 
     }
 
+    @Test
     public void testUnidentifiableMainMode() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
+        Assertions.assertThrows(RuntimeException.class, () -> {
             PopulationFactory pf = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation().getFactory();
             Leg l1 = pf.createLeg(TransportMode.airplane);
-            List<PlanElement> feederTrip = List.of(l1);
+            Leg l2 = pf.createLeg(TransportMode.truck);
+            Activity a = pf.createActivityFromCoord("test", new Coord(0, 0));
+
+            List<PlanElement> feederTrip = List.of(l1, a, l2);
             MainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
-            mainModeIdentifier.identifyMainMode(feederTrip);
+            System.out.println(mainModeIdentifier.identifyMainMode(feederTrip));
         });
 
     }

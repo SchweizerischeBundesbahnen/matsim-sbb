@@ -66,7 +66,7 @@ public class PtLinkVolumeAnalyzer {
         this.network = network;
         this.ptlinks = network.getLinks().values()
                 .stream()
-                .filter(l -> l.getAllowedModes().stream().anyMatch(m -> PTSubModes.submodes.contains(m) || m.equals(SBBModes.PT)))
+                .filter(l -> l.getAllowedModes().stream().anyMatch(m -> SBBModes.PT_PASSENGER_MODES.contains(m)))
                 .map(Identifiable::getId)
                 .collect(Collectors.toSet());
 
@@ -76,7 +76,7 @@ public class PtLinkVolumeAnalyzer {
         Map<Id<Link>, Long> ptUsage = experiencedPlansService.getExperiencedPlans().values()
                 .stream()
                 .flatMap(p -> TripStructureUtils.getLegs(p).stream())
-                .filter(l -> l.getMode().equals(SBBModes.PT))
+                .filter(l -> SBBModes.PT_PASSENGER_MODES.contains(l.getMode()))
                 .map(l -> (TransitPassengerRoute) l.getRoute())
                 .flatMap(r -> railTripsAnalyzer.getPtLinkIdsTraveledOn(r).stream())
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));

@@ -398,7 +398,7 @@ public class DepartureRouter {
                         RaptorRoute raptorRoute = entry.getKey().getRaptorRoute();
                         List<MyTransitPassengerRoute> legs = new ArrayList<>();
                         for (RoutePart routePart : raptorRoute.getParts()) {
-                            if (routePart.mode.equals(SBBModes.PT)) {
+                            if (SBBModes.isPTMode(routePart.mode)) {
                                 legs.add(new MyTransitPassengerRoute(routePart.line.getId(), routePart.route.getId(), routePart.fromStop.getId(), routePart.toStop.getId(), routePart.boardingTime));
                             }
                         }
@@ -429,7 +429,7 @@ public class DepartureRouter {
                 }
             }
         }
-        System.out.println("" + zone + ";" + trees.size() + ";" + count + ";" + remove + ";" + ((System.nanoTime() - startTime) / 1_000_000_000));
+        System.out.println(zone + ";" + trees.size() + ";" + count + ";" + remove + ";" + ((System.nanoTime() - startTime) / 1_000_000_000));
     }
 
     /**

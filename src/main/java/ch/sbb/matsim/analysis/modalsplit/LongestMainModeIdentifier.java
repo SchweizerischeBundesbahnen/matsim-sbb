@@ -12,7 +12,7 @@ public class LongestMainModeIdentifier implements MainModeIdentifier {
 
     @Override
     public String identifyMainMode(List<? extends PlanElement> tripElements) {
-        if (SBBModes.PT.equals(new SBBAnalysisMainModeIdentifier().identifyMainMode(tripElements))) {
+        if (SBBModes.PT_PASSENGER_MODES.contains(new SBBAnalysisMainModeIdentifier().identifyMainMode(tripElements))) {
             return SBBModes.PT;
         }
         Leg leg = tripElements.stream()

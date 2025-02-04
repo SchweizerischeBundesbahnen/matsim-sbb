@@ -1,8 +1,5 @@
 package ch.sbb.matsim.scoring;
 
-import java.util.List;
-import java.util.Set;
-
 import ch.sbb.matsim.routing.pt.raptor.RaptorStaticConfig;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.router.TripStructureUtils;
@@ -11,7 +8,8 @@ import org.matsim.core.utils.misc.OptionalTime;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
-import static java.util.EnumSet.range;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author mrieser
@@ -34,7 +32,7 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 	@Override
 	public void handleTrip(TripStructureUtils.Trip trip) {
 		OptionalTime departureTime = OptionalTime.undefined();
-		double penalty = 0;
+		double penalty;
 		int first = 0;
 		if (this.raptorStaticConfig.isUseModeToModeTransferPenalty()) {
 			String mode = null;

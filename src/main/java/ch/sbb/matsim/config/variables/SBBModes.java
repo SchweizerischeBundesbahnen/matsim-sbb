@@ -2,9 +2,7 @@ package ch.sbb.matsim.config.variables;
 
 import org.matsim.api.core.v01.TransportMode;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class SBBModes {
@@ -25,48 +23,24 @@ public class SBBModes {
 	public static final String PT_FALLBACK_MODE = TransportMode.transit_walk;
 	public static final String ACCESS_EGRESS_WALK = TransportMode.walk;
 	public static final String WALK_MAIN_MAINMODE = "walk_main";
+	public static final String BUS = "bus";
+	public static final String TRAM = "tram";
+	public static final String OTHER = "other";
 	//in analysis code, all walk mode are set to this mode
 	public static final String WALK_FOR_ANALYSIS = TransportMode.walk;
-	public static final int DEFAULT_MODE_HIERARCHY = 99;
-	public final static Map<String, Integer> mode2HierarchalNumber;
-	public final static Map<Integer, String> hierarchalNumber2Mode;
-
-	public static final List<String> MAIN_MODES = List.of(RIDE, CAR, PT, BIKE, AVTAXI, WALK_FOR_ANALYSIS, DRT);
 	public static final List<String> TRAIN_STATION_MODES = List.of(WALK_FOR_ANALYSIS, PT, PTSubModes.RAIL, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> TRAIN_STATION_ORIGDEST_MODES = List.of(WALK_FOR_ANALYSIS, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
+	public static final List<String> PT_PASSENGER_MODES = List.of(PT, RAIL, BUS, TRAM, OTHER);
+	public static final List<String> PT_FEEDER_MODES = List.of(AVFEEDER, RIDEFEEDER, CARFEEDER, BIKEFEEDER);
 
-
-	static {
-		mode2HierarchalNumber = new HashMap<>();
-		hierarchalNumber2Mode = new HashMap<>();
-		//main modes
-		mode2HierarchalNumber.put(PT, 0);
-		mode2HierarchalNumber.put(CAR, 10);
-		mode2HierarchalNumber.put(AVTAXI, 11);
-		mode2HierarchalNumber.put(DRT, 12);
-		mode2HierarchalNumber.put(RIDE, 20);
-		mode2HierarchalNumber.put(BIKE, 30);
-		mode2HierarchalNumber.put(WALK_MAIN_MAINMODE, 40);
-		mode2HierarchalNumber.put(WALK_FOR_ANALYSIS, 41);
-
-		//purely pt access-egress
-		mode2HierarchalNumber.put(AVFEEDER, 90);
-		mode2HierarchalNumber.put(BIKEFEEDER, 91);
-		mode2HierarchalNumber.put(RIDEFEEDER, 92);
-		mode2HierarchalNumber.put(CARFEEDER, 93);
-		mode2HierarchalNumber.put(PT_FALLBACK_MODE, 94);
-
-		//access-egress for all kind of modes
-		mode2HierarchalNumber.put(ACCESS_EGRESS_WALK, 99);
-
-		mode2HierarchalNumber.forEach((k, v) -> hierarchalNumber2Mode.put(v, k));
+	public static boolean isPTMode(String mode) {
+		return PT_PASSENGER_MODES.contains(mode);
 	}
 
 	private SBBModes() {
 	}
 
 	public static class PTSubModes {
-
 		public static final String RAIL = "rail";
 		public static final String TRAM = "tram";
 		public static final String BUS = "bus";
@@ -74,8 +48,7 @@ public class SBBModes {
 		public final static Set<String> submodes;
 
 		static {
-			// TODO: remove detPt as soon as we merged the pt-submodeset
-			submodes = Set.of(RAIL, TRAM, BUS, OTHER, "detPt");
+			submodes = Set.of(RAIL, TRAM, BUS, OTHER);
 		}
 
 		private PTSubModes() {
