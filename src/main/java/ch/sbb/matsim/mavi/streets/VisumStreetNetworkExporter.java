@@ -35,6 +35,7 @@ public class VisumStreetNetworkExporter {
 	private final Map<Id<Link>, String> wktLineStringPerVisumLink = new HashMap<>();
 	private Scenario scenario;
 	private NetworkFactory nf;
+	private final Set<Id<Link>> linksWithCountingStations = new HashSet<>();
 
 	public void run(Visum visumObject, String outputPath, boolean exportCounts, boolean exportPolylines) throws IOException {
 
@@ -45,6 +46,7 @@ public class VisumStreetNetworkExporter {
 
 		Dispatch filters = visumObject.getComObject("Filters").getDispatch();
 		Dispatch.call(filters, "InitAll");
+
 		if (exportCounts) {
 			this.exportCountStations(visumObject, outputPath);
 		}
@@ -62,7 +64,7 @@ public class VisumStreetNetworkExporter {
 
 
 	private void exportCountStations(Visum visum, String outputFolder) throws IOException {
-		VisumToCounts visumToCounts = new VisumToCounts();
+		VisumToCounts visumToCounts = new VisumToCounts(linksWithCountingStations);
 
 		File file = new File(outputFolder, "counts");
 		File csv = new File(outputFolder, "counts.csv");
@@ -77,6 +79,10 @@ public class VisumStreetNetworkExporter {
 	public static String[][] importLinks(Dispatch net, String... attribute) {
 		Dispatch links = Dispatch.get(net, "Links").toDispatch();
 		return toArray(links, attribute);
+	}
+
+	public Set<Id<Link>> getLinksWithCountingStations() {
+		return linksWithCountingStations;
 	}
 
 	public static String[][] toArray(Dispatch objects, String... attributes) {

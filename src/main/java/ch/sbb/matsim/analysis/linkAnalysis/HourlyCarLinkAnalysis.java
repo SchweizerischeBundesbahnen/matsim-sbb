@@ -49,16 +49,19 @@ public class HourlyCarLinkAnalysis {
                 var link = network.getLinks().get(linkEntry.getKey());
                 int[] volumes = linkEntry.getValue();
                 if (Arrays.stream(volumes).sum() > 0) {
-                    Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(link.getId());
-                    final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
-                    final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
-                    if (visumLinkNodeIds != null) {
-                        String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
-                        writer.set(LINK_NO, visumNo);
-                        writer.set(TONODENO, toNode);
-                        writer.set(FROMNODENO, fromNode);
-                        setVolumes(writer, volumes, scaleFactor);
-                        writer.writeRow();
+                    String[] visumLinkIds = link.getId().toString().split("-");
+                    for (String visumLinkId : visumLinkIds) {
+                        Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(visumLinkId);
+                        final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
+                        final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+                        if (visumLinkNodeIds != null) {
+                            String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
+                            writer.set(LINK_NO, visumNo);
+                            writer.set(TONODENO, toNode);
+                            writer.set(FROMNODENO, fromNode);
+                            setVolumes(writer, volumes, scaleFactor);
+                            writer.writeRow();
+                        }
                     }
                 }
 

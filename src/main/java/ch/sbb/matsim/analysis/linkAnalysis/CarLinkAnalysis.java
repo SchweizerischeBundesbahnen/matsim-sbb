@@ -37,9 +37,7 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.utils.collections.Tuple;
 
 import java.io.*;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
@@ -116,22 +114,25 @@ public class CarLinkAnalysis {
 					var volume = entry.getValue();
 					double carVolume = volume.getCarCount() / samplesize;
 					double freightVolume = volume.getFreightCount() / samplesize;
-					Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(link.getId());
-					final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
-					final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
-					String id = link.getId().toString();
 					double bikeCount = volume.getBikeCount() / samplesize;
 					double ebikeCount = volume.getEbikeCount() / samplesize;
 					double totalBikeCount = bikeCount + ebikeCount;
-					if (visumLinkNodeIds != null) {
-						String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
-						writer.set(LINK_NO, visumNo);
-						writer.set(TONODENO, toNode);
-						writer.set(FROMNODENO, fromNode);
-						setVolumes(writer, id, carVolume, volume, (int) bikeCount, (int) ebikeCount, (int) totalBikeCount, freightVolume);
-						writer.writeRow();
-					}
 
+                    String[] visumLinkIds = link.getId().toString().split("-");
+                    for (String visumLinkId : visumLinkIds) {
+                        Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(visumLinkId);
+                        final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
+                        final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+                        String id = link.getId().toString();
+                        if (visumLinkNodeIds != null) {
+                            String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
+                            writer.set(LINK_NO, visumNo);
+                            writer.set(TONODENO, toNode);
+                            writer.set(FROMNODENO, fromNode);
+                            setVolumes(writer, id, carVolume, volume, (int) bikeCount, (int) ebikeCount, (int) totalBikeCount, freightVolume);
+                            writer.writeRow();
+                        }
+                    }
 				}
 			}
 

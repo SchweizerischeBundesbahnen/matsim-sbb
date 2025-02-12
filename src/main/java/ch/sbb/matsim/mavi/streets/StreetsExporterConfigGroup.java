@@ -33,6 +33,7 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
     public final static String DESC_visumVersion = "visumVersion";
     public final static String DESC_outputDir = "outputDir";
     public final static String DESC_exportCounts = "exportCounts";
+    public final static String DESC_simplifyNetwork = "simplifyNetwork";
     double mainRoadSpeedFactor = 1.0;
     double smallRoadSpeedFactor = 1.0;
     String zonesFile = null;
@@ -40,6 +41,7 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
     String visumVersion = "21";
     String outputDir = null;
     boolean exportCounts = true;
+    boolean simplifyNetwork = true;
 
     public StreetsExporterConfigGroup() {
         super(GROUP_NAME);
@@ -99,7 +101,6 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
         return ConfigGroup.getInputFileURL(context, visumFile);
     }
 
-
     @StringSetter(DESC_visumVersion)
     public void setVisumVersion(String visumVersion) {
         this.visumVersion = visumVersion;
@@ -109,7 +110,6 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
     public String getOutputDir() {
         return outputDir;
     }
-
 
     public URL getOutputDirURL(URL context) {
         return ConfigGroup.getInputFileURL(context, outputDir);
@@ -128,5 +128,17 @@ public class StreetsExporterConfigGroup extends ReflectiveConfigGroup {
     @StringSetter(DESC_exportCounts)
     public void setExportCounts(boolean exportCounts) {
         this.exportCounts = exportCounts;
+    }
+
+    @StringGetter(DESC_simplifyNetwork)
+    public boolean isSimplifyNetwork() {
+        return simplifyNetwork;
+    }
+
+
+    @StringSetter(DESC_simplifyNetwork)
+
+    public void setSimplifyNetwork(boolean simplifyNetwork) {
+        this.simplifyNetwork = simplifyNetwork;
     }
 }
