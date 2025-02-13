@@ -98,30 +98,6 @@ public class StreetNetworkExporter {
 
     }
 
-    private static void renameLinks(Network network, Set<Id<Link>> linksWithCountingStations) {
-        int i = 0;
-        Set<Id<Link>> linksToRemove = new HashSet<>();
-        for (var link : network.getLinks().values()) {
-            if (!linksWithCountingStations.contains(link.getId())) {
-                Link newLink = network.getFactory().createLink(Id.createLinkId(i), link.getFromNode(), link.getToNode());
-                newLink.setAllowedModes(link.getAllowedModes());
-                newLink.setCapacity(link.getCapacity());
-                newLink.setNumberOfLanes(link.getNumberOfLanes());
-                newLink.setLength(link.getLength());
-                newLink.setFreespeed(link.getFreespeed());
-                network.addLink(newLink);
-                link.getAttributes().getAsMap().forEach((k, v) -> newLink.getAttributes().putAttribute(k, v));
-                newLink.getAttributes().putAttribute(VISUM_IDS, link.getId().toString());
-                i++;
-                linksToRemove.add(link.getId());
-
-            } else {
-                link.getAttributes().putAttribute(VISUM_IDS, link.getId().toString());
-            }
-
-        }
-        linksToRemove.forEach(linkId -> network.removeLink(linkId));
-    }
 
     private static void simplifyNetwork(Network network, Set<Id<Link>> linksWithCountingStations) {
         NetworkSimplifier simplifier = new NetworkSimplifier();

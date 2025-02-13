@@ -47,21 +47,25 @@ public class HourlyCarLinkAnalysis {
         try (CSVWriter writer = new CSVWriter(CarLinkAnalysis.HEADER, columns.toArray(new String[columns.size()]), runprefix + "hourly_link_volumes.att")) {
             for (var linkEntry : linkAnalyzer.getLinkStorage().entrySet()) {
                 var link = network.getLinks().get(linkEntry.getKey());
+                final String matsimToNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+
                 int[] volumes = linkEntry.getValue();
                 if (Arrays.stream(volumes).sum() > 0) {
                     String[] visumLinkIds = link.getId().toString().split("-");
-                    for (String visumLinkId : visumLinkIds) {
+                    for (int i = 0; i < visumLinkIds.length; i++) {
+                        String visumLinkId = visumLinkIds[i];
                         Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(visumLinkId);
-                        final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
-                        final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
                         if (visumLinkNodeIds != null) {
+                            final String visumFromNode = String.valueOf(visumLinkNodeIds.getFirst());
                             String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
+                            final String visumToNode = i < visumLinkIds.length - 1 ? String.valueOf(MaviHelper.extractVisumNodeAndLinkId(visumLinkIds[i + 1]).getFirst()) : matsimToNode;
                             writer.set(LINK_NO, visumNo);
-                            writer.set(TONODENO, toNode);
-                            writer.set(FROMNODENO, fromNode);
+                            writer.set(TONODENO, visumFromNode);
+                            writer.set(FROMNODENO, visumToNode);
                             setVolumes(writer, volumes, scaleFactor);
                             writer.writeRow();
                         }
+
                     }
                 }
 
