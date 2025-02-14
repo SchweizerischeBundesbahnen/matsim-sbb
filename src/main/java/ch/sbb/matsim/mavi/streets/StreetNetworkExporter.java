@@ -22,7 +22,6 @@ package ch.sbb.matsim.mavi.streets;
 import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
-import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.visum.Visum;
 import ch.sbb.matsim.zones.Zones;
@@ -36,9 +35,9 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.NetworkConfigGroup;
-import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
+import org.matsim.core.network.algorithms.NetworkSimplifier;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.geometry.CoordUtils;
@@ -46,15 +45,14 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.fullModeset;
-import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.modeSetWithoutBike;
+import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.*;
 
 public class StreetNetworkExporter {
+
+    public static final String VISUM_IDS = "visumIds";
 
     public static void main(String[] args) throws IOException {
         final StreetsExporterConfigGroup streetsExporterConfigGroup = new StreetsExporterConfigGroup();
@@ -72,33 +70,21 @@ public class StreetNetworkExporter {
         Visum visum = new Visum(Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()));
         visum.loadVersion(visumFile);
 
-        vse.run(visum, outputDir, Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()),
-                streetsExporterConfigGroup.isExportCounts(), true);
+        vse.run(visum, outputDir, streetsExporterConfigGroup.isExportCounts(), true);
         Network network = vse.getNetwork();
+
+        removeIrrelevantLinks(network, zones);
         setAccessControlled(network);
+        setModes(network, zones);
+
         if (streetsExporterConfigGroup.getSmallRoadSpeedFactor() < 1.0 || streetsExporterConfigGroup.getMainRoadSpeedFactor() < 1.0) {
             ReduceNetworkSpeeds reduceNetworkSpeeds = new ReduceNetworkSpeeds(network, zones, streetsExporterConfigGroup.getSmallRoadSpeedFactor(),
                     streetsExporterConfigGroup.getMainRoadSpeedFactor());
             reduceNetworkSpeeds.reduceSpeeds();
         }
-
-        if (streetsExporterConfigGroup.isReduceForeignLinks()) {
-            LogManager.getLogger(StreetNetworkExporter.class).info("Removing foreign rural links.");
-            RemoveForeignRuralLinks r = new RemoveForeignRuralLinks(network, zones);
-            r.removeLinks();
-            NetworkCleaner cleaner = new NetworkCleaner();
-            cleaner.run(network);
-        }
-
         adjustRoundaboutLinks(network);
-
-        filterBikeNetwork(network);
-        if (streetsExporterConfigGroup.isMergeRuralLinks()) {
-            LogManager.getLogger(StreetNetworkExporter.class).info("Merging rural links.");
-            MergeRuralLinks l = new MergeRuralLinks(network, zones);
-            l.mergeRuralLinks();
-            NetworkCleaner cleaner = new NetworkCleaner();
-            cleaner.run(network);
+        if (streetsExporterConfigGroup.isSimplifyNetwork()) {
+            simplifyNetwork(network, vse.getLinksWithCountingStations());
         }
         finalMultimodalCleanup(network);
         assureLinkLenghtsAndSpeedsAreSet(network);
@@ -109,6 +95,118 @@ public class StreetNetworkExporter {
 
         LogManager.getLogger(StreetNetworkExporter.class).info("Writing Network without polylines.");
         new NetworkWriter(network).write(outputDir + "/" + Filenames.STREET_NETWORK);
+
+    }
+
+
+    private static void simplifyNetwork(Network network, Set<Id<Link>> linksWithCountingStations) {
+        NetworkSimplifier simplifier = new NetworkSimplifier();
+        simplifier.setMergeLinkStats(true);
+        simplifier.run(network, ((link, link2) -> link.getAllowedModes().equals(link2.getAllowedModes()) && !linksWithCountingStations.contains(link.getId()) && !linksWithCountingStations.contains(link2.getId())), (linkLinkTuple, link) -> {
+            String newPolyLine = mergeWKTPolygons(linkLinkTuple);
+            if (newPolyLine != null) link.getAttributes().putAttribute(PolylinesCreator.WKT_ATTRIBUTE, newPolyLine);
+            int accessControlled = Math.min(1, (int) linkLinkTuple.getFirst().getAttributes().getAttribute(Variables.ACCESS_CONTROLLED) + (int) linkLinkTuple.getSecond().getAttributes().getAttribute(Variables.ACCESS_CONTROLLED));
+            link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, accessControlled);
+            NetworkUtils.setType(link, NetworkUtils.getType(linkLinkTuple.getFirst()));
+            link.setAllowedModes(linkLinkTuple.getFirst().getAllowedModes());
+            link.setCapacity(Math.max(linkLinkTuple.getFirst().getCapacity(), linkLinkTuple.getSecond().getCapacity()));
+            link.setNumberOfLanes(Math.max(linkLinkTuple.getFirst().getNumberOfLanes(), linkLinkTuple.getSecond().getNumberOfLanes()));
+
+        });
+    }
+
+    private static String mergeWKTPolygons(Tuple<Link, Link> linksToMerge) {
+        StringBuilder wkt = new StringBuilder(128);
+        wkt.append("LINESTRING(");
+        boolean hasAtleastOneWKT = false;
+        String wkt1 = (String) linksToMerge.getFirst().getAttributes().getAttribute(PolylinesCreator.WKT_ATTRIBUTE);
+        String wkt2 = (String) linksToMerge.getSecond().getAttributes().getAttribute(PolylinesCreator.WKT_ATTRIBUTE);
+        if (wkt1 != null) {
+            wkt.append(wkt1, 11, wkt1.length() - 1);
+            wkt.append(",");
+
+            hasAtleastOneWKT = true;
+        }
+        if (wkt2 != null) {
+            wkt.append(wkt2, 11, wkt2.length() - 1);
+            hasAtleastOneWKT = true;
+        }
+        wkt.append(')');
+        return hasAtleastOneWKT ? wkt.toString() : null;
+    }
+
+    private static void removeIrrelevantLinks(Network network, Zones zones) {
+        Set<Link> linksForRemoval = network.getLinks().values().stream()
+                .filter(link -> (boolean) link.getAttributes().getAttribute(MOBI_REMOVAL_CANDIDATE))
+                .filter(link -> {
+                    var zone = zones.findZone(link.getCoord());
+                    if (zone == null) return true;
+                    else {
+                        return !zone.getAttribute("sl3_id").toString().equals("1");
+                    }
+                })
+                .collect(Collectors.toSet());
+        linksForRemoval.forEach(link -> network.removeLink(link.getId()));
+        LogManager.getLogger(StreetNetworkExporter.class).info("Removed " + linksForRemoval.size() + " links that were flagged irrelevant and are in non-urban areas.");
+
+    }
+
+    private static void setModes(Network network, Zones zones) {
+        Set<Id<Link>> linksForRemoval = new HashSet<>();
+        for (Link link : network.getLinks().values()) {
+            int accessControlled = (int) link.getAttributes().getAttribute(Variables.ACCESS_CONTROLLED);
+            if (accessControlled == 0) {
+                if (link.getAllowedModes().contains(SBBModes.CAR)) {
+                    link.setAllowedModes(fullModeset);
+                }
+            }
+            if (accessControlled == 1) {
+                if (link.getAllowedModes().contains(SBBModes.CAR)) {
+                    int typeNo = Integer.parseInt(NetworkUtils.getType(link));
+                    if (typeNo > 96 && typeNo < 100) {
+                        //ferries and trains should be bikeable.
+                        link.setAllowedModes(fullModeset);
+                    } else link.setAllowedModes(modeSetWithoutBike);
+
+                }
+            }
+
+        }
+        for (Link link : network.getLinks().values()) {
+            if (link.getAllowedModes().isEmpty()) {
+                Link backLink = NetworkUtils.findLinkInOppositeDirection(link);
+                if (backLink != null) {
+                    if (backLink.getAllowedModes().contains(SBBModes.BIKE) && backLink.getFreespeed() <= 30 / 3.6) {
+                        link.setAllowedModes(modeSetBikeOnly);
+                        link.setCapacity(600);
+                        link.setFreespeed(backLink.getFreespeed());
+
+                    } else if (backLink.getAllowedModes().isEmpty()) {
+                        var zone = zones.findZone(link.getCoord());
+                        if (zone != null) {
+                            if (zone.getAttribute("sl3_id").toString().equals("1")) {
+                                //these are urban roads that are closed in NPVM because they are open for local access only
+                                link.setFreespeed(15 / 3.6);
+                                link.setAllowedModes(fullModeset);
+                                link.setCapacity(300);
+                                link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 0);
+                                backLink.setFreespeed(15 / 3.6);
+                                backLink.setAllowedModes(fullModeset);
+                                backLink.setCapacity(300);
+                                backLink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 0);
+                            }
+
+                        }
+                    } else {
+                        linksForRemoval.add(link.getId());
+                    }
+                } else {
+                    linksForRemoval.add(link.getId());
+                }
+
+            }
+        }
+        linksForRemoval.forEach(network::removeLink);
 
     }
 
@@ -123,20 +221,40 @@ public class StreetNetworkExporter {
         for (int i = 97; i < 100; i++) {
             accessControlledTypes.add(i);
         }
-        network.getLinks().values().stream().filter(link -> accessControlledTypes.contains(Integer.parseInt(NetworkUtils.getType(link)))).forEach(link -> {
-            link.setAllowedModes(modeSetWithoutBike);
-            link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
-        });
+        network.getLinks()
+                .values()
+                .forEach(link -> {
+                    int accessControlled = accessControlledTypes.contains(Integer.parseInt(NetworkUtils.getType(link))) ? 1 : 0;
+                    link.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, accessControlled);
+                });
+
     }
 
     private static void assureLinkLenghtsAndSpeedsAreSet(Network network) {
-
+        int adjustedLinks = 0;
         for (Link link : network.getLinks().values()){
             double beelineDistance = CoordUtils.calcEuclideanDistance(link.getFromNode().getCoord(),link.getToNode().getCoord());
+            boolean adjusted = false;
             if (link.getLength()==0.0 || link.getLength()<beelineDistance){
                 link.setLength(Math.max(0.1,beelineDistance));
+                adjusted = true;
             }
+            if (link.getFreespeed() <= 0.1) {
+                link.setFreespeed(15 / 3.6);
+                adjusted = true;
+
+            }
+            if (link.getNumberOfLanes() < 1) {
+                link.setNumberOfLanes(1.0);
+                adjusted = true;
+            }
+            if (link.getCapacity() < 300) {
+                link.setCapacity(300);
+                adjusted = true;
+            }
+            if (adjusted) adjustedLinks++;
         }
+        LogManager.getLogger(StreetNetworkExporter.class).info("Adjusted lengths, capacities, lanes or freespeed for " + adjustedLinks + " links.");
     }
 
     public static void finalMultimodalCleanup(Network network) {
@@ -182,82 +300,14 @@ public class StreetNetworkExporter {
     }
 
 
-    private static void filterBikeNetwork(Network network) {
-        NetworkFilterManager fm = new NetworkFilterManager(network, new NetworkConfigGroup());
-        fm.addLinkFilter(l -> l.getAllowedModes().contains(SBBModes.BIKE));
-        Network bikenet = fm.applyFilters();
-        Set<Id<Link>> needsBikeBackLink = new HashSet<>();
-        Random r = MatsimRandom.getRandom();
-        for (Link link : bikenet.getLinks().values()) {
-            if (NetworkUtils.findLinkInOppositeDirection(link) == null) {
-                needsBikeBackLink.add(link.getId());
-            }
-        }
-
-        for (var linkId : needsBikeBackLink) {
-            Link link = bikenet.getLinks().get(linkId);
-            Link carNetLink = network.getLinks().get(linkId);
-            Tuple<Integer, Integer> visumLinkAndNodeId = MaviHelper.extractVisumNodeAndLinkId(linkId);
-            Integer visumLinkId = visumLinkAndNodeId != null ? visumLinkAndNodeId.getSecond() : null;
-            if (visumLinkId == null) {
-                visumLinkId = Integer.MAX_VALUE - r.nextInt(5000);
-            }
-            Id<Link> backLinkId = MaviHelper.createLinkId(link.getToNode().getId().toString().split("_")[1], Integer.toString(visumLinkId));
-            Link bikeBackLink = bikenet.getFactory().createLink(backLinkId, link.getToNode(), link.getFromNode());
-            bikeBackLink.setLength(link.getLength());
-            bikeBackLink.setAllowedModes(Set.of(SBBModes.BIKE));
-            bikeBackLink.setFreespeed(link.getFreespeed());
-            bikeBackLink.setNumberOfLanes(link.getNumberOfLanes());
-            bikeBackLink.setCapacity(link.getCapacity());
-            bikeBackLink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
-            bikenet.addLink(bikeBackLink);
-
-
-            Link carNetBacklink = NetworkUtils.findLinkInOppositeDirection(carNetLink);
-            if (carNetBacklink == null) {
-                carNetBacklink = network.getFactory().createLink(backLinkId, carNetLink.getToNode(), carNetLink.getFromNode());
-                carNetBacklink.setLength(link.getLength());
-                carNetBacklink.setAllowedModes(Set.of(SBBModes.BIKE));
-                carNetBacklink.setFreespeed(link.getFreespeed());
-                carNetBacklink.setNumberOfLanes(link.getNumberOfLanes());
-                carNetBacklink.setCapacity(link.getCapacity());
-                carNetBacklink.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
-                network.addLink(carNetBacklink);
-            } else {
-                network.getLinks().get(backLinkId).setAllowedModes(fullModeset);
-            }
-
-        }
-
-        org.matsim.core.network.algorithms.NetworkCleaner cleaner = new org.matsim.core.network.algorithms.NetworkCleaner();
-        cleaner.run(bikenet);
-
-
-        List<Link> deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().isEmpty() || link.getFromNode().getInLinks().isEmpty()).collect(Collectors.toList());
-
-        while (!deadEnds.isEmpty()) {
-            for (var link : deadEnds) {
-                bikenet.removeLink(link.getId());
-            }
-            deadEnds = bikenet.getLinks().values().stream().filter(link -> link.getToNode().getOutLinks().isEmpty() || link.getFromNode().getInLinks().isEmpty()).collect(Collectors.toList());
-
-        }
-        for (Link l : network.getLinks().values()) {
-            if (!bikenet.getLinks().containsKey(l.getId())) {
-                l.setAllowedModes(modeSetWithoutBike);
-                l.getAttributes().putAttribute(Variables.ACCESS_CONTROLLED, 1);
-
-            }
-        }
-
-
-    }
-
     public static void adjustRoundaboutLinks(Network network) {
         LogManager.getLogger(StreetNetworkExporter.class).info("Adjusting capacities of roundabouts.");
         int i = 0;
-        Set<Id<Link>> adjustedLinks = new HashSet<>();
         for (Link l : network.getLinks().values()) {
+            if (!l.getAllowedModes().contains(SBBModes.CAR)) {
+                continue;
+            }
+
             if (l.getLength() > 27) {
                 continue;
             }
@@ -272,12 +322,13 @@ public class StreetNetworkExporter {
                 boolean hasbacklink = false;
                 for (Link ol : l.getToNode().getOutLinks().values()) {
                     if (ol.getToNode() == l.getFromNode()) {
-                        hasbacklink = true;
+                        if (ol.getAllowedModes().contains(SBBModes.CAR)) {
+                            hasbacklink = true;
+                        }
                     }
                 }
                 if (!hasbacklink) {
                     l.setCapacity(1500);
-                    adjustedLinks.add(l.getId());
                     i++;
                 }
             }

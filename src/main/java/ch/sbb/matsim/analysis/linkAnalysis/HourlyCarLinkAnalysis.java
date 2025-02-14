@@ -2,7 +2,6 @@ package ch.sbb.matsim.analysis.linkAnalysis;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
-import ch.sbb.matsim.mavi.streets.MergeRuralLinks;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.VehicleEntersTrafficEvent;
@@ -48,44 +47,25 @@ public class HourlyCarLinkAnalysis {
         try (CSVWriter writer = new CSVWriter(CarLinkAnalysis.HEADER, columns.toArray(new String[columns.size()]), runprefix + "hourly_link_volumes.att")) {
             for (var linkEntry : linkAnalyzer.getLinkStorage().entrySet()) {
                 var link = network.getLinks().get(linkEntry.getKey());
+                final String matsimToNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
+
                 int[] volumes = linkEntry.getValue();
                 if (Arrays.stream(volumes).sum() > 0) {
-                    Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(link.getId());
-                    final String fromNode = link.getFromNode().getId().toString().startsWith("C_") ? link.getFromNode().getId().toString().substring(2) : link.getFromNode().getId().toString();
-                    final String toNode = link.getToNode().getId().toString().startsWith("C_") ? link.getToNode().getId().toString().substring(2) : link.getToNode().getId().toString();
-                    String id = link.getId().toString();
-                    String vLinks = (String) link.getAttributes().getAttribute(MergeRuralLinks.vlinks);
-                    if (vLinks != null) {
-                        String[] vlinksList = vLinks.split(",");
-                        List<CarLinkAnalysis.VirtualVisumLink> virtualVisumLinkList = new ArrayList<>();
-                        int previousFromNode = -1;
-                        int previousLinkNo = -1;
-                        for (String vlink : vlinksList) {
-                            Tuple<Integer, Integer> virtualVisumLink = MaviHelper.extractVisumNodeAndLinkId(vlink);
-                            int currentFromNode = virtualVisumLink.getFirst();
-                            int currentLinkNo = virtualVisumLink.getSecond();
-                            if (previousFromNode > -1) {
-                                virtualVisumLinkList.add(new CarLinkAnalysis.VirtualVisumLink(previousFromNode, currentFromNode, previousLinkNo));
-                            }
-                            previousLinkNo = currentLinkNo;
-                            previousFromNode = currentFromNode;
-                        }
-                        virtualVisumLinkList.add(new CarLinkAnalysis.VirtualVisumLink(previousFromNode, Integer.parseInt(toNode), previousLinkNo));
-                        for (var vLink : virtualVisumLinkList) {
-                            writer.set(LINK_NO, String.valueOf(vLink.visumLinkNo()));
-                            writer.set(FROMNODENO, String.valueOf(vLink.fromNode()));
-                            writer.set(TONODENO, String.valueOf(vLink.toNode()));
+                    String[] visumLinkIds = link.getId().toString().split("-");
+                    for (int i = 0; i < visumLinkIds.length; i++) {
+                        String visumLinkId = visumLinkIds[i];
+                        Tuple<Integer, Integer> visumLinkNodeIds = MaviHelper.extractVisumNodeAndLinkId(visumLinkId);
+                        if (visumLinkNodeIds != null) {
+                            final String visumFromNode = String.valueOf(visumLinkNodeIds.getFirst());
+                            String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
+                            final String visumToNode = i < visumLinkIds.length - 1 ? String.valueOf(MaviHelper.extractVisumNodeAndLinkId(visumLinkIds[i + 1]).getFirst()) : matsimToNode;
+                            writer.set(LINK_NO, visumNo);
+                            writer.set(TONODENO, visumFromNode);
+                            writer.set(FROMNODENO, visumToNode);
                             setVolumes(writer, volumes, scaleFactor);
                             writer.writeRow();
                         }
 
-                    } else if (visumLinkNodeIds != null) {
-                        String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
-                        writer.set(LINK_NO, visumNo);
-                        writer.set(TONODENO, toNode);
-                        writer.set(FROMNODENO, fromNode);
-                        setVolumes(writer, volumes, scaleFactor);
-                        writer.writeRow();
                     }
                 }
 
