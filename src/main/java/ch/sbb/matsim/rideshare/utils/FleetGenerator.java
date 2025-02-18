@@ -8,6 +8,7 @@ import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicleSpecification;
 import org.matsim.contrib.dvrp.fleet.FleetWriter;
 import org.matsim.contrib.dvrp.fleet.ImmutableDvrpVehicleSpecification;
+import org.matsim.contrib.dvrp.load.IntegerLoadType;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.network.io.MatsimNetworkReader;
@@ -57,6 +58,6 @@ public class FleetGenerator {
 					.serviceEndTime(endTime)
 					.build());
 		}
-		new FleetWriter(vehicleSpecifications.stream().sorted(Comparator.comparing(v -> v.getId().toString()))).write(outputFile.toString());
+		new FleetWriter(vehicleSpecifications.stream().sorted(Comparator.comparing(v -> v.getId().toString())), new IntegerLoadType("load")).write(outputFile.toString());
 	}
 }

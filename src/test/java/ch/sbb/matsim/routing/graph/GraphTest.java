@@ -80,9 +80,9 @@ public class GraphTest {
 
 		li.reset(f.node6.getId().index());
 		Assert.assertTrue(li.next());
-		assertLink(li, f.link65);
-		Assert.assertTrue(li.next());
 		assertLink(li, f.link62);
+		Assert.assertTrue(li.next());
+		assertLink(li, f.link65);
 		Assert.assertFalse(li.next());
 		Assert.assertFalse(li.next());
 
