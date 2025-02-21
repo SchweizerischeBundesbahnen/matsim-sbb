@@ -46,11 +46,11 @@ public class GenerateTruckDemand {
     }
 
     public static void main(String[] args) throws IOException {
-        String inputZonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230825_Grenzguertel\\plans\\v7\\mobi-zones.shp";
-        String npvmMatrixFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\GV\\input\\NPVM2017_LI_LZ_LW.omx";
-        String foreignConnectorsLocationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\Anbindungen_Pseudozonen_Ausland.csv";
-        String timeDistributionFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\2016_Ganglinie.csv";
-        String inputFacilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20230825_Grenzguertel\\plans\\v7\\facilities.xml.gz";
+        String inputZonesFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\zones\\34_release.mobi-zones.shp";
+        String npvmMatrixFile = "c:\\devsbb\\tmp\\NPVM2017_LI_LZ_LW.omx";
+        String foreignConnectorsLocationFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\MIV international\\input\\Anbindungen_Pseudozonen_Ausland.csv";
+        String timeDistributionFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\MIV international\\input\\2016_Ganglinie.csv";
+        String inputFacilitiesFile = "c:\\devsbb\\tmp\\34_release.facilities.xml.gz";
         String outputPopulationFile = "c:\\devsbb\\freight.xml.gz";
         String outputPopulationCSVFile = "c:\\devsbb\\freight_road.csv.gz";
 
@@ -66,6 +66,7 @@ public class GenerateTruckDemand {
         OMXODParser parser = new OMXODParser();
         parser.openMatrix(npvmMatrixFile);
         for (var demandSegment : matricesToModeMap.entrySet()) {
+            System.out.println(demandSegment);
             GenerateTruckDemand generateTruckDemand = new GenerateTruckDemand(demandSegment.getKey(), parser, zones, random, growthRates.get(demandSegment.getKey()));
             generateTruckDemand.aggregateDemand();
             generateTruckDemand.disaggregateDemand();
@@ -112,6 +113,17 @@ public class GenerateTruckDemand {
                 double value = parser.getMatrixValue(fromZoneId, toZoneId, matrixNo);
                 if (value > 0.0) {
                     value = growthRate * value;
+                }
+                while (value > 1.0) {
+                    //anything bigger than 1 is handled per NPVM zone
+                    double fullFractionValue = Math.floor(value);
+                    value = value - fullFractionValue;
+                    Map<Id<Zone>, Double> fromZoneMap = disaggregatedDemand.computeIfAbsent(fromZoneId, a -> new HashMap<>());
+                    double newValue = fromZoneMap.getOrDefault(toZoneId, 0.0) + fullFractionValue;
+                    fromZoneMap.put(toZoneId, newValue);
+                }
+                {
+                    //the rest is aggregated on a wider level
                     String toAggregate = SingleTripAgentCreator.getAggregateZone(zones, fromZoneId);
                     double aggregateValue = fromAggregateMap.getOrDefault(toAggregate, 0.0) + value;
                     fromAggregateMap.put(toAggregate, aggregateValue);
@@ -123,7 +135,7 @@ public class GenerateTruckDemand {
     }
 
     private void disaggregateDemand() {
-        logger.info("disaggregating demand");
+        logger.info("disaggregating demand to fill matrices");
         for (var fromAggregateEntry : this.aggregatedDemand.entrySet()) {
             String fromAggregate = fromAggregateEntry.getKey();
             for (var toAggregateEntry : fromAggregateEntry.getValue().entrySet()) {
