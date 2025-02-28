@@ -47,7 +47,7 @@ public class GenerateTruckDemand {
 
     public static void main(String[] args) throws IOException {
         String inputZonesFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\zones\\34_release.mobi-zones.shp";
-        String npvmMatrixFile = "c:\\devsbb\\tmp\\NPVM2017_LI_LZ_LW.omx";
+        String npvmMatrixFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20241104_MOBi_5.1\\plans_exogenous\\GV\\input\\LI2017_LWLZ2023.omx";
         String foreignConnectorsLocationFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\MIV international\\input\\Anbindungen_Pseudozonen_Ausland.csv";
         String timeDistributionFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\MIV international\\input\\2016_Ganglinie.csv";
         String inputFacilitiesFile = "c:\\devsbb\\tmp\\34_release.facilities.xml.gz";
@@ -56,7 +56,7 @@ public class GenerateTruckDemand {
 
         Random random = MatsimRandom.getRandom();
         Map<String, String> matricesToModeMap = Map.of("10", "LI", "11", "LW", "12", "LZ");
-        Map<String, Double> growthRates = Map.of("10", 1.16, "11", 1.045, "12", 1.045);
+        Map<String, Double> growthRates = Map.of("10", 1.16, "11", 1.0, "12", 1.0);
         Zones zones = ZonesLoader.loadZones("zones", inputZonesFile);
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimFacilitiesReader(scenario).readFile(inputFacilitiesFile);
