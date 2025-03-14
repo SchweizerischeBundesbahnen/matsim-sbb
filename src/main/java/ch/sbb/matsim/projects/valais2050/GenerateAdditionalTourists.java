@@ -32,13 +32,13 @@ public class GenerateAdditionalTourists {
     }
 
     public static void main(String[] args) {
-        GenerateAdditionalTourists additionalTourists = new GenerateAdditionalTourists("\\\\wsbbrz0283\\mobi\\40_Projekte\\20250124_Unterwallis_2050\\sim\\ref\\plans.xml.gz");
+        GenerateAdditionalTourists additionalTourists = new GenerateAdditionalTourists("\\\\wsbbrz0283\\mobi\\40_Projekte\\20250124_Unterwallis_2050\\sim\\var_02\\plans.xml.gz");
         additionalTourists.setWeights();
-        additionalTourists.addTourists(new Coord(2588630.147, 1114324.669), 700); //Haute-Nendaz
-        additionalTourists.addTourists(new Coord(2584119.065, 1110414.252), 100); //La Tzoumaz, Telecab
-        additionalTourists.addTourists(new Coord(2584119.065, 1110414.252), 300);// Iserables
-        additionalTourists.addTourists(new Coord(2579102.308, 1116877.334), 200);// Ovronnaz
-        additionalTourists.writePopulation("C:\\devsbb\\tmp\\plans_with_additional_tourists.xml.gz");
+        additionalTourists.addTourists(new Coord(2588630.147, 1114324.669), 1050); //Haute-Nendaz
+        additionalTourists.addTourists(new Coord(2584119.065, 1110414.252), 300); //La Tzoumaz, Telecab
+        additionalTourists.addTourists(new Coord(2584119.065, 1110414.252), 600);// Iserables
+        additionalTourists.addTourists(new Coord(2579102.308, 1116877.334), 400);// Ovronnaz
+        additionalTourists.writePopulation("C:\\devsbb\\tmp\\plans_with_additional_tourists_var02.xml.gz");
     }
 
     private void writePopulation(String ouputFile) {

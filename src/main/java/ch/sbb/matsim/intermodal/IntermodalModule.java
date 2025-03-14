@@ -45,7 +45,7 @@ public class IntermodalModule extends AbstractModule {
 			}
 			bind(RaptorIntermodalAccessEgress.class).to(SBBRaptorIntermodalAccessEgress.class).asEagerSingleton();
 			bind(AccessEgressRouteCache.class).to(GridbasedAccessEgressCache.class).asEagerSingleton();
-			bind(RaptorStopFinder.class).to(SBBIntermodalRaptorStopFinder.class);
+			bind(RaptorStopFinder.class).to(SBBIntermodalRaptorStopFinder.class).asEagerSingleton();
 		}
 	}
 
