@@ -1,8 +1,9 @@
 package ch.sbb.matsim.rideshare;
 
-import ch.sbb.matsim.RunSBB;
-import ch.sbb.matsim.rideshare.analysis.SBBDRTAnalysisModule;
-import ch.sbb.matsim.rideshare.utils.RideshareAwareIntermodalMainModeIdentifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -21,9 +22,9 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.router.MainModeIdentifier;
 import org.matsim.core.scenario.ScenarioUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import ch.sbb.matsim.RunSBB;
+import ch.sbb.matsim.intermodal.IntermodalAwareRouterModeIdentifier;
+import ch.sbb.matsim.rideshare.analysis.SBBDRTAnalysisModule;
 
 public class RunSBBDRTScenario {
 
@@ -70,7 +71,7 @@ public class RunSBBDRTScenario {
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
-				bind(MainModeIdentifier.class).to(RideshareAwareIntermodalMainModeIdentifier.class);
+				bind(MainModeIdentifier.class).to(IntermodalAwareRouterModeIdentifier.class);
 			}
 		});
 	}
