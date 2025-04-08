@@ -43,12 +43,14 @@ public class BorderCrossingAgentsGenerator {
         String zonesFile = args[1];
         String nuts3Demand = args[2];
         String ageDistributionFile = args[3];
-        String outputPath = args[4];
+        String borderPointsFile = args[4];
+
+        String outputPath = args[5];
         Random random = MatsimRandom.getRandom();
         BorderCrossingAgentsGenerator borderCrossingAgentsGenerator = new BorderCrossingAgentsGenerator(random);
         borderCrossingAgentsGenerator.readNuts3Demand(nuts3Demand);
         borderCrossingAgentsGenerator.readAgeDistribution(ageDistributionFile);
-        borderCrossingAgentsGenerator.prepareOSMData(osmFile, zonesFile);
+        borderCrossingAgentsGenerator.prepareOSMData(osmFile, zonesFile, borderPointsFile);
         borderCrossingAgentsGenerator.manuallyAdjustDistribution();
         borderCrossingAgentsGenerator.generatePersons();
         new PopulationWriter(borderCrossingAgentsGenerator.getPopulation()).write(outputPath + "/cb_commuter_plans.xml.gz");
@@ -169,6 +171,7 @@ public class BorderCrossingAgentsGenerator {
                 double commuters = Double.parseDouble(line.get("Pendler"));
                 this.commutersPerNuts3.put(nuts3, (int) commuters);
                 line = reader.readLine();
+                LogManager.getLogger(getClass()).info(nuts3 + "  " + commuters);
             }
 
         } catch (IOException e) {
@@ -177,12 +180,14 @@ public class BorderCrossingAgentsGenerator {
 
     }
 
-    private void prepareOSMData(String osmFile, String zonesFile) {
+    private void prepareOSMData(String osmFile, String zonesFile, String borderPointsFile) {
 
-        Zones zones = ZonesLoader.loadZones("ID_Zone", zonesFile, "ID_Zone");
+        Zones zones = ZonesLoader.loadZones("zone_id", zonesFile, "zone_id");
         borderCrossingAgentsOSMBuildingParser = new BorderCrossingAgentsOSMBuildingParser(TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus), Executors.newWorkStealingPool(), zones);
-        borderCrossingAgentsOSMBuildingParser.parse(Paths.get(osmFile));
+        borderCrossingAgentsOSMBuildingParser.parseOSM(Paths.get(osmFile));
         borderCrossingAgentsOSMBuildingParser.assignZones(random);
+        borderCrossingAgentsOSMBuildingParser.parseBorderPoints(borderPointsFile);
+
         nuts3ToZoneSelector = borderCrossingAgentsOSMBuildingParser.prepareRandomDistributor(true, random);
         zonalBuildingSelector = borderCrossingAgentsOSMBuildingParser.getWeightedBuildingsPerZone();
     }

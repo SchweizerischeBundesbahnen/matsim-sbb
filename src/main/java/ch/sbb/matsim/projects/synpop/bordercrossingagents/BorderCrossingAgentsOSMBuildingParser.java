@@ -1,5 +1,6 @@
 package ch.sbb.matsim.projects.synpop.bordercrossingagents;
 
+import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -16,6 +17,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Polygon;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
+import org.matsim.contrib.common.util.DistanceUtils;
 import org.matsim.contrib.common.util.WeightedRandomSelection;
 import org.matsim.contrib.osm.networkReader.PbfParser;
 import org.matsim.core.gbl.MatsimRandom;
@@ -47,6 +49,8 @@ public class BorderCrossingAgentsOSMBuildingParser {
 
     private Map<Long, Coord> nodeStorage;
     private HashMap<Id<Zone>, BuildingsPerZone> buildingsPerZone;
+    private final Set<Coord> borderpoints = new HashSet<>();
+    private final Map<Id<Zone>, Double> distancesToSwissBorder = new HashMap<>();
 
 
     BorderCrossingAgentsOSMBuildingParser(CoordinateTransformation transformation, ExecutorService executor, Zones zones) {
@@ -56,11 +60,13 @@ public class BorderCrossingAgentsOSMBuildingParser {
     }
 
     public static void main(String[] args) {
-        Zones zones = ZonesLoader.loadZones("ID_Zone", args[1], "ID_Zone");
+        Zones zones = ZonesLoader.loadZones("zone_id", args[1], "zone_id");
         BorderCrossingAgentsOSMBuildingParser borderCrossingAgentsOSMBuildingParser = new BorderCrossingAgentsOSMBuildingParser(TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.CH1903_LV03_Plus), Executors.newWorkStealingPool(), zones);
-        borderCrossingAgentsOSMBuildingParser.parse(Paths.get(args[0]));
+        borderCrossingAgentsOSMBuildingParser.parseBorderPoints(args[2]);
+        borderCrossingAgentsOSMBuildingParser.prepareZonalBorderDistances();
+        borderCrossingAgentsOSMBuildingParser.parseOSM(Paths.get(args[0]));
         borderCrossingAgentsOSMBuildingParser.assignZones(MatsimRandom.getRandom());
-        borderCrossingAgentsOSMBuildingParser.writeTable(args[2]);
+        borderCrossingAgentsOSMBuildingParser.writeTable(args[3]);
         System.out.println("done");
     }
 
@@ -118,7 +124,7 @@ public class BorderCrossingAgentsOSMBuildingParser {
 
             if (zone != null) {
                 var zoneId = zone.getId();
-                String nuts3 = String.valueOf(zone.getAttribute("NUTS3"));
+                String nuts3 = String.valueOf(zone.getAttribute("nuts3"));
                 double floors = data.floors() > 0 ? data.floors() : 1.;
                 if (data.residential) {
                     double weight = polygon.getArea() * floors;
@@ -136,7 +142,7 @@ public class BorderCrossingAgentsOSMBuildingParser {
 
     }
 
-    void parse(Path inputFile) {
+    void parseOSM(Path inputFile) {
         buildingData = new ConcurrentHashMap<>();
         buildingDataNodeStorage = new ConcurrentHashMap<>();
         nodeStorage = new ConcurrentHashMap<>();
@@ -201,6 +207,7 @@ public class BorderCrossingAgentsOSMBuildingParser {
         Set<String> nuts3data = this.buildingsPerZone.values().stream().map(data -> data.nuts3Id()).collect(Collectors.toSet());
         Map<String, WeightedRandomSelection<Id<Zone>>> weightsPerNuts = new HashMap<>();
         for (String nutsZone : nuts3data) {
+
             WeightedRandomSelection<Id<Zone>> selection = new WeightedRandomSelection<>(random);
             this.buildingsPerZone.values().stream().filter(data -> data.nuts3Id.equals(nutsZone)).forEach(data -> {
                 Zone zone = zones.getZone(data.zoneId);
@@ -217,6 +224,10 @@ public class BorderCrossingAgentsOSMBuildingParser {
 
     private double getZonalCorrectionFactor(Id<Zone> zoneId) {
         double factor = 1.0;
+        double borderDistanceKM = this.distancesToSwissBorder.get(zoneId) / 1000.;
+        if (borderDistanceKM > 10) {
+            factor = Math.max(0.1, 1.0 - borderDistanceKM / 100.);
+        }
         String zoneIdString = zoneId.toString();
         if (zoneIdString.equals(("730101001"))) {
             //Campione, very densely built and too attractive
@@ -302,6 +313,43 @@ public class BorderCrossingAgentsOSMBuildingParser {
             this.buildings.increment();
         }
     }
+
+    private void prepareZonalBorderDistances() {
+        for (Zone zone : (zones).getZones()) {
+            double distanceToBorder = 0.0;
+            if (Integer.parseInt(zone.getId().toString()) >= 710101001) {
+                Coord zoneCenter = MGC.coordinate2Coord(zone.getEnvelope().centre());
+                distanceToBorder = findClosestBorderPointDistance(zoneCenter);
+            }
+            distancesToSwissBorder.put(zone.getId(), distanceToBorder);
+
+        }
+    }
+
+    private double findClosestBorderPointDistance(Coord zoneCenter) {
+        double minDistance = this.borderpoints.stream()
+                .mapToDouble(coord -> DistanceUtils.calculateSquaredDistance(zoneCenter, coord))
+                .min()
+                .getAsDouble();
+        return Math.sqrt(minDistance);
+    }
+
+    public void parseBorderPoints(String borderPointsFile) {
+        try (CSVReader reader = new CSVReader(borderPointsFile, ";")) {
+            var line = reader.readLine();
+            while (line != null) {
+                double x = Double.parseDouble(line.get("x"));
+                double y = Double.parseDouble(line.get("y"));
+                this.borderpoints.add(new Coord(x, y));
+                line = reader.readLine();
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        prepareZonalBorderDistances();
+    }
+
 
 
 }
