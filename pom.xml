@@ -10,9 +10,10 @@
 
     <repositories>
 
+
         <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
+            <id>arrow</id>
+            <url>https://repo.maven.apache.org/maven2/org/apache/arrow/</url>
         </repository>
 
         <repository>
@@ -34,10 +35,12 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
+
         <repository>
             <id>jogl</id>
             <url>https://jogamp.org/deployment/maven/</url>
         </repository>
+
         <repository>
             <id>msmobility-msm</id>
             <url>https://dl.cloudsmith.io/public/msmobility/msm/maven/</url>
@@ -50,6 +53,11 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+
 
     </repositories>
 
@@ -117,6 +125,27 @@
             <artifactId>guava</artifactId>
             <version>32.0.0-jre</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.arrow</groupId>
+            <artifactId>arrow-vector</artifactId>
+            <version>18.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.arrow</groupId>
+            <artifactId>arrow-memory-core</artifactId>
+            <version>18.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.arrow</groupId>
+            <artifactId>arrow-memory-netty</artifactId>
+            <version>18.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.arrow</groupId>
+            <artifactId>arrow-compression</artifactId>
+            <version>18.1.0</version>
+        </dependency>
+
 
         <!-- Include the JUnit testing library -->
         <dependency>
