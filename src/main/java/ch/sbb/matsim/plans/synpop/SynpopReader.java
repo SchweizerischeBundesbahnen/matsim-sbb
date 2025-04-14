@@ -8,9 +8,9 @@ import org.apache.arrow.vector.ipc.SeekableReadChannel;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.PopulationWriter;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.households.Household;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,12 +19,13 @@ import java.io.IOException;
 public class SynpopReader {
 
     public static void main(String[] args) {
-        String featherPopulation = "C:\\devsbb\\tmp\\synpop_2022\\persons_2022.feather";
+        String featherPopulation = "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_custom_batched.arrow";
         Population pop = PopulationUtils.createPopulation(ConfigUtils.createConfig());
-        readSynpopFile(featherPopulation, pop);
         double time = System.nanoTime();
+        readSynpopFile(featherPopulation, pop);
         System.out.println(pop.getPersons().size());
-        System.out.println("Calculation time " + 0.001 * System.nanoTime() / time);
+        System.out.println("Calculation time " + 0.001 * (System.nanoTime() - time));
+        new PopulationWriter(pop).write("C:\\devsbb\\tmp\\synpop_2022\\persons_2022.xml.gz");
     }
 
     public static void readSynpopFile(String filePath, Population population) {
@@ -55,20 +56,20 @@ public class SynpopReader {
 
                     Id<Person> personId = Id.createPersonId(personIdVector.get(i));
                     Person person = population.getFactory().createPerson(Id.createPersonId(personId));
-                    person.getAttributes().putAttribute(SynpopConstants.HOUSEHOLD_ID, Id.create(householdIdVector.get(i), Household.class));
-                    person.getAttributes().putAttribute(SynpopConstants.POSITION_IN_BUS, positionInBusVector.get(i));
-                    person.getAttributes().putAttribute(SynpopConstants.HIGHEST_EDUCATION, highestEducationVector.get(i));
-                    person.getAttributes().putAttribute(SynpopConstants.POSITION_IN_EDU, positionInEduVector.get(i));
-                    person.getAttributes().putAttribute(SynpopConstants.NATION, nationVector.get(i));
-                    person.getAttributes().putAttribute(SynpopConstants.LANGUAGE, languageVector.get(i));
+                    person.getAttributes().putAttribute(SynpopConstants.HOUSEHOLD_ID, Long.toString(householdIdVector.get(i)));
+                    person.getAttributes().putAttribute(SynpopConstants.POSITION_IN_BUS, Integer.valueOf(positionInBusVector.get(i)));
+                    person.getAttributes().putAttribute(SynpopConstants.HIGHEST_EDUCATION, Integer.valueOf(highestEducationVector.get(i)));
+                    person.getAttributes().putAttribute(SynpopConstants.POSITION_IN_EDU, Integer.valueOf(positionInEduVector.get(i)));
+                    person.getAttributes().putAttribute(SynpopConstants.NATION, Integer.valueOf(nationVector.get(i)));
+                    person.getAttributes().putAttribute(SynpopConstants.LANGUAGE, Integer.valueOf(languageVector.get(i)));
                     person.getAttributes().putAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT, levelOfEmploymentVector.get(i));
                     person.getAttributes().putAttribute(SynpopConstants.AGE, ageVector.get(i));
                     person.getAttributes().putAttribute(SynpopConstants.IS_SWISS, isSwissVector.get(i) == 1);
                     person.getAttributes().putAttribute(SynpopConstants.ANALYSIS_SUBPOPULATION, analysisSubpopulationVector.getObject(i).toString());
                     person.getAttributes().putAttribute(SynpopConstants.IS_EMPLOYED, isEmployedVector.get(i) == 1);
-                    person.getAttributes().putAttribute(SynpopConstants.LOE_GROUP, loeGroupVector.get(i));
-                    person.getAttributes().putAttribute(SynpopConstants.CURRENT_EDU, currentEduVector.get(i));
-                    person.getAttributes().putAttribute(SynpopConstants.CURRENT_JOB_RANK, currentJobRankVector.get(i));
+                    person.getAttributes().putAttribute(SynpopConstants.LOE_GROUP, Integer.valueOf(loeGroupVector.get(i)));
+                    person.getAttributes().putAttribute(SynpopConstants.CURRENT_EDU, Integer.valueOf(currentEduVector.get(i)));
+                    person.getAttributes().putAttribute(SynpopConstants.CURRENT_JOB_RANK, Integer.valueOf(currentJobRankVector.get(i)));
                     person.getAttributes().putAttribute(SynpopConstants.IS_APPRENTICE, isApprenticeVector.get(i) == 1);
                     population.addPerson(person);
                 }

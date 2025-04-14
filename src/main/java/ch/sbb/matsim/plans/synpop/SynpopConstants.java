@@ -20,12 +20,29 @@ public class SynpopConstants {
     public static final String CURRENT_EDU = "current_edu";
     public static final String CURRENT_JOB_RANK = "current_job_rank";
     public static final String IS_APPRENTICE = "is_apprentice";
+    public static final String XCOORD = "xcoord";
+    public static final String YCOORD = "ycoord";
+    public static final String COORD = "coord";
+    public static final String ZONE_ID = "zone_id";
+    public static final String BUSINESS_ID = "business_id";
+    public static final String JOBS_ENDO = "jobs_endo";
+    public static final String JOBS_EXO = "jobs_exo";
+    public static final String FTE_EXO = "fte_exo";
+    public static final String FTE_ENDO = "fte_endo";
+    public static final String SCHOOL_TYPE = "school_type";
+    public static final String NOGA_CODE = "noga_code";
+    public static final String SECTOR = "sector";
 
     public static final List<String> RAW_SYNPOP_ATTRIBUTES = Arrays.asList(
             PERSON_ID, HOUSEHOLD_ID, POSITION_IN_BUS, HIGHEST_EDUCATION, POSITION_IN_EDU,
             NATION, LANGUAGE, LEVEL_OF_EMPLOYMENT, AGE, IS_SWISS,
             ANALYSIS_SUBPOPULATION, IS_EMPLOYED, LOE_GROUP, CURRENT_EDU,
             CURRENT_JOB_RANK, IS_APPRENTICE);
+    public static final List<String> RAW_BUSINESSES_ATTRIBUTES = Arrays.asList(
+            ZONE_ID, JOBS_ENDO, FTE_ENDO, JOBS_EXO, FTE_EXO,
+            SCHOOL_TYPE, XCOORD, YCOORD, NOGA_CODE, SECTOR);
+    public static final List<String> RAW_HOUSEHOLD_ATTRIBUTES = Arrays.asList(
+            HOUSEHOLD_ID, ZONE_ID, XCOORD, YCOORD);
 
 
 }
