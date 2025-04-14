@@ -1,5 +1,6 @@
 package ch.sbb.matsim.mavi.pt;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
@@ -256,7 +257,7 @@ public class TimeProfileExporter {
 				this.schedule.addTransitLine(line);
 			}
 
-			String mode = tp.tSysMOBi.toLowerCase();
+			String mode = tp.tSysMOBi.isEmpty() ? SBBModes.PT : tp.tSysMOBi.toLowerCase();
 			final TransitLine finalLine = line;
 			tp.vehicleJourneys.forEach(vj -> {
 				int from_tp_index = vj.fromTProfItemIndex;
@@ -349,7 +350,7 @@ public class TimeProfileExporter {
 				IntStream.range(0, values.length).forEach(j -> addAttribute(routeAttributes, custAttNames.get(j).getAttributeName(),
 						values[j], custAttNames.get(j).getDataType()));
 
-				VehicleType vehType = getVehicleType(tp.tSysCode, vj.vehCapacity, vj.standingRoom);
+				VehicleType vehType = getVehicleType(tp.tSysCode, vj.vehCapacity, vj.standingRoom, mode);
 				Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, vehType);
 				this.vehicles.addVehicle(vehicle);
 			});
@@ -438,12 +439,13 @@ public class TimeProfileExporter {
 		}
 	}
 
-	private VehicleType getVehicleType(String tSysCode, int capacity, int standingRoom) {
+	private VehicleType getVehicleType(String tSysCode, int capacity, int standingRoom, String mode) {
 		Id<VehicleType> vehicleTypeId = Id.create(tSysCode + "_" + capacity + "_" + standingRoom, VehicleType.class);
 		VehicleType vehType = this.vehicles.getVehicleTypes().get(vehicleTypeId);
 		if (vehType == null) {
 			vehType = this.vehicleBuilder.createVehicleType(vehicleTypeId);
 			vehType.setDescription(tSysCode);
+			vehType.setNetworkMode(mode);
 			VehicleUtils.setDoorOperationMode(vehType, DoorOperationMode.serial);
 			VehicleCapacity vehicleCapacity = vehType.getCapacity();
 			if (capacity < 0) {
