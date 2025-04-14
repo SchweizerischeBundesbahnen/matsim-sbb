@@ -55,7 +55,7 @@ public class MTTExporter {
 		Visum.ComObject filters = visum.getComObject("Filters");
 		Visum.ComObject linkFilter = visum.callComObject(filters, "LinkFilter");
 		visum.initFilter(linkFilter);
-		visum.setFilterCondition(linkFilter, new Visum.FilterCondition(0, "OP_NONE", false, "TSysSet", 13, "F"));
+		visum.setFilterCondition(linkFilter, new Visum.FilterCondition(0, "OP_NONE", false, "TSysSet", 14, "F,O"));
 		visum.useFilter(linkFilter, true);
 
 		Visum.ComObject links = visum.getNetObject("Links");
