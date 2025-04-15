@@ -4,6 +4,7 @@ import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.convergence.ConvergenceConfigGroup;
 import ch.sbb.matsim.analysis.convergence.ConvergenceStats;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
+import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import com.google.inject.Provider;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
@@ -36,6 +37,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -77,8 +79,11 @@ public class ConvergenceStatsTest {
 	@Test
 	public void test_convergenceCriterion() throws IOException {
 		System.setProperty("matsim.preferLocalDtds", "true");
-		Config config = RunSBB.buildConfig("test/input/scenarios/mobi31test/config.xml");
+		Config config = RunSBB.buildConfig("test/input/scenarios/mobi50test/config_2023.xml");
 		config.controller().setMobsim("qsim");
+		config.controller().setLegDurationsInterval(0);
+		config.controller().setLegHistogramInterval(0);
+		ConfigUtils.addOrGetModule(config, SBBTransitConfigGroup.class).setDeterministicServiceModes(Collections.emptySet());
 		// integrate config
 		ConvergenceConfigGroup csConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
 		csConfig.setActivateConvergenceStats(true);

@@ -537,7 +537,7 @@
         </parameterset>
     </module>
     <module name="transit">
-        <param name="transitModes" value="pt"/>
+        <param name="transitModes" value="pt,bus,rail,other,tram"/>
         <!-- Input file containing the transit schedule to be simulated. -->
         <param name="transitScheduleFile" value="&transit_schedule;/transitSchedule.xml.gz"/>
         <!-- Optional input file containing additional attributes for transit stop facilities, stored as ObjectAttributes. -->
