@@ -660,17 +660,17 @@ public class Accessibility {
 			// CAR
 			if (this.requiresCar) {
 				for (int i = 0; i < this.amLcpTree.length; i++) {
-					this.amLcpTree[i].calculate(nearestNode.getId().index(), this.carAMDepTimes[i], null, null);
+					this.amLcpTree[i].calculate(nearestNode, this.carAMDepTimes[i], null, null);
 				}
 
 				for (int i = 0; i < this.pmLcpTree.length; i++) {
-					this.pmLcpTree[i].calculate(nearestNode.getId().index(), this.carPMDepTimes[i], null, null);
+					this.pmLcpTree[i].calculate(nearestNode, this.carPMDepTimes[i], null, null);
 				}
 			}
 
 			// WALK, BIKE
 			{
-				this.shortestLcpTree.calculate(nearestNode.getId().index(), 8 * 3600.0, null, null);
+				this.shortestLcpTree.calculate(nearestNode, 8 * 3600.0, null, null);
 			}
 
 			// PT
@@ -970,11 +970,11 @@ public class Accessibility {
 			double carAccessTime = Double.NaN;
 			if (this.requiresCar) {
 				for (int i = 0; i < this.amLcpTree.length; i++) {
-					this.amLcpTree[i].calculate(nearestNode.getId().index(), this.carAMDepTimes[i], null, null);
+					this.amLcpTree[i].calculate(nearestNode, this.carAMDepTimes[i], null, null);
 				}
 
 				for (int i = 0; i < this.pmLcpTree.length; i++) {
-					this.pmLcpTree[i].calculate(nearestNode.getId().index(), this.carPMDepTimes[i], null, null);
+					this.pmLcpTree[i].calculate(nearestNode, this.carPMDepTimes[i], null, null);
 				}
 
 				Zone fromZone = this.zones.findZone(fromCoord.getX(), fromCoord.getY());
@@ -983,7 +983,7 @@ public class Accessibility {
 
 			// WALK, BIKE
 			{
-				this.shortestLcpTree.calculate(nearestNode.getId().index(), 8 * 3600.0, null, null);
+				this.shortestLcpTree.calculate(nearestNode, 8 * 3600.0, null, null);
 			}
 
 			// PT

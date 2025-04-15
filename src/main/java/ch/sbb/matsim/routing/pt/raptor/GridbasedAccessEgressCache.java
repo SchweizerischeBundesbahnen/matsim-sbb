@@ -162,8 +162,8 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
         Link bikeFromLink = NetworkUtils.getNearestLink(bikenet, stop.getCoord());
         Node bikeFromNode = bikeFromLink.getToNode();
-        carLeastCostPathTree.calculate(carFromNode.getId().index(), 0, null, null, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
-        bikeLeastCostPathTree.calculate(bikeFromNode.getId().index(), 0, null, bike, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
+        carLeastCostPathTree.calculate(carFromNode, 0, null, null, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
+        bikeLeastCostPathTree.calculate(bikeFromNode, 0, null, bike, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
 
 
         int[][] dist = new int[cellSize][4];
