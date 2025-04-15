@@ -86,6 +86,7 @@ public class RunVisumPtExporter {
 		// load transit lines
 		TimeProfileExporter tpe = new TimeProfileExporter(scenario);
 		tpe.createTransitLines(visum, exporterConfig);
+		tpe.createDepartureChaining(visum);
 		// reduce the size of the network and the schedule by taking necessary things only.
 		MaviHelper.cleanStops(scenario.getTransitSchedule());
 		MaviHelper.removeUnusedLinksInPTNetwork(scenario.getTransitSchedule(), scenario.getNetwork());
