@@ -102,7 +102,8 @@ public class StreetNetworkExporter {
     private static void simplifyNetwork(Network network, Set<Id<Link>> linksWithCountingStations) {
         NetworkSimplifier simplifier = new NetworkSimplifier();
         simplifier.setMergeLinkStats(true);
-        simplifier.run(network, ((link, link2) -> link.getAllowedModes().equals(link2.getAllowedModes()) && !linksWithCountingStations.contains(link.getId()) && !linksWithCountingStations.contains(link2.getId())), (linkLinkTuple, link) -> {
+        simplifier.registerIsMergeablePredicate((link, link2) -> link.getAllowedModes().equals(link2.getAllowedModes()) && !linksWithCountingStations.contains(link.getId()) && !linksWithCountingStations.contains(link2.getId()));
+        simplifier.registerTransferAttributesConsumer(((linkLinkTuple, link) -> {
             String newPolyLine = mergeWKTPolygons(linkLinkTuple);
             if (newPolyLine != null) link.getAttributes().putAttribute(PolylinesCreator.WKT_ATTRIBUTE, newPolyLine);
             int accessControlled = Math.min(1, (int) linkLinkTuple.getFirst().getAttributes().getAttribute(Variables.ACCESS_CONTROLLED) + (int) linkLinkTuple.getSecond().getAttributes().getAttribute(Variables.ACCESS_CONTROLLED));
@@ -112,7 +113,8 @@ public class StreetNetworkExporter {
             link.setCapacity(Math.max(linkLinkTuple.getFirst().getCapacity(), linkLinkTuple.getSecond().getCapacity()));
             link.setNumberOfLanes(Math.max(linkLinkTuple.getFirst().getNumberOfLanes(), linkLinkTuple.getSecond().getNumberOfLanes()));
 
-        });
+        }));
+        simplifier.run(network);
     }
 
     private static String mergeWKTPolygons(Tuple<Link, Link> linksToMerge) {
