@@ -111,9 +111,13 @@ public class DemandAggregator {
         ppcg.setZonesId("zones");
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         DemandAggregator demandAggregator = new DemandAggregator(scenario, zonesCollection, ppcg, railTripsAnalyzer);
+        demandAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(
+                Collectors.toSet()));
+
         demandAggregator
-                .writeMatrix(demandAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(
-                        Collectors.toSet())), outputFile);
+                .writeMatrix(demandAggregator.prepareRailMatrix(false), outputFile);
+        demandAggregator
+                .writeMatrix(demandAggregator.prepareRailMatrix(true), outputFile.replace(".csv", ".fqOnly.csv"));
 
     }
 
@@ -125,11 +129,17 @@ public class DemandAggregator {
 
     void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerMSRFile, Collection<Plan> experiencedPlans) {
         LOG.info("aggregating Rail Demand");
-        float[][] matrix = aggregateRailDemand(scalefactor, experiencedPlans);
+        aggregateRailDemand(scalefactor, experiencedPlans);
+        var railDemandMatrix = prepareRailMatrix(false);
+        var railDemandFQMatrix = prepareRailMatrix(true);
+        writeMatrix(railDemandMatrix, outputMatrixFile);
+        writeMatrix(railDemandFQMatrix, outputMatrixFile.replace(".csv", "_fqOnly.csv"));
+
         LOG.info("aggregating Trip Demand");
         aggregateTripDemand(scalefactor, experiencedPlans);
         LOG.info("Writing Trip Demand aggregate files.");
-        writeMatrix(matrix, outputMatrixFile);
+
+
         writeStationToStationDemand(stationToStationFile, stationToStationFQFile);
         writeTripDemand("mun_id", "mun_name", tripsPerMunFile);
         writeTripDemand("amr_id", "amr_name", tripsPerMSRFile);
@@ -319,17 +329,12 @@ public class DemandAggregator {
         }
     }
 
-    private float[][] aggregateRailDemand(double scaleFactor, Collection<Plan> plans) {
-        float[][] matrix = new float[aggregateZones.size()][aggregateZones.size()];
+    private void aggregateRailDemand(double scaleFactor, Collection<Plan> plans) {
         for (Plan plan : plans) {
             for (Trip trip : TripStructureUtils.getTrips(plan)) {
                 RailTripsAnalyzer.RailTravelInfo od = railTripsAnalyzer.getRailTravelInfo(trip);
                 double pkmFQ = railTripsAnalyzer.getFQDistance(trip, true);
                 if (od != null) {
-                    String fromZone = aggregateZoneStop.get(od.fromStation());
-                    String toZone = aggregateZoneStop.get(od.toStation());
-                    matrix[aggregateZones.indexOf(fromZone)][aggregateZones.indexOf(toZone)] += scaleFactor;
-
                     RailODTravelInfo travelInfo = this.odRailDemandMatrix.computeIfAbsent(od.fromStation(), a -> new TreeMap<>()).computeIfAbsent(od.toStation(), b -> new RailODTravelInfo(new MutableDouble(), new MutableDouble(), new MutableDouble(), new MutableDouble()));
                     travelInfo.demand.add(scaleFactor);
                     travelInfo.travelDistance().add(scaleFactor * od.distance() * 0.001);
@@ -345,6 +350,20 @@ public class DemandAggregator {
                 }
             }
         }
+    }
+
+    private float[][] prepareRailMatrix(boolean fqOnly) {
+        float[][] matrix = new float[aggregateZones.size()][aggregateZones.size()];
+        var demandMatrix = fqOnly ? this.odRailDemandMatrixFQ : this.odRailDemandMatrix;
+        for (var fromStopDemand : demandMatrix.entrySet()) {
+            var fromStopId = fromStopDemand.getKey();
+            String fromZone = aggregateZoneStop.get(fromStopId);
+            for (var toStopDemand : fromStopDemand.getValue().entrySet()) {
+                String toZone = aggregateZoneStop.get(toStopDemand.getKey());
+                matrix[aggregateZones.indexOf(fromZone)][aggregateZones.indexOf(toZone)] += toStopDemand.getValue().demand.floatValue();
+            }
+        }
+
         return matrix;
     }
 
