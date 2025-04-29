@@ -40,6 +40,7 @@ public class RunVisumPtExporter {
 
 	private static final String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
 	private static final String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
+	private static final String ZONECONNECTIONS_OUT = "zoneConnections.csv";
 
 	public static void main(String[] args) throws IOException {
 		new RunVisumPtExporter().run(args[0]);
@@ -52,12 +53,13 @@ public class RunVisumPtExporter {
 
 	}
 
-	private static void writeFiles(Scenario scenario, String outputPath) {
+	private static void writeFiles(Scenario scenario, VisumConnectionsExporter connectionsExporter, String outputPath) {
 		new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, Filenames.PT_NETWORK_POLYLINES).getPath());
 		StreetNetworkExporter.removePolylines(scenario.getNetwork());
 		new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, Filenames.PT_NETWORK).getPath());
 		new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(new File(outputPath, TRANSITSCHEDULE_OUT).getPath());
 		new MatsimVehicleWriter(scenario.getVehicles()).writeFile(new File(outputPath, TRANSITVEHICLES_OUT).getPath());
+		connectionsExporter.writeConnections(new File(outputPath, ZONECONNECTIONS_OUT).getPath());
 	}
 
 	public void run(String configFile) throws IOException {
@@ -99,9 +101,12 @@ public class RunVisumPtExporter {
 		}
 		MobiTransitScheduleVerifiyer.verifyTransitSchedule(scenario.getTransitSchedule());
 
+		// load zone connections
+		VisumConnectionsExporter connectionsExporter = new VisumConnectionsExporter(visum);
+
 		// write outputs
 		createOutputPath(exporterConfig.getOutputPathURL(config.getContext()));
-		writeFiles(scenario, exporterConfig.getOutputPathURL(config.getContext()).getPath());
+		writeFiles(scenario, connectionsExporter, exporterConfig.getOutputPathURL(config.getContext()).getPath());
 	}
 
 
