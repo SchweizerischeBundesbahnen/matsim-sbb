@@ -95,26 +95,31 @@ public class Variables {
     public static final String AGE_CATEGORY_65_74 = "65_to_74";
     public static final String AGE_CATEGORY_75_XX = "75_to_XX";
 
+
     public static boolean isSwissZone(Id<Zone> id) {
         return (Integer.parseInt(id.toString()) < 700000000);
     }
 
     public static class MOBiTripAttributes {
+
         public static final String TOUR_ID = "next_trip_tour_id";
         public static final String TRIP_ID = "next_trip_id";
         public static final String PURPOSE = "next_trip_purpose";
         public static final String DIRECTION = "next_trip_direction";
+        public static final String DNWV_FACTOR = "next_trip_dnwv_factor";
 
         private final Integer tourId;
         private final Integer tripId;
         private final String tripPurpose;
         private final String tripDirection;
+        private final Double dnwvFactor;
 
-        public MOBiTripAttributes(Integer tourId, Integer tripId, String tripPurpose, String tripDirection) {
+        public MOBiTripAttributes(Integer tourId, Integer tripId, String tripPurpose, String tripDirection, Double dnwvFactor) {
             this.tourId = tourId;
             this.tripId = tripId;
             this.tripPurpose = tripPurpose;
             this.tripDirection = tripDirection;
+            this.dnwvFactor = dnwvFactor;
         }
 
         public static IdMap<Person, LinkedList<MOBiTripAttributes>> extractTripAttributes(Population population) {
@@ -126,8 +131,9 @@ public class Variables {
                             String purpose = (String) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.PURPOSE);
                             String direction = (String) activity.getAttributes().getAttribute(Variables.MOBiTripAttributes.DIRECTION);
                             Integer tripId = (Integer) activity.getAttributes().getAttribute(MOBiTripAttributes.TRIP_ID);
+                            Double dnwvFactor = (Double) activity.getAttributes().getAttribute(MOBiTripAttributes.DNWV_FACTOR);
                             if (tourId != null || purpose != null || direction != null || tripId != null) {
-                                return new Variables.MOBiTripAttributes(tourId, tripId, purpose, direction);
+                                return new Variables.MOBiTripAttributes(tourId, tripId, purpose, direction, dnwvFactor);
                             } else return null;
 
                         }).filter(
@@ -152,6 +158,11 @@ public class Variables {
         public String getTripDirection() {
             return tripDirection != null ? tripDirection : "";
         }
+
+        public String getDNWVFactor() {
+            return dnwvFactor != null ? Double.toString(dnwvFactor) : "";
+        }
+
     }
 
 }

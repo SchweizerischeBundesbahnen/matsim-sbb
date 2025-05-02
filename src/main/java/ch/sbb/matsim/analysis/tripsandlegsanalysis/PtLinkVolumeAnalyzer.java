@@ -21,16 +21,21 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
 import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.groups.NetworkConfigGroup;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.router.TripStructureUtils;
@@ -39,6 +44,7 @@ import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -57,13 +63,15 @@ public class PtLinkVolumeAnalyzer {
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final Set<Id<Link>> ptlinks;
     private final Network network;
+    private final Population population;
     @Inject
     private ExperiencedPlansService experiencedPlansService;
 
     @Inject
-    public PtLinkVolumeAnalyzer(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule, Network network) {
+    public PtLinkVolumeAnalyzer(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule, Network network, Population population) {
         this.railTripsAnalyzer = railTripsAnalyzer;
         this.network = network;
+        this.population = population;
         this.ptlinks = network.getLinks().values()
                 .stream()
                 .filter(l -> l.getAllowedModes().stream().anyMatch(m -> SBBModes.PT_PASSENGER_MODES.contains(m)))
@@ -73,6 +81,26 @@ public class PtLinkVolumeAnalyzer {
     }
 
     public Map<Id<Link>, Long> analysePtLinkUsage() {
+        Map<Id<Link>, Long> ptUsage = experiencedPlansService.getExperiencedPlans().values()
+                .stream()
+                .flatMap(p -> TripStructureUtils.getLegs(p).stream())
+                .filter(l -> SBBModes.PT_PASSENGER_MODES.contains(l.getMode()))
+                .map(l -> (TransitPassengerRoute) l.getRoute())
+                .flatMap(r -> railTripsAnalyzer.getPtLinkIdsTraveledOn(r).stream())
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        return ptUsage;
+
+    }
+
+    public Map<Id<Link>, Long> analysePtLinkUsageincludingDNWV() {
+        IdMap<Person, LinkedList<Variables.MOBiTripAttributes>> additionalTripAttributes = new IdMap<>(Person.class, 100);
+        additionalTripAttributes = Variables.MOBiTripAttributes.extractTripAttributes(population);
+
+        for (Plan plan : experiencedPlansService.getExperiencedPlans().values()) {
+            var trips = TripStructureUtils.getTrips(plan);
+
+        }
+
         Map<Id<Link>, Long> ptUsage = experiencedPlansService.getExperiencedPlans().values()
                 .stream()
                 .flatMap(p -> TripStructureUtils.getLegs(p).stream())
