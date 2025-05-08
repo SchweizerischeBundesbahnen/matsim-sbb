@@ -4,6 +4,9 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.projects.synpop.SingleTripAgentToCSVConverter;
+import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesLoader;
 import omx.OmxFile;
 import omx.OmxLookup;
 import org.apache.logging.log4j.LogManager;
@@ -35,17 +38,21 @@ public class CompareRailDemandFQ {
     private final Random random = MatsimRandom.getRandom();
     private final Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
     private final Map<Id<TransitStopFacility>, List<Id<ActivityFacility>>> facilitiesAroundStops = new ConcurrentHashMap<>();
+    private final String aggregationAttribute;
     private double[][] fqDemandDWV;
     private Map<Id<TransitStopFacility>, List<Integer>> stopIdToZonesMap;
     private final Set<Id<TransitStopFacility>> stopsFilter = new HashSet<>();
     private final Set<Id<TransitStopFacility>> stopsWithDestinationScalingOnly = new HashSet<>();
     private final Map<Id<TransitStopFacility>, Map<Id<TransitStopFacility>, Double>> mobiDemand = new HashMap<>();
+    private final Map<String, Map<String, Double>> aggregatedMobiDemand = new HashMap<>();
+    private final Map<String, Map<String, Double>> aggregatedPaxflow = new HashMap<>();
     private final Map<Integer, double[][]> fqDemandPerTimeSlice = new HashMap<>();
     private final double threshold = 1500.0;
     private int additionalPerson = 0;
 
-    public CompareRailDemandFQ(String identifier) {
+    public CompareRailDemandFQ(String identifier, String aggregationAttribute) {
         this.identifier = identifier;
+        this.aggregationAttribute = aggregationAttribute;
 
     }
 
@@ -58,10 +65,12 @@ public class CompareRailDemandFQ {
         String transitScheduleFilePath = args[4];
         String facilitiesFilePath = args[5];
         String identifier = args[6];
-        String outputPopulationFilePath = args[7];
+        String zonesFile = args[7];
+        String aggregationAttribute = args[8].equals("-") ? null : args[8];
+        String outputPopulationFilePath = args[9];
 
-        CompareRailDemandFQ compareRailDemandFQ = new CompareRailDemandFQ(identifier);
-        compareRailDemandFQ.prepareScenario(transitScheduleFilePath, facilitiesFilePath);
+        CompareRailDemandFQ compareRailDemandFQ = new CompareRailDemandFQ(identifier, aggregationAttribute);
+        compareRailDemandFQ.prepareScenario(transitScheduleFilePath, facilitiesFilePath, zonesFile);
         compareRailDemandFQ.readMatrix(matrixFilePath);
         compareRailDemandFQ.readZoneToStopIdMap(zoneToStopIdFilePath);
         compareRailDemandFQ.readWhitelistStopFile(whitelistStopFilePath);
@@ -76,9 +85,20 @@ public class CompareRailDemandFQ {
         return scenario;
     }
 
-    private void prepareScenario(String transitScheduleFile, String facilitiesFile) {
+    private void prepareScenario(String transitScheduleFile, String facilitiesFile, String zonesFile) {
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
         new MatsimFacilitiesReader(scenario).readFile(facilitiesFile);
+        if (aggregationAttribute != null) {
+            Zones zones = ZonesLoader.loadZones("zones", zonesFile);
+            scenario.getTransitSchedule().getFacilities().values().forEach(transitStopFacility -> {
+                Zone zone = zones.findZone(transitStopFacility.getCoord());
+                String zoneAttribute = Variables.DEFAULT_OUTSIDE_ZONE;
+                if (zone != null) {
+                    zoneAttribute = zone.getAttribute(aggregationAttribute).toString();
+                }
+                transitStopFacility.getAttributes().putAttribute(aggregationAttribute, zoneAttribute);
+            });
+        }
     }
 
     private void readMobiDemandFile(String filename) {
@@ -86,6 +106,7 @@ public class CompareRailDemandFQ {
             Map<String, String> row;
             while ((row = csvReader.readLine()) != null) {
                 Id<TransitStopFacility> fromStopId = Id.create(row.get("from_station"), TransitStopFacility.class);
+
                 Id<TransitStopFacility> toStopId = Id.create(row.get("to_station"), TransitStopFacility.class);
                 if (stopsFilter.contains(fromStopId) && stopsFilter.contains(toStopId)) {
                     double demand = Double.parseDouble(row.get("rail_trips"));
@@ -98,18 +119,28 @@ public class CompareRailDemandFQ {
     }
 
     private void readWhitelistStopFile(String fileName) {
+        Set<Id<TransitStopFacility>> invalidStops = new HashSet<>();
         try (CSVReader csvReader = new CSVReader(fileName, ";")) {
             Map<String, String> row;
             while ((row = csvReader.readLine()) != null) {
                 Id<TransitStopFacility> stopId = Id.create(row.get("stopId"), TransitStopFacility.class);
                 int destinationScaleOnly = Integer.parseInt(row.get("destination_scale_only"));
-                stopsFilter.add(stopId);
-                if (destinationScaleOnly == 1) {
-                    stopsWithDestinationScalingOnly.add(stopId);
+                if (scenario.getTransitSchedule().getFacilities().containsKey(stopId)) {
+                    stopsFilter.add(stopId);
+
+                    if (destinationScaleOnly == 1) {
+                        stopsWithDestinationScalingOnly.add(stopId);
+                    }
+                } else {
+                    invalidStops.add(stopId);
                 }
             }
         } catch (IOException e) {
             logger.error("Error reading CSV file: {}", e.getMessage());
+        }
+
+        if (!invalidStops.isEmpty()) {
+            logger.warn("The following stops are not present in the transit schedule: " + invalidStops);
         }
 
     }
@@ -147,7 +178,11 @@ public class CompareRailDemandFQ {
     }
 
     private void compareDemand() {
+        Map<Id<TransitStopFacility>, Map<Id<TransitStopFacility>, Double>> missingStopToStopDemand = new HashMap<>();
         for (var fromStopId : this.stopsFilter) {
+            HashMap<Id<TransitStopFacility>, Double> missingDemand = new HashMap<>();
+            TransitStopFacility fromStopFacility = this.scenario.getTransitSchedule().getFacilities().get(fromStopId);
+            missingStopToStopDemand.put(fromStopId, missingDemand);
             for (var toStopId : this.stopsFilter) {
                 if (stopsWithDestinationScalingOnly.contains(fromStopId) && stopsWithDestinationScalingOnly.contains(toStopId)) {
                     continue;
@@ -156,11 +191,52 @@ public class CompareRailDemandFQ {
                 var fromStopZones = this.stopIdToZonesMap.get(fromStopId);
                 var toStopZones = this.stopIdToZonesMap.get(toStopId);
                 double paxFlowDemand = getMultipleZonesDemand(fromStopZones, toStopZones, this.fqDemandDWV);
+                double difference = paxFlowDemand - mobiDemand;
+                TransitStopFacility toStopFacility = this.scenario.getTransitSchedule().getFacilities().get(toStopId);
+                missingDemand.put(toStopId, difference);
+                if (aggregationAttribute != null) {
+                    String fromZone = fromStopFacility.getAttributes().getAttribute(aggregationAttribute).toString();
+                    String toZone = toStopFacility.getAttributes().getAttribute(aggregationAttribute).toString();
+                    aggregatedMobiDemand.computeIfAbsent(fromZone, k -> new HashMap<>()).put(toZone, mobiDemand);
+                    aggregatedPaxflow.computeIfAbsent(fromZone, k -> new HashMap<>()).put(toZone, paxFlowDemand);
 
+                } else if (difference > 1.0) {
+                    addAdditionalDemand(fromStopId, toStopId, difference);
+                }
+            }
+        }
+        for (String fromZone : aggregatedMobiDemand.keySet()) {
+            for (String toZone : aggregatedMobiDemand.get(fromZone).keySet()) {
+                double mobiDemand = aggregatedMobiDemand.get(fromZone).get(toZone);
+                double paxFlowDemand = aggregatedPaxflow.get(fromZone).get(toZone);
                 double difference = paxFlowDemand - mobiDemand;
                 if (difference > 1.0) {
-                    addAdditionalDemand(fromStopId, toStopId, difference);
-
+                    var aggregatedStopTopStopDemandMissing = missingStopToStopDemand.entrySet()
+                            .stream().filter(entry -> scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getAttributes().getAttribute(aggregationAttribute).equals(fromZone))
+                            .flatMap(idMapEntry -> idMapEntry.getValue().entrySet().stream())
+                            .filter(entry -> scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getAttributes().getAttribute(aggregationAttribute).equals(toZone))
+                            .mapToDouble(entry -> entry.getValue())
+                            .filter(value -> value > 0.)
+                            .sum();
+                    double scaleFactor = difference / aggregatedStopTopStopDemandMissing;
+                    logger.info("from zone: " + fromZone + " to zone: " + toZone + " scale factor: " + scaleFactor);
+                    for (var fromStopId : this.stopsFilter) {
+                        if (!fromZone.equals(this.scenario.getTransitSchedule().getFacilities().get(fromStopId).getAttributes().getAttribute(aggregationAttribute).toString())) {
+                            continue;
+                        }
+                        for (var toStopId : this.stopsFilter) {
+                            if (stopsWithDestinationScalingOnly.contains(fromStopId) && stopsWithDestinationScalingOnly.contains(toStopId)) {
+                                continue;
+                            }
+                            if (!toZone.equals(this.scenario.getTransitSchedule().getFacilities().get(toStopId).getAttributes().getAttribute(aggregationAttribute).toString())) {
+                                continue;
+                            }
+                            double demand = missingStopToStopDemand.get(fromStopId).get(toStopId);
+                            if (demand > 0.0) {
+                                addAdditionalDemand(fromStopId, toStopId, demand * scaleFactor);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -180,10 +256,6 @@ public class CompareRailDemandFQ {
 
     private Coord drawCoordFromFacilityAroundStop(Id<TransitStopFacility> stopId) {
         var stop = scenario.getTransitSchedule().getFacilities().get(stopId);
-        if (stop == null) {
-            logger.error("Stop facility not found for stopId: {}", stopId);
-            return null;
-        }
         List<Id<ActivityFacility>> facilitiesAroundStop = this.facilitiesAroundStops.computeIfAbsent(stopId, transitStopFacilityId -> {
             Coord stopCoord = stop.getCoord();
             return scenario.getActivityFacilities().getFacilities().values().stream().filter(facility -> CoordUtils.calcEuclideanDistance(stopCoord, facility.getCoord()) < threshold).map(ActivityFacility::getId).collect(Collectors.toList());
