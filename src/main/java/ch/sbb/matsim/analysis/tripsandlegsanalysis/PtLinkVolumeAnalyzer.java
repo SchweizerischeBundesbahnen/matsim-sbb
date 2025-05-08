@@ -21,24 +21,38 @@ package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
+import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesLoader;
 import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Identifiable;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.NetworkConfigGroup;
 import org.matsim.core.network.filter.NetworkFilterManager;
+import org.matsim.core.network.io.MatsimNetworkReader;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.pt.routes.TransitPassengerRoute;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -57,13 +71,15 @@ public class PtLinkVolumeAnalyzer {
     private final RailTripsAnalyzer railTripsAnalyzer;
     private final Set<Id<Link>> ptlinks;
     private final Network network;
+    private final Population population;
     @Inject
     private ExperiencedPlansService experiencedPlansService;
 
     @Inject
-    public PtLinkVolumeAnalyzer(RailTripsAnalyzer railTripsAnalyzer, TransitSchedule schedule, Network network) {
+    public PtLinkVolumeAnalyzer(RailTripsAnalyzer railTripsAnalyzer, Network network, Population population) {
         this.railTripsAnalyzer = railTripsAnalyzer;
         this.network = network;
+        this.population = population;
         this.ptlinks = network.getLinks().values()
                 .stream()
                 .filter(l -> l.getAllowedModes().stream().anyMatch(m -> SBBModes.PT_PASSENGER_MODES.contains(m)))
@@ -72,27 +88,11 @@ public class PtLinkVolumeAnalyzer {
 
     }
 
-    public Map<Id<Link>, Long> analysePtLinkUsage() {
-        Map<Id<Link>, Long> ptUsage = experiencedPlansService.getExperiencedPlans().values()
-                .stream()
-                .flatMap(p -> TripStructureUtils.getLegs(p).stream())
-                .filter(l -> SBBModes.PT_PASSENGER_MODES.contains(l.getMode()))
-                .map(l -> (TransitPassengerRoute) l.getRoute())
-                .flatMap(r -> railTripsAnalyzer.getPtLinkIdsTraveledOn(r).stream())
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-        return ptUsage;
-
-    }
-
-    public void writePtLinkUsage(String outputfile, double scalefactor) {
-        NetworkFilterManager nfm = new NetworkFilterManager(network, new NetworkConfigGroup());
-        nfm.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
-        Network ptNetwork = nfm.applyFilters();
-        var ptVolumes = analysePtLinkUsage();
+    private static <T extends Number> void writeFile(String outputfile, double scalefactor, Map<Id<Link>, T> ptVolumes, Network ptNetwork) {
         try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile)) {
-            for (Entry<Id<Link>, Long> e : ptVolumes.entrySet()) {
+            for (Entry<Id<Link>, T> e : ptVolumes.entrySet()) {
                 Id<Link> currentLinkId = e.getKey();
-                int scaledVolume = (int) Math.round((double) e.getValue() * scalefactor);
+                int scaledVolume = (int) Math.round(e.getValue().doubleValue() * scalefactor);
                 Link l = ptNetwork.getLinks().get(currentLinkId);
                 if (l != null) {
                     var visumNodeAndLink = MaviHelper.extractVisumNodeAndLinkId(currentLinkId);
@@ -117,6 +117,97 @@ public class PtLinkVolumeAnalyzer {
         nfm2.addLinkFilter(link -> link.getAllowedModes().contains(PTSubModes.RAIL));
         Network railNet = nfm2.applyFilters();
         new NetworkWriter(railNet).write(outputfile + "_rail_network.xml.gz");
+    }
+
+    public static void main(String[] args) {
+        // Example usage
+        String folderPrefix = args[0];
+        double scaleFactor = Double.parseDouble(args[1]);
+        String zonesFile = args[2];
+        ZonesCollection zonesCollection = new ZonesCollection();
+        zonesCollection.addZones(ZonesLoader.loadZones("zones", zonesFile));
+
+        String outputPlans = folderPrefix + "output_plans.xml.gz";
+        String transitScheduleFile = folderPrefix + "output_transitSchedule.xml.gz";
+        String networkFile = folderPrefix + "output_network.xml.gz";
+
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new TransitScheduleReader(scenario).readFile(transitScheduleFile);
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
+        new PopulationReader(scenario).readFile(outputPlans);
+        RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
+
+        PtLinkVolumeAnalyzer analyzer = new PtLinkVolumeAnalyzer(railTripsAnalyzer, scenario.getNetwork(), scenario.getPopulation());
+        IdMap<Person, Plan> experiencedPlans = new IdMap<>(Person.class, scenario.getPopulation().getPersons().size());
+        scenario.getPopulation()
+                .getPersons()
+                .values()
+                .forEach(person -> experiencedPlans.put(person.getId(), person.getSelectedPlan()));
+        analyzer.writePtLinkUsage(folderPrefix + "pt_volumes_rewritten.att", scaleFactor, experiencedPlans);
+    }
+
+    public Map<Id<Link>, Long> analysePtLinkUsage(IdMap<Person, Plan> experiencedPlans) {
+        Map<Id<Link>, Long> ptUsage = experiencedPlans.values()
+                .stream()
+                .flatMap(p -> TripStructureUtils.getLegs(p).stream())
+                .filter(l -> SBBModes.PT_PASSENGER_MODES.contains(l.getMode()))
+                .map(l -> (TransitPassengerRoute) l.getRoute())
+                .flatMap(r -> railTripsAnalyzer.getPtLinkIdsTraveledOn(r).stream())
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        return ptUsage;
+
+    }
+
+    public Map<Id<Link>, Double> analysePtLinkUsageincludingDNWV(IdMap<Person, Plan> experiencedPlans) {
+        IdMap<Person, LinkedList<Variables.MOBiTripAttributes>> additionalTripAttributes = new IdMap<>(Person.class, 100);
+        additionalTripAttributes = Variables.MOBiTripAttributes.extractTripAttributes(population);
+        boolean containsDNWVValues = additionalTripAttributes.values().stream().flatMap(moBiTripAttributes -> moBiTripAttributes.stream())
+                .anyMatch(mobiTripAttribute -> mobiTripAttribute.getDNWVFactor() != null);
+        if (!containsDNWVValues) {
+            return null;
+        }
+
+        Map<Id<Link>, Double> ptUsage = new HashMap<>();
+        for (Plan plan : experiencedPlans.values()) {
+            var trips = TripStructureUtils.getTrips(plan);
+            var tripAttributes = additionalTripAttributes.get(plan.getPerson().getId());
+            for (var trip : trips) {
+                var tripAttribute = tripAttributes.poll();
+                Double dnwvFactor = tripAttribute != null ? tripAttribute.getDNWVFactor() : null;
+                if (dnwvFactor != null) {
+                    for (var leg : trip.getLegsOnly()) {
+                        if (SBBModes.PT_PASSENGER_MODES.contains(leg.getMode())) {
+                            var route = (TransitPassengerRoute) leg.getRoute();
+                            var ptLinkIds = railTripsAnalyzer.getPtLinkIdsTraveledOn(route);
+                            for (var ptLinkId : ptLinkIds) {
+                                ptUsage.merge(ptLinkId, dnwvFactor, Double::sum);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+        }
+
+        return ptUsage;
+
+    }
+
+    public void writePtLinkUsage(String outputfile, double scalefactor, IdMap<Person, Plan> experiencedPlans) {
+        NetworkFilterManager nfm = new NetworkFilterManager(network, new NetworkConfigGroup());
+        nfm.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
+        Network ptNetwork = nfm.applyFilters();
+        var ptVolumes = analysePtLinkUsage(experiencedPlans);
+        writeFile(outputfile, scalefactor, ptVolumes, ptNetwork);
+        var ptVolumesIncludingDNWV = analysePtLinkUsageincludingDNWV(experiencedPlans);
+        if (ptVolumesIncludingDNWV != null) {
+            writeFile(outputfile + "_dnwv", scalefactor, ptVolumesIncludingDNWV, ptNetwork);
+        }
+    }
+
+    public void writePtLinkUsage(String outputfile, double scalefactor) {
+        writePtLinkUsage(outputfile, scalefactor, experiencedPlansService.getExperiencedPlans());
     }
 
 }
