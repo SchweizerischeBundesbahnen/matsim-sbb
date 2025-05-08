@@ -123,7 +123,7 @@ public class PtLinkVolumeAnalyzer {
         // Example usage
         String folderPrefix = args[0];
         double scaleFactor = Double.parseDouble(args[1]);
-        String zonesFile = args[3];
+        String zonesFile = args[2];
         ZonesCollection zonesCollection = new ZonesCollection();
         zonesCollection.addZones(ZonesLoader.loadZones("zones", zonesFile));
 
@@ -168,7 +168,6 @@ public class PtLinkVolumeAnalyzer {
         }
 
         Map<Id<Link>, Double> ptUsage = new HashMap<>();
-        experiencedPlansService.getExperiencedPlans();
         for (Plan plan : experiencedPlans.values()) {
             var trips = TripStructureUtils.getTrips(plan);
             var tripAttributes = additionalTripAttributes.get(plan.getPerson().getId());
