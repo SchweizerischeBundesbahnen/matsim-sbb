@@ -159,8 +159,8 @@ public class Variables {
             return tripDirection != null ? tripDirection : "";
         }
 
-        public String getDNWVFactor() {
-            return dnwvFactor != null ? Double.toString(dnwvFactor) : "";
+        public Double getDNWVFactor() {
+            return dnwvFactor;
         }
 
     }
