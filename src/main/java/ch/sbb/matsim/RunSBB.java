@@ -225,6 +225,8 @@ public class RunSBB {
 	}
 
 	public static void adjustMobiConfig(Config config) {
+		config.controller().setLegHistogramInterval(-1);
+		config.controller().setLegDurationsInterval(-1);
 		if (config.routing().getNetworkModes().contains(SBBModes.RIDE)) {
 			// MATSim defines ride by default as teleported, which conflicts with the network mode
 			config.routing().removeTeleportedModeParams(SBBModes.RIDE);
