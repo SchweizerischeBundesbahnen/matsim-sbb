@@ -145,6 +145,7 @@ public class DemandAggregator {
         writeTripDemand("amr_id", "amr_name", tripsPerMSRFile);
         LOG.info("Done.");
         odRailDemandMatrix.clear();
+        odRailDemandMatrixFQ.clear();
         allModesOdDemand.clear();
     }
 
