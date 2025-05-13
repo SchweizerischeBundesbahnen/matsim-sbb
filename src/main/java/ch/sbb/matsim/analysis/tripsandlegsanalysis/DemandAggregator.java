@@ -121,13 +121,13 @@ public class DemandAggregator {
 
     }
 
-    public void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerMSRFile) {
+    public void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerAmrFile) {
         Collection<Plan> experiencedPlans = experiencedPlansService.getExperiencedPlans().values();
-        aggregateAndWriteMatrix(scalefactor, outputMatrixFile, stationToStationFile, stationToStationFQFile, tripsPerMunFile, tripsPerMSRFile, experiencedPlans);
+        aggregateAndWriteMatrix(scalefactor, outputMatrixFile, stationToStationFile, stationToStationFQFile, tripsPerMunFile, tripsPerAmrFile, experiencedPlans);
 
     }
 
-    void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerMSRFile, Collection<Plan> experiencedPlans) {
+    void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerAmrFile, Collection<Plan> experiencedPlans) {
         LOG.info("aggregating Rail Demand");
         aggregateRailDemand(scalefactor, experiencedPlans);
         var railDemandMatrix = prepareRailMatrix(false);
@@ -142,7 +142,7 @@ public class DemandAggregator {
 
         writeStationToStationDemand(stationToStationFile, stationToStationFQFile);
         writeTripDemand("mun_id", "mun_name", tripsPerMunFile);
-        writeTripDemand("amr_id", "amr_name", tripsPerMSRFile);
+        writeTripDemand("amr_id", "amr_name", tripsPerAmrFile);
         LOG.info("Done.");
         odRailDemandMatrix.clear();
         odRailDemandMatrixFQ.clear();
