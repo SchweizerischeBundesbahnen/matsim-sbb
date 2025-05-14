@@ -46,7 +46,7 @@ public class StopStation {
     }
 
 
-    public void addEntred() {
+    public void addEntered() {
         entered++;
     }
 
@@ -54,7 +54,7 @@ public class StopStation {
         exited++;
     }
 
-    public void addEntredFQ() {
+    public void addEnteredFQ() {
         enteredFQ++;
     }
 

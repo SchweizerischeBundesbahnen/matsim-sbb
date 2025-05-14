@@ -195,7 +195,7 @@ public class DemandAggregator {
             header[i + 2] = mode + "_average_travelTime";
             i = i + 3;
         }
-        try (CSVWriter writer = new CSVWriter(null, header, outputfile)) {
+        try (CSVWriter writer = new CSVWriter("\uFEFF", header, outputfile)) {
             for (var fromZoneFlows : aggregatedAllModesOdDemand.entrySet()) {
                 for (var toZoneFlows : fromZoneFlows.getValue().entrySet()) {
                     writer.set(header[0], fromZoneFlows.getKey());
@@ -272,7 +272,7 @@ public class DemandAggregator {
         String pkm = "rail_pkm";
         String travel_time = "average_travel_time";
         String number_of_transfers = "number_of_rail_transfers";
-        try (CSVWriter writer = new CSVWriter(null, new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFile)) {
+        try (CSVWriter writer = new CSVWriter("\uFEFF", new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFile)) {
             for (var entry : this.odRailDemandMatrix.entrySet()) {
                 String fromZoneId = this.zoneStop.get(entry.getKey());
                 String fromStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getName());
@@ -300,7 +300,7 @@ public class DemandAggregator {
             throw new RuntimeException(e);
         }
 
-        try (CSVWriter writer = new CSVWriter(null, new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFileFQ)) {
+        try (CSVWriter writer = new CSVWriter("\uFEFF", new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFileFQ)) {
             for (var entry : this.odRailDemandMatrixFQ.entrySet()) {
                 String fromZoneId = this.zoneStop.get(entry.getKey());
                 String fromStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getName());
