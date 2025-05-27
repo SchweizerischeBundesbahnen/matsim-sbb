@@ -42,6 +42,7 @@ import static ch.sbb.matsim.config.variables.SBBModes.RAIL;
 
 public class ModalSplitStats {
 
+    public static final String NO_CODE = "";
     private final List<String> analysisSubpopulations = List.of(Variables.REGULAR, Variables.AIRPORT_RAIL, Variables.AIRPORT_ROAD, Variables.CB_RAIL, Variables.CB_ROAD, Variables.TOURISM_RAIL, Variables.FREIGHT_ROAD, "foreign", Variables.CB_COMMUTER, Variables.LIECHTENSTEIN, Variables.TOURIST);
     @Inject
     private ExperiencedPlansService experiencedPlansService;
@@ -316,14 +317,14 @@ public class ModalSplitStats {
                         TransitStopFacility endStopStationFacility = getEndTrainFacility(route);
 
                         StopStation startStopStation = stopStationsMap.get(startStopStationFacility.getId());
-                        startStopStation.addEntred();
+                        startStopStation.addEntered();
                         String subPTMode = getModeOfTransitRoute(leg.getRoute());
                         boolean isRailLeg = (subPTMode.equals(PTSubModes.RAIL));
                         if (isRailLeg) {
                             startStopStation.setRailStation();
                         }
                         if (isFQ) {
-                            startStopStation.addEntredFQ();
+                            startStopStation.addEnteredFQ();
                         }
                         if (legBefore != null) {
                             startStopStation.getEnteredMode()[possibleModesAtStop.indexOf(legBefore.getMode())]++;
@@ -1285,7 +1286,7 @@ public class ModalSplitStats {
         String head = String.join(",", runID, hstNumber, stopCode, zone, zielAussteiger, quellEinsteiger, umsteigerTyp5a, umsteigerTyp5b,
             umsteigerSimbaSimba, umsteigerSimbaAndere, umsteigerAndereSimba, umsteigerAndereAndere);
         String[] columns = head.split(",");
-        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNTrainStrationsCount)) {
+        try (CSVWriter csvWriter = new CSVWriter("\uFEFF", columns, this.outputLocation + oNTrainStrationsCount)) {
             for (TrainStation station : trainStationMap.values()) {
                 csvWriter.set(runID, config.controller().getRunId());
                 csvWriter.set(hstNumber, station.getHstNummer());
@@ -1339,7 +1340,7 @@ public class ModalSplitStats {
         String[] columns = headColumns.toArray(new String[0]);
 
 
-        try (CSVWriter csvWriter = new CSVWriter("", columns, this.outputLocation + oNStopStationsCount)) {
+        try (CSVWriter csvWriter = new CSVWriter("\uFEFF", columns, this.outputLocation + oNStopStationsCount)) {
             for (Entry<Id<TransitStopFacility>, StopStation> entry : stopStationsMap.entrySet()) {
                 csvWriter.set(runID, config.controller().getRunId());
                 csvWriter.set(hstNummer, entry.getValue().getStop().getAttributes().getAttribute(STOP_NO).toString());
@@ -1353,7 +1354,7 @@ public class ModalSplitStats {
                 Object codeAttribute;
                 codeAttribute = entry.getValue().getStop().getAttributes().getAttribute(STOP_CODE);
                 if (codeAttribute == null) {
-                    csvWriter.set(code, "NA");
+                    csvWriter.set(code, NO_CODE);
                 } else {
                     csvWriter.set(code, codeAttribute.toString());
                 }
@@ -1364,7 +1365,7 @@ public class ModalSplitStats {
                     stopCodeAttribute = "";
                 }
                 if (stopCodeAttribute == null) {
-                    csvWriter.set(stopCode, "NA");
+                    csvWriter.set(stopCode, NO_CODE);
                 } else {
                     csvWriter.set(stopCode, stopCodeAttribute.toString());
                 }
@@ -1373,11 +1374,11 @@ public class ModalSplitStats {
                 if (name == null) {
                     name = "";
                 }
-                csvWriter.set(trainStationName, name.replaceAll(",", " "));
+                csvWriter.set(trainStationName, name);
                 var stpName = entry.getValue().getStop().getAttributes().getAttribute(STOP_AREA_NAME);
                 String stpNameString = stpName != null ? stpName.toString() : "";
 
-                csvWriter.set(stopName, stpNameString.replaceAll(",", " "));
+                csvWriter.set(stopName, stpNameString);
                 csvWriter.set(x, Double.toString(entry.getValue().getStop().getCoord().getX()));
                 csvWriter.set(y, Double.toString(entry.getValue().getStop().getCoord().getY()));
                 csvWriter.set(zone, entry.getValue().getZoneId());

@@ -1,5 +1,6 @@
 package ch.sbb.matsim.mavi.pt;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
@@ -16,6 +17,7 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.utils.collections.Tuple;
+import org.matsim.pt.transitSchedule.ChainedDepartureImpl;
 import org.matsim.pt.transitSchedule.api.*;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.matsim.vehicles.*;
@@ -37,6 +39,7 @@ public class TimeProfileExporter {
 	public final Map<Id<Link>, String> linkToVisumSequence = new HashMap<>();
 	private final Network network;
 	private final TransitSchedule schedule;
+	private final Map<Integer, DepartureInfo> journeyToDepartureMap = new HashMap<>();
 
 	public TimeProfileExporter(Scenario scenario) {
 		this.network = scenario.getNetwork();
@@ -256,7 +259,7 @@ public class TimeProfileExporter {
 				this.schedule.addTransitLine(line);
 			}
 
-			String mode = tp.tSysMOBi.toLowerCase();
+			String mode = tp.tSysMOBi.isEmpty() ? SBBModes.PT : tp.tSysMOBi.toLowerCase();
 			final TransitLine finalLine = line;
 			tp.vehicleJourneys.forEach(vj -> {
 				int from_tp_index = vj.fromTProfItemIndex;
@@ -349,9 +352,10 @@ public class TimeProfileExporter {
 				IntStream.range(0, values.length).forEach(j -> addAttribute(routeAttributes, custAttNames.get(j).getAttributeName(),
 						values[j], custAttNames.get(j).getDataType()));
 
-				VehicleType vehType = getVehicleType(tp.tSysCode, vj.vehCapacity, vj.standingRoom);
+				VehicleType vehType = getVehicleType(tp.tSysCode, vj.vehCapacity, vj.standingRoom, mode);
 				Vehicle vehicle = this.vehicleBuilder.createVehicle(vehicleId, vehType);
 				this.vehicles.addVehicle(vehicle);
+				this.journeyToDepartureMap.put(vj.no, new DepartureInfo(finalLine.getId(), route.getId(), dep));
 			});
 		}
 		log.info("Loading transit routes finished");
@@ -425,6 +429,43 @@ public class TimeProfileExporter {
 		netRoute.setLinkIds(netRoute.getStartLinkId(), consistentRoute, netRoute.getEndLinkId());
 	}
 
+	private Map<Integer, Set<Integer>> loadChainingInfo(Visum visum) {
+		Map<Integer, Set<Integer>> chaining = new HashMap<>();
+		try {
+			Visum.ComObject chainedObj = visum.getNetObject("ChainedUpVehicleJourneySections");
+			int count = chainedObj.countActive();
+			String[][] chainAttributes = Visum.getArrayFromAttributeList(count, chainedObj, "VehJourneyNo", "ChainedUpVehJourneyNo");
+			for (int i = 0; i < chainAttributes.length; i++) {
+				try {
+					int fromVjNo = Integer.parseInt(chainAttributes[i][0].trim());
+					int toVjNo = Integer.parseInt(chainAttributes[i][1].trim());
+					chaining.computeIfAbsent(fromVjNo, k -> new HashSet<>()).add(toVjNo);
+				} catch (NumberFormatException e) {
+					log.error("Error parsing chaining info row: " + Arrays.toString(chainAttributes[i]), e);
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error loading chaining info from ChainedUpVehicleJourneySections", e);
+		}
+		return chaining;
+	}
+
+	public void createDepartureChaining(Visum visum) {
+		Map<Integer, Set<Integer>> vjChains = loadChainingInfo(visum);
+		for (int vjNo : vjChains.keySet()) {
+			DepartureInfo depInfo = this.journeyToDepartureMap.get(vjNo);
+			List<ChainedDeparture> chainedDepartures = new ArrayList<>(depInfo.departure.getChainedDepartures());
+			for (Integer chainedVjNo : vjChains.get(vjNo)) {
+				DepartureInfo chainedDepInfo = this.journeyToDepartureMap.get(chainedVjNo);
+				ChainedDeparture chainedDep = new ChainedDepartureImpl(chainedDepInfo.transitLineId(), chainedDepInfo.transitRouteId(), chainedDepInfo.departure().getId());
+				chainedDepartures.add(chainedDep);
+			}
+			depInfo.departure.setChainedDepartures(chainedDepartures);
+		}
+	}
+
+	private record DepartureInfo(Id<TransitLine> transitLineId, Id<TransitRoute> transitRouteId, Departure departure) {}
+
 	private static class LineRouteItem {
 
 		final int index;
@@ -438,12 +479,13 @@ public class TimeProfileExporter {
 		}
 	}
 
-	private VehicleType getVehicleType(String tSysCode, int capacity, int standingRoom) {
+	private VehicleType getVehicleType(String tSysCode, int capacity, int standingRoom, String mode) {
 		Id<VehicleType> vehicleTypeId = Id.create(tSysCode + "_" + capacity + "_" + standingRoom, VehicleType.class);
 		VehicleType vehType = this.vehicles.getVehicleTypes().get(vehicleTypeId);
 		if (vehType == null) {
 			vehType = this.vehicleBuilder.createVehicleType(vehicleTypeId);
 			vehType.setDescription(tSysCode);
+			vehType.setNetworkMode(mode);
 			VehicleUtils.setDoorOperationMode(vehType, DoorOperationMode.serial);
 			VehicleCapacity vehicleCapacity = vehType.getCapacity();
 			if (capacity < 0) {

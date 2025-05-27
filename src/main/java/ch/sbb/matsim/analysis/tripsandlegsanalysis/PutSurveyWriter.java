@@ -225,9 +225,9 @@ public class PutSurveyWriter {
                             String direction = "";
                             String purpose = "";
                             if (person != null) {
-                                var visumTripIds = tripIds.get(person.getId());
+                                var moBiTripAttributes = tripIds.get(person.getId());
                                 if (tripIds != null) {
-                                    Variables.MOBiTripAttributes tripAttributes = visumTripIds.poll();
+                                    Variables.MOBiTripAttributes tripAttributes = moBiTripAttributes.poll();
                                     if (tripAttributes != null) {
                                         tourId = tripAttributes.getTourId();
                                         tripId = tripAttributes.getTripId();

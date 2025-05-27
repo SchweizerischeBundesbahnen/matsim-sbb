@@ -31,9 +31,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.HasPlansAndId;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
@@ -62,12 +65,15 @@ public class DemandAggregator {
     private final Map<Id<TransitStopFacility>, Map<Id<TransitStopFacility>, RailODTravelInfo>> odRailDemandMatrixFQ = new TreeMap<>();
     private final ArrayList<String> aggregateZones;
     private final Map<Id<Zone>, Map<Id<Zone>, ODTravelInfo>> allModesOdDemand = new ConcurrentHashMap<>();
+    private final Map<Id<Zone>, Map<Id<Zone>, ODTravelInfo>> allModesOdDemandRegular = new ConcurrentHashMap<>();
     private final Scenario scenario;
     private final Zones zones;
     private final MainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
     private final Logger LOG = LogManager.getLogger(getClass());
     @Inject
     private ExperiencedPlansService experiencedPlansService;
+    @Inject
+    Population population;
 
     @Inject
     public DemandAggregator(Scenario scenario, ZonesCollection zonesCollection, final PostProcessingConfigGroup ppConfig, RailTripsAnalyzer railTripsAnalyzer) {
@@ -111,34 +117,47 @@ public class DemandAggregator {
         ppcg.setZonesId("zones");
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         DemandAggregator demandAggregator = new DemandAggregator(scenario, zonesCollection, ppcg, railTripsAnalyzer);
+        demandAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(
+                Collectors.toSet()));
+
         demandAggregator
-                .writeMatrix(demandAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(
-                        Collectors.toSet())), outputFile);
+                .writeMatrix(demandAggregator.prepareRailMatrix(false), outputFile);
+        demandAggregator
+                .writeMatrix(demandAggregator.prepareRailMatrix(true), outputFile.replace(".csv", ".fqOnly.csv"));
 
     }
 
-    public void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerMSRFile) {
-        Collection<Plan> experiencedPlans = experiencedPlansService.getExperiencedPlans().values();
-        aggregateAndWriteMatrix(scalefactor, outputMatrixFile, stationToStationFile, stationToStationFQFile, tripsPerMunFile, tripsPerMSRFile, experiencedPlans);
+    public void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerAmrFile) {
+        aggregateAndWriteMatrix(scalefactor, outputMatrixFile, stationToStationFile, stationToStationFQFile, tripsPerMunFile, tripsPerAmrFile, experiencedPlansService.getExperiencedPlans());
 
     }
 
-    void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerMSRFile, Collection<Plan> experiencedPlans) {
+    void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerAmrFile, IdMap<Person, Plan> experiencedPlans) {
         LOG.info("aggregating Rail Demand");
-        float[][] matrix = aggregateRailDemand(scalefactor, experiencedPlans);
+        aggregateRailDemand(scalefactor, experiencedPlans.values());
+        var railDemandMatrix = prepareRailMatrix(false);
+        var railDemandFQMatrix = prepareRailMatrix(true);
+        writeMatrix(railDemandMatrix, outputMatrixFile);
+        writeMatrix(railDemandFQMatrix, outputMatrixFile.replace(".csv", "_fqOnly.csv"));
+
         LOG.info("aggregating Trip Demand");
         aggregateTripDemand(scalefactor, experiencedPlans);
         LOG.info("Writing Trip Demand aggregate files.");
-        writeMatrix(matrix, outputMatrixFile);
+
+
         writeStationToStationDemand(stationToStationFile, stationToStationFQFile);
-        writeTripDemand("mun_id", "mun_name", tripsPerMunFile);
-        writeTripDemand("amr_id", "amr_name", tripsPerMSRFile);
+        writeTripDemand("mun_id", "mun_name", tripsPerMunFile, allModesOdDemand);
+        writeTripDemand("mun_id", "mun_name", tripsPerMunFile.replace(".csv", "_regular.csv"), allModesOdDemandRegular);
+        writeTripDemand("amr_id", "amr_name", tripsPerAmrFile, allModesOdDemand);
+        writeTripDemand("amr_id", "amr_name", tripsPerAmrFile.replace(".csv", "_regular.csv"), allModesOdDemandRegular);
         LOG.info("Done.");
         odRailDemandMatrix.clear();
+        odRailDemandMatrixFQ.clear();
         allModesOdDemand.clear();
+        allModesOdDemandRegular.clear();
     }
 
-    public void writeTripDemand(String aggregationString, String aggregationStringName, String outputfile) {
+    public void writeTripDemand(String aggregationString, String aggregationStringName, String outputfile, Map<Id<Zone>, Map<Id<Zone>, ODTravelInfo>> odDemand) {
         ZonesImpl zonesImpl = (ZonesImpl) zones;
         Map<Id<Zone>, String> zoneAggregate = zonesImpl.getZones().stream().collect(Collectors.toMap(zone -> zone.getId(), zone -> String.valueOf(zone.getAttribute(aggregationString))));
         Map<String, String> zoneAggregateNameString = zonesImpl.getZones().stream().collect(Collectors.toMap(zone -> String.valueOf(zone.getAttribute(aggregationString)), zone -> String.valueOf(zone.getAttribute(aggregationStringName)), (a, b) -> a));
@@ -146,7 +165,7 @@ public class DemandAggregator {
         zoneAggregate.put(OUTSIDE_ZONE_ID, OUTSIDE_ZONE);
         Map<String, Map<String, ODTravelInfo>> aggregatedAllModesOdDemand = new HashMap<>();
         Set<String> allModes = new HashSet<>();
-        allModesOdDemand.forEach((zoneId, toFlow) -> {
+        odDemand.forEach((zoneId, toFlow) -> {
             String fromAggregate = zoneAggregate.get(zoneId);
             toFlow.forEach((toZoneId, flow) -> {
                 String toAggregate = zoneAggregate.get(toZoneId);
@@ -176,7 +195,7 @@ public class DemandAggregator {
             header[i + 2] = mode + "_average_travelTime";
             i = i + 3;
         }
-        try (CSVWriter writer = new CSVWriter(null, header, outputfile)) {
+        try (CSVWriter writer = new CSVWriter("\uFEFF", header, outputfile)) {
             for (var fromZoneFlows : aggregatedAllModesOdDemand.entrySet()) {
                 for (var toZoneFlows : fromZoneFlows.getValue().entrySet()) {
                     writer.set(header[0], fromZoneFlows.getKey());
@@ -204,13 +223,14 @@ public class DemandAggregator {
 
     }
 
-    public void aggregateTripDemand(double scalefactor, Collection<Plan> experiencedPlans) {
+    public void aggregateTripDemand(double scalefactor, IdMap<Person, Plan> experiencedPlans) {
         if (scalefactor < 1.0) {
             throw new RuntimeException("Scalefactor set below 1. This will scale traffic down and should not be intended.");
         }
-        experiencedPlans.parallelStream().forEach(plan ->
+        boolean filterRegular = population != null;
+        experiencedPlans.entrySet().parallelStream().forEach(entry ->
         {
-            for (Trip trip : TripStructureUtils.getTrips(plan)) {
+            for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
                 Coord startCoord = SBBTripsExtension.getCoordFromActivity(trip.getOriginActivity(), scenario);
                 Zone startZone = zones.findZone(startCoord);
                 Id<Zone> startZoneId = startZone != null ? startZone.getId() : OUTSIDE_ZONE_ID;
@@ -225,7 +245,14 @@ public class DemandAggregator {
                 allModesOdDemand.computeIfAbsent(startZoneId, a -> new ConcurrentHashMap<>())
                         .computeIfAbsent(endZoneId, a -> new ODTravelInfo(new ConcurrentHashMap<>(), new ConcurrentHashMap<>(), new ConcurrentHashMap<>()))
                         .addTravelInfo(mainMode, scalefactor, travelTime * scalefactor, travelDistance * scalefactor);
-
+                if (filterRegular) {
+                    Person person = population.getPersons().get(entry.getKey());
+                    if (person != null && String.valueOf(person.getAttributes().getAttribute(Variables.ANALYSIS_SUBPOPULATION)).equals(Variables.REGULAR)) {
+                        allModesOdDemandRegular.computeIfAbsent(startZoneId, a -> new ConcurrentHashMap<>())
+                                .computeIfAbsent(endZoneId, a -> new ODTravelInfo(new ConcurrentHashMap<>(), new ConcurrentHashMap<>(), new ConcurrentHashMap<>()))
+                                .addTravelInfo(mainMode, scalefactor, travelTime * scalefactor, travelDistance * scalefactor);
+                    }
+                }
 
             }
         });
@@ -245,7 +272,7 @@ public class DemandAggregator {
         String pkm = "rail_pkm";
         String travel_time = "average_travel_time";
         String number_of_transfers = "number_of_rail_transfers";
-        try (CSVWriter writer = new CSVWriter(null, new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFile)) {
+        try (CSVWriter writer = new CSVWriter("\uFEFF", new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFile)) {
             for (var entry : this.odRailDemandMatrix.entrySet()) {
                 String fromZoneId = this.zoneStop.get(entry.getKey());
                 String fromStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getName());
@@ -273,7 +300,7 @@ public class DemandAggregator {
             throw new RuntimeException(e);
         }
 
-        try (CSVWriter writer = new CSVWriter(null, new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFileFQ)) {
+        try (CSVWriter writer = new CSVWriter("\uFEFF", new String[]{from, fromName, fromZone, to, toName, toZone, trips, pkm, travel_time, number_of_transfers}, outputFileFQ)) {
             for (var entry : this.odRailDemandMatrixFQ.entrySet()) {
                 String fromZoneId = this.zoneStop.get(entry.getKey());
                 String fromStationName = String.valueOf(scenario.getTransitSchedule().getFacilities().get(entry.getKey()).getName());
@@ -319,17 +346,12 @@ public class DemandAggregator {
         }
     }
 
-    private float[][] aggregateRailDemand(double scaleFactor, Collection<Plan> plans) {
-        float[][] matrix = new float[aggregateZones.size()][aggregateZones.size()];
+    private void aggregateRailDemand(double scaleFactor, Collection<Plan> plans) {
         for (Plan plan : plans) {
             for (Trip trip : TripStructureUtils.getTrips(plan)) {
                 RailTripsAnalyzer.RailTravelInfo od = railTripsAnalyzer.getRailTravelInfo(trip);
                 double pkmFQ = railTripsAnalyzer.getFQDistance(trip, true);
                 if (od != null) {
-                    String fromZone = aggregateZoneStop.get(od.fromStation());
-                    String toZone = aggregateZoneStop.get(od.toStation());
-                    matrix[aggregateZones.indexOf(fromZone)][aggregateZones.indexOf(toZone)] += scaleFactor;
-
                     RailODTravelInfo travelInfo = this.odRailDemandMatrix.computeIfAbsent(od.fromStation(), a -> new TreeMap<>()).computeIfAbsent(od.toStation(), b -> new RailODTravelInfo(new MutableDouble(), new MutableDouble(), new MutableDouble(), new MutableDouble()));
                     travelInfo.demand.add(scaleFactor);
                     travelInfo.travelDistance().add(scaleFactor * od.distance() * 0.001);
@@ -345,6 +367,20 @@ public class DemandAggregator {
                 }
             }
         }
+    }
+
+    private float[][] prepareRailMatrix(boolean fqOnly) {
+        float[][] matrix = new float[aggregateZones.size()][aggregateZones.size()];
+        var demandMatrix = fqOnly ? this.odRailDemandMatrixFQ : this.odRailDemandMatrix;
+        for (var fromStopDemand : demandMatrix.entrySet()) {
+            var fromStopId = fromStopDemand.getKey();
+            String fromZone = aggregateZoneStop.get(fromStopId);
+            for (var toStopDemand : fromStopDemand.getValue().entrySet()) {
+                String toZone = aggregateZoneStop.get(toStopDemand.getKey());
+                matrix[aggregateZones.indexOf(fromZone)][aggregateZones.indexOf(toZone)] += toStopDemand.getValue().demand.floatValue();
+            }
+        }
+
         return matrix;
     }
 

@@ -100,8 +100,8 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandStationToStationFQ.csv.gz");
                 String tripsPerMunFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMun.csv.gz")
                         : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMun.csv.gz");
-                String tripsPerMSRFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerMSR.csv.gz")
-                        : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMSR.csv.gz");
+                String tripsPerAmrFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerAmr.csv")
+                        : controlerIO.getIterationFilename(event.getIteration(), "tripsPerAmr.csv");
                 String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.att");
                 String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("car_volumes.att")
@@ -116,7 +116,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "");
 
                 railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, scalefactor);
-                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, railDemandStationToStationFQ, tripsPerMunFile, tripsPerMSRFile);
+                demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, railDemandStationToStationFQ, tripsPerMunFile, tripsPerAmrFile);
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
                 putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
                 carLinkAnalysis.writeSingleIterationStreetStats(carVolumesName);

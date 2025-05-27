@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.sbb</groupId>
     <artifactId>matsim-sbb</artifactId>
-    <version>5.0.7-SNAPSHOT</version>
+    <version>5.0.12-SNAPSHOT</version>
     <name>MATSim SBB Project</name>
     <description>MATSim for SIMBA MOBi</description>
 
@@ -62,7 +62,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>2025.0-PR3780</matsim.version>
+        <matsim.version>2026.0-PR3936</matsim.version>
         <junit.version>5.10.2</junit.version>
         <geotools.version>31.2</geotools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
