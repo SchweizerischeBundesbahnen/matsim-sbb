@@ -1,25 +1,35 @@
-package ch.sbb.matsim.plans.models;
+package ch.sbb.matsim.plans.models.utilitycomponents;
 
+import ch.sbb.matsim.plans.models.resolver.AttributeResolver;
+import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
 public class PiecewiseCalculator implements UtilityComponent {
 
     private final double[] thresholds;
     private final double[] betas;
-    private final String attributeName;
+    private final String attributePath;
+    private final AttributeResolver resolver;
 
-    public PiecewiseCalculator(String attributeName, double[] thresholds, double[] betas) {
-        this.attributeName = attributeName;
+
+    public PiecewiseCalculator(String attributePath, double[] thresholds, double[] betas, AttributeResolver resolver) {
+        this.attributePath = attributePath;
         this.thresholds = thresholds;
         this.betas = betas;
+        this.resolver = resolver;
         if (thresholds.length != betas.length - 1) {
             throw new IllegalArgumentException("Thresholds and betas must have length n and n+1 respectively");
         }
     }
 
+    public PiecewiseCalculator(String attributePath, double[] thresholds, double[] betas) {
+        this(attributePath, thresholds, betas, new NestedAttributeResolver());
+    }
+
 
     public double calculate(Attributable attributable) {
-        double value = ((Number) attributable.getAttributes().getAttribute(attributeName)).doubleValue();
+        Object attribute = resolver.resolve(attributable, attributePath);
+        double value = ((Number) attribute).doubleValue();
         double returnValue = 0.0;
         for (int i = 0; i < betas.length; i++) {
             if (i == 0) {

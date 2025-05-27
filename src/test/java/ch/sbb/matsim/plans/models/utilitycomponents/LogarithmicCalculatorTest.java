@@ -1,4 +1,4 @@
-package ch.sbb.matsim.plans.models;
+package ch.sbb.matsim.plans.models.utilitycomponents;
 
 import ch.sbb.matsim.plans.synpop.SynpopConstants;
 import org.junit.jupiter.api.Test;
@@ -8,17 +8,15 @@ import org.matsim.core.population.PopulationUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class LinearCalculatorTest {
+public class LogarithmicCalculatorTest {
 
     @Test
     void testCalculate() {
-        LinearCalculator calculator = new LinearCalculator("age", 0.5);
+        LogarithmicCalculator calculator = new LogarithmicCalculator("age", 0.5);
         Person person = PopulationUtils.getFactory().createPerson(Id.createPersonId(0));
         person.getAttributes().putAttribute(SynpopConstants.AGE, 40);
-
         double result = calculator.calculate(person);
-
-        assertEquals(20.0, result, 0.001);
+        assertEquals(73.7777589, result, 0.01);
     }
 
 }

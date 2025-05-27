@@ -1,4 +1,4 @@
-package ch.sbb.matsim.plans.models;
+package ch.sbb.matsim.plans.models.utilitycomponents;
 
 import ch.sbb.matsim.plans.synpop.SynpopConstants;
 import org.junit.Assert;

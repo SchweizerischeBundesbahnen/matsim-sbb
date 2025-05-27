@@ -1,7 +1,7 @@
-package ch.sbb.matsim.plans.models;
+package ch.sbb.matsim.plans.models.utilitycomponents;
 
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
-interface UtilityComponent {
+public interface UtilityComponent {
     double calculate(Attributable attributable);
 }
