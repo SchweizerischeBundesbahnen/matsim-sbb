@@ -62,7 +62,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>2026.0-PR3936</matsim.version>
+        <matsim.version>2026.0-PR3971</matsim.version>
         <junit.version>5.10.2</junit.version>
         <geotools.version>31.2</geotools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
