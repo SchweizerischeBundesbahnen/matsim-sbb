@@ -2,6 +2,11 @@ package ch.sbb.matsim.plans.models;
 
 import ch.sbb.matsim.plans.models.utilitycomponents.*;
 import ch.sbb.matsim.plans.synpop.SynpopConstants;
+import org.matsim.api.core.v01.Scenario;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.households.HouseholdsReaderV10;
 
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +14,7 @@ import java.util.List;
 public class DrivingLicenseModel {
     private final UtilityCalculator hasDrivingLicenseCalculator;
     private final UtilityCalculator noDrivingLicenseCalculator;
+
 
 
     public DrivingLicenseModel() {
@@ -35,6 +41,13 @@ public class DrivingLicenseModel {
         //all betas are zero, so no need to add any components
         this.noDrivingLicenseCalculator = new UtilityCalculator(utilityComponentsHasNoLicense);
 
+
+    }
+
+    public static void main(String[] args) {
+        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new PopulationReader(scenario).readFile("C:\\devsbb\\tmp\\synpop_2022\\persons_2022.xml.gz");
+        new HouseholdsReaderV10(scenario.getHouseholds()).readFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022.xml.gz");
 
     }
 

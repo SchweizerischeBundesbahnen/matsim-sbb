@@ -49,6 +49,7 @@ public class HouseholdsReader {
                     Id<Household> householdId = Id.create(householdIdVector.get(i), Household.class);
                     var household = households.getFactory().createHousehold(householdId);
                     households.getHouseholds().put(householdId, household);
+                    HouseholdImpl
                     Coord coord = new Coord(xCoordVector.get(i), yCoordVector.get(i));
                     household.getAttributes().putAttribute(SynpopConstants.COORD, coord);
                     household.getAttributes().putAttribute(SynpopConstants.ZONE_ID, Long.toString(zoneIdVector.get(i)));
