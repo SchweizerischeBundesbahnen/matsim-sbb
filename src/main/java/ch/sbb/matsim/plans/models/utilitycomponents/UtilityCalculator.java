@@ -12,7 +12,7 @@ public class UtilityCalculator {
         this.components = components;
     }
 
-    public double calculateUtility(Attributable attributes) {
+    public double calculate(Attributable attributes) {
         return components.stream()
                 .mapToDouble(component -> component.calculate(attributes))
                 .sum();
