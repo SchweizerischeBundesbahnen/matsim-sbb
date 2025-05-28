@@ -3,6 +3,7 @@ package ch.sbb.matsim.plans.synpop;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -40,6 +41,7 @@ public class SynPopUtils {
     }
 
     public static void calculateHouseHoldCompositions(Scenario scenario) {
+        LogManager.getLogger(SynPopUtils.class).info("Calculating household compositions...");
         for (Household household : scenario.getHouseholds().getHouseholds().values()) {
             Integer numberOfAdults = 0;
             Integer numberOfAdultsAbove24 = 0;
@@ -74,8 +76,9 @@ public class SynPopUtils {
             household.getAttributes().putAttribute(SynpopConstants.NB_OF_ADULTS, numberOfChildren);
             household.getAttributes().putAttribute(SynpopConstants.HAS_CHILD_IN_HH, numberOfChildren > 0);
             household.getAttributes().putAttribute(SynpopConstants.COUPLE_TYPE, coupleType);
-        }
 
+        }
+        LogManager.getLogger(SynPopUtils.class).info("Done. Calculating household compositions.");
     }
 
 
