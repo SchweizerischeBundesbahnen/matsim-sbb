@@ -6,6 +6,7 @@ import java.util.List;
 public class SynpopConstants {
     public static final String PERSON_ID = "person_id";
     public static final String HOUSEHOLD_ID = "household_id";
+    public static final String HOUSEHOLD = "household";
     public static final String POSITION_IN_BUS = "position_in_bus";
     public static final String HIGHEST_EDUCATION = "highest_education";
     public static final String POSITION_IN_EDU = "position_in_edu";
@@ -14,6 +15,7 @@ public class SynpopConstants {
     public static final String LEVEL_OF_EMPLOYMENT = "level_of_employment";
     public static final String AGE = "age";
     public static final String IS_SWISS = "is_swiss";
+    public static final String HAS_DRIVING_LICENSE = "has_driving_license";
     public static final String ANALYSIS_SUBPOPULATION = "analysis_subpopulation";
     public static final String IS_EMPLOYED = "is_employed";
     public static final String LOE_GROUP = "loe_group";
@@ -24,6 +26,7 @@ public class SynpopConstants {
     public static final String YCOORD = "ycoord";
     public static final String COORD = "coord";
     public static final String ZONE_ID = "zone_id";
+    public static final String ZONE = "zone";
     public static final String BUSINESS_ID = "business_id";
     public static final String JOBS_ENDO = "jobs_endo";
     public static final String JOBS_EXO = "jobs_exo";
@@ -45,4 +48,8 @@ public class SynpopConstants {
             HOUSEHOLD_ID, ZONE_ID, XCOORD, YCOORD);
 
 
+    public static final String NB_OF_KIDS = "nb_of_kids";
+    public static final String NB_OF_ADULTS = "nb_of_adults";
+    public static final String HAS_CHILD_IN_HH = "has_child_in_hh";
+    public static final String COUPLE_TYPE = "couple_type";
 }

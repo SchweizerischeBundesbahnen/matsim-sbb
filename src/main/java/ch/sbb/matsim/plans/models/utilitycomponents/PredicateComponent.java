@@ -10,15 +10,15 @@ public class PredicateComponent implements UtilityComponent {
 
     private final Predicate<Object> condition;
     private final double beta;
-    private final String attributeName;
+    private final String attributePath;
     private final AttributeResolver resolver;
 
-    public PredicateComponent(String attributeName, Predicate<Object> condition, double beta) {
-        this(attributeName, condition, beta, new NestedAttributeResolver());
+    public PredicateComponent(String attributePath, Predicate<Object> condition, double beta) {
+        this(attributePath, condition, beta, new NestedAttributeResolver());
     }
 
-    public PredicateComponent(String attributeName, Predicate<Object> condition, double beta, AttributeResolver resolver) {
-        this.attributeName = attributeName;
+    public PredicateComponent(String attributePath, Predicate<Object> condition, double beta, AttributeResolver resolver) {
+        this.attributePath = attributePath;
         this.condition = condition;
         this.beta = beta;
         this.resolver = resolver;
@@ -26,8 +26,8 @@ public class PredicateComponent implements UtilityComponent {
 
     @Override
     public double calculate(Attributable attributes) {
-        Object value = attributes.getAttributes().getAttribute(attributeName);
-        if (condition.test(value)) {
+        Object attribute = resolver.resolve(attributes, attributePath);
+        if (condition.test(attribute)) {
             return beta;
         } else {
             return 0.0;

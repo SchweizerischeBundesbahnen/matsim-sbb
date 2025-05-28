@@ -40,6 +40,7 @@ public class Variables {
     public static final String HTA = "HTA";
 
     public static final String ZONE_ID = "zone_id";
+    public static final String ZONES = "zones";
     public static final String MS_REGION = "ms_region";
     public static final String T_ZONE = "tZone";
 

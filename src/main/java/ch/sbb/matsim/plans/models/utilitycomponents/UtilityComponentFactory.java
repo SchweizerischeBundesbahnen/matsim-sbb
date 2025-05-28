@@ -25,8 +25,11 @@ public class UtilityComponentFactory {
         }
 
         Predicate<Object> combinedPredicate = actual -> {
+            if (actual == null) {
+                throw new IllegalArgumentException("Attribute " + attributeName + " must be a numeric value, but is null.");
+            }
             if (!(actual instanceof Number)) {
-                throw new IllegalArgumentException("Attribute " + attributeName + " must be a numeric value.");
+                throw new IllegalArgumentException("Attribute " + attributeName + " must be a numeric value, but is: " + actual.getClass().getSimpleName());
             }
             double v = ((Number) actual).doubleValue();
             for (int i = 0; i < operators.size(); i++) {

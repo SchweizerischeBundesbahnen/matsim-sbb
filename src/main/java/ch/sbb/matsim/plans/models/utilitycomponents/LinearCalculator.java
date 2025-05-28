@@ -24,7 +24,7 @@ public class LinearCalculator implements UtilityComponent {
     @Override
     public double calculate(Attributable attributable) {
         Object attribute = resolver.resolve(attributable, attributePath);
-        double value = ((Number) attribute).doubleValue();
+        double value = attribute instanceof Boolean ? 1.0 : ((Number) attribute).doubleValue();
         return value * beta;
     }
 }
