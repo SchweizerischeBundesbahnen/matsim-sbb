@@ -20,14 +20,6 @@ public class NestedAttributeResolver implements AttributeResolver {
                 current = a.getAttributes().getAttribute(part);
             } else if (current instanceof Zone zone) {
                 current = zone.getAttribute(part);
-            } else {
-                try {
-                    current = current.getClass()
-                            .getMethod("get" + capitalize(part))
-                            .invoke(current);
-                } catch (Exception e) {
-                    throw new RuntimeException("Cannot resolve attribute: " + part, e);
-                }
             }
 
             if (current == null) return null;
@@ -35,8 +27,4 @@ public class NestedAttributeResolver implements AttributeResolver {
         return current;
     }
 
-    private String capitalize(String s) {
-        if (s == null || s.isEmpty()) return s;
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
-    }
 }

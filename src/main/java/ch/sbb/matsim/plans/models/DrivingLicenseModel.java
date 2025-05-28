@@ -35,8 +35,6 @@ public class DrivingLicenseModel {
         utilityComponentsHasLicense.add(UtilityComponentFactory.fromCondition("zone.pc_car", "==", "0.0", -0.598));
         this.hasDrivingLicenseCalculator = new UtilityCalculator(
                 utilityComponentsHasLicense);
-
-
         List<UtilityComponent> utilityComponentsHasNoLicense = Collections.emptyList();
         //all betas are zero, so no need to add any components
         this.noDrivingLicenseCalculator = new UtilityCalculator(utilityComponentsHasNoLicense);

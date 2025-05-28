@@ -25,11 +25,13 @@ public class GenerateSubModel {
         new HouseholdsReaderV10(scenario.getHouseholds()).readFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022.xml.gz");
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
+        String aggId = "mun_name";
+        String aggregate = "Bern";
         var hhNotInAI = scenario.getHouseholds().getHouseholds().values()
                 .stream().filter(household ->
                 {
                     Zone zone = (Zone) household.getAttributes().getAttribute(SynpopConstants.ZONE);
-                    return !zone.getAttribute("kt_name").toString().equals("AI");
+                    return !zone.getAttribute(aggId).toString().equals(aggregate);
                 })
                 .map(household -> household.getId())
                 .collect(Collectors.toSet());
@@ -41,7 +43,7 @@ public class GenerateSubModel {
                 .stream().filter(person ->
                 {
                     Zone zone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
-                    return !zone.getAttribute("kt_name").toString().equals("AI");
+                    return !zone.getAttribute(aggId).toString().equals(aggregate);
                 })
                 .map(person -> person.getId())
                 .collect(Collectors.toSet());
@@ -49,8 +51,8 @@ public class GenerateSubModel {
         System.out.println("Number of persons not in AI: " + personsNotInAI.size());
         personsNotInAI.forEach(personId -> scenario.getPopulation().removePerson(personId));
         System.out.println("Number of persons in AI: " + scenario.getPopulation().getPersons().size());
-        new PopulationWriter(scenario.getPopulation()).write("C:\\devsbb\\tmp\\synpop_2022\\persons_2022_AI.xml.gz");
-        new HouseholdsWriterV10(scenario.getHouseholds()).writeFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022_AI.xml.gz");
+        new PopulationWriter(scenario.getPopulation()).write("C:\\devsbb\\tmp\\synpop_2022\\persons_2022_" + aggregate + ".xml.gz");
+        new HouseholdsWriterV10(scenario.getHouseholds()).writeFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022_" + aggregate + ".xml.gz");
 
 
     }
