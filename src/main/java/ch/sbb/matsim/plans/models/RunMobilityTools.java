@@ -27,7 +27,7 @@ public class RunMobilityTools {
         SynPopUtils.calculateHouseHoldCompositions(scenario);
         var logger = LogManager.getLogger(RunMobilityTools.class);
         logger.info(("Starting driving license calculation..."));
-        double time = System.nanoTime();
+        double time = System.currentTimeMillis();
         DrivingLicenseModel drivingLicenseModel = new DrivingLicenseModel();
         int i = 0;
         for (Id personId : scenario.getPopulation().getPersons().keySet()) {
@@ -40,7 +40,7 @@ public class RunMobilityTools {
                 }
             }
         }
-        double calctime = (System.nanoTime() - time) / 1000.0;
+        double calctime = (System.currentTimeMillis() - time) / 1000.0;
         logger.info("Number of persons with driving license: " + i);
         logger.info("Calculation time for driving license model: " + calctime);
     }
