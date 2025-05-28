@@ -35,11 +35,13 @@ public class RunMobilityTools {
         double time = System.currentTimeMillis();
         DrivingLicenseModel drivingLicenseModel = new DrivingLicenseModel();
         int i = 0;
+        int persons = 0;
         for (Id personId : scenario.getPopulation().getPersons().keySet()) {
             var person = scenario.getPopulation().getPersons().get(personId);
             if ((int) person.getAttributes().getAttribute(SynpopConstants.AGE) >= 18) {
                 Boolean hasDrivingLicense = drivingLicenseModel.calculate(person);
                 person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, hasDrivingLicense);
+                persons++;
                 if (hasDrivingLicense) {
                     i++;
                 }
@@ -47,9 +49,13 @@ public class RunMobilityTools {
         }
         double calctime = (System.currentTimeMillis() - time) / 1000.0;
         logger.info("Number of persons with driving license: " + i);
+        logger.info("Number of persons without driving license: " + (persons - i));
+        logger.info("Number of persons NOT in model: " + (scenario.getPopulation().getPersons().size() - persons));
+
+
         logger.info("Calculation time for driving license model: " + calctime);
 
-        writeAttributesToCSV(scenario.getPopulation().getPersons().values(), List.of(SynpopConstants.HAS_DRIVING_LICENSE), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_attributes.csv");
+        //writeAttributesToCSV(scenario.getPopulation().getPersons().values(), List.of(SynpopConstants.HAS_DRIVING_LICENSE), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_attributes.csv");
     }
 
     private static void writeAttributesToCSV(Collection<? extends Attributable> values, List<String> attributes, String outputfile) {
