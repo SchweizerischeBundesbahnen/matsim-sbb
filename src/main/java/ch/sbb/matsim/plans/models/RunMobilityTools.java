@@ -25,8 +25,8 @@ public class RunMobilityTools {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         Zones zones = ZonesLoader.loadZones("zones", "C:\\devsbb\\tmp\\synpop_2022\\35_kalif_secondary.mobi-zones.shp");
         scenario.addScenarioElement(Variables.ZONES, zones);
-        new PopulationReader(scenario).readFile("C:\\devsbb\\tmp\\synpop_2022\\persons_2022_AI.xml.gz");
-        new HouseholdsReaderV10(scenario.getHouseholds()).readFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022_AI.xml.gz");
+        new PopulationReader(scenario).readFile("C:\\devsbb\\tmp\\synpop_2022\\persons_2022_Bern.xml.gz");
+        new HouseholdsReaderV10(scenario.getHouseholds()).readFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022_Bern.xml.gz");
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
         SynPopUtils.calculateHouseHoldCompositions(scenario);

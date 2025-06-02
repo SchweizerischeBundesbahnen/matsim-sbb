@@ -1,6 +1,8 @@
 package ch.sbb.matsim.plans.models.selector;
 
 import ch.sbb.matsim.plans.models.utilitycomponents.UtilityCalculator;
+import ch.sbb.matsim.plans.synpop.SynPopUtils;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
 import java.util.LinkedHashMap;
@@ -12,18 +14,18 @@ public class LogitSelector implements ChoiceSelector {
 
     private final Map<String, UtilityCalculator> calculators;
     private final double scaleParameter;
-    private final Random random;
 
-    public LogitSelector(Map<String, UtilityCalculator> calculators, double scaleParameter, Random random) {
+    public LogitSelector(Map<String, UtilityCalculator> calculators, double scaleParameter) {
         this.calculators = calculators;
         this.scaleParameter = scaleParameter;
-        this.random = random;
     }
 
     @Override
     public String select(Attributable attributes) {
+        var id = ((Identifiable) attributes).getId();
+        Random random = SynPopUtils.getRandom(id);
         Map<String, Double> probabilities = getProbabilities(attributes);
-        return drawByProbability(probabilities);
+        return drawByProbability(probabilities, random);
     }
 
     @Override
@@ -48,7 +50,7 @@ public class LogitSelector implements ChoiceSelector {
                 ));
     }
 
-    private String drawByProbability(Map<String, Double> probabilities) {
+    private String drawByProbability(Map<String, Double> probabilities, Random random) {
         double rand = random.nextDouble();
         double cumulative = 0.0;
 

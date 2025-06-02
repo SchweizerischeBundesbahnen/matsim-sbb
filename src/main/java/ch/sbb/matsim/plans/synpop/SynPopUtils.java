@@ -9,6 +9,8 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.households.Household;
 
+import java.util.Random;
+
 public class SynPopUtils {
 
     public static void setAttribute(Person person, String attributeName, Object attribute) {
@@ -81,5 +83,13 @@ public class SynPopUtils {
         LogManager.getLogger(SynPopUtils.class).info("Done. Calculating household compositions.");
     }
 
+    public static <T> Random getRandom(Id<T> identifiable) {
+        try {
+            return new Random(Long.parseLong(identifiable.toString()));
+        } catch (NumberFormatException e) {
+            return new Random(identifiable.hashCode() & 0xffffffffL);
+        }
+
+    }
 
 }

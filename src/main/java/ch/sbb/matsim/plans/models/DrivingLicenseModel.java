@@ -4,7 +4,7 @@ import ch.sbb.matsim.plans.models.selector.ChoiceSelector;
 import ch.sbb.matsim.plans.models.selector.LogitSelector;
 import ch.sbb.matsim.plans.models.utilitycomponents.*;
 import ch.sbb.matsim.plans.synpop.SynpopConstants;
-import org.matsim.core.gbl.MatsimRandom;
+import org.matsim.api.core.v01.population.Person;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +19,9 @@ public class DrivingLicenseModel {
     public DrivingLicenseModel() {
         List<UtilityComponent> utilityComponentsHasLicense = new java.util.ArrayList<>();
         utilityComponentsHasLicense.add(new ConstantComponent(-8.43067994216887));
+        //Bern shadow utility
+        utilityComponentsHasLicense.add(new ConstantComponent(-0.5805659299290205));
+
         utilityComponentsHasLicense.add(new PiecewiseCalculator(SynpopConstants.AGE, new double[]{22, 26, 69, 89}, new double[]{0.398353560040895, 0.0270923010714936, 0.0200244008308715, -0.118033381290315, -0.189461164263502}));
         utilityComponentsHasLicense.add(new LinearCalculator(SynpopConstants.IS_SWISS, 0.635113367488652));
         utilityComponentsHasLicense.add(UtilityComponentFactory.fromCondition(SynpopConstants.LANGUAGE, "==", "2", 0.156660708026873));
@@ -26,7 +29,7 @@ public class DrivingLicenseModel {
         utilityComponentsHasLicense.add(UtilityComponentFactory.fromCombinedCondition(SynpopConstants.LEVEL_OF_EMPLOYMENT, List.of("<", ">"),
                 List.of("90", "0"),
                 0.822138563820571));
-        utilityComponentsHasLicense.add(UtilityComponentFactory.fromCondition(SynpopConstants.CURRENT_EDU, "==", "4", 0.0481));
+        //utilityComponentsHasLicense.add(UtilityComponentFactory.fromCondition(SynpopConstants.CURRENT_EDU, "==", "4", 0.0481));
         utilityComponentsHasLicense.add(UtilityComponentFactory.fromCondition("household.couple_type", "==", "1", 0.57060133563417));
         utilityComponentsHasLicense.add(UtilityComponentFactory.fromCondition("household.couple_type", "==", "2", 0.550927139150936));
         utilityComponentsHasLicense.add(new BoxCoxCalculator("zone.acc_pt_sc", -0.891463554538977, 0.1774));
@@ -39,10 +42,10 @@ public class DrivingLicenseModel {
         List<UtilityComponent> utilityComponentsHasNoLicense = Collections.emptyList();
         //all betas are zero, so no need to add any components
         this.noDrivingLicenseCalculator = new UtilityCalculator(utilityComponentsHasNoLicense);
-        this.selector = new LogitSelector(Map.of("true", hasDrivingLicenseCalculator, "false", noDrivingLicenseCalculator), 1.0, MatsimRandom.getRandom());
+        this.selector = new LogitSelector(Map.of("true", hasDrivingLicenseCalculator, "false", noDrivingLicenseCalculator), 1.0);
     }
 
-    public boolean calculate(org.matsim.api.core.v01.population.Person person) {
+    public boolean calculate(Person person) {
         return Boolean.parseBoolean(selector.select(person));
     }
 
