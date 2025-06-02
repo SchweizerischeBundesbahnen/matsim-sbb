@@ -33,7 +33,6 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.HasPlansAndId;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
@@ -117,13 +116,13 @@ public class DemandAggregator {
         ppcg.setZonesId("zones");
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         DemandAggregator demandAggregator = new DemandAggregator(scenario, zonesCollection, ppcg, railTripsAnalyzer);
-        demandAggregator.aggregateRailDemand(scaleFactor, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(
-                Collectors.toSet()));
+        IdMap<Person, Plan> experiencedPlans = new IdMap<>(Person.class);
+        scenario.getPopulation().getPersons().values().stream()
+                .forEach(person -> experiencedPlans.put(person.getId(), person.getSelectedPlan()));
 
-        demandAggregator
-                .writeMatrix(demandAggregator.prepareRailMatrix(false), outputFile);
-        demandAggregator
-                .writeMatrix(demandAggregator.prepareRailMatrix(true), outputFile.replace(".csv", ".fqOnly.csv"));
+        demandAggregator.aggregateAndWriteMatrix(scaleFactor, outputFile, outputFile.replace(".csv", ".stationToStation.csv.gz"), outputFile.replace(".csv", ".stationToStationFQ.csv.gz"),
+                outputFile.replace(".csv", ".tripsPerMun.csv.gz"), outputFile.replace(".csv", ".tripsPerAmr.csv.gz"), experiencedPlans);
+
 
     }
 
@@ -383,6 +382,7 @@ public class DemandAggregator {
 
         return matrix;
     }
+
 
     record RailODTravelInfo(MutableDouble demand, MutableDouble travelTime, MutableDouble travelDistance, MutableDouble numberOfRailTransfers) {
     }
