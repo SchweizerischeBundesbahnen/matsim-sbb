@@ -33,8 +33,12 @@ public class SBBTripScoring implements SumScoringFunction.TripScoring {
         double tripScore = 0.;
 
         if (ptModes.contains(routingMode)) {
-            String mostSignificantPtMode = findMostSignificantPTSubMode(trip.getLegsOnly());
-            tripScore += params.getMatsimScoringParameters().modeParams.get(mostSignificantPtMode).constant;
+            String mostExpensivePTSubmode =
+                    findMostExpensivePTSubMode(trip.getLegsOnly());
+            if (mostExpensivePTSubmode == null) {
+                mostExpensivePTSubmode = routingMode;
+            }
+            tripScore += params.getMatsimScoringParameters().modeParams.get(mostExpensivePTSubmode).constant;
         } else {
             tripScore += params.getMatsimScoringParameters().modeParams.get(routingMode).constant;
         }
@@ -59,17 +63,18 @@ public class SBBTripScoring implements SumScoringFunction.TripScoring {
 
     }
 
-    private String findMostSignificantPTSubMode(List<Leg> legsOnly) {
-        String mostSignificantMode = null;
-        double longestDistance = -1.;
+    private String findMostExpensivePTSubMode(List<Leg> legsOnly) {
+        String mostExpensivePTSubMode = null;
+        double maxCost = Double.MAX_VALUE;
         for (Leg leg : legsOnly) {
-            double distance = leg.getRoute().getDistance();
-            if (distance > longestDistance) {
-                longestDistance = distance;
-                mostSignificantMode = leg.getMode();
+            if (ptModes.contains(leg.getMode())) {
+                if (params.getMatsimScoringParameters().modeParams.get(leg.getMode()).constant < maxCost) {
+                    maxCost = params.getMatsimScoringParameters().modeParams.get(leg.getMode()).constant;
+                    mostExpensivePTSubMode = leg.getMode();
+                }
             }
         }
-        return mostSignificantMode;
+        return mostExpensivePTSubMode;
     }
 
     @Override
