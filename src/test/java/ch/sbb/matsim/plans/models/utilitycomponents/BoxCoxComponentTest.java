@@ -8,13 +8,13 @@ import org.matsim.core.population.PopulationUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BoxCoxCalculatorTest {
+class BoxCoxComponentTest {
 
     @Test
     void testCalculateLambdaNotZero() {
         Person person = PopulationUtils.getFactory().createPerson(Id.createPersonId(0));
         person.getAttributes().putAttribute(SynpopConstants.AGE, 30);
-        BoxCoxCalculator calculator = new BoxCoxCalculator("age", 0.5, 0.2);
+        BoxCoxComponent calculator = new BoxCoxComponent("age", 0.5, 0.2);
         double result = calculator.calculate(person);
         assertEquals(2.43587621459, result, 0.001);
 
@@ -24,7 +24,7 @@ class BoxCoxCalculatorTest {
     void testCalculateLambdaZero() {
         Person person = PopulationUtils.getFactory().createPerson(Id.createPersonId(0));
         person.getAttributes().putAttribute(SynpopConstants.AGE, 30);
-        BoxCoxCalculator calculator = new BoxCoxCalculator("age", 0.5, 0);
+        BoxCoxComponent calculator = new BoxCoxComponent("age", 0.5, 0);
         double result = calculator.calculate(person);
         double expected = Math.log(30) * 0.5;
         assertEquals(expected, result, 0.001);

@@ -4,20 +4,20 @@ import ch.sbb.matsim.plans.models.resolver.AttributeResolver;
 import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
-public class LinearCalculator implements UtilityComponent {
+public class LinearComponent implements UtilityComponent {
 
     private final String attributePath;
     private final double beta;
     private final AttributeResolver resolver;
 
 
-    public LinearCalculator(String attributePath, double beta, AttributeResolver resolver) {
+    public LinearComponent(String attributePath, double beta, AttributeResolver resolver) {
         this.attributePath = attributePath;
         this.beta = beta;
         this.resolver = resolver;
     }
 
-    public LinearCalculator(String attributePath, double beta) {
+    public LinearComponent(String attributePath, double beta) {
         this(attributePath, beta, new NestedAttributeResolver());
     }
 

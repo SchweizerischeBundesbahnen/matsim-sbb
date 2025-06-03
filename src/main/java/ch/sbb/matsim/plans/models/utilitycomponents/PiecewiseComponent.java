@@ -4,7 +4,7 @@ import ch.sbb.matsim.plans.models.resolver.AttributeResolver;
 import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
-public class PiecewiseCalculator implements UtilityComponent {
+public class PiecewiseComponent implements UtilityComponent {
 
     private final double[] thresholds;
     private final double[] betas;
@@ -12,7 +12,7 @@ public class PiecewiseCalculator implements UtilityComponent {
     private final AttributeResolver resolver;
 
 
-    public PiecewiseCalculator(String attributePath, double[] thresholds, double[] betas, AttributeResolver resolver) {
+    public PiecewiseComponent(String attributePath, double[] thresholds, double[] betas, AttributeResolver resolver) {
         this.attributePath = attributePath;
         this.thresholds = thresholds;
         this.betas = betas;
@@ -22,7 +22,7 @@ public class PiecewiseCalculator implements UtilityComponent {
         }
     }
 
-    public PiecewiseCalculator(String attributePath, double[] thresholds, double[] betas) {
+    public PiecewiseComponent(String attributePath, double[] thresholds, double[] betas) {
         this(attributePath, thresholds, betas, new NestedAttributeResolver());
     }
 
