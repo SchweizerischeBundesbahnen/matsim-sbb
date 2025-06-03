@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,13 +22,17 @@ class ChoiceModelCSVReaderTest {
             writer.write("agg2;3.0;4.0\n");
         }
 
-        Map<String, Map<String, Double>> result = ChoiceModelCSVReader.readShadowUtilitiesFromCSV(tempFile);
+        try {
+            Map<String, Map<String, Double>> result = ChoiceModelCSVReader.readShadowUtilitiesFromCSV(tempFile);
 
-        assertTrue(result.containsKey("A"));
-        assertTrue(result.containsKey("B"));
-        assertEquals(1.5, result.get("A").get("agg1"));
-        assertEquals(2.5, result.get("B").get("agg1"));
-        assertEquals(3.0, result.get("A").get("agg2"));
-        assertEquals(4.0, result.get("B").get("agg2"));
+            assertTrue(result.containsKey("A"));
+            assertTrue(result.containsKey("B"));
+            assertEquals(1.5, result.get("A").get("agg1"));
+            assertEquals(2.5, result.get("B").get("agg1"));
+            assertEquals(3.0, result.get("A").get("agg2"));
+            assertEquals(4.0, result.get("B").get("agg2"));
+        } finally {
+            Files.deleteIfExists(Path.of(tempFile));
+        }
     }
 }
