@@ -4,6 +4,8 @@ import ch.sbb.matsim.plans.models.resolver.AttributeResolver;
 import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
+import java.util.Arrays;
+
 public class PiecewiseComponent implements UtilityComponent {
 
     private final double[] thresholds;
@@ -18,7 +20,8 @@ public class PiecewiseComponent implements UtilityComponent {
         this.betas = betas;
         this.resolver = resolver;
         if (thresholds.length != betas.length - 1) {
-            throw new IllegalArgumentException("Thresholds and betas must have length n and n+1 respectively");
+            throw new IllegalArgumentException("Thresholds and betas must have length n and n+1 respectively" +
+                    " (thresholds: " + Arrays.toString(thresholds) + ", betas: " + Arrays.toString(betas) + ")");
         }
     }
 

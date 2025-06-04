@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.models.utils;
 
+import ch.sbb.matsim.plans.models.utilitycomponents.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileWriter;
@@ -34,5 +35,41 @@ class ChoiceModelCSVReaderTest {
         } finally {
             Files.deleteIfExists(Path.of(tempFile));
         }
+    }
+
+    @Test
+    void testReadChoiceModelFromCSV() throws IOException {
+        // Beispiel CSV-Inhalt
+        String csvContent = """
+                type;attribute;values;lambda;beta_GA;beta_HTA
+                constant;;;;-8.0;-7.0
+                linear;is_swiss;;;1.1;0.9
+                condition;language;==2;;0.5;0.4
+                boxcox;zone.acc_pt_sc;;0.2;-0.3;-0.25
+                piecewise;age;22,26,69,89;;0.0,-0.1,-0.2,0.3,0.1;0.1,0.0,-0.05,-0.1,0.2
+                """;
+
+        // Temporäre Datei schreiben
+        Path tempFile = Files.createTempFile("utility_model_test", ".csv");
+        try (FileWriter writer = new FileWriter(tempFile.toFile())) {
+            writer.write(csvContent);
+        }
+
+        // Methode testen
+        Map<String, UtilityCalculator> result = ChoiceModelCSVReader.readChoiceModelFromCSV(tempFile.toString());
+
+        // Ergebnisse prüfen
+        assertEquals(2, result.size());
+        assertTrue(result.containsKey("GA"));
+        assertTrue(result.containsKey("HTA"));
+
+        UtilityCalculator ga = result.get("GA");
+        assertEquals(5, ga.getComponents().size());
+
+        assertTrue(ga.getComponents().stream().anyMatch(c -> c instanceof ConstantComponent));
+        assertTrue(ga.getComponents().stream().anyMatch(c -> c instanceof LinearComponent));
+        assertTrue(ga.getComponents().stream().anyMatch(c -> c instanceof PredicateComponent));
+        assertTrue(ga.getComponents().stream().anyMatch(c -> c instanceof BoxCoxComponent));
+        assertTrue(ga.getComponents().stream().anyMatch(c -> c instanceof PiecewiseComponent));
     }
 }

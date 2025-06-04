@@ -20,6 +20,11 @@ public class UtilityCalculator {
     public void addComponent(UtilityComponent component) {
         components.add(component);
     }
+
+    public List<UtilityComponent> getComponents() {
+        return components;
+    }
+
     public double calculate(Attributable attributes) {
         return components.stream()
                 .mapToDouble(component -> component.calculate(attributes))
