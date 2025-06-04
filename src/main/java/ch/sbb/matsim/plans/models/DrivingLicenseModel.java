@@ -45,7 +45,7 @@ public class DrivingLicenseModel implements ChoiceModel {
         this.selector = new LogitSelector(Map.of("true", hasDrivingLicenseCalculator, "false", noDrivingLicenseCalculator), 1.0);
     }
 
-    public boolean calculate(Attributable person) {
+    public Boolean calculate(Attributable person) {
         return Boolean.parseBoolean(selector.select(person));
     }
 

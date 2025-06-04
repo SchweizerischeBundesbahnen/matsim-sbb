@@ -49,6 +49,7 @@ public class UtilityComponentFactory {
             return true;
         };
 
+
         return new PredicateComponent(attributeName, combinedPredicate, beta);
     }
 }

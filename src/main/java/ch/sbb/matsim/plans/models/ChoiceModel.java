@@ -4,5 +4,5 @@ import org.matsim.utils.objectattributes.attributable.Attributable;
 
 public interface ChoiceModel {
 
-    boolean calculate(Attributable attributable);
+    Object calculate(Attributable attributable);
 }
