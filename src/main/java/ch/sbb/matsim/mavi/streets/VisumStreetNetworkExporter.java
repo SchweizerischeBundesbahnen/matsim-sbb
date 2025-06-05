@@ -4,9 +4,7 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.counts.VisumToCounts;
-import ch.sbb.matsim.mavi.visum.Visum;
-import com.jacob.com.Dispatch;
-import com.jacob.com.SafeArray;
+import ch.sbb.matsim.mavi.visum.VisumDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -37,33 +35,30 @@ public class VisumStreetNetworkExporter {
 	private NetworkFactory nf;
 	private final Set<Id<Link>> linksWithCountingStations = new HashSet<>();
 
-	public void run(Visum visumObject, String outputPath, boolean exportCounts, boolean exportPolylines) throws IOException {
-
+	public void run(VisumDataSource visum, String outputPath, boolean exportCounts, boolean exportPolylines) throws IOException {
 		this.scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		this.nf = scenario.getNetwork().getFactory();
 
-		Dispatch net = visumObject.getComObject("Net").getDispatch();
-
-		Dispatch filters = visumObject.getComObject("Filters").getDispatch();
-		Dispatch.call(filters, "InitAll");
-
 		if (exportCounts) {
-			this.exportCountStations(visumObject, outputPath);
+			this.exportCountStations(visum, outputPath);
 		}
-		String[][] nodes = importNodes(net, "No", "XCoord", "YCoord", "ZCoord");
-		String[][] links = importLinks(net, "FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
+		
+		VisumDataSource.DataTable nodesTable = visum.getTable("Nodes");
+		String[][] nodes = nodesTable.attrs("No", "XCoord", "YCoord", "ZCoord");
+		
+		VisumDataSource.DataTable linksTable = visum.getTable("Links");
+		String[][] links = linksTable.attrs("FromNodeNo", "ToNodeNo", "Length", "CapPrT", "V0PrT", "TypeNo",
 				"NumLanes", "TSysSet", "WKTPoly", "No", "MOBI_REMOVAL_CANDIDATE");
+		
 		//extracts the VISUM network as it is and transfers VISUM attributes to its MATSim counterparts
 		createNetwork(nodes, links);
 		// Export Polylines
 		if (exportPolylines) {
 			new PolylinesCreator().runStreets(this.scenario.getNetwork(), wktLineStringPerVisumLink, "polylines.csv", outputPath);
 		}
-
 	}
 
-
-	private void exportCountStations(Visum visum, String outputFolder) throws IOException {
+	private void exportCountStations(VisumDataSource visum, String outputFolder) throws IOException {
 		VisumToCounts visumToCounts = new VisumToCounts(linksWithCountingStations);
 
 		File file = new File(outputFolder, "counts");
@@ -71,38 +66,8 @@ public class VisumStreetNetworkExporter {
 		visumToCounts.exportCountStations(visum, file.getAbsolutePath(), csv.getAbsolutePath());
 	}
 
-	public static String[][] importNodes(Dispatch net, String... attribute) {
-		Dispatch nodes = Dispatch.get(net, "Nodes").toDispatch();//import nodes
-		return toArray(nodes, attribute);
-	}
-
-	public static String[][] importLinks(Dispatch net, String... attribute) {
-		Dispatch links = Dispatch.get(net, "Links").toDispatch();
-		return toArray(links, attribute);
-	}
-
 	public Set<Id<Link>> getLinksWithCountingStations() {
 		return linksWithCountingStations;
-	}
-
-	public static String[][] toArray(Dispatch objects, String... attributes) {
-		int n = Integer.parseInt(Dispatch.call(objects, "CountActive").toString()); //number of nodes
-
-		String[][] attarray = new String[n][attributes.length]; //2d array containing all attributes of all nodes
-		int j = 0;
-
-		for (String att : attributes) {
-			log.info(att);
-			SafeArray a = Dispatch.call(objects, "GetMultiAttValues", att).toSafeArray();
-			int i = 0;
-			while (i < n) {
-				attarray[i][j] = a.getString(i, 1);
-				i++;
-			}
-			log.info("done");
-			j++;
-		}
-		return attarray;
 	}
 
 	private void createNetwork(String[][] attarraynode, String[][] attarraylink) {

@@ -7,126 +7,136 @@ import com.jacob.com.Variant;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class Visum {
+import java.util.*;
+
+/**
+ * Thin but <em>clean</em> façade around the Visum COM‑API.
+ * <p>
+ * Goal: shield the application from <strong>Dispatch</strong>/<strong>Variant</strong>/ActiveX noise while
+ * exposing a tiny, fluent interface that can be unit‑tested without Visum.
+ * <p>
+ * Typical usage:
+ * <pre>{@code
+ * try (Visum visum = Visum.connect(15)) {
+ *     visum.load("C:/networks/sbb.ver");
+ *
+ *     Table stopPoints = visum.table("StopPoints");
+ *     log.info("{} stop points", stopPoints.size());
+ *
+ *     String[][] attrs = stopPoints.attrs("No", "XCoord", "YCoord", "Name");
+ * }
+ * }</pre>
+ */
+public class Visum implements VisumDataSource {
+
+	// ------------------------------------------------------------------
+	// Lifecycle
+	// ------------------------------------------------------------------
 
 	private static final Logger log = LogManager.getLogger(Visum.class);
 
-	private final ActiveXComponent visum;
+	private final ActiveXComponent client;
 
-	public Visum(int version) {
-		this.visum = new ActiveXComponent("Visum.Visum." + version);
-		log.info("starting Visum client");
+	private Visum(int version) {
+		this.client = new ActiveXComponent("Visum.Visum." + version);
+		log.debug("Instantiated Visum COM object version {}", version);
 	}
 
-	public static String[][] getArrayFromAttributeList(int n, ComObject object, String... attributes) {
-		String[][] array = new String[n][attributes.length]; //2d array containing all attributes of all nodes
-		int j = 0;
-		for (String att : attributes) {
-			try {
-				SafeArray a = Dispatch.call(object.dispatch, "GetMultiAttValues", att).toSafeArray();
-				int i = 0;
-				while (i < n) {
-					array[i][j] = a.getString(i, 1);
-					i++;
-				}
-			} catch (Exception e) {
-				log.error("Could not load Attribute " + att);
-				int i = 0;
-				while (i < n) {
-					array[i][j] = "";
-					i++;
-				}
-			}
-			j++;
+	/** Connect to the installed Visum COM server (throws if version is missing). */
+	public static Visum connect(int version) {
+		return new Visum(version);
+	}
+
+	/** Load a *.ver* or *.net* file into the running Visum instance. */
+	public void load(String path) {
+		log.info("Loading Visum version file: {}", path);
+		Dispatch.call(client, "LoadVersion", new Variant(path));
+	}
+
+	/** Release COM resources. */
+	@Override public void close() {
+		if (client != null) {
+			log.debug("Releasing Visum COM resources");
+			client.safeRelease();
 		}
-		return array;
 	}
 
-	public void loadVersion(String path) {
-		log.info("loading version " + path);
-		Dispatch.call(this.visum, "LoadVersion", new Variant(path));
-		log.info("finished loading version");
+	// ------------------------------------------------------------------
+	// Public API – high‑level table access only
+	// ------------------------------------------------------------------
+
+	/** Fluent wrapper giving safe, typed access to any Visum table. */
+	@Override
+    public Table getTable(String name) {
+		Objects.requireNonNull(name, "table name");
+		Dispatch net = Dispatch.get(client, "Net").toDispatch();
+		Dispatch tbl = Dispatch.get(net, name).toDispatch();
+		return new Table(tbl);
 	}
 
-	public void setFilterCondition(ComObject filter, FilterCondition cond) {
-		Dispatch.call(filter.dispatch, "AddCondition", cond.op, cond.complement,
-				cond.attribute, cond.comparator, cond.val, cond.position);
-	}
+	// ------------------------------------------------------------------
+	// Inner helper representing one table (Nodes, Links, StopPoints ...)
+	// ------------------------------------------------------------------
 
-	public void initFilter(ComObject filter) {
-		Dispatch.call(filter.dispatch, "Init");
-	}
-
-	public void useFilter(ComObject filter, boolean val) {
-		Dispatch.put(filter.dispatch, "UseFilter", val);
-	}
-
-	public ComObject getComObject(String name) {
-		return new ComObject(Dispatch.get(this.visum, name).toDispatch());
-	}
-
-	public ComObject callComObject(ComObject object, String name) {
-		return new ComObject(Dispatch.call(object.dispatch, name).toDispatch());
-	}
-
-	public ComObject getComObject(ComObject object, String name) {
-		return new ComObject(Dispatch.get(object.dispatch, name).toDispatch());
-	}
-
-	public ComObject getNetObject(String netObject) {
-		ComObject net = getComObject("Net");
-		return new ComObject(Dispatch.get(net.dispatch, netObject).toDispatch());
-	}
-
-	public static class ComObject {
-
+	public static final class Table implements DataTable {
 		private final Dispatch dispatch;
 
-		public ComObject(Dispatch dispatch) {
+		private Table(Dispatch dispatch) {
 			this.dispatch = dispatch;
 		}
 
-		public Dispatch getDispatch() {
-			return dispatch;
+		/** Number of active elements respecting current filters. */
+		@Override
+        public int size() {
+			return Dispatch.call(dispatch, "CountActive").getInt();
 		}
 
-		public int countActive() {
-			return Dispatch.call(this.dispatch, "CountActive").getInt();
+		/** Raw column pull, COM‑behaviour compatible (missing cells -> empty string). */
+		@Override
+        public String[][] attrs(String... names) {
+			int n = size();
+			String[][] out = new String[n][names.length];
+
+			for (int col = 0; col < names.length; col++) {
+				String att = names[col];
+				try {
+					SafeArray sa = Dispatch.call(dispatch, "GetMultiAttValues", att).toSafeArray();
+					for (int row = 0; row < n; row++) {
+						out[row][col] = sa.getString(row, 1);
+					}
+				} catch (Exception ex) {
+					log.warn("Attribute '{}' not found – filling with blanks", att);
+					for (int row = 0; row < n; row++) out[row][col] = "";
+				}
+			}
+			return out;
 		}
 
-		public void callMethod(String method, String... attributes) {
-			Dispatch.call(this.dispatch, method, (Object[]) attributes);
+		// Convenience helpers ------------------------------------------------
+
+		/** Single column as typed list (Double/Integer/String) – optional sugar. */
+		public <T> List<T> column(String name, Class<T> type) {
+			String[][] a = attrs(name);
+			List<T> res = new ArrayList<>(a.length);
+			for (String[] row : a) {
+				res.add(convert(row[0], type));
+			}
+			return res;
 		}
 
-		public void callMethod(String method, String attribute, int dataType) {
-			Dispatch.call(this.dispatch, method, attribute, dataType);
-		}
-
-		public int getNumActiveElements() {
-			return Dispatch.call(this.dispatch, "NumActiveElements").getInt();
-		}
-
-		public SafeArray getSafeArray(String method) {
-			return Dispatch.call(this.dispatch, method).toSafeArray();
+		@SuppressWarnings("unchecked")
+		private static <T> T convert(String v, Class<T> type) {
+			if (v == null || v.isEmpty()) return null;
+			if (type == Integer.class) return (T) (Integer) (int) Double.parseDouble(v);
+			if (type == Double.class)  return (T) (Double) Double.valueOf(v);
+			// fallback – return string
+			return (T) v;
 		}
 	}
 
-	public static class FilterCondition {
-
-		private final int position;
-		private final String op;
-		private final boolean complement;
-		private final String attribute;
-		private final int comparator;
-		private final String val;
-
-		public FilterCondition(int position, String op, boolean complement, String attribute, int comparator, String val) {
-			this.position = position;
-			this.op = op;
-			this.comparator = comparator;
-			this.complement = complement;
-			this.attribute = attribute;
-			this.val = val;
-		}
+	public void clearFilters() {
+		Dispatch filters = Dispatch.get(client, "Filters").toDispatch();
+		Dispatch.call(filters, "InitAll");
 	}
+
 }

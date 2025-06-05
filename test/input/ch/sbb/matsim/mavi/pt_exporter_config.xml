@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v2.dtd">
+<config>
+
+<!-- ====================================================================== -->
+
+	<module name="VisumPTSupply2MATSimConfigGroup" >
+
+		<param name="PathToVisumVersion" value="minirail.ver" />
+        <param name="NetworkMode" value="pt" />
+        <param name="ExportTransferTimes" value="true" />
+		<param name="OutputPath" value="output" />
+
+    	<parameterset type="StopAttributes">
+        	<param name="AttName" value="02_Stop_No"/> 
+        	<param name="AttVal" value="StopArea\Stop\No"/> 
+        	<param name="DataType" value="java.lang.Integer"/> 
+        </parameterset>
+
+        <parameterset type="StopAttributes">
+        	<param name="AttName" value="03_Stop_Code"/> 
+        	<param name="AttVal" value="StopArea\Stop\Code"/> 
+        	<param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+        <parameterset type="StopAttributes">
+        	<param name="AttName" value="04_Stop_Name"/> 
+        	<param name="AttVal" value="StopArea\Stop\Name"/> 
+        	<param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+        <parameterset type="StopAttributes">
+        	<param name="AttName" value="06_Stop_Area_No"/> 
+        	<param name="AttVal" value="StopArea\No"/> 
+        	<param name="DataType" value="java.lang.Integer"/> 
+        </parameterset>
+        
+        <parameterset type="RouteAttributes">
+            <param name="AttName" value="02_TransitLine"/> 
+            <param name="AttVal" value="LineName"/> 
+            <param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+        <parameterset type="RouteAttributes">
+            <param name="AttName" value="03_LineRouteName"/> 
+            <param name="AttVal" value="LineRouteName"/> 
+            <param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+        <parameterset type="RouteAttributes">
+            <param name="AttName" value="04_DirectionCode"/> 
+            <param name="AttVal" value="DirectionCode"/> 
+            <param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+        <parameterset type="RouteAttributes">
+            <param name="AttName" value="05_Name"/> 
+            <param name="AttVal" value="Name"/> 
+            <param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+        <parameterset type="RouteAttributes">
+            <param name="AttName" value="06_OperatorName"/> 
+            <param name="AttVal" value="LineRoute\Line\Operator\Name"/> 
+            <param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+        <parameterset type="RouteAttributes">
+            <param name="AttName" value="07_OperatorCode"/> 
+            <param name="AttVal" value="LineRoute\Line\Operator\Code"/> 
+            <param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+        <parameterset type="RouteAttributes">
+            <param name="AttName" value="08_TSysName"/> 
+            <param name="AttVal" value="LineRoute\Line\TSysName"/> 
+            <param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+        <parameterset type="RouteAttributes">
+            <param name="AttName" value="09_TSysCode"/> 
+            <param name="AttVal" value="LineRoute\Line\TSysCode"/> 
+            <param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+		<parameterset type="RouteAttributes">
+            <param name="AttName" value="Sparte"/> 
+            <param name="AttVal" value="LineRoute\Line\Operator\Sparte"/> 
+            <param name="DataType" value="java.lang.String"/> 
+        </parameterset>
+
+	</module>
+
+<!-- ====================================================================== -->
+
+</config>

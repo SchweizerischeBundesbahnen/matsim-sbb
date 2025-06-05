@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 
 import static ch.sbb.matsim.mavi.streets.VisumStreetNetworkExporter.*;
 
-public class StreetNetworkExporter {
+public final class StreetNetworkExporter {
 
     public static final String VISUM_IDS = "visumIds";
 
@@ -67,8 +67,8 @@ public class StreetNetworkExporter {
         if (visumFile.contains(":")) {
             visumFile = visumFile.substring(1);
         }
-        Visum visum = new Visum(Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()));
-        visum.loadVersion(visumFile);
+        Visum visum = Visum.connect(Integer.parseInt(streetsExporterConfigGroup.getVisumVersion()));
+        visum.load(visumFile);
 
         vse.run(visum, outputDir, streetsExporterConfigGroup.isExportCounts(), true);
         Network network = vse.getNetwork();

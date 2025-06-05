@@ -1,79 +1,93 @@
 package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.mavi.visum.Visum;
-import ch.sbb.matsim.mavi.visum.Visum.ComObject;
-import java.util.HashSet;
-import java.util.Set;
+import ch.sbb.matsim.mavi.visum.VisumDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
 import org.matsim.core.utils.collections.Tuple;
 
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
- * Exports zone-to-stop-point connections from Visum into a CSV.
- * The output columns are: zone,walk_time,stop_point
+ * Exports <em>zone → stop-point</em> walk connections from a Visum data
+ * source (COM or *.net* file).
  */
 public class VisumConnectionsExporter {
-    private static final Logger log = LogManager.getLogger(VisumConnectionsExporter.class);
-    private final Visum visum;
 
-    public VisumConnectionsExporter(Visum visum) {
-        this.visum = visum;
+    private static final Logger log = LogManager.getLogger(VisumConnectionsExporter.class);
+
+    private final VisumDataSource ds;
+    private final Node2StopPointRelationIndex ix;   // look-up maps
+
+    public VisumConnectionsExporter(VisumDataSource visum) {
+        this.ds = visum;
+        this.ix = new Node2StopPointRelationIndex(ds);
     }
 
-    /**
-     * Writes the connections to the given file path.
-     * @param path full path to the output CSV file
-     */
+    /** Writes CSV <code>zone,walk_time,stop_point</code> to {@code path}. */
     public void writeConnections(String path) {
-        try {
-            // Retrieve the net object containing connector info
-            ComObject connections = visum.getNetObject("Connectors");
-            int count = connections.countActive();
-            // Load attributes: zone, stop points (possibly comma-separated), walk time
-            String[][] data = Visum.getArrayFromAttributeList(count,
-                connections,
-                "ZoneNo",
-                "Node\\Distinct:StopAreas\\Distinct:StopPoints\\No",
-                "T0_TSys(F)");
+        try (CSVWriter w = new CSVWriter("",
+            new String[]{"zone", "walk_time", "stop_point"}, path)) {
 
-            // Prepare CSV writer with headers while skipping duplicate zone-stop rows
-            Set<Tuple<String, String>> seen = new HashSet<>();
-            try (CSVWriter writer = new CSVWriter("",
-                new String[]{"zone", "walk_time", "stop_point"},
-                path)) {
-                for (String[] row : data) {
-                    String zone = row[0];
-                    String stopPoints = row[1];
-                    String walkTime = row[2];
-                    if (stopPoints == null || stopPoints.isBlank()) {
-                        continue;
-                    }
-                    // Split comma-separated stop points and write a row per stop point
-                    String[] parts = stopPoints.split(",");
-                    for (String sp : parts) {
-                        sp = sp.trim();
-                        if (sp.isEmpty()) continue;
-                        Tuple<String, String> zoneStopPair = new Tuple<>(zone, sp);
-                        if (seen.contains(zoneStopPair)) {
-                            continue;
-                        }
-                        seen.add(zoneStopPair);
-                        writer.set("zone", zone);
-                        writer.set("walk_time", walkTime);
-                        writer.set("stop_point", sp);
-                        writer.writeRow();
-                    }
+            VisumDataSource.DataTable connectors = ds.getTable("Connectors");
+            String[][] attr = connectors.attrs("ZoneNo", "NodeNo", "T0_TSys(F)");
+
+            Set<Tuple<String,String>> seen = new HashSet<>();
+            int written = 0;
+
+            for (String[] r : attr) {
+                String zone = r[0];
+                String node = r[1];
+                String walkTime = r[2];
+
+                for (String sp : ix.stopPointsForNode(node)) {
+                    Tuple<String,String> key = new Tuple<>(zone, sp);
+                    if (!seen.add(key)) continue;                 // duplicate
+
+                    w.set("zone",       zone);
+                    w.set("walk_time",  walkTime);
+                    w.set("stop_point", sp);
+                    w.writeRow();
+                    written++;
                 }
             }
+            log.info("Wrote {} unique zone–stop connections to {}", written, path);
+        } catch (IOException | NumberFormatException e) {
+            log.error("Failed to write connections to {}: {}", path, e.getMessage());
+        }
+    }
 
-            log.info("Zone connections successfully exported to {}", path);
-        } catch (IOException e) {
-            log.error("Could not write connections file: {}", e.getMessage(), e);
-        } catch (Exception e) {
-            log.error("Error exporting zone connections", e);
+    /* ------------------------------------------------------------------ */
+    /* Helper: builds Node → StopPoint lookup maps                        */
+    /* ------------------------------------------------------------------ */
+
+    private static final class Node2StopPointRelationIndex {
+        private final Map<String, List<String>> node2sp;
+
+        Node2StopPointRelationIndex(VisumDataSource ds) {
+            // NodeNo → [StopAreaNo]
+            Map<String, List<String>> node2area =
+                ds.getTable("StopAreas").buildMultiMap("NodeNo",     "No");
+            // StopAreaNo → [StopPointNo]
+            Map<String, List<String>> area2sp   =
+                ds.getTable("StopPoints").buildMultiMap("StopAreaNo", "No");
+
+            /* Chain maps: NodeNo → distinct StopPointNos */
+            node2sp = new HashMap<>();
+            for (var e : node2area.entrySet()) {
+                List<String> points = e.getValue().stream()
+                    .flatMap(sa -> area2sp.getOrDefault(sa, List.of()).stream())
+                    .distinct()
+                    .collect(Collectors.toCollection(ArrayList::new));
+                node2sp.put(e.getKey(), points);
+            }
+        }
+
+        /** Immutable view to prevent external modification. */
+        Collection<String> stopPointsForNode(String node) {
+            return node2sp.getOrDefault(node, List.of());
         }
     }
 }

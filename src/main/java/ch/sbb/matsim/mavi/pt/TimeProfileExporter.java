@@ -4,7 +4,10 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.PolylinesCreator;
-import ch.sbb.matsim.mavi.visum.Visum;
+import ch.sbb.matsim.mavi.pt.VisumPtExporterConfigGroup.RouteAttributeParams;
+import ch.sbb.matsim.mavi.visum.VisumDataSource;
+import ch.sbb.matsim.mavi.visum.VisumDataSource.DataTable;
+import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -50,87 +53,108 @@ public class TimeProfileExporter {
 		this.vehicleBuilder = scenario.getVehicles().getFactory();
 	}
 
-	private HashMap<Integer, TimeProfile> loadTimeProfileInfos(Visum visum, VisumPtExporterConfigGroup config) {
-		HashMap<Integer, TimeProfile> timeProfileMap = new HashMap<>();
+	private HashMap<Integer, TimeProfile> loadTimeProfileInfos(VisumDataSource visum, VisumPtExporterConfigGroup config) {
+		log.info("loading nodes");
+		DataTable nodes = visum.getTable("Nodes");
+		String[][] nodesdata = nodes.attrs("No", "XCoord", "YCoord");
+		log.info("loading links");
+		DataTable links = visum.getTable("Links");
+		String[][] linksdata = links.attrs("FromNodeNo", "ToNodeNo", "No", "Length", "WKTPoly");
+		createNetwork(nodesdata, linksdata);
+		Map<String, String> linkMap = Arrays.stream(linksdata)
+			.collect(Collectors.toMap(
+				linkRow -> linkRow[0] + "|" + linkRow[1],
+				linkRow -> linkRow[2],
+				(existing, replacement) -> existing
+			));
 
 		log.info("loading LineRouteItems");
 		// line route items
-		Visum.ComObject lineRouteItems = visum.getNetObject("LineRouteItems");
-		if (lineRouteItems == null) {
-			throw new NullPointerException("could not get LineRouteItems");
-		}
+		DataTable lineRouteItems = visum.getTable("LineRouteItems");
 		Map<String, List<LineRouteItem>> lrItemsPerLineRoute = new HashMap<>();
-		int nrOfLRItems = lineRouteItems.countActive();
-		String[][] lineRouteItemAttributes = Visum.getArrayFromAttributeList(nrOfLRItems, lineRouteItems,
-				"LineName", "LineRoute\\Name", "DirectionCode", "Index", "Node\\No", "OutLink\\No");
+		int nrOfLRItems = lineRouteItems.size();
+		String[][] lineRouteItemAttributes = lineRouteItems.attrs(
+				"LineName", "LineRouteName", "DirectionCode", "Index", "NodeNo", "StopPointNo");
 		for (int i = 0; i < nrOfLRItems; i++) {
 			String[] row = lineRouteItemAttributes[i];
+			String linkNo = null;
+			if (i < nrOfLRItems - 1) {
+				String nextNodeNo = lineRouteItemAttributes[i+1][4];
+				linkNo = linkMap.get(row[4] + "|" + nextNodeNo);
+			}
 			String lrKey = row[0] + "||" + row[1] + "||" + row[2];
-			lrItemsPerLineRoute.computeIfAbsent(lrKey, k -> new ArrayList<>()).add(new LineRouteItem(Integer.parseInt(row[3]), row[4], row[5]));
+			lrItemsPerLineRoute.computeIfAbsent(lrKey, k -> new ArrayList<>()).add(new LineRouteItem(Integer.parseInt(row[3]), row[4], linkNo));
 		}
 		log.info("sorting LineRouteItems");
 		lrItemsPerLineRoute.forEach((key, list) -> list.sort(Comparator.comparingInt(o -> o.index)));
 
 		log.info("loading TimeProfiles");
 		// time profiles
-		Visum.ComObject timeProfiles = visum.getNetObject("TimeProfiles");
-		int nrOfTimeProfiles = timeProfiles.countActive();
-		String[][] timeProfileAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfiles, timeProfiles,
-				"ID", "LineName", "LineRoute\\Line\\Datenherkunft", "TSysCode",
-				"LineRoute\\Line\\TSys\\TSys_MOBi");
-		String[][] customAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfiles, timeProfiles,
+		HashMap<Integer, TimeProfile> timeProfileMap = new HashMap<>();
+		HashMap<String, Integer> timeProfileIndexMap = new HashMap<>();
+		DataTable timeProfiles = visum.getTable("TimeProfiles");
+		DataTable transportSystems = visum.getTable("TSystems");
+		Map<String, List<String>> tsysMobiMap = transportSystems.buildMultiMap("Code", "Tsys_MOBi");
+		int nrOfTimeProfiles = timeProfiles.size();
+		String[][] timeProfileAttributes = timeProfiles.attrs(
+			"LineName", "LineRouteName", "DirectionCode", "Name", "TSysCode");
+
+		String[][] customAttributes = timeProfiles.attrs(
 				config.getRouteAttributeParams().values().stream().
-						map(VisumPtExporterConfigGroup.RouteAttributeParams::getAttributeValue).
+						map(RouteAttributeParams::getAttributeValue).
 						toArray(String[]::new));
 
 		for (int tp = 0; tp < nrOfTimeProfiles; tp++) {
-			timeProfileMap.put((int) Double.parseDouble(timeProfileAttributes[tp][0]),
-					new TimeProfile(timeProfileAttributes[tp][1],
-							timeProfileAttributes[tp][2],
-							timeProfileAttributes[tp][3],
-							timeProfileAttributes[tp][4],
-							customAttributes[tp]));
+			String tpKey = timeProfileAttributes[tp][0] + "||" + timeProfileAttributes[tp][1] + "||" + timeProfileAttributes[tp][2] + "||" + timeProfileAttributes[tp][3];
+			timeProfileIndexMap.put(tpKey, tp);
+			List<String> tsysMobi = tsysMobiMap.get(timeProfileAttributes[tp][4]);
+			timeProfileMap.put(tp,
+					new TimeProfile(
+						timeProfileAttributes[tp][0],
+						timeProfileAttributes[tp][4],
+						tsysMobi == null ? "" : tsysMobi.getFirst(),
+						customAttributes[tp])
+			);
 		}
 
-		log.info("loading nodes");
-		Visum.ComObject nodes = visum.getNetObject("Nodes");
-		String[][] nodesdata = Visum.getArrayFromAttributeList(nodes.countActive(), nodes, "No", "XCoord", "YCoord");
-		log.info("loading links");
-		Visum.ComObject links = visum.getNetObject("Links");
-		String[][] linksdata = Visum.getArrayFromAttributeList(links.countActive(), links, "FromNodeNo", "ToNodeNo", "No", "Length", "WKTPoly");
-		createNetwork(nodesdata, linksdata);
 		log.info("loading VehicleJourneys");
 		// vehicles journeys
-		Visum.ComObject vehJourneys = visum.getNetObject("VehicleJourneys");
-		int nrOfVehJourneys = vehJourneys.countActive();
-		String[][] vehJourneyAttributes = Visum.getArrayFromAttributeList(nrOfVehJourneys, vehJourneys,
-				"TimeProfile\\ID", "No", "FromTProfItemIndex", "ToTProfItemIndex", "Dep", "VehCapacity", "StandingRoom");
+		DataTable vehJourneys = visum.getTable("VehicleJourneys");
+		int nrOfVehJourneys = vehJourneys.size();
+		String[][] vehJourneyAttributes = vehJourneys.attrs(
+				"LineName", "LineRouteName", "DirectionCode", "TimeProfileName", "No", "FromTProfItemIndex", "ToTProfItemIndex", "Dep", "VehCapacity", "StandingRoom");
 		for (int vj = 0; vj < nrOfVehJourneys; vj++) {
-			TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(vehJourneyAttributes[vj][0]));
+			String tpKey = vehJourneyAttributes[vj][0] + "||" + vehJourneyAttributes[vj][1] + "||" + vehJourneyAttributes[vj][2] + "||" + vehJourneyAttributes[vj][3];
+			TimeProfile tp = timeProfileMap.get(timeProfileIndexMap.get(tpKey));
 			if (tp == null) {
-				log.error((int) Double.parseDouble(vehJourneyAttributes[vj][0]));
+				log.error(tpKey);
 				throw new NullPointerException();
 			}
-			tp.addVehicleJourney(new VehicleJourney((int) Double.parseDouble(vehJourneyAttributes[vj][1]),
-					(int) Double.parseDouble(vehJourneyAttributes[vj][2]),
-					(int) Double.parseDouble(vehJourneyAttributes[vj][3]),
-					Double.parseDouble(vehJourneyAttributes[vj][4]),
-					(int) Double.parseDouble(vehJourneyAttributes[vj][5].isEmpty() ? "-1" : vehJourneyAttributes[vj][5]),
-					(int) Double.parseDouble(vehJourneyAttributes[vj][6].isEmpty() ? "-1" : vehJourneyAttributes[vj][6])));
+			tp.addVehicleJourney(new VehicleJourney(
+				(int) Double.parseDouble(vehJourneyAttributes[vj][4]),
+				(int) Double.parseDouble(vehJourneyAttributes[vj][5]),
+				(int) Double.parseDouble(vehJourneyAttributes[vj][6]),
+				parseTime(vehJourneyAttributes[vj][7]),
+				(int) Double.parseDouble(vehJourneyAttributes[vj][8].isEmpty() ? "-1" : vehJourneyAttributes[vj][8]),
+				(int) Double.parseDouble(vehJourneyAttributes[vj][9].isEmpty() ? "-1" : vehJourneyAttributes[vj][9]))
+			);
 		}
 
 		// time profile items
-		Visum.ComObject timeProfileItems = visum.getNetObject("TimeProfileItems");
-		int nrOfTimeProfileItems = timeProfileItems.countActive();
-		String[][] timeProfileItemAttributes = Visum.getArrayFromAttributeList(nrOfTimeProfileItems, timeProfileItems,
-				"TimeProfile\\ID", "Index", "LineRouteItem\\StopPointNo", "Dep", "Arr", "PostLength",
-				"LineName", "LineRouteName", "DirectionCode", "LRITEMINDEX");
+		DataTable timeProfileItems = visum.getTable("TimeProfileItems");
+		int nrOfTimeProfileItems = timeProfileItems.size();
+		String[][] timeProfileItemAttributes = timeProfileItems.attrs(
+				"LineName", "LineRouteName", "DirectionCode", "TimeProfileName", "Index", "NodeNo", "Dep", "Arr", "PostLength", "LrItemIndex");
+		// LINENAME;LINEROUTENAME;DIRECTIONCODE;TIMEPROFILENAME;INDEX;LRITEMINDEX;ALIGHT;BOARD;ARR;DEP;NUMFAREPOINTS;NUMFAREPOINTSBOARD;NUMFAREPOINTSTHROUGH;NUMFAREPOINTSALIGHT;ADDVAL
+		DataTable stopPoints = visum.getTable("StopPoints");
+		Map<String, List<String>> node2stopPointNo = stopPoints.buildMultiMap("NodeNo", "No");
 		int lastLRItemIndex = 0;
 		for (int tpi = 0; tpi < nrOfTimeProfileItems; tpi++) {
 			String[] row = timeProfileItemAttributes[tpi];
 			ArrayList<Id<Link>> visumLinks = new ArrayList<>();
-			String lineRouteKey = row[6] + "||" + row[7] + "||" + row[8];
+			String lineRouteKey = row[0] + "||" + row[1] + "||" + row[2];
 			List<LineRouteItem> tpLineRouteItems = lrItemsPerLineRoute.get(lineRouteKey);
+			String stopPointNo = "0";
 			if (tpLineRouteItems == null) {
 				log.error("Could not find line route items for " + lineRouteKey);
 			} else {
@@ -138,11 +162,14 @@ public class TimeProfileExporter {
 				boolean useIt = false;
 				String lastLink = null;
 				for (LineRouteItem lri : tpLineRouteItems) {
+					if (lri.index == thisLRItemIndex) {
+						stopPointNo = node2stopPointNo.get(lri.node).getFirst();
+					}
 					if (!useIt && lri.index >= lastLRItemIndex) {
 						useIt = true;
 					}
 					if (useIt) {
-						if (!lri.outLink.equals(lastLink) && !lri.outLink.isBlank() && !lri.node.isBlank()) {
+						if (!(lri.outLink == null || lri.outLink.isBlank()) && !(lri.node == null || lri.node.isBlank()) && !lri.outLink.equals(lastLink)) {
 							Id<Link> linkId = MaviHelper.createPtLinkId(lri.node, lri.outLink);
 							visumLinks.add(linkId);
 							lastLink = lri.outLink;
@@ -155,15 +182,20 @@ public class TimeProfileExporter {
 				lastLRItemIndex = thisLRItemIndex;
 			}
 
-			TimeProfile tp = timeProfileMap.get((int) Double.parseDouble(row[0]));
+			Map<String, List<String>> linkLengths = links.buildMultiMap("No", "Length");
+			double postLength = visumLinks.stream().mapToDouble(linkId -> this.network.getLinks().get(linkId).getLength()).sum();
+			String tpKey = timeProfileItemAttributes[tpi][0] + "||" + timeProfileItemAttributes[tpi][1] + "||" + timeProfileItemAttributes[tpi][2] + "||" + timeProfileItemAttributes[tpi][3];
+			TimeProfile tp = timeProfileMap.get(timeProfileIndexMap.get(tpKey));
 			try {
-				tp.addTimeProfileItem(new TimeProfileItem((int) Double.parseDouble(row[1]),
-						(int) Double.parseDouble(row[2]),
-						Double.parseDouble(row[3]),
-						Double.parseDouble(row[4]),
-						Double.parseDouble(row[5]),
-						visumLinks.stream().map(linkId -> linkId.toString()).collect(Collectors.joining(",")),
-						visumLinks));
+				tp.addTimeProfileItem(new TimeProfileItem(
+					(int) Double.parseDouble(row[4]),
+					(int) Double.parseDouble(stopPointNo),
+					parseTime(row[6]),
+					parseTime(row[7]),
+					postLength,
+					visumLinks.stream().map(linkId -> linkId.toString()).collect(Collectors.joining(",")),
+					visumLinks)
+				);
 			} catch (Exception e) {
 				LogManager.getLogger(TimeProfileExporter.class).error(" Could not add TPI for row " + Arrays.stream(row).toList());
 				e.printStackTrace();
@@ -187,7 +219,7 @@ public class TimeProfileExporter {
 			var linkId = MaviHelper.createPtLinkId(linkData[0], linkData[2]);
 			var fromNodeId = Id.createNodeId(linkData[0] + "_pt");
 			var toNodeId = Id.createNodeId(linkData[1] + "_pt");
-			double length = Double.parseDouble(linkData[3]);
+			double length = parseKm(linkData[3]);
 			String wkt = linkData[4];
 			Link link = networkBuilder.createLink(linkId, network.getNodes().get(fromNodeId), network.getNodes().get(toNodeId));
 			link.setLength(length * 1000.);
@@ -217,7 +249,7 @@ public class TimeProfileExporter {
     public void writeLinkSequence(String outputfolder, Network network) {
         try (CSVWriter writer = new CSVWriter("", new String[]{"matsim_link", "link_sequence_visum", "fromnode_sequence_visum"},
                 outputfolder + "/link_sequences.csv")) {
-            for (Map.Entry<Id<Link>, String> entry : this.linkToVisumSequence.entrySet()) {
+            for (Entry<Id<Link>, String> entry : this.linkToVisumSequence.entrySet()) {
 				Id<Link> matsimLinkId = entry.getKey();
 				String visumLinkSequence = entry.getValue();
 				if (visumLinkSequence == null || visumLinkSequence.isEmpty()) {
@@ -242,12 +274,12 @@ public class TimeProfileExporter {
 		}
 	}
 
-	public void createTransitLines(Visum visum, VisumPtExporterConfigGroup config) {
+	public void createTransitLines(VisumDataSource visum, VisumPtExporterConfigGroup config) {
 		log.info("Loading all informations about transit lines...");
 		HashMap<Integer, TimeProfile> timeProfileMap = loadTimeProfileInfos(visum, config);
 		log.info("finished loading all informations for transit lines...");
 
-		for (Map.Entry<Integer, TimeProfile> entrySet : timeProfileMap.entrySet()) {
+		for (Entry<Integer, TimeProfile> entrySet : timeProfileMap.entrySet()) {
 			int tpId = entrySet.getKey();
 			TimeProfile tp = entrySet.getValue();
 
@@ -347,7 +379,7 @@ public class TimeProfileExporter {
 				route.addDeparture(dep);
 
 				String[] values = tp.customAttributes;
-				List<VisumPtExporterConfigGroup.RouteAttributeParams> custAttNames = new ArrayList<>(config.getRouteAttributeParams().values());
+				List<RouteAttributeParams> custAttNames = new ArrayList<>(config.getRouteAttributeParams().values());
 				Attributes routeAttributes = route.getAttributes();
 				IntStream.range(0, values.length).forEach(j -> addAttribute(routeAttributes, custAttNames.get(j).getAttributeName(),
 						values[j], custAttNames.get(j).getDataType()));
@@ -429,12 +461,11 @@ public class TimeProfileExporter {
 		netRoute.setLinkIds(netRoute.getStartLinkId(), consistentRoute, netRoute.getEndLinkId());
 	}
 
-	private Map<Integer, Set<Integer>> loadChainingInfo(Visum visum) {
+	private Map<Integer, Set<Integer>> loadChainingInfo(VisumDataSource visum) {
 		Map<Integer, Set<Integer>> chaining = new HashMap<>();
 		try {
-			Visum.ComObject chainedObj = visum.getNetObject("ChainedUpVehicleJourneySections");
-			int count = chainedObj.countActive();
-			String[][] chainAttributes = Visum.getArrayFromAttributeList(count, chainedObj, "VehJourneyNo", "ChainedUpVehJourneyNo");
+			DataTable chainedObj = visum.getTable("ChainedUpVehicleJourneySections");
+			String[][] chainAttributes = chainedObj.attrs("VehJourneyNo", "ChainedUpVehJourneyNo");
 			for (int i = 0; i < chainAttributes.length; i++) {
 				try {
 					int fromVjNo = Integer.parseInt(chainAttributes[i][0].trim());
@@ -450,7 +481,7 @@ public class TimeProfileExporter {
 		return chaining;
 	}
 
-	public void createDepartureChaining(Visum visum) {
+	public void createDepartureChaining(VisumDataSource visum) {
 		Map<Integer, Set<Integer>> vjChains = loadChainingInfo(visum);
 		for (int vjNo : vjChains.keySet()) {
 			DepartureInfo depInfo = this.journeyToDepartureMap.get(vjNo);
@@ -462,6 +493,19 @@ public class TimeProfileExporter {
 			}
 			depInfo.departure.setChainedDepartures(chainedDepartures);
 		}
+	}
+
+	private static double parseKm(String distanceStr) {
+		if (distanceStr.endsWith("km")) distanceStr = distanceStr.substring(0, distanceStr.length() - 2);
+		return Double.parseDouble(distanceStr);
+	}
+
+	private static int parseTime(String timeStr) {
+		if (timeStr.contains(":")) {
+			String[] timeParts = timeStr.split(":");
+			timeStr = Double.toString(Double.parseDouble(timeParts[0]) * 3600 + Double.parseDouble(timeParts[1]) * 60 + Double.parseDouble(timeParts[2]));
+		}
+		return (int) Double.parseDouble(timeStr);
 	}
 
 	private record DepartureInfo(Id<TransitLine> transitLineId, Id<TransitRoute> transitRouteId, Departure departure) {}
@@ -515,16 +559,14 @@ public class TimeProfileExporter {
 	private static class TimeProfile {
 
 		final String lineName;
-		final String datenHerkunft;
 		final String tSysCode;
 		final String tSysMOBi;
 		final ArrayList<VehicleJourney> vehicleJourneys;
 		final ArrayList<TimeProfileItem> timeProfileItems;
 		final String[] customAttributes;
 
-		public TimeProfile(String lineName, String datenHerkunft, String tSysCode, String tSysMOBi, String[] customAttributes) {
+		public TimeProfile(String lineName, String tSysCode, String tSysMOBi, String[] customAttributes) {
 			this.lineName = lineName;
-			this.datenHerkunft = datenHerkunft;
 			this.tSysCode = tSysCode;
 			this.tSysMOBi = tSysMOBi;
 			this.customAttributes = customAttributes;

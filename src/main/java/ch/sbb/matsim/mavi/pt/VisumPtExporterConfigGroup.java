@@ -4,14 +4,11 @@
 
 package ch.sbb.matsim.mavi.pt;
 
-import ch.sbb.matsim.mavi.visum.Visum;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -182,17 +179,6 @@ public class VisumPtExporterConfigGroup extends ReflectiveConfigGroup {
 			}
 		}
 		return map;
-	}
-
-	public List<Visum.FilterCondition> getTimeProfilFilterConditions() {
-		final List<Visum.FilterCondition> list = new ArrayList<>();
-
-		for (ConfigGroup pars : getParameterSets(TimeProfilFilterParams.SET_TYPE)) {
-			TimeProfilFilterParams tpf = (TimeProfilFilterParams) pars;
-			list.add(new Visum.FilterCondition(tpf.position, tpf.op, tpf.complement, tpf.attribute, tpf.comparator,
-					tpf.val));
-		}
-		return list;
 	}
 
 	public void addStopAttributeParams(final StopAttributeParams params) {
