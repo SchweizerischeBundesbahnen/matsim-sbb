@@ -22,18 +22,24 @@ import java.util.List;
 public class RunMobilityTools {
 
     public static void main(String[] args) {
+        String folder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
+        String suffix = ""; //whole population
+        //String suffix = "_Bern"; //City of Bern
+        //String suffix = "_AI"; //Appenzell Inner Rhodes
+
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        Zones zones = ZonesLoader.loadZones("zones", "C:\\devsbb\\tmp\\synpop_2022\\35_kalif_secondary.mobi-zones.shp");
+        Zones zones = ZonesLoader.loadZones("zones", folder + "35_kalif_secondary.mobi-zones.shp");
         scenario.addScenarioElement(Variables.ZONES, zones);
-        new PopulationReader(scenario).readFile("C:\\devsbb\\tmp\\synpop_2022\\persons_2022_Bern.xml.gz");
-        new HouseholdsReaderV10(scenario.getHouseholds()).readFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022_Bern.xml.gz");
+        new PopulationReader(scenario).readFile(folder + "persons_2022" + suffix + ".xml.gz");
+        new HouseholdsReaderV10(scenario.getHouseholds()).readFile(folder + "households_2022" + suffix + ".xml.gz");
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
         SynPopUtils.calculateHouseHoldCompositions(scenario);
         var logger = LogManager.getLogger(RunMobilityTools.class);
+        DrivingLicenseModelFromCSV drivingLicenseModel = new DrivingLicenseModelFromCSV("\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\driving_license.csv");
+        //DrivingLicenseModel drivingLicenseModel = new DrivingLicenseModel();
         logger.info(("Starting driving license calculation..."));
         double time = System.currentTimeMillis();
-        DrivingLicenseModel drivingLicenseModel = new DrivingLicenseModel();
         int i = 0;
         int persons = 0;
         for (Id personId : scenario.getPopulation().getPersons().keySet()) {
