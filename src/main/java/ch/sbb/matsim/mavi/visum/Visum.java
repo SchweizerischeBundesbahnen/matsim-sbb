@@ -29,10 +29,6 @@ import java.util.*;
  */
 public class Visum implements VisumDataSource {
 
-	// ------------------------------------------------------------------
-	// Lifecycle
-	// ------------------------------------------------------------------
-
 	private static final Logger log = LogManager.getLogger(Visum.class);
 
 	private final ActiveXComponent client;
@@ -61,28 +57,20 @@ public class Visum implements VisumDataSource {
 		}
 	}
 
-	// ------------------------------------------------------------------
-	// Public API – high‑level table access only
-	// ------------------------------------------------------------------
-
 	/** Fluent wrapper giving safe, typed access to any Visum table. */
 	@Override
-    public Table getTable(String name) {
+    public DataTable getTable(String name) {
 		Objects.requireNonNull(name, "table name");
-		Dispatch net = Dispatch.get(client, "Net").toDispatch();
-		Dispatch tbl = Dispatch.get(net, name).toDispatch();
-		return new Table(tbl);
+		if (name.equals("TransferWalkTimeStopAreas")) return new ComListTable("CreateStopTransferWalkTimeList", client);
+		return new ComNetTable(name, client);
 	}
 
-	// ------------------------------------------------------------------
-	// Inner helper representing one table (Nodes, Links, StopPoints ...)
-	// ------------------------------------------------------------------
-
-	public static final class Table implements DataTable {
+	public static final class ComNetTable implements DataTable {
 		private final Dispatch dispatch;
 
-		private Table(Dispatch dispatch) {
-			this.dispatch = dispatch;
+		private ComNetTable(String name, ActiveXComponent client) {
+			Dispatch net = Dispatch.get(client, "Net").toDispatch();
+            this.dispatch = Dispatch.get(net, name).toDispatch();
 		}
 
 		/** Number of active elements respecting current filters. */
@@ -112,25 +100,52 @@ public class Visum implements VisumDataSource {
 			return out;
 		}
 
-		// Convenience helpers ------------------------------------------------
+	}
 
-		/** Single column as typed list (Double/Integer/String) – optional sugar. */
-		public <T> List<T> column(String name, Class<T> type) {
-			String[][] a = attrs(name);
-			List<T> res = new ArrayList<>(a.length);
-			for (String[] row : a) {
-				res.add(convert(row[0], type));
-			}
-			return res;
+	public static final class ComListTable implements DataTable {
+
+		/** Underlying VISUM list COM object. */
+		private final Dispatch dispatch;
+
+		private ComListTable(String name, ActiveXComponent client) {
+			Dispatch workbench = Dispatch.get(client, "Workbench").toDispatch();
+			Dispatch lists = Dispatch.get(workbench, "Lists").toDispatch();
+			this.dispatch = Dispatch.get(lists, name).toDispatch();
 		}
 
-		@SuppressWarnings("unchecked")
-		private static <T> T convert(String v, Class<T> type) {
-			if (v == null || v.isEmpty()) return null;
-			if (type == Integer.class) return (T) (Integer) (int) Double.parseDouble(v);
-			if (type == Double.class)  return (T) (Double) Double.valueOf(v);
-			// fallback – return string
-			return (T) v;
+		/** Number of active rows (excluding the header row). */
+		@Override
+		public int size() {
+			return Dispatch.get(dispatch, "NumActiveElements").getInt();
+		}
+
+		@Override
+		public String[][] attrs(String... names) {
+			setColumns(names);
+
+			SafeArray sa = Dispatch.call(dispatch, "SaveToArray").toSafeArray();
+			int rows = size();
+			String[][] out = new String[rows][names.length];
+
+			for (int row = 0; row < rows; row++) {
+				for (int c = 0; c < names.length; c++) {
+					try {
+						out[row][c] = sa.getString(row, c);
+					} catch (Exception ex) {
+						out[row][c] = "";
+					}
+				}
+			}
+			return out;
+		}
+
+		private void setColumns(String[] names) {
+			for (String name : names) {
+				int stringFormatType = name.toLowerCase().startsWith("time") ? 3 : 0; // time always as seconds
+				try {
+					Dispatch.call(dispatch, "AddColumn", name, stringFormatType);
+				} catch (Exception ignored) { }
+			}
 		}
 	}
 

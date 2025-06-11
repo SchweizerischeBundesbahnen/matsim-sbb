@@ -21,11 +21,6 @@ public interface VisumDataSource extends AutoCloseable {
     /** Return a handle to a Visum table (Nodes, Links, StopAreas …). */
     DataTable getTable(String name);
 
-    /** Convenience bridge for legacy static calls. */
-    default String[][] getArrayFromAttributeList(DataTable tbl, String... attrs) {
-        return tbl.attrs(attrs);
-    }
-
     /**
      * Unified abstraction of a Visum *table* or *view* (for COM).  Attribute
      * names are case‑insensitive.

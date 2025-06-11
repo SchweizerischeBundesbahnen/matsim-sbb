@@ -33,7 +33,7 @@ public class MTTExporter {
 	private static List<Transfer> loadWithinTransfers(VisumDataSource visum) {
 		log.info("loading within stop transfers");
 		DataTable walkTimesTable = visum.getTable("TransferWalkTimeStopAreas");
-		String[][] a = walkTimesTable.attrs("FromStopAreaNo", "ToStopAreaNo", "Time");
+		String[][] a = walkTimesTable.attrs("FromStopAreaNo", "ToStopAreaNo", "Time(F)");
 
 		int nrTransfers = walkTimesTable.size();
 		log.info("loading " + nrTransfers + " within stop transfers");
@@ -41,7 +41,7 @@ public class MTTExporter {
 		List<Transfer> transfers = IntStream.range(0, nrTransfers).
 			filter(i -> parseSeconds(a[i][2]) > 0).
 			mapToObj(i -> new Transfer((int) Double.parseDouble(a[i][0]),
-				(int) Double.parseDouble(a[i][1]), Double.parseDouble(a[i][2]))).
+				(int) Double.parseDouble(a[i][1]), parseSeconds(a[i][2]))).
 			collect(Collectors.toList());
 
 		log.info("finished loading " + transfers.size() + " valid within stop transfers");
@@ -67,8 +67,8 @@ public class MTTExporter {
 
 		List<Transfer> transfers = new ArrayList<>();
 		for (Tuple<String, String> linkNodeTuple : walkLinksMap.keySet()) {
-			Set<String> fromStopAreas = new HashSet<>(stopAreaNodeMap.get(linkNodeTuple.getFirst()));
-			Set<String> toStopAreas = new HashSet<>(stopAreaNodeMap.get(linkNodeTuple.getSecond()));
+			Set<String> fromStopAreas = new HashSet<>(stopAreaNodeMap.getOrDefault(linkNodeTuple.getFirst(), List.of()));
+			Set<String> toStopAreas = new HashSet<>(stopAreaNodeMap.getOrDefault(linkNodeTuple.getSecond(), List.of()));
 			double walkTime = parseSeconds(walkLinksMap.get(linkNodeTuple));
 			if (walkTime > 0 && !fromStopAreas.isEmpty() && !toStopAreas.isEmpty()) {
 				for (String fromStopArea : fromStopAreas) {
