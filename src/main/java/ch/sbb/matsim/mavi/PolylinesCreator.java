@@ -75,8 +75,8 @@ public class PolylinesCreator {
 
 	private void loadVisumPolylines(VisumDataSource visum) {
 		DataTable links = visum.getTable("Links");
-		String[][] timeProfileAttributes = links.attrs("No", "WKTPoly");
-		for (String[] timeProfileAttribute : timeProfileAttributes) {
+		String[][] linkAttributes = links.attrs("No", "WKTPoly");
+		for (String[] timeProfileAttribute : linkAttributes) {
 			String visumLinkId = timeProfileAttribute[0];
 			String polyline = timeProfileAttribute[1];
 			if (polyline != null) {
