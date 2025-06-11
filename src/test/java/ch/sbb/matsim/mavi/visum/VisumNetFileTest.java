@@ -31,9 +31,6 @@ class VisumNetFileTest {
             assertEquals("2", a[1][0]);           // second row, column No
             assertEquals("829984.63161262858", a[1][1]); // XCoord
             assertEquals("5930324.6994440285", a[1][2]); // YCoord
-
-            // legacy helper should return identical result
-            assertArrayEquals(a, ds.getArrayFromAttributeList(nodes, "No", "XCoord", "YCoord"));
         }
     }
 

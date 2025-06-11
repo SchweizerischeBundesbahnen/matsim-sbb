@@ -99,16 +99,17 @@ public class TimeProfileExporter {
 		String[][] timeProfileAttributes = timeProfiles.attrs(
 			"LineName", "LineRouteName", "DirectionCode", "Name", "TSysCode");
 
-		String[][] customAttributes = timeProfiles.attrs(
-				config.getRouteAttributeParams().values().stream().
-						map(RouteAttributeParams::getAttributeValue).
-						toArray(String[]::new));
+		String[] customAttributeNames = config.getRouteAttributeParams().values().stream().
+			map(RouteAttributeParams::getAttributeValue).
+			toArray(String[]::new);
+		String[][] customAttributes = timeProfiles.attrs(customAttributeNames);
 
 		for (int tp = 0; tp < nrOfTimeProfiles; tp++) {
 			String tpKey = timeProfileAttributes[tp][0] + "||" + timeProfileAttributes[tp][1] + "||" + timeProfileAttributes[tp][2] + "||" + timeProfileAttributes[tp][3];
-			timeProfileIndexMap.put(tpKey, tp);
+			int tpID = tp + 1; // keep 1-indexing as in Visum
+			timeProfileIndexMap.put(tpKey, tpID);
 			List<String> tsysMobi = tsysMobiMap.get(timeProfileAttributes[tp][4]);
-			timeProfileMap.put(tp,
+			timeProfileMap.put(tpID,
 					new TimeProfile(
 						timeProfileAttributes[tp][0],
 						timeProfileAttributes[tp][4],
@@ -145,7 +146,7 @@ public class TimeProfileExporter {
 		int nrOfTimeProfileItems = timeProfileItems.size();
 		String[][] timeProfileItemAttributes = timeProfileItems.attrs(
 				"LineName", "LineRouteName", "DirectionCode", "TimeProfileName", "Index", "NodeNo", "Dep", "Arr", "PostLength", "LrItemIndex");
-		// LINENAME;LINEROUTENAME;DIRECTIONCODE;TIMEPROFILENAME;INDEX;LRITEMINDEX;ALIGHT;BOARD;ARR;DEP;NUMFAREPOINTS;NUMFAREPOINTSBOARD;NUMFAREPOINTSTHROUGH;NUMFAREPOINTSALIGHT;ADDVAL
+
 		DataTable stopPoints = visum.getTable("StopPoints");
 		Map<String, List<String>> node2stopPointNo = stopPoints.buildMultiMap("NodeNo", "No");
 		int lastLRItemIndex = 0;
@@ -182,7 +183,6 @@ public class TimeProfileExporter {
 				lastLRItemIndex = thisLRItemIndex;
 			}
 
-			Map<String, List<String>> linkLengths = links.buildMultiMap("No", "Length");
 			double postLength = visumLinks.stream().mapToDouble(linkId -> this.network.getLinks().get(linkId).getLength()).sum();
 			String tpKey = timeProfileItemAttributes[tpi][0] + "||" + timeProfileItemAttributes[tpi][1] + "||" + timeProfileItemAttributes[tpi][2] + "||" + timeProfileItemAttributes[tpi][3];
 			TimeProfile tp = timeProfileMap.get(timeProfileIndexMap.get(tpKey));
