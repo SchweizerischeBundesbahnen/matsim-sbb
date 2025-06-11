@@ -44,6 +44,7 @@ public class RunVisumPtExporter {
 	private static final String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
 	private static final String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
 	private static final String ZONECONNECTIONS_OUT = "zoneConnections.csv";
+	private static final String ZONES_OUT = "zones.csv";
 
 	public static void main(String[] args) throws IOException {
 		new RunVisumPtExporter().run(args[0]);
@@ -56,13 +57,14 @@ public class RunVisumPtExporter {
 
 	}
 
-	private static void writeFiles(Scenario scenario, VisumConnectionsExporter connectionsExporter, String outputPath) {
+	private static void writeFiles(Scenario scenario, VisumConnectionsExporter connectionsExporter, VisumZonesExporter zonesExporter, String outputPath) throws IOException {
 		new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, Filenames.PT_NETWORK_POLYLINES).getPath());
 		StreetNetworkExporter.removePolylines(scenario.getNetwork());
 		new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, Filenames.PT_NETWORK).getPath());
 		new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(new File(outputPath, TRANSITSCHEDULE_OUT).getPath());
 		new MatsimVehicleWriter(scenario.getVehicles()).writeFile(new File(outputPath, TRANSITVEHICLES_OUT).getPath());
 		connectionsExporter.writeConnections(new File(outputPath, ZONECONNECTIONS_OUT).getPath());
+		zonesExporter.exportZonesToCsv(new File(outputPath, ZONES_OUT).getPath());
 	}
 
 	/**
@@ -116,8 +118,9 @@ public class RunVisumPtExporter {
 			tpe.createTransitLines(dataSource, exporterConfig);
 			tpe.createDepartureChaining(dataSource);
 			
-			// load zone connections
+			// load zones and zone connections
 			VisumConnectionsExporter connectionsExporter = new VisumConnectionsExporter(dataSource);
+			VisumZonesExporter zonesExporter = new VisumZonesExporter(dataSource);
 			
 			// reduce the size of the network and the schedule by taking necessary things only.
 			MaviHelper.cleanStops(scenario.getTransitSchedule());
@@ -133,7 +136,7 @@ public class RunVisumPtExporter {
 
 			// write outputs
 			createOutputPath(exporterConfig.getOutputPathURL(config.getContext()));
-			writeFiles(scenario, connectionsExporter, exporterConfig.getOutputPathURL(config.getContext()).getPath());
+			writeFiles(scenario, connectionsExporter, zonesExporter, exporterConfig.getOutputPathURL(config.getContext()).getPath());
 		} catch (Exception e) {
             throw new RuntimeException(e);
         }
