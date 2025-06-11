@@ -19,11 +19,11 @@ public class VisumConnectionsExporter {
     private static final Logger log = LogManager.getLogger(VisumConnectionsExporter.class);
 
     private final VisumDataSource ds;
-    private final Node2StopPointRelationIndex ix;   // look-up maps
+    private final Map<String, Set<String>> node2sp;
 
     public VisumConnectionsExporter(VisumDataSource visum) {
         this.ds = visum;
-        this.ix = new Node2StopPointRelationIndex(ds);
+        this.node2sp = buildNode2StopPointMap();
     }
 
     /** Writes CSV <code>zone,walk_time,stop_point</code> to {@code path}. */
@@ -42,7 +42,7 @@ public class VisumConnectionsExporter {
                 String node = r[1];
                 String walkTime = r[2];
 
-                for (String sp : ix.stopPointsForNode(node)) {
+                for (String sp : node2sp.getOrDefault(node, Collections.emptySet())) {
                     Tuple<String,String> key = new Tuple<>(zone, sp);
                     if (!seen.add(key)) continue;                 // duplicate
 
@@ -59,35 +59,19 @@ public class VisumConnectionsExporter {
         }
     }
 
-    /* ------------------------------------------------------------------ */
-    /* Helper: builds Node → StopPoint lookup maps                        */
-    /* ------------------------------------------------------------------ */
+    private Map<String, Set<String>> buildNode2StopPointMap() {
+        Map<String, List<String>> node2area =
+            ds.getTable("StopAreas").buildMultiMap("NodeNo",     "No");
+        Map<String, List<String>> area2sp   =
+            ds.getTable("StopPoints").buildMultiMap("StopAreaNo", "No");
 
-    private static final class Node2StopPointRelationIndex {
-        private final Map<String, List<String>> node2sp;
-
-        Node2StopPointRelationIndex(VisumDataSource ds) {
-            // NodeNo → [StopAreaNo]
-            Map<String, List<String>> node2area =
-                ds.getTable("StopAreas").buildMultiMap("NodeNo",     "No");
-            // StopAreaNo → [StopPointNo]
-            Map<String, List<String>> area2sp   =
-                ds.getTable("StopPoints").buildMultiMap("StopAreaNo", "No");
-
-            /* Chain maps: NodeNo → distinct StopPointNos */
-            node2sp = new HashMap<>();
-            for (var e : node2area.entrySet()) {
-                List<String> points = e.getValue().stream()
-                    .flatMap(sa -> area2sp.getOrDefault(sa, List.of()).stream())
-                    .distinct()
-                    .collect(Collectors.toCollection(ArrayList::new));
-                node2sp.put(e.getKey(), points);
-            }
-        }
-
-        /** Immutable view to prevent external modification. */
-        Collection<String> stopPointsForNode(String node) {
-            return node2sp.getOrDefault(node, List.of());
-        }
+        return node2area.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue().stream()
+                                .flatMap(sa -> area2sp.getOrDefault(sa, List.of()).stream())
+                                .collect(Collectors.toSet())
+                ));
     }
+
 }
