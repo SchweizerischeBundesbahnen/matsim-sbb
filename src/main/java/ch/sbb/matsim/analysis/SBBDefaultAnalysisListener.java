@@ -10,10 +10,15 @@ import ch.sbb.matsim.analysis.modalsplit.ModalSplitStats;
 import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
+import ch.sbb.matsim.zones.ZoneGeoPackageWriter;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesCollection;
+import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Inject;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.analysis.TripsAndLegsWriter;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.groups.ControllerConfigGroup;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationEndsEvent;
@@ -60,7 +65,6 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
 
     @Inject
     public SBBDefaultAnalysisListener(
-            final EventsManager eventsManager,
             final Scenario scenario,
             final OutputDirectoryHierarchy controlerIO,
             final ControllerConfigGroup config,
@@ -79,6 +83,16 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
         String outputDirectory = this.controlerIO.getOutputFilename("");
         if (this.ppConfig.getWriteAgentsCSV()) {
             new PopulationToCSV(scenario).write(outputDirectory);
+        }
+        ZonesCollection zones = (ZonesCollection) this.scenario.getScenarioElement(ZonesModule.SBB_ZONES);
+        if (zones != null) {
+            try {
+                String outputFile = outputDirectory + "mobi-zones.gpkg";
+                LogManager.getLogger(getClass()).info("Writing zones to GeoPackage: " + outputFile);
+                ZoneGeoPackageWriter.writeGeoPackage(zones.getZones(Id.create("zones", Zones.class)), outputFile);
+            } catch (Exception e) {
+                LogManager.getLogger(getClass()).error("Error writing zones to GeoPackage", e);
+            }
         }
     }
 
