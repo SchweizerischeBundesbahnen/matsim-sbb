@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author mrieser
  */
-public class SimpleFeatureZoneTest {
+public class AttributableZoneTest {
 
 	@Test
 	public void testFindZones() {
