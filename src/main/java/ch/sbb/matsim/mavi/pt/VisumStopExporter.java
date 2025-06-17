@@ -2,7 +2,9 @@ package ch.sbb.matsim.mavi.pt;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.mavi.MaviHelper;
-import ch.sbb.matsim.mavi.visum.Visum;
+import ch.sbb.matsim.mavi.visum.VisumDataSource;
+import ch.sbb.matsim.mavi.visum.VisumDataSource.DataTable;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -59,43 +61,42 @@ public class VisumStopExporter {
 	}
 
 
-	public void loadStopPoints(Visum visum, VisumPtExporterConfigGroup config) {
-		Visum.ComObject stopPoints = visum.getNetObject("StopPoints");
-		int nrOfStopPoints = stopPoints.countActive();
+	public void loadStopPoints(VisumDataSource visum, VisumPtExporterConfigGroup config) {
+		DataTable stopPoints = visum.getTable("StopPoints");
+		int nrOfStopPoints = stopPoints.size();
 		log.info("loading " + nrOfStopPoints + " stop points");
 
-		String[][] stopPointAttributes = Visum.getArrayFromAttributeList(nrOfStopPoints, stopPoints,
-				"No", "XCoord", "YCoord", "Name", "IsOnNode", "IsOnLink", "NodeNo", "FromNodeNo", "StopArea\\No");
+		String[][] stopPointAttributes = stopPoints.attrs(
+			"No", "Name", "NodeNo", "StopAreaNo");
+		Map<String, Coord> nodeCoordMap = getNodeCoordMap(visum);
 
-		String[][] customAttributes = Visum.getArrayFromAttributeList(nrOfStopPoints, stopPoints,
-				config.getStopAttributeParams().values().stream().
-						map(VisumPtExporterConfigGroup.StopAttributeParams::getAttributeValue).
-						toArray(String[]::new));
+		String[] customAttributeNames = config.getStopAttributeParams().values().stream().
+			map(VisumPtExporterConfigGroup.StopAttributeParams::getAttributeValue).
+			toArray(String[]::new);
+		String[][] customAttributes = stopPoints.attrs(customAttributeNames);
 
-		IntStream.range(0, nrOfStopPoints).forEach(m -> createStopPoint(m, stopPointAttributes, customAttributes, config));
+		IntStream.range(0, nrOfStopPoints).forEach(m -> createStopPoint(m, nodeCoordMap, stopPointAttributes, customAttributes, config));
 
 		log.info("finished loading " + nrOfStopPoints + " stop points");
 	}
 
-	private void createStopPoint(int i, String[][] stopPointAttributes, String[][] customAttributes, VisumPtExporterConfigGroup config) {
+	private void createStopPoint(int i, Map<String, Coord> nodeCoordMap, String[][] stopPointAttributes, String[][] customAttributes, VisumPtExporterConfigGroup config) {
 		int stopPointNo = (int) Double.parseDouble(stopPointAttributes[i][0]);
 		Id<TransitStopFacility> stopPointID = Id.create(stopPointNo, TransitStopFacility.class);
-		double xCoord = Double.parseDouble(stopPointAttributes[i][1]);
-		double yCoord = Double.parseDouble(stopPointAttributes[i][2]);
-		Coord stopPointCoord = new Coord(xCoord, yCoord);
-		String stopPointName = stopPointAttributes[i][3];
 
-		double fromStopIsOnNode = Double.parseDouble(stopPointAttributes[i][4]);
-		double fromStopIsOnLink = Double.parseDouble(stopPointAttributes[i][5]);
-		Node stopNode = null;
-		if (fromStopIsOnNode == 1.0) {
-			int stopNodeIDNo = (int) Double.parseDouble(stopPointAttributes[i][6]);
+		String stopPointName = stopPointAttributes[i][1];
+		String nodeNo = stopPointAttributes[i][2];
+		Coord stopPointCoord = nodeCoordMap.get(nodeNo);
+
+		Node stopNode;
+		if (!nodeNo.isEmpty()) {
+			int stopNodeIDNo = (int) Double.parseDouble(nodeNo);
 			Id<Node> stopNodeID = MaviHelper.createPtNodeId(String.valueOf(stopNodeIDNo));
 			stopNode = this.networkBuilder.createNode(stopNodeID, stopPointCoord);
 			if (!this.network.getNodes().containsKey(stopNodeID)) {
 				this.network.addNode(stopNode);
 			}
-		} else if (fromStopIsOnLink == 1.0) {
+		} else {
 			throw new RuntimeException("Convert Stops to Nodes before converting (One click within Visum)");
 		}
 
@@ -111,7 +112,7 @@ public class VisumStopExporter {
         loopLink.setAllowedModes(allowedModes);
 		this.network.addLink(loopLink);
 
-		int stopAreaNo = (int) Double.parseDouble(stopPointAttributes[i][8]);
+		int stopAreaNo = (int) Double.parseDouble(stopPointAttributes[i][3]);
 		Set<Id<TransitStopFacility>> set = this.stopAreasToStopPoints.computeIfAbsent(stopAreaNo, k -> new HashSet<>());
 		set.add(stopPointID);
 
@@ -126,6 +127,23 @@ public class VisumStopExporter {
 				values[j], custAttNames.get(j).getDataType()));
 
 		this.schedule.addStopFacility(st);
+	}
+
+	public static Map<String, Coord> getNodeCoordMap(VisumDataSource visum) {
+		DataTable nodes = visum.getTable("Nodes");
+		String[][] nodeCoords = nodes.attrs(
+			"No", "XCoord", "YCoord");
+		Map<String, Coord> stopCoordMap = IntStream.range(0, nodeCoords.length)
+			.boxed()
+			.collect(Collectors.toMap(
+				i -> nodeCoords[i][0],
+				i -> new Coord(
+					Double.parseDouble(nodeCoords[i][1]),
+					Double.parseDouble(nodeCoords[i][2])
+				),
+				(existing, replacement) -> existing
+			));
+		return stopCoordMap;
 	}
 
 	public HashMap<Integer, Set<Id<TransitStopFacility>>> getStopAreasToStopPoints() {

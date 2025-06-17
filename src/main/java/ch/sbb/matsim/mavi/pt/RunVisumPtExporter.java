@@ -8,6 +8,8 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.mavi.streets.StreetNetworkExporter;
 import ch.sbb.matsim.mavi.visum.Visum;
+import ch.sbb.matsim.mavi.visum.VisumDataSource;
+import ch.sbb.matsim.mavi.visum.VisumNetFile;
 import ch.sbb.matsim.preparation.MobiTransitScheduleVerifiyer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +25,7 @@ import org.matsim.vehicles.MatsimVehicleWriter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 
 /***
  *
@@ -41,6 +44,7 @@ public class RunVisumPtExporter {
 	private static final String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
 	private static final String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
 	private static final String ZONECONNECTIONS_OUT = "zoneConnections.csv";
+	private static final String ZONES_OUT = "zones.csv";
 
 	public static void main(String[] args) throws IOException {
 		new RunVisumPtExporter().run(args[0]);
@@ -53,61 +57,88 @@ public class RunVisumPtExporter {
 
 	}
 
-	private static void writeFiles(Scenario scenario, VisumConnectionsExporter connectionsExporter, String outputPath) {
+	private static void writeFiles(Scenario scenario, VisumConnectionsExporter connectionsExporter, VisumZonesExporter zonesExporter, String outputPath) throws IOException {
 		new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, Filenames.PT_NETWORK_POLYLINES).getPath());
 		StreetNetworkExporter.removePolylines(scenario.getNetwork());
 		new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, Filenames.PT_NETWORK).getPath());
 		new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(new File(outputPath, TRANSITSCHEDULE_OUT).getPath());
 		new MatsimVehicleWriter(scenario.getVehicles()).writeFile(new File(outputPath, TRANSITVEHICLES_OUT).getPath());
 		connectionsExporter.writeConnections(new File(outputPath, ZONECONNECTIONS_OUT).getPath());
+		zonesExporter.exportZonesToCsv(new File(outputPath, ZONES_OUT).getPath());
+	}
+
+	/**
+	 * Creates and returns the appropriate VisumDataSource based on the configuration.
+	 * 
+	 * @param exporterConfig The configuration for the Visum exporter
+	 * @param filePath The path to the Visum file
+	 * @return A VisumDataSource instance (either COM-based Visum or file-based VisumNetFile)
+	 * @throws IOException If there's an error accessing the file
+	 */
+	private VisumDataSource createVisumDataSource(VisumPtExporterConfigGroup exporterConfig, String filePath) throws IOException {
+		// Check if the file has a .net extension (indicating a file-based data source)
+		if (filePath.toLowerCase().endsWith(".net")) {
+			log.info("Using file-based Visum data source for {}", filePath);
+			return VisumNetFile.open(Path.of(filePath));
+		} else {
+			// Use COM-based Visum by default or for .ver files
+			log.info("Using COM-based Visum data source for {}", filePath);
+			Visum visum = Visum.connect(exporterConfig.getVisumVersion());
+			visum.load(filePath);
+			return visum;
+		}
 	}
 
 	public void run(String configFile) throws IOException {
 		Config config = ConfigUtils.loadConfig(configFile, new VisumPtExporterConfigGroup());
 		VisumPtExporterConfigGroup exporterConfig = ConfigUtils.addOrGetModule(config, VisumPtExporterConfigGroup.class);
 
-		// Start Visum and load version
-		Visum visum = new Visum(exporterConfig.getVisumVersion());
+		// Prepare Visum file path
 		String visumFile = exporterConfig.getPathToVisumURL(config.getContext()).getPath()
 				.replace("////", "//")
 				.replace("/", "\\");
 		if (visumFile.contains(":")) {
 			visumFile = visumFile.substring(1);
 		}
-		visum.loadVersion(visumFile);
-
+		
+		// Create a scenario
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		
+		// Create the appropriate VisumDataSource based on the configuration
+		try (VisumDataSource dataSource = createVisumDataSource(exporterConfig, visumFile)) {
+			// load stops into scenario
+			VisumStopExporter stops = new VisumStopExporter(scenario);
+			stops.loadStopPoints(dataSource, exporterConfig);
 
-		// load stops into scenario
-		VisumStopExporter stops = new VisumStopExporter(scenario);
-		stops.loadStopPoints(visum, exporterConfig);
+			// load minimal transfer times into scenario
+			new MTTExporter(scenario).integrateMinTransferTimes(dataSource, stops.getStopAreasToStopPoints());
 
-		// load minimal transfer times into scenario
-		new MTTExporter(scenario).integrateMinTransferTimes(visum, stops.getStopAreasToStopPoints());
+			// load transit lines
+			TimeProfileExporter tpe = new TimeProfileExporter(scenario);
+			tpe.createTransitLines(dataSource, exporterConfig);
+			tpe.createDepartureChaining(dataSource);
+			
+			// load zones and zone connections
+			VisumConnectionsExporter connectionsExporter = new VisumConnectionsExporter(dataSource);
+			VisumZonesExporter zonesExporter = new VisumZonesExporter(dataSource);
+			
+			// reduce the size of the network and the schedule by taking necessary things only.
+			MaviHelper.cleanStops(scenario.getTransitSchedule());
+			MaviHelper.removeUnusedLinksInPTNetwork(scenario.getTransitSchedule(), scenario.getNetwork());
 
-		// load transit lines
-		TimeProfileExporter tpe = new TimeProfileExporter(scenario);
-		tpe.createTransitLines(visum, exporterConfig);
-		tpe.createDepartureChaining(visum);
-		// reduce the size of the network and the schedule by taking necessary things only.
-		MaviHelper.cleanStops(scenario.getTransitSchedule());
-		MaviHelper.removeUnusedLinksInPTNetwork(scenario.getTransitSchedule(), scenario.getNetwork());
+			//verify schedule integrity
+			var result = TransitScheduleValidator.validateAll(scenario.getTransitSchedule(), scenario.getNetwork());
+			TransitScheduleValidator.printResult(result);
+			if (!result.isValid()) {
+				throw new RuntimeException("Transit Schedule integrity not confirmed");
+			}
+			MobiTransitScheduleVerifiyer.verifyTransitSchedule(scenario.getTransitSchedule());
 
-		//verify schedule integrity
-		var result = TransitScheduleValidator.validateAll(scenario.getTransitSchedule(), scenario.getNetwork());
-		TransitScheduleValidator.printResult(result);
-		if (!result.isValid()) {
-			throw new RuntimeException("Transit Schedule integrity not confirmed");
-		}
-		MobiTransitScheduleVerifiyer.verifyTransitSchedule(scenario.getTransitSchedule());
-
-		// load zone connections
-		VisumConnectionsExporter connectionsExporter = new VisumConnectionsExporter(visum);
-
-		// write outputs
-		createOutputPath(exporterConfig.getOutputPathURL(config.getContext()));
-		writeFiles(scenario, connectionsExporter, exporterConfig.getOutputPathURL(config.getContext()).getPath());
-	}
-
-
+			// write outputs
+			createOutputPath(exporterConfig.getOutputPathURL(config.getContext()));
+			writeFiles(scenario, connectionsExporter, zonesExporter, exporterConfig.getOutputPathURL(config.getContext()).getPath());
+		} catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

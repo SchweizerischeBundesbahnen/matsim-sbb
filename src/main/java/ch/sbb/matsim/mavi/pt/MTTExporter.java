@@ -1,12 +1,14 @@
 package ch.sbb.matsim.mavi.pt;
 
-import ch.sbb.matsim.mavi.visum.Visum;
-import com.jacob.com.SafeArray;
+import ch.sbb.matsim.mavi.visum.VisumDataSource;
+import ch.sbb.matsim.mavi.visum.VisumDataSource.DataTable;
+import java.util.HashSet;
+import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.core.utils.collections.CollectionUtils;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
@@ -28,66 +30,61 @@ public class MTTExporter {
 		this.schedule = scenario.getTransitSchedule();
 	}
 
-	private static List<Transfer> loadWithinTransfers(Visum visum) {
+	private static List<Transfer> loadWithinTransfers(VisumDataSource visum) {
 		log.info("loading within stop transfers");
-		Visum.ComObject workbench = visum.getComObject("Workbench");
-		Visum.ComObject lists = visum.getComObject(workbench, "Lists");
-		Visum.ComObject walkTimes = visum.getComObject(lists, "CreateStopTransferWalkTimeList");
-		walkTimes.callMethod("AddColumn", "FromStopAreaNo");
-		walkTimes.callMethod("AddColumn", "ToStopAreaNo");
-		walkTimes.callMethod("AddColumn", "Time(F)", 3);
-		SafeArray a = walkTimes.getSafeArray("SaveToArray");
+		DataTable walkTimesTable = visum.getTable("TransferWalkTimeStopAreas");
+		String[][] a = walkTimesTable.attrs("FromStopAreaNo", "ToStopAreaNo", "Time(F)");
 
-		int nrTransfers = walkTimes.getNumActiveElements();
+		int nrTransfers = walkTimesTable.size();
 		log.info("loading " + nrTransfers + " within stop transfers");
 
 		List<Transfer> transfers = IntStream.range(0, nrTransfers).
-				filter(i -> Double.parseDouble(a.getString(i, 2)) > 0).
-				mapToObj(i -> new Transfer((int) Double.parseDouble(a.getString(i, 0)),
-						(int) Double.parseDouble(a.getString(i, 1)), Double.parseDouble(a.getString(i, 2)))).
-				collect(Collectors.toList());
+			filter(i -> parseSeconds(a[i][2]) > 0).
+			mapToObj(i -> new Transfer((int) Double.parseDouble(a[i][0]),
+				(int) Double.parseDouble(a[i][1]), parseSeconds(a[i][2]))).
+			collect(Collectors.toList());
 
 		log.info("finished loading " + transfers.size() + " valid within stop transfers");
 		return transfers;
 	}
 
-	private static List<Transfer> loadBetweenTransfers(Visum visum) {
-		Visum.ComObject filters = visum.getComObject("Filters");
-		Visum.ComObject linkFilter = visum.callComObject(filters, "LinkFilter");
-		visum.initFilter(linkFilter);
-		visum.setFilterCondition(linkFilter, new Visum.FilterCondition(0, "OP_NONE", false, "TSysSet", 14, "F,O"));
-		visum.useFilter(linkFilter, true);
+	private static List<Transfer> loadBetweenTransfers(VisumDataSource visum) {
+		DataTable stopAreas = visum.getTable("StopAreas");
+		Map<String, List<String>> stopAreaNodeMap = stopAreas.buildMultiMap("NodeNo", "No");
+		DataTable links = visum.getTable("Links");
+		String[][] linkAttributes = links.attrs("FromNodeNo", "ToNodeNo", "T_PUTSYS(F)", "TSysSet");
+		Map<Tuple<String, String>, String> walkLinksMap = IntStream.range(0, linkAttributes.length)
+			.boxed()
+			.filter(i -> linkAttributes[i][3].contains("F") || linkAttributes[i][3].contains("O"))
+			.collect(Collectors.toMap(
+				i -> new Tuple<>(linkAttributes[i][0], linkAttributes[i][1]),
+				i -> linkAttributes[i][2],
+				(existing, replacement) -> existing)
+			);
 
-		Visum.ComObject links = visum.getNetObject("Links");
-		int nrOfLinks = links.countActive();
+		int nrOfLinks = walkLinksMap.size();
 		log.info("loading " + nrOfLinks + " \"Fusswege\"");
 
-		String[][] linkAttributes = Visum.getArrayFromAttributeList(nrOfLinks, links,
-				"FROMNODE\\DISTINCT:STOPAREAS\\NO", "TONODE\\DISTINCT:STOPAREAS\\NO", "T_PUTSYS(F)");
-
 		List<Transfer> transfers = new ArrayList<>();
-		IntStream.range(0, nrOfLinks).forEach(m -> addBetweenTransfersToList(m, transfers, linkAttributes));
+		for (Tuple<String, String> linkNodeTuple : walkLinksMap.keySet()) {
+			Set<String> fromStopAreas = new HashSet<>(stopAreaNodeMap.getOrDefault(linkNodeTuple.getFirst(), List.of()));
+			Set<String> toStopAreas = new HashSet<>(stopAreaNodeMap.getOrDefault(linkNodeTuple.getSecond(), List.of()));
+			double walkTime = parseSeconds(walkLinksMap.get(linkNodeTuple));
+			if (walkTime > 0 && !fromStopAreas.isEmpty() && !toStopAreas.isEmpty()) {
+				for (String fromStopArea : fromStopAreas) {
+					for (String toStopArea : toStopAreas) {
+						transfers.add(new Transfer((int) Double.parseDouble(fromStopArea), (int) Double.parseDouble(toStopArea),
+							walkTime));
+					}
+				}
+			}
+		}
 
-		visum.useFilter(linkFilter, false);
 		log.info("finished loading " + transfers.size() + " valid \"Fusswege\"");
 		return transfers;
 	}
 
-	private static void addBetweenTransfersToList(int i, List<Transfer> transferList, String[][] a) {
-		Set<String> fromStopAreas = CollectionUtils.stringToSet(a[i][0]);
-		Set<String> toStopAreas = CollectionUtils.stringToSet(a[i][1]);
-		double walkTime = Double.parseDouble(a[i][2]);
-		if (walkTime > 0 && !fromStopAreas.isEmpty() && !toStopAreas.isEmpty()) {
-			for (String fromStopArea : fromStopAreas) {
-				for (String toStopArea : toStopAreas) {
-					transferList.add(new Transfer((int) Double.parseDouble(fromStopArea), (int) Double.parseDouble(toStopArea),
-							walkTime));
-				}
-			}
-		}
-	}
-
-	public void integrateMinTransferTimes(Visum visum, HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints) {
+	public void integrateMinTransferTimes(VisumDataSource visum, HashMap<Integer, Set<Id<TransitStopFacility>>> stopAreasToStopPoints) {
 		List<Transfer> withinTransfers = loadWithinTransfers(visum);
 		List<Transfer> betweenTransfers = loadBetweenTransfers(visum);
 		log.info("started integrating the within stop transfers into the schedule");
@@ -118,6 +115,11 @@ public class MTTExporter {
 			}
 		}
 		log.info("used " + countAreaTransfers + " transfer relations between stop areas to generate " + countStopTransfers + " transfers between stop facilities");
+	}
+
+	private static double parseSeconds(String timeStr) {
+		if (timeStr.endsWith("s")) timeStr = timeStr.substring(0, timeStr.length() - 1);
+		return Double.parseDouble(timeStr);
 	}
 
 	private static class Transfer {
