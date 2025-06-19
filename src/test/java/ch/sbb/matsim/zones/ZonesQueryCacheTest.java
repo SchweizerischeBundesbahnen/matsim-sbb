@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.*;
 import org.matsim.api.core.v01.Id;
+import org.matsim.utils.objectattributes.attributable.Attributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -190,6 +191,11 @@ public class ZonesQueryCacheTest {
 		public double distance(Point pt) {
 			return this.geom.distance(pt);
 		}
+
+        @Override
+        public Attributes getAttributes() {
+            return null;
+        }
 	}
 
 }

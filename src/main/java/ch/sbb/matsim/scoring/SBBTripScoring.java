@@ -48,7 +48,7 @@ public class SBBTripScoring implements SumScoringFunction.TripScoring {
             double travelTime = leg.getTravelTime().seconds();
             if (leg.getRoute() instanceof TransitPassengerRoute transitPassengerRoute) {
                 double waitingTime = transitPassengerRoute.getBoardingTime().or(leg.getDepartureTime()).seconds() - leg.getDepartureTime().seconds();
-                travelTime = -waitingTime;
+                travelTime = travelTime - waitingTime;
                 tripScore += params.getMatsimScoringParameters().marginalUtilityOfWaitingPt_s * waitingTime;
             }
             tripScore += modeParams.marginalUtilityOfTraveling_s * (travelTime);

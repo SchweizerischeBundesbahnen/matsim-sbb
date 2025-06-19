@@ -2,6 +2,7 @@ package ch.sbb.matsim.zones;
 
 import ch.sbb.matsim.config.ZonesListConfigGroup;
 import ch.sbb.matsim.config.variables.Variables;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.type.Name;
@@ -10,7 +11,6 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.utils.gis.GeoFileReader;
-import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -67,7 +67,7 @@ public final class ZonesLoader {
 		}
 		for (SimpleFeature sf : GeoFileReader.getAllFeatures(filename, layerName)) {
 			String zoneId = noZoneId ? null : sf.getAttribute(idAttribute).toString();
-			Zone zone = new SimpleFeatureZone(noZoneId ? null : Id.create(zoneId, Zone.class), sf);
+			Zone zone = new AttributableZone(noZoneId ? null : Id.create(zoneId, Zone.class), sf);
 			zones.add(zone);
 		}
 		return zones;

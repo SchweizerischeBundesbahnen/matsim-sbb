@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ZonesQueryCache implements Zones {
 
-	private static final Zone NO_ZONE = new SimpleFeatureZone(null, null);
+	private static final Zone NO_ZONE = new AttributableZone(null, null);
 	private final Zones zones;
 	private final Map<Coord, Zone> cache = new ConcurrentHashMap<>();
 	private final Map<Coord, Zone> nearestCache = new ConcurrentHashMap<>();

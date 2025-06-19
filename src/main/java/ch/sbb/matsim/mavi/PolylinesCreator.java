@@ -4,6 +4,8 @@ import ch.sbb.matsim.config.variables.Filenames;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.visum.Visum;
+import ch.sbb.matsim.mavi.visum.VisumDataSource;
+import ch.sbb.matsim.mavi.visum.VisumDataSource.DataTable;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -71,11 +73,10 @@ public class PolylinesCreator {
         processNetworkStreets(network);
     }
 
-	private void loadVisumPolylines(Visum visum) {
-		Visum.ComObject links = visum.getNetObject("Links");
-		int nrOfLinks = links.countActive();
-		String[][] timeProfileAttributes = Visum.getArrayFromAttributeList(nrOfLinks, links, "No", "WKTPoly");
-		for (String[] timeProfileAttribute : timeProfileAttributes) {
+	private void loadVisumPolylines(VisumDataSource visum) {
+		DataTable links = visum.getTable("Links");
+		String[][] linkAttributes = links.attrs("No", "WKTPoly");
+		for (String[] timeProfileAttribute : linkAttributes) {
 			String visumLinkId = timeProfileAttribute[0];
 			String polyline = timeProfileAttribute[1];
 			if (polyline != null) {

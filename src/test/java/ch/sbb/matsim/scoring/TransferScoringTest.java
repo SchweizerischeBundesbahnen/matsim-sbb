@@ -100,7 +100,7 @@ public class TransferScoringTest {
 		log.info("score with sbb-scoring: " + score2);
 		log.info("score with sbb-scoring and ModeToModePenalties: " + score3);
 
-		double defaultTransferScore = -7.575;
+		double defaultTransferScore = -6.0;
 		double sbbTransferScore = 2 * Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (945.0 / 3600.0)));
 		double sbbTransferScoreWithModeToModePenalty = -1.5 + Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (480.0 / 3600.0)));
 

@@ -6,7 +6,8 @@ package ch.sbb.matsim.mavi.counts;
 
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
-import ch.sbb.matsim.mavi.visum.Visum;
+import ch.sbb.matsim.mavi.visum.VisumDataSource;
+import ch.sbb.matsim.mavi.visum.VisumDataSource.DataTable;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
@@ -65,10 +66,10 @@ public class VisumToCounts {
 
     }
 
-    public void exportCountStations(Visum visum, String countsFilename, String csv) throws IOException {
+    public void exportCountStations(VisumDataSource visum, String countsFilename, String csv) throws IOException {
 
-        var countLocations = visum.getNetObject("CountLocations");
-        var countsData = Visum.getArrayFromAttributeList(countLocations.countActive(), countLocations, visumColumns);
+        DataTable countLocations = visum.getTable("CountLocations");
+        String[][] countsData = countLocations.attrs(visumColumns);
         run(countsData, countsFilename, csv);
 
 
