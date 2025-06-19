@@ -2,6 +2,7 @@ package ch.sbb.matsim.plans.models.selector;
 
 import ch.sbb.matsim.plans.models.utilitycomponents.UtilityCalculator;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
@@ -25,7 +26,11 @@ public class LogitSelector implements ChoiceSelector {
         var id = ((Identifiable) attributes).getId();
         Random random = SynPopUtils.getRandom(id);
         Map<String, Double> probabilities = getProbabilities(attributes);
-        return drawByProbability(probabilities, random);
+        String chosenAlternative = drawByProbability(probabilities, random);
+        if (chosenAlternative == null) {
+            throw new IllegalStateException("No alternative was chosen for " + id + ". Check the probabilities.");
+        }
+        return chosenAlternative;
     }
 
     @Override
@@ -53,7 +58,6 @@ public class LogitSelector implements ChoiceSelector {
     private String drawByProbability(Map<String, Double> probabilities, Random random) {
         double rand = random.nextDouble();
         double cumulative = 0.0;
-
         for (Map.Entry<String, Double> entry : probabilities.entrySet()) {
             cumulative += entry.getValue();
             if (rand <= cumulative) {
@@ -61,6 +65,8 @@ public class LogitSelector implements ChoiceSelector {
             }
         }
 
-        throw new IllegalStateException("Probabilistic draw failed – check if probabilities sum to 1.");
+        LogManager.getLogger(getClass()).error("Probabilistic draw failed – check if probabilities sum to 1:");
+        LogManager.getLogger(getClass()).error(probabilities);
+        return null;
     }
 }

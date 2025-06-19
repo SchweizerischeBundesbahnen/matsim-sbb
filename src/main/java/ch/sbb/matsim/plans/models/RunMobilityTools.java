@@ -6,7 +6,6 @@ import ch.sbb.matsim.plans.synpop.SynpopConstants;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.logging.log4j.LogManager;
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
@@ -17,15 +16,19 @@ import org.matsim.utils.objectattributes.attributable.Attributable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class RunMobilityTools {
 
     public static void main(String[] args) {
+        var logger = LogManager.getLogger(RunMobilityTools.class);
+
         String folder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
-        String suffix = ""; //whole population
-        //String suffix = "_Bern"; //City of Bern
-        //String suffix = "_AI"; //Appenzell Inner Rhodes
+//        String suffix = ""; //whole population
+//        String suffix = "_Bern"; //City of Bern
+        String suffix = "_AI"; //Appenzell Inner Rhodes
+        String modelFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         Zones zones = ZonesLoader.loadZones("zones", folder + "35_kalif_secondary.mobi-zones.shp");
@@ -35,32 +38,50 @@ public class RunMobilityTools {
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
         SynPopUtils.calculateHouseHoldCompositions(scenario);
-        var logger = LogManager.getLogger(RunMobilityTools.class);
-        DrivingLicenseModelFromCSV drivingLicenseModel = new DrivingLicenseModelFromCSV("\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\driving_license.csv");
-        //DrivingLicenseModel drivingLicenseModel = new DrivingLicenseModel();
+        DrivingLicenseModelFromCSV drivingLicenseModel = new DrivingLicenseModelFromCSV(modelFolder + "driving_license.csv");
+        CarsPerHouseholdModel carsPerHouseholdModel = new CarsPerHouseholdModel(modelFolder + "cars_per_household.csv");
+
         logger.info(("Starting driving license calculation..."));
         double time = System.currentTimeMillis();
-        int i = 0;
-        int persons = 0;
-        for (Id personId : scenario.getPopulation().getPersons().keySet()) {
-            var person = scenario.getPopulation().getPersons().get(personId);
-            if ((int) person.getAttributes().getAttribute(SynpopConstants.AGE) >= 18) {
-                Boolean hasDrivingLicense = drivingLicenseModel.calculate(person);
-                person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, hasDrivingLicense);
-                persons++;
-                if (hasDrivingLicense) {
-                    i++;
+        AtomicInteger count = new AtomicInteger(0);
+        AtomicInteger drivingLicenseCount = new AtomicInteger(0);
+        scenario.getPopulation().getPersons().values().parallelStream().forEach(
+                person -> {
+                    if ((int) person.getAttributes().getAttribute(SynpopConstants.AGE) >= 18) {
+                        Boolean hasDrivingLicense = drivingLicenseModel.calculate(person);
+                        person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, hasDrivingLicense);
+                        count.incrementAndGet();
+                        if (hasDrivingLicense) {
+                            drivingLicenseCount.incrementAndGet();
+                        }
+                    }
                 }
-            }
-        }
+        );
         double calctime = (System.currentTimeMillis() - time) / 1000.0;
-        logger.info("Number of persons with driving license: " + i);
-        logger.info("Number of persons without driving license: " + (persons - i));
-        logger.info("Number of persons NOT in model: " + (scenario.getPopulation().getPersons().size() - persons));
-
-
+        logger.info("Number of persons with driving license: " + drivingLicenseCount.get());
+        logger.info("Number of persons without driving license: " + (count.get() - drivingLicenseCount.get()));
+        logger.info("Number of persons NOT in model: " + (scenario.getPopulation().getPersons().size() - count.get()));
         logger.info("Calculation time for driving license model: " + calctime);
+        SynPopUtils.calculateDrivinglicensesPerHousehold(scenario);
 
+        AtomicInteger cars = new AtomicInteger(0);
+        AtomicInteger householdWithCars = new AtomicInteger(0);
+        logger.info("Starting cars per household calculation...");
+        scenario.getHouseholds().getHouseholds().values().parallelStream()
+                .filter(household -> (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_DRIVING_LICENSES) > 0) // Only consider households with members
+                .forEach(household ->
+                        {
+                            Integer numberOfCars = carsPerHouseholdModel.calculate(household);
+                            household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS, numberOfCars);
+                            cars.addAndGet(numberOfCars);
+                            if (numberOfCars > 0) {
+                                householdWithCars.incrementAndGet();
+                            }
+                        }
+                );
+        logger.info("Number of cars: " + cars.get());
+        logger.info("Number of households with cars: " + householdWithCars.get());
+        writeAttributesToCSV(scenario.getHouseholds().getHouseholds().values(), List.of(SynpopConstants.NB_OF_ADULTS, SynpopConstants.NB_OF_KIDS, SynpopConstants.NB_OF_CARS, SynpopConstants.NB_OF_DRIVING_LICENSES, SynpopConstants.NB_OF_DRIVING_LICENSES_PER_ADULT, SynpopConstants.LANGUAGE), folder + "households_2022" + suffix + "_attributes.csv");
         //writeAttributesToCSV(scenario.getPopulation().getPersons().values(), List.of(SynpopConstants.HAS_DRIVING_LICENSE), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_attributes.csv");
     }
 

@@ -10,8 +10,8 @@ public class DrivingLicenseModelFromCSV implements ChoiceModel {
     private final ChoiceSelector selector;
 
     public DrivingLicenseModelFromCSV(String drivingLicenseModelDefinitionFile) {
-        var calulatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(drivingLicenseModelDefinitionFile);
-        this.selector = new LogitSelector(calulatorsPerAlternative, 1.0);
+        var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(drivingLicenseModelDefinitionFile);
+        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0);
     }
 
     @Override

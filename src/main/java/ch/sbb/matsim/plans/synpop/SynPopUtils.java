@@ -3,6 +3,8 @@ package ch.sbb.matsim.plans.synpop;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -22,7 +24,9 @@ public class SynPopUtils {
             var householdId = Id.create((String) person.getAttributes().getAttribute(SynpopConstants.HOUSEHOLD_ID), Household.class);
             var household = scenario.getHouseholds().getHouseholds().get(householdId);
             person.getAttributes().putAttribute(SynpopConstants.HOUSEHOLD, household);
-            household.addMemberId(person.getId());
+            if (!household.getMemberIds().contains(person.getId())) {
+                household.addMemberId(person.getId());
+            }
             person.getAttributes().putAttribute(Variables.ZONE_ID,
                     household.getAttributes().getAttribute(Variables.ZONE_ID));
         }
@@ -49,8 +53,16 @@ public class SynPopUtils {
             Integer numberOfAdultsAbove24 = 0;
             Integer numberOfChildren = 0;
             Integer numberOfChildrenUnder24 = 0;
+            int minLanguage = Integer.MAX_VALUE;
             for (Id<Person> memberId : household.getMemberIds()) {
                 Person person = scenario.getPopulation().getPersons().get(memberId);
+                Integer language = (Integer) person.getAttributes().getAttribute(SynpopConstants.LANGUAGE);
+                if (language != null && language < minLanguage) {
+                    minLanguage = language;
+                    // this is the definition that we have used so far, but it is not clear if this is the best one
+                    // if there is one person speaking german (language 1) and one person speaking french (language 2),
+                    // then german wins the household.
+                }
                 if (person.getAttributes().getAttribute(SynpopConstants.AGE) != null) {
                     int age = (int) person.getAttributes().getAttribute(SynpopConstants.AGE);
                     if (age >= 18) {
@@ -74,22 +86,46 @@ public class SynPopUtils {
                     coupleType = 2; // couple without children
                 }
             }
-            household.getAttributes().putAttribute(SynpopConstants.NB_OF_KIDS, numberOfAdults);
-            household.getAttributes().putAttribute(SynpopConstants.NB_OF_ADULTS, numberOfChildren);
+            Boolean singleParent = numberOfAdults == 1 && numberOfChildren > 0;
+            // not more than 9 children and 11 adults per household according to the MTMC
+            household.getAttributes().putAttribute(SynpopConstants.NB_OF_KIDS, Math.min(numberOfChildren, 9));
+            household.getAttributes().putAttribute(SynpopConstants.NB_OF_ADULTS, Math.min(numberOfAdults, 11));
             household.getAttributes().putAttribute(SynpopConstants.HAS_CHILD_IN_HH, numberOfChildren > 0);
             household.getAttributes().putAttribute(SynpopConstants.COUPLE_TYPE, coupleType);
+            household.getAttributes().putAttribute(SynpopConstants.SINGLE_PARENT, singleParent);
+            household.getAttributes().putAttribute(SynpopConstants.SIZE, household.getMemberIds().size());
+            household.getAttributes().putAttribute(SynpopConstants.LANGUAGE, minLanguage);
 
         }
         LogManager.getLogger(SynPopUtils.class).info("Done. Calculating household compositions.");
     }
 
     public static <T> Random getRandom(Id<T> identifiable) {
-        try {
-            return new Random(Long.parseLong(identifiable.toString()));
-        } catch (NumberFormatException e) {
-            return new Random(identifiable.hashCode() & 0xffffffffL);
-        }
+        HashFunction hashFunc = Hashing.murmur3_128();
+        long seed = hashFunc.hashUnencodedChars(identifiable.toString()).asLong();
+        return new Random(seed);
 
     }
 
+    public static void calculateDrivinglicensesPerHousehold(Scenario scenario) {
+        LogManager.getLogger(SynPopUtils.class).info("Calculating driving licenses per household...");
+        for (Household household : scenario.getHouseholds().getHouseholds().values()) {
+            int drivingLicenseCount = 0;
+            for (Id<Person> memberId : household.getMemberIds()) {
+                Person person = scenario.getPopulation().getPersons().get(memberId);
+                if (person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE) != null) {
+                    Boolean hasDrivingLicense = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
+                    if (hasDrivingLicense) {
+                        drivingLicenseCount++;
+                    }
+                }
+            }
+            household.getAttributes().putAttribute(SynpopConstants.NB_OF_DRIVING_LICENSES, drivingLicenseCount);
+            Integer numberOfAdults = (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_ADULTS);
+            double drivingLicensesPerAdult = (double) Math.min(drivingLicenseCount, numberOfAdults) /
+                    Math.max(numberOfAdults, 1);
+            household.getAttributes().putAttribute(SynpopConstants.NB_OF_DRIVING_LICENSES_PER_ADULT, drivingLicensesPerAdult);
+        }
+        LogManager.getLogger(SynPopUtils.class).info("Done. Calculating driving licenses per household.");
+    }
 }

@@ -52,4 +52,9 @@ public class SynpopConstants {
     public static final String NB_OF_ADULTS = "nb_of_adults";
     public static final String HAS_CHILD_IN_HH = "has_child_in_hh";
     public static final String COUPLE_TYPE = "couple_type";
+    public static final String SINGLE_PARENT = "single_parent";
+    public static final String NB_OF_DRIVING_LICENSES = "nb_of_driving_licenses";
+    public static final String NB_OF_DRIVING_LICENSES_PER_ADULT = "nb_of_driving_licenses_per_adult";
+    public static final String SIZE = "size";
+    public static final String NB_OF_CARS = "nb_of_cars";
 }

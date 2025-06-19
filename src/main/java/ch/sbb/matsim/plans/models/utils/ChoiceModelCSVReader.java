@@ -44,7 +44,13 @@ public class ChoiceModelCSVReader {
             alternatives.forEach(alternative -> choiceModels.put(alternative, new UtilityCalculator()));
             var row = reader.readLine();
             while (row != null) {
-                UtilityComponent.ComponentType type = UtilityComponent.ComponentType.valueOf(row.get("type").toUpperCase());
+                String typeString = row.get("type").toUpperCase();
+                if (typeString.startsWith("#")) {
+                    // Skip comment lines
+                    row = reader.readLine();
+                    continue;
+                }
+                UtilityComponent.ComponentType type = UtilityComponent.ComponentType.valueOf(typeString);
                 final String attribute = row.get("attribute");
                 if (type.equals(UtilityComponent.ComponentType.SHADOW_UTILS)) {
                     var shadowUtilities = readShadowUtilitiesFromCSV(filePath.replace(".csv", "_shadow_utils.csv"));

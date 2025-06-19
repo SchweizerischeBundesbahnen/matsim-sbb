@@ -26,6 +26,8 @@ public class ShadowUtility implements UtilityComponent {
         Object attribute = resolver.resolve(attributable, attributePath);
         String aggregate = attribute.toString();
         return shadowUtilities.get(aggregate);
+
+
     }
 
 
