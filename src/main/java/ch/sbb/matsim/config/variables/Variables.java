@@ -38,6 +38,7 @@ public class Variables {
     public static final String GA = "GA";
     public static final String VA = "VA";
     public static final String HTA = "HTA";
+    public static final String HTV = "HTV";
 
     public static final String ZONE_ID = "zone_id";
     public static final String ZONES = "zones";

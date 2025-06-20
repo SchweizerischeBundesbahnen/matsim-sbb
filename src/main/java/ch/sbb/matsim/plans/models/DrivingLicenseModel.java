@@ -26,7 +26,7 @@ public class DrivingLicenseModel implements ChoiceModel {
         utilityComponentsHasLicense.add(new LinearComponent(SynpopConstants.IS_SWISS, 0.635113367488652));
         utilityComponentsHasLicense.add(UtilityComponentFactory.fromCondition(SynpopConstants.LANGUAGE, "==", "2", 0.156660708026873));
         utilityComponentsHasLicense.add(UtilityComponentFactory.fromCondition(SynpopConstants.LEVEL_OF_EMPLOYMENT, ">=", "90", 1.53373469463505));
-        utilityComponentsHasLicense.add(UtilityComponentFactory.fromCombinedCondition(SynpopConstants.LEVEL_OF_EMPLOYMENT, List.of("<", ">"),
+        utilityComponentsHasLicense.add(UtilityComponentFactory.fromCombinedCondition(List.of(SynpopConstants.LEVEL_OF_EMPLOYMENT), List.of("<", ">"),
                 List.of("90", "0"),
                 0.822138563820571));
         utilityComponentsHasLicense.add(UtilityComponentFactory.fromCondition(SynpopConstants.CURRENT_EDU, "==", "4", 0.0481));

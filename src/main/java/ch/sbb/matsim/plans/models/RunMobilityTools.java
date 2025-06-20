@@ -80,6 +80,9 @@ public class RunMobilityTools {
                         {
                             Integer numberOfCars = carsPerHouseholdModel.calculate(household);
                             household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS, numberOfCars);
+                            double numberOfAdults = (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_ADULTS);
+
+                            household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS_PER_ADULT, numberOfCars / Math.max(numberOfAdults, 1));
                             cars.addAndGet(numberOfCars);
                             if (numberOfCars > 0) {
                                 householdWithCars.incrementAndGet();

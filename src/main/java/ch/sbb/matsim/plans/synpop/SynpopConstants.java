@@ -57,4 +57,5 @@ public class SynpopConstants {
     public static final String NB_OF_DRIVING_LICENSES_PER_ADULT = "nb_of_driving_licenses_per_adult";
     public static final String SIZE = "size";
     public static final String NB_OF_CARS = "nb_of_cars";
+    public static final String NB_OF_CARS_PER_ADULT = "nb_of_cars_per_adult";
 }

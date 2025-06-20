@@ -94,6 +94,10 @@ public class ChoiceModelCSVReader {
 
     private static UtilityComponent parseConditionComponent(Map<String, String> row, String alternative) {
         String attribute = row.get("attribute").trim();
+        List<String> attributes = new ArrayList<>();
+        for (String part : attribute.split(",")) {
+            attributes.add(part.trim());
+        }
         String values = row.get("values").trim(); // e.g. "<90,>0"
         double beta = getBeta(alternative, row);
 
@@ -107,8 +111,12 @@ public class ChoiceModelCSVReader {
             operators.add(op);
             valueLiterals.add(value);
         }
+        while (attributes.size() < operators.size()) {
+            attributes.add(attribute);
+            // Ensure that the number of attributes matches the number of operators and values by repeating the attribute
+        }
 
-        return UtilityComponentFactory.fromCombinedCondition(attribute, operators, valueLiterals, beta);
+        return UtilityComponentFactory.fromCombinedCondition(attributes, operators, valueLiterals, beta);
     }
 
 
