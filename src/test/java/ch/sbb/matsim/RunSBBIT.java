@@ -16,7 +16,7 @@ public class RunSBBIT {
 
 		config.scoring().setWriteExperiencedPlans(true);
 		config.scoring().setExplainScores(true);
-		config.controller().setLastIteration(0);
+		config.controller().setLastIteration(1);
 		RunSBB.run(config);
 
     }
