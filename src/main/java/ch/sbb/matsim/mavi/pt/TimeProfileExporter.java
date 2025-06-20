@@ -7,7 +7,6 @@ import ch.sbb.matsim.mavi.PolylinesCreator;
 import ch.sbb.matsim.mavi.pt.VisumPtExporterConfigGroup.RouteAttributeParams;
 import ch.sbb.matsim.mavi.visum.VisumDataSource;
 import ch.sbb.matsim.mavi.visum.VisumDataSource.DataTable;
-import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -28,6 +27,7 @@ import org.matsim.vehicles.VehicleType.DoorOperationMode;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -113,7 +113,7 @@ public class TimeProfileExporter {
 					new TimeProfile(
 						timeProfileAttributes[tp][0],
 						timeProfileAttributes[tp][4],
-						tsysMobi == null ? "" : tsysMobi.getFirst(),
+							tsysMobi == null ? "" : tsysMobi.get(0),
 						customAttributes[tp])
 			);
 		}
@@ -164,7 +164,7 @@ public class TimeProfileExporter {
 				String lastLink = null;
 				for (LineRouteItem lri : tpLineRouteItems) {
 					if (lri.index == thisLRItemIndex) {
-						stopPointNo = node2stopPointNo.get(lri.node).getFirst();
+						stopPointNo = node2stopPointNo.get(lri.node).get(0);
 					}
 					if (!useIt && lri.index >= lastLRItemIndex) {
 						useIt = true;

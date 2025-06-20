@@ -100,10 +100,15 @@ public class SynPopUtils {
         LogManager.getLogger(SynPopUtils.class).info("Done. Calculating household compositions.");
     }
 
-    public static <T> Random getRandom(Id<T> identifiable) {
+    public static <T> Random getRandom(Id<T> identifiable, String modelName) {
         HashFunction hashFunc = Hashing.murmur3_128();
-        long seed = hashFunc.hashUnencodedChars(identifiable.toString()).asLong();
+        long seed = hashFunc.hashUnencodedChars(identifiable.toString() + modelName).asLong();
         return new Random(seed);
+
+    }
+
+    public static <T> Random getRandom(Id<T> identifiable) {
+        return getRandom(identifiable, "");
 
     }
 

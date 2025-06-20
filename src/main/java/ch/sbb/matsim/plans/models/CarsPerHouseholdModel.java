@@ -11,7 +11,7 @@ public class CarsPerHouseholdModel implements ChoiceModel {
 
     public CarsPerHouseholdModel(String carsPerHouseholdModelDefinitionFile) {
         var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(carsPerHouseholdModelDefinitionFile);
-        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0);
+        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, getClass().getName());
 
     }
 

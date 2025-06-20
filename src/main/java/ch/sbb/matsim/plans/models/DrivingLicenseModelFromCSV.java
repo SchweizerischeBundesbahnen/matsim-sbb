@@ -11,7 +11,7 @@ public class DrivingLicenseModelFromCSV implements ChoiceModel {
 
     public DrivingLicenseModelFromCSV(String drivingLicenseModelDefinitionFile) {
         var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(drivingLicenseModelDefinitionFile);
-        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0);
+        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, getClass().getName());
     }
 
     @Override

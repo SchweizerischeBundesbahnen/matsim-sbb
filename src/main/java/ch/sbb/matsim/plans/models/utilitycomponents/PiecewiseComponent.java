@@ -2,11 +2,15 @@ package ch.sbb.matsim.plans.models.utilitycomponents;
 
 import ch.sbb.matsim.plans.models.resolver.AttributeResolver;
 import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
 import java.util.Arrays;
 
 public class PiecewiseComponent implements UtilityComponent {
+
+    private static final Logger log = LogManager.getLogger(PiecewiseComponent.class);
 
     private final double[] thresholds;
     private final double[] betas;
@@ -44,6 +48,7 @@ public class PiecewiseComponent implements UtilityComponent {
                 returnValue += betas[i] * Math.max(0, value - thresholds[i - 1]);
             }
         }
+//        log.debug("PiecewiseComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=" + returnValue);
         return returnValue;
     }
 

@@ -42,7 +42,7 @@ public class DrivingLicenseModel implements ChoiceModel {
         List<UtilityComponent> utilityComponentsHasNoLicense = Collections.emptyList();
         //all betas are zero, so no need to add any components
         this.noDrivingLicenseCalculator = new UtilityCalculator(utilityComponentsHasNoLicense);
-        this.selector = new LogitSelector(Map.of("true", hasDrivingLicenseCalculator, "false", noDrivingLicenseCalculator), 1.0);
+        this.selector = new LogitSelector(Map.of("true", hasDrivingLicenseCalculator, "false", noDrivingLicenseCalculator), 1.0, getClass().getName());
     }
 
     public Boolean calculate(Attributable person) {

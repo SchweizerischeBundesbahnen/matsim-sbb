@@ -2,14 +2,17 @@ package ch.sbb.matsim.plans.models.utilitycomponents;
 
 import ch.sbb.matsim.plans.models.resolver.AttributeResolver;
 import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
 public class LogarithmicComponent implements UtilityComponent {
 
+    private static final Logger log = LogManager.getLogger(LogarithmicComponent.class);
+
     private final String attributePath;
     private final double beta;
     private final AttributeResolver resolver;
-
 
     public LogarithmicComponent(String attributePath, double beta, AttributeResolver resolver) {
         this.attributePath = attributePath;
@@ -29,8 +32,11 @@ public class LogarithmicComponent implements UtilityComponent {
             throw new IllegalArgumentException("Value must be greater than zero for logarithmic calculation.");
         }
         if (value == 0) {
-            return 0.0; // Logarithm of zero is undefined, return zero or handle as needed
+//            log.debug("LogarithmicComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=0.0");
+            return 0.0;
         }
-        return value * Math.log(value) * beta;
+        double result = value * Math.log(value) * beta;
+//        log.debug("LogarithmicComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=" + result);
+        return result;
     }
 }

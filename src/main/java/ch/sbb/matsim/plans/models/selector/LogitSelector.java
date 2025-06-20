@@ -15,10 +15,12 @@ public class LogitSelector implements ChoiceSelector {
 
     private final Map<String, UtilityCalculator> calculators;
     private final double scaleParameter;
+    private final String modelName;
 
-    public LogitSelector(Map<String, UtilityCalculator> calculators, double scaleParameter) {
+    public LogitSelector(Map<String, UtilityCalculator> calculators, double scaleParameter, String modelName) {
         this.calculators = calculators;
         this.scaleParameter = scaleParameter;
+        this.modelName = modelName;
     }
 
     @Override
@@ -58,6 +60,9 @@ public class LogitSelector implements ChoiceSelector {
     private String drawByProbability(Map<String, Double> probabilities, Random random) {
         double rand = random.nextDouble();
         double cumulative = 0.0;
+        LogManager.getLogger(getClass()).debug("Probabilities: " + probabilities);
+        LogManager.getLogger(getClass()).debug("Random " + rand);
+
         for (Map.Entry<String, Double> entry : probabilities.entrySet()) {
             cumulative += entry.getValue();
             if (rand <= cumulative) {

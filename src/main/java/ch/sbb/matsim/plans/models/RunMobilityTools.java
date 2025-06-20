@@ -25,13 +25,14 @@ public class RunMobilityTools {
         var logger = LogManager.getLogger(RunMobilityTools.class);
 
         String folder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
-//        String suffix = ""; //whole population
+        String suffix = ""; //whole population
 //        String suffix = "_Bern"; //City of Bern
-        String suffix = "_AI"; //Appenzell Inner Rhodes
+//        String suffix = "_AI"; //Appenzell Inner Rhodes
         String modelFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         Zones zones = ZonesLoader.loadZones("zones", folder + "35_kalif_secondary.mobi-zones.shp");
+        addAdditionalAttributes(zones);
         scenario.addScenarioElement(Variables.ZONES, zones);
         new PopulationReader(scenario).readFile(folder + "persons_2022" + suffix + ".xml.gz");
         new HouseholdsReaderV10(scenario.getHouseholds()).readFile(folder + "households_2022" + suffix + ".xml.gz");
@@ -64,11 +65,17 @@ public class RunMobilityTools {
         logger.info("Calculation time for driving license model: " + calctime);
         SynPopUtils.calculateDrivinglicensesPerHousehold(scenario);
 
+//        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+//        Configuration config = ctx.getConfiguration();
+//        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
+//        loggerConfig.setLevel(Level.DEBUG);
+//        ctx.updateLoggers();
+
         AtomicInteger cars = new AtomicInteger(0);
         AtomicInteger householdWithCars = new AtomicInteger(0);
         logger.info("Starting cars per household calculation...");
         scenario.getHouseholds().getHouseholds().values().parallelStream()
-                .filter(household -> (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_DRIVING_LICENSES) > 0) // Only consider households with members
+                .filter(household -> (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_DRIVING_LICENSES) > 0)
                 .forEach(household ->
                         {
                             Integer numberOfCars = carsPerHouseholdModel.calculate(household);
@@ -81,8 +88,20 @@ public class RunMobilityTools {
                 );
         logger.info("Number of cars: " + cars.get());
         logger.info("Number of households with cars: " + householdWithCars.get());
-        writeAttributesToCSV(scenario.getHouseholds().getHouseholds().values(), List.of(SynpopConstants.NB_OF_ADULTS, SynpopConstants.NB_OF_KIDS, SynpopConstants.NB_OF_CARS, SynpopConstants.NB_OF_DRIVING_LICENSES, SynpopConstants.NB_OF_DRIVING_LICENSES_PER_ADULT, SynpopConstants.LANGUAGE), folder + "households_2022" + suffix + "_attributes.csv");
+//        writeAttributesToCSV(scenario.getHouseholds().getHouseholds().values(), List.of(SynpopConstants.NB_OF_ADULTS, SynpopConstants.NB_OF_KIDS, SynpopConstants.NB_OF_CARS, SynpopConstants.NB_OF_DRIVING_LICENSES, SynpopConstants.NB_OF_DRIVING_LICENSES_PER_ADULT, SynpopConstants.LANGUAGE), folder + "households_2022" + suffix + "_attributes.csv");
         //writeAttributesToCSV(scenario.getPopulation().getPersons().values(), List.of(SynpopConstants.HAS_DRIVING_LICENSE), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_attributes.csv");
+    }
+
+    private static void addAdditionalAttributes(Zones zones) {
+        zones.getZones().forEach(zone -> {
+            Double accsib_car = (Double) zone.getAttributes().getAttribute("accsib_car");
+            Double accsib_pt = (Double) zone.getAttributes().getAttribute("accsib_pt");
+            Double accsib_mul = (Double) zone.getAttributes().getAttribute("accsib_mul");
+            zone.getAttributes().putAttribute("acc_car_sc", accsib_car / 1_000_000.0);
+            zone.getAttributes().putAttribute("acc_mul_sc", accsib_mul / 1_000_000.0);
+            zone.getAttributes().putAttribute("acc_pt_sc", accsib_pt / 1_000_000.0);
+
+        });
     }
 
     private static void writeAttributesToCSV(Collection<? extends Attributable> values, List<String> attributes, String outputfile) {
