@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE population SYSTEM "http://www.matsim.org/files/dtd/population_v6.dtd">
+
+<population>
+
+
+    <person id="4705673">
+        <attributes>
+            <attribute name="age_cat" class="java.lang.String">65_to_74</attribute>
+            <attribute name="analysis_subpopulation" class="java.lang.String">regular</attribute>
+            <attribute name="avtaxi2pt" class="java.lang.String">1</attribute>
+            <attribute name="avtaxi2pt_act" class="java.lang.String">
+                accompany,business,education,home,leisure,other,shopping,work
+            </attribute>
+            <attribute name="bike2pt" class="java.lang.String">1</attribute>
+            <attribute name="bike2pt_act" class="java.lang.String">home</attribute>
+            <attribute name="car2pt" class="java.lang.String">1</attribute>
+            <attribute name="car2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="ride2pt" class="java.lang.String">1</attribute>
+            <attribute name="ride2pt_act" class="java.lang.String">accompany,business,home</attribute>
+            <attribute name="car_available" class="java.lang.Integer">1</attribute>
+            <attribute name="current_edu" class="java.lang.String">null</attribute>
+            <attribute name="has_driving_license" class="java.lang.Integer">1</attribute>
+            <attribute name="has_ebike45" class="java.lang.Integer">0</attribute>
+            <attribute name="level_of_employment_cat" class="java.lang.String">1_to_39</attribute>
+            <attribute name="pt_subscr" class="java.lang.String">none</attribute>
+            <attribute name="residence_msr_id" class="java.lang.Integer">30</attribute>
+            <attribute name="residence_zone_id" class="java.lang.Integer">120901001</attribute>
+            <attribute name="slice" class="java.lang.Integer">15</attribute>
+            <attribute name="subpopulation" class="java.lang.String">regular</attribute>
+            <attribute name="analysis_subpopulation" class="java.lang.String">regular</attribute>
+        </attributes>
+        <plan selected="yes">
+            <activity type="home" facility="502416" x="2690423.0" y="1175871.0" start_time="08:27:57"
+                      end_time="08:27:57">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Outbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">1</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="pt">
+            </leg>
+            <activity type="leisure" facility="1607732" x="2688448.0" y="1165658.0" start_time="09:53:06"
+                      end_time="11:20:22">
+                <attributes>
+                    <attribute name="next_trip_direction" class="java.lang.String">Inbound</attribute>
+                    <attribute name="next_trip_id" class="java.lang.Integer">2</attribute>
+                    <attribute name="next_trip_purpose" class="java.lang.String">Fr</attribute>
+                    <attribute name="next_trip_tour_id" class="java.lang.Integer">1</attribute>
+                </attributes>
+            </activity>
+            <leg mode="pt">
+            </leg>
+            <activity type="home" facility="502416" x="2690423.0" y="1175871.0" start_time="12:45:31"
+                      end_time="12:45:31">
+            </activity>
+        </plan>
+
+    </person>
+</population>
