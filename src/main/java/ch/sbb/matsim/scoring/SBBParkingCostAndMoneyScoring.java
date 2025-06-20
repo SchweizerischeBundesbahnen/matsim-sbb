@@ -64,4 +64,10 @@ public final class SBBParkingCostAndMoneyScoring implements SumScoringFunction.A
 			this.score += scoreDelta;
 		}
 	}
+
+	@Override
+	public void explainScore(StringBuilder out) {
+		out.append("SBBParkingCostAndMoneyScoring total: " + this.score);
+		SumScoringFunction.ArbitraryEventScoring.super.explainScore(out);
+	}
 }
