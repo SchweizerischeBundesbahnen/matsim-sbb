@@ -5,7 +5,6 @@ import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scoring.SumScoringFunction;
 import org.matsim.core.utils.misc.OptionalTime;
-import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
 import java.util.List;
@@ -41,10 +40,11 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 			int i = 0;
 			for (Leg leg : legs) {
 				if (this.ptModes.contains(leg.getMode())) {
-					nextMode = transitSchedule.getTransitLines().get(((TransitPassengerRoute) leg.getRoute()).getLineId()).getRoutes().get(((TransitPassengerRoute) leg.getRoute()).getRouteId()).getTransportMode();
+					nextMode = leg.getMode();
 					if (mode != null) {
-						penalty = this.raptorStaticConfig.getModeToModeTransferPenalty(mode, nextMode);
+						penalty = -this.raptorStaticConfig.getModeToModeTransferPenalty(mode, nextMode);
 						if (penalty != 0) {
+							System.out.println("Transfer penalty from " + mode + " to " + nextMode + ": " + penalty);
 							scoreTripPart(departureTime, legs.subList(first, i));
 							this.score += penalty;
 							first = i;
