@@ -102,7 +102,7 @@ public class TransferScoringTest {
 
 		double defaultTransferScore = -6.0;
 		double sbbTransferScore = 2 * Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (945.0 / 3600.0)));
-		double sbbTransferScoreWithModeToModePenalty = -1.5 + Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (480.0 / 3600.0)));
+		double sbbTransferScoreWithModeToModePenalty = -2.0 + Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (480.0 / 3600.0)));
 
 		double actualScoreDiff = score2 - score1;
 		double expectedScoreDiff = sbbTransferScore - defaultTransferScore;
