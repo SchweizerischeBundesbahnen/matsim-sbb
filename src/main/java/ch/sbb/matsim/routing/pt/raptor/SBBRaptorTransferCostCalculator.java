@@ -23,6 +23,8 @@ import java.util.function.Supplier;
 
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorCore.PathElement;
 
+import static java.lang.Double.max;
+
 
 /**
  * @author mrieser / Simunto
@@ -48,7 +50,7 @@ public class SBBRaptorTransferCostCalculator implements RaptorTransferCostCalcul
 				if (currentPE.firstDepartureTime != TIME_UNDEFINED) {
 					currentTime = currentPE.firstDepartureTime + totalTravelTime;
 				}
-				travelTimeSinceModeChange = currentTime + transfer.get().getTransferTime() - firstPEOfTripPart.arrivalTime;
+				travelTimeSinceModeChange = currentTime + transfer.get().getTransferTime() - max(firstPEOfTripPart.arrivalTime, currentPE.firstDepartureTime);
 				transferCountSinceModeChange = transferCount - firstPEOfTripPart.transferCount;
 			}
 			double singleTransferCost = calcSingleTransferCost(transferCostBase, transferCostPerHour, transferCostMin, transferCostMax, travelTimeSinceModeChange);
