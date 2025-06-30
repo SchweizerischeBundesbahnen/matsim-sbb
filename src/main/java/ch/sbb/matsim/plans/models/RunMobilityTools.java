@@ -1,8 +1,8 @@
 package ch.sbb.matsim.plans.models;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
-import ch.sbb.matsim.plans.synpop.SynpopConstants;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.logging.log4j.LogManager;
@@ -95,6 +95,7 @@ public class RunMobilityTools {
         logger.info("Number of cars: " + cars.get());
         logger.info("Number of households with cars: " + householdWithCars.get());
 
+
         logger.info("Starting public transport subscription calculation...");
         PtSubscriptions ptSubscriptionsAdults = new PtSubscriptions(new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0));
         PtSubscriptions ptSubscriptionsMinors = new PtSubscriptions(new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0));
@@ -117,6 +118,8 @@ public class RunMobilityTools {
         logger.info("Public transport subscriptions for adults:" + ptSubscriptionsAdults);
         logger.info("Public transport subscriptions for minors:" + ptSubscriptionsMinors);
 
+        SynPopUtils.setCarAvailableForPopulation(scenario);
+        SynPopUtils.aggregateMobilityToolsPerZone(scenario);
 
 
 //        writeAttributesToCSV(scenario.getHouseholds().getHouseholds().values(), List.of(SynpopConstants.NB_OF_ADULTS, SynpopConstants.NB_OF_KIDS, SynpopConstants.NB_OF_CARS, SynpopConstants.NB_OF_DRIVING_LICENSES, SynpopConstants.NB_OF_DRIVING_LICENSES_PER_ADULT, SynpopConstants.LANGUAGE), folder + "households_2022" + suffix + "_attributes.csv");

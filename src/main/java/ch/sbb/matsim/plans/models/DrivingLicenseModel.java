@@ -1,9 +1,9 @@
 package ch.sbb.matsim.plans.models;
 
+import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.models.selector.ChoiceSelector;
 import ch.sbb.matsim.plans.models.selector.LogitSelector;
 import ch.sbb.matsim.plans.models.utilitycomponents.*;
-import ch.sbb.matsim.plans.synpop.SynpopConstants;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
 import java.util.Collections;

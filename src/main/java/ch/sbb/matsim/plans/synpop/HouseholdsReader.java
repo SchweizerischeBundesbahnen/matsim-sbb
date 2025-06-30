@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.synpop;
 
+import ch.sbb.matsim.plans.constants.SynpopConstants;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BigIntVector;

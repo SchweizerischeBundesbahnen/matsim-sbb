@@ -1,6 +1,6 @@
 package ch.sbb.matsim.plans.models.utilitycomponents;
 
-import ch.sbb.matsim.plans.synpop.SynpopConstants;
+import ch.sbb.matsim.plans.constants.SynpopConstants;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;

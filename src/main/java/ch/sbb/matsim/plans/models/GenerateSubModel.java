@@ -1,8 +1,8 @@
 package ch.sbb.matsim.plans.models;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
-import ch.sbb.matsim.plans.synpop.SynpopConstants;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;

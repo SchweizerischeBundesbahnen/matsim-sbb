@@ -1,4 +1,6 @@
-package ch.sbb.matsim.plans.synpop;
+package ch.sbb.matsim.plans.constants;
+
+import ch.sbb.matsim.config.variables.Variables;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,6 +24,11 @@ public class SynpopConstants {
     public static final String CURRENT_EDU = "current_edu";
     public static final String CURRENT_JOB_RANK = "current_job_rank";
     public static final String IS_APPRENTICE = "is_apprentice";
+    public static final String HAS_EBIKE45 = Variables.HAS_EBIKE_45;
+    public static final String CAR_AVAILABLE = Variables.CAR_AVAIL;
+
+
+
     public static final String XCOORD = "xcoord";
     public static final String YCOORD = "ycoord";
     public static final String COORD = "coord";
