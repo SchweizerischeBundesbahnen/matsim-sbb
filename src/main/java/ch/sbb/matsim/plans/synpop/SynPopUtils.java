@@ -158,10 +158,11 @@ public class SynPopUtils {
     public static void aggregateMobilityToolsPerZone(Scenario scenario) {
         LogManager.getLogger(SynPopUtils.class).info("Aggregating mobility tools per zone...");
         Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
-        Map<Id<Zone>, MobilityToolCount> zoneMap = new HashMap<>();
+        Map<Id<Zone>, MobilityToolCount> zoneMap = zones.getZones().stream()
+                .collect(HashMap::new, (map, zone) -> map.put(zone.getId(), new MobilityToolCount()), HashMap::putAll);
         for (Person person : scenario.getPopulation().getPersons().values()) {
             var zoneId = Id.create((String) person.getAttributes().getAttribute(SynpopConstants.ZONE_ID), Zone.class);
-            MobilityToolCount mobilityToolCount = zoneMap.computeIfAbsent(zoneId, id -> new MobilityToolCount());
+            MobilityToolCount mobilityToolCount = zoneMap.get(zoneId);
             Boolean hasDrivingLicense = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
             Boolean hasEbike = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_EBIKE45);
             Boolean carAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE);
@@ -172,7 +173,7 @@ public class SynPopUtils {
         }
         for (Household household : scenario.getHouseholds().getHouseholds().values()) {
             var zoneId = Id.create((String) household.getAttributes().getAttribute(SynpopConstants.ZONE_ID), Zone.class);
-            MobilityToolCount mobilityToolCount = zoneMap.computeIfAbsent(zoneId, id -> new MobilityToolCount());
+            MobilityToolCount mobilityToolCount = zoneMap.get(zoneId);
             Integer numberOfCars = (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_CARS);
             mobilityToolCount.carCount().addAndGet(numberOfCars);
 

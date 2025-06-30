@@ -1,6 +1,5 @@
 package ch.sbb.matsim.zones;
 
-import org.apache.logging.log4j.LogManager;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
@@ -41,11 +40,7 @@ public class AttributableZone implements Zone {
 
     @Override
     public Object getAttribute(String name) {
-        Object o = this.attributes.getAttribute(name);
-        if (o == null) {
-            LogManager.getLogger(getClass()).warn("Attribute " + name + " not found in zones. Will return null");
-        }
-        return o;
+        return this.attributes.getAttribute(name);
     }
 
     @Override
