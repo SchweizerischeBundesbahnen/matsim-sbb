@@ -1,5 +1,6 @@
 package ch.sbb.matsim.zones;
 
+import ch.sbb.matsim.csv.CSVWriter;
 import org.apache.logging.log4j.LogManager;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
@@ -14,10 +15,8 @@ import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.MultiPolygon;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 public class ZoneGeoPackageWriter {
 
@@ -92,6 +91,39 @@ public class ZoneGeoPackageWriter {
             features.add(feature);
         }
         return features;
+    }
+
+
+    public static void writeAttributesToCSV(Zones zones, String outputFile) {
+        if (zones == null || zones.getZones() == null || zones.getZones().isEmpty()) {
+            LogManager.getLogger(ZoneGeoPackageWriter.class).error("No zones to write to CSV.");
+            return;
+        }
+        Set<String> attributeNames = new TreeSet<>();
+        attributeNames.addAll(zones.getZones().getFirst().getAttributes().getAsMap().keySet());
+        attributeNames.remove("geometry"); // Exclude geometry attribute
+        attributeNames.remove("zone_id");
+        List<String> columns = new ArrayList<>();
+        columns.add("zone_id");
+        columns.addAll(attributeNames);
+
+        try (CSVWriter writer = new CSVWriter("\uFEFF", columns.toArray(String[]::new), ";")) {
+            for (Zone zone : zones.getZones()) {
+                AttributableZone attributableZone = (AttributableZone) zone;
+                writer.set("zone_id", attributableZone.getId().toString());
+                for (String attr : attributeNames) {
+                    Object value = attributableZone.getAttribute(attr);
+                    if (value != null) {
+                        writer.set(attr, value.toString());
+                    } else {
+                        writer.set(attr, ""); // Set empty string for null values
+                    }
+                }
+                writer.writeRow();
+            }
+        } catch (IOException e) {
+            LogManager.getLogger(ZoneGeoPackageWriter.class).error("Error writing attributes to CSV: " + e.getMessage(), e);
+        }
     }
 
 
