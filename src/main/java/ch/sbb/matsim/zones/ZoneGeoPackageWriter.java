@@ -17,6 +17,7 @@ import org.locationtech.jts.geom.MultiPolygon;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ZoneGeoPackageWriter {
 
@@ -95,19 +96,21 @@ public class ZoneGeoPackageWriter {
 
 
     public static void writeAttributesToCSV(Zones zones, String outputFile) {
+        LogManager.getLogger(ZoneGeoPackageWriter.class).info("Writing attributes to CSV. " + outputFile);
         if (zones == null || zones.getZones() == null || zones.getZones().isEmpty()) {
             LogManager.getLogger(ZoneGeoPackageWriter.class).error("No zones to write to CSV.");
             return;
         }
         Set<String> attributeNames = new TreeSet<>();
-        attributeNames.addAll(zones.getZones().getFirst().getAttributes().getAsMap().keySet());
+        attributeNames.addAll(zones.getZones().stream().flatMap(zone -> zone.getAttributes().getAsMap().keySet().stream()).collect(Collectors.toSet()));
         attributeNames.remove("geometry"); // Exclude geometry attribute
+        attributeNames.remove("the_geom"); // Exclude geometry attribute
         attributeNames.remove("zone_id");
         List<String> columns = new ArrayList<>();
         columns.add("zone_id");
         columns.addAll(attributeNames);
 
-        try (CSVWriter writer = new CSVWriter("\uFEFF", columns.toArray(String[]::new), ";")) {
+        try (CSVWriter writer = new CSVWriter("\uFEFF", columns.toArray(String[]::new), outputFile)) {
             for (Zone zone : zones.getZones()) {
                 AttributableZone attributableZone = (AttributableZone) zone;
                 writer.set("zone_id", attributableZone.getId().toString());

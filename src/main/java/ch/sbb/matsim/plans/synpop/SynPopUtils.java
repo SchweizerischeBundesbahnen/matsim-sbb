@@ -212,10 +212,10 @@ public class SynPopUtils {
             }
             if (ptSubscription != null) {
                 switch (ptSubscription) {
-                    case "GA" -> gaCount.incrementAndGet();
-                    case "HT" -> htCount.incrementAndGet();
-                    case "VA" -> vaCount.incrementAndGet();
-                    case "HTV" -> {
+                    case Variables.GA -> gaCount.incrementAndGet();
+                    case Variables.HTA -> htCount.incrementAndGet();
+                    case Variables.VA -> vaCount.incrementAndGet();
+                    case Variables.HTV -> {
                         htvCount.incrementAndGet();
                         vaCount.incrementAndGet();
                         htCount.incrementAndGet();
