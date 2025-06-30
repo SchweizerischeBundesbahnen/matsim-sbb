@@ -1,6 +1,8 @@
 package ch.sbb.matsim.plans.synpop;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.plans.constants.SynpopConstants;
+import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import com.google.common.hash.HashFunction;
@@ -11,7 +13,10 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.households.Household;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SynPopUtils {
 
@@ -133,4 +138,95 @@ public class SynPopUtils {
         }
         LogManager.getLogger(SynPopUtils.class).info("Done. Calculating driving licenses per household.");
     }
+
+    public static void setCarAvailableForPopulation(Scenario scenario) {
+        LogManager.getLogger(SynPopUtils.class).info("Setting car availability for population...");
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+            Boolean hasDrivingLicense = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
+            if (hasDrivingLicense) {
+                Integer numberOfCars = (Integer) ((Household) person.getAttributes().getAttribute(SynpopConstants.HOUSEHOLD)).getAttributes().getAttribute(SynpopConstants.NB_OF_CARS);
+                if (numberOfCars != null && numberOfCars > 0) {
+                    person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, true);
+                } else {
+                    person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, false);
+                }
+            }
+        }
+        LogManager.getLogger(SynPopUtils.class).info("Done. Setting car availability for population.");
+    }
+
+    public static void aggregateMobilityToolsPerZone(Scenario scenario) {
+        LogManager.getLogger(SynPopUtils.class).info("Aggregating mobility tools per zone...");
+        Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
+        Map<Id<Zone>, MobilityToolCount> zoneMap = new HashMap<>();
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+            var zoneId = Id.create((String) person.getAttributes().getAttribute(SynpopConstants.ZONE_ID), Zone.class);
+            MobilityToolCount mobilityToolCount = zoneMap.computeIfAbsent(zoneId, id -> new MobilityToolCount());
+            Boolean hasDrivingLicense = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
+            Boolean hasEbike = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_EBIKE45);
+            Boolean carAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE);
+            String ptSubscription = (String) person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION);
+            mobilityToolCount.addMobilityTool(hasDrivingLicense != null && hasDrivingLicense,
+                    hasEbike != null && hasEbike,
+                    carAvailable != null && carAvailable, ptSubscription);
+        }
+        for (Household household : scenario.getHouseholds().getHouseholds().values()) {
+            var zoneId = Id.create((String) household.getAttributes().getAttribute(SynpopConstants.ZONE_ID), Zone.class);
+            MobilityToolCount mobilityToolCount = zoneMap.computeIfAbsent(zoneId, id -> new MobilityToolCount());
+            Integer numberOfCars = (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_CARS);
+            mobilityToolCount.carCount().addAndGet(numberOfCars);
+
+        }
+        for (Map.Entry<Id<Zone>, MobilityToolCount> entry : zoneMap.entrySet()) {
+            Zone zone = zones.getZone(entry.getKey());
+            MobilityToolCount mobilityToolCount = entry.getValue();
+            zone.getAttributes().putAttribute(ZonalAttributes.POP_DL, mobilityToolCount.drivingLicenseCount().get());
+            zone.getAttributes().putAttribute(ZonalAttributes.POP_CARAVL, mobilityToolCount.carAvailableCount().get());
+            zone.getAttributes().putAttribute(ZonalAttributes.POP_CARS, mobilityToolCount.carCount().get());
+            zone.getAttributes().putAttribute(ZonalAttributes.POP_GA, mobilityToolCount.gaCount().get());
+            zone.getAttributes().putAttribute(ZonalAttributes.POP_VA, mobilityToolCount.vaCount().get());
+            zone.getAttributes().putAttribute(ZonalAttributes.POP_HT, mobilityToolCount.htCount().get());
+            zone.getAttributes().putAttribute(ZonalAttributes.POP_VA_HT, mobilityToolCount.htvCount().get());
+        }
+        LogManager.getLogger(SynPopUtils.class).info("Done. Aggregating mobility tools per zone.");
+    }
+
+    record MobilityToolCount(AtomicInteger drivingLicenseCount, AtomicInteger ebikeCount,
+                             AtomicInteger carAvailableCount, AtomicInteger carCount, AtomicInteger gaCount,
+                             AtomicInteger htCount, AtomicInteger vaCount, AtomicInteger htvCount) {
+        MobilityToolCount() {
+            this(new AtomicInteger(), new AtomicInteger(), new AtomicInteger(),
+                    new AtomicInteger(), new AtomicInteger(), new AtomicInteger(),
+                    new AtomicInteger(), new AtomicInteger());
+        }
+
+        void addMobilityTool(boolean hasDrivingLicense, boolean hasEbike, boolean hasCarAvailable, String ptSubscription) {
+            if (hasDrivingLicense) {
+                drivingLicenseCount.incrementAndGet();
+            }
+            if (hasEbike) {
+                ebikeCount.incrementAndGet();
+            }
+            if (hasCarAvailable) {
+                carAvailableCount.incrementAndGet();
+            }
+            if (ptSubscription != null) {
+                switch (ptSubscription) {
+                    case "GA" -> gaCount.incrementAndGet();
+                    case "HT" -> htCount.incrementAndGet();
+                    case "VA" -> vaCount.incrementAndGet();
+                    case "HTV" -> {
+                        htvCount.incrementAndGet();
+                        vaCount.incrementAndGet();
+                        htCount.incrementAndGet();
+                    }
+                }
+            }
+
+        }
+    }
 }
+
+
+
+
