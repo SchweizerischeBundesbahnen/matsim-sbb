@@ -35,6 +35,9 @@ public class SynpopConstants {
     public static final String SCHOOL_TYPE = "school_type";
     public static final String NOGA_CODE = "noga_code";
     public static final String SECTOR = "sector";
+    public static final String NET_DIST_SCHOOL_PTSUBSCR = "net_dist_school_ptsubscr";
+    public static final String NET_DIST_SCHOOL = "net_dist_school";
+
 
     public static final List<String> RAW_SYNPOP_ATTRIBUTES = Arrays.asList(
             PERSON_ID, HOUSEHOLD_ID, POSITION_IN_BUS, HIGHEST_EDUCATION, POSITION_IN_EDU,

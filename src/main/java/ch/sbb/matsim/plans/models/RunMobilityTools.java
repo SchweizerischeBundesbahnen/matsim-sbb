@@ -25,8 +25,8 @@ public class RunMobilityTools {
         var logger = LogManager.getLogger(RunMobilityTools.class);
 
         String folder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
-        String suffix = ""; //whole population
-//        String suffix = "_Bern"; //City of Bern
+//        String suffix = ""; //whole population
+        String suffix = "_Bern"; //City of Bern
 //        String suffix = "_AI"; //Appenzell Inner Rhodes
         String modelFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\";
 
@@ -41,6 +41,8 @@ public class RunMobilityTools {
         SynPopUtils.calculateHouseHoldCompositions(scenario);
         DrivingLicenseModelFromCSV drivingLicenseModel = new DrivingLicenseModelFromCSV(modelFolder + "driving_license.csv");
         CarsPerHouseholdModel carsPerHouseholdModel = new CarsPerHouseholdModel(modelFolder + "cars_per_household.csv");
+        PTSubscriptionModel ptSubscriptionModelAdults = new PTSubscriptionModel(modelFolder + "pt_subscription_adults.csv");
+        PTSubscriptionModel ptSubscriptionModelMinors = new PTSubscriptionModel(modelFolder + "pt_subscription_minors.csv");
 
         logger.info(("Starting driving license calculation..."));
         double time = System.currentTimeMillis();
@@ -75,13 +77,14 @@ public class RunMobilityTools {
         AtomicInteger householdWithCars = new AtomicInteger(0);
         logger.info("Starting cars per household calculation...");
         scenario.getHouseholds().getHouseholds().values().parallelStream()
-                .filter(household -> (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_DRIVING_LICENSES) > 0)
                 .forEach(household ->
                         {
-                            Integer numberOfCars = carsPerHouseholdModel.calculate(household);
+                            Integer numberOfCars = 0;
+                            if ((Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_DRIVING_LICENSES) > 0) {
+                                numberOfCars = carsPerHouseholdModel.calculate(household);
+                            }
                             household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS, numberOfCars);
                             double numberOfAdults = (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_ADULTS);
-
                             household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS_PER_ADULT, numberOfCars / Math.max(numberOfAdults, 1));
                             cars.addAndGet(numberOfCars);
                             if (numberOfCars > 0) {
@@ -91,8 +94,51 @@ public class RunMobilityTools {
                 );
         logger.info("Number of cars: " + cars.get());
         logger.info("Number of households with cars: " + householdWithCars.get());
+
+        logger.info("Starting public transport subscription calculation...");
+        PtSubscriptions ptSubscriptionsAdults = new PtSubscriptions(new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0));
+        PtSubscriptions ptSubscriptionsMinors = new PtSubscriptions(new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0));
+
+        scenario.getPopulation().getPersons().values().parallelStream().forEach(
+                person -> {
+                    person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL, 0.0);
+                    person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, 0.0);
+                    String ptSubscription;
+                    if ((int) person.getAttributes().getAttribute(SynpopConstants.AGE) < 18) {
+                        ptSubscription = ptSubscriptionModelMinors.calculate(person);
+                        ptSubscriptionsMinors.add(ptSubscription);
+                    } else {
+                        ptSubscription = ptSubscriptionModelAdults.calculate(person);
+                        ptSubscriptionsAdults.add(ptSubscription);
+                    }
+                    person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, ptSubscription);
+                }
+        );
+        logger.info("Public transport subscriptions for adults:" + ptSubscriptionsAdults);
+        logger.info("Public transport subscriptions for minors:" + ptSubscriptionsMinors);
+
+
+
 //        writeAttributesToCSV(scenario.getHouseholds().getHouseholds().values(), List.of(SynpopConstants.NB_OF_ADULTS, SynpopConstants.NB_OF_KIDS, SynpopConstants.NB_OF_CARS, SynpopConstants.NB_OF_DRIVING_LICENSES, SynpopConstants.NB_OF_DRIVING_LICENSES_PER_ADULT, SynpopConstants.LANGUAGE), folder + "households_2022" + suffix + "_attributes.csv");
         //writeAttributesToCSV(scenario.getPopulation().getPersons().values(), List.of(SynpopConstants.HAS_DRIVING_LICENSE), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_attributes.csv");
+    }
+
+    record PtSubscriptions(AtomicInteger none, AtomicInteger ga, AtomicInteger va, AtomicInteger hta,
+                           AtomicInteger htv) {
+        void add(String subscription) {
+            switch (subscription) {
+                case Variables.PT_SUBSCRIPTION_NONE -> none.incrementAndGet();
+                case Variables.GA -> ga.incrementAndGet();
+                case Variables.VA -> va.incrementAndGet();
+                case Variables.HTA -> hta.incrementAndGet();
+                case Variables.HTV -> {
+                    htv.incrementAndGet();
+                    hta.incrementAndGet();
+                    va.incrementAndGet();
+                }
+                default -> throw new IllegalArgumentException("Unknown subscription: " + subscription);
+            }
+        }
     }
 
     private static void addAdditionalAttributes(Zones zones) {
