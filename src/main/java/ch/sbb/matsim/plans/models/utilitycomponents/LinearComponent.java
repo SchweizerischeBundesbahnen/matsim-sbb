@@ -31,7 +31,16 @@ public class LinearComponent implements UtilityComponent {
         if (attribute == null) {
             throw new RuntimeException("Attribute '" + attributePath + "' is null for " + ((Identifiable) attributable).getId() + ". ");
         }
-        double value = attribute instanceof Boolean ? 1.0 : ((Number) attribute).doubleValue();
+        if (attribute instanceof Boolean b) {
+            if (b) {
+//                log.debug("LinearComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=" + beta);
+                return beta; // Boolean true contributes beta
+            } else {
+//                log.debug("LinearComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=0.0");
+                return 0.0; // Boolean false contributes nothing
+            }
+        }
+        double value = ((Number) attribute).doubleValue();
         double result = value * beta;
 //        log.debug("LinearComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=" + result);
         return result;

@@ -40,12 +40,17 @@ public class PiecewiseComponent implements UtilityComponent {
         double returnValue = 0.0;
         for (int i = 0; i < betas.length; i++) {
             if (i == 0) {
-                returnValue += betas[i] * Math.min(value, thresholds[i]);
+                double component = betas[i] * Math.min(value, thresholds[i]);
+                returnValue += component;
+
             } else if (i < betas.length - 1) {
-                returnValue += betas[i] * (Math.max(0, Math.min(value - thresholds[i - 1],
+                double component = betas[i] * (Math.max(0, Math.min(value - thresholds[i - 1],
                         thresholds[i] - thresholds[i - 1])));
+                returnValue += component;
+
             } else {
-                returnValue += betas[i] * Math.max(0, value - thresholds[i - 1]);
+                double component = betas[i] * Math.max(0, value - thresholds[i - 1]);
+                returnValue += component;
             }
         }
 //        log.debug("PiecewiseComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=" + returnValue);

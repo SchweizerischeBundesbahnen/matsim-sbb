@@ -1,8 +1,7 @@
 package ch.sbb.matsim.plans.models.utilitycomponents;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 public class UtilityComponentFactory {
@@ -15,9 +14,15 @@ public class UtilityComponentFactory {
         if (operators.size() != valueLiterals.size()) {
             throw new IllegalArgumentException("Operators and values must match in size.");
         }
-
-        Map<String, Predicate<Object>> conditions = new HashMap<>();
-        for (int i = 0; i < attributes.size(); i++) {
+        if (attributes.size() == 1 && attributes.size() < operators.size()) {
+            List<String> mirroredAttributes = new ArrayList<>();
+            for (int i = 0; i < operators.size(); i++) {
+                mirroredAttributes.add(attributes.getFirst());
+            }
+            attributes = mirroredAttributes;
+        }
+        List<Predicate<Object>> conditions = new ArrayList<>();
+        for (int i = 0; i < operators.size(); i++) {
             String attributeName = attributes.get(i);
             String operator = operators.get(i);
             String valueLiteral = valueLiterals.get(i);
@@ -41,11 +46,11 @@ public class UtilityComponentFactory {
                 };
                 return passed;
             };
+            conditions.add(combinedPredicate);
 
-            conditions.put(attributeName, combinedPredicate);
         }
 
-        return new PredicateComponent(conditions, beta);
+        return new PredicateComponent(attributes, conditions, beta);
 
 
     }

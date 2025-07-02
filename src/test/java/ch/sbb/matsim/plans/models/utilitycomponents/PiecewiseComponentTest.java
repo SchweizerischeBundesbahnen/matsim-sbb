@@ -35,8 +35,8 @@ class PiecewiseComponentTest {
     void testCalculateAtUpperEnd() {
         PiecewiseComponent piecewiseComponent = createCalculator();
         Person person3 = PopulationUtils.getFactory().createPerson(Id.createPersonId(3));
-        person3.getAttributes().putAttribute(SynpopConstants.AGE, 90);
-        Assert.assertEquals(7.1907, piecewiseComponent.calculate(person3), 0.001);
+        person3.getAttributes().putAttribute(SynpopConstants.AGE, 89);
+        Assert.assertEquals(7.3807, piecewiseComponent.calculate(person3), 0.001);
     }
 
     @Test

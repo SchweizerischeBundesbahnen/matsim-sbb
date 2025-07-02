@@ -9,6 +9,7 @@ import org.matsim.utils.objectattributes.attributable.Attributable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 public class LogitSelector implements ChoiceSelector {
@@ -26,7 +27,7 @@ public class LogitSelector implements ChoiceSelector {
     @Override
     public String select(Attributable attributes) {
         var id = ((Identifiable) attributes).getId();
-        Random random = SynPopUtils.getRandom(id);
+        Random random = SynPopUtils.getRandom(id, modelName);
         Map<String, Double> probabilities = getProbabilities(attributes);
         String chosenAlternative = drawByProbability(probabilities, random);
         if (chosenAlternative == null) {
@@ -37,7 +38,7 @@ public class LogitSelector implements ChoiceSelector {
 
     @Override
     public Map<String, Double> getProbabilities(Attributable attributes) {
-        Map<String, Double> expUtilities = new LinkedHashMap<>();
+        Map<String, Double> expUtilities = new TreeMap<>();
         for (Map.Entry<String, UtilityCalculator> entry : calculators.entrySet()) {
             double u = entry.getValue().calculate(attributes);
             expUtilities.put(entry.getKey(), Math.exp(scaleParameter * u));
@@ -60,8 +61,8 @@ public class LogitSelector implements ChoiceSelector {
     private String drawByProbability(Map<String, Double> probabilities, Random random) {
         double rand = random.nextDouble();
         double cumulative = 0.0;
-        LogManager.getLogger(getClass()).debug("Probabilities: " + probabilities);
-        LogManager.getLogger(getClass()).debug("Random " + rand);
+//        LogManager.getLogger(getClass()).debug("Probabilities: " + probabilities);
+//        LogManager.getLogger(getClass()).debug("Random " + rand);
 
         for (Map.Entry<String, Double> entry : probabilities.entrySet()) {
             cumulative += entry.getValue();

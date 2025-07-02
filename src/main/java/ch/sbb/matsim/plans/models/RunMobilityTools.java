@@ -2,6 +2,7 @@ package ch.sbb.matsim.plans.models;
 
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
+import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.ZoneGeoPackageWriter;
 import ch.sbb.matsim.zones.Zones;
@@ -26,8 +27,8 @@ public class RunMobilityTools {
         var logger = LogManager.getLogger(RunMobilityTools.class);
 
         String folder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
-        String suffix = ""; //whole population
-//        String suffix = "_Bern"; //City of Bern
+//        String suffix = ""; //whole population
+        String suffix = "_Bern"; //City of Bern
 //        String suffix = "_AI"; //Appenzell Inner Rhodes
         String modelFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\";
 
@@ -70,11 +71,7 @@ public class RunMobilityTools {
         logger.info("Calculation time for driving license model: " + calctime);
         SynPopUtils.calculateDrivinglicensesPerHousehold(scenario);
 
-//        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-//        Configuration config = ctx.getConfiguration();
-//        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-//        loggerConfig.setLevel(Level.DEBUG);
-//        ctx.updateLoggers();
+
 
         AtomicInteger cars = new AtomicInteger(0);
         AtomicInteger householdWithCars = new AtomicInteger(0);
@@ -98,10 +95,16 @@ public class RunMobilityTools {
         logger.info("Number of cars: " + cars.get());
         logger.info("Number of households with cars: " + householdWithCars.get());
 
-
+//        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+//        Configuration config = ctx.getConfiguration();
+//        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
+//        loggerConfig.setLevel(Level.DEBUG);
+//        ctx.updateLoggers();
         logger.info("Starting public transport subscription calculation...");
 
-        scenario.getPopulation().getPersons().values().parallelStream().forEach(
+        scenario.getPopulation().getPersons().values().parallelStream()
+                //.filter(person -> person.getId().equals(Id.createPersonId(1000523)))
+                .forEach(
                 person -> {
                     person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL, 0.0);
                     person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, 0.0);
@@ -120,7 +123,11 @@ public class RunMobilityTools {
         ZoneGeoPackageWriter.writeAttributesToCSV(zones, folder + "zones_2022" + suffix + "_attributes.csv");
 
 //        writeAttributesToCSV(scenario.getHouseholds().getHouseholds().values(), List.of(SynpopConstants.NB_OF_ADULTS, SynpopConstants.NB_OF_KIDS, SynpopConstants.NB_OF_CARS, SynpopConstants.NB_OF_DRIVING_LICENSES, SynpopConstants.NB_OF_DRIVING_LICENSES_PER_ADULT, SynpopConstants.LANGUAGE), folder + "households_2022" + suffix + "_attributes.csv");
-        //writeAttributesToCSV(scenario.getPopulation().getPersons().values(), List.of(SynpopConstants.HAS_DRIVING_LICENSE), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_attributes.csv");
+//        writeAttributesToCSV(scenario.getPopulation().getPersons().values(),
+//                List.of(SynpopConstants.HAS_DRIVING_LICENSE, SynpopConstants.AGE,
+//                        SynpopConstants.IS_SWISS,SynpopConstants.LEVEL_OF_EMPLOYMENT,
+//                        SynpopConstants.CURRENT_EDU,SynpopConstants.LANGUAGE,"household.couple_type","household.single_parent","household.size",
+//                        "household.nb_of_cars", "household.nb_of_cars_per_adult","zone.acc_car_sc","zone.acc_mul_sc","zone.acc_pt_sc","zone.sl3_id",Variables.PT_SUBSCRIPTION ), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_Bern_attributes.csv");
     }
 
 
@@ -137,13 +144,14 @@ public class RunMobilityTools {
     }
 
     private static void writeAttributesToCSV(Collection<? extends Attributable> values, List<String> attributes, String outputfile) {
+        NestedAttributeResolver resolver = new NestedAttributeResolver();
         StringBuilder sb = new StringBuilder();
         sb.append("id;").append(String.join(";", attributes)).append("\n");
         for (Attributable attributable : values) {
             String id = ((Identifiable) attributable).getId().toString();
             sb.append(id).append(";");
             for (String attribute : attributes) {
-                Object value = attributable.getAttributes().getAttribute(attribute);
+                Object value = resolver.resolve(attributable, attribute);
                 sb.append(value != null ? value.toString() : "null").append(";");
             }
             sb.setLength(sb.length() - 1); // Remove last comma
