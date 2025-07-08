@@ -73,9 +73,6 @@ public class SBBRaptorTransferCostCalculator implements RaptorTransferCostCalcul
 			}
 // 			double oldCost = (calcSingleTransferCost(transferCostBase, transferCostPerHour, transferCostMin, transferCostMax, totalTravelTime) * transferCount) - existingTransferCosts;
 //			log.info("new method;" + oldCost + ";" + cost);
-//			if (cost == 0) {
-//				int jjj = 0;
-//			}
 			return cost;
 		} else {
 			return (calcSingleTransferCost(transferCostBase, transferCostPerHour, transferCostMin, transferCostMax, totalTravelTime) * transferCount) - existingTransferCosts;
