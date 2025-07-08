@@ -40,6 +40,24 @@ public class Variables {
     public static final String HTA = "HTA";
     public static final String HTV = "HTV";
 
+    public enum PTSubscriptionType {
+        NONE("NONE"),
+        GA("GA"),
+        VA("VA"),
+        HTA("HTA"),
+        HTV("HTV");
+
+        private final String value;
+
+        PTSubscriptionType(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
     public static final String ZONE_ID = "zone_id";
     public static final String ZONES = "zones";
     public static final String MS_REGION = "ms_region";

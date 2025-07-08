@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.models.utilitycomponents;
 
+import ch.sbb.matsim.config.variables.Variables;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
@@ -45,6 +46,25 @@ public class PredicateComponentTest {
         person1.getAttributes().putAttribute("level_of_employment", 100);
         double result1 = calculator.calculate(person1);
         Assert.assertEquals(0.0, result1, 0.001);
+
+
+    }
+
+    @Test
+    void testStringCondition() {
+        UtilityComponent component = UtilityComponentFactory.fromCombinedCondition(List.of(Variables.PT_SUBSCRIPTION), List.of("=="),
+                List.of("GA"),
+                1.0);
+        UtilityCalculator calculator = new UtilityCalculator(List.of(component));
+        Person person2 = PopulationUtils.getFactory().createPerson(Id.createPersonId(2));
+        person2.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, "HTA");
+        double result = calculator.calculate(person2);
+        Assert.assertEquals(0.0, result, 0.001);
+
+        Person person1 = PopulationUtils.getFactory().createPerson(Id.createPersonId(1));
+        person1.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, "GA");
+        double result1 = calculator.calculate(person1);
+        Assert.assertEquals(1.0, result1, 0.001);
 
 
     }

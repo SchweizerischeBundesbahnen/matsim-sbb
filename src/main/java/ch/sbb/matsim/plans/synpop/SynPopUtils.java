@@ -166,7 +166,7 @@ public class SynPopUtils {
             Boolean hasDrivingLicense = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
             Boolean hasEbike = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_EBIKE45);
             Boolean carAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE);
-            String ptSubscription = (String) person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION);
+            Variables.PTSubscriptionType ptSubscription = Variables.PTSubscriptionType.valueOf((String) person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION));
             mobilityToolCount.addMobilityTool(hasDrivingLicense != null && hasDrivingLicense,
                     hasEbike != null && hasEbike,
                     carAvailable != null && carAvailable, ptSubscription);
@@ -201,7 +201,7 @@ public class SynPopUtils {
                     new AtomicInteger(), new AtomicInteger());
         }
 
-        void addMobilityTool(boolean hasDrivingLicense, boolean hasEbike, boolean hasCarAvailable, String ptSubscription) {
+        void addMobilityTool(boolean hasDrivingLicense, boolean hasEbike, boolean hasCarAvailable, Variables.PTSubscriptionType ptSubscription) {
             if (hasDrivingLicense) {
                 drivingLicenseCount.incrementAndGet();
             }
@@ -213,10 +213,10 @@ public class SynPopUtils {
             }
             if (ptSubscription != null) {
                 switch (ptSubscription) {
-                    case Variables.GA -> gaCount.incrementAndGet();
-                    case Variables.HTA -> htCount.incrementAndGet();
-                    case Variables.VA -> vaCount.incrementAndGet();
-                    case Variables.HTV -> {
+                    case GA -> gaCount.incrementAndGet();
+                    case HTA -> htCount.incrementAndGet();
+                    case VA -> vaCount.incrementAndGet();
+                    case HTV -> {
                         htvCount.incrementAndGet();
                         vaCount.incrementAndGet();
                         htCount.incrementAndGet();

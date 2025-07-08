@@ -26,24 +26,34 @@ public class UtilityComponentFactory {
             String attributeName = attributes.get(i);
             String operator = operators.get(i);
             String valueLiteral = valueLiterals.get(i);
-            double compareValue = Double.parseDouble(valueLiteral);
             Predicate<Object> combinedPredicate = actual -> {
                 if (actual == null) {
                     throw new IllegalArgumentException("Attribute " + attributeName + " must be a numeric value, but is null.");
                 }
-                if (!(actual instanceof Number)) {
-                    throw new IllegalArgumentException("Attribute " + attributeName + " must be a numeric value, but is: " + actual.getClass().getSimpleName());
+                boolean passed;
+                if (actual instanceof Number value) {
+                    double compareValue = Double.parseDouble(valueLiteral);
+                    double v = value.doubleValue();
+                    passed = switch (operator) {
+                        case "<" -> v < compareValue;
+                        case "<=" -> v <= compareValue;
+                        case ">" -> v > compareValue;
+                        case ">=" -> v >= compareValue;
+                        case "==" -> v == compareValue;
+                        case "!=" -> v != compareValue;
+                        default -> throw new IllegalArgumentException("Unsupported operator: " + operator);
+                    };
+                } else if (actual instanceof String strValue) {
+                    passed = switch (operator) {
+                        case "==" -> valueLiteral.equalsIgnoreCase(strValue);
+                        case "!=" -> !valueLiteral.equalsIgnoreCase(strValue);
+                        default -> throw new IllegalArgumentException("Unsupported operator: " + operator);
+                    };
+
+                } else {
+                    throw new IllegalArgumentException("Attribute " + attributeName + " must be a numeric or String value, but is of type " + actual.getClass().getSimpleName() + ".");
+
                 }
-                double v = ((Number) actual).doubleValue();
-                boolean passed = switch (operator) {
-                    case "<" -> v < compareValue;
-                    case "<=" -> v <= compareValue;
-                    case ">" -> v > compareValue;
-                    case ">=" -> v >= compareValue;
-                    case "==" -> v == compareValue;
-                    case "!=" -> v != compareValue;
-                    default -> throw new IllegalArgumentException("Unsupported operator: " + operator);
-                };
                 return passed;
             };
             conditions.add(combinedPredicate);
