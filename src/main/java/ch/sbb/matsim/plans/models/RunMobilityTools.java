@@ -1,6 +1,7 @@
 package ch.sbb.matsim.plans.models;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
@@ -8,6 +9,7 @@ import ch.sbb.matsim.zones.ZoneGeoPackageWriter;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.logging.log4j.LogManager;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
@@ -16,6 +18,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.households.HouseholdsReaderV10;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,9 +29,10 @@ public class RunMobilityTools {
     public static void main(String[] args) {
         var logger = LogManager.getLogger(RunMobilityTools.class);
 
-        String folder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
-//        String suffix = ""; //whole population
-        String suffix = "_Bern"; //City of Bern
+        String folder = "Y:\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
+//        String folder = "C:\\devsbb\\tmp\\synpop_2022\\";
+        String suffix = ""; //whole population
+//        String suffix = "_Bern"; //City of Bern
 //        String suffix = "_AI"; //Appenzell Inner Rhodes
         String modelFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\";
 
@@ -38,6 +42,7 @@ public class RunMobilityTools {
         scenario.addScenarioElement(Variables.ZONES, zones);
         new PopulationReader(scenario).readFile(folder + "persons_2022" + suffix + ".xml.gz");
         new HouseholdsReaderV10(scenario.getHouseholds()).readFile(folder + "households_2022" + suffix + ".xml.gz");
+        readEducationDistances(scenario, folder + "net-dist-school-run35.csv");
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
         SynPopUtils.calculateHouseHoldCompositions(scenario);
@@ -70,9 +75,6 @@ public class RunMobilityTools {
         logger.info("Number of persons NOT in model: " + (scenario.getPopulation().getPersons().size() - count.get()));
         logger.info("Calculation time for driving license model: " + calctime);
         SynPopUtils.calculateDrivinglicensesPerHousehold(scenario);
-
-
-
         AtomicInteger cars = new AtomicInteger(0);
         AtomicInteger householdWithCars = new AtomicInteger(0);
         logger.info("Starting cars per household calculation...");
@@ -95,19 +97,17 @@ public class RunMobilityTools {
         logger.info("Number of cars: " + cars.get());
         logger.info("Number of households with cars: " + householdWithCars.get());
 
-//        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-//        Configuration config = ctx.getConfiguration();
-//        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-//        loggerConfig.setLevel(Level.DEBUG);
-//        ctx.updateLoggers();
         logger.info("Starting public transport subscription calculation...");
 
         scenario.getPopulation().getPersons().values().parallelStream()
-                //.filter(person -> person.getId().equals(Id.createPersonId(1000523)))
                 .forEach(
                 person -> {
-                    person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL, 0.0);
-                    person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, 0.0);
+                    Double netDistanceSchool = (Double) person.getAttributes().getAttribute(SynpopConstants.NET_DIST_SCHOOL);
+                    if (netDistanceSchool == null) {
+                        netDistanceSchool = 0.0;
+                        person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL, netDistanceSchool);
+                    }
+                    person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, netDistanceSchool / 10.0);
                     String ptSubscription;
                     if ((int) person.getAttributes().getAttribute(SynpopConstants.AGE) < 18) {
                         ptSubscription = ptSubscriptionModelMinors.calculate(person);
@@ -127,7 +127,28 @@ public class RunMobilityTools {
 //                List.of(SynpopConstants.HAS_DRIVING_LICENSE, SynpopConstants.AGE,
 //                        SynpopConstants.IS_SWISS,SynpopConstants.LEVEL_OF_EMPLOYMENT,
 //                        SynpopConstants.CURRENT_EDU,SynpopConstants.LANGUAGE,"household.couple_type","household.single_parent","household.size",
-//                        "household.nb_of_cars", "household.nb_of_cars_per_adult","zone.acc_car_sc","zone.acc_mul_sc","zone.acc_pt_sc","zone.sl3_id",Variables.PT_SUBSCRIPTION ), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_Bern_attributes.csv");
+//                        "household.nb_of_cars", "household.nb_of_cars_per_adult","zone.acc_car_sc","zone.acc_mul_sc","zone.acc_pt_sc","zone.sl3_id",Variables.PT_SUBSCRIPTION ), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_AI_attributes.csv");
+    }
+
+    /*
+     * Reads the education distances from a CSV file and adds them to the population's persons. Helper method, not required for the full mobi plans.
+     */
+    private static void readEducationDistances(Scenario scenario, String file) {
+        try (CSVReader reader = new CSVReader(file, ";")) {
+            var line = reader.readLine();
+            while (line != null) {
+                var personId = Id.createPersonId(line.get("$PERSON:NO"));
+                double distance = Double.parseDouble(line.get("NETWORK_DISTANCE_SCHOOL"));
+                if (scenario.getPopulation().getPersons().containsKey(Id.createPersonId(personId))) {
+                    scenario.getPopulation().getPersons().get(Id.createPersonId(personId))
+                            .getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL, distance);
+                }
+                line = reader.readLine();
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
