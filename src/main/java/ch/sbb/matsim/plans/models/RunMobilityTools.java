@@ -46,7 +46,8 @@ public class RunMobilityTools {
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
         SynPopUtils.calculateHouseHoldCompositions(scenario);
-        DrivingLicenseModelFromCSV drivingLicenseModel = new DrivingLicenseModelFromCSV(modelFolder + "driving_license.csv");
+        BooleanSelectionModelFromCSV drivingLicenseModel = new BooleanSelectionModelFromCSV(modelFolder + "driving_license.csv");
+        BooleanSelectionModelFromCSV ebikeModel = new BooleanSelectionModelFromCSV(modelFolder + "ebike45.csv");
         CarsPerHouseholdModel carsPerHouseholdModel = new CarsPerHouseholdModel(modelFolder + "cars_per_household.csv");
         PTSubscriptionModel ptSubscriptionModelAdults = new PTSubscriptionModel(modelFolder + "pt_subscription_adults.csv");
         PTSubscriptionModel ptSubscriptionModelMinors = new PTSubscriptionModel(modelFolder + "pt_subscription_minors.csv");
@@ -117,6 +118,23 @@ public class RunMobilityTools {
                     person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, ptSubscription);
                 }
         );
+        logger.info("Finished public transport subscription calculation.");
+
+        logger.info("Starting ebike posession calculation...");
+
+        scenario.getPopulation().getPersons().values().parallelStream()
+                .forEach(
+                        person -> {
+                            boolean hasEbike45 = false;
+                            if ((int) person.getAttributes().getAttribute(SynpopConstants.AGE) > 13) {
+                                hasEbike45 = ebikeModel.calculate(person);
+                            }
+                            person.getAttributes().putAttribute(SynpopConstants.HAS_EBIKE45, hasEbike45);
+                        }
+                );
+        logger.info("Finished e-bike calculation.");
+
+
 
         SynPopUtils.setCarAvailableForPopulation(scenario);
         SynPopUtils.aggregateMobilityToolsPerZone(scenario);

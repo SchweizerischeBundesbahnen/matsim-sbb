@@ -5,12 +5,15 @@ import ch.sbb.matsim.plans.models.selector.LogitSelector;
 import ch.sbb.matsim.plans.models.utils.ChoiceModelCSVReader;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
-public class DrivingLicenseModelFromCSV implements ChoiceModel {
+/**
+ * A choice model that selects a boolean value based on a CSV definition file. E.g, driving license model or e-bike model.
+ */
+public class BooleanSelectionModelFromCSV implements ChoiceModel {
 
     private final ChoiceSelector selector;
 
-    public DrivingLicenseModelFromCSV(String drivingLicenseModelDefinitionFile) {
-        var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(drivingLicenseModelDefinitionFile);
+    public BooleanSelectionModelFromCSV(String modeldefinitionFile) {
+        var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(modeldefinitionFile);
         this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, getClass().getName());
     }
 
