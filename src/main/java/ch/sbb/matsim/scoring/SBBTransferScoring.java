@@ -50,6 +50,9 @@ public class SBBTransferScoring implements SumScoringFunction.TripScoring {
 							first = i;
 							departureTime = leg.getDepartureTime();
 						}
+					} else {
+						first = i;
+						departureTime = leg.getDepartureTime();
 					}
 					mode = nextMode;
 				}
