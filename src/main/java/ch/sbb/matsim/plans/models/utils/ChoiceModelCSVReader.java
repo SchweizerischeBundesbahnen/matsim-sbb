@@ -106,7 +106,8 @@ public class ChoiceModelCSVReader {
 
         for (String part : values.split(",")) {
             part = part.trim();
-            String op = part.replaceAll("[0-9.]+", "");
+            // Extract operator and value literal
+            String op = part.replaceAll("\\p{L}|\\d", "");
             String value = part.replaceAll("[<>=!]+", "");
             operators.add(op);
             valueLiterals.add(value);

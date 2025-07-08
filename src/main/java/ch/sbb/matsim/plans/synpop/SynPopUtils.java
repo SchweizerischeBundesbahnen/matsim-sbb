@@ -188,6 +188,7 @@ public class SynPopUtils {
             zone.getAttributes().putAttribute(ZonalAttributes.POP_VA, mobilityToolCount.vaCount().get());
             zone.getAttributes().putAttribute(ZonalAttributes.POP_HT, mobilityToolCount.htCount().get());
             zone.getAttributes().putAttribute(ZonalAttributes.POP_VA_HT, mobilityToolCount.htvCount().get());
+            zone.getAttributes().putAttribute(ZonalAttributes.POP_EBIKE45, mobilityToolCount.ebikeCount().get());
         }
         LogManager.getLogger(SynPopUtils.class).info("Done. Aggregating mobility tools per zone.");
     }

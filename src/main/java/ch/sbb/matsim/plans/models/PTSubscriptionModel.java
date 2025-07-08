@@ -18,6 +18,6 @@ public class PTSubscriptionModel implements ChoiceModel {
 
     @Override
     public String calculate(Attributable attributable) {
-        return this.selector.select(attributable);
+        return this.selector.select(attributable).toUpperCase();
     }
 }

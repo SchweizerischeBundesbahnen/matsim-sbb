@@ -41,6 +41,7 @@ public class ZonalAttributes {
     public static final String POP_CARS = "pop_cars";
     public static final String POP_DL = "pop_dl";
     public static final String POP_EMPL = "pop_empl";
+    public static final String POP_EBIKE45 = "pop_ebike45";
     public static final String POP_GA = "pop_ga";
     public static final String POP_HT = "pop_ht";
     public static final String POP_PUP_1 = "pop_pup_1";
