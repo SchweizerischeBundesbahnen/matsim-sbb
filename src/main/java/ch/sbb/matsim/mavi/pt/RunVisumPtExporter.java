@@ -43,7 +43,7 @@ public class RunVisumPtExporter {
 
 	private static final String TRANSITSCHEDULE_OUT = "transitSchedule.xml.gz";
 	private static final String TRANSITVEHICLES_OUT = "transitVehicles.xml.gz";
-	private static final String ZONECONNECTIONS_OUT = "zoneConnections.csv";
+	private static final String ZONECONNECTIONS_OUT = "connectors.csv";
 	private static final String ZONES_OUT = "zones.csv";
 
 	public static void main(String[] args) throws IOException {
