@@ -4,6 +4,7 @@ import ch.sbb.matsim.config.variables.Variables;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class SynpopConstants {
     public static final String PERSON_ID = "person_id";
@@ -49,7 +50,7 @@ public class SynpopConstants {
     public static final List<String> RAW_SYNPOP_ATTRIBUTES = Arrays.asList(
             PERSON_ID, HOUSEHOLD_ID, POSITION_IN_BUS, HIGHEST_EDUCATION, POSITION_IN_EDU,
             NATION, LANGUAGE, LEVEL_OF_EMPLOYMENT, AGE, IS_SWISS,
-            ANALYSIS_SUBPOPULATION, IS_EMPLOYED, LOE_GROUP, CURRENT_EDU,
+            ANALYSIS_SUBPOPULATION, IS_EMPLOYED, CURRENT_EDU,
             CURRENT_JOB_RANK, IS_APPRENTICE);
     public static final List<String> RAW_BUSINESSES_ATTRIBUTES = Arrays.asList(
             ZONE_ID, JOBS_ENDO, FTE_ENDO, JOBS_EXO, FTE_EXO,
@@ -68,4 +69,112 @@ public class SynpopConstants {
     public static final String SIZE = "size";
     public static final String NB_OF_CARS = "nb_of_cars";
     public static final String NB_OF_CARS_PER_ADULT = "nb_of_cars_per_adult";
+    // ----------------------------
+    // Age category
+    // ----------------------------
+    public static final Map<Integer, String> AGE_CATEGORIES = Map.of(
+            1, "0_to_17",
+            2, "18_to_24",
+            3, "25_to_44",
+            4, "45_to_64",
+            5, "65_to_74",
+            6, "75_to_XX"
+    );
+    public static final Map<String, Integer> AGE_CATEGORY_REVERSE = Map.of(
+            "0_to_17", 1,
+            "18_to_24", 2,
+            "25_to_44", 3,
+            "45_to_64", 4,
+            "65_to_74", 5,
+            "75_to_XX", 6
+    );
+    // ----------------------------
+    // Language
+    // ----------------------------
+    public static final Map<Integer, String> LANGUAGE_CATEGORIES = Map.of(
+            1, "german",
+            2, "french",
+            3, "italian",
+            4, "romansh",
+            5, "other"
+    );
+    public static final Map<String, Integer> LANGUAGE_REVERSE = Map.of(
+            "german", 1,
+            "french", 2,
+            "italian", 3,
+            "romansh", 4,
+            "other", 5
+    );
+    // ----------------------------
+    // Level of employment category
+    // ----------------------------
+    public static final Map<Integer, String> LEVEL_OF_EMPLOYMENT_CAT_CATEGORIES = Map.of(
+            0, "0",
+            1, "1_to_39",
+            2, "40_to_79",
+            3, "80_to_100"
+    );
+    public static final Map<String, Integer> LEVEL_OF_EMPLOYMENT_CAT_REVERSE = Map.of(
+            "0", 0,
+            "1_to_39", 1,
+            "40_to_79", 2,
+            "80_to_100", 3
+    );
+    // ----------------------------
+    // Highest education
+    // ----------------------------
+    public static final Map<Integer, String> HIGHEST_EDUCATION_CATEGORIES = Map.of(
+            1, "primary",
+            2, "secondary",
+            3, "tertiary_college",
+            4, "tertiary_university"
+    );
+    public static final Map<String, Integer> HIGHEST_EDUCATION_REVERSE = Map.of(
+            "primary", 1,
+            "secondary", 2,
+            "tertiary_college", 3,
+            "tertiary_university", 4
+    );
+    // ----------------------------
+    // Current education
+    // ----------------------------
+    public static final Map<Integer, String> CURRENT_EDU_CATEGORIES = Map.of(
+            0, "null",
+            1, "kindergarten",
+            2, "pupil_primary",
+            3, "pupil_secondary",
+            4, "student",
+            5, "apprentice"
+    );
+    public static final Map<String, Integer> CURRENT_EDU_REVERSE = Map.of(
+            "null", 0,
+            "kindergarten", 1,
+            "pupil_primary", 2,
+            "pupil_secondary", 3,
+            "student", 4,
+            "apprentice", 5
+    );
+    // ----------------------------
+    // Current job rank
+    // ----------------------------
+    public static final Map<Integer, String> CURRENT_JOB_RANK_CATEGORIES = Map.of(
+            0, "null",
+            1, "apprentice",
+            2, "employee",
+            3, "management"
+    );
+    public static final Map<String, Integer> CURRENT_JOB_RANK_REVERSE = Map.of(
+            "null", 0,
+            "apprentice", 1,
+            "employee", 2,
+            "management", 3
+    );
+
+    public static Integer getCodeOrFail(Map<String, Integer> reverseMap, String label, String categoryName) {
+        Integer code = reverseMap.get(label);
+        if (code == null)
+            throw new IllegalArgumentException("Unknown value for category '" + categoryName + "': " + label);
+        return code;
+    }
+
 }
