@@ -6,10 +6,10 @@ import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 public class LogitSelector implements ChoiceSelector {
@@ -38,7 +38,7 @@ public class LogitSelector implements ChoiceSelector {
 
     @Override
     public Map<String, Double> getProbabilities(Attributable attributes) {
-        Map<String, Double> expUtilities = new TreeMap<>();
+        Map<String, Double> expUtilities = new HashMap<>();
         for (Map.Entry<String, UtilityCalculator> entry : calculators.entrySet()) {
             double u = entry.getValue().calculate(attributes);
             expUtilities.put(entry.getKey(), Math.exp(scaleParameter * u));
