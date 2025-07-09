@@ -119,9 +119,13 @@ public class RunMobilityTools {
                 }
         );
         logger.info("Finished public transport subscription calculation.");
-
-        logger.info("Starting ebike posession calculation...");
-
+//
+//        logger.info("Starting ebike posession calculation...");
+//        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+//        Configuration config = ctx.getConfiguration();
+//        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
+//        loggerConfig.setLevel(Level.DEBUG);
+//        ctx.updateLoggers();
         scenario.getPopulation().getPersons().values().parallelStream()
                 .forEach(
                         person -> {
@@ -145,7 +149,7 @@ public class RunMobilityTools {
 //                List.of(SynpopConstants.HAS_DRIVING_LICENSE, SynpopConstants.AGE,
 //                        SynpopConstants.IS_SWISS,SynpopConstants.LEVEL_OF_EMPLOYMENT,
 //                        SynpopConstants.CURRENT_EDU,SynpopConstants.LANGUAGE,"household.couple_type","household.single_parent","household.size",
-//                        "household.nb_of_cars", "household.nb_of_cars_per_adult","zone.acc_car_sc","zone.acc_mul_sc","zone.acc_pt_sc","zone.sl3_id",Variables.PT_SUBSCRIPTION ), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_AI_attributes.csv");
+//                        "household.nb_of_cars", "household.nb_of_cars_per_adult","zone.acc_car_sc","zone.acc_mul_sc","zone.acc_pt_sc","zone.sl3_id",Variables.PT_SUBSCRIPTION, SynpopConstants.HAS_EBIKE45, SynpopConstants.HIGHEST_EDUCATION ), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_AI_attributes.csv");
     }
 
     /*
