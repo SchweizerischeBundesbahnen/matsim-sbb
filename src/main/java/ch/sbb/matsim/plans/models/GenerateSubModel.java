@@ -25,8 +25,8 @@ public class GenerateSubModel {
         new HouseholdsReaderV10(scenario.getHouseholds()).readFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022.xml.gz");
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
-        String aggId = "mun_name";
-        String aggregate = "Bern";
+        String aggId = "kt_name";
+        String aggregate = "AI";
         var hhNotInAI = scenario.getHouseholds().getHouseholds().values()
                 .stream().filter(household ->
                 {

@@ -31,8 +31,8 @@ public class RunMobilityTools {
 
         String folder = "Y:\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
 //        String folder = "C:\\devsbb\\tmp\\synpop_2022\\";
-//        String suffix = ""; //whole population
-        String suffix = "_Bern"; //City of Bern
+        String suffix = ""; //whole population
+//        String suffix = "_Bern"; //City of Bern
 //        String suffix = "_AI"; //Appenzell Inner Rhodes
         String modelFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\";
 
