@@ -146,9 +146,22 @@
         </dependency>
 
         <dependency>
-            <groupId>omx</groupId>
-            <artifactId>omx</artifactId>
-            <version>2</version>
+            <groupId>io.jhdf</groupId>
+            <artifactId>jhdf</artifactId>
+            <version>0.9.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Needed for libraries using slf4j -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>2.24.3</version>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- used by convergence stats-->
