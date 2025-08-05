@@ -1,6 +1,6 @@
 package ch.sbb.matsim.zones;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.*;
 import org.matsim.api.core.v01.Id;
@@ -18,7 +18,7 @@ public class ZonesQueryCacheTest {
 
 	@Test
 	public void testFindZone() {
-		TestZones zones = new TestZones("test");
+		TestZones zones = new TestZones();
 		zones.zones.add(new TestZone("A", "aa", 10, 0, 20, 10));
 		zones.zones.add(new TestZone("B", "bb", 50, 0, 70, 10));
 		zones.zones.add(new TestZone("C", "cc", 80, 0, 90, 10));
@@ -26,13 +26,13 @@ public class ZonesQueryCacheTest {
 		Zone z;
 		ZonesQueryCache cache = new ZonesQueryCache(zones);
 		z = cache.findZone(15, 5);
-		Assert.assertEquals("aa", z.getAttribute("-").toString());
+		Assertions.assertEquals("aa", z.getAttribute("-").toString());
 		z = cache.findZone(65, 5);
-		Assert.assertEquals("bb", z.getAttribute("-").toString());
+		Assertions.assertEquals("bb", z.getAttribute("-").toString());
 		z = cache.findZone(85, 5);
-		Assert.assertEquals("cc", z.getAttribute("-").toString());
+		Assertions.assertEquals("cc", z.getAttribute("-").toString());
 		z = cache.findZone(95, 15);
-		Assert.assertNull(z);
+		Assertions.assertNull(z);
 		/* repeat some calls to check actual cache (okay, we can't check
 		 * in the test if the cache is used, but we can check that there's
 		 * at least no error when the same coord gets queried a second time.
@@ -40,14 +40,14 @@ public class ZonesQueryCacheTest {
 		 * is taken.)
 		 */
 		z = cache.findZone(65, 5);
-		Assert.assertEquals("bb", z.getAttribute("-").toString());
+		Assertions.assertEquals("bb", z.getAttribute("-").toString());
 		z = cache.findZone(95, 15);
-		Assert.assertNull(z);
+		Assertions.assertNull(z);
 	}
 
 	@Test
 	public void testFindNearestZone() {
-		TestZones zones = new TestZones("test");
+		TestZones zones = new TestZones();
 		zones.zones.add(new TestZone("A", "aa", 10, 0, 20, 10));
 		zones.zones.add(new TestZone("B", "bb", 50, 0, 70, 10));
 		zones.zones.add(new TestZone("C", "cc", 80, 0, 90, 10));
@@ -55,27 +55,27 @@ public class ZonesQueryCacheTest {
 		Zone z;
 		ZonesQueryCache cache = new ZonesQueryCache(zones);
 		z = cache.findNearestZone(15, 5, 4);
-		Assert.assertEquals("aa", z.getAttribute("-").toString());
+		Assertions.assertEquals("aa", z.getAttribute("-").toString());
 		z = cache.findNearestZone(15, 13, 4);
-		Assert.assertEquals("aa", z.getAttribute("-").toString());
+		Assertions.assertEquals("aa", z.getAttribute("-").toString());
 		z = cache.findNearestZone(24.5, 5, 4);
-		Assert.assertNull(z);
+		Assertions.assertNull(z);
 		z = cache.findNearestZone(46.5, 5, 4);
-		Assert.assertEquals("bb", z.getAttribute("-").toString());
+		Assertions.assertEquals("bb", z.getAttribute("-").toString());
 		// repeat some queries to test the cache (also see note above)
 		z = cache.findNearestZone(15, 13, 4);
-		Assert.assertEquals("aa", z.getAttribute("-").toString());
+		Assertions.assertEquals("aa", z.getAttribute("-").toString());
 		z = cache.findNearestZone(24.5, 5, 4);
-		Assert.assertNull(z);
+		Assertions.assertNull(z);
 
 		// check that the non-nearest query still returns the correct result
 		z = cache.findZone(15, 13);
-		Assert.assertNull(z);
+		Assertions.assertNull(z);
 	}
 
 	@Test
 	public void testGetZone() {
-		TestZones zones = new TestZones("test");
+		TestZones zones = new TestZones();
 		zones.zones.add(new TestZone("A", "aa", 10, 0, 20, 10));
 		zones.zones.add(new TestZone("B", "bb", 50, 0, 70, 10));
 		zones.zones.add(new TestZone("C", "cc", 80, 0, 90, 10));
@@ -83,18 +83,14 @@ public class ZonesQueryCacheTest {
 		Zone z;
 		ZonesQueryCache cache = new ZonesQueryCache(zones);
 		z = cache.getZone(Id.create("A", Zone.class));
-		Assert.assertEquals("aa", z.getAttribute("-").toString());
+		Assertions.assertEquals("aa", z.getAttribute("-").toString());
 		z = cache.getZone(Id.create("B", Zone.class));
-		Assert.assertEquals("bb", z.getAttribute("-").toString());
+		Assertions.assertEquals("bb", z.getAttribute("-").toString());
 	}
 
 	private static class TestZones implements Zones {
 
         private final List<Zone> zones = new ArrayList<>();
-
-		public TestZones(String id) {
-            Id<Zones> id1 = Id.create(id, Zones.class);
-		}
 
 		@Override
 		public Id<Zones> getId() {

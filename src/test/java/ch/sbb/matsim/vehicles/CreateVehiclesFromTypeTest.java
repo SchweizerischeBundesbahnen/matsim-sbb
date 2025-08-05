@@ -2,7 +2,7 @@ package ch.sbb.matsim.vehicles;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -68,18 +68,18 @@ public class CreateVehiclesFromTypeTest {
 	@Test
 	public void testCreateVehicles() {
 		Scenario scenario = buildTestScenario();
-		Assert.assertTrue(scenario.getVehicles().getVehicles().isEmpty());
+        Assertions.assertTrue(scenario.getVehicles().getVehicles().isEmpty());
 
         CreateAgentVehicles vehicleCreator = new CreateAgentVehicles(scenario.getPopulation(), scenario.getVehicles(),
 				scenario.getConfig().qsim().getMainModes());
 		vehicleCreator.createVehicles();
 
-        Assert.assertEquals(4, scenario.getVehicles().getVehicles().size());
-        Assert.assertEquals(SBBModes.CAR, scenario.getVehicles().getVehicles().get(Id.create("v" + 1, Vehicle.class)).getType().getId().toString());
-        Assert.assertEquals(SBBModes.BIKE, scenario.getVehicles().getVehicles().get(Id.create("v_bike_" + 1, Vehicle.class)).getType().getId().toString());
+        Assertions.assertEquals(4, scenario.getVehicles().getVehicles().size());
+        Assertions.assertEquals(SBBModes.CAR, scenario.getVehicles().getVehicles().get(Id.create("v" + 1, Vehicle.class)).getType().getId().toString());
+        Assertions.assertEquals(SBBModes.BIKE, scenario.getVehicles().getVehicles().get(Id.create("v_bike_" + 1, Vehicle.class)).getType().getId().toString());
 
-        Assert.assertEquals("hgva", scenario.getVehicles().getVehicles().get(Id.create("v5_LZ_1", Vehicle.class)).getType().getId().toString());
-        Assert.assertEquals(SBBModes.BIKE, scenario.getVehicles().getVehicles().get(Id.create("v_bike_5_LZ_1", Vehicle.class)).getType().getId().toString());
+        Assertions.assertEquals("hgva", scenario.getVehicles().getVehicles().get(Id.create("v5_LZ_1", Vehicle.class)).getType().getId().toString());
+        Assertions.assertEquals(SBBModes.BIKE, scenario.getVehicles().getVehicles().get(Id.create("v_bike_5_LZ_1", Vehicle.class)).getType().getId().toString());
 
 	}
 

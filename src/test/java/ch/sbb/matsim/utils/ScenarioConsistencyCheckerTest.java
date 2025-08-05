@@ -5,7 +5,6 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressPar
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
@@ -19,7 +18,8 @@ import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.VehicleUtils;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 
 public class ScenarioConsistencyCheckerTest {
 

@@ -4,7 +4,7 @@
 
 package ch.sbb.matsim.csv;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -48,6 +48,6 @@ public class CSVWriterTest {
 
 		String result = stream.toString();
 
-		Assert.assertEquals("This is a\nrandom file header\n\nId;ATTR1;ATTR2\n1;eins;zwei\n2;un;deux\n3;uno;due\n4;one;\n5;;two\n", result);
+		Assertions.assertEquals("This is a\nrandom file header\n\nId;ATTR1;ATTR2\n1;eins;zwei\n2;un;deux\n3;uno;due\n4;one;\n5;;two\n", result);
 	}
 }

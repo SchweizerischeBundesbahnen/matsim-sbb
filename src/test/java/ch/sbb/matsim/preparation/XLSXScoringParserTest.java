@@ -8,7 +8,7 @@ import ch.sbb.matsim.config.SBBBehaviorGroupsConfigGroup;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -44,7 +44,7 @@ public class XLSXScoringParserTest {
 
 		ScoringConfigGroup planCalcScore = config.scoring();
 
-		Assert.assertEquals(utilOfLineSwitch, planCalcScore.getUtilityOfLineSwitch(), 0);
+		Assertions.assertEquals(utilOfLineSwitch, planCalcScore.getUtilityOfLineSwitch(), 0);
 	}
 
 	/*
@@ -72,7 +72,7 @@ public class XLSXScoringParserTest {
 
 		ScoringConfigGroup planCalcScore = config.scoring();
 
-		Assert.assertEquals(constantCar, planCalcScore.getOrCreateModeParams(mode).getConstant(), 0);
+		Assertions.assertEquals(constantCar, planCalcScore.getOrCreateModeParams(mode).getConstant(), 0);
 	}
 
 	/*
@@ -119,6 +119,6 @@ public class XLSXScoringParserTest {
 
 		XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 
-		Assert.assertEquals(constant, behaviorGroupConfig.getBehaviorGroupParams().get(sheetName).getPersonGroupByAttribute("none").getModeCorrectionParams().get("car").getConstant(), 0);
+		Assertions.assertEquals(constant, behaviorGroupConfig.getBehaviorGroupParams().get(sheetName).getPersonGroupByAttribute("none").getModeCorrectionParams().get("car").getConstant(), 0);
 	}
 }

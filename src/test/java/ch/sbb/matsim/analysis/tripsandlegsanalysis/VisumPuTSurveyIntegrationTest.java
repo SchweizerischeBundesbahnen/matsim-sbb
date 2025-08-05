@@ -5,7 +5,7 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesImpl;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.api.core.v01.Id;
@@ -66,6 +66,6 @@ public class VisumPuTSurveyIntegrationTest {
 			line = br.readLine();
 		}
 		String everything = sb.toString();
-		Assert.assertEquals(expected, everything);
+		Assertions.assertEquals(expected, everything);
 	}
 }

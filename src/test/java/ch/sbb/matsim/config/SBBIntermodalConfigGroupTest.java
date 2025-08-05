@@ -1,6 +1,6 @@
 package ch.sbb.matsim.config;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
@@ -53,7 +53,7 @@ public class SBBIntermodalConfigGroupTest {
 		}
 
 		List<SBBIntermodalModeParameterSet> modes2 = intermodal2.getModeParameterSets();
-		Assert.assertEquals(3, modes2.size());
+		Assertions.assertEquals(3, modes2.size());
 
 		SBBIntermodalModeParameterSet mode2a = null;
 		SBBIntermodalModeParameterSet mode2b = null;
@@ -70,19 +70,19 @@ public class SBBIntermodalConfigGroupTest {
 				mode2c = mode2;
 			}
 		}
-		Assert.assertNotNull("bicycle_feeder mode is missing", mode2a);
-		Assert.assertNotNull("scooter mode is missing", mode2b);
-		Assert.assertNotNull("car_feeder mode is missing", mode2c);
+		Assertions.assertNotNull(mode2a);
+		Assertions.assertNotNull(mode2b);
+		Assertions.assertNotNull(mode2c);
 
-		Assert.assertEquals(mode1a.isSimulatedOnNetwork(), mode2a.isSimulatedOnNetwork());
-		Assert.assertEquals(mode1a.isRoutedOnNetwork(), mode2a.isRoutedOnNetwork());
+		Assertions.assertEquals(mode1a.isSimulatedOnNetwork(), mode2a.isSimulatedOnNetwork());
+		Assertions.assertEquals(mode1a.isRoutedOnNetwork(), mode2a.isRoutedOnNetwork());
 
-		Assert.assertEquals(mode1b.isSimulatedOnNetwork(), mode2b.isSimulatedOnNetwork());
-		Assert.assertEquals(mode1b.isRoutedOnNetwork(), mode2b.isRoutedOnNetwork());
+		Assertions.assertEquals(mode1b.isSimulatedOnNetwork(), mode2b.isSimulatedOnNetwork());
+		Assertions.assertEquals(mode1b.isRoutedOnNetwork(), mode2b.isRoutedOnNetwork());
 
-		Assert.assertEquals(mode1c.isSimulatedOnNetwork(), mode2c.isSimulatedOnNetwork());
-		Assert.assertEquals(mode1c.isRoutedOnNetwork(), mode2c.isRoutedOnNetwork());
-		Assert.assertEquals(mode1c.doUseMinimalTransferTimes(), mode2c.doUseMinimalTransferTimes());
+		Assertions.assertEquals(mode1c.isSimulatedOnNetwork(), mode2c.isSimulatedOnNetwork());
+		Assertions.assertEquals(mode1c.isRoutedOnNetwork(), mode2c.isRoutedOnNetwork());
+		Assertions.assertEquals(mode1c.doUseMinimalTransferTimes(), mode2c.doUseMinimalTransferTimes());
 	}
 
 }

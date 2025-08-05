@@ -7,7 +7,7 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import com.google.inject.Provider;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.analysis.CalcLinkStats;
@@ -55,8 +55,8 @@ public class ConvergenceStatsTest {
 			Map.Entry<Double, Double> res = cs.runTest(test, scores);
 			System.out.print(test.name() + ": ");
 			System.out.println(res);
-			Assert.assertTrue(Double.isFinite(res.getKey()));
-			Assert.assertTrue(Double.isFinite(res.getValue()) || Double.isNaN(res.getValue()));
+			Assertions.assertTrue(Double.isFinite(res.getKey()));
+			Assertions.assertTrue(Double.isFinite(res.getValue()) || Double.isNaN(res.getValue()));
 		}
 	}
 
@@ -69,10 +69,10 @@ public class ConvergenceStatsTest {
 		cs.close();
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
 			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".csv").toFile();
-			Assert.assertTrue(file.exists());
+			Assertions.assertTrue(file.exists());
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			br.readLine(); // skip header
-			Assert.assertNotNull(br.readLine());
+			Assertions.assertNotNull(br.readLine());
 		}
 	}
 
@@ -117,10 +117,10 @@ public class ConvergenceStatsTest {
 		int iterationsRun = 0;
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
 			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".csv").toFile();
-			Assert.assertTrue(file.exists());
+			Assertions.assertTrue(file.exists());
 			List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());
 			iterationsRun = lines.size();
-			Assert.assertNotNull(lines.get(1));
+			Assertions.assertNotNull(lines.get(1));
 		}
 
 	}
