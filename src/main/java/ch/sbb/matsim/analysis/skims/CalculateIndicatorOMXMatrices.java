@@ -4,12 +4,8 @@
 
 package ch.sbb.matsim.analysis.skims;
 
-import ch.sbb.matsim.analysis.skims.NetworkSkimMatrices.NetworkIndicators;
 import ch.sbb.matsim.analysis.skims.PTSkimMatrices.PtIndicators;
 import ch.sbb.matsim.config.variables.SBBModes;
-import omx.OmxFile;
-import omx.OmxLookup.OmxIntLookup;
-import omx.OmxMatrix.OmxFloatMatrix;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.core.config.Config;
@@ -86,19 +82,19 @@ public class CalculateIndicatorOMXMatrices {
         int[] lookupzones = zones.stream().mapToInt(Integer::intValue).toArray();
 
         if (!timesCar.isEmpty()) {
-            OmxFile omxFile = new OmxFile(outputDirectory + "/car_skims.omx");
-            omxFile.openNew(new int[]{lookupzones.length, lookupzones.length});
-            OmxIntLookup lookup = new OmxIntLookup("NO", lookupzones, 0);
-            omxFile.addLookup(lookup);
-            for (Map.Entry<String, double[]> e : timesCar.entrySet()) {
-                String prefix = e.getKey();
-                double[] times = e.getValue();
-                var networkMatrices = skims
-                        .prepareAndCalculateNetworkMatrices(networkFilename, eventsFilename, times, config, l -> String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("0"));
-                exportNetworkMatrices(omxFile, prefix, networkMatrices, lookupzones);
-            }
-            omxFile.save();
-            omxFile.close();
+//            OmxFile omxFile = new OmxFile(outputDirectory + "/car_skims.omx");
+//            omxFile.openNew(new int[]{lookupzones.length, lookupzones.length});
+//            OmxIntLookup lookup = new OmxIntLookup("NO", lookupzones, 0);
+//            omxFile.addLookup(lookup);
+//            for (Map.Entry<String, double[]> e : timesCar.entrySet()) {
+//                String prefix = e.getKey();
+//                double[] times = e.getValue();
+//                var networkMatrices = skims
+//                        .prepareAndCalculateNetworkMatrices(networkFilename, eventsFilename, times, config, l -> String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("0"));
+//                exportNetworkMatrices(omxFile, prefix, networkMatrices, lookupzones);
+//            }
+//            omxFile.save();
+//            omxFile.close();
         }
 
         for (Map.Entry<String, double[]> e : timesPt.entrySet()) {
@@ -114,46 +110,46 @@ public class CalculateIndicatorOMXMatrices {
     }
 
     private static void exportBeelineMatrix(String filename, FloatMatrix<String> beelineMatrix, int[] lookupzones) {
-        OmxFile omxFile = new OmxFile(filename);
-        log.info("Writing Beeline Distance OMX matrix");
-        omxFile.openNew(new int[]{lookupzones.length, lookupzones.length});
-        OmxIntLookup lookup = new OmxIntLookup("NO", lookupzones, 0);
-        omxFile.addLookup(lookup);
-        omxFile.addMatrix(new OmxFloatMatrix("beeline_distances", getFloats(lookupzones, beelineMatrix), Float.POSITIVE_INFINITY));
-        omxFile.save();
-        omxFile.close();
-        log.info("done xxx");
+//        OmxFile omxFile = new OmxFile(filename);
+//        log.info("Writing Beeline Distance OMX matrix");
+//        omxFile.openNew(new int[]{lookupzones.length, lookupzones.length});
+//        OmxIntLookup lookup = new OmxIntLookup("NO", lookupzones, 0);
+//        omxFile.addLookup(lookup);
+//        omxFile.addMatrix(new OmxFloatMatrix("beeline_distances", getFloats(lookupzones, beelineMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.save();
+//        omxFile.close();
+//        log.info("done xxx");
     }
 
-    private static void exportNetworkMatrices(OmxFile omxFile, String prefix, NetworkIndicators<String> networkMatrices, int[] lookupzones) {
+//    private static void exportNetworkMatrices(OmxFile omxFile, String prefix, NetworkIndicators<String> networkMatrices, int[] lookupzones) {
 
-        log.info("Adding Network Traveltime OMX matrix for " + prefix);
-        omxFile.addMatrix(new OmxFloatMatrix(prefix + "distances", getFloats(lookupzones, networkMatrices.distanceMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix(prefix + "travel_times", getFloats(lookupzones, networkMatrices.travelTimeMatrix), Float.POSITIVE_INFINITY));
-        omxFile.save();
-        log.info("done xxx");
-    }
+//        log.info("Adding Network Traveltime OMX matrix for " + prefix);
+//        omxFile.addMatrix(new OmxFloatMatrix(prefix + "distances", getFloats(lookupzones, networkMatrices.distanceMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix(prefix + "travel_times", getFloats(lookupzones, networkMatrices.travelTimeMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.save();
+//        log.info("done xxx");
+//    }
 
     private static void exportPtSkimMatrices(String filename, PtIndicators<String> matrices, int[] lookupzones) {
-        OmxFile omxFile = new OmxFile(filename);
-        log.info("Writing pt OMX matrix");
-        omxFile.openNew(new int[]{lookupzones.length, lookupzones.length});
-
-        OmxIntLookup lookup = new OmxIntLookup("NO", lookupzones, 0);
-        omxFile.addLookup(lookup);
-        omxFile.addMatrix(new OmxFloatMatrix("access_times", getFloats(lookupzones, matrices.accessTimeMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix("frequencies", getFloats(lookupzones, matrices.frequencyMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix("distances", getFloats(lookupzones, matrices.distanceMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix("adaption_times", getFloats(lookupzones, matrices.adaptionTimeMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix("data_counts", getFloats(lookupzones, matrices.dataCountMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix("egress_times", getFloats(lookupzones, matrices.egressTimeMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix("transfer_counts", getFloats(lookupzones, matrices.transferCountMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix("travel_times", getFloats(lookupzones, matrices.travelTimeMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix("train_distance_shares", getFloats(lookupzones, matrices.trainDistanceShareMatrix), Float.POSITIVE_INFINITY));
-        omxFile.addMatrix(new OmxFloatMatrix("train_traveltime_shares", getFloats(lookupzones, matrices.trainTravelTimeShareMatrix), Float.POSITIVE_INFINITY));
-        omxFile.save();
-        omxFile.close();
-        log.info("done xxx");
+//        OmxFile omxFile = new OmxFile(filename);
+//        log.info("Writing pt OMX matrix");
+//        omxFile.openNew(new int[]{lookupzones.length, lookupzones.length});
+//
+//        OmxIntLookup lookup = new OmxIntLookup("NO", lookupzones, 0);
+//        omxFile.addLookup(lookup);
+//        omxFile.addMatrix(new OmxFloatMatrix("access_times", getFloats(lookupzones, matrices.accessTimeMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix("frequencies", getFloats(lookupzones, matrices.frequencyMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix("distances", getFloats(lookupzones, matrices.distanceMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix("adaption_times", getFloats(lookupzones, matrices.adaptionTimeMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix("data_counts", getFloats(lookupzones, matrices.dataCountMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix("egress_times", getFloats(lookupzones, matrices.egressTimeMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix("transfer_counts", getFloats(lookupzones, matrices.transferCountMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix("travel_times", getFloats(lookupzones, matrices.travelTimeMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix("train_distance_shares", getFloats(lookupzones, matrices.trainDistanceShareMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.addMatrix(new OmxFloatMatrix("train_traveltime_shares", getFloats(lookupzones, matrices.trainTravelTimeShareMatrix), Float.POSITIVE_INFINITY));
+//        omxFile.save();
+//        omxFile.close();
+//        log.info("done xxx");
 
     }
 
