@@ -3,9 +3,6 @@ package ch.sbb.matsim.projects.elm;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.routing.SBBAnalysisMainModeIdentifier;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -18,6 +15,10 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public final class VeloNearStation {
 
@@ -63,6 +64,9 @@ public final class VeloNearStation {
 
         Scenario scenario1 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario1).readFile(plansFile1);
+        if (!"-".equals(plansFile2) && !plansFile2.isEmpty()) {
+            new PopulationReader(scenario1).readFile(plansFile2);
+        }
 
         for (Person person : scenario1.getPopulation().getPersons().values()) {
 
@@ -83,27 +87,6 @@ public final class VeloNearStation {
             }
         }
 
-        Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new PopulationReader(scenario2).readFile(plansFile2);
-
-        for (Person person : scenario2.getPopulation().getPersons().values()) {
-
-            Plan plan = person.getSelectedPlan();
-
-            for (Trip trip : TripStructureUtils.getTrips(plan)) {
-
-                if (mainModeIdentifier.identifyMainMode(trip.getTripElements()).equals(SBBModes.BIKE)) {
-
-                    Coord endPoint = trip.getDestinationActivity().getCoord();
-
-                    for (TransitStopFacility transitStopFacility : veloMap.keySet()) {
-                        if (CoordUtils.calcEuclideanDistance(endPoint, transitStopFacility.getCoord()) < distance) {
-                            veloMap.put(transitStopFacility, veloMap.get(transitStopFacility) + 1);
-                        }
-                    }
-                }
-            }
-        }
 
         String[] header = {"Stop_Nummer", "Velos_" + year};
         try (CSVWriter csvWriter = new CSVWriter("",  header, outputFile)) {
