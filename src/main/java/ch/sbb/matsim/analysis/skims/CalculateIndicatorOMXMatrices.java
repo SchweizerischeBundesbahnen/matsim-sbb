@@ -6,9 +6,7 @@ package ch.sbb.matsim.analysis.skims;
 
 import ch.sbb.matsim.analysis.skims.PTSkimMatrices.PtIndicators;
 import ch.sbb.matsim.config.variables.SBBModes;
-import io.jhdf.HdfFile;
-import io.jhdf.WritableHdfFile;
-import io.jhdf.api.WritableGroup;
+import ch.sbb.matsim.utils.matrix.OmxUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.core.config.Config;
@@ -18,7 +16,6 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeSet;
@@ -86,18 +83,13 @@ public class CalculateIndicatorOMXMatrices {
         int[] lookupzones = zones.stream().mapToInt(Integer::intValue).toArray();
 
         if (!timesCar.isEmpty()) {
-            try (WritableHdfFile hdfFile = HdfFile.write(Paths.get(outputDirectory + "/car_skims.omx"))) {
-                WritableGroup lookupGroup = hdfFile.putGroup("lookup");
-                lookupGroup.putDataset("NO", lookupzones);
-                for (Map.Entry<String, double[]> e : timesCar.entrySet()) {
-                    String prefix = e.getKey();
-                    double[] times = e.getValue();
-                    var networkMatrices = skims
-                            .prepareAndCalculateNetworkMatrices(networkFilename, eventsFilename, times, config, l -> String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("0"));
-                    exportNetworkMatrices(hdfFile, prefix, networkMatrices, lookupzones);
-                }
+            for (Map.Entry<String, double[]> e : timesCar.entrySet()) {
+                String prefix = e.getKey();
+                double[] times = e.getValue();
+                var networkMatrices = skims
+                        .prepareAndCalculateNetworkMatrices(networkFilename, eventsFilename, times, config, l -> String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("0"));
+                exportNetworkMatrices(outputDirectory + "/car_skims.omx", prefix, networkMatrices, lookupzones);
             }
-
         }
 
         for (Map.Entry<String, double[]> e : timesPt.entrySet()) {
@@ -114,44 +106,35 @@ public class CalculateIndicatorOMXMatrices {
 
     private static void exportBeelineMatrix(String filename, FloatMatrix<String> beelineMatrix, int[] lookupzones) {
         log.info("Writing Beeline Distance OMX matrix");
-        try (WritableHdfFile hdfFile = HdfFile.write(Paths.get(filename))) {
-            WritableGroup lookupGroup = hdfFile.putGroup("lookup");
-            lookupGroup.putDataset("NO", lookupzones);
-            WritableGroup data = hdfFile.putGroup("data");
-            data.putDataset("beeline_distances", getFloats(lookupzones, beelineMatrix));
-        }
+        Map<String, FloatMatrix<String>> mats = new LinkedHashMap<>();
+        mats.put("beeline_distances", beelineMatrix);
+        OmxUtils.writeOmxMatrices(mats, filename, OmxUtils.DEFAULT_LOOKUP, lookupzones, integer -> Integer.toString(integer));
         log.info("done xxx");
     }
 
-    private static void exportNetworkMatrices(WritableHdfFile omxFile, String prefix, NetworkSkimMatrices.NetworkIndicators<String> networkMatrices, int[] lookupzones) {
+    private static void exportNetworkMatrices(String filename, String prefix, NetworkSkimMatrices.NetworkIndicators<String> networkMatrices, int[] lookupzones) {
         log.info("Adding Network Traveltime OMX matrix for " + prefix);
-        WritableGroup data = (WritableGroup) omxFile.getChild("data");
-        if (data == null) {
-            data = omxFile.putGroup("data");
-        }
-        data.putDataset(prefix + "distances", getFloats(lookupzones, networkMatrices.distanceMatrix));
-        data.putDataset(prefix + "travel_times", getFloats(lookupzones, networkMatrices.travelTimeMatrix));
+        Map<String, FloatMatrix<String>> mats = new LinkedHashMap<>();
+        mats.put(prefix + "distances", networkMatrices.distanceMatrix);
+        mats.put(prefix + "travel_times", networkMatrices.travelTimeMatrix);
+        OmxUtils.writeOmxMatrices(mats, filename, OmxUtils.DEFAULT_LOOKUP, lookupzones, integer -> Integer.toString(integer));
         log.info("done xxx");
     }
 
     private static void exportPtSkimMatrices(String filename, PtIndicators<String> matrices, int[] lookupzones) {
-        try (WritableHdfFile hdfFile = HdfFile.write(Paths.get(filename))) {
-            WritableGroup lookupGroup = hdfFile.putGroup("lookup");
-            lookupGroup.putDataset("NO", lookupzones);
-            WritableGroup data = hdfFile.putGroup("data");
-            data.putDataset("access_times", getFloats(lookupzones, matrices.accessTimeMatrix));
-            data.putDataset("frequencies", getFloats(lookupzones, matrices.frequencyMatrix));
-            data.putDataset("distances", getFloats(lookupzones, matrices.distanceMatrix));
-            data.putDataset("adaption_times", getFloats(lookupzones, matrices.adaptionTimeMatrix));
-            data.putDataset("data_counts", getFloats(lookupzones, matrices.dataCountMatrix));
-            data.putDataset("egress_times", getFloats(lookupzones, matrices.egressTimeMatrix));
-            data.putDataset("transfer_counts", getFloats(lookupzones, matrices.transferCountMatrix));
-            data.putDataset("travel_times", getFloats(lookupzones, matrices.travelTimeMatrix));
-            data.putDataset("train_distance_shares", getFloats(lookupzones, matrices.trainDistanceShareMatrix));
-            data.putDataset("train_traveltime_shares", getFloats(lookupzones, matrices.trainTravelTimeShareMatrix));
-
-        }
-
+        // Verwende OmxUtils für den Export
+        Map<String, ch.sbb.matsim.analysis.skims.FloatMatrix<String>> mats = new LinkedHashMap<>();
+        mats.put("access_times", matrices.accessTimeMatrix);
+        mats.put("frequencies", matrices.frequencyMatrix);
+        mats.put("distances", matrices.distanceMatrix);
+        mats.put("adaption_times", matrices.adaptionTimeMatrix);
+        mats.put("data_counts", matrices.dataCountMatrix);
+        mats.put("egress_times", matrices.egressTimeMatrix);
+        mats.put("transfer_counts", matrices.transferCountMatrix);
+        mats.put("travel_times", matrices.travelTimeMatrix);
+        mats.put("train_distance_shares", matrices.trainDistanceShareMatrix);
+        mats.put("train_traveltime_shares", matrices.trainTravelTimeShareMatrix);
+        OmxUtils.writeOmxMatrices(mats, filename, OmxUtils.DEFAULT_LOOKUP, lookupzones, integer -> Integer.toString(integer));
         log.info("done xxx");
 
     }
