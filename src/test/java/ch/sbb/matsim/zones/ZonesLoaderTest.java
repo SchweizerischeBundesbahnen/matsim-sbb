@@ -1,7 +1,7 @@
 package ch.sbb.matsim.zones;
 
 import ch.sbb.matsim.config.ZonesListConfigGroup;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.config.Config;
@@ -15,15 +15,15 @@ public class ZonesLoaderTest {
 	@Test
 	public void testLoadZones() {
 		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.shp", "ID");
-		Assert.assertEquals("testZones", zones.getId().toString());
-		Assert.assertEquals(5, zones.size());
+		Assertions.assertEquals("testZones", zones.getId().toString());
+		Assertions.assertEquals(5, zones.size());
 	}
 
 	@Test
 	public void testLoadZonesGeopackage() {
 		Zones zones = ZonesLoader.loadZones("testZones", "src/test/resources/shapefiles/AccessTime/accesstime_zone.gpkg", "ID");
-		Assert.assertEquals("testZones", zones.getId().toString());
-		Assert.assertEquals(5, zones.size());
+		Assertions.assertEquals("testZones", zones.getId().toString());
+		Assertions.assertEquals(5, zones.size());
 	}
 
 	@Test
@@ -36,7 +36,7 @@ public class ZonesLoaderTest {
 		ZonesLoader.loadAllZones(config, zonesCollection);
 
 		Zones testZones = zonesCollection.getZones(Id.create("testZones", Zones.class));
-		Assert.assertNotNull(testZones);
-		Assert.assertEquals(5, testZones.size());
+		Assertions.assertNotNull(testZones);
+		Assertions.assertEquals(5, testZones.size());
 	}
 }

@@ -44,6 +44,9 @@ public class SBBTripScoring implements SumScoringFunction.TripScoring {
         }
         for (Leg leg : trip.getLegsOnly()) {
             var modeParams = params.getMatsimScoringParameters().modeParams.get(leg.getMode());
+            if (modeParams == null) {
+                throw new IllegalStateException("No mode parameters found for mode: " + leg.getMode());
+            }
             tripScore += (modeParams.marginalUtilityOfDistance_m + modeParams.monetaryDistanceCostRate * params.getMatsimScoringParameters().marginalUtilityOfMoney) * leg.getRoute().getDistance();
             double travelTime = leg.getTravelTime().seconds();
             if (leg.getRoute() instanceof TransitPassengerRoute transitPassengerRoute) {

@@ -8,7 +8,7 @@ import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.api.core.v01.Coord;
@@ -102,9 +102,9 @@ public class ParkingCostScoringTest {
 		log.info("Agent's score without parking cost: " + scoreWithout);
 		log.info("Agent's score with parking cost: " + scoreWith);
 
-		Assert.assertEquals("There should be no parking-cost event in the first case.", 0, parkingCostCollectorWithout.events.size());
-		Assert.assertEquals("There should be some parking-cost event in the second case.", 3, parkingCostCollectorWith.events.size());
-		Assert.assertTrue("Agent's score with parking cost should be lower than the score without parking costs.", scoreWith < scoreWithout);
+		Assertions.assertEquals(0, parkingCostCollectorWithout.events.size(), "There should be no parking-cost event in the first case.");
+		Assertions.assertEquals(3, parkingCostCollectorWith.events.size(), "There should be some parking-cost event in the second case.");
+		Assertions.assertTrue(scoreWith < scoreWithout, "Agent's score with parking cost should be lower than the score without parking costs.");
 
 	}
 

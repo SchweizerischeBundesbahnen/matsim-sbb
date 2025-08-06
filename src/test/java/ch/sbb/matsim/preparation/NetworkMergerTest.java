@@ -1,7 +1,7 @@
 package ch.sbb.matsim.preparation;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -55,6 +55,6 @@ public class NetworkMergerTest {
 
 		Network reducedNetwork = NetworkMerger.removePtOnlyLinks(network);
 
-		Assert.assertEquals(reducedNetwork.getLinks().size(), 3);
+		Assertions.assertEquals(reducedNetwork.getLinks().size(), 3);
 	}
 }

@@ -1,6 +1,6 @@
 package ch.sbb.matsim.zones;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -24,7 +24,7 @@ public class ZonesIT {
         reloadedZones.getZones().forEach(zone -> {
             Double accsib_car_div = (Double) zone.getAttributes().getAttribute("accsib_car_div");
             Double accsib_car_div1 = (Double) zones.getZone(zone.getId()).getAttribute("accsib_car_div");
-            Assert.assertEquals(accsib_car_div1, accsib_car_div, 0.0001);
+            Assertions.assertEquals(accsib_car_div1, accsib_car_div, 0.0001);
             if (accsib_car_div == null) {
                 throw new RuntimeException("accsib_car_div is null for zone " + zone.getId());
             }

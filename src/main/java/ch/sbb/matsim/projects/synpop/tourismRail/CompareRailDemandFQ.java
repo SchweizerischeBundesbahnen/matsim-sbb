@@ -7,8 +7,10 @@ import ch.sbb.matsim.projects.synpop.SingleTripAgentToCSVConverter;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
-import omx.OmxFile;
-import omx.OmxLookup;
+import io.jhdf.HdfFile;
+import io.jhdf.api.Dataset;
+import io.jhdf.api.Group;
+import io.jhdf.api.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -26,6 +28,7 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -147,18 +150,22 @@ public class CompareRailDemandFQ {
 
 
     public void readMatrix(String filePath) {
-        OmxFile omxFile = new OmxFile(filePath);
-        omxFile.openReadOnly();
 
-        fqDemandDWV = (double[][]) omxFile.getMatrix("206").getData();
-        for (int i = 1; i < 144; i++) {
-            logger.info(i);
-            fqDemandPerTimeSlice.put(i, (double[][]) omxFile.getMatrix(Integer.toString(i)).getData());
-        }
-        OmxLookup.OmxIntLookup lookup = (OmxLookup.OmxIntLookup) omxFile.getLookup("NO");
-        int[] lookupValues = lookup.getLookup();
+        try (HdfFile hdfFile = new HdfFile(Paths.get(filePath))) {
+            Group data = (Group) hdfFile.getChild("data");
+            fqDemandDWV = (double[][]) ((Dataset) data.getChild("206")).getData();
+            for (int i = 1; i < 144; i++) {
+                logger.info(i);
+                fqDemandPerTimeSlice.put(i, (double[][]) ((Dataset) data.getChild(Integer.toString(i))).getData());
+            }
+
+            Group lookups = (Group) hdfFile.getChild("lookup");
+            Map<String, Node> indexes = lookups.getChildren();
+            Dataset lookup = (Dataset) indexes.values().stream().findFirst().orElseThrow();
+            long[] lookupValues = (long[]) lookup.getData();
         for (int i = 0; i < lookupValues.length; i++) {
             zonalLookup.put(String.valueOf(lookupValues[i]), i);
+        }
         }
     }
 

@@ -1,6 +1,6 @@
 package ch.sbb.matsim.accessibility;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -22,16 +22,16 @@ public class DeparturesCacheTest {
 		DeparturesCache cache = new DeparturesCache(f.scenario.getTransitSchedule());
 
 		Id<TransitStopFacility> stopId = Id.create("1", TransitStopFacility.class);
-		Assert.assertEquals(7 * 3600, cache.getNextDepartureTime(stopId, 6 * 3600).seconds(), 1e-8);
-		Assert.assertEquals(7 * 3600, cache.getNextDepartureTime(stopId, 7 * 3600).seconds(), 1e-8);
-		Assert.assertEquals(7 * 3600 + 20 * 60, cache.getNextDepartureTime(stopId, 7 * 3600 + 1).seconds(), 1e-8);
-		Assert.assertTrue(cache.getNextDepartureTime(stopId, 7 * 3600 + 40 * 60 + 1).isUndefined());
+		Assertions.assertEquals(7 * 3600, cache.getNextDepartureTime(stopId, 6 * 3600).seconds(), 1e-8);
+		Assertions.assertEquals(7 * 3600, cache.getNextDepartureTime(stopId, 7 * 3600).seconds(), 1e-8);
+		Assertions.assertEquals(7 * 3600 + 20 * 60, cache.getNextDepartureTime(stopId, 7 * 3600 + 1).seconds(), 1e-8);
+		Assertions.assertTrue(cache.getNextDepartureTime(stopId, 7 * 3600 + 40 * 60 + 1).isUndefined());
 
 		stopId = Id.create("2", TransitStopFacility.class);
-		Assert.assertEquals(7 * 3600 + 300, cache.getNextDepartureTime(stopId, 7 * 3600).seconds(), 1e-8); // line 1, route A
-		Assert.assertEquals(7 * 3600 + 360, cache.getNextDepartureTime(stopId, 7 * 3600 + 301).seconds(), 1e-8); // line 2, route B
-		Assert.assertEquals(7 * 3600 + 10 * 60 + 420, cache.getNextDepartureTime(stopId, 7 * 3600 + 361).seconds(), 1e-8); // line 2, route C
-		Assert.assertEquals(7 * 3600 + 20 * 60 + 300, cache.getNextDepartureTime(stopId, 7 * 3600 + 1021).seconds(), 1e-8); // line 1, route A
+		Assertions.assertEquals(7 * 3600 + 300, cache.getNextDepartureTime(stopId, 7 * 3600).seconds(), 1e-8); // line 1, route A
+		Assertions.assertEquals(7 * 3600 + 360, cache.getNextDepartureTime(stopId, 7 * 3600 + 301).seconds(), 1e-8); // line 2, route B
+		Assertions.assertEquals(7 * 3600 + 10 * 60 + 420, cache.getNextDepartureTime(stopId, 7 * 3600 + 361).seconds(), 1e-8); // line 2, route C
+		Assertions.assertEquals(7 * 3600 + 20 * 60 + 300, cache.getNextDepartureTime(stopId, 7 * 3600 + 1021).seconds(), 1e-8); // line 1, route A
 	}
 
 	private static class Fixture {

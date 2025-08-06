@@ -1,6 +1,6 @@
 package ch.sbb.matsim.routing.network.AccessTime;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -17,8 +17,8 @@ public class AccessTimeIntegrationTest {
     public final Coord stleo = new Coord(598345.54, 122581.99); // 2
 
     private static void assertEqualEvent(Class<? extends Event> eventClass, Event event) {
-        Assert.assertTrue(event.getClass().isAssignableFrom(event.getClass()));
-        Assert.assertEquals(21600, event.getTime(), 1e-7);
+        Assertions.assertTrue(event.getClass().isAssignableFrom(event.getClass()));
+        Assertions.assertEquals(21600, event.getTime(), 1e-7);
     }
 
     @Test
@@ -32,8 +32,8 @@ public class AccessTimeIntegrationTest {
         Leg accessLeg = (Leg) person.getSelectedPlan().getPlanElements().get(1);
         Leg egressLeg = (Leg) person.getSelectedPlan().getPlanElements().get(5);
 
-        Assert.assertEquals(0.0, accessLeg.getTravelTime().seconds(), 1e-10);
-        Assert.assertEquals(0.0, egressLeg.getTravelTime().seconds(), 1e-10);
+        Assertions.assertEquals(0.0, accessLeg.getTravelTime().seconds(), 1e-10);
+        Assertions.assertEquals(0.0, egressLeg.getTravelTime().seconds(), 1e-10);
 
         assertEqualEvent(PersonDepartureEvent.class, fixture.allEvents.get(1));
         assertEqualEvent(TeleportationArrivalEvent.class, fixture.allEvents.get(2));

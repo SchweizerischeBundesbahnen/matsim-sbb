@@ -14,7 +14,8 @@ import org.matsim.core.config.groups.ScoringConfigGroup;
 import org.matsim.core.scoring.functions.ScoringParameters;
 import org.matsim.testcases.MatsimTestUtils;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 public class SBBScoringParametersForPersonTest {
 
