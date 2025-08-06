@@ -22,7 +22,7 @@ import org.matsim.core.config.groups.ControllerConfigGroup;
 import org.matsim.core.controler.MatsimServices;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationStartsEvent;
-import org.matsim.core.controler.listener.ControlerListener;
+import org.matsim.core.controler.listener.ControllerListener;
 import org.matsim.core.replanning.StrategyManager;
 import org.matsim.core.router.TripRouter;
 import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
@@ -128,9 +128,14 @@ public class ConvergenceStatsTest {
 	private class StubControler implements MatsimServices {
 
 		@Override
-		public OutputDirectoryHierarchy getControlerIO() {
+		public OutputDirectoryHierarchy getControllerIO() {
 			return new OutputDirectoryHierarchy(utils.getOutputDirectory(),
 					OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, ControllerConfigGroup.CompressionType.none);
+		}
+
+		@Override
+		public void addControllerListener(ControllerListener controllerListener) {
+
 		}
 
 		@Override
@@ -213,9 +218,7 @@ public class ConvergenceStatsTest {
 			return null;
 		}
 
-		@Override
-		public void addControlerListener(ControlerListener controlerListener) {
-		}
+
 	}
 
 }
