@@ -15,6 +15,7 @@ import jakarta.inject.Inject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -400,7 +401,7 @@ public class ModalSplitStats {
 
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-            if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+            if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE) || tmpMode.equals(TransportMode.non_network_walk)) {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
             boolean tmpIsRail = false;
@@ -552,7 +553,7 @@ public class ModalSplitStats {
             }
 
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-            if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+            if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE) || tmpMode.equals(TransportMode.non_network_walk)) {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
             int modeId = modesMap.get(tmpMode);
@@ -761,7 +762,7 @@ public class ModalSplitStats {
 
                     // count PF and PKM
                     String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-                    if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+                    if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE) || tmpMode.equals(TransportMode.non_network_walk)) {
                         tmpMode = SBBModes.WALK_FOR_ANALYSIS;
                     }
                     if (tmpMode.equals(PT)) {
@@ -919,7 +920,7 @@ public class ModalSplitStats {
             }
 
             String tmpMode = mainModeIdentifier.identifyMainMode(trip.getTripElements());
-            if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE)) {
+            if (tmpMode.equals(SBBModes.WALK_MAIN_MAINMODE) || tmpMode.equals(TransportMode.non_network_walk)) {
                 tmpMode = SBBModes.WALK_FOR_ANALYSIS;
             }
             Integer modeID = this.modesInclRailFQMap.get(tmpMode);
