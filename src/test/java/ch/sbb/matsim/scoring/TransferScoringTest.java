@@ -6,7 +6,7 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.preparation.ActivityParamsBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.api.core.v01.Coord;
@@ -102,17 +102,17 @@ public class TransferScoringTest {
 
 		double defaultTransferScore = -6.0;
 		double sbbTransferScore = 2 * Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (945.0 / 3600.0)));
-		double sbbTransferScoreWithModeToModePenalty = -1.5 + Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (480.0 / 3600.0)));
+		double sbbTransferScoreWithModeToModePenalty = -2.0 + Math.max(-12.0, Math.min(-2.0, -1.0 - 2.0 * (480.0 / 3600.0)));
 
 		double actualScoreDiff = score2 - score1;
 		double expectedScoreDiff = sbbTransferScore - defaultTransferScore;
 
-		Assert.assertEquals(expectedScoreDiff, actualScoreDiff, 1e-7);
+		Assertions.assertEquals(expectedScoreDiff, actualScoreDiff, 1e-7);
 
 		actualScoreDiff = score3 - score1;
 		expectedScoreDiff = sbbTransferScoreWithModeToModePenalty - defaultTransferScore;
 
-		Assert.assertEquals(expectedScoreDiff, actualScoreDiff, 1e-7);
+		Assertions.assertEquals(expectedScoreDiff, actualScoreDiff, 1e-7);
 	}
 
     private static class Fixture {

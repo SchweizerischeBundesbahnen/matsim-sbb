@@ -1,7 +1,6 @@
 package ch.sbb.matsim.routing;
 
 import ch.sbb.matsim.config.variables.SBBModes;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
@@ -29,17 +28,17 @@ public class SBBAnalysisMainModeIdentifierTest {
         Activity a = pf.createActivityFromCoord("test", new Coord(0, 0));
         MainModeIdentifier mainModeIdentifier = new SBBAnalysisMainModeIdentifier();
         List<PlanElement> ptTrip = List.of(l1, a, l2);
-        Assert.assertEquals(mainModeIdentifier.identifyMainMode(ptTrip), SBBModes.PT);
+        Assertions.assertEquals(SBBModes.PT, mainModeIdentifier.identifyMainMode(ptTrip));
 
 
         List<PlanElement> carTrip = List.of(l3, a, l2);
-        Assert.assertEquals(mainModeIdentifier.identifyMainMode(carTrip), SBBModes.CAR);
+        Assertions.assertEquals(SBBModes.CAR, mainModeIdentifier.identifyMainMode(carTrip));
 
         List<PlanElement> walkTrip = List.of(l5, a, l2);
-        Assert.assertEquals(mainModeIdentifier.identifyMainMode(walkTrip), SBBModes.WALK_MAIN_MAINMODE);
+        Assertions.assertEquals(SBBModes.WALK_MAIN_MAINMODE, mainModeIdentifier.identifyMainMode(walkTrip));
 
         List<PlanElement> feederTrip = List.of(l4, a, l2);
-        Assert.assertEquals(mainModeIdentifier.identifyMainMode(feederTrip), SBBModes.PT);
+        Assertions.assertEquals(SBBModes.PT, mainModeIdentifier.identifyMainMode(feederTrip));
 
     }
 

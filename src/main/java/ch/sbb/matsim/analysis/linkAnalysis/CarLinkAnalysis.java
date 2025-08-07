@@ -127,8 +127,8 @@ public class CarLinkAnalysis {
                             String visumNo = String.valueOf(visumLinkNodeIds.getSecond());
                             final String visumToNode = i < visumLinkIds.length - 1 ? String.valueOf(MaviHelper.extractVisumNodeAndLinkId(visumLinkIds[i + 1]).getFirst()) : matsimToNode;
                             writer.set(LINK_NO, visumNo);
-                            writer.set(TONODENO, visumFromNode);
-                            writer.set(FROMNODENO, visumToNode);
+                            writer.set(FROMNODENO, visumFromNode);
+                            writer.set(TONODENO, visumToNode);
                             setVolumes(writer, id, carVolume, volume, (int) bikeCount, (int) ebikeCount, (int) totalBikeCount, freightVolume);
                             writer.writeRow();
                         }

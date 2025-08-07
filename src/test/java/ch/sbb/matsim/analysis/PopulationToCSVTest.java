@@ -1,7 +1,7 @@
 package ch.sbb.matsim.analysis;
 
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.api.core.v01.Id;
@@ -54,9 +54,9 @@ public class PopulationToCSVTest {
 
 		try (BufferedReader reader = IOUtils.getBufferedReader(filename + "agents.csv")) {
 			String headerLine = reader.readLine();
-			Assert.assertEquals("person_id;carAvail;hasLicense;sex;subpopulation;age", headerLine);
+			Assertions.assertEquals("person_id;carAvail;hasLicense;sex;subpopulation;age", headerLine);
 			String firstRow = reader.readLine();
-			Assert.assertEquals("1;never;driving;m;regular;1", firstRow);
+			Assertions.assertEquals("1;never;driving;m;regular;1", firstRow);
 		}
 	}
 

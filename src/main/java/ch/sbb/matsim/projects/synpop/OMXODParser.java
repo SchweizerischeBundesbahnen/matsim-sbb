@@ -1,13 +1,15 @@
 package ch.sbb.matsim.projects.synpop;
 
 import ch.sbb.matsim.zones.Zone;
-import omx.OmxFile;
-import omx.OmxLookup;
-import omx.OmxMatrix;
+import io.jhdf.HdfFile;
+import io.jhdf.api.Dataset;
+import io.jhdf.api.Group;
+import io.jhdf.api.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +20,7 @@ public class OMXODParser {
 
     private static final Logger logger = LogManager.getLogger(OMXODParser.class);
     private final Map<String, Integer> zonalLookup = new HashMap<>();
-    private final Map<String, OmxMatrix<?, ?>> matrices = new HashMap<>();
+    private final Map<String, double[][]> matrices = new HashMap<>();
 
     public static void main(String[] args) {
         var parser = new OMXODParser();
@@ -27,26 +29,36 @@ public class OMXODParser {
         System.out.println(Arrays.stream(parser.getMatrixRow("531001001", "7")).sum());
     }
 
+
     public void openMatrix(String fileName) {
-        openMatrix(fileName, "NO");
-    }
-
-    public void openMatrix(String fileName, String lookupTableName) {
         logger.info("OMX File: " + fileName);
-        OmxFile omxFile = new OmxFile(fileName);
-        omxFile.openReadOnly();
-        logger.info("Found the following matrices: " + omxFile.getMatrixNames());
-        for (String m : omxFile.getMatrixNames()) {
-            OmxMatrix<?, ?> omxMatrix = omxFile.getMatrix(m);
-            matrices.put(m, omxMatrix);
+        try (HdfFile hdfFile = new HdfFile(Paths.get(fileName))) {
+            Group data = (Group) hdfFile.getChild("data");
+            for (Node node : data) {
+                if (node instanceof Dataset matrix) {
+                    Class<?> javaType = matrix.getJavaType();
+                    if (javaType != double.class) {
+                        throw new RuntimeException("Only double[][] matrices are supported");
+                    }
+                    String name = matrix.getName();
+                    double[][] d = (double[][]) matrix.getData();
+                    matrices.put(name, d);
+                }
+            }
 
-        }
-        logger.info("Found the following lookups: " + omxFile.getLookupNames());
-        OmxLookup.OmxIntLookup lookup = (OmxLookup.OmxIntLookup) omxFile.getLookup(lookupTableName);
-        int[] lookupValues = lookup.getLookup();
-        logger.info("Preparing Lookup");
-        for (int i = 0; i < lookupValues.length; i++) {
-            zonalLookup.put(String.valueOf(lookupValues[i]), i);
+            Group lookups = (Group) hdfFile.getChild("lookup");
+            Map<String, Node> indexes = lookups.getChildren();
+            Dataset lookup = (Dataset) indexes.values().stream().findFirst().orElseThrow();
+            Class<?> t = lookup.getJavaType();
+            if (t != int.class) {
+                throw new RuntimeException("Only int[] lookups are supported");
+            }
+            int[] lookupValues = (int[]) lookup.getData();
+            for (int i = 0; i < lookupValues.length; i++) {
+                zonalLookup.put(String.valueOf(lookupValues[i]), i);
+
+            }
+
         }
 
     }
@@ -55,16 +67,12 @@ public class OMXODParser {
         return zonalLookup.keySet().stream().map(s -> Id.create(s, Zone.class)).sorted().collect(Collectors.toList());
     }
 
-    public List<String> getAllLookupValues() {
-        return zonalLookup.keySet().stream().collect(Collectors.toList());
-    }
 
     public double getMatrixValue(String fromZoneId, String toZoneId, String matrixName) {
         var matrix = matrices.get(matrixName);
-        double[][] data = (double[][]) matrix.getData();
         Integer fromLookup = zonalLookup.get(fromZoneId);
         Integer toLookup = zonalLookup.get(toZoneId);
-        return data[fromLookup][toLookup];
+        return matrix[fromLookup][toLookup];
     }
 
     public double getMatrixValue(Id<Zone> fromZoneId, Id<Zone> toZoneId, String matrixName) {
@@ -77,8 +85,7 @@ public class OMXODParser {
 
     public double[] getMatrixRow(String fromZoneId, String matrixName) {
         var matrix = matrices.get(matrixName);
-        double[][] data = (double[][]) matrix.getData();
         Integer fromLookup = zonalLookup.get(fromZoneId);
-        return data[fromLookup];
+        return matrix[fromLookup];
     }
 }

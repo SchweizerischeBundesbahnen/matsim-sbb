@@ -95,9 +95,9 @@ public class PtLinkVolumeAnalyzer {
                 int scaledVolume = (int) Math.round(e.getValue().doubleValue() * scalefactor);
                 Link l = ptNetwork.getLinks().get(currentLinkId);
                 if (l != null) {
+                    l.getAttributes().putAttribute(VOLUME, scaledVolume);
                     var visumNodeAndLink = MaviHelper.extractVisumNodeAndLinkId(currentLinkId);
                     if (visumNodeAndLink!=null){
-                    l.getAttributes().putAttribute(VOLUME, scaledVolume);
                     writer.set(LINK_ID_SIM, currentLinkId.toString());
                     writer.set(VOLUME, Integer.toString(scaledVolume));
                     writer.set(FROMNODENO, Integer.toString(visumNodeAndLink.getFirst()));

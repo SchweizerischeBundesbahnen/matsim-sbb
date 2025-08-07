@@ -4,7 +4,7 @@ import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
@@ -42,24 +42,24 @@ public class GridbasedAccessEgressCacheTest {
         Coord stopCoord = new Coord(0, 0);
 
         int center = cache.getCellNumber(stopCoord, new Coord(0, 0));
-        Assert.assertEquals(11325, center);
+        Assertions.assertEquals(11325, center);
         System.out.println(center);
 
         int edgeBottomRight = cache.getCellNumber(stopCoord, new Coord(15000, -15000));
-        Assert.assertEquals(22650, edgeBottomRight);
+        Assertions.assertEquals(22650, edgeBottomRight);
         System.out.println(edgeBottomRight);
 
 
         int edgeTopLeft = cache.getCellNumber(stopCoord, new Coord(-15000, 15000));
-        Assert.assertEquals(0, edgeTopLeft);
+        Assertions.assertEquals(0, edgeTopLeft);
         System.out.println(edgeTopLeft);
 
         int edgeBottomLeft = cache.getCellNumber(stopCoord, new Coord(-15000, -14800));
-        Assert.assertEquals(22350, edgeBottomLeft);
+        Assertions.assertEquals(22350, edgeBottomLeft);
         System.out.println(edgeBottomLeft);
 
         int edgeTopRight = cache.getCellNumber(stopCoord, new Coord(15000, 15000));
-        Assert.assertEquals(150, edgeTopRight);
+        Assertions.assertEquals(150, edgeTopRight);
         System.out.println(edgeTopRight);
 
         int out = cache.getCellNumber(stopCoord, new Coord(60000, 60000));
@@ -68,22 +68,22 @@ public class GridbasedAccessEgressCacheTest {
         int topLeftBox = 0;
         var topLeftCoord = cache.getCellCoordinate(stopCoord, topLeftBox);
         int topLeftReturn = cache.getCellNumber(stopCoord, topLeftCoord);
-        Assert.assertEquals(topLeftBox, topLeftReturn);
+        Assertions.assertEquals(topLeftBox, topLeftReturn);
 
         int topRightBox = 149;
         var topRightCoord = cache.getCellCoordinate(stopCoord, topRightBox);
         int topRightReturn = cache.getCellNumber(stopCoord, topRightCoord);
-        Assert.assertEquals(topRightBox, topRightReturn);
+        Assertions.assertEquals(topRightBox, topRightReturn);
 
         int bottomLeftBox = 22350;
         var bottomLeftCoord = cache.getCellCoordinate(stopCoord, bottomLeftBox);
         int bottomLeftReturn = cache.getCellNumber(stopCoord, bottomLeftCoord);
-        Assert.assertEquals(bottomLeftBox, bottomLeftReturn);
+        Assertions.assertEquals(bottomLeftBox, bottomLeftReturn);
 
         int bottomRightBox = 22499;
         var bottomRightCoord = cache.getCellCoordinate(stopCoord, bottomRightBox);
         int bottomRightReturn = cache.getCellNumber(stopCoord, bottomRightCoord);
-        Assert.assertEquals(bottomRightBox, bottomRightReturn);
+        Assertions.assertEquals(bottomRightBox, bottomRightReturn);
 
     }
 

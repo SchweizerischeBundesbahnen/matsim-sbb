@@ -1,6 +1,6 @@
 package ch.sbb.matsim.config;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
@@ -29,7 +29,7 @@ public class ZonesListConfigGroupTest {
 		ConfigReader reader = new ConfigReader(config);
 		reader.parse(new ByteArrayInputStream(xml.getBytes()));
 
-		Assert.assertEquals(0, zonesCfg.getZones().size());
+		Assertions.assertEquals(0, zonesCfg.getZones().size());
 	}
 
 	@Test
@@ -43,7 +43,7 @@ public class ZonesListConfigGroupTest {
 		ConfigReader reader = new ConfigReader(config);
 		reader.parse(new ByteArrayInputStream(xml.getBytes()));
 
-		Assert.assertEquals(0, zonesCfg.getZones().size());
+		Assertions.assertEquals(0, zonesCfg.getZones().size());
 	}
 
 	@Test
@@ -63,12 +63,12 @@ public class ZonesListConfigGroupTest {
 		ConfigReader reader = new ConfigReader(config);
 		reader.parse(new ByteArrayInputStream(xml.getBytes()));
 
-		Assert.assertEquals(1, zonesCfg.getZones().size());
+		Assertions.assertEquals(1, zonesCfg.getZones().size());
 
 		ZonesListConfigGroup.ZonesParameterSet paramset1 = zonesCfg.getZones().iterator().next();
-		Assert.assertEquals("firstZones", paramset1.getId());
-		Assert.assertEquals("zones/firstZones.shp", paramset1.getFilename());
-		Assert.assertEquals("ZID", paramset1.getIdAttributeName());
+		Assertions.assertEquals("firstZones", paramset1.getId());
+		Assertions.assertEquals("zones/firstZones.shp", paramset1.getFilename());
+		Assertions.assertEquals("ZID", paramset1.getIdAttributeName());
 	}
 
 	@Test
@@ -93,27 +93,27 @@ public class ZonesListConfigGroupTest {
 		ConfigReader reader = new ConfigReader(config);
 		reader.parse(new ByteArrayInputStream(xml.getBytes()));
 
-		Assert.assertEquals(2, zonesCfg.getZones().size());
+		Assertions.assertEquals(2, zonesCfg.getZones().size());
 
 		Iterator<ZonesListConfigGroup.ZonesParameterSet> iter = zonesCfg.getZones().iterator();
 		ZonesListConfigGroup.ZonesParameterSet paramset1 = iter.next();
-		Assert.assertEquals("firstZones", paramset1.getId());
-		Assert.assertEquals("zones/firstZones.shp", paramset1.getFilename());
-		Assert.assertEquals("ZID", paramset1.getIdAttributeName());
+		Assertions.assertEquals("firstZones", paramset1.getId());
+		Assertions.assertEquals("zones/firstZones.shp", paramset1.getFilename());
+		Assertions.assertEquals("ZID", paramset1.getIdAttributeName());
 
 		ZonesListConfigGroup.ZonesParameterSet paramset2 = iter.next();
-		Assert.assertEquals("secondZones", paramset2.getId());
-		Assert.assertEquals("zones/2ndZones.shp", paramset2.getFilename());
-		Assert.assertEquals("Z2ID", paramset2.getIdAttributeName());
+		Assertions.assertEquals("secondZones", paramset2.getId());
+		Assertions.assertEquals("zones/2ndZones.shp", paramset2.getFilename());
+		Assertions.assertEquals("Z2ID", paramset2.getIdAttributeName());
 	}
 
 	@Test
 	public void testFromCode() {
 		ZonesListConfigGroup zonesCfg = new ZonesListConfigGroup();
-		Assert.assertEquals(0, zonesCfg.getZones().size());
+		Assertions.assertEquals(0, zonesCfg.getZones().size());
 
 		zonesCfg.addZones(new ZonesListConfigGroup.ZonesParameterSet("firstZones", "zones/firstZones.shp", "ZID"));
-		Assert.assertEquals(1, zonesCfg.getZones().size());
+		Assertions.assertEquals(1, zonesCfg.getZones().size());
 	}
 
 }

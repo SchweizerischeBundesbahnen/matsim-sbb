@@ -1,6 +1,6 @@
 package ch.sbb.matsim.routing.network.AccessTime;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -21,7 +21,7 @@ public class AccessTimeTest {
 
 		Person person = fixture.population.getPersons().get(Id.createPersonId("1"));
 		Double score = person.getSelectedPlan().getScore();
-		Assert.assertEquals(expectedScore, score, 0.001);
+		Assertions.assertEquals(expectedScore, score, 0.001);
 
 	}
 

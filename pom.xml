@@ -4,12 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.sbb</groupId>
     <artifactId>matsim-sbb</artifactId>
-    <version>5.0.15-SNAPSHOT</version>
+    <version>5.0.20-SNAPSHOT</version>
     <name>MATSim SBB Project</name>
     <description>MATSim for SIMBA MOBi</description>
 
     <repositories>
-
 
         <repository>
             <id>arrow</id>
@@ -35,12 +34,10 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
-
         <repository>
             <id>jogl</id>
             <url>https://jogamp.org/deployment/maven/</url>
         </repository>
-
         <repository>
             <id>msmobility-msm</id>
             <url>https://dl.cloudsmith.io/public/msmobility/msm/maven/</url>
@@ -53,16 +50,11 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-
 
     </repositories>
 
     <properties>
-        <matsim.version>2026.0-PR3971</matsim.version>
+        <matsim.version>2026.0-PR4172</matsim.version>
         <junit.version>5.10.2</junit.version>
         <geotools.version>31.2</geotools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -175,9 +167,22 @@
         </dependency>
 
         <dependency>
-            <groupId>omx</groupId>
-            <artifactId>omx</artifactId>
-            <version>2</version>
+            <groupId>io.jhdf</groupId>
+            <artifactId>jhdf</artifactId>
+            <version>0.9.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Needed for libraries using slf4j -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>2.24.3</version>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- used by convergence stats-->

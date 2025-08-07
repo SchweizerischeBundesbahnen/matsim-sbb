@@ -7,7 +7,7 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import com.google.inject.Provider;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.analysis.CalcLinkStats;
@@ -22,7 +22,7 @@ import org.matsim.core.config.groups.ControllerConfigGroup;
 import org.matsim.core.controler.MatsimServices;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationStartsEvent;
-import org.matsim.core.controler.listener.ControlerListener;
+import org.matsim.core.controler.listener.ControllerListener;
 import org.matsim.core.replanning.StrategyManager;
 import org.matsim.core.router.TripRouter;
 import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
@@ -55,8 +55,8 @@ public class ConvergenceStatsTest {
 			Map.Entry<Double, Double> res = cs.runTest(test, scores);
 			System.out.print(test.name() + ": ");
 			System.out.println(res);
-			Assert.assertTrue(Double.isFinite(res.getKey()));
-			Assert.assertTrue(Double.isFinite(res.getValue()) || Double.isNaN(res.getValue()));
+			Assertions.assertTrue(Double.isFinite(res.getKey()));
+			Assertions.assertTrue(Double.isFinite(res.getValue()) || Double.isNaN(res.getValue()));
 		}
 	}
 
@@ -69,10 +69,10 @@ public class ConvergenceStatsTest {
 		cs.close();
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
 			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".csv").toFile();
-			Assert.assertTrue(file.exists());
+			Assertions.assertTrue(file.exists());
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			br.readLine(); // skip header
-			Assert.assertNotNull(br.readLine());
+			Assertions.assertNotNull(br.readLine());
 		}
 	}
 
@@ -117,10 +117,10 @@ public class ConvergenceStatsTest {
 		int iterationsRun = 0;
 		for (ConvergenceConfigGroup.Test test : ConvergenceConfigGroup.Test.values()) {
 			File file = Paths.get(utils.getOutputDirectory(), "convergence", test.name().toLowerCase() + ".csv").toFile();
-			Assert.assertTrue(file.exists());
+			Assertions.assertTrue(file.exists());
 			List<String> lines = new BufferedReader(new FileReader(file)).lines().collect(Collectors.toList());
 			iterationsRun = lines.size();
-			Assert.assertNotNull(lines.get(1));
+			Assertions.assertNotNull(lines.get(1));
 		}
 
 	}
@@ -128,9 +128,14 @@ public class ConvergenceStatsTest {
 	private class StubControler implements MatsimServices {
 
 		@Override
-		public OutputDirectoryHierarchy getControlerIO() {
+		public OutputDirectoryHierarchy getControllerIO() {
 			return new OutputDirectoryHierarchy(utils.getOutputDirectory(),
 					OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, ControllerConfigGroup.CompressionType.none);
+		}
+
+		@Override
+		public void addControllerListener(ControllerListener controllerListener) {
+
 		}
 
 		@Override
@@ -213,9 +218,7 @@ public class ConvergenceStatsTest {
 			return null;
 		}
 
-		@Override
-		public void addControlerListener(ControlerListener controlerListener) {
-		}
+
 	}
 
 }
