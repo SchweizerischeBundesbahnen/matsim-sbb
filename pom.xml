@@ -148,7 +148,7 @@
         <dependency>
             <groupId>io.jhdf</groupId>
             <artifactId>jhdf</artifactId>
-            <version>0.9.4</version>
+            <version>0.10.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
