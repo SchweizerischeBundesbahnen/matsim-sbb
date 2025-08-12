@@ -4,10 +4,7 @@ import ch.sbb.matsim.analysis.skims.FloatMatrix;
 import ch.sbb.matsim.zones.Zone;
 import io.jhdf.HdfFile;
 import io.jhdf.WritableHdfFile;
-import io.jhdf.api.Dataset;
-import io.jhdf.api.Group;
-import io.jhdf.api.Node;
-import io.jhdf.api.WritableGroup;
+import io.jhdf.api.*;
 import org.matsim.api.core.v01.Id;
 
 import java.nio.file.Paths;
@@ -16,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class OmxUtils {
 
@@ -32,27 +30,33 @@ public class OmxUtils {
      * @param lookupMapper A function that converts an integer from lookupData into an identifier of type T.
      */
     public static <T> void writeOmxMatrices(Map<String, FloatMatrix<T>> matrices, String omxFilePath, String lookUpName, int[] lookupData, Function<Integer, T> lookupMapper) {
-        try (WritableHdfFile hdfFile = HdfFile.write(Paths.get(omxFilePath))) {
-            // Create the required OMX groups
-            hdfFile.putGroup("data");
-            hdfFile.putGroup("lookup");
+        WritableHdfFile hdfFile = null; // Declare outside the try block
+        try {
+            hdfFile = HdfFile.write(Paths.get(omxFilePath));
+            hdfFile.putAttribute("OMX_VERSION", 0.2);
+            hdfFile.putAttribute("SHAPE", new int[]{lookupData.length, lookupData.length});
 
-            // Write the lookup table
-            ((WritableGroup) hdfFile.getChild("lookup")).putDataset(lookUpName, lookupData);
+            // Create the required OMX groups
+            WritableGroup dataGroup = hdfFile.putGroup("data");
+            WritableGroup lookupGroup = hdfFile.putGroup("lookup");
+            lookupGroup.putDataset(lookUpName, lookupData);
 
             // Write each matrix
-            WritableGroup dataGroup = (WritableGroup) hdfFile.getChild("data");
             for (Map.Entry<String, FloatMatrix<T>> entry : matrices.entrySet()) {
                 String matrixName = entry.getKey();
                 FloatMatrix<T> matrix = entry.getValue();
 
-                // Extract the data into a 2D float array using the generic helper
                 float[][] dataArray = getFloats(lookupData, matrix, lookupMapper);
-                dataGroup.putDataset(matrixName, dataArray);
+                WritableDataset createdDataset = dataGroup.putDataset(matrixName, dataArray);
+                // a) Add a string attribute to link to the lookup table. This is a common convention.
+                createdDataset.putAttribute("lookup", lookUpName);
+
             }
 
-            // Add OMX version attribute
-            hdfFile.putAttribute("OMX_VERSION", "0.2");
+        } finally {
+            if (hdfFile != null) {
+                hdfFile.close();
+            }
         }
     }
 
@@ -81,67 +85,47 @@ public class OmxUtils {
         }
         return result;
     }
-
-
     /**
-     * Reads all compatible matrices from an OMX file and returns them as a map of FloatMatrix objects.
-     * This method can process matrices with data types of float, double, int, and long, and will convert them all to float.
+     * Reads matrices from an OMX file, creating a FloatMatrix with a custom identifier type <T>.
+     * It works by converting all lookup types (long, int, String) to a String representation first,
+     * and then applies the provided mapper function.
      *
+     * @param <T> The target type for the matrix identifiers.
      * @param omxFilePath Path to the OMX file.
-     * @return A map where keys are the matrix names and values are the corresponding FloatMatrix objects.
+     * @param lookUpName The name of the lookup dataset.
+     * @param stringIdentifierMapper A function that converts a String identifier into the target type T.
+     * @return A map of matrix names to their corresponding FloatMatrix<T> objects.
      */
-    public static Map<String, FloatMatrix<Id<Zone>>> readOmxMatrices(String omxFilePath) {
-        return readOmxMatrices(omxFilePath, DEFAULT_LOOKUP);
-    }
-
-    /**
-     * Reads all compatible matrices from an OMX file and returns them as a map of FloatMatrix objects.
-     * This method can process matrices with data types of float, double, int, and long, and will convert them all to float.
-     *
-     * @param omxFilePath Path to the OMX file.
-     * @param lookUpName  The name of the lookup dataset (within the /lookup group) that contains the matrix identifiers.
-     * @return A map where keys are the matrix names and values are the corresponding FloatMatrix objects.
-     */
-    public static Map<String, FloatMatrix<Id<Zone>>> readOmxMatrices(String omxFilePath, String lookUpName) {
-        Map<String, FloatMatrix<Id<Zone>>> matrices = new HashMap<>();
+    public static <T> Map<String, FloatMatrix<T>> readOmxMatrices(String omxFilePath, String lookUpName, Function<String, T> stringIdentifierMapper) {
+        Map<String, FloatMatrix<T>> matrices = new HashMap<>();
         try (HdfFile hdfFile = new HdfFile(Paths.get(omxFilePath))) {
-            // Read the zone identifiers from the lookup table
             Group lookups = (Group) hdfFile.getChild("lookup");
-            if (lookups == null) {
-                throw new RuntimeException("OMX file is missing 'lookup' group.");
-            }
+            if (lookups == null) throw new RuntimeException("OMX file is missing 'lookup' group.");
+
             Dataset lookup = (Dataset) lookups.getChild(lookUpName);
-            if (lookup == null) {
+            if (lookup == null)
                 throw new RuntimeException("Could not find lookup '" + lookUpName + "' in the OMX file.");
-            }
 
-
-            List<Id<Zone>> ids = readLookupIds(lookup);
+            // Step 1: Read all lookup identifiers into a canonical List<String>.
+            List<String> stringIds = readLookupIdsAsStrings(lookup);
+            // Step 2: Map the string list to the target type T.
+            List<T> ids = stringIds.stream().map(stringIdentifierMapper).collect(Collectors.toList());
             int matrixSize = ids.size();
 
-            // Process the matrices in the data group
             Group data = (Group) hdfFile.getChild("data");
-            if (data == null) {
-                throw new RuntimeException("OMX file is missing 'data' group.");
-            }
+            if (data == null) throw new RuntimeException("OMX file is missing 'data' group.");
 
             for (Node node : data) {
                 if (node instanceof Dataset dataset) {
                     String matrixName = node.getName();
-                    Class<?> javaType = dataset.getJavaType();
-
-                    // Check if the data type is one of the supported numeric types
-                    if (isSupportedNumericType(javaType)) {
+                    if (isSupportedNumericType(dataset.getJavaType())) {
                         Object rawData = dataset.getData();
-                        float[][] matrixData = convertToFloatMatrix(rawData, javaType, matrixSize);
-                        FloatMatrix<Id<Zone>> matrix = FloatMatrix.createFloatMatrix(ids, matrixData);
+                        float[][] matrixData = convertToFloatMatrix(rawData, dataset.getJavaType(), matrixSize);
+                        FloatMatrix<T> matrix = FloatMatrix.createFloatMatrix(ids, matrixData);
                         matrices.put(matrixName, matrix);
                     } else {
-                        System.out.println("Skipping matrix '" + matrixName + "' due to unsupported data type: " + javaType.getSimpleName());
+                        System.err.println("Skipping matrix '" + matrixName + "' due to unsupported data type: " + dataset.getJavaType().getSimpleName());
                     }
-                } else if (node instanceof Group) {
-                    // It is possible for the data group to contain other groups. We will ignore them.
-                    System.out.println("Skipping node '" + node.getName() + "' of unsupported type: " + node.getClass().getSimpleName());
                 }
             }
         }
@@ -149,20 +133,43 @@ public class OmxUtils {
     }
 
     /**
-     * Reads the identifiers from a lookup dataset, supporting long, int, and String types.
+     * Reads OMX matrices where identifiers are MATSim Id<Zone>.
      */
-    private static List<Id<Zone>> readLookupIds(Dataset lookup) {
+    public static Map<String, FloatMatrix<Id<Zone>>> readOmxMatrices(String omxFilePath, String lookUpName) {
+        // Just provide the function that maps a String to an Id<Zone>
+        return readOmxMatrices(omxFilePath, lookUpName, s -> Id.create(s, Zone.class));
+    }
+
+    /**
+     * Convenience method that reads Id<Zone> matrices using the default lookup name "NO".
+     */
+    public static Map<String, FloatMatrix<Id<Zone>>> readOmxMatrices(String omxFilePath) {
+        return readOmxMatrices(omxFilePath, DEFAULT_LOOKUP);
+    }
+
+    /**
+     * Reads OMX matrices where identifiers are simple Strings.
+     */
+    public static Map<String, FloatMatrix<String>> readOmxStringMatrices(String omxFilePath, String lookUpName) {
+        // The mapping function is just the identity function (s -> s).
+        return readOmxMatrices(omxFilePath, lookUpName, Function.identity());
+    }
+
+    /**
+     * Helper to read lookup identifiers from the HDF5 dataset and convert them to a List<String>.
+     */
+    private static List<String> readLookupIdsAsStrings(Dataset lookup) {
         Class<?> type = lookup.getJavaType();
         Object rawData = lookup.getData();
 
         if (type == long.class) {
-            return Arrays.stream((long[]) rawData).mapToObj(v -> Id.create(v, Zone.class)).toList();
+            return Arrays.stream((long[]) rawData).mapToObj(String::valueOf).collect(Collectors.toList());
         } else if (type == int.class) {
-            return Arrays.stream((int[]) rawData).mapToObj(v -> Id.create(v, Zone.class)).toList();
+            return Arrays.stream((int[]) rawData).mapToObj(String::valueOf).collect(Collectors.toList());
         } else if (type == String.class) {
-            return Arrays.stream((String[]) rawData).map(v -> Id.create(v, Zone.class)).toList();
+            return Arrays.asList((String[]) rawData);
         } else {
-            throw new IllegalArgumentException("Unsupported lookup type: " + type.getName());
+            throw new IllegalArgumentException("Unsupported lookup type for identifiers: " + type.getName());
         }
     }
 
@@ -170,48 +177,17 @@ public class OmxUtils {
         return javaType == float.class || javaType == double.class || javaType == int.class || javaType == long.class;
     }
 
-    /**
-     * Converts a raw 2D array of a supported numeric type into a float[][].
-     */
     private static float[][] convertToFloatMatrix(Object rawData, Class<?> javaType, int size) {
         float[][] floatData = new float[size][size];
-
-        if (javaType == float.class) {
-            return (float[][]) rawData; // No conversion needed
-        }
-
-        if (javaType == double.class) {
-            double[][] sourceData = (double[][]) rawData;
-            for (int i = 0; i < size; i++) {
-                for (int j = 0; j < size; j++) {
-                    floatData[i][j] = (float) sourceData[i][j];
-                }
+        if (javaType == float.class) return (float[][]) rawData;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (javaType == double.class) floatData[i][j] = (float) ((double[][]) rawData)[i][j];
+                else if (javaType == int.class) floatData[i][j] = ((int[][]) rawData)[i][j];
+                else if (javaType == long.class) floatData[i][j] = ((long[][]) rawData)[i][j];
             }
-            return floatData;
         }
-
-        if (javaType == int.class) {
-            int[][] sourceData = (int[][]) rawData;
-            for (int i = 0; i < size; i++) {
-                for (int j = 0; j < size; j++) {
-                    floatData[i][j] = (float) sourceData[i][j];
-                }
-            }
-            return floatData;
-        }
-
-        if (javaType == long.class) {
-            long[][] sourceData = (long[][]) rawData;
-            for (int i = 0; i < size; i++) {
-                for (int j = 0; j < size; j++) {
-                    floatData[i][j] = sourceData[i][j];
-                }
-            }
-            return floatData;
-        }
-
-        // This path should not be reached if called after isSupportedNumericType check
-        throw new IllegalArgumentException("Cannot convert unsupported data type: " + javaType.getName());
+        return floatData;
     }
 
 
