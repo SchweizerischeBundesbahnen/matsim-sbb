@@ -16,6 +16,7 @@ import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeSet;
@@ -81,15 +82,14 @@ public class CalculateIndicatorOMXMatrices {
         skims.loadSamplingPointsFromFile(coordinatesFilename);
         TreeSet<Integer> zones = skims.getCoordsPerZone().keySet().stream().map(Integer::parseInt).collect(Collectors.toCollection(TreeSet::new));
         int[] lookupzones = zones.stream().mapToInt(Integer::intValue).toArray();
-
+        Map<String, NetworkSkimMatrices.NetworkIndicators<String>> networkMatrices = new HashMap<>();
         if (!timesCar.isEmpty()) {
             for (Map.Entry<String, double[]> e : timesCar.entrySet()) {
                 String prefix = e.getKey();
                 double[] times = e.getValue();
-                var networkMatrices = skims
-                        .prepareAndCalculateNetworkMatrices(networkFilename, eventsFilename, times, config, l -> String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("0"));
-                exportNetworkMatrices(outputDirectory + "/car_skims.omx", prefix, networkMatrices, lookupzones);
+                networkMatrices.put(prefix, skims.prepareAndCalculateNetworkMatrices(networkFilename, eventsFilename, times, config, l -> String.valueOf(l.getAttributes().getAttribute("accessControlled")).equals("0")));
             }
+            exportNetworkMatrices(outputDirectory + "/car_skims.omx", networkMatrices, lookupzones);
         }
 
         for (Map.Entry<String, double[]> e : timesPt.entrySet()) {
@@ -112,11 +112,16 @@ public class CalculateIndicatorOMXMatrices {
         log.info("done xxx");
     }
 
-    private static void exportNetworkMatrices(String filename, String prefix, NetworkSkimMatrices.NetworkIndicators<String> networkMatrices, int[] lookupzones) {
-        log.info("Adding Network Traveltime OMX matrix for " + prefix);
+    private static void exportNetworkMatrices(String filename, Map<String, NetworkSkimMatrices.NetworkIndicators<String>> networkMatrices, int[] lookupzones) {
+
         Map<String, FloatMatrix<String>> mats = new LinkedHashMap<>();
-        mats.put(prefix + "distances", networkMatrices.distanceMatrix);
-        mats.put(prefix + "travel_times", networkMatrices.travelTimeMatrix);
+        for (var entry : networkMatrices.entrySet()) {
+            String prefix = entry.getKey();
+            NetworkSkimMatrices.NetworkIndicators<String> matrices = entry.getValue();
+            log.info("Adding Network Traveltime OMX matrix for " + prefix);
+            mats.put(prefix + "distances", matrices.distanceMatrix);
+            mats.put(prefix + "travel_times", matrices.travelTimeMatrix);
+        }
         OmxUtils.writeOmxMatrices(mats, filename, OmxUtils.DEFAULT_LOOKUP, lookupzones, integer -> Integer.toString(integer));
         log.info("done xxx");
     }
