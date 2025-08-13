@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.sbb</groupId>
     <artifactId>matsim-sbb</artifactId>
-    <version>5.0.20-SNAPSHOT</version>
+    <version>5.0.22-SNAPSHOT</version>
     <name>MATSim SBB Project</name>
     <description>MATSim for SIMBA MOBi</description>
 
@@ -174,7 +174,7 @@
         <dependency>
             <groupId>io.jhdf</groupId>
             <artifactId>jhdf</artifactId>
-            <version>0.9.4</version>
+            <version>0.10.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
