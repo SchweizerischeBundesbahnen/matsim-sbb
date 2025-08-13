@@ -1,7 +1,7 @@
 package ch.sbb.matsim.plans.models.utilitycomponents;
 
 import ch.sbb.matsim.config.variables.Variables;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
@@ -21,12 +21,12 @@ public class PredicateComponentTest {
         Person person2 = PopulationUtils.getFactory().createPerson(Id.createPersonId(2));
         person2.getAttributes().putAttribute("level_of_employment", 60);
         double result = calculator.calculate(person2);
-        Assert.assertEquals(result, 1.0, 0.001);
+        Assertions.assertEquals(result, 1.0, 0.001);
 
         Person person1 = PopulationUtils.getFactory().createPerson(Id.createPersonId(1));
         person1.getAttributes().putAttribute("level_of_employment", 40);
         double result1 = calculator.calculate(person1);
-        Assert.assertEquals(result1, 0.0, 0.001);
+        Assertions.assertEquals(result1, 0.0, 0.001);
 
 
     }
@@ -40,12 +40,12 @@ public class PredicateComponentTest {
         Person person2 = PopulationUtils.getFactory().createPerson(Id.createPersonId(2));
         person2.getAttributes().putAttribute("level_of_employment", 60);
         double result = calculator.calculate(person2);
-        Assert.assertEquals(1.0, result, 0.001);
+        Assertions.assertEquals(1.0, result, 0.001);
 
         Person person1 = PopulationUtils.getFactory().createPerson(Id.createPersonId(1));
         person1.getAttributes().putAttribute("level_of_employment", 100);
         double result1 = calculator.calculate(person1);
-        Assert.assertEquals(0.0, result1, 0.001);
+        Assertions.assertEquals(0.0, result1, 0.001);
 
 
     }
@@ -59,12 +59,12 @@ public class PredicateComponentTest {
         Person person2 = PopulationUtils.getFactory().createPerson(Id.createPersonId(2));
         person2.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, "HTA");
         double result = calculator.calculate(person2);
-        Assert.assertEquals(0.0, result, 0.001);
+        Assertions.assertEquals(0.0, result, 0.001);
 
         Person person1 = PopulationUtils.getFactory().createPerson(Id.createPersonId(1));
         person1.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, "GA");
         double result1 = calculator.calculate(person1);
-        Assert.assertEquals(1.0, result1, 0.001);
+        Assertions.assertEquals(1.0, result1, 0.001);
 
 
     }

@@ -1,7 +1,7 @@
 package ch.sbb.matsim.plans.models.utilitycomponents;
 
 import ch.sbb.matsim.plans.constants.SynpopConstants;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
@@ -20,7 +20,7 @@ class PiecewiseComponentTest {
         PiecewiseComponent piecewiseComponent = createCalculator();
         Person person = PopulationUtils.getFactory().createPerson(Id.createPersonId(0));
         person.getAttributes().putAttribute(SynpopConstants.AGE, 42);
-        Assert.assertEquals(9.198, piecewiseComponent.calculate(person), 0.001);
+        Assertions.assertEquals(9.198, piecewiseComponent.calculate(person), 0.001);
     }
 
     @Test
@@ -28,7 +28,7 @@ class PiecewiseComponentTest {
         PiecewiseComponent piecewiseComponent = createCalculator();
         Person person2 = PopulationUtils.getFactory().createPerson(Id.createPersonId(2));
         person2.getAttributes().putAttribute(SynpopConstants.AGE, 22);
-        Assert.assertEquals(8.756, piecewiseComponent.calculate(person2), 0.001);
+        Assertions.assertEquals(8.756, piecewiseComponent.calculate(person2), 0.001);
     }
 
     @Test
@@ -36,7 +36,7 @@ class PiecewiseComponentTest {
         PiecewiseComponent piecewiseComponent = createCalculator();
         Person person3 = PopulationUtils.getFactory().createPerson(Id.createPersonId(3));
         person3.getAttributes().putAttribute(SynpopConstants.AGE, 89);
-        Assert.assertEquals(7.3807, piecewiseComponent.calculate(person3), 0.001);
+        Assertions.assertEquals(7.3807, piecewiseComponent.calculate(person3), 0.001);
     }
 
     @Test
@@ -44,6 +44,6 @@ class PiecewiseComponentTest {
         PiecewiseComponent piecewiseComponent = createCalculator();
         Person person4 = PopulationUtils.getFactory().createPerson(Id.createPersonId(4));
         person4.getAttributes().putAttribute(SynpopConstants.AGE, 100);
-        Assert.assertEquals(5.2907, piecewiseComponent.calculate(person4), 0.001);
+        Assertions.assertEquals(5.2907, piecewiseComponent.calculate(person4), 0.001);
     }
 }
