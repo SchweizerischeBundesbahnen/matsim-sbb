@@ -20,6 +20,13 @@ public class MatrixReaders {
     private static final String AM_CAR_TRAVEL_TIMES = "am_car_travel_times";
     private static final String PM_CAR_TRAVEL_TIMES = "pm_car_travel_times";
 
+    private static final String PT_ACCESS_TIMES = "pt_access_times";
+    private static final String PT_EGRESS_TIMES = "pt_egress_times";
+    private static final String PT_TRAVEL_TIMES = "pt_travel_times";
+    private static final String PT_TRAIN_SHARE = "pt_train_traveltime_shares";
+    private static final String PT_FREQUENCIES = "pt_frequencies";
+    private static final String PT_TRANSFERS = "pt_transfer_counts";
+
     /**
      * Reads and processes car skim matrices, which involves merging and symmetrizing.
      */
@@ -47,22 +54,46 @@ public class MatrixReaders {
         logger.info("Finished processing car skims.");
     }
 
-    /**
-     * Reads all PT-related skims, which are direct 1-to-1 mappings from the file.
-     */
     public static void readPTSkims(String filePath, Matrices matrices) {
-        logger.info("Reading PT skims from file: {}", filePath);
+        logger.info("Reading and processing PT skims from file: {}", filePath);
         Map<String, FloatMatrix<Id<Zone>>> skimDict = OmxUtils.readOmxMatrices(filePath);
-        addSimpleMatrices(skimDict, matrices, new MatrixDefinition[]{
-                MatrixNames.TravelMetricsMatrices.ACCESS_TIMES,
-                MatrixNames.TravelMetricsMatrices.EGRESS_TIMES,
-                MatrixNames.TravelMetricsMatrices.FREQUENCIES,
-                MatrixNames.TravelMetricsMatrices.TRAIN_TRAVELTIME_SHARES,
-                MatrixNames.TravelMetricsMatrices.TRANSFER_COUNTS,
-                MatrixNames.TravelMetricsMatrices.TRAVEL_TIMES,
-                MatrixNames.TravelMetricsMatrices.BEELINE_DISTANCES
-        });
-        logger.info("Finished reading PT skims.");
+
+        // 1. Get all raw matrices
+        FloatMatrix<Id<Zone>> rawAccess = Objects.requireNonNull(skimDict.get(PT_ACCESS_TIMES), "Matrix not found: " + PT_ACCESS_TIMES);
+        FloatMatrix<Id<Zone>> rawEgress = Objects.requireNonNull(skimDict.get(PT_EGRESS_TIMES), "Matrix not found: " + PT_EGRESS_TIMES);
+        FloatMatrix<Id<Zone>> rawTravelTimes = Objects.requireNonNull(skimDict.get(PT_TRAVEL_TIMES), "Matrix not found: " + PT_TRAVEL_TIMES);
+        FloatMatrix<Id<Zone>> rawTrainShare = Objects.requireNonNull(skimDict.get(PT_TRAIN_SHARE), "Matrix not found: " + PT_TRAIN_SHARE);
+        FloatMatrix<Id<Zone>> rawFrequencies = Objects.requireNonNull(skimDict.get(PT_FREQUENCIES), "Matrix not found: " + PT_FREQUENCIES);
+        FloatMatrix<Id<Zone>> rawTransfers = Objects.requireNonNull(skimDict.get(PT_TRANSFERS), "Matrix not found: " + PT_TRANSFERS);
+
+        // 2. Process Transfers, Frequencies, and Total Travel Time (simple symmetrization)
+        logger.info("Processing PT transfers, frequencies, and total travel time...");
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRANSFERS.name(), MatrixUtils.getSymmetricMatrix(rawTransfers));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_FREQUENCY.name(), MatrixUtils.getSymmetricMatrix(rawFrequencies));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TOTAL.name(), MatrixUtils.getSymmetricMatrix(rawTravelTimes));
+
+        // 3. Process Train vs. Local Travel Times
+        logger.info("Processing train and local PT travel times...");
+        FloatMatrix<Id<Zone>> cleanedTrainShare = MatrixUtils.transform(rawTrainShare, v -> (v == MatrixUtils.DEFAULT_SKIM_ENTRY) ? 0.0f : v);
+        FloatMatrix<Id<Zone>> trainTtRaw = MatrixUtils.merge(rawTravelTimes, cleanedTrainShare, (tt, share) -> tt * share);
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TRAIN.name(), MatrixUtils.getSymmetricMatrix(trainTtRaw));
+        FloatMatrix<Id<Zone>> nonTrainShare = MatrixUtils.transform(cleanedTrainShare, v -> 1.0f - v);
+        FloatMatrix<Id<Zone>> localTtRaw = MatrixUtils.merge(rawTravelTimes, nonTrainShare, (tt, share) -> tt * share);
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_LOCAL.name(), MatrixUtils.getSymmetricMatrix(localTtRaw));
+
+        // 4. Process Access and Egress Times
+        logger.info("Processing PT access and egress times...");
+        // Transpose using the utility class
+        FloatMatrix<Id<Zone>> egressTransposed = MatrixUtils.transpose(rawEgress);
+        FloatMatrix<Id<Zone>> accessTransposed = MatrixUtils.transpose(rawAccess);
+
+        FloatMatrix<Id<Zone>> accessIntermediate = MatrixUtils.mergeByAverage(rawAccess, egressTransposed);
+        FloatMatrix<Id<Zone>> egressIntermediate = MatrixUtils.mergeByAverage(rawEgress, accessTransposed);
+
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_ACCESS_TIME.name(), MatrixUtils.getSymmetricMatrix(accessIntermediate));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_EGRESS_TIME.name(), MatrixUtils.getSymmetricMatrix(egressIntermediate));
+
+        logger.info("Finished processing PT skims.");
     }
 
     /**

@@ -128,4 +128,23 @@ public final class MatrixUtils {
     public static <T> FloatMatrix<T> getSymmetricMatrix(FloatMatrix<T> matrix) {
         return getSymmetricMatrix(matrix, DEFAULT_SKIM_ENTRY);
     }
+
+    /**
+     * Creates and returns a new matrix that is the transpose of the input matrix.
+     * The value at (i, j) in the new matrix will be the value at (j, i) in the original.
+     *
+     * @param matrix The matrix to transpose.
+     * @param <T>    The identifier type of the matrix.
+     * @return A new, transposed FloatMatrix.
+     */
+    public static <T> FloatMatrix<T> transpose(FloatMatrix<T> matrix) {
+        Set<T> ids = matrix.getIdentifiers();
+        FloatMatrix<T> transposed = FloatMatrix.createFloatMatrix(ids, 0.0f);
+        for (T from : ids) {
+            for (T to : ids) {
+                transposed.set(to, from, matrix.get(from, to));
+            }
+        }
+        return transposed;
+    }
 }

@@ -40,6 +40,8 @@ public class Variables {
     public static final String HTA = "HTA";
     public static final String HTV = "HTV";
 
+    public static final String MATRICES = "matrices";
+
     public enum PTSubscriptionType {
         NONE("NONE"),
         GA("GA"),

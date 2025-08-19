@@ -35,7 +35,9 @@ public class ExpressionEvaluator {
     public double evaluate(String formulaString, Map<String, Double> variableData) {
         // Find all variables needed for this specific formula
         Set<String> requiredVariables = new HashSet<>();
-        Pattern pattern = Pattern.compile("(matrix_\\d+|from_acc_car|to_acc_car|to_pc_car)"); // Expanded to include new variables
+        final Pattern pattern = Pattern.compile(
+                "(matrix_\\w+|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride)"
+        );
         Matcher matcher = pattern.matcher(formulaString);
         while (matcher.find()) {
             requiredVariables.add(matcher.group());

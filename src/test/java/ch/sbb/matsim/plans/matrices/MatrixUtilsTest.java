@@ -53,5 +53,20 @@ class MatrixUtilsTest {
         FloatMatrix<String> m2 = FloatMatrix.createFloatMatrix(idsB, 2.0f);
         assertThrows(IllegalArgumentException.class, () -> MatrixUtils.merge(m1, m2, Float::sum));
     }
-}
 
+    @Test
+    void testTranspose() {
+        Set<String> ids = new HashSet<>();
+        ids.add("A");
+        ids.add("B");
+        FloatMatrix<String> matrix = FloatMatrix.createFloatMatrix(ids, 0.0f);
+        matrix.set("A", "B", 5.0f);
+        matrix.set("B", "A", 7.0f);
+        FloatMatrix<String> transposed = MatrixUtils.transpose(matrix);
+        assertEquals(5.0f, transposed.get("B", "A"), "Transposed value should match original");
+        assertEquals(7.0f, transposed.get("A", "B"), "Transposed value should match original");
+        // Diagonal should remain the same
+        assertEquals(matrix.get("A", "A"), transposed.get("A", "A"));
+        assertEquals(matrix.get("B", "B"), transposed.get("B", "B"));
+    }
+}

@@ -32,18 +32,19 @@ public class MatrixNames {
     }
 
     public enum TravelMetricsMatrices implements MatrixDefinition {
-        // --- Processed Matrices (don't have a single direct file key) ---
+        // --- Processed Car Matrices ---
         CAR_NET_DISTANCE(null),
         CAR_TRAVEL_TIMES(null),
 
-        // --- Matrices with a direct 1-to-1 mapping from file ---
-        BEELINE_DISTANCES("beeline_distances"),
-        ACCESS_TIMES("access_times"),
-        EGRESS_TIMES("egress_times"),
-        FREQUENCIES("frequencies"),
-        TRAIN_TRAVELTIME_SHARES("train_traveltime_shares"),
-        TRANSFER_COUNTS("transfer_counts"),
-        TRAVEL_TIMES("travel_times");
+        // --- Processed PT Matrices ---
+        PT_TRAVEL_TIMES_TOTAL(null), // The main travel time, symmetrized
+        PT_TRAVEL_TIMES_TRAIN(null), // Derived train-only travel time
+        PT_TRAVEL_TIMES_LOCAL(null), // Derived non-train travel time
+        PT_ACCESS_TIME(null),        // Symmetrized and averaged
+        PT_EGRESS_TIME(null),        // Symmetrized and averaged
+        PT_TRANSFERS(null),          // Symmetrized
+        PT_FREQUENCY(null);          // Symmetrized
+
 
         private final String fileKey;
 
