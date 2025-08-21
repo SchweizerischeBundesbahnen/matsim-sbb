@@ -2,47 +2,57 @@ package ch.sbb.matsim.plans.models.config;
 
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 
 public class PrimaryLocationChoiceConfig {
 
-    private final Set<PrimaryLocationChoiceConfigRecord> primaryLocationChoiceConfigs;
+    private final Set<ActivityConfigRecord> primaryLocationChoiceConfigs;
 
-    /**
-     * Constructor for PrimaryLocationChoiceConfig.
-     *
-     * @param primaryLocationChoiceConfigs Set of PrimaryLocationChoiceConfigRecord containing configurations for each activity type.
-     */
-    public PrimaryLocationChoiceConfig(Set<PrimaryLocationChoiceConfigRecord> primaryLocationChoiceConfigs) {
+    public PrimaryLocationChoiceConfig(Set<ActivityConfigRecord> primaryLocationChoiceConfigs) {
         this.primaryLocationChoiceConfigs = primaryLocationChoiceConfigs;
-
     }
 
-    public Set<PrimaryLocationChoiceConfigRecord> getPrimaryLocationChoiceConfigs() {
+    public static PrimaryLocationChoiceConfig readFromYamlFile(String filePath) throws IOException {
+        ObjectMapper mapper = new YAMLMapper();
+        return mapper.readValue(new File(filePath), PrimaryLocationChoiceConfig.class);
+    }
+
+    public Set<ActivityConfigRecord> getPrimaryLocationChoiceConfigs() {
         return primaryLocationChoiceConfigs;
     }
 
-    /**
-     * A configuration record that holds all the specific details for running the
-     * primary location choice model for a single activity type (e.g., "work").
-     *
-     * @param activityName              The name of the activity (e.g., "work", "education").
-     * @param relevantStrata            The set of DecisionStrata that apply to this activity.
-     * @param attractionAttributeName   The name of the ZonalAttribute to use for attraction (e.g., "jobs_total").
-     * @param personResultAttributeName The name of the PersonAttribute where the chosen zone ID will be stored.
-     * @param ipfIterations             Number of IPF Iteration
-     * @param kalifMatrixName           Name of the kalif correction matrix
-     */
-    record PrimaryLocationChoiceConfigRecord(
+    public record ActivityConfigRecord(
             String activityName,
-            Set<DecisionStrata> relevantStrata,
-            String attractionAttributeName,
             String personResultAttributeName,
-            int ipfIterations,
-            MatrixNames.KalifMatrices kalifMatrixName
+            Map<DecisionStrata, StrataConfigRecord> strataConfigs
     ) {
     }
+
+    /**
+     * A detailed configuration record holding all parameters specific to a SINGLE DecisionStrata.
+     * The matrixFactor is a Double object to allow it to be null when omitted from the YAML.
+     */
+    public record StrataConfigRecord(
+            String attractionAttributeName,
+            MatrixNames.KalifMatrices kalifMatrixName,
+            int ipfIterations,
+            Double matrixFactor
+    ) {
+        /**
+         * A convenience getter that provides a default value for the matrix factor.
+         * If matrixFactor is not specified in the YAML, it will be null, and we return 1.0.
+         * Otherwise, we return the specified value.
+         *
+         * @return The matrix factor, defaulting to 1.0.
+         */
+        public double getMatrixFactor() {
+            return matrixFactor == null ? 1.0 : matrixFactor;
+        }
+    }
 }
-
-

@@ -4,7 +4,6 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.matrices.Matrices;
-import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.PrimaryLocationChoiceConfig;
 import ch.sbb.matsim.plans.models.formulas.FormulaRepository;
 import ch.sbb.matsim.plans.models.utils.ChoiceUtils;
@@ -13,139 +12,147 @@ import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Person;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class PrimaryLocationChoiceModel {
 
     private final Scenario scenario;
-    private final Set<DecisionStrata> longTermStrataWork = Set.of(
-            DecisionStrata.PRIMLOC_EMPL_NOABO_CAR,
-            DecisionStrata.PRIMLOC_EMPL_GA_CAR,
-            DecisionStrata.PRIMLOC_EMPL_VA_CAR,
-            DecisionStrata.PRIMLOC_EMPL_NOABO_NOCAR,
-            DecisionStrata.PRIMLOC_EMPL_GA_NOCAR,
-            DecisionStrata.PRIMLOC_EMPL_VA_NOCAR
-    );
     private final Zones zones;
-    private static final double BETA_ATTRACTION = 1.0;
-    private static final double BETA_LOGSUM = -1.0; // The negative sign matches the Python code (log(attr) - logsum)
     private final Matrices matrices;
+    // Model parameters are kept here
+    private static final double BETA_ATTRACTION = 1.0;
     private final FormulaRepository formulaRepository;
     private final ExpressionEvaluator expressionEvaluator;
     private final PrimaryLocationChoiceConfig primaryLocationChoiceConfig;
+    private static final double BETA_LOGSUM = -1.0;
+    private final StrataPredicateFactory strataPredicateFactory;
+    private final Logger logger = LogManager.getLogger(PrimaryLocationChoiceModel.class);
 
     public PrimaryLocationChoiceModel(Scenario scenario) {
         this.scenario = scenario;
         this.zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
         this.matrices = (Matrices) scenario.getScenarioElement(Variables.MATRICES);
         this.formulaRepository = (FormulaRepository) scenario.getScenarioElement("modeImpedanceFormulas");
+        this.primaryLocationChoiceConfig = (PrimaryLocationChoiceConfig) scenario.getScenarioElement("primaryLocationChoiceConfig"); // Store the config passed in
+        this.strataPredicateFactory = new StrataPredicateFactory();
         this.expressionEvaluator = new ExpressionEvaluator();
-        this.primaryLocationChoiceConfig = (PrimaryLocationChoiceConfig) scenario.getScenarioElement("primaryLocationChoiceConfig");
     }
 
     public void run() {
-        StrataPredicateFactory strataPredicateFactory = new StrataPredicateFactory();
-        //1 sort persons by strata
-        for (DecisionStrata strata : longTermStrataWork) {
+        // This top-level loop remains the same
+        for (PrimaryLocationChoiceConfig.ActivityConfigRecord activityConfig : primaryLocationChoiceConfig.getPrimaryLocationChoiceConfigs()) {
+            runForActivity(activityConfig);
+        }
+    }
+
+    /**
+     * Executes the location choice model for a single activity configuration record.
+     *
+     * @param activityConfig The configuration specifying which strata, attributes, etc., to use.
+     */
+    private void runForActivity(PrimaryLocationChoiceConfig.ActivityConfigRecord activityConfig) {
+        logger.info("Running primary location choice for activity: " + activityConfig.activityName());
+        for (Map.Entry<DecisionStrata, PrimaryLocationChoiceConfig.StrataConfigRecord> strataEntry : activityConfig.strataConfigs().entrySet()) {
+            DecisionStrata strata = strataEntry.getKey();
+            PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig = strataEntry.getValue();
             var strataPredicate = strataPredicateFactory.getPredicate(strata);
-            //2 sort persons by zone
             var personsPerZone = scenario.getPopulation().getPersons().values().stream()
                     .filter(strataPredicate)
                     .collect(Collectors.groupingBy(
                             person -> Id.create(person.getAttributes().getAttribute(SynpopConstants.ZONE_ID).toString(), Zone.class))
                     );
-            final Map<String, String> modeFormulas = formulaRepository.getModeFormulas("work", strata);
-            //3 for each strata and zone, calculate the primary location choice probabilities
+
+            if (personsPerZone.isEmpty()) {
+                continue; // No persons in this strata, move to the next
+            }
+
+            final Map<String, String> modeFormulas = formulaRepository.getModeFormulas(activityConfig.activityName(), strata);
+            final String attractionAttribute = strataConfig.attractionAttributeName();
             for (var entry : personsPerZone.entrySet()) {
-                Id<Zone> zoneId = entry.getKey();
-                var personsInZone = entry.getValue();
-                Zone homeZone = zones.getZone(zoneId);
+                Id<Zone> homeZoneId = entry.getKey();
+                List<? extends Person> personsInZone = entry.getValue();
+                Zone homeZone = zones.getZone(homeZoneId);
 
-                Map<Id<Zone>, Double> destinationUtilities = new HashMap<>();
-                double totalUtilityExp = 0.0;
+                Map<Id<Zone>, Double> destinationProbabilities = calculateDestinationProbabilities(homeZone, modeFormulas, strataConfig);
 
-                for (Zone destinationZone : zones.getZones()) {
-                    var travelMetrics = matrices.getTravelMetrics(homeZone.getId(), destinationZone.getId());
-                    travelMetrics.put("from_acc_car", (Double) homeZone.getAttribute(ZonalAttributes.AT_CAR));
-                    travelMetrics.put("to_acc_car", (Double) destinationZone.getAttribute(ZonalAttributes.AT_CAR));
-                    travelMetrics.put("to_pc_car", (Double) destinationZone.getAttribute(ZonalAttributes.PC_CAR));
-                    travelMetrics.put("from_acc_ride", (Double) homeZone.getAttribute(ZonalAttributes.AT_RIDE));
-                    travelMetrics.put("to_acc_ride", (Double) destinationZone.getAttribute(ZonalAttributes.AT_RIDE));
-                    travelMetrics.put("to_pc_ride", (Double) destinationZone.getAttribute(ZonalAttributes.PC_RIDE));
-
-                    //calc zone-to-zone probabilities based on demand strata function
-                    double logsum = calculateLogsum(modeFormulas, travelMetrics);
-                    double kalif_ASC = matrices.getKalifMatrix(MatrixNames.KalifMatrices.KALIF_WORK).get(homeZone.getId(), destinationZone.getId());
-                    double attraction = (Double) destinationZone.getAttribute(ZonalAttributes.JOBS_TOTAL);
-                    // Skip zones with no attraction, as log(0) is undefined.
-                    if (attraction <= 0) {
-                        continue;
-                    }
-                    double utility = kalif_ASC + BETA_ATTRACTION * Math.log(attraction) + BETA_LOGSUM * logsum;
-                    destinationUtilities.put(destinationZone.getId(), utility);
-                    totalUtilityExp += Math.exp(utility);
-                }
-                // If no valid destinations were found, skip this group
-                if (totalUtilityExp == 0.0) {
-                    System.out.println("No valid destinations found for zone: " + zoneId + " in strata: " + strata);
+                if (destinationProbabilities.isEmpty()) {
+                    logger.warn("No valid destinations found for zone: " + homeZoneId + " in strata: " + strata);
                     continue;
                 }
-                // --- Step 3c: Convert utilities to probabilities (Softmax) ---
-                Map<Id<Zone>, Double> destinationProbabilities = new HashMap<>();
-                for (Map.Entry<Id<Zone>, Double> utilEntry : destinationUtilities.entrySet()) {
-                    double probability = Math.exp(utilEntry.getValue()) / totalUtilityExp;
-                    destinationProbabilities.put(utilEntry.getKey(), probability);
-                }
 
-
-                //4 for each person in this zone, select a primary location based on the probabilities
                 for (var person : personsInZone) {
-                    Id<Zone> chosenWorkZoneId = ChoiceUtils.selectFromProbabilities(destinationProbabilities);
-
-                    // 5. Assign the selected primary location to the person
-                    // This involves selecting a specific facility within the chosen zone, which is the next step.
-                    // For now, we can store the chosen zone ID as a placeholder.
-                    if (chosenWorkZoneId != null) {
-                        person.getAttributes().putAttribute("work_zone_no", chosenWorkZoneId.toString());
+                    Id<Zone> chosenZoneId = ChoiceUtils.selectFromProbabilities(destinationProbabilities);
+                    if (chosenZoneId != null) {
+                        // The result attribute is now correctly read from the config
+                        person.getAttributes().putAttribute(activityConfig.personResultAttributeName(), chosenZoneId.toString());
                     }
                 }
             }
-            //5 assign the selected primary location to the person as a facility
         }
-
     }
 
     /**
-     * Calculates the logsum for a given OD pair by evaluating all mode utilities.
-     * The logsum represents the combined "utility of travel" considering all available modes.
-     * Logsum = log( exp(U_car) + exp(U_pt) + ... )
+     * Calculates probabilities, now guided by the detailed StrataConfigRecord.
+     */
+    private Map<Id<Zone>, Double> calculateDestinationProbabilities(Zone homeZone, Map<String, String> modeFormulas, PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig) {
+        Map<Id<Zone>, Double> destinationUtilities = new HashMap<>();
+        double totalUtilityExp = 0.0;
+
+        for (Zone destinationZone : zones.getZones()) {
+            double attraction = (Double) destinationZone.getAttribute(strataConfig.attractionAttributeName());
+            if (attraction <= 0) continue;
+
+            var travelMetrics = getTravelAndAccessibilityMetrics(homeZone, destinationZone);
+            double logsum = calculateLogsum(modeFormulas, travelMetrics);
+
+            double kalif_ASC = matrices.getKalifMatrix(strataConfig.kalifMatrixName()).get(homeZone.getId(), destinationZone.getId());
+            double matrixFactor = strataConfig.getMatrixFactor();
+            double utility = (kalif_ASC * matrixFactor) + BETA_ATTRACTION * Math.log(attraction) + BETA_LOGSUM * logsum;
+            destinationUtilities.put(destinationZone.getId(), utility);
+            totalUtilityExp += Math.exp(utility);
+        }
+
+        if (totalUtilityExp == 0.0) return Map.of();
+        Map<Id<Zone>, Double> destinationProbabilities = new HashMap<>();
+        for (Map.Entry<Id<Zone>, Double> utilEntry : destinationUtilities.entrySet()) {
+            destinationProbabilities.put(utilEntry.getKey(), Math.exp(utilEntry.getValue()) / totalUtilityExp);
+        }
+        return destinationProbabilities;
+    }
+
+    /**
+     * Gathers all necessary travel time and accessibility metrics for an OD pair.
+     */
+    private Map<String, Double> getTravelAndAccessibilityMetrics(Zone origin, Zone destination) {
+        var travelMetrics = matrices.getTravelMetrics(origin.getId(), destination.getId());
+        travelMetrics.put("from_acc_car", (Double) origin.getAttribute(ZonalAttributes.AT_CAR));
+        travelMetrics.put("to_acc_car", (Double) destination.getAttribute(ZonalAttributes.AT_CAR));
+        travelMetrics.put("to_pc_car", (Double) destination.getAttribute(ZonalAttributes.PC_CAR));
+        travelMetrics.put("from_acc_ride", (Double) origin.getAttribute(ZonalAttributes.AT_RIDE));
+        travelMetrics.put("to_acc_ride", (Double) destination.getAttribute(ZonalAttributes.AT_RIDE));
+        travelMetrics.put("to_pc_ride", (Double) destination.getAttribute(ZonalAttributes.PC_RIDE));
+        return travelMetrics;
+    }
+
+    /**
+     * Calculates the logsum for a given OD pair.
      */
     private double calculateLogsum(Map<String, String> modeFormulas, Map<String, Double> travelMetrics) {
         double sumOfExponentials = 0.0;
-
         for (String formula : modeFormulas.values()) {
-            // Your CSV uses -9999 for unavailable modes. We must handle this.
-            if (formula.trim().equals("-9999")) {
-                continue;
-            }
+            if (formula.trim().equals("-9999")) continue;
             double modeUtility = expressionEvaluator.evaluate(formula, travelMetrics);
             sumOfExponentials += Math.exp(modeUtility);
         }
-
-        // If no modes were available, the logsum is effectively negative infinity.
-        // Return a very small number to avoid Math.log(0).
-        if (sumOfExponentials == 0.0) {
-            return -Double.MAX_VALUE;
-        }
-
-        return Math.log(sumOfExponentials);
+        return sumOfExponentials == 0.0 ? -Double.MAX_VALUE : Math.log(sumOfExponentials);
     }
-
-
 }
