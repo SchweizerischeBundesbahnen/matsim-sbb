@@ -48,7 +48,6 @@ public class PrimaryLocationChoiceModel {
     }
 
     public void run() {
-        // This top-level loop remains the same
         for (PrimaryLocationChoiceConfig.ActivityConfigRecord activityConfig : primaryLocationChoiceConfig.getPrimaryLocationChoiceConfigs()) {
             runForActivity(activityConfig);
         }
@@ -76,7 +75,6 @@ public class PrimaryLocationChoiceModel {
             }
 
             final Map<String, String> modeFormulas = formulaRepository.getModeFormulas(activityConfig.activityName(), strata);
-            final String attractionAttribute = strataConfig.attractionAttributeName();
             for (var entry : personsPerZone.entrySet()) {
                 Id<Zone> homeZoneId = entry.getKey();
                 List<? extends Person> personsInZone = entry.getValue();

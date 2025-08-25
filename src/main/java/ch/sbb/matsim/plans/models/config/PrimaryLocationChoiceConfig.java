@@ -2,6 +2,8 @@ package ch.sbb.matsim.plans.models.config;
 
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
@@ -14,9 +16,18 @@ public class PrimaryLocationChoiceConfig {
 
     private final Set<ActivityConfigRecord> primaryLocationChoiceConfigs;
 
-    public PrimaryLocationChoiceConfig(Set<ActivityConfigRecord> primaryLocationChoiceConfigs) {
+
+    /**
+     * Constructor for PrimaryLocationChoiceConfig for Jackson deserialization.
+     * The @JsonProperty annotation links the YAML key to the constructor argument.
+     */
+    @JsonCreator
+    public PrimaryLocationChoiceConfig(
+            @JsonProperty("primaryLocationChoiceConfigs") Set<ActivityConfigRecord> primaryLocationChoiceConfigs
+    ) {
         this.primaryLocationChoiceConfigs = primaryLocationChoiceConfigs;
     }
+
 
     public static PrimaryLocationChoiceConfig readFromYamlFile(String filePath) throws IOException {
         ObjectMapper mapper = new YAMLMapper();

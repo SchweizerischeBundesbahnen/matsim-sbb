@@ -143,13 +143,6 @@ public class RunMobilityTools {
         SynPopUtils.setCarAvailableForPopulation(scenario);
         SynPopUtils.aggregateMobilityToolsPerZone(scenario);
         ZoneGeoPackageWriter.writeAttributesToCSV(zones, folder + "zones_2022" + suffix + "_attributes.csv");
-
-//        writeAttributesToCSV(scenario.getHouseholds().getHouseholds().values(), List.of(SynpopConstants.NB_OF_ADULTS, SynpopConstants.NB_OF_KIDS, SynpopConstants.NB_OF_CARS, SynpopConstants.NB_OF_DRIVING_LICENSES, SynpopConstants.NB_OF_DRIVING_LICENSES_PER_ADULT, SynpopConstants.LANGUAGE), folder + "households_2022" + suffix + "_attributes.csv");
-//        writeAttributesToCSV(scenario.getPopulation().getPersons().values(),
-//                List.of(SynpopConstants.HAS_DRIVING_LICENSE, SynpopConstants.AGE,
-//                        SynpopConstants.IS_SWISS,SynpopConstants.LEVEL_OF_EMPLOYMENT,
-//                        SynpopConstants.CURRENT_EDU,SynpopConstants.LANGUAGE,"household.couple_type","household.single_parent","household.size",
-//                        "household.nb_of_cars", "household.nb_of_cars_per_adult","zone.acc_car_sc","zone.acc_mul_sc","zone.acc_pt_sc","zone.sl3_id",Variables.PT_SUBSCRIPTION, SynpopConstants.HAS_EBIKE45, SynpopConstants.HIGHEST_EDUCATION ), "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_AI_attributes.csv");
     }
 
     /*
