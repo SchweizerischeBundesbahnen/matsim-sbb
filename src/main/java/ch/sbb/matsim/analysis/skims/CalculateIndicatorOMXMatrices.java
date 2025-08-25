@@ -39,7 +39,12 @@ public class CalculateIndicatorOMXMatrices {
         String outputDirectory = args[4];
         int numberOfThreads = Integer.valueOf(args[5]);
         boolean detectTrainLines = Boolean.parseBoolean(args[6]);
-
+        if (eventsFilename != null) {
+            System.out.println("Using events file: " + eventsFilename);
+            if (!eventsFilename.contains("events.xml")) {
+                throw new RuntimeException("Events file should be an events.xml file!");
+            }
+        }
         System.out.println("Detecting train lines: " + detectTrainLines);
         BiPredicate<TransitLine, TransitRoute> trainLinePredictor = detectTrainLines ?
                 (line, route) -> route.getTransportMode().equals(SBBModes.PTSubModes.RAIL) :
