@@ -1,13 +1,10 @@
 package ch.sbb.matsim.plans.models.formulas;
 
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,22 +12,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FormulaRepository {
     public static final String ACTID = "actid";
     public static final String DSTRAT = "dstrat";
-    // The key is now our new CompositeFormulaKey
     private final Map<CompositeFormulaKey, Map<String, String>> formulaStore = new ConcurrentHashMap<>();
 
     public FormulaRepository(String filePath) {
-        // Use semicolon as a delimiter
-        CSVFormat format = CSVFormat.DEFAULT.builder()
-                .setDelimiter(';')
-                .setHeader()
-                .setSkipHeaderRecord(true)
-                .build();
-
-        try (Reader reader = new FileReader(filePath);
-             CSVParser csvParser = new CSVParser(reader, format)) {
-
-            for (CSVRecord record : csvParser) {
-                // Use the enums for type safety
+        try (CSVReader csvReader = new CSVReader(filePath, ";")) {
+            Map<String, String> record;
+            while ((record = csvReader.readLine()) != null) {
                 String activity = record.get(ACTID);
                 DecisionStrata strata = DecisionStrata.fromStrataName(record.get(DSTRAT));
                 CompositeFormulaKey key = new CompositeFormulaKey(activity, strata);
@@ -41,7 +28,7 @@ public class FormulaRepository {
                 }
                 formulaStore.put(key, modeFormulas);
             }
-        } catch (Exception e) {
+        } catch (IOException e) { // CSVReader throws IOException
             throw new RuntimeException("Failed to load formula file: " + filePath, e);
         }
     }
