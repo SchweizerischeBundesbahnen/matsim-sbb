@@ -23,11 +23,11 @@ public class ZoneGeoPackageWriter {
 
     public static final String GEOMETRY = "geometry";
 
-    public static void writeGeoPackage(Zones zones, String outputFile) throws Exception {
+    public static void writeGeoPackage(Zones zones, String outputFile) {
         writeGeoPackage(zones, outputFile, 2056); // Default EPSG code for CH1903+ / LV95
     }
 
-    public static void writeGeoPackage(Zones zones, String outputFile, int epsg) throws Exception {
+    public static void writeGeoPackage(Zones zones, String outputFile, int epsg) {
         if (zones == null || zones.getZones() == null || zones.getZones().isEmpty()) {
             LogManager.getLogger(ZoneGeoPackageWriter.class).error("No zones to write to GeoPackage.");
         }
@@ -40,14 +40,16 @@ public class ZoneGeoPackageWriter {
         File file = new File(outputFile);
         String zonesName = file.getName().substring(0, file.getName().lastIndexOf('.'));
         System.out.println(zonesName);
-        DefaultFeatureCollection defaultFeatureCollection = buildFeatureCollectionFromAttributes(sfZones, epsg, zonesName);
         try (GeoPackage geoPackage = new GeoPackage(file)) {
+            DefaultFeatureCollection defaultFeatureCollection = buildFeatureCollectionFromAttributes(sfZones, epsg, zonesName);
             geoPackage.init();
             FeatureEntry featureEntry = new FeatureEntry();
             featureEntry.setTableName(zonesName);
             featureEntry.setSrid(epsg);
             featureEntry.setGeometryColumn(GEOMETRY);
             geoPackage.add(featureEntry, defaultFeatureCollection);
+        } catch (IOException | FactoryException e) {
+            LogManager.getLogger(ZoneGeoPackageWriter.class).error("Error writing zones to GeoPackage: " + e.getMessage(), e);
         }
     }
 
