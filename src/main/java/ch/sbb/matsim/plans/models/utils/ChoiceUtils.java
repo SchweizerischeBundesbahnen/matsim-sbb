@@ -5,8 +5,6 @@ import java.util.Random;
 
 public final class ChoiceUtils {
 
-    private static final Random random = new Random();
-
     /**
      * Private constructor to prevent instantiation.
      */
@@ -21,7 +19,7 @@ public final class ChoiceUtils {
      * @param <T>           The type of item to choose.
      * @return The chosen item, or null if the map is empty.
      */
-    public static <T> T selectFromProbabilities(Map<T, Double> probabilities) {
+    public static <T> T selectFromProbabilities(Map<T, Double> probabilities, Random random) {
         if (probabilities == null || probabilities.isEmpty()) {
             return null;
         }
