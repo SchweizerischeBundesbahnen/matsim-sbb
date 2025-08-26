@@ -17,6 +17,7 @@ import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.households.HouseholdsReaderV10;
+import org.matsim.households.HouseholdsWriterV10;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
 import java.io.File;
@@ -141,7 +142,9 @@ public class RunMobilityTools {
         SynPopUtils.setCarAvailableForPopulation(scenario);
         SynPopUtils.aggregateMobilityToolsPerZone(scenario);
         ZoneGeoPackageWriter.writeAttributesToCSV(zones, outputFolder + "zones_2022" + suffix + "_attributes.csv");
+        ZoneGeoPackageWriter.writeGeoPackage(zones, outputFolder + "zones_2022" + suffix + "_with_mobilitytools.gpkg");
         new PopulationWriter(scenario.getPopulation()).write(outputFolder + "persons_2022" + suffix + "_with_mobilitytools.xml.gz");
+        new HouseholdsWriterV10(scenario.getHouseholds()).writeFile(outputFolder + "households_2022" + suffix + "_with_mobilitytools.xml.gz");
     }
 
     /*
