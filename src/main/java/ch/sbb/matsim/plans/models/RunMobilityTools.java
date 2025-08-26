@@ -14,10 +14,12 @@ import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.households.HouseholdsReaderV10;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -29,20 +31,22 @@ public class RunMobilityTools {
     public static void main(String[] args) {
         var logger = LogManager.getLogger(RunMobilityTools.class);
 
-        String folder = "Y:\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
-//        String folder = "C:\\devsbb\\tmp\\synpop_2022\\";
-        String suffix = ""; //whole population
+        String inputFolder = "Y:\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
+        String outputFolder = inputFolder + "output\\";
+        new File(outputFolder).mkdirs();
+//        String inputFolder = "C:\\devsbb\\tmp\\synpop_2022\\";
+//        String suffix = ""; //whole population
 //        String suffix = "_Bern"; //City of Bern
-//        String suffix = "_AI"; //Appenzell Inner Rhodes
+        String suffix = "_AI"; //Appenzell Inner Rhodes
         String modelFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        Zones zones = ZonesLoader.loadZones("zones", folder + "35_kalif_secondary.mobi-zones.shp");
+        Zones zones = ZonesLoader.loadZones("zones", inputFolder + "35_kalif_secondary.mobi-zones.shp");
         addAdditionalAttributes(zones);
         scenario.addScenarioElement(Variables.ZONES, zones);
-        new PopulationReader(scenario).readFile(folder + "persons_2022" + suffix + ".xml.gz");
-        new HouseholdsReaderV10(scenario.getHouseholds()).readFile(folder + "households_2022" + suffix + ".xml.gz");
-        readEducationDistances(scenario, folder + "net-dist-school-run35.csv");
+        new PopulationReader(scenario).readFile(inputFolder + "persons_2022" + suffix + ".xml.gz");
+        new HouseholdsReaderV10(scenario.getHouseholds()).readFile(inputFolder + "households_2022" + suffix + ".xml.gz");
+        readEducationDistances(scenario, inputFolder + "net-dist-school-run35.csv");
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
         SynPopUtils.calculateHouseHoldCompositions(scenario);
@@ -119,13 +123,7 @@ public class RunMobilityTools {
                 }
         );
         logger.info("Finished public transport subscription calculation.");
-//
-//        logger.info("Starting ebike posession calculation...");
-//        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-//        Configuration config = ctx.getConfiguration();
-//        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-//        loggerConfig.setLevel(Level.DEBUG);
-//        ctx.updateLoggers();
+
         scenario.getPopulation().getPersons().values().parallelStream()
                 .forEach(
                         person -> {
@@ -142,7 +140,8 @@ public class RunMobilityTools {
 
         SynPopUtils.setCarAvailableForPopulation(scenario);
         SynPopUtils.aggregateMobilityToolsPerZone(scenario);
-        ZoneGeoPackageWriter.writeAttributesToCSV(zones, folder + "zones_2022" + suffix + "_attributes.csv");
+        ZoneGeoPackageWriter.writeAttributesToCSV(zones, outputFolder + "zones_2022" + suffix + "_attributes.csv");
+        new PopulationWriter(scenario.getPopulation()).write(outputFolder + "persons_2022" + suffix + "_with_mobilitytools.xml.gz");
     }
 
     /*
