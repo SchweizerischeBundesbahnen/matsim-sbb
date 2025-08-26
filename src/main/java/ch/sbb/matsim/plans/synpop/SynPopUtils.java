@@ -193,6 +193,35 @@ public class SynPopUtils {
         LogManager.getLogger(SynPopUtils.class).info("Done. Aggregating mobility tools per zone.");
     }
 
+    public static void aggregatePrimaryLocationChoicePerZone(Scenario scenario) {
+        LogManager.getLogger(SynPopUtils.class).info("Aggregating primary location choices per zone...");
+        Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
+        Map<Id<Zone>, PrimaryLocationCount> zoneMap = zones.getZones().stream()
+                .collect(HashMap::new, (map, zone) -> map.put(zone.getId(), new PrimaryLocationCount()), HashMap::putAll);
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+            String workZoneNo = (String) person.getAttributes().getAttribute("work_zone_no");
+            String schoolZoneNo = (String) person.getAttributes().getAttribute("school_zone_no");
+            String zoneIdStr = (String) person.getAttributes().getAttribute(SynpopConstants.ZONE_ID);
+            if (zoneIdStr != null) {
+                Id<Zone> zoneId = Id.create(zoneIdStr, Zone.class);
+                PrimaryLocationCount count = zoneMap.get(zoneId);
+                if (workZoneNo != null) {
+                    count.workCount.incrementAndGet();
+                }
+                if (schoolZoneNo != null) {
+                    count.schoolCount.incrementAndGet();
+                }
+            }
+        }
+        for (Map.Entry<Id<Zone>, PrimaryLocationCount> entry : zoneMap.entrySet()) {
+            Zone zone = zones.getZone(entry.getKey());
+            PrimaryLocationCount count = entry.getValue();
+            zone.getAttributes().putAttribute("pop_work", count.workCount.get());
+            zone.getAttributes().putAttribute("pop_school", count.schoolCount.get());
+        }
+        LogManager.getLogger(SynPopUtils.class).info("Done. Aggregating primary location choices per zone.");
+    }
+
     record MobilityToolCount(AtomicInteger drivingLicenseCount, AtomicInteger ebikeCount,
                              AtomicInteger carAvailableCount, AtomicInteger carCount, AtomicInteger gaCount,
                              AtomicInteger htCount, AtomicInteger vaCount, AtomicInteger htvCount) {
@@ -227,8 +256,9 @@ public class SynPopUtils {
 
         }
     }
+
+    static class PrimaryLocationCount {
+        AtomicInteger workCount = new AtomicInteger();
+        AtomicInteger schoolCount = new AtomicInteger();
+    }
 }
-
-
-
-

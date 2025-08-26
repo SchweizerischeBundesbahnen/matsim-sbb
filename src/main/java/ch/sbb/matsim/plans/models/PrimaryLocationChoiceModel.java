@@ -4,12 +4,14 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.matrices.Matrices;
+import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.PrimaryLocationChoiceConfig;
 import ch.sbb.matsim.plans.models.formulas.FormulaRepository;
 import ch.sbb.matsim.plans.models.utils.ChoiceUtils;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
 import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import org.apache.logging.log4j.LogManager;
@@ -88,7 +90,7 @@ public class PrimaryLocationChoiceModel {
                 }
 
                 for (var person : personsInZone) {
-                    Id<Zone> chosenZoneId = ChoiceUtils.selectFromProbabilities(destinationProbabilities);
+                    Id<Zone> chosenZoneId = ChoiceUtils.selectFromProbabilities(destinationProbabilities, SynPopUtils.getRandom(person.getId(), getClass().getName()));
                     if (chosenZoneId != null) {
                         // The result attribute is now correctly read from the config
                         person.getAttributes().putAttribute(activityConfig.personResultAttributeName(), chosenZoneId.toString());
@@ -106,7 +108,7 @@ public class PrimaryLocationChoiceModel {
         double totalUtilityExp = 0.0;
 
         for (Zone destinationZone : zones.getZones()) {
-            double attraction = (Double) destinationZone.getAttribute(strataConfig.attractionAttributeName());
+            double attraction = ((Number) destinationZone.getAttribute(strataConfig.attractionAttributeName())).doubleValue();
             if (attraction <= 0) continue;
 
             var travelMetrics = getTravelAndAccessibilityMetrics(homeZone, destinationZone);
@@ -132,11 +134,12 @@ public class PrimaryLocationChoiceModel {
      */
     private Map<String, Double> getTravelAndAccessibilityMetrics(Zone origin, Zone destination) {
         var travelMetrics = matrices.getTravelMetrics(origin.getId(), destination.getId());
-        travelMetrics.put("from_acc_car", (Double) origin.getAttribute(ZonalAttributes.AT_CAR));
-        travelMetrics.put("to_acc_car", (Double) destination.getAttribute(ZonalAttributes.AT_CAR));
+        travelMetrics.put("va_impedances", Double.valueOf(matrices.getKalifMatrix(MatrixNames.KalifMatrices.VA_IMPEDANCES).get(origin.getId(), destination.getId())));
+        travelMetrics.put("from_acc_car", Double.valueOf((Integer) origin.getAttribute(ZonalAttributes.AT_CAR)));
+        travelMetrics.put("to_acc_car", Double.valueOf((Integer) destination.getAttribute(ZonalAttributes.AT_CAR)));
         travelMetrics.put("to_pc_car", (Double) destination.getAttribute(ZonalAttributes.PC_CAR));
-        travelMetrics.put("from_acc_ride", (Double) origin.getAttribute(ZonalAttributes.AT_RIDE));
-        travelMetrics.put("to_acc_ride", (Double) destination.getAttribute(ZonalAttributes.AT_RIDE));
+        travelMetrics.put("from_acc_ride", Double.valueOf((Integer) origin.getAttribute(ZonalAttributes.AT_RIDE)));
+        travelMetrics.put("to_acc_ride", Double.valueOf((Integer) destination.getAttribute(ZonalAttributes.AT_RIDE)));
         travelMetrics.put("to_pc_ride", (Double) destination.getAttribute(ZonalAttributes.PC_RIDE));
         return travelMetrics;
     }
@@ -148,6 +151,7 @@ public class PrimaryLocationChoiceModel {
         double sumOfExponentials = 0.0;
         for (String formula : modeFormulas.values()) {
             if (formula.trim().equals("-9999")) continue;
+            //System.out.println("Evaluating formula: " + formula + " with metrics: " + travelMetrics);
             double modeUtility = expressionEvaluator.evaluate(formula, travelMetrics);
             sumOfExponentials += Math.exp(modeUtility);
         }

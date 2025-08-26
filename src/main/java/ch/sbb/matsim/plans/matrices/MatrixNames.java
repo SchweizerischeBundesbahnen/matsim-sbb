@@ -12,12 +12,12 @@ interface MatrixDefinition {
 public class MatrixNames {
 
     public enum KalifMatrices implements MatrixDefinition {
-        KALIF_EDUCATION_PRIM("kalif_education_prim"),
-        KALIF_EDUCATION_SEC("kalif_education_sec"),
-        KALIF_WORK("kalif_work"),
-        KALIF_WORK_CB("kalif_work_cb"),
+        KALIF_EDUCATION_PRIM("Kalif_Education_Prim"),
+        KALIF_EDUCATION_SEC("Kalif_Education_Sec"),
+        KALIF_WORK("Kalif_Work"),
+        KALIF_WORK_CB("Kalif_Work_cb"),
         VA_IMPEDANCES("va_impedances"),
-        KALIF_SECONDARY_ACTS("kalif_secondary_acts");
+        KALIF_SECONDARY_ACTS("Kalif_Secondary_Acts");
 
         private final String fileKey;
 

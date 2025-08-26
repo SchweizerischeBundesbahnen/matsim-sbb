@@ -15,17 +15,17 @@ public class MatrixReaders {
     private static final Logger logger = LogManager.getLogger(MatrixReaders.class);
 
     // Define raw input matrix names as constants to avoid magic strings
-    private static final String AM_CAR_DISTANCES = "am_car_distances";
-    private static final String PM_CAR_DISTANCES = "pm_car_distances";
-    private static final String AM_CAR_TRAVEL_TIMES = "am_car_travel_times";
-    private static final String PM_CAR_TRAVEL_TIMES = "pm_car_travel_times";
+    private static final String AM_CAR_DISTANCES = "am_distances";
+    private static final String PM_CAR_DISTANCES = "pm_distances";
+    private static final String AM_CAR_TRAVEL_TIMES = "am_travel_times";
+    private static final String PM_CAR_TRAVEL_TIMES = "pm_travel_times";
 
-    private static final String PT_ACCESS_TIMES = "pt_access_times";
-    private static final String PT_EGRESS_TIMES = "pt_egress_times";
-    private static final String PT_TRAVEL_TIMES = "pt_travel_times";
-    private static final String PT_TRAIN_SHARE = "pt_train_traveltime_shares";
-    private static final String PT_FREQUENCIES = "pt_frequencies";
-    private static final String PT_TRANSFERS = "pt_transfer_counts";
+    private static final String PT_ACCESS_TIMES = "access_times";
+    private static final String PT_EGRESS_TIMES = "egress_times";
+    private static final String PT_TRAVEL_TIMES = "travel_times";
+    private static final String PT_TRAIN_SHARE = "train_traveltime_shares";
+    private static final String PT_FREQUENCIES = "frequencies";
+    private static final String PT_TRANSFERS = "transfer_counts";
 
     /**
      * Reads and processes car skim matrices, which involves merging and symmetrizing.
@@ -43,13 +43,13 @@ public class MatrixReaders {
         logger.info("Processing car travel times...");
         FloatMatrix<Id<Zone>> mergedTravelTimes = MatrixUtils.mergeByMaximum(amTravelTimes, pmTravelTimes);
         FloatMatrix<Id<Zone>> symmetricTravelTimes = MatrixUtils.getSymmetricMatrix(mergedTravelTimes);
-        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name(), symmetricTravelTimes);
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase(), symmetricTravelTimes);
 
         logger.info("Processing car network distances...");
         FloatMatrix<Id<Zone>> mergedDistances = MatrixUtils.mergeByMaximum(amDistances, pmDistances);
         FloatMatrix<Id<Zone>> distancesWithMin = MatrixUtils.applyLowerBound(mergedDistances, 300.0f);
         FloatMatrix<Id<Zone>> symmetricDistances = MatrixUtils.getSymmetricMatrix(distancesWithMin);
-        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name(), symmetricDistances);
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase(), symmetricDistances);
 
         logger.info("Finished processing car skims.");
     }
@@ -68,18 +68,18 @@ public class MatrixReaders {
 
         // 2. Process Transfers, Frequencies, and Total Travel Time (simple symmetrization)
         logger.info("Processing PT transfers, frequencies, and total travel time...");
-        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRANSFERS.name(), MatrixUtils.getSymmetricMatrix(rawTransfers));
-        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_FREQUENCY.name(), MatrixUtils.getSymmetricMatrix(rawFrequencies));
-        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TOTAL.name(), MatrixUtils.getSymmetricMatrix(rawTravelTimes));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRANSFERS.name().toLowerCase(), MatrixUtils.getSymmetricMatrix(rawTransfers));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_FREQUENCY.name().toLowerCase(), MatrixUtils.getSymmetricMatrix(rawFrequencies));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TOTAL.name().toLowerCase(), MatrixUtils.getSymmetricMatrix(rawTravelTimes));
 
         // 3. Process Train vs. Local Travel Times
         logger.info("Processing train and local PT travel times...");
         FloatMatrix<Id<Zone>> cleanedTrainShare = MatrixUtils.transform(rawTrainShare, v -> (v == MatrixUtils.DEFAULT_SKIM_ENTRY) ? 0.0f : v);
         FloatMatrix<Id<Zone>> trainTtRaw = MatrixUtils.merge(rawTravelTimes, cleanedTrainShare, (tt, share) -> tt * share);
-        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TRAIN.name(), MatrixUtils.getSymmetricMatrix(trainTtRaw));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TRAIN.name().toLowerCase(), MatrixUtils.getSymmetricMatrix(trainTtRaw));
         FloatMatrix<Id<Zone>> nonTrainShare = MatrixUtils.transform(cleanedTrainShare, v -> 1.0f - v);
         FloatMatrix<Id<Zone>> localTtRaw = MatrixUtils.merge(rawTravelTimes, nonTrainShare, (tt, share) -> tt * share);
-        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_LOCAL.name(), MatrixUtils.getSymmetricMatrix(localTtRaw));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_LOCAL.name().toLowerCase(), MatrixUtils.getSymmetricMatrix(localTtRaw));
 
         // 4. Process Access and Egress Times
         logger.info("Processing PT access and egress times...");
@@ -90,8 +90,8 @@ public class MatrixReaders {
         FloatMatrix<Id<Zone>> accessIntermediate = MatrixUtils.mergeByAverage(rawAccess, egressTransposed);
         FloatMatrix<Id<Zone>> egressIntermediate = MatrixUtils.mergeByAverage(rawEgress, accessTransposed);
 
-        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_ACCESS_TIME.name(), MatrixUtils.getSymmetricMatrix(accessIntermediate));
-        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_EGRESS_TIME.name(), MatrixUtils.getSymmetricMatrix(egressIntermediate));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_ACCESS_TIME.name().toLowerCase(), MatrixUtils.getSymmetricMatrix(accessIntermediate));
+        matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_EGRESS_TIME.name().toLowerCase(), MatrixUtils.getSymmetricMatrix(egressIntermediate));
 
         logger.info("Finished processing PT skims.");
     }
@@ -108,7 +108,7 @@ public class MatrixReaders {
 
     /**
      * A generic helper to read matrices that have a direct 1-to-1 mapping from a file key.
-     *
+     * By default, the matrix is added with a lowercase name of the enum value.
      * @param source      The map of all matrices read from the OMX file.
      * @param destination The Matrices container to add the results to.
      * @param definitions An array of enum values that implement MatrixDefinition.
@@ -117,8 +117,8 @@ public class MatrixReaders {
         for (MatrixDefinition def : definitions) {
             FloatMatrix<Id<Zone>> matrix = source.get(def.getFileKey());
             if (matrix != null) {
-                destination.addMatrix(def.name(), matrix);
-                logger.debug("Added matrix from file key '{}' as '{}'", def.getFileKey(), def.name());
+                destination.addMatrix(def.name().toLowerCase(), matrix);
+                logger.debug("Added matrix from file key '{}' as '{}'", def.getFileKey(), def.name().toLowerCase());
             } else {
 
                 throw new IllegalStateException("Required matrix with key '" + def.getFileKey() + "' not found in the file.");

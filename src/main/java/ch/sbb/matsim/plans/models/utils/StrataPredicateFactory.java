@@ -20,7 +20,7 @@ public class StrataPredicateFactory {
     private void initializePredicates() {
 
 
-        Predicate<Person> isEmployed = p -> (Integer) p.getAttributes().getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT) > 0;
+        Predicate<Person> isEmployed = p -> ((Number) p.getAttributes().getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT)).intValue() > 0;
 
         Predicate<Person> hasGA = person -> person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION).equals(Variables.PTSubscriptionType.GA.getValue());
         Predicate<Person> hasVA = person -> person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION).equals(Variables.PTSubscriptionType.VA.getValue());
@@ -37,9 +37,9 @@ public class StrataPredicateFactory {
         Predicate<Person> isStudentApprentice = person -> (Integer) person.getAttributes().getAttribute(SynpopConstants.CURRENT_EDU) == 5;
         Predicate<Person> isStudentTertiary = person -> (Integer) person.getAttributes().getAttribute(SynpopConstants.CURRENT_EDU) == 4;
 
-        Predicate<Person> isAgeUnder18 = person -> (int) person.getAttributes().getAttribute(SynpopConstants.AGE) < 18;
-        Predicate<Person> isAgeUnder65 = person -> (int) person.getAttributes().getAttribute(SynpopConstants.AGE) < 65;
-        Predicate<Person> isAgeUnder75 = person -> (int) person.getAttributes().getAttribute(SynpopConstants.AGE) < 75;
+        Predicate<Person> isAgeUnder18 = person -> (Integer) person.getAttributes().getAttribute(SynpopConstants.AGE) < 18;
+        Predicate<Person> isAgeUnder65 = person -> (Integer) person.getAttributes().getAttribute(SynpopConstants.AGE) < 65;
+        Predicate<Person> isAgeUnder75 = person -> (Integer) person.getAttributes().getAttribute(SynpopConstants.AGE) < 75;
         Predicate<Person> isAgeOver75 = Predicate.not(isAgeUnder75);
         Predicate<Person> isAge18to65 = Predicate.not(isAgeUnder18).and(isAgeUnder65);
         Predicate<Person> isAge65to75 = Predicate.not(isAgeUnder65).and(isAgeUnder75);

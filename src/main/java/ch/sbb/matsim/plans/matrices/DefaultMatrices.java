@@ -13,7 +13,7 @@ public class DefaultMatrices implements Matrices {
 
     @Override
     public FloatMatrix<Id<Zone>> getMatrix(String matrixName) {
-        return matrices.get(matrixName);
+        return matrices.get(matrixName.toLowerCase());
     }
 
     @Override
@@ -34,7 +34,7 @@ public class DefaultMatrices implements Matrices {
 
     @Override
     public FloatMatrix<Id<Zone>> getKalifMatrix(MatrixNames.KalifMatrices matrixName) {
-        return matrices.get(matrixName.name());
+        return matrices.get(matrixName.name().toLowerCase());
     }
 
 
@@ -57,7 +57,7 @@ public class DefaultMatrices implements Matrices {
     private Map<String, Double> getMetricsForPair(Id<Zone> from, Id<Zone> to, Enum<?>[] matrixEnums) {
         Map<String, Double> results = new LinkedHashMap<>();
         for (Enum<?> matrixEnum : matrixEnums) {
-            String matrixName = matrixEnum.name();
+            String matrixName = matrixEnum.name().toLowerCase();
             FloatMatrix<Id<Zone>> matrix = this.matrices.get(matrixName);
             if (matrix != null) {
                 double value = matrix.get(from, to);
