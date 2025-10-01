@@ -3,7 +3,7 @@
   "mainBranch": "master",
   "hotfixBranch": "bugfix",
   "versionIncrementPosition": "patch",
-  "jdkLabel": "OpenJDK 21",
+  "jdkLabel": "OpenJDK 25",
   "mvn": {
     "parentPom": "pom.xml",
     "deployableArtifactsPom": "pom.xml",
