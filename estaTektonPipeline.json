@@ -1,0 +1,63 @@
+{
+  "$schema": "https://clew-resources.sbb-cloud.net/tekton-schema.json",
+  "productName": "matsim-sbb",
+  "builder": {
+    "java": "25"
+  },
+  "mvn": {
+    "parentPom": "pom.xml",
+    "deployableArtifactsPom": "pom.xml",
+    "artifactoryMavenRepo": "simba.mvn"
+  },
+  "pipelines": [
+    {
+      "name": "continuous",
+      "triggerType": [
+        "GITEVENT"
+      ],
+      "branchNamePatterns": [
+        "^feature.*"
+      ],
+      "build": {
+        "buildDockerImage": false
+      }
+    },
+    {
+      "name": "integrationBuild",
+      "triggerType": [
+        "GITEVENT"
+      ],
+      "branchNamePatterns": [
+        "^master.*"
+      ],
+      "build": {
+        "buildDockerImage": true,
+        "sonarScan": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "release",
+      "triggerType": [
+        "GITEVENT"
+      ],
+      "versionTagEventPatterns": [
+        "^(\\d+\\.)?(\\d+\\.)?(\\*|\\d+)$"
+      ],
+      "build": {
+        "buildDockerImage": true,
+        "additionalBuildParams": "-DignoreSnapshots=true"
+      }
+    }
+  ],
+  "notifications": [
+    {
+      "type": "EMAIL",
+      "enabled": true,
+      "recipients": [
+        "$actor"
+      ]
+    }
+  ]
+}
