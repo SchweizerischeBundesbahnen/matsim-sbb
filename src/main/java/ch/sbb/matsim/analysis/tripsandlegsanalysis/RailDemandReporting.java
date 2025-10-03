@@ -95,11 +95,23 @@ public class RailDemandReporting {
         double scaleFactor = Double.parseDouble(args[1]);
         String outputFile = args[2];
         String zonesFile = args[3];
+        
+        // optional argument for overwriting the transit schedule file
+        String overwriteScheduleFile = args[4];
+        
         ZonesCollection zonesCollection = new ZonesCollection();
         zonesCollection.addZones(ZonesLoader.loadZones("zones", zonesFile));
 
         String experiencedPlansFile = folderPrefix + "output_experienced_plans.xml.gz";
-        String transitScheduleFile = folderPrefix + "output_transitSchedule.xml.gz";
+        
+        String transitScheduleFile = null;
+        if (overwriteScheduleFile == null || overwriteScheduleFile.isEmpty()) {
+        	// use the output transit schedule file
+            transitScheduleFile = folderPrefix + "output_transitSchedule.xml.gz";
+		} else {
+			// use the overwrite transit schedule file
+			transitScheduleFile = overwriteScheduleFile;
+		}
         String networkFile = folderPrefix + "output_network.xml.gz";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
