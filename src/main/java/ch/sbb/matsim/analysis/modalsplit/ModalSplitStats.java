@@ -328,7 +328,6 @@ public class ModalSplitStats {
                             startStopStation.addEnteredFQ();
                         }
                         if (legBefore != null) {
-                            startStopStation.getEnteredMode()[possibleModesAtStop.indexOf(legBefore.getMode())]++;
                             if (isPtMode(legBefore)) {
                                 subPTMode = getModeOfTransitRoute(legBefore.getRoute());
                                 startStopStation.getEnteredMode()[possibleModesAtStop.indexOf(subPTMode)]++;
@@ -343,9 +342,11 @@ public class ModalSplitStats {
                                         startStopStation.addUmsteigeAHPBahn();
                                     }
                                 }
+                            } else {
+                                startStopStation.getEnteredMode()[possibleModesAtStop.indexOf(legBefore.getMode())]++;
                             }
                         } else {
-                            startStopStation.getEnteredMode()[possibleModesAtStop.indexOf("walk")] = startStopStation.getEnteredMode()[possibleModesAtStop.indexOf("walk")] + 1;
+                            startStopStation.getEnteredMode()[possibleModesAtStop.indexOf("walk")]++;
                         }
 
                         StopStation endStopStation = stopStationsMap.get(endStopStationFacility.getId());
@@ -358,7 +359,6 @@ public class ModalSplitStats {
                         }
                         int currentLegIndex = legs.indexOf(leg);
                         Leg legAfter = getLegAfter(legs, currentLegIndex);
-                        endStopStation.getExitedMode()[possibleModesAtStop.indexOf(legAfter.getMode())]++;
                         if (isPtMode(legAfter)) {
                             subPTMode = getModeOfTransitRoute(legAfter.getRoute());
                             endStopStation.getExitedMode()[possibleModesAtStop.indexOf(subPTMode)]++;
@@ -372,7 +372,11 @@ public class ModalSplitStats {
                                         subPTMode.equals(PTSubModes.RAIL)) {
                                     endStopStation.addUmsteigeBahnAHP();
                                 }
+                            } else {
+                                endStopStation.getExitedMode()[possibleModesAtStop.indexOf(legAfter.getMode())]++;
                             }
+                        } else {
+                            endStopStation.getExitedMode()[possibleModesAtStop.indexOf("walk")]++;
                         }
                     }
 
@@ -406,10 +410,10 @@ public class ModalSplitStats {
             }
             boolean tmpIsRail = false;
             for (Leg leg : trip.getLegsOnly()) {
-                    if (isPtMode(leg)) {
-                        TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
-                        if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
-                            tmpIsRail = true;
+                if (isPtMode(leg)) {
+                    TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                    if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                        tmpIsRail = true;
 
                     }
                 }
@@ -470,15 +474,15 @@ public class ModalSplitStats {
             double distance = 0;
             boolean isFQ = false;
             for (Leg leg : trip.getLegsOnly()) {
-                    if (isPtMode(leg)) {
-                        distance += leg.getRoute().getDistance() / 1000;
-                        ptLegs++;
-                        TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
-                        if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
-                            railLegs++;
-                        }
-
+                if (isPtMode(leg)) {
+                    distance += leg.getRoute().getDistance() / 1000;
+                    ptLegs++;
+                    TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                    if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                        railLegs++;
                     }
+
+                }
             }
             double fqDistance = 0;
             if (railLegs > 0) {
@@ -564,12 +568,12 @@ public class ModalSplitStats {
             double fqDistance = 0;
 
             for (Leg leg : trip.getLegsOnly()) {
-                    if (isPtMode(leg)) {
-                        TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
-                        if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
-                            railDistance += leg.getRoute().getDistance() / 1000;
-                            tmpIsRail = true;
-                        }
+                if (isPtMode(leg)) {
+                    TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
+                    if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                        railDistance += leg.getRoute().getDistance() / 1000;
+                        tmpIsRail = true;
+                    }
                 }
                 distance += leg.getRoute().getDistance() / 1000;
             }
@@ -1072,7 +1076,7 @@ public class ModalSplitStats {
                 }
             }
         } catch (
-            IOException e) {
+                IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
@@ -1094,7 +1098,7 @@ public class ModalSplitStats {
                 }
             }
         } catch (
-            IOException e) {
+                IOException e) {
             //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
@@ -1285,7 +1289,7 @@ public class ModalSplitStats {
         final String umsteigerAndereSimba = "Umsteiger_Andere_Simba";
         final String umsteigerAndereAndere = "Umsteiger_Andere_Andere";
         String head = String.join(",", runID, hstNumber, stopCode, zone, zielAussteiger, quellEinsteiger, umsteigerTyp5a, umsteigerTyp5b,
-            umsteigerSimbaSimba, umsteigerSimbaAndere, umsteigerAndereSimba, umsteigerAndereAndere);
+                umsteigerSimbaSimba, umsteigerSimbaAndere, umsteigerAndereSimba, umsteigerAndereAndere);
         String[] columns = head.split(",");
         try (CSVWriter csvWriter = new CSVWriter("\uFEFF", columns, this.outputLocation + oNTrainStrationsCount)) {
             for (TrainStation station : trainStationMap.values()) {
