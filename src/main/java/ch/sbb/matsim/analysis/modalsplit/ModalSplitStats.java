@@ -359,18 +359,20 @@ public class ModalSplitStats {
                         }
                         int currentLegIndex = legs.indexOf(leg);
                         Leg legAfter = getLegAfter(legs, currentLegIndex);
-                        if (isPtMode(legAfter)) {
-                            subPTMode = getModeOfTransitRoute(legAfter.getRoute());
-                            endStopStation.getExitedMode()[possibleModesAtStop.indexOf(subPTMode)]++;
-                            if (getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute(STOP_NO).equals(endStopStationFacility.getAttributes().getAttribute(STOP_NO))) {
-                                if (getStartTrainFacility(legAfter.getRoute()).equals(endStopStationFacility)) {
-                                    if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
+                        if (legAfter != null) {
+                            if (isPtMode(legAfter)) {
+                                subPTMode = getModeOfTransitRoute(legAfter.getRoute());
+                                endStopStation.getExitedMode()[possibleModesAtStop.indexOf(subPTMode)]++;
+                                if (getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute(STOP_NO).equals(endStopStationFacility.getAttributes().getAttribute(STOP_NO))) {
+                                    if (getStartTrainFacility(legAfter.getRoute()).equals(endStopStationFacility)) {
+                                        if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
+                                                subPTMode.equals(PTSubModes.RAIL)) {
+                                            endStopStation.addUmstiegeBahnBahn();
+                                        }
+                                    } else if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
                                             subPTMode.equals(PTSubModes.RAIL)) {
-                                        endStopStation.addUmstiegeBahnBahn();
+                                        endStopStation.addUmsteigeBahnAHP();
                                     }
-                                } else if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
-                                        subPTMode.equals(PTSubModes.RAIL)) {
-                                    endStopStation.addUmsteigeBahnAHP();
                                 }
                             } else {
                                 endStopStation.getExitedMode()[possibleModesAtStop.indexOf(legAfter.getMode())]++;
