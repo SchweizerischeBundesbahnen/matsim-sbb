@@ -201,17 +201,13 @@ public class SynPopUtils {
         for (Person person : scenario.getPopulation().getPersons().values()) {
             String workZoneNo = (String) person.getAttributes().getAttribute("work_zone_no");
             String schoolZoneNo = (String) person.getAttributes().getAttribute("school_zone_no");
-            String zoneIdStr = (String) person.getAttributes().getAttribute(SynpopConstants.ZONE_ID);
-            if (zoneIdStr != null) {
-                Id<Zone> zoneId = Id.create(zoneIdStr, Zone.class);
-                PrimaryLocationCount count = zoneMap.get(zoneId);
-                if (workZoneNo != null) {
-                    count.workCount.incrementAndGet();
+            if (workZoneNo != null) {
+                zoneMap.get(workZoneNo).workCount.incrementAndGet();
                 }
-                if (schoolZoneNo != null) {
-                    count.schoolCount.incrementAndGet();
+            if (schoolZoneNo != null) {
+                zoneMap.get(schoolZoneNo).schoolCount.incrementAndGet();
                 }
-            }
+
         }
         for (Map.Entry<Id<Zone>, PrimaryLocationCount> entry : zoneMap.entrySet()) {
             Zone zone = zones.getZone(entry.getKey());
