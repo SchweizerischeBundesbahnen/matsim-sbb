@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class ZoneGeoPackageWriter {
 
     public static final String GEOMETRY = "geometry";
+    public static final String SHAPE_FILE_GEOM_NAME = "the_geom";
 
     public static void writeGeoPackage(Zones zones, String outputFile) {
         writeGeoPackage(zones, outputFile, 2056); // Default EPSG code for CH1903+ / LV95
@@ -31,13 +32,20 @@ public class ZoneGeoPackageWriter {
         if (zones == null || zones.getZones() == null || zones.getZones().isEmpty()) {
             LogManager.getLogger(ZoneGeoPackageWriter.class).error("No zones to write to GeoPackage.");
         }
+        File file = new File(outputFile);
+        if (file.exists()) {
+            LogManager.getLogger(ZoneGeoPackageWriter.class).warn("Output file already exists and will be overwritten: " + outputFile);
+            if (!file.delete()) {
+                LogManager.getLogger(ZoneGeoPackageWriter.class).error("Could not delete existing file: " + outputFile);
+                return;
+            }
+        }
         List<AttributableZone> sfZones = new ArrayList<>();
         for (Zone zone : zones.getZones()) {
             if (zone instanceof AttributableZone sfz) {
                 sfZones.add(sfz);
             }
         }
-        File file = new File(outputFile);
         String zonesName = file.getName().substring(0, file.getName().lastIndexOf('.'));
         System.out.println(zonesName);
         try (GeoPackage geoPackage = new GeoPackage(file)) {
@@ -67,7 +75,7 @@ public class ZoneGeoPackageWriter {
                 String attr = entry.getKey();
                 Object val = entry.getValue();
 
-                if (!attributeTypes.containsKey(attr) && val != null) {
+                if (!attributeTypes.containsKey(attr) && !SHAPE_FILE_GEOM_NAME.equals(attr) && val != null) {
                     attributeTypes.put(attr, val.getClass());
                 }
             }
@@ -84,7 +92,7 @@ public class ZoneGeoPackageWriter {
         for (AttributableZone zone : zones) {
             featureBuilder.set(GEOMETRY, zone.getGeometry());
             for (String attr : attributeTypes.keySet()) {
-                if (attr.equals(GEOMETRY)) {
+                if (attr.equals(GEOMETRY) || attr.equals(SHAPE_FILE_GEOM_NAME)) {
                     continue; // Skip geometry attribute, already set
                 }
                 featureBuilder.set(attr, zone.getAttribute(attr));
@@ -106,7 +114,7 @@ public class ZoneGeoPackageWriter {
         Set<String> attributeNames = new TreeSet<>();
         attributeNames.addAll(zones.getZones().stream().flatMap(zone -> zone.getAttributes().getAsMap().keySet().stream()).collect(Collectors.toSet()));
         attributeNames.remove("geometry"); // Exclude geometry attribute
-        attributeNames.remove("the_geom"); // Exclude geometry attribute
+        attributeNames.remove(SHAPE_FILE_GEOM_NAME); // Exclude geometry attribute
         attributeNames.remove("zone_id");
         List<String> columns = new ArrayList<>();
         columns.add("zone_id");
