@@ -202,10 +202,10 @@ public class SynPopUtils {
             String workZoneNo = (String) person.getAttributes().getAttribute("work_zone_no");
             String schoolZoneNo = (String) person.getAttributes().getAttribute("school_zone_no");
             if (workZoneNo != null) {
-                zoneMap.get(workZoneNo).workCount.incrementAndGet();
+                zoneMap.get(Id.create(workZoneNo, Zone.class)).workCount.incrementAndGet();
                 }
             if (schoolZoneNo != null) {
-                zoneMap.get(schoolZoneNo).schoolCount.incrementAndGet();
+                zoneMap.get(Id.create(schoolZoneNo, Zone.class)).schoolCount.incrementAndGet();
                 }
 
         }
