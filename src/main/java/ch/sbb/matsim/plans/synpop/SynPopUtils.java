@@ -215,7 +215,35 @@ public class SynPopUtils {
             zone.getAttributes().putAttribute("pop_work", count.workCount.get());
             zone.getAttributes().putAttribute("pop_school", count.schoolCount.get());
         }
-        LogManager.getLogger(SynPopUtils.class).info("Done. Aggregating primary location choices per zone.");
+        LogManager.getLogger(SynPopUtils.class).info("Done.");
+    }
+
+    public static void linkZonesToFacilities(Scenario scenario, boolean allowNullZones) {
+        LogManager.getLogger(SynPopUtils.class).info("Matching facilities to zones...");
+        final boolean[] warnedAboutNullZones = {false};
+        Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
+        scenario.getActivityFacilities().getFacilities().values().parallelStream().forEach(
+                activityFacility -> {
+                    Zone zone = zones.findZone(activityFacility.getCoord());
+                    if (zone != null) {
+                        activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE, zone);
+                        activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, zone.getId().toString());
+                    } else {
+                        if (allowNullZones) {
+                            activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE, null);
+                            activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, null);
+                            if (!warnedAboutNullZones[0]) {
+                                LogManager.getLogger(SynPopUtils.class).warn("Some facilities have no zone assigned. This should only be allowed in test cases.");
+                                warnedAboutNullZones[0] = true;
+                            }
+                        } else {
+                            throw new RuntimeException("Some facilities have no zone and this is not allowed.");
+                        }
+                    }
+
+                }
+        );
+        LogManager.getLogger(SynPopUtils.class).info("Done.");
     }
 
     record MobilityToolCount(AtomicInteger drivingLicenseCount, AtomicInteger ebikeCount,

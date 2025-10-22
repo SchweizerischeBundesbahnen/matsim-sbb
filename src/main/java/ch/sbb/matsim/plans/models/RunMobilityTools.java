@@ -32,14 +32,16 @@ public class RunMobilityTools {
     public static void main(String[] args) {
         var logger = LogManager.getLogger(RunMobilityTools.class);
 
-        String inputFolder = "Y:\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\";
-        String outputFolder = inputFolder + "output\\";
+        String inputFolder = "Y:\\40_Projekte\\20250408_mobi_plans_6.0\\testK_input_synpop\\";
+//        String outputFolder = inputFolder + "synpop_with_mobility_tools\\";
+        String outputFolder = "C:\\devsbb\\tmp\\synpop_2022\\synpop_with_mobility_tools\\";
         new File(outputFolder).mkdirs();
 //        String inputFolder = "C:\\devsbb\\tmp\\synpop_2022\\";
-//        String suffix = ""; //whole population
+        String suffix = ""; //whole population
 //        String suffix = "_Bern"; //City of Bern
-        String suffix = "_AI"; //Appenzell Inner Rhodes
+//        String suffix = "_AI"; //Appenzell Inner Rhodes
         String modelFolder = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\choice_models\\";
+        String facilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20250408_mobi_plans_6.0\\test_input_synpop\\businesses_2022_facilities.xml.gz";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         Zones zones = ZonesLoader.loadZones("zones", inputFolder + "35_kalif_secondary.mobi-zones.shp");
