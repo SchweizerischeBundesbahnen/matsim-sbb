@@ -7,6 +7,8 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import com.google.common.util.concurrent.AtomicDouble;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -35,6 +37,7 @@ public class AreaAnalysis {
     private final Map<String, String> runs;
     private final Network roadNetwork;
     private final Zones zones;
+    private final static Logger log = LogManager.getLogger(AreaAnalysis.class);
     final Map<String, RunVolumeData> runVolumeDataMap = new TreeMap<>();
 
 
@@ -48,21 +51,21 @@ public class AreaAnalysis {
 
     public static void main(String[] args) {
         Map<String, String> runs = new TreeMap<>();
-        String root = "D:/mobi/40_Projekte/20251005_GE_2050_plus/sim/";
+        String root = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/sim/";
         runs.put("refkt_v1", root + "refkt_cut_v1");
         runs.put("ref_cut5_25", root + "ref_cut_v5_25");
         runs.put("var_ev", root + "var_ev");
         runs.put("var_rives", root + "var_rives");
         runs.put("var_cornavin", root + "var_cornavin");
 
-        String roadNet = "D:/mobi/40_Projekte/20251005_GE_2050_plus/streets/output/network.xml.gz";
-        String zonesFile = "D:/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/kanton_GE.shp";
-        String outputFile = "D:/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/perimeter-ge.csv";
+        String roadNet = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/streets/output/network.xml.gz";
+        String zonesFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/kanton_GE.shp";
+        String outputFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/perimeter-ge.csv";
         Network network = NetworkUtils.createNetwork();
         new MatsimNetworkReader(network).readFile(roadNet);
         Zones zones = ZonesLoader.loadZones(Variables.ZONE_ID, zonesFile);
         AreaAnalysis areaAnalysis = new AreaAnalysis(network, zones, runs);
-        areaAnalysis.run();
+        areaAnalysis.run(0.25);
         areaAnalysis.write(outputFile);
     }
 
@@ -169,6 +172,11 @@ public class AreaAnalysis {
                 writer.set(d.run, Double.toString(d.busVolume()));
             }
             writer.writeRow();
+            writer.set("means", "metro");
+            for (RunVolumeData d : runVolumeDataMap.values()) {
+                writer.set(d.run, Double.toString(d.metrovolume()));
+            }
+            writer.writeRow();
             writer.set("means", SBBModes.PTSubModes.OTHER);
             for (RunVolumeData d : runVolumeDataMap.values()) {
                 writer.set(d.run, Double.toString(d.otherVolume()));
@@ -205,6 +213,11 @@ public class AreaAnalysis {
                 writer.set(d.run, Double.toString(d.busAKM()));
             }
             writer.writeRow();
+            writer.set("means", "metro");
+            for (RunVolumeData d : runVolumeDataMap.values()) {
+                writer.set(d.run, Double.toString(d.metroAKM()));
+            }
+            writer.writeRow();
             writer.set("means", SBBModes.PTSubModes.OTHER);
             for (RunVolumeData d : runVolumeDataMap.values()) {
                 writer.set(d.run, Double.toString(d.otherAKM()));
@@ -215,10 +228,11 @@ public class AreaAnalysis {
         }
     }
 
-    private void run() {
+    private void run(double samplesize) {
         List<Link> relevantCarLinks = roadNetwork.getLinks().values().stream().filter(link -> (double) link.getAttributes().getAttribute(IS_IN) > 0.0).collect(Collectors.toList());
         for (var run : runs.entrySet()) {
             String runId = run.getKey();
+            log.info("Processing run " +  runId);
             String path = run.getValue();
             String ptNet = path + "/output/" + runId + ".ptlinkvolumes.att_network.xml.gz";
             String scheduleFile = path + "/output/" + runId + ".output_transitSchedule.xml.gz";
@@ -236,16 +250,19 @@ public class AreaAnalysis {
             Network ptNetwork = scenario.getNetwork();
             new MatsimNetworkReader(ptNetwork).readFile(ptNet);
             assignZone(ptNetwork);
+
+            log.info("Reading car volumes from " + carVolumesFile);
             Map<Id<Link>, Double> allCarVolumes = readCarVolumes(carVolumesFile);
             List<Link> relevantPtLinks = ptNetwork.getLinks().values().stream().filter(link -> (double) link.getAttributes().getAttribute(IS_IN) > 0.0).collect(Collectors.toList());
-            String attribute = runId + "_ptVolume";
+            String attribute = "VOLUME";
             System.out.println(attribute);
             new PopulationReader(scenario).readFile(outputPopulation);
+            log.info("Processing walk and bike...");
             List<String> slowModes = List.of(SBBModes.WALK_MAIN_MAINMODE, SBBModes.BIKE);
             AtomicDouble walkKM = new AtomicDouble();
             AtomicDouble bikeKM = new AtomicDouble();
             scenario.getPopulation().getPersons().values()
-                    .stream()
+                    .parallelStream()
                     .map(person -> person.getSelectedPlan())
                     .flatMap(plan -> TripStructureUtils.getTrips(plan).stream())
                     .filter(trip -> trip.getLegsOnly().stream().anyMatch(leg -> slowModes.contains(leg.getMode())))
@@ -253,14 +270,14 @@ public class AreaAnalysis {
                     .forEach(trip -> {
                         for (var leg : trip.getLegsOnly()) {
                             if (leg.getMode().equals(SBBModes.WALK_MAIN_MAINMODE)) {
-                                walkKM.addAndGet(leg.getRoute().getDistance());
+                                walkKM.addAndGet(leg.getRoute().getDistance()/samplesize);
                             } else if (leg.getMode().equals(SBBModes.BIKE)) {
-                                bikeKM.addAndGet(leg.getRoute().getDistance());
+                                bikeKM.addAndGet(leg.getRoute().getDistance()/samplesize);
                             }
                         }
                     });
 
-
+            log.info("Calculating volumes for PT...");
             List<Link> trueTramLinks = relevantPtLinks.stream().filter(link -> link.getAllowedModes()
                             .contains(SBBModes.PTSubModes.TRAM))
                             .filter(link -> !metroLinkIds.contains(link.getId()))
