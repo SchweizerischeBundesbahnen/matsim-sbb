@@ -141,8 +141,8 @@ public class DemandAggregator {
         aggregateRailDemand(scalefactor, experiencedPlans.values());
         var railDemandMatrix = prepareRailMatrix(false);
         var railDemandFQMatrix = prepareRailMatrix(true);
-        writeMatrix(railDemandMatrix, outputMatrixFile);
-        writeMatrix(railDemandFQMatrix, outputMatrixFile.replace(".csv", "_fqOnly.csv"));
+        writeMatrix(railDemandMatrix, outputMatrixFile, aggregateZones);
+        writeMatrix(railDemandFQMatrix, outputMatrixFile.replace(".csv", "_fqOnly.csv"), aggregateZones);
 
         LOG.info("aggregating Trip Demand");
         aggregateTripDemand(scalefactor, experiencedPlans);
@@ -332,7 +332,7 @@ public class DemandAggregator {
         }
     }
 
-    private void writeMatrix(float[][] matrix, String outputfile) {
+    public static void writeMatrix(float[][] matrix, String outputfile, ArrayList<String> aggregateZones) {
         List<String> header = new ArrayList<>();
         header.add("from");
         header.addAll(aggregateZones);
@@ -414,7 +414,7 @@ public class DemandAggregator {
         }
     }
 
-    private static class StringNumberComparator implements Comparator<String> {
+    public static class StringNumberComparator implements Comparator<String> {
 
         @Override
         public int compare(String s, String t1) {
