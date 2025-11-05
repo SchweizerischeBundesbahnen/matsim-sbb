@@ -21,11 +21,12 @@ public class AdjustScheduleAttributes {
         Scenario mobiScenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         Scenario gtfsScenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 //        String date = "2025-07-01";
-        String date = "2025-06-24";
+        String date = "2025-12-16";
 
-        new TransitScheduleReader(mobiScenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20241104_MOBi_5.1\\pt\\NPVM2023\\output\\transitSchedule.xml.gz");
-        new TransitScheduleReader(gtfsScenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20250710_Sperre_BN_FRI\\pt\\" + date + "\\raw\\transitSchedule.xml.gz");
-        new MatsimNetworkReader(gtfsScenario.getNetwork()).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20250710_Sperre_BN_FRI\\pt\\" + date + "\\raw\\network.xml.gz");
+        new TransitScheduleReader(mobiScenario).readFile("/Volumes/mobi/40_Projekte/20241104_MOBi_5.1/pt/NPVM2023/output/transitSchedule.xml.gz");
+        String basefolder = "/Volumes/mobi/40_Projekte/20251105_decalage/pt/";
+        new TransitScheduleReader(gtfsScenario).readFile(basefolder + date + "/raw/transitSchedule.xml.gz");
+        new MatsimNetworkReader(gtfsScenario.getNetwork()).readFile(basefolder + date + "/raw/network.xml.gz");
         gtfsScenario.getTransitSchedule().getTransitLines().values().stream().flatMap(transitLine -> transitLine.getRoutes().values().stream()).
                 forEach(transitRoute -> {
                     String modeName = transitRoute.getTransportMode();
@@ -97,7 +98,7 @@ public class AdjustScheduleAttributes {
                     }
                 }
         );
-        new TransitScheduleWriter(gtfsScenario.getTransitSchedule()).writeFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20250710_Sperre_BN_FRI\\pt\\" + date + "\\transitSchedule.xml.gz");
-        new NetworkWriter(gtfsScenario.getNetwork()).write("\\\\wsbbrz0283\\mobi\\40_Projekte\\20250710_Sperre_BN_FRI\\pt\\" + date + "\\transitNetwork.xml.gz");
+        new TransitScheduleWriter(gtfsScenario.getTransitSchedule()).writeFile(basefolder + date + "/transitSchedule.xml.gz");
+        new NetworkWriter(gtfsScenario.getNetwork()).write(basefolder + date + "/transitNetwork.xml.gz");
     }
 }
