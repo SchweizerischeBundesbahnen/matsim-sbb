@@ -35,7 +35,7 @@ public class PrimaryLocationChoiceModel {
 
     private static final double MIN_LOGSUM = -20.0;
     private static final double BETA_ATTRACTION = 1.0;
-    private static final double BETA_LOGSUM = -1.0;
+    private static final double BETA_LOGSUM = 1.0;
     private final Scenario scenario;
     private final Zones zones;
     private final Matrices matrices;
@@ -93,111 +93,121 @@ public class PrimaryLocationChoiceModel {
         logger.info("===== Finished activity '{}' in {} =====", activityConfig.activityName(), Duration.between(startAttraction, Instant.now()));
     }
 
-    private double calculateFriction(Zone homeZone, Zone destinationZone, PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig, Map<String, String> modeFormulas) {
+    private double calculateUtility(Zone homeZone, Zone destinationZone, PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig, Map<String, String> modeFormulas) {
+        // Get the attraction value for the destination
+        double attraction = ((Number) destinationZone.getAttribute(strataConfig.attractionAttributeName())).doubleValue();
+        if (attraction <= 0) {
+            return -Double.MAX_VALUE; // Use a very negative number to represent zero probability
+        }
+
         var travelMetrics = getTravelAndAccessibilityMetrics(homeZone, destinationZone);
         double logsum = calculateLogsum(modeFormulas, travelMetrics);
         if (Double.isNaN(logsum) || Double.isInfinite(logsum)) {
-            return -99999; // Return a large negative number
+            return -Double.MAX_VALUE;
         }
 
         double kalif_ASC = matrices.getKalifMatrix(strataConfig.kalifMatrixName()).get(homeZone.getId(), destinationZone.getId());
         double matrixFactor = strataConfig.getMatrixFactor();
 
-        return (kalif_ASC * matrixFactor) + BETA_LOGSUM * logsum;
+        return (kalif_ASC * matrixFactor) + BETA_ATTRACTION * Math.log(attraction) + BETA_LOGSUM * logsum;
     }
-
-    /**
-     * Performs Iterative Proportional Fitting with improved numerical stability.
-     * It normalizes utilities before exponentiation to prevent underflow.
-     */
-    private double[][] runIPF(double[][] frictionMatrix, double[] rowTargets, double[] colTargets, int maxIterations) {
-        int numOrigins = frictionMatrix.length;
+    private double[][] runIPF(double[][] utilityMatrix, double[] rowTargets, double[] colTargets, int maxIterations) {
+        int numOrigins = utilityMatrix.length;
         if (numOrigins == 0) return new double[0][0];
-        int numDests = frictionMatrix[0].length;
-        double[][] trips = new double[numOrigins][numDests];
+        int numDests = utilityMatrix[0].length;
 
-        // ====================================================================
-        // STEP 1: Initialize trips matrix using the numerically stable method
-        // ====================================================================
-        for (int i = 0; i < numOrigins; i++) {
-            // Find the maximum value in the current row for normalization
-            double maxFriction = -Double.MAX_VALUE;
+        // --- Step 1: Initialization ---
+        // Make copies of the original targets, as the algorithm will modify them.
+        double[] colTargetsCurrent = Arrays.copyOf(colTargets, numDests);
+        double[] rowTargetsCurrent = Arrays.copyOf(rowTargets, numOrigins);
+        final double[] colTargetsOriginal = Arrays.copyOf(colTargets, numDests);
+        final double[] rowTargetsOriginal = Arrays.copyOf(rowTargets, numOrigins);
+
+        // Scale the initial column targets to match the total production.
+        double totalRowTarget = Arrays.stream(rowTargetsOriginal).sum();
+        double totalColTarget = Arrays.stream(colTargetsOriginal).sum();
+        if (totalColTarget > 0) {
+            double scaleFactor = totalRowTarget / totalColTarget;
             for (int j = 0; j < numDests; j++) {
-                if (frictionMatrix[i][j] > maxFriction) {
-                    maxFriction = frictionMatrix[i][j];
+                colTargetsCurrent[j] *= scaleFactor;
+            }
+        } else {
+            logger.warn("Sum of column targets is zero. Cannot perform IPF.");
+            return new double[numOrigins][numDests];
+        }
+
+        // Pre-calculate the exp(utility) matrix once.
+        double[][] expUtilityMatrix = new double[numOrigins][numDests];
+        for(int i=0; i<numOrigins; i++) {
+            for(int j=0; j<numDests; j++) {
+                // Handle large negative utilities to prevent underflow to 0.0, using the stable softmax trick
+                if(utilityMatrix[i][j] == -Double.MAX_VALUE) {
+                    expUtilityMatrix[i][j] = 0.0;
+                } else {
+                    expUtilityMatrix[i][j] = Math.exp(utilityMatrix[i][j]);
                 }
             }
-
-            // If a row is full of -Infinity (unreachable), maxFriction will stay very low.
-            // In this case, the exp will correctly be zero for all cells.
-            if (Double.isInfinite(maxFriction)) {
-                // All destinations are unreachable for this origin, leave the row as zeros.
-                continue;
-            }
-
-            // Exponentiate using the normalized friction value
-            for (int j = 0; j < numDests; j++) {
-                trips[i][j] = Math.exp(frictionMatrix[i][j] - maxFriction);
-            }
-        }
-
-        // Diagnostic Check: After this step, the trips matrix should NOT be all zeros
-        // if there is at least one valid utility.
-        double initialTripsSum = Arrays.stream(trips).flatMapToDouble(Arrays::stream).sum();
-        if (initialTripsSum == 0.0 && Arrays.stream(rowTargets).sum() > 0) {
-            logger.warn("IPF DIAGNOSTIC: The entire trips matrix is zero after exponentiation. " +
-                    "This implies all utilities were extremely negative. Final probabilities will be zero.");
         }
 
 
-        // ====================================================================
-        // STEP 2: Run the IPF scaling loops (this part is unchanged)
-        // ====================================================================
+        // --- Step 2: The Main Balancing Loop (Furness Method) ---
         for (int iter = 0; iter < maxIterations; iter++) {
-            // Column scaling
-            for (int j = 0; j < numDests; j++) {
-                double colSum = 0;
-                for (int i = 0; i < numOrigins; i++) {
-                    colSum += trips[i][j];
+            // --- This block is equivalent to the Python code's main loop body ---
+
+            // 1. Calculate the trip matrix based on current balancing factors
+            double[][] trips = new double[numOrigins][numDests];
+            double[] computedRowSums = new double[numOrigins];
+            double[] computedColSums = new double[numDests];
+
+            for(int i = 0; i < numOrigins; i++) {
+                double expUtilSumForRow = 0.0;
+                for (int j = 0; j < numDests; j++) {
+                    expUtilSumForRow += expUtilityMatrix[i][j] * colTargetsCurrent[j];
                 }
-                if (colSum > 0) {
-                    double factor = colTargets[j] / colSum;
-                    for (int i = 0; i < numOrigins; i++) {
-                        trips[i][j] *= factor;
-                    }
+
+                if (expUtilSumForRow <= 0) expUtilSumForRow = 1.0; // Guard against division by zero
+
+                for (int j = 0; j < numDests; j++) {
+                    trips[i][j] = rowTargetsCurrent[i] * (expUtilityMatrix[i][j] * colTargetsCurrent[j]) / expUtilSumForRow;
                 }
             }
 
-            // Row scaling
-            for (int i = 0; i < numOrigins; i++) {
-                double rowSum = 0;
-                for (int j = 0; j < numDests; j++) {
-                    rowSum += trips[i][j];
+            // 2. Sum the columns and rows of the calculated trip matrix
+            for(int i = 0; i < numOrigins; i++) {
+                for(int j = 0; j < numDests; j++) {
+                    computedColSums[j] += trips[i][j];
+                    computedRowSums[i] += trips[i][j];
                 }
-                if (rowSum > 0) {
-                    double factor = rowTargets[i] / rowSum;
-                    for (int j = 0; j < numDests; j++) {
-                        trips[i][j] *= factor;
-                    }
-                }
+            }
+
+            // 3. Update the column and row balancing factors for the NEXT iteration
+            for(int j=0; j<numDests; j++) {
+                if(computedColSums[j] == 0) computedColSums[j] = 1.0; // Guard
+                colTargetsCurrent[j] = colTargetsCurrent[j] * (colTargetsOriginal[j] / computedColSums[j]);
+            }
+            for(int i=0; i<numOrigins; i++) {
+                if(computedRowSums[i] == 0) computedRowSums[i] = 1.0; // Guard
+                rowTargetsCurrent[i] = rowTargetsCurrent[i] * (rowTargetsOriginal[i] / computedRowSums[i]);
             }
         }
 
-        // ====================================================================
-        // STEP 3: Final normalization to probabilities (this part is unchanged)
-        // ====================================================================
+        // --- Step 3: Final Probability Calculation ---
+        // This is the final step from the Python `calculate_IPF` function.
         double[][] probabilities = new double[numOrigins][numDests];
         for (int i = 0; i < numOrigins; i++) {
             double rowSum = 0;
             for (int j = 0; j < numDests; j++) {
-                rowSum += trips[i][j];
+                probabilities[i][j] = expUtilityMatrix[i][j] * colTargetsCurrent[j];
+                rowSum += probabilities[i][j];
             }
+
             if (rowSum > 0) {
                 for (int j = 0; j < numDests; j++) {
-                    probabilities[i][j] = trips[i][j] / rowSum;
+                    probabilities[i][j] /= rowSum;
                 }
             }
         }
+
         return probabilities;
     }
 
@@ -259,21 +269,22 @@ public class PrimaryLocationChoiceModel {
         // 3. Build the combined friction matrix and row targets directly
         logger.info("[Step 3/6] Building initial utility matrix...");
         Instant startMatrixBuild = Instant.now();
-        double[][] combinedFrictionMatrix = new double[numRows][numDests];
+        double[][] combinedUtilityMatrix = new double[numRows][numDests];
         double[] combinedRowTargets = new double[numRows];
         final AtomicInteger progressCounter = new AtomicInteger();
         final int totalRows = numRows;
-        final int reportInterval = Math.max(1, totalRows / 20); // Report progress every 10%
-        Runnable matrixBuildTask = () -> IntStream.range(0, numRows).parallel().forEach(i -> {
+        final int reportInterval = Math.max(1, totalRows / 20);
 
+        Runnable matrixBuildTask = () -> IntStream.range(0, numRows).parallel().forEach(i -> {
             Id<Zone> originZoneId = matrixRowMapping.get(i).getKey();
             Zone originZone = zones.getZone(originZoneId);
             PerStrataData strataData = matrixRowMapping.get(i).getValue();
             combinedRowTargets[i] = strataData.personsByZone.get(originZoneId).size();
             final Map<String, String> modeFormulas = formulaRepository.getModeFormulas(activityConfig.activityName(), strataData.strata);
+
             for (int j = 0; j < numDests; j++) {
                 Zone destinationZone = validDestinationZones.get(j);
-                combinedFrictionMatrix[i][j] = calculateFriction(originZone, destinationZone, strataData.strataConfig, modeFormulas);
+                combinedUtilityMatrix[i][j] = calculateUtility(originZone, destinationZone, strataData.strataConfig, modeFormulas);
             }
             int completedRows = progressCounter.incrementAndGet();
             if (completedRows % reportInterval == 0 || completedRows == totalRows) {
@@ -316,7 +327,9 @@ public class PrimaryLocationChoiceModel {
         int ipfIterations = perStrataDataList.get(0).strataConfig.ipfIterations();
         logger.info("[Step 5/6] Running IPF with {} iterations...", ipfIterations);
         Instant startIpf = Instant.now();
-        double[][] combinedProbabilityMatrix = runIPF(combinedFrictionMatrix, combinedRowTargets, colTargets, ipfIterations);
+        double[][] combinedProbabilityMatrix = runIPF(combinedUtilityMatrix, combinedRowTargets, colTargets, ipfIterations);
+        logger.info("[Step 5/6] Finished IPF. Took {}.", Duration.between(startIpf, Instant.now()));
+
         logger.info("[Step 5/6] Finished IPF. Took {}.", Duration.between(startIpf, Instant.now()));
         logger.info("[Step 6/6] Assigning location zones to {} persons...", (int) totalRowTargets);
         Instant startAssign = Instant.now();
@@ -390,7 +403,7 @@ public class PrimaryLocationChoiceModel {
             throw new RuntimeException("Facility assignment failed", e);
         }
         logger.info("[Step 7/7] Finished assigning facilities. Took {}.", Duration.between(startAllocate, Instant.now()));
-        logger.info("--- Finished attraction group '{}' in {} ---", attractionAttribute, Duration.between(startAllocate, Instant.now()));
+        logger.info("--- Finished attraction group '{}' in {} ---", attractionAttribute, Duration.between(startGroup, Instant.now()));
     }
 
     private Map<String, Double> getTravelAndAccessibilityMetrics(Zone origin, Zone destination) {

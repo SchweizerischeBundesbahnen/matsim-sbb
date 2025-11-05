@@ -6,6 +6,7 @@ import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixReaders;
 import ch.sbb.matsim.plans.models.config.PrimaryLocationChoiceConfig;
 import ch.sbb.matsim.plans.models.formulas.FormulaRepository;
+import ch.sbb.matsim.plans.models.utils.WriteDataRelationAsMatrix;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.ZoneGeoPackageWriter;
 import ch.sbb.matsim.zones.Zones;
@@ -65,12 +66,14 @@ public class RunPrimaryLocationChoiceModel {
         MatrixReaders.readKalifMatrices("\\\\wsbbrz0283\\mobi\\40_Projekte\\20241104_MOBi_5.1\\kalif\\kalif_2023_mobi_51.omx", matrices);
         scenario.addScenarioElement(Variables.MATRICES, matrices);
         logger.info("Starting primary location choice model...");
-      PrimaryLocationChoiceModel plcModel = new PrimaryLocationChoiceModel(scenario, 24);
+        PrimaryLocationChoiceModel plcModel = new PrimaryLocationChoiceModel(scenario, 24);
         plcModel.run();
         logger.info("Primary location choice model completed.");
         SynPopUtils.aggregatePrimaryLocationChoicePerZone(scenario);
         new PopulationWriter(scenario.getPopulation()).write(outputFolder + "persons_2022" + suffix + "_with_longterm_location_choice.xml.gz");
         ZoneGeoPackageWriter.writeGeoPackage(zones, outputFolder + "zones_2022" + suffix + "_with_longterm_location_choice.gpkg");
-      ZoneGeoPackageWriter.writeAttributesToCSV(zones, outputFolder + "zones_2022" + suffix + "_with_longterm_location_choice.csv");
+        ZoneGeoPackageWriter.writeAttributesToCSV(zones, outputFolder + "zones_2022" + suffix + "_with_longterm_location_choice.csv");
+        WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amr_id", scenario, "zone_id", "work_zone_no", outputFolder + "work_zones_amr_matrix.csv");
+        WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amr_id", scenario, "zone_id", "school_zone_no", outputFolder + "edu_zones_amr_matrix.csv");
     }
 }
