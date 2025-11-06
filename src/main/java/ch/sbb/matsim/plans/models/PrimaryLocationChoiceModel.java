@@ -234,7 +234,7 @@ public class PrimaryLocationChoiceModel {
 
             int personCount = personsByZoneInStrata.values().stream().mapToInt(List::size).sum();
             totalPersonsInGroup += personCount;
-            logger.debug("  - Found {} persons in {} active origin zones for strata '{}'", personCount, personsByZoneInStrata.size(), data.strata.getStrataName());
+            logger.info("  - Found {} persons in {} active origin zones for strata '{}'", personCount, personsByZoneInStrata.size(), data.strata.getStrataName());
 
 
             data.personsByZone.putAll(personsByZoneInStrata);

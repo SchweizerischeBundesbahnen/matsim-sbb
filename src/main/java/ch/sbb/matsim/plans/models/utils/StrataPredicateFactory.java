@@ -47,7 +47,7 @@ public class StrataPredicateFactory {
         predicateMap.put(DecisionStrata.PRIMLOC_EMPL_NOABO_CAR, isNotCrossBorderCommuter.and(isEmployed).and(hasCar).and(hasNoAbo));
         predicateMap.put(DecisionStrata.PRIMLOC_EMPL_GA_CAR, isNotCrossBorderCommuter.and(isEmployed).and(hasCar).and(hasGA));
         predicateMap.put(DecisionStrata.PRIMLOC_EMPL_VA_CAR, isNotCrossBorderCommuter.and(isEmployed).and(hasCar).and(hasVA));
-        predicateMap.put(DecisionStrata.PRIMLOC_EMPL_NOABO_NOCAR, isNotCrossBorderCommuter.and(isEmployed).and(Predicate.not(hasCar)).and(hasNoAbo));
+        predicateMap.put(DecisionStrata.PRIMLOC_EMPL_NOABO_NOCAR, isNotCrossBorderCommuter.and(isEmployed).and(hasNoMobilityTool));
         predicateMap.put(DecisionStrata.PRIMLOC_EMPL_GA_NOCAR, isNotCrossBorderCommuter.and(isEmployed).and(Predicate.not(hasCar)).and(hasGA));
         predicateMap.put(DecisionStrata.PRIMLOC_EMPL_VA_NOCAR, isNotCrossBorderCommuter.and(isEmployed).and(Predicate.not(hasCar)).and(hasVA));
 
@@ -80,8 +80,6 @@ public class StrataPredicateFactory {
     }
 
     /**
-     * Retrieves the filtering predicate for a given Strata enum.
-     * This method is now 100% type-safe.
      *
      * @param strata The enum constant representing the desired Strata.
      * @return The corresponding Predicate<Person>.
