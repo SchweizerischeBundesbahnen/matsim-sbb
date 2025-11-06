@@ -11,59 +11,67 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ExpressionEvaluator {
-    // Custom functions are defined once and reused.
+    // Custom functions are the same...
     private static final Function functionMin = new Function("min", 2) {
-        @Override
-        public double apply(double... args) {
-            return Math.min(args[0], args[1]);
-        }
+        @Override public double apply(double... args) { return Math.min(args[0], args[1]); }
     };
     private static final Function functionMax = new Function("max", 2) {
-        @Override
-        public double apply(double... args) {
-            return Math.max(args[0], args[1]);
-        }
+        @Override public double apply(double... args) { return Math.max(args[0], args[1]); }
     };
+
+    // This pattern finds ALL possible variable names that could appear in your formulas.
+    // It's a single "OR" group, so we will use group(0) to get the full match.
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile(
+            "\\b(matrix_\\w+|va_impedances|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride)\\b"
+    );
 
     /**
      * Evaluates a given formula string with a map of variable data.
+     * Assumes the formula string contains full names (e.g., "matrix_car_travel_times")
+     * and the variableData map contains short names (e.g., "car_travel_times").
      *
-     * @param formulaString The raw formula (e.g., "-1.5+(-0.038)*matrix_22+...").
-     * @param variableData  A map of variable names to their double values.
-     *                      For matrix variables, this map should use the short name
-     *                      (e.g., "pt_travel_times_local" instead of "matrix_pt_travel_times_local").
+     * @param formulaString The raw formula string from the file.
+     * @param variableData  A map where keys are the SHORT variable names.
      * @return The calculated result.
      */
     public double evaluate(String formulaString, Map<String, Double> variableData) {
-        // 1. Create a modified formula where "matrix_variableName" is replaced by "variableName".
-        String modifiedFormula = formulaString.replaceAll("matrix_(\\w+)", "$1");
 
-        // 2. Define a pattern to find all relevant variables in the original formula.
-        //    Group 1 captures the name of the matrix variable (the part after "matrix_").
-        //    Group 2 captures the other variable types.
-        final Pattern pattern = Pattern.compile(
-                "matrix_(\\w+)|(from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride)"
-        );
-
-        // 3. Find all variable names and add the correct (shortened) version to the set.
-        Set<String> requiredVariables = new HashSet<>();
-        Matcher matcher = pattern.matcher(formulaString); // Use the original formula string for matching
+        // --- Step 1: Discover all variables from the original formula ---
+        // We do this first to know which variables we are dealing with.
+        Set<String> fullVariableNames = new HashSet<>();
+        Matcher matcher = VARIABLE_PATTERN.matcher(formulaString);
         while (matcher.find()) {
-            if (matcher.group(1) != null) {
-                // This was a matrix match, so add the captured short name.
-                requiredVariables.add(matcher.group(1));
-            } else {
-                // This was another type of variable, so add the full name.
-                requiredVariables.add(matcher.group(2));
-            }
+            fullVariableNames.add(matcher.group(0)); // group(0) is the full text of the match
         }
 
-        // 4. Build the expression using the modified formula and the collected variable names.
+        // --- Step 2: Create the modified formula and the set of short names for exp4j ---
+        String modifiedFormula = formulaString;
+        Set<String> shortVariableNames = new HashSet<>();
+
+        for (String fullName : fullVariableNames) {
+            String shortName;
+            if (fullName.startsWith("matrix_")) {
+                // If it's a matrix variable, strip the prefix to get the short name
+                shortName = fullName.substring("matrix_".length());
+                // And replace the full name with the short name in the formula string
+                modifiedFormula = modifiedFormula.replace(fullName, shortName);
+            } else {
+                // If it's not a matrix variable, the full name is the short name
+                shortName = fullName;
+            }
+            shortVariableNames.add(shortName);
+        }
+
+        // --- Step 3: Build and evaluate the expression ---
+        // We use the MODIFIED formula and the SHORT variable names.
         ExpressionBuilder builder = new ExpressionBuilder(modifiedFormula)
                 .functions(functionMin, functionMax)
-                .variables(requiredVariables);
+                .variables(shortVariableNames);
 
         Expression expression = builder.build();
+
+        // The variableData map (with short names) will now correctly match the variables
+        // that exp4j expects.
         expression.setVariables(variableData);
 
         return expression.evaluate();

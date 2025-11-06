@@ -58,8 +58,8 @@ public class ZoneGeoPackageWriter {
         try {
             Collection<SimpleFeature> features = buildFeaturesFromAttributes(sfZones, epsg, "zones");
             GeoFileWriter.writeGeometries(features, outputFile, new NameImpl("zones"));
-        } catch (FactoryException e) {
-            log.error("Error creating feature collection: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Error writing file: " + e.getMessage(), e);
         }
     }
 
