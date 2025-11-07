@@ -377,6 +377,7 @@ public class PrimaryLocationChoiceModel {
                         .groupingBy(activityFacility ->
                                 Id.create(String.valueOf(activityFacility.getAttributes().getAttribute(Variables.ZONE_ID))
                                         , Zone.class)));
+        final String distanceName = "net_dist_"+ activityConfig.personResultAttributeName().split("_")[0];
         Runnable facilityAllocation = () -> personsByActivityZone.forEach((zoneId, people) -> {
             var facilitiesInZone = activityFacilityByZone.get(zoneId);
             if (facilitiesInZone == null || facilitiesInZone.isEmpty()) {
@@ -394,6 +395,9 @@ public class PrimaryLocationChoiceModel {
                 } else {
                     logger.warn("Could not choose a facility for person " + person.getId() + " despite valid probabilities.");
                 }
+                Zone homeZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
+                var travelMetrics = matrices.getTravelMetrics(homeZone.getId(), zoneId).get(MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase());
+                person.getAttributes().putAttribute(distanceName, travelMetrics);
             }
 
         });

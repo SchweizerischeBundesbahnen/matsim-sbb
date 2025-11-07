@@ -54,7 +54,7 @@ public class MatrixReaders {
         logger.info("Finished processing car skims.");
     }
 
-    public static void readPTSkims(String filePath, Matrices matrices) {
+    public static void readAndProcessPTSkims(String filePath, Matrices matrices) {
         logger.info("Reading and processing PT skims from file: {}", filePath);
         Map<String, FloatMatrix<Id<Zone>>> skimDict = OmxUtils.readOmxMatrices(filePath);
 

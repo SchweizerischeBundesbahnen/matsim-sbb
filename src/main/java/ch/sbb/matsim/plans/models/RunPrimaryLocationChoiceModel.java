@@ -67,14 +67,14 @@ public class RunPrimaryLocationChoiceModel {
 
         Matrices matrices = new DefaultMatrices();
         //reading matrices from hard disk is much faster than from network drive
-      MatrixReaders.readAndProcessCarSkims(prefix + "/mobi/40_Projekte/20241104_MOBi_5.1/skims/MIV-V101/car_skims.omx", matrices);
-      MatrixReaders.readPTSkims(prefix + "/mobi/50_Ergebnisse/MOBi_5.0/skims/NPVM2023/pt_skims.omx", matrices);
-      //  MatrixReaders.readAndProcessCarSkims("/Users/joschka.bischoff/tmp/MIV-V101/car_skims.omx", matrices);
-      //  MatrixReaders.readPTSkims("/Users/joschka.bischoff/tmp/NPVM2023/pt_skims.omx", matrices);
-        matrices.getTravelMetrics(Id.create(35101030, Zone.class), Id.create(26101267, Zone.class)).forEach((k, v) -> logger.info("Travel metric {} : {}", k, v));
+      //MatrixReaders.readAndProcessCarSkims(prefix + "/mobi/40_Projekte/20241104_MOBi_5.1/skims/MIV-V101/car_skims.omx", matrices);
+      //MatrixReaders.readPTSkims(prefix + "/mobi/50_Ergebnisse/MOBi_5.0/skims/NPVM2023/pt_skims.omx", matrices);
+      MatrixReaders.readAndProcessCarSkims("/Users/joschka.bischoff/tmp/MIV-V101/car_skims.omx", matrices);
+      MatrixReaders.readAndProcessPTSkims("/Users/joschka.bischoff/tmp/NPVM2023/pt_skims.omx", matrices);
+      matrices.getTravelMetrics(Id.create(35101030, Zone.class), Id.create(26101267, Zone.class)).forEach((k, v) -> logger.info("Travel metric {} : {}", k, v));
 
-//        MatrixReaders.readKalifMatrices("/Users/joschka.bischoff/tmp/kalif_2023_mobi_51.omx", matrices);
-        MatrixReaders.readKalifMatrices(prefix + "/mobi/40_Projekte/20241104_MOBi_5.1/kalif/kalif_2023_mobi_51.omx", matrices);
+       MatrixReaders.readKalifMatrices("/Users/joschka.bischoff/tmp/kalif_2023_mobi_51.omx", matrices);
+       // MatrixReaders.readKalifMatrices(prefix + "/mobi/40_Projekte/20241104_MOBi_5.1/kalif/kalif_2023_mobi_51.omx", matrices);
         scenario.addScenarioElement(Variables.MATRICES, matrices);
         logger.info("Starting primary location choice model...");
         PrimaryLocationChoiceModel plcModel = new PrimaryLocationChoiceModel(scenario, 24);
