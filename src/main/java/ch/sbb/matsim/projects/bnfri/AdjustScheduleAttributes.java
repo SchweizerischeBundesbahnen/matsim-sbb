@@ -1,8 +1,12 @@
 package ch.sbb.matsim.projects.bnfri;
 
+import ch.sbb.matsim.RunSBB;
 import ch.sbb.matsim.analysis.modalsplit.MSVariables;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.mavi.MaviHelper;
+import ch.sbb.matsim.preparation.TransferTimeChecker;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkWriter;
@@ -21,12 +25,14 @@ public class AdjustScheduleAttributes {
         Scenario mobiScenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         Scenario gtfsScenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 //        String date = "2025-07-01";
-        String date = "2025-12-16";
+        String date = "2025-12-09";
 
         new TransitScheduleReader(mobiScenario).readFile("/Volumes/mobi/40_Projekte/20241104_MOBi_5.1/pt/NPVM2023/output/transitSchedule.xml.gz");
         String basefolder = "/Volumes/mobi/40_Projekte/20251105_decalage/pt/";
+        Config config = RunSBB.buildConfig("/Volumes/mobi/40_Projekte/20251105_decalage/sim/ref/simulation_config.xml_orig");
         new TransitScheduleReader(gtfsScenario).readFile(basefolder + date + "/raw/transitSchedule.xml.gz");
         new MatsimNetworkReader(gtfsScenario.getNetwork()).readFile(basefolder + date + "/raw/network.xml.gz");
+        MaviHelper.cleanStops(gtfsScenario.getTransitSchedule());
         gtfsScenario.getTransitSchedule().getTransitLines().values().stream().flatMap(transitLine -> transitLine.getRoutes().values().stream()).
                 forEach(transitRoute -> {
                     String modeName = transitRoute.getTransportMode();
@@ -75,16 +81,14 @@ public class AdjustScheduleAttributes {
             }
         }
 
-        gtfsScenario.getTransitSchedule().getFacilities().values().stream().forEach(
+        gtfsScenario.getTransitSchedule().getFacilities().values().forEach(
                 transitStopFacility -> {
                     String name = transitStopFacility.getName();
                     if (facilityNameToId.containsKey(name.trim().toLowerCase())) {
                         TransitStopFacility facility = facilityNameToId.get(name.trim().toLowerCase());
                         transitStopFacility.getAttributes().putAttribute("mobiId", facility.getId().toString());
                         facility.getAttributes().getAsMap().forEach(
-                                (key, value) -> {
-                                    transitStopFacility.getAttributes().putAttribute(key, value);
-                                }
+                                (key, value) -> transitStopFacility.getAttributes().putAttribute(key, value)
                         );
                     }
                     if (transitStopFacility.getAttributes().getAttribute("carFeederAccessible") == null) {
@@ -98,6 +102,7 @@ public class AdjustScheduleAttributes {
                     }
                 }
         );
+        TransferTimeChecker.addAdditionalTransferTimes(gtfsScenario.getTransitSchedule(), gtfsScenario.getNetwork(), config);
         new TransitScheduleWriter(gtfsScenario.getTransitSchedule()).writeFile(basefolder + date + "/transitSchedule.xml.gz");
         new NetworkWriter(gtfsScenario.getNetwork()).write(basefolder + date + "/transitNetwork.xml.gz");
     }
