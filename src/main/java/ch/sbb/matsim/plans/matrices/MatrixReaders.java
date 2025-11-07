@@ -74,11 +74,14 @@ public class MatrixReaders {
 
         // 3. Process Train vs. Local Travel Times
         logger.info("Processing train and local PT travel times...");
-        FloatMatrix<Id<Zone>> cleanedTrainShare = MatrixUtils.transform(rawTrainShare, v -> (v == MatrixUtils.DEFAULT_SKIM_ENTRY) ? 0.0f : v);
-        FloatMatrix<Id<Zone>> trainTtRaw = MatrixUtils.merge(rawTravelTimes, cleanedTrainShare, (tt, share) -> tt * share);
+        FloatMatrix<Id<Zone>> cleanedTrainShare = MatrixUtils.transform(rawTrainShare, v ->
+                (!Float.isFinite(v) || v < 0 || v > 1) ? 0.0f : v // A share must be between 0 and 1
+        );
+
+        FloatMatrix<Id<Zone>> trainTtRaw = MatrixUtils.merge(rawTravelTimes, cleanedTrainShare, (tt, share) -> isInvalidTime(tt) ? MatrixUtils.DEFAULT_SKIM_ENTRY: tt * share);
         matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TRAIN.name().toLowerCase(), MatrixUtils.getSymmetricMatrix(trainTtRaw));
         FloatMatrix<Id<Zone>> nonTrainShare = MatrixUtils.transform(cleanedTrainShare, v -> 1.0f - v);
-        FloatMatrix<Id<Zone>> localTtRaw = MatrixUtils.merge(rawTravelTimes, nonTrainShare, (tt, share) -> tt * share);
+        FloatMatrix<Id<Zone>> localTtRaw = MatrixUtils.merge(rawTravelTimes, nonTrainShare, (tt, share) -> isInvalidTime(tt) ? MatrixUtils.DEFAULT_SKIM_ENTRY: tt * share);
         matrices.addMatrix(MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_LOCAL.name().toLowerCase(), MatrixUtils.getSymmetricMatrix(localTtRaw));
 
         // 4. Process Access and Egress Times
@@ -124,6 +127,10 @@ public class MatrixReaders {
                 throw new IllegalStateException("Required matrix with key '" + def.getFileKey() + "' not found in the file.");
             }
         }
+    }
+
+    private static boolean isInvalidTime(float tt) {
+        return !Float.isFinite(tt) || tt >= MatrixUtils.DEFAULT_SKIM_ENTRY;
     }
 
 }
