@@ -7,6 +7,8 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import com.google.common.util.concurrent.AtomicDouble;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -26,10 +28,7 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -38,6 +37,7 @@ public class AreaAnalysis {
     private final Map<String, String> runs;
     private final Network roadNetwork;
     private final Zones zones;
+    private final static Logger log = LogManager.getLogger(AreaAnalysis.class);
     final Map<String, RunVolumeData> runVolumeDataMap = new TreeMap<>();
 
 
@@ -51,37 +51,30 @@ public class AreaAnalysis {
 
     public static void main(String[] args) {
         Map<String, String> runs = new TreeMap<>();
-        String root = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\sim\\";
-        //String root = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2050\\sim\\";
-//        runs.put("M332050.2", root + "3.3.2050.2.50pct");
-        runs.put("REF", root + "ref_v2");
-        runs.put("VIV", root + "vivaldi_v2");
-        runs.put("VB", root + "vollbahn_v2");
-        runs.put("VIV02", root + "Angebot_v02_GCR_LR");
-//        runs.put("5.5", root + "5.5-ref_ak_35_miv");
-//        runs.put("6.0", root + "6.0-netzplan-sma");
-//        runs.put("6.5", root + "6.5-netzplan-sma_miv");
-//        runs.put("7.0", root + "7.0-metroX");
-//        runs.put("7.5", root + "7.5-metroX_miv");
-//        runs.put("8.0", root + "8.0-max");
-//        runs.put("8.5", root + "8.5-max_miv");
-//        runs.put("9.0", root + "9.0-x4_champel");
-//        runs.put("9.5", root + "9.5-x4_champel_miv");
+        String root = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/sim/";
+        runs.put("refkt_v1", root + "refkt_cut_v1");
+        runs.put("ref_cut5_25", root + "ref_cut_v5_25");
+        runs.put("var_ev", root + "var_ev");
+        runs.put("var_rives", root + "var_rives");
+        runs.put("var_cornavin", root + "var_cornavin");
 
-        String roadNet = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\streets\\ref\\output\\network.xml.gz";
-        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\Auswertungen\\zonen\\kanton_GE.shp";
-        String outputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\Auswertungen\\zonen\\perimeter-ge-ref.csv";
+        String roadNet = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/streets/output/network.xml.gz";
+        String zonesFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/kanton_GE.shp";
+        String outputFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/perimeter-ge.csv";
         Network network = NetworkUtils.createNetwork();
         new MatsimNetworkReader(network).readFile(roadNet);
         Zones zones = ZonesLoader.loadZones(Variables.ZONE_ID, zonesFile);
         AreaAnalysis areaAnalysis = new AreaAnalysis(network, zones, runs);
-        areaAnalysis.run();
+        areaAnalysis.run(0.25);
         areaAnalysis.write(outputFile);
     }
 
     private static double getAKM(Map<Id<Link>, Map<String, Integer>> departuresPerLink, List<Link> relevantPtLinks, String mode) {
 
-        return relevantPtLinks.stream().filter(link -> link.getAllowedModes().contains(mode)).mapToDouble(link -> departuresPerLink.get(link.getId()).getOrDefault(mode, 0) * link.getLength() * (double) link.getAttributes().getAttribute(IS_IN) * 0.001).sum();
+        return relevantPtLinks.stream().filter(link -> link.getAllowedModes().contains(mode))
+                .mapToDouble(link -> departuresPerLink.getOrDefault(link.getId(), Collections.emptyMap())
+                .getOrDefault(mode, 0) * link.getLength() * (double) link.getAttributes().getAttribute(IS_IN) * 0.001)
+                .sum();
     }
 
     private static double getPKM(String attribute, Link link) {
@@ -179,6 +172,11 @@ public class AreaAnalysis {
                 writer.set(d.run, Double.toString(d.busVolume()));
             }
             writer.writeRow();
+            writer.set("means", "metro");
+            for (RunVolumeData d : runVolumeDataMap.values()) {
+                writer.set(d.run, Double.toString(d.metrovolume()));
+            }
+            writer.writeRow();
             writer.set("means", SBBModes.PTSubModes.OTHER);
             for (RunVolumeData d : runVolumeDataMap.values()) {
                 writer.set(d.run, Double.toString(d.otherVolume()));
@@ -215,6 +213,11 @@ public class AreaAnalysis {
                 writer.set(d.run, Double.toString(d.busAKM()));
             }
             writer.writeRow();
+            writer.set("means", "metro");
+            for (RunVolumeData d : runVolumeDataMap.values()) {
+                writer.set(d.run, Double.toString(d.metroAKM()));
+            }
+            writer.writeRow();
             writer.set("means", SBBModes.PTSubModes.OTHER);
             for (RunVolumeData d : runVolumeDataMap.values()) {
                 writer.set(d.run, Double.toString(d.otherAKM()));
@@ -225,31 +228,41 @@ public class AreaAnalysis {
         }
     }
 
-    private void run() {
+    private void run(double samplesize) {
         List<Link> relevantCarLinks = roadNetwork.getLinks().values().stream().filter(link -> (double) link.getAttributes().getAttribute(IS_IN) > 0.0).collect(Collectors.toList());
         for (var run : runs.entrySet()) {
             String runId = run.getKey();
+            log.info("Processing run " +  runId);
             String path = run.getValue();
-            String ptNet = path + "/output/" + runId + ".ptlinkvolumes_network.xml.gz";
+            String ptNet = path + "/output/" + runId + ".ptlinkvolumes.att_network.xml.gz";
             String scheduleFile = path + "/output/" + runId + ".output_transitSchedule.xml.gz";
             String carVolumesFile = path + "/output/" + runId + ".car_volumes.att";
             String outputPopulation = path + "/output/" + runId + ".output_plans.xml.gz";
             Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
             new TransitScheduleReader(scenario).readFile(scheduleFile);
+            Set<Id<Link>> metroLinkIds = scenario.getTransitSchedule().getTransitLines().values().stream()
+                    .filter(line -> line.getId().toString().equals("M1_EV"))
+                    .flatMap(line -> line.getRoutes().values().stream())
+                    .flatMap(route -> route.getRoute().getLinkIds().stream())
+                    .collect(Collectors.toSet());
+
             var departuresPerLink = calcDeparturesPerLink(scenario.getTransitSchedule());
             Network ptNetwork = scenario.getNetwork();
             new MatsimNetworkReader(ptNetwork).readFile(ptNet);
             assignZone(ptNetwork);
+
+            log.info("Reading car volumes from " + carVolumesFile);
             Map<Id<Link>, Double> allCarVolumes = readCarVolumes(carVolumesFile);
             List<Link> relevantPtLinks = ptNetwork.getLinks().values().stream().filter(link -> (double) link.getAttributes().getAttribute(IS_IN) > 0.0).collect(Collectors.toList());
-            String attribute = runId + "_ptVolume";
+            String attribute = "VOLUME";
             System.out.println(attribute);
             new PopulationReader(scenario).readFile(outputPopulation);
+            log.info("Processing walk and bike...");
             List<String> slowModes = List.of(SBBModes.WALK_MAIN_MAINMODE, SBBModes.BIKE);
             AtomicDouble walkKM = new AtomicDouble();
             AtomicDouble bikeKM = new AtomicDouble();
             scenario.getPopulation().getPersons().values()
-                    .stream()
+                    .parallelStream()
                     .map(person -> person.getSelectedPlan())
                     .flatMap(plan -> TripStructureUtils.getTrips(plan).stream())
                     .filter(trip -> trip.getLegsOnly().stream().anyMatch(leg -> slowModes.contains(leg.getMode())))
@@ -257,17 +270,29 @@ public class AreaAnalysis {
                     .forEach(trip -> {
                         for (var leg : trip.getLegsOnly()) {
                             if (leg.getMode().equals(SBBModes.WALK_MAIN_MAINMODE)) {
-                                walkKM.addAndGet(leg.getRoute().getDistance());
+                                walkKM.addAndGet(leg.getRoute().getDistance()/samplesize);
                             } else if (leg.getMode().equals(SBBModes.BIKE)) {
-                                bikeKM.addAndGet(leg.getRoute().getDistance());
+                                bikeKM.addAndGet(leg.getRoute().getDistance()/samplesize);
                             }
                         }
                     });
 
+            log.info("Calculating volumes for PT...");
+            List<Link> trueTramLinks = relevantPtLinks.stream().filter(link -> link.getAllowedModes()
+                            .contains(SBBModes.PTSubModes.TRAM))
+                            .filter(link -> !metroLinkIds.contains(link.getId()))
+                            .collect(Collectors.toList());
+            double tramVolume = trueTramLinks.stream()
+                    .mapToDouble(link -> getPKM(attribute, link)).sum();
+            List<Link> metroLinks = relevantPtLinks.stream().filter(link -> link.getAllowedModes()
+                            .contains(SBBModes.PTSubModes.TRAM))
+                    .filter(link -> metroLinkIds.contains(link.getId()))
+                    .collect(Collectors.toList());
+            double metroVolume = metroLinks.stream()
+                    .mapToDouble(link -> getPKM(attribute, link)).sum();
+            double tramKM = getAKM(departuresPerLink, trueTramLinks, SBBModes.PTSubModes.TRAM);
+            double metroKM = metroLinks.isEmpty()?0.0:getAKM(departuresPerLink, metroLinks, SBBModes.PTSubModes.TRAM);
 
-
-            double tramVolume = relevantPtLinks.stream().filter(link -> link.getAllowedModes().contains(SBBModes.PTSubModes.TRAM)).mapToDouble(link -> getPKM(attribute, link)).sum();
-            double tramKM = getAKM(departuresPerLink, relevantPtLinks, SBBModes.PTSubModes.TRAM);
 
             double busVolume = relevantPtLinks.stream().filter(link -> link.getAllowedModes().contains(SBBModes.PTSubModes.BUS)).mapToDouble(link -> getPKM(attribute, link)).sum();
             double busKM = getAKM(departuresPerLink, relevantPtLinks, SBBModes.PTSubModes.BUS);
@@ -276,8 +301,7 @@ public class AreaAnalysis {
             double otherVolume = relevantPtLinks.stream().filter(link -> link.getAllowedModes().contains(SBBModes.PTSubModes.OTHER)).mapToDouble(link -> getPKM(attribute, link)).sum();
             double otherKM = getAKM(departuresPerLink, relevantPtLinks, SBBModes.PTSubModes.OTHER);
             double carVolumes = relevantCarLinks.stream().mapToDouble(link -> allCarVolumes.getOrDefault(link.getId(), 0.0) * link.getLength() * 0.001).sum();
-
-            RunVolumeData runVolume = new RunVolumeData(runId, carVolumes, tramVolume, trainVolume, otherVolume, busVolume, trainKM, busKM, tramKM, otherKM, bikeKM.get() / 1000.0, walkKM.get() / 1000.0);
+            RunVolumeData runVolume = new RunVolumeData(runId, carVolumes, tramVolume, trainVolume, otherVolume, busVolume,metroVolume, trainKM, busKM, tramKM, metroKM, otherKM, bikeKM.get() / 1000.0, walkKM.get() / 1000.0);
             runVolumeDataMap.put(runId, runVolume);
         }
     }
@@ -298,7 +322,7 @@ public class AreaAnalysis {
     }
 
     record RunVolumeData(String run, double carVolume, double tramVolume, double trainVolume, double otherVolume,
-                         double busVolume, double railAKM, double busAKM, double tramAKM, double otherAKM,
+                         double busVolume, double metrovolume, double railAKM, double busAKM, double tramAKM, double metroAKM,  double otherAKM,
                          double bikeVolume, double walkVolume) {
     }
 
