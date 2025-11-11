@@ -34,6 +34,10 @@ public class BusinessesReader {
 
     public static void readBusinessesFile(String filePath, ActivityFacilities facilities) {
         File file = new File(filePath);
+        readBusinessesFile(file, facilities);
+    }
+    public static void readBusinessesFile(File file, ActivityFacilities facilities) {
+
         try (BufferAllocator allocator = new RootAllocator(); FileInputStream fileInputStream = new FileInputStream(file); SeekableReadChannel readChannel = new SeekableReadChannel(fileInputStream.getChannel()); ArrowFileReader arrowFileReader = new ArrowFileReader(readChannel, allocator)) {
 
             VectorSchemaRoot root = arrowFileReader.getVectorSchemaRoot();

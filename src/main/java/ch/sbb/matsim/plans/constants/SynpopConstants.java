@@ -173,9 +173,12 @@ public class SynpopConstants {
 
     public static Integer getCodeOrFail(Map<String, Integer> reverseMap, String label, String categoryName) {
         Integer code = reverseMap.get(label);
-        if (code == null)
+        if (code != null)
+            return code;
+        else if (reverseMap.values().contains(Integer.parseInt(label)))
+            return Integer.parseInt(label);
+        else
             throw new IllegalArgumentException("Unknown value for category '" + categoryName + "': " + label);
-        return code;
     }
 
 }

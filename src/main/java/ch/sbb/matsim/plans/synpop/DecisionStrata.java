@@ -45,9 +45,6 @@ public enum DecisionStrata {
     }
 
     /**
-     * A robust, case-sensitive factory method to get a DecisionStrata enum from its string name.
-     * This is the perfect way to bridge your data file and your type-safe code.
-     *
      * @param name The exact string from your data file.
      * @return The corresponding DecisionStrata enum.
      * @throws IllegalArgumentException if the string does not match any known strata.

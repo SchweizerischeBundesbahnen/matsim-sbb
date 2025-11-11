@@ -36,6 +36,10 @@ public class HouseholdsReader {
 
     public static void readHouseholdFile(String filePath, Households households) {
         File file = new File(filePath);
+        readHouseholdFile(file, households);
+    }
+        public static void readHouseholdFile(File file, Households households) {
+
         try (BufferAllocator allocator = new RootAllocator(); FileInputStream fileInputStream = new FileInputStream(file); SeekableReadChannel readChannel = new SeekableReadChannel(fileInputStream.getChannel()); ArrowFileReader arrowFileReader = new ArrowFileReader(readChannel, allocator)) {
 
             VectorSchemaRoot root = arrowFileReader.getVectorSchemaRoot();

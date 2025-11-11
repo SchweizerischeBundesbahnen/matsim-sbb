@@ -22,17 +22,20 @@ import java.util.Map;
 public class SynpopReader {
 
     public static void main(String[] args) {
-        String featherPopulation = "C:\\devsbb\\tmp\\synpop_2022\\persons_2022_custom_batched.arrow";
+        String featherPopulation = "/Users/joschka.bischoff/tmp/synpop2022/persons_2022.arrow";
         Population pop = PopulationUtils.createPopulation(ConfigUtils.createConfig());
         double time = System.nanoTime();
         readSynpopFile(featherPopulation, pop);
         System.out.println(pop.getPersons().size());
         System.out.println("Calculation time " + 0.001 * (System.nanoTime() - time));
-        new PopulationWriter(pop).write("C:\\devsbb\\tmp\\synpop_2022\\persons_2022.xml.gz");
+        new PopulationWriter(pop).write("/Users/joschka.bischoff/tmp/synpop2022/persons_2022.xml.gz");
     }
 
     public static void readSynpopFile(String filePath, Population population) {
         File file = new File(filePath);
+        readSynpopFile(file, population);
+    }
+    public static void readSynpopFile(File file, Population population) {
         try (
                 BufferAllocator allocator = new RootAllocator();
                 FileInputStream fileInputStream = new FileInputStream(file);
@@ -62,7 +65,7 @@ public class SynpopReader {
 
                     person.getAttributes().putAttribute(SynpopConstants.HOUSEHOLD_ID, Long.toString(householdIdVector.get(i)));
 
-                    // kategorische Spalten als String extrahieren
+
                     String highestEducation = getStringFromVector(highestEducationVector, dictionaryVectors, i);
                     person.getAttributes().putAttribute(SynpopConstants.HIGHEST_EDUCATION, SynpopConstants.getCodeOrFail(SynpopConstants.HIGHEST_EDUCATION_REVERSE, highestEducation, SynpopConstants.HIGHEST_EDUCATION));
 
@@ -75,7 +78,7 @@ public class SynpopReader {
                     String jobRank = getStringFromVector(currentJobRankVector, dictionaryVectors, i);
                     person.getAttributes().putAttribute(SynpopConstants.CURRENT_JOB_RANK, SynpopConstants.getCodeOrFail(SynpopConstants.CURRENT_JOB_RANK_REVERSE, jobRank, SynpopConstants.CURRENT_JOB_RANK));
 
-                    // einfache numerische Felder
+
                     person.getAttributes().putAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT, levelOfEmploymentVector.get(i));
                     person.getAttributes().putAttribute(SynpopConstants.AGE, ageVector.get(i));
                     person.getAttributes().putAttribute(SynpopConstants.IS_SWISS, isSwissVector.get(i) == 1);
