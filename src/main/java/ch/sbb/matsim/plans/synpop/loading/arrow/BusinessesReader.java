@@ -1,4 +1,4 @@
-package ch.sbb.matsim.plans.synpop;
+package ch.sbb.matsim.plans.synpop.loading.arrow;
 
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import org.apache.arrow.memory.BufferAllocator;

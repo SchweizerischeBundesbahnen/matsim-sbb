@@ -1,4 +1,4 @@
-package ch.sbb.matsim.plans.synpop.csvreaders;
+package ch.sbb.matsim.plans.synpop.loading.csv;
 
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import org.apache.commons.csv.CSVFormat;

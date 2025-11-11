@@ -1,12 +1,12 @@
-package ch.sbb.matsim.plans.models.utils;
+package ch.sbb.matsim.plans.synpop.loading;
 
-import ch.sbb.matsim.plans.synpop.BusinessesReader;
-import ch.sbb.matsim.plans.synpop.HouseholdsReader;
+import ch.sbb.matsim.plans.synpop.loading.arrow.BusinessesReader;
+import ch.sbb.matsim.plans.synpop.loading.arrow.HouseholdsReader;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
-import ch.sbb.matsim.plans.synpop.SynpopReader;
-import ch.sbb.matsim.plans.synpop.csvreaders.BusinessesCsvReader;
-import ch.sbb.matsim.plans.synpop.csvreaders.HouseholdsCsvReader;
-import ch.sbb.matsim.plans.synpop.csvreaders.SynpopCsvReader;
+import ch.sbb.matsim.plans.synpop.loading.arrow.SynpopReader;
+import ch.sbb.matsim.plans.synpop.loading.csv.BusinessesCsvReader;
+import ch.sbb.matsim.plans.synpop.loading.csv.HouseholdsCsvReader;
+import ch.sbb.matsim.plans.synpop.loading.csv.SynpopCsvReader;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
