@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.models.config;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
@@ -18,6 +19,8 @@ public record MOBiPlansConfig (
     public static final String CARS_PER_HOUSEHOLD_CSV = "cars_per_household.csv";
     public static final String PT_SUBSCRIPTION_ADULTS_CSV = "pt_subscription_adults.csv";
     public static final String PT_SUBSCRIPTION_MINORS_CSV = "pt_subscription_minors.csv";
+    public static final String MODE_IMPEDANCE_FORMULAS = "mode_impedance_formulas.csv";
+    public static final String PRIMARY_LOCATION_CHOICE_CONFIG_YAML = "primary_location_choice_config.yaml";
 
     /**
      * Reads and parses the master configuration from a YAML file.
@@ -46,12 +49,20 @@ public record DataConfig(
         String ptSkimsFile,
         String kalifMatricesFile,
         String modelBaseDir,
-        String outputBaseDir
-) {}
+        String outputBaseDir,
+        String sff_attributes,
+        String school_enr_apprentices,
+        String foreign_attractions,
+        String zone_informations
 
-public record ModelsConfig(
-        int threads,
-        List<String> modelsToRun
-) {}
+) {
+}
+    public record ModelsConfig(
+            int threads,
+            boolean write_analysis,
+            String run_id,
+            Object run
+    ) {
+    }
 
 }

@@ -9,19 +9,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FormulaRepository {
+public class ModeImpedanceFormulaRepository {
     public static final String ACTID = "actid";
     public static final String DSTRAT = "dstrat";
     private final Map<CompositeFormulaKey, Map<String, String>> formulaStore = new ConcurrentHashMap<>();
 
-    public FormulaRepository(String filePath) {
+    public ModeImpedanceFormulaRepository(String filePath) {
         try (CSVReader csvReader = new CSVReader(filePath, ";")) {
             Map<String, String> record;
-            while ((record = csvReader.readLine()) != null) {
+            while ((record = csvReader.readLine()) != null && !record.isEmpty()) {
                 String activity = record.get(ACTID);
+                System.out.println(record);
                 DecisionStrata strata = DecisionStrata.fromStrataName(record.get(DSTRAT));
                 CompositeFormulaKey key = new CompositeFormulaKey(activity, strata);
-
                 Map<String, String> modeFormulas = new ConcurrentHashMap<>();
                 for (String mode : List.of(SBBModes.BIKE, SBBModes.CAR, SBBModes.PT, SBBModes.RIDE, SBBModes.WALK_FOR_ANALYSIS)) {
                     modeFormulas.put(mode, record.get(mode));

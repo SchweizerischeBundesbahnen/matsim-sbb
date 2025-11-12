@@ -29,9 +29,13 @@ public class PrimaryLocationChoiceConfig {
     }
 
 
-    public static PrimaryLocationChoiceConfig readFromYamlFile(String filePath) throws IOException {
+    public static PrimaryLocationChoiceConfig readFromYamlFile(String filePath)  {
         ObjectMapper mapper = new YAMLMapper();
-        return mapper.readValue(new File(filePath), PrimaryLocationChoiceConfig.class);
+        try {
+            return mapper.readValue(new File(filePath), PrimaryLocationChoiceConfig.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Set<ActivityConfigRecord> getPrimaryLocationChoiceConfigs() {

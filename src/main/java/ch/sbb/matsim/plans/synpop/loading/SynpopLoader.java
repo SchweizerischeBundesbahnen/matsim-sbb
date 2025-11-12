@@ -1,5 +1,7 @@
 package ch.sbb.matsim.plans.synpop.loading;
 
+import ch.sbb.matsim.plans.MOBiPlansRunner;
+import ch.sbb.matsim.plans.models.ModelStep;
 import ch.sbb.matsim.plans.synpop.loading.arrow.BusinessesReader;
 import ch.sbb.matsim.plans.synpop.loading.arrow.HouseholdsReader;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
@@ -19,13 +21,13 @@ import org.matsim.households.HouseholdsReaderV10;
 import java.io.File;
 import java.util.List;
 
-public class LoadPopulationTask implements Runnable {
-    private final static Logger logger = LogManager.getLogger(LoadPopulationTask.class);
+public class SynpopLoader implements ModelStep {
+    private final static Logger logger = LogManager.getLogger(SynpopLoader.class);
     private final MOBiPlansConfig config;
     private final Scenario scenario;
-
+    private final String name = MOBiPlansRunner.LOAD_SYNPOP;
     @Inject
-    public LoadPopulationTask(MOBiPlansConfig config, Scenario scenario) {
+    public SynpopLoader(MOBiPlansConfig config, Scenario scenario) {
         this.config = config;
         this.scenario = scenario;
     }
@@ -117,5 +119,10 @@ public class LoadPopulationTask implements Runnable {
                 logger.warn("No ARROW or CSV files found in directory: " + dir);
             }
         }
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

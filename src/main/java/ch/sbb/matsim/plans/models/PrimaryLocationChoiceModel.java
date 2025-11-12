@@ -1,19 +1,24 @@
 package ch.sbb.matsim.plans.models;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
+import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.config.PrimaryLocationChoiceConfig;
-import ch.sbb.matsim.plans.models.formulas.FormulaRepository;
+import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
 import ch.sbb.matsim.plans.models.utils.ChoiceUtils;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
 import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
+import ch.sbb.matsim.plans.models.utils.WriteDataRelationAsMatrix;
+import ch.sbb.matsim.plans.models.utils.analysis.AnalyzeDistanceDistribution;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
+import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -31,7 +36,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class PrimaryLocationChoiceModel {
+public class PrimaryLocationChoiceModel implements ModelStep{
 
     private static final double MIN_LOGSUM = -20.0;
     private static final double BETA_ATTRACTION = 1.0;
@@ -39,22 +44,29 @@ public class PrimaryLocationChoiceModel {
     private final Scenario scenario;
     private final Zones zones;
     private final Matrices matrices;
-    private final FormulaRepository formulaRepository;
+    private final ModeImpedanceFormulaRepository formulaRepository;
     private final ExpressionEvaluator expressionEvaluator;
-    private final PrimaryLocationChoiceConfig primaryLocationChoiceConfig;
+    private  PrimaryLocationChoiceConfig primaryLocationChoiceConfig;
     private final StrataPredicateFactory strataPredicateFactory;
     private final Logger logger = LogManager.getLogger(PrimaryLocationChoiceModel.class);
     private final ForkJoinPool customThreadPool;
+    private final boolean writeDetailedAnalysis;
+    private final String outputDir;
 
-    public PrimaryLocationChoiceModel(Scenario scenario, int numThreads) {
+
+    @Inject
+    public PrimaryLocationChoiceModel(Scenario scenario, MOBiPlansConfig moBiPlansConfig, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository ) {
         this.scenario = scenario;
-        this.zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
-        this.matrices = (Matrices) scenario.getScenarioElement(Variables.MATRICES);
-        this.formulaRepository = (FormulaRepository) scenario.getScenarioElement("modeImpedanceFormulas");
-        this.primaryLocationChoiceConfig = (PrimaryLocationChoiceConfig) scenario.getScenarioElement("primaryLocationChoiceConfig");
+        this.zones =  zones;
+        this.matrices = matrices;
+        this.formulaRepository = formulaRepository;
+        this.primaryLocationChoiceConfig = PrimaryLocationChoiceConfig.readFromYamlFile(moBiPlansConfig.data().modelBaseDir() + MOBiPlansConfig.PRIMARY_LOCATION_CHOICE_CONFIG_YAML);
         this.strataPredicateFactory = new StrataPredicateFactory();
         this.expressionEvaluator = new ExpressionEvaluator();
-        this.customThreadPool = new ForkJoinPool(numThreads);
+        this.writeDetailedAnalysis = moBiPlansConfig.models().write_analysis();
+        this.customThreadPool = new ForkJoinPool(moBiPlansConfig.models().threads());
+        this.outputDir = moBiPlansConfig.data().outputBaseDir();
+
     }
 
     private static Double toDouble(Object value) {
@@ -65,6 +77,7 @@ public class PrimaryLocationChoiceModel {
         throw new IllegalArgumentException("Cannot convert value to Double: " + value + " (" + value.getClass() + ")");
     }
 
+    @Override
     public void run() {
         try {
             logger.info("Starting Primary Location Choice Model...");
@@ -73,8 +86,16 @@ public class PrimaryLocationChoiceModel {
                 runForActivity(activityConfig);
             }
             logger.info("Primary Location Choice Model finished in {}.", Duration.between(startRun, Instant.now()));
+
         } finally {
             customThreadPool.shutdown();
+        }
+        if (writeDetailedAnalysis) {
+            WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amr_id", scenario, "zone_id", "work_zone_no", outputDir + "/work_zones_amr_matrix.csv");
+            WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amgr_id", scenario, "zone_id", "work_zone_no", outputDir + "/work_zones_amgr_matrix.csv");
+            WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amgr_id", scenario, "zone_id", "school_zone_no", outputDir + "/edu_zones_amgr_matrix.csv");
+            WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amr_id", scenario, "zone_id", "school_zone_no", outputDir + "/edu_zones_amr_matrix.csv");
+            AnalyzeDistanceDistribution.writeDistanceDistribution(outputDir + "/distance_distribution_long_term_location_choice.csv", scenario.getPopulation());
         }
     }
 
@@ -451,6 +472,11 @@ public class PrimaryLocationChoiceModel {
 
         // Ensure the final logsum does not fall below the defined floor.
         return Math.max(logsum, MIN_LOGSUM);
+    }
+
+    @Override
+    public String getName() {
+        return MOBiPlansRunner.PRIMARY_LOCATION_CHOICE;
     }
 
     // Helper class to hold data for each stratum within a group

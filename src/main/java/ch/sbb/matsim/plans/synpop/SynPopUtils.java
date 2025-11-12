@@ -3,19 +3,20 @@ package ch.sbb.matsim.plans.synpop;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
+import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.households.Household;
+import org.matsim.utils.objectattributes.attributable.Attributable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SynPopUtils {
@@ -244,6 +245,28 @@ public class SynPopUtils {
                 }
         );
         LogManager.getLogger(SynPopUtils.class).info("Done.");
+    }
+
+
+    public static void writeAttributesToCSV(Collection<? extends Attributable> values, List<String> attributes, String outputfile) {
+        NestedAttributeResolver resolver = new NestedAttributeResolver();
+        StringBuilder sb = new StringBuilder();
+        sb.append("id;").append(String.join(";", attributes)).append("\n");
+        for (Attributable attributable : values) {
+            String id = ((Identifiable) attributable).getId().toString();
+            sb.append(id).append(";");
+            for (String attribute : attributes) {
+                Object value = resolver.resolve(attributable, attribute);
+                sb.append(value != null ? value.toString() : "null").append(";");
+            }
+            sb.setLength(sb.length() - 1); // Remove last comma
+            sb.append("\n");
+        }
+        try {
+            java.nio.file.Files.write(java.nio.file.Paths.get(outputfile), sb.toString().getBytes());
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
     }
 
     record MobilityToolCount(AtomicInteger drivingLicenseCount, AtomicInteger ebikeCount,
