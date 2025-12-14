@@ -44,7 +44,7 @@ public class AnalyzePersonsAroundStations {
         }
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new TransitScheduleReader(scenario).readFile("/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/pt/var_rives/output/transitSchedule.xml.gz");
+        new TransitScheduleReader(scenario).readFile("/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/pt/var_dorciere/output/transitSchedule.xml.gz");
         Set<TransitStopFacility> allStops = new HashSet<>();
         Set<TransitStopFacility> gcrstops = scenario.getTransitSchedule().getTransitLines().values().stream()
                 .filter(transitLine -> transitLine.getId().toString().equals("M1_EV"))
