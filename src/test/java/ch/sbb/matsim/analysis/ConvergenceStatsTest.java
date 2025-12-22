@@ -79,7 +79,6 @@ public class ConvergenceStatsTest {
 	}
 
 	@Test
-    @Disabled
 	public void test_convergenceCriterion() throws IOException {
 		System.setProperty("matsim.preferLocalDtds", "true");
 		Config config = RunSBB.buildConfig("test/input/scenarios/mobi50test/config_2023.xml");
