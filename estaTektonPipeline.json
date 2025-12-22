@@ -10,7 +10,7 @@
     "artifactoryMavenRepo": "simba.mvn"
   },
   "advancedBuildSettings": {
-    "buildWorkspaceSize": "10Gi",
+    "buildWorkspaceSize": "12Gi",
     "buildCacheSize": "5Gi"
   },
   "pipelines": [
