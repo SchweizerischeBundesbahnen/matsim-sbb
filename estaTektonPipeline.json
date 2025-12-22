@@ -7,10 +7,11 @@
   "mvn": {
     "parentPom": "pom.xml",
     "deployableArtifactsPom": "pom.xml",
-    "artifactoryMavenRepo": "simba.mvn"
+    "artifactoryMavenRepo": "simba.mvn",
+    "buildTaskName": "esta-maven-build-large"
   },
   "advancedBuildSettings": {
-    "buildWorkspaceSize": "12Gi",
+    "buildWorkspaceSize": "8Gi",
     "buildCacheSize": "5Gi"
   },
   "pipelines": [
