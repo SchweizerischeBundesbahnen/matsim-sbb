@@ -16,7 +16,7 @@
         </repository>
 
         <repository>
-            <!-- Repository for MATSim releases and snapshots (MATSim is not on Maven central) -->
+            <!-- Repository for MATSim releases and snapshots (MATSim is not on Maven central)-->
             <id>matsim</id>
             <url>https://repo.matsim.org/repository/matsim</url>
         </repository>
