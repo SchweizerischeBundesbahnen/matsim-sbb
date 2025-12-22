@@ -10,8 +10,8 @@
     "artifactoryMavenRepo": "simba.mvn"
   },
   "advancedBuildSettings": {
-    "buildWorkspaceSize": "5Gi",
-    "buildCacheSize": "3Gi"
+    "buildWorkspaceSize": "10Gi",
+    "buildCacheSize": "5Gi"
   },
   "pipelines": [
     {
@@ -51,7 +51,7 @@
       ],
       "build": {
         "buildDockerImage": true,
-        "additionalBuildParams": "-DignoreSnapshots=true"
+        "additionalBuildParams": "-DignoreSnapshots=true -Xmx8g"
       }
     }
   ],
