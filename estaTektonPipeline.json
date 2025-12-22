@@ -47,7 +47,7 @@
       ],
       "build": {
         "buildDockerImage": true,
-        "additionalBuildParams": "-DignoreSnapshots=true"
+        "additionalBuildParams": "-DignoreSnapshots=true -Xmx4096m"
       }
     }
   ],
