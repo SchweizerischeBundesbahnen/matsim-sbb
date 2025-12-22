@@ -9,6 +9,10 @@
     "deployableArtifactsPom": "pom.xml",
     "artifactoryMavenRepo": "simba.mvn"
   },
+  "advancedBuildSettings": {
+    "buildWorkspaceSize": "5Gi",
+    "buildCacheSize": "3Gi"
+  },
   "pipelines": [
     {
       "name": "continuous",
@@ -47,7 +51,7 @@
       ],
       "build": {
         "buildDockerImage": true,
-        "additionalBuildParams": "-DignoreSnapshots=true -Xmx4096m"
+        "additionalBuildParams": "-DignoreSnapshots=true"
       }
     }
   ],
