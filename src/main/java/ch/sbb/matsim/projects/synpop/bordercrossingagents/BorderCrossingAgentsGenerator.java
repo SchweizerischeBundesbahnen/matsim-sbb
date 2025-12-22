@@ -15,6 +15,7 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -46,6 +47,8 @@ public class BorderCrossingAgentsGenerator {
         String borderPointsFile = args[4];
 
         String outputPath = args[5];
+        File file = new File(outputPath);
+        file.mkdirs();
         Random random = MatsimRandom.getRandom();
         BorderCrossingAgentsGenerator borderCrossingAgentsGenerator = new BorderCrossingAgentsGenerator(random);
         borderCrossingAgentsGenerator.readNuts3Demand(nuts3Demand);

@@ -52,15 +52,15 @@ public class AreaAnalysis {
     public static void main(String[] args) {
         Map<String, String> runs = new TreeMap<>();
         String root = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/sim/";
-        runs.put("refkt_v1", root + "refkt_cut_v1");
-        runs.put("ref_cut5_25", root + "ref_cut_v5_25");
-        runs.put("var_ev", root + "var_ev");
-        runs.put("var_rives", root + "var_rives");
-        runs.put("var_cornavin", root + "var_cornavin");
+//        runs.put("refkt_v1", root + "refkt_cut_v1");
+//        runs.put("ref_cut5_25", root + "ref_cut_v5_25");
+        runs.put("var_ev_gese", root + "var_ev_gese");
+//        runs.put("var_cornavin", root + "var_cornavin");
+//        runs.put("var_dorciere", root + "var_dorciere");
 
         String roadNet = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/streets/output/network.xml.gz";
         String zonesFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/kanton_GE.shp";
-        String outputFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/perimeter-ge.csv";
+        String outputFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/perimeter-ge3.csv";
         Network network = NetworkUtils.createNetwork();
         new MatsimNetworkReader(network).readFile(roadNet);
         Zones zones = ZonesLoader.loadZones(Variables.ZONE_ID, zonesFile);

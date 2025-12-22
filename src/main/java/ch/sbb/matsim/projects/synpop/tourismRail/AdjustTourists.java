@@ -41,13 +41,13 @@ public class AdjustTourists {
     }
 
     public static void main(String[] args) throws IOException {
-        String inputPopulation = "/Volumes/mobi/50_Ergebnisse/MOBi_5.0/plans_exogeneous/alle_xml/tourism_rail.xml.gz";
+        String inputPopulation = "/Volumes/mobi/40_Projekte/20241104_MOBi_5.1/plans_exogenous/tourism_rail/additional_tourists.xml.gz";
         String zonesFile = "/Volumes/mobi/50_Ergebnisse/MOBi_5.0/zones/34_release.mobi-zones.shp";
-        String outputPopulation = "/Volumes/mobi/40_Projekte/20251007_Prognose_LFP26/2040/plans_exogenous/tourism_rail/tourism_rail_2040.xml.gz";
+        String outputPopulation = "/Volumes/mobi/40_Projekte/20251007_Prognose_LFP26/2032/plans_exogenous/tourism_rail/additional_tourists_2032.xml.gz";
         Scenario scenario = ScenarioUtils.loadScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(inputPopulation);
         var zones = ZonesLoader.loadZones("id", zonesFile);
-        AdjustTourists adjustTourists = new AdjustTourists(scenario.getPopulation(), zones, 1.35);
+        AdjustTourists adjustTourists = new AdjustTourists(scenario.getPopulation(), zones, 1.19);
         adjustTourists.adjust();
 
         new PopulationWriter(scenario.getPopulation()).write(outputPopulation);
