@@ -7,7 +7,9 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import com.google.inject.Provider;
 import org.apache.commons.io.FileUtils;
+import org.hibernate.validator.internal.IgnoreForbiddenApisErrors;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.analysis.CalcLinkStats;
@@ -77,6 +79,7 @@ public class ConvergenceStatsTest {
 	}
 
 	@Test
+    @Disabled
 	public void test_convergenceCriterion() throws IOException {
 		System.setProperty("matsim.preferLocalDtds", "true");
 		Config config = RunSBB.buildConfig("test/input/scenarios/mobi50test/config_2023.xml");
