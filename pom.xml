@@ -16,7 +16,7 @@
         </repository>
 
         <repository>
-            <!-- Repository for MATSim releases and snapshots (MATSim is not on Maven central) -->
+            <!-- Repository for MATSim releases and snapshots (MATSim is not on Maven central)-->
             <id>matsim</id>
             <url>https://repo.matsim.org/repository/matsim</url>
         </repository>
@@ -59,8 +59,7 @@
         <geotools.version>31.2</geotools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
     </properties>
 
     <dependencies>
@@ -115,7 +114,7 @@
         <dependency> <!-- MATSim uses Guice .0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>32.0.0-jre</version>
+            <version>33.5.0-jre</version>
         </dependency>
 
         <!-- Include the JUnit testing library -->
@@ -168,7 +167,7 @@
         <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-core</artifactId>
-            <version>2.1.0</version>
+            <version>5.0.0</version>
         </dependency>
 
 
@@ -176,14 +175,14 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>4.1.2</version>
+            <version>5.4.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3 -->
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.12.261</version>
+            <version>1.12.793</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -216,6 +215,14 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
@@ -275,7 +282,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M4</version>
+                <version>3.5.4</version>
                 <configuration>
                     <includes>
                         <include>**/*IT.java</include>
@@ -284,8 +291,21 @@
                         <include>**/*Tests.java</include>
                         <include>**/*TestCase.java</include>
                     </includes>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <argLine>-Xms1g -Xmx8g</argLine>
                     <forkedProcessExitTimeoutInSeconds>1200</forkedProcessExitTimeoutInSeconds>
 
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.4</version>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <argLine>-Xms1g -Xmx8g</argLine>
                 </configuration>
             </plugin>
         </plugins>
