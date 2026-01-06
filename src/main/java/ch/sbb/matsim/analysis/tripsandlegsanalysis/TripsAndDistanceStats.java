@@ -292,7 +292,7 @@ public class TripsAndDistanceStats {
         totalDistance += routeStartLink.getLength();
         for (Link l : NetworkUtils.getLinks(network, nr.getLinkIds())) {
             if (isSwiss(l)) {
-                domesticDistance += routeStartLink.getLength();
+                domesticDistance += l.getLength();
             }
             totalDistance += l.getLength();
         }
