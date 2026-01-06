@@ -52,6 +52,7 @@
       ],
       "build": {
         "buildDockerImage": true,
+        "deployArtifacts": true,
         "additionalBuildParams": "-DignoreSnapshots=true"
       }
     }
