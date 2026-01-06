@@ -52,7 +52,7 @@
       ],
       "build": {
         "buildDockerImage": true,
-        "additionalBuildParams": "-DignoreSnapshots=true -Xmx8g"
+        "additionalBuildParams": "-DignoreSnapshots=true"
       }
     }
   ],
