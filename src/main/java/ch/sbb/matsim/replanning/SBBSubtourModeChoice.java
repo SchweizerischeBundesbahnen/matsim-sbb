@@ -20,6 +20,8 @@
 package ch.sbb.matsim.replanning;
 
 import ch.sbb.matsim.config.SBBReplanningConfigGroup;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.matsim.core.config.groups.GlobalConfigGroup;
 import org.matsim.core.config.groups.SubtourModeChoiceConfigGroup;
 import org.matsim.core.population.algorithms.PermissibleModesCalculator;
@@ -32,8 +34,6 @@ import org.matsim.core.router.TripRouter;
 import org.matsim.core.utils.timing.TimeInterpretation;
 import org.matsim.facilities.ActivityFacilities;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Provider;
 
 public class SBBSubtourModeChoice implements Provider<PlanStrategy> {
 

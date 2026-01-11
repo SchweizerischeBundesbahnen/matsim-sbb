@@ -32,6 +32,7 @@ import org.matsim.core.router.util.LeastCostPathCalculatorFactory;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scoring.ScoringFunctionFactory;
+import org.matsim.dsim.ExecutionContext;
 import org.matsim.testcases.MatsimTestUtils;
 
 import java.io.BufferedReader;
@@ -135,7 +136,12 @@ public class ConvergenceStatsTest {
 					OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, ControllerConfigGroup.CompressionType.none);
 		}
 
-		@Override
+        @Override
+        public ExecutionContext getSimulationContext() {
+            return null;
+        }
+
+        @Override
 		public void addControllerListener(ControllerListener controllerListener) {
 
 		}
