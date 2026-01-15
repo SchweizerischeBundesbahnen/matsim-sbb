@@ -7,7 +7,9 @@ import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.SBBTransitConfigGroup;
 import com.google.inject.Provider;
 import org.apache.commons.io.FileUtils;
+import org.hibernate.validator.internal.IgnoreForbiddenApisErrors;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.matsim.analysis.CalcLinkStats;
@@ -30,6 +32,7 @@ import org.matsim.core.router.util.LeastCostPathCalculatorFactory;
 import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scoring.ScoringFunctionFactory;
+import org.matsim.dsim.ExecutionContext;
 import org.matsim.testcases.MatsimTestUtils;
 
 import java.io.BufferedReader;
@@ -133,7 +136,12 @@ public class ConvergenceStatsTest {
 					OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles, ControllerConfigGroup.CompressionType.none);
 		}
 
-		@Override
+        @Override
+        public ExecutionContext getSimulationContext() {
+            return null;
+        }
+
+        @Override
 		public void addControllerListener(ControllerListener controllerListener) {
 
 		}

@@ -41,13 +41,13 @@ public class AdjustTourists {
     }
 
     public static void main(String[] args) throws IOException {
-        String inputPopulation = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_4.0\\2017\\plans_exogeneous\\tourism_rail\\100pct\\plans.xml.gz";
-        String zonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans\\34_release\\output\\34_release.mobi-zones.shp";
-        String outputPopulation = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2030\\plans_exogenous\\tourism_rail_2030.xml.gz";
+        String inputPopulation = "/Volumes/mobi/40_Projekte/20241104_MOBi_5.1/plans_exogenous/tourism_rail/additional_tourists.xml.gz";
+        String zonesFile = "/Volumes/mobi/50_Ergebnisse/MOBi_5.0/zones/34_release.mobi-zones.shp";
+        String outputPopulation = "/Volumes/mobi/40_Projekte/20251007_Prognose_LFP26/2032/plans_exogenous/tourism_rail/additional_tourists_2032.xml.gz";
         Scenario scenario = ScenarioUtils.loadScenario(ConfigUtils.createConfig());
         new PopulationReader(scenario).readFile(inputPopulation);
         var zones = ZonesLoader.loadZones("id", zonesFile);
-        AdjustTourists adjustTourists = new AdjustTourists(scenario.getPopulation(), zones, 2.5);
+        AdjustTourists adjustTourists = new AdjustTourists(scenario.getPopulation(), zones, 1.19);
         adjustTourists.adjust();
 
         new PopulationWriter(scenario.getPopulation()).write(outputPopulation);
@@ -93,7 +93,7 @@ public class AdjustTourists {
     }
 
     private void clonePerson(Person originalPerson, int j) {
-        var newPersonId = Id.createPersonId(originalPerson.getId().toString() + "_" + j);
+        var newPersonId = Id.createPersonId(originalPerson.getId().toString() + "_" + j+1);
         Person newPerson = population.getFactory().createPerson(newPersonId);
         population.addPerson(newPerson);
         Plan plan = population.getFactory().createPlan();
@@ -124,25 +124,7 @@ public class AdjustTourists {
             if (airportZones.contains(fromZone.getId()) || airportZones.contains(toZone.getId())) {
                 numberOfClones = 0.0;
             }
-            if (String.valueOf(fromZone.getAttribute("kt_name")).equals("ZH") && String.valueOf(toZone.getAttribute("kt_name")).equals("GE")) {
-                numberOfClones = 0.0;
-            }
-            if (String.valueOf(fromZone.getAttribute("kt_name")).equals("GE") && String.valueOf(toZone.getAttribute("kt_name")).equals("ZH")) {
-                numberOfClones = 0.0;
-            }
-            if (String.valueOf(fromZone.getAttribute("kt_name")).equals("GR") || String.valueOf(toZone.getAttribute("kt_name")).equals("GR")) {
-                numberOfClones = 8.0;
-            }
 
-            if (String.valueOf(fromZone.getAttribute("kt_name")).equals("NW") || String.valueOf(toZone.getAttribute("kt_name")).equals("GR")) {
-                numberOfClones = 6.0;
-            }
-            if (specialZones.contains(fromZone.getId()) || specialZones.contains(toZone.getId())) {
-                numberOfClones = 4.0;
-            }
-            if (CoordUtils.calcEuclideanDistance(fromCoord, toCoord) < 5000) {
-                numberOfClones = 10.0;
-            }
         }
         return numberOfClones;
 

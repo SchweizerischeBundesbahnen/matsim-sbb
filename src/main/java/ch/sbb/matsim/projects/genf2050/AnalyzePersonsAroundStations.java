@@ -21,7 +21,7 @@ public class AnalyzePersonsAroundStations {
     public static void main(String[] args) throws IOException {
         double threshold = 750.0;
 
-        CSVReader reader = new CSVReader("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\plans\\vivaldi\\personen_ge.att", ";");
+        CSVReader reader = new CSVReader("/Volumes/mobi/40_Projekte/20240327_Genf_CityRail/plans/vivaldi/personen_ge.att", ";");
         var line = reader.readLine();
         Map<Id<Person>, Coord> homeLocations = new HashMap<>();
         while (line != null) {
@@ -32,7 +32,7 @@ public class AnalyzePersonsAroundStations {
 
         }
 
-        CSVReader businesseReader = new CSVReader("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\plans\\vivaldi\\business_ge.csv", ";");
+        CSVReader businesseReader = new CSVReader("/Volumes/mobi/40_Projekte/20240327_Genf_CityRail/plans/vivaldi/business_ge.csv", ";");
         var lineb = businesseReader.readLine();
         Map<String, Business> workLocations = new HashMap<>();
         while (lineb != null) {
@@ -44,13 +44,11 @@ public class AnalyzePersonsAroundStations {
         }
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        List<Id<TransitRoute>> relevantTransitRoutesTram = List.of(Id.create("69815_1_18", TransitRoute.class), Id.create("69814_1_26", TransitRoute.class), Id.create("69812_1_27", TransitRoute.class));
-        new TransitScheduleReader(scenario).readFile("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240327_Genf_CityRail\\pt\\AK35_2050_GECityRail_Vivaldi\\output\\transitSchedule.xml.gz");
+        new TransitScheduleReader(scenario).readFile("/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/pt/var_dorciere/output/transitSchedule.xml.gz");
         Set<TransitStopFacility> allStops = new HashSet<>();
         Set<TransitStopFacility> gcrstops = scenario.getTransitSchedule().getTransitLines().values().stream()
-                //.filter(transitLine -> transitLine.getId().toString().startsWith("GCR_"))
+                .filter(transitLine -> transitLine.getId().toString().equals("M1_EV"))
                 .flatMap(transitLine -> transitLine.getRoutes().values().stream())
-                .filter(transitRoute -> relevantTransitRoutesTram.contains(transitRoute.getId()))
                 .flatMap(transitRoute -> transitRoute.getStops().stream())
                 .map(transitRouteStop -> transitRouteStop.getStopFacility())
                 .collect(Collectors.toSet());

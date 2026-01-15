@@ -203,13 +203,13 @@ public class ConvergenceStats implements IterationStartsListener {
 		switch (test) {
 			case KENDALL:
 				CorTest corrRes = CorTest.kendall(tsIndex, filteredTs);
-				stat = corrRes.cor;
-				pvalue = corrRes.pvalue;
+				stat = corrRes.cor();
+				pvalue = corrRes.pvalue();
 				break;
 			case KS_NORMAL:
 				KSTest ksRes = KSTest.test(standardizeTs(filteredTs), new GaussianDistribution(0, 1));
-				stat = ksRes.d;
-				pvalue = ksRes.pvalue;
+				stat = ksRes.d();
+				pvalue = ksRes.pvalue();
 				break;
 			case CV:
 				DescriptiveStatistics ds = new DescriptiveStatistics(filteredTs);
