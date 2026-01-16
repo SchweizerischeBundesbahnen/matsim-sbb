@@ -111,9 +111,9 @@ public class PrepareRouteChoiceRun {
         PostProcessingConfigGroup postProcessing = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class);
         postProcessing.setPopulationSlice(Integer.parseInt(slice));
         Map<String, Double> strategies = new HashMap<>();
-        strategies.put("SBBTimeMutation_ReRoute", 0.25);
+        strategies.put("TimeAllocationMutator_ReRoute", 0.25);
         strategies.put("ReRoute", 0.05);
-        strategies.put("BestScore", 0.7);
+        strategies.put("ChangeExpBeta", 0.7);
         for (ReplanningConfigGroup.StrategySettings s : config.replanning().getStrategySettings()) {
             if (s.getSubpopulation().equals("regular")) {
                 if (strategies.containsKey(s.getStrategyName())) {
