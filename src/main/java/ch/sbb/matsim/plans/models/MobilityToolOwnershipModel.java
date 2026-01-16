@@ -40,7 +40,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
         ptSubscriptionModelMinors = new PTSubscriptionModel(modelFolder + MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV);
     }
 
-    private static Logger logger = LogManager.getLogger(MobilityToolOwnershipModel.class);
+    private static final Logger logger = LogManager.getLogger(MobilityToolOwnershipModel.class);
 
 
 
@@ -133,6 +133,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
         logger.info("Starting driving license calculation...");
         Instant start = Instant.now();
         long adults = scenario.getPopulation().getPersons().values().parallelStream()
+                .peek(person -> person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, false))
                 .filter(p -> (int) p.getAttributes().getAttribute(SynpopConstants.AGE) >= 18)
                 .peek(person -> {
                     boolean hasDrivingLicense = drivingLicenseModel.calculate(person);
