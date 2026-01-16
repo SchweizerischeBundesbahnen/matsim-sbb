@@ -77,8 +77,9 @@ public class PrepareRouteChoiceRun {
         String transit = args[2];
         String zonesFile = args[3];
         String simFolder = args[4];
+
         String selectedPlansPath = null;
-        if (args.length>4) {
+        if (args.length>5) {
             selectedPlansPath = args[5];
         }
 
