@@ -95,15 +95,27 @@ public class PtLinkVolumeAnalyzer {
                 int scaledVolume = (int) Math.round(e.getValue().doubleValue() * scalefactor);
                 Link l = ptNetwork.getLinks().get(currentLinkId);
                 if (l != null) {
+                	// Set attribute for XML output
                     l.getAttributes().putAttribute(VOLUME, scaledVolume);
-                    var visumNodeAndLink = MaviHelper.extractVisumNodeAndLinkId(currentLinkId);
-                    if (visumNodeAndLink!=null){
+
+                    // Set standard CSV columns
                     writer.set(LINK_ID_SIM, currentLinkId.toString());
                     writer.set(VOLUME, Integer.toString(scaledVolume));
-                    writer.set(FROMNODENO, Integer.toString(visumNodeAndLink.getFirst()));
-                    writer.set(LINK_NO, Integer.toString(visumNodeAndLink.getSecond()));
-                    writer.writeRow();
+
+                    var visumNodeAndLink = MaviHelper.extractVisumNodeAndLinkId(currentLinkId);
+                    
+                    if (visumNodeAndLink != null) {
+                        writer.set(FROMNODENO, Integer.toString(visumNodeAndLink.getFirst()));
+                        writer.set(LINK_NO, Integer.toString(visumNodeAndLink.getSecond()));
+                    } else {
+                        // Handle links that don't match the Mavi/Visum naming convention (e.g. BES line)
+                        // Fill these columns with 0 so the row is still written
+                        writer.set(FROMNODENO, "0");
+                        writer.set(LINK_NO, "0");
                     }
+                    
+                    // Always write the row
+                    writer.writeRow();
                 }
                 else {
                     log.warn("Could not find link " + currentLinkId + ". Skipping.");
