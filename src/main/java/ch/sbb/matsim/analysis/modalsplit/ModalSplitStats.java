@@ -1577,6 +1577,10 @@ public class ModalSplitStats {
         modesSet.remove(SBBModes.WALK_MAIN_MAINMODE);
         modesSet.removeAll(PTSubModes.submodes);
         modesSet.removeAll(interModalModes);
+        if (interModalModes.contains(SBBModes.DRT)) {
+            modesSet.add(SBBModes.DRT);
+            //DRT mode is used both as a main mode and an intermodal mode
+        }
         modesSet.add(SBBModes.WALK_FOR_ANALYSIS);
         modesSet.add(SBBModes.PT);
 
