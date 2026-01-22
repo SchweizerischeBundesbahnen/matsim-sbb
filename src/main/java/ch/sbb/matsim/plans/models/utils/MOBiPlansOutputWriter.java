@@ -1,7 +1,7 @@
 package ch.sbb.matsim.plans.models.utils;
 
 import ch.sbb.matsim.plans.MOBiPlansRunner;
-import ch.sbb.matsim.plans.models.ModelStep;
+import ch.sbb.matsim.plans.models.steps.ModelStep;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.zones.ZoneGeoPackageWriter;
 import ch.sbb.matsim.zones.Zones;
@@ -10,7 +10,6 @@ import jakarta.inject.Singleton;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.facilities.FacilitiesWriter;
-import org.matsim.households.HouseholdsWriterV10;
 
 @Singleton
 public class MOBiPlansOutputWriter implements ModelStep {

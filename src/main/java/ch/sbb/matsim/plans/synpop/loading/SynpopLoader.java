@@ -1,7 +1,7 @@
 package ch.sbb.matsim.plans.synpop.loading;
 
 import ch.sbb.matsim.plans.MOBiPlansRunner;
-import ch.sbb.matsim.plans.models.ModelStep;
+import ch.sbb.matsim.plans.models.steps.ModelStep;
 import ch.sbb.matsim.plans.synpop.loading.arrow.BusinessesReader;
 import ch.sbb.matsim.plans.synpop.loading.arrow.HouseholdsReader;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;

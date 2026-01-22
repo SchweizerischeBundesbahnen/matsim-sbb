@@ -1,4 +1,4 @@
-package ch.sbb.matsim.plans.models;
+package ch.sbb.matsim.plans.models.steps;
 
 public interface ModelStep extends Runnable {
     /**

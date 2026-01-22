@@ -1,4 +1,4 @@
-package ch.sbb.matsim.plans.models;
+package ch.sbb.matsim.plans.models.steps;
 
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;

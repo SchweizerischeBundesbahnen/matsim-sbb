@@ -1,18 +1,16 @@
 package ch.sbb.matsim.plans.modules;
 
-import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.matrices.MOBiMatricesProvider;
 import ch.sbb.matsim.plans.matrices.Matrices;
-import ch.sbb.matsim.plans.models.MobilityToolOwnershipModel;
-import ch.sbb.matsim.plans.models.ModelStep;
-import ch.sbb.matsim.plans.models.PrimaryLocationChoiceModel;
+import ch.sbb.matsim.plans.models.steps.MobilityToolOwnershipModel;
+import ch.sbb.matsim.plans.models.steps.ModelStep;
+import ch.sbb.matsim.plans.models.steps.PrimaryLocationChoiceModel;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
 import ch.sbb.matsim.plans.models.utils.MOBiPlansOutputWriter;
 import ch.sbb.matsim.plans.synpop.loading.SynpopLoader;
 import ch.sbb.matsim.zones.Zones;
 import com.google.inject.AbstractModule;
-import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;

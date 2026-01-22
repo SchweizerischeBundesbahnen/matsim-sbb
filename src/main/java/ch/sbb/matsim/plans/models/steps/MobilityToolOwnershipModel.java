@@ -1,9 +1,11 @@
-package ch.sbb.matsim.plans.models;
+package ch.sbb.matsim.plans.models.steps;
 
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
+import ch.sbb.matsim.plans.models.steps.csvmodels.BooleanSelectionModelFromCSV;
+import ch.sbb.matsim.plans.models.steps.csvmodels.StringSelectionModelFromCSV;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.Zones;
 import jakarta.inject.Inject;
@@ -20,8 +22,8 @@ public class MobilityToolOwnershipModel implements ModelStep {
     private  final BooleanSelectionModelFromCSV drivingLicenseModel;
     private  final BooleanSelectionModelFromCSV ebikeModel;
     private  final CarsPerHouseholdModel carsPerHouseholdModel;
-    private  final PTSubscriptionModel ptSubscriptionModelAdults;
-    private  final PTSubscriptionModel ptSubscriptionModelMinors;
+    private  final StringSelectionModelFromCSV ptSubscriptionModelAdults;
+    private  final StringSelectionModelFromCSV ptSubscriptionModelMinors;
     final Scenario scenario;
     final MOBiPlansConfig mobiPlansConfig;
     final Zones zones;
@@ -36,8 +38,8 @@ public class MobilityToolOwnershipModel implements ModelStep {
         drivingLicenseModel = new BooleanSelectionModelFromCSV(modelFolder + MOBiPlansConfig.DRIVING_LICENSE_CSV);
         ebikeModel = new BooleanSelectionModelFromCSV(modelFolder + MOBiPlansConfig.EBIKE_45_CSV);
         carsPerHouseholdModel = new CarsPerHouseholdModel(modelFolder + MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV);
-        ptSubscriptionModelAdults = new PTSubscriptionModel(modelFolder + MOBiPlansConfig.PT_SUBSCRIPTION_ADULTS_CSV);
-        ptSubscriptionModelMinors = new PTSubscriptionModel(modelFolder + MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV);
+        ptSubscriptionModelAdults = new StringSelectionModelFromCSV(modelFolder + MOBiPlansConfig.PT_SUBSCRIPTION_ADULTS_CSV);
+        ptSubscriptionModelMinors = new StringSelectionModelFromCSV(modelFolder + MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV);
     }
 
     private static final Logger logger = LogManager.getLogger(MobilityToolOwnershipModel.class);

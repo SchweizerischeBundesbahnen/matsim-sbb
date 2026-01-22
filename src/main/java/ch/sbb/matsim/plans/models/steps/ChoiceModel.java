@@ -1,4 +1,4 @@
-package ch.sbb.matsim.plans.models;
+package ch.sbb.matsim.plans.models.steps;
 
 import org.matsim.utils.objectattributes.attributable.Attributable;
 

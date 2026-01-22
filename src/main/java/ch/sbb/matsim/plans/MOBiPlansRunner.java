@@ -1,10 +1,9 @@
 package ch.sbb.matsim.plans;
 
-import ch.sbb.matsim.plans.models.ModelStep;
+import ch.sbb.matsim.plans.models.steps.ModelStep;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import com.google.inject.Injector;
 import jakarta.inject.Inject;
-import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,12 +22,14 @@ public class MOBiPlansRunner implements Runnable{
     public static final String LOAD_SYNPOP = "load_synpop";
     public static final String MOBILITY_TOOL_OWNERSHIP_MODEL = "mobility_tool_ownership_model";
     public static final String PRIMARY_LOCATION_CHOICE = "primary_location_choice_model";
+    public static final String NUMBER_OF_TOURS_MODEL = "number_of_tours_model";
     public static final String WRITE_OUTPUTS = "write_outputs";
 
     public static final List<String> FULL_MODEL_SEQUENCE = List.of(
             LOAD_SYNPOP,
             MOBILITY_TOOL_OWNERSHIP_MODEL,
             PRIMARY_LOCATION_CHOICE,
+            NUMBER_OF_TOURS_MODEL,
             WRITE_OUTPUTS
     );
     private final MOBiPlansConfig config;

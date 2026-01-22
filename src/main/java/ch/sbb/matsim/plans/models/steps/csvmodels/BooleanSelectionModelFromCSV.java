@@ -1,7 +1,8 @@
-package ch.sbb.matsim.plans.models;
+package ch.sbb.matsim.plans.models.steps.csvmodels;
 
 import ch.sbb.matsim.plans.models.selector.ChoiceSelector;
 import ch.sbb.matsim.plans.models.selector.LogitSelector;
+import ch.sbb.matsim.plans.models.steps.ChoiceModel;
 import ch.sbb.matsim.plans.models.utils.ChoiceModelCSVReader;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
