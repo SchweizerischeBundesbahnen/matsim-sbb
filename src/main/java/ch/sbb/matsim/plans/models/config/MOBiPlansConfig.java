@@ -1,6 +1,5 @@
 package ch.sbb.matsim.plans.models.config;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
@@ -15,6 +14,10 @@ public record MOBiPlansConfig (
         ModelsConfig models
 ){
     public static final String DRIVING_LICENSE_CSV = "driving_license.csv";
+    public static final String NUMBER_OF_WORK_TOURS_CSV = "number_of_work_tours.csv";
+    public static final String NUMBER_OF_EDUCATION_TOURS_CSV = "number_of_education_tours.csv";
+    public static final String NUMBER_OF_OTHER_TOURS_CSV = "number_of_other_tours.csv";
+    public static final String NUMBER_OF_BUSINESS_TOURS_CSV = "number_of_business_tours.csv";
     public static final String EBIKE_45_CSV = "ebike45.csv";
     public static final String CARS_PER_HOUSEHOLD_CSV = "cars_per_household.csv";
     public static final String PT_SUBSCRIPTION_ADULTS_CSV = "pt_subscription_adults.csv";

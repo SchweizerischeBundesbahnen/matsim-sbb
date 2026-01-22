@@ -27,6 +27,10 @@ public class SynpopConstants {
     public static final String IS_APPRENTICE = "is_apprentice";
     public static final String HAS_EBIKE45 = Variables.HAS_EBIKE_45;
     public static final String CAR_AVAILABLE = Variables.CAR_AVAIL;
+    public static final String NO_WORK_TOURS = "no_work_tours";
+    public static final String NO_EDUCATION_TOURS = "no_education_tours";
+    public static final String NO_BUSINESS_TOURS = "no_business_tours";
+    public static final String NO_OTHER_TOURS = "no_other_tours";
 
 
 
