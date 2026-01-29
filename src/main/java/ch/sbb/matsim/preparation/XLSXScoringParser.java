@@ -12,6 +12,7 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
@@ -91,7 +92,7 @@ public class XLSXScoringParser {
 		if (excelPath != null) {
 			log.info("Parsing Scoring Paramters from Excel: " + excelPath);
 			try (InputStream inputStream = excelPath.openStream()) {
-				Workbook workbook = WorkbookFactory.create(inputStream);
+				Workbook workbook = new XSSFWorkbook(inputStream);
 				XLSXScoringParser.parseXLSXWorkbook(workbook, config);
 			} catch (IOException e) {
 				e.printStackTrace();
