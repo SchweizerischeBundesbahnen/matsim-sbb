@@ -278,6 +278,13 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 						}
 					}
 				}
+                if (routeParts.size()==1 && ((Leg) (routeParts.get(0))).getMode().equals(TransportMode.walk)) {
+                    double additionalAccessTime = this.getStopAccessTime(stop, SBBModes.ACCESS_EGRESS_WALK);
+                    Leg leg = (Leg) routeParts.get(0);
+                    leg.setTravelTime(leg.getTravelTime().orElse(0) + additionalAccessTime);
+                }
+
+                //this is only added if links are different, e.g. for accessing a train station via its link on the road network
 				if (stopFacility != stop) {
 					if (direction == Direction.ACCESS) {
 						Leg transferLeg = PopulationUtils.createLeg(SBBModes.ACCESS_EGRESS_WALK);
@@ -324,12 +331,8 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 	
 	private double getStopAccessTime(TransitStopFacility stop, String mode) {
 		Double accessTime;
-		try {
-			accessTime = (Double) stop.getAttributes().getAttribute("at_"+mode);
-			if (accessTime == null) accessTime = 0.0;
-		} catch (Exception e) {
-			accessTime = 0.0;
-		}
+        accessTime = ((Number) stop.getAttributes().getAttribute("at_"+mode)).doubleValue();
+		if (accessTime == null) accessTime = 0.0;
 
 
 		return Double.isFinite(accessTime) ? accessTime : 0.0;
