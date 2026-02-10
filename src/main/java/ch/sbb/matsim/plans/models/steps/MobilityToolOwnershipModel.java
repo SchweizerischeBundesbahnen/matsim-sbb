@@ -3,6 +3,7 @@ package ch.sbb.matsim.plans.models.steps;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
+import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.steps.csvmodels.BooleanSelectionModelFromCSV;
 import ch.sbb.matsim.plans.models.steps.csvmodels.StringSelectionModelFromCSV;
@@ -156,12 +157,12 @@ public class MobilityToolOwnershipModel implements ModelStep {
 
     private void addAdditionalAttributes() {
         zones.getZones().forEach(zone -> {
-            Double accsib_car = (Double) zone.getAttributes().getAttribute("accsib_car");
-            Double accsib_pt = (Double) zone.getAttributes().getAttribute("accsib_pt");
-            Double accsib_mul = (Double) zone.getAttributes().getAttribute("accsib_mul");
-            zone.getAttributes().putAttribute("acc_car_sc", accsib_car / 1_000_000.0);
-            zone.getAttributes().putAttribute("acc_mul_sc", accsib_mul / 1_000_000.0);
-            zone.getAttributes().putAttribute("acc_pt_sc", accsib_pt / 1_000_000.0);
+            Double accsib_car = (Double) zone.getAttributes().getAttribute(ZonalAttributes.ACCSIB_CAR);
+            Double accsib_pt = (Double) zone.getAttributes().getAttribute(ZonalAttributes.ACCSIB_PT);
+            Double accsib_mul = (Double) zone.getAttributes().getAttribute(ZonalAttributes.ACCSIB_MUL);
+            zone.getAttributes().putAttribute(ZonalAttributes.ACC_CAR_SC, accsib_car / 1_000_000.0);
+            zone.getAttributes().putAttribute(ZonalAttributes.ACC_MUL_SC, accsib_mul / 1_000_000.0);
+            zone.getAttributes().putAttribute(ZonalAttributes.ACC_PT_SC, accsib_pt / 1_000_000.0);
 
         });
     }

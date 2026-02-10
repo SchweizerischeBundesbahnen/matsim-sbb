@@ -29,8 +29,11 @@ public class SynpopConstants {
     public static final String CAR_AVAILABLE = Variables.CAR_AVAIL;
     public static final String NO_WORK_TOURS = "no_work_tours";
     public static final String NO_EDUCATION_TOURS = "no_education_tours";
+    public static final String NO_PRIM_TOURS= "no_prim_tours";
     public static final String NO_BUSINESS_TOURS = "no_business_tours";
+    public static final String IS_WORKING_FROM_HOME = "is_working_from_home";
     public static final String NO_OTHER_TOURS = "no_other_tours";
+    public static final String NO_TOT_TOURS = "no_tot_tours";
 
 
 
