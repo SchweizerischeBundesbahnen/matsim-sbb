@@ -31,6 +31,14 @@ public record MOBiPlansConfig (
     public static final String PT_SUBSCRIPTION_MINORS_CSV = "pt_subscription_minors.csv";
     public static final String MODE_IMPEDANCE_FORMULAS = "mode_impedance_formulas.csv";
     public static final String PRIMARY_LOCATION_CHOICE_CONFIG_YAML = "primary_location_choice_config.yaml";
+    public static final String NUMBER_OF_STOPS_INBOUND_WORK_CSV = "stop_freq_inb_w.csv";
+    public static final String NUMBER_OF_STOPS_OUTBOUND_WORK_CSV = "stop_freq_outb_w.csv";
+    public static final String NUMBER_OF_STOPS_INBOUND_EDUCATION_CSV = "stop_freq_inb_e.csv";
+    public static final String NUMBER_OF_STOPS_OUTBOUND_EDUCATION_CSV = "stop_freq_outb_e.csv";
+    public static final String NUMBER_OF_STOPS_BUSINESS_CSV = "stop_freq_b.csv";
+    public static final String NUMBER_OF_STOPS_OTHER_CSV = "stop_freq_o.csv";
+    public static final String SUBTOUR_FREQUENCY_WORK_CSV = "subtour_frequency_work.csv";
+    public static final String SUBTOUR_FREQUENCY_EDUCATION_CSV = "subtour_frequency_education.csv";
 
     /**
      * Reads and parses the master configuration from a YAML file.
