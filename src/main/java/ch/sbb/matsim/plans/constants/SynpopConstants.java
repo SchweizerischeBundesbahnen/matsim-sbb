@@ -177,6 +177,7 @@ public class SynpopConstants {
             "employee", 2,
             "management", 3
     );
+    public static final String TOURS = "tours";
 
     public static Integer getCodeOrFail(Map<String, Integer> reverseMap, String label, String categoryName) {
         Integer code = reverseMap.get(label);
