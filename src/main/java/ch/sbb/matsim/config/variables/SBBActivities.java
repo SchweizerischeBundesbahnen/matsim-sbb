@@ -10,7 +10,9 @@ public final class SBBActivities {
 
 	public static final String home = "home";
 	public static final String education = "education";
-	public static final String work = "work";
+    public static String education_continued = "education_continued";
+
+    public static final String work = "work";
 	public static final String business = "business";
 	public static final String leisure = "leisure";
 	public static final String shopping = "shopping";
@@ -26,7 +28,7 @@ public final class SBBActivities {
 	public final static Map<String, String> matsimActs2abmActs;
 	public final static Set<String> stageActivityTypeList;
 
-	static {
+    static {
 		abmActs2matsimActs = new HashMap<>();
 
 		abmActs2matsimActs.put("L", leisure);
