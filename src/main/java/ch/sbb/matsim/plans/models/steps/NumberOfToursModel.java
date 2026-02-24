@@ -11,18 +11,20 @@ import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.Zone;
 import jakarta.inject.Inject;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 public class NumberOfToursModel implements ModelStep{
 
-    public static final String IS_WORKING_FROM_HOME_AND_HAS_ONE_WORKTOUR1 = "is_working_from_home_and_has_one_worktour";
     public static final String IS_WORKING_FROM_HOME_AND_HAS_ONE_WORKTOUR = "is_working_from_home_and_has_one_worktour";
     public static final String HOME_MUL_CAR_ACC_SC = "home_mul_car_acc_sc";
     private final Scenario scenario;
+    private final int threads;
     private final IntegerSelectionModelFromCSV numberOfWorkToursModel;
     private final IntegerSelectionModelFromCSV numberOfEducationToursModel;
     private final IntegerSelectionModelFromCSV numberOfOtherToursModel;
@@ -40,6 +42,7 @@ public class NumberOfToursModel implements ModelStep{
            public NumberOfToursModel(Scenario scenario, MOBiPlansConfig mobiPlansConfig) {
         this.scenario = scenario;
         String modelFolder = mobiPlansConfig.data().modelBaseDir()+"/";
+        this.threads = mobiPlansConfig.models().threads();
         numberOfWorkToursModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_WORK_TOURS_CSV);
         numberOfEducationToursModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_EDUCATION_TOURS_CSV);
         numberOfOtherToursModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_OTHER_TOURS_CSV);
@@ -63,91 +66,102 @@ public class NumberOfToursModel implements ModelStep{
     public void run() {
         Population population = scenario.getPopulation();
         PopulationFactory factory = population.getFactory();
+        ForkJoinPool customPool = new ForkJoinPool(threads);
+        try {
+            customPool.submit(() ->
+                    population.getPersons().values().parallelStream()
+                            .forEach(person -> processPerson(person, factory))
+            ).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Parallel execution failed", e);
+        } finally {
+            // 3. Just make sure to always shut it down!
+            customPool.shutdown();
+        }
+    }
 
-        // Process the entire population in a single parallel stream
-        population.getPersons().values().parallelStream().forEach(person -> {
-            var attributes = person.getAttributes();
+    private void processPerson(Person person, PopulationFactory factory) {
+        var attributes = person.getAttributes();
 
-            // 1. Work Tours
-            int noWorkTours = 0;
-            Number levelOfEmployment = (Number) attributes.getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT);
-            if (levelOfEmployment != null && levelOfEmployment.intValue() > 0) {
-                noWorkTours = numberOfWorkToursModel.calculate(person);
+        // 1. Work Tours
+        int noWorkTours = 0;
+        Number levelOfEmployment = (Number) attributes.getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT);
+        if (levelOfEmployment != null && levelOfEmployment.intValue() > 0) {
+            noWorkTours = numberOfWorkToursModel.calculate(person);
+        }
+        attributes.putAttribute(SynpopConstants.NO_WORK_TOURS, noWorkTours);
+
+        // 2. Education Tours
+        int noEducationTours = 0;
+        Number currentEdu = (Number) attributes.getAttribute(SynpopConstants.CURRENT_EDU);
+        if (currentEdu != null && currentEdu.intValue() > 0) {
+            noEducationTours = numberOfEducationToursModel.calculate(person);
+        }
+        attributes.putAttribute(SynpopConstants.NO_EDUCATION_TOURS, noEducationTours);
+
+        // 3. Sum up primary Tours
+        int noPrimTours = noWorkTours + noEducationTours;
+        attributes.putAttribute(SynpopConstants.NO_PRIM_TOURS, noPrimTours);
+
+        // 4. Business Tours
+        int noBusinessTours = 0;
+        if (levelOfEmployment != null && levelOfEmployment.intValue() > 0) {
+            noBusinessTours = numberOfBusinessToursModel.calculate(person);
+        }
+        attributes.putAttribute(SynpopConstants.NO_BUSINESS_TOURS, noBusinessTours);
+
+        // 5. Other Tours
+        boolean isWorkingFromHome = Boolean.TRUE.equals(attributes.getAttribute(SynpopConstants.IS_WORKING_FROM_HOME));
+        attributes.putAttribute(IS_WORKING_FROM_HOME_AND_HAS_ONE_WORKTOUR, isWorkingFromHome && noWorkTours == 1);
+
+        double homeMulCarAccSc = 0.0;
+        if (Boolean.TRUE.equals(attributes.getAttribute(SynpopConstants.CAR_AVAILABLE))) {
+            Zone zone = (Zone) attributes.getAttribute("zone");
+            if (zone != null && zone.getAttribute(ZonalAttributes.ACC_MUL_SC) != null) {
+                homeMulCarAccSc = ((Number) zone.getAttribute(ZonalAttributes.ACC_MUL_SC)).doubleValue();
             }
-            attributes.putAttribute(SynpopConstants.NO_WORK_TOURS, noWorkTours);
+        }
+        attributes.putAttribute(HOME_MUL_CAR_ACC_SC, homeMulCarAccSc);
 
-            // 2. Education Tours
-            int noEducationTours = 0;
-            Number currentEdu = (Number) attributes.getAttribute(SynpopConstants.CURRENT_EDU);
-            if (currentEdu != null && currentEdu.intValue() > 0) {
-                noEducationTours = numberOfEducationToursModel.calculate(person);
-            }
-            attributes.putAttribute(SynpopConstants.NO_EDUCATION_TOURS, noEducationTours);
+        int noOtherTours = numberOfOtherToursModel.calculate(person);
+        attributes.putAttribute(SynpopConstants.NO_OTHER_TOURS, noOtherTours);
 
-            // 3. Sum up primary Tours
-            int noPrimTours = noWorkTours + noEducationTours;
-            attributes.putAttribute(SynpopConstants.NO_PRIM_TOURS, noPrimTours);
+        // Cleanup temp attributes
+        attributes.removeAttribute(IS_WORKING_FROM_HOME_AND_HAS_ONE_WORKTOUR);
+        attributes.removeAttribute(HOME_MUL_CAR_ACC_SC);
 
-            // 4. Business Tours
-            int noBusinessTours = 0;
-            if (levelOfEmployment != null && levelOfEmployment.intValue() > 0) {
-                noBusinessTours = numberOfBusinessToursModel.calculate(person);
-            }
-            attributes.putAttribute(SynpopConstants.NO_BUSINESS_TOURS, noBusinessTours);
+        // 6. Total Tours
+        int noTotTours = noPrimTours + noOtherTours + noBusinessTours;
+        attributes.putAttribute(SynpopConstants.NO_TOT_TOURS, noTotTours);
 
-            // 5. Other Tours
-            boolean isWorkingFromHome = Boolean.TRUE.equals(attributes.getAttribute(SynpopConstants.IS_WORKING_FROM_HOME));
-            attributes.putAttribute(IS_WORKING_FROM_HOME_AND_HAS_ONE_WORKTOUR, isWorkingFromHome && noWorkTours == 1);
+        // 7. Generate Stops and Subtours
+        List<Tour> tours = new ArrayList<>();
 
-            double homeMulCarAccSc = 0.0;
-            if (Boolean.TRUE.equals(attributes.getAttribute(SynpopConstants.CAR_AVAILABLE))) {
-                Zone zone = (Zone) attributes.getAttribute("zone");
-                if (zone != null && zone.getAttribute(ZonalAttributes.ACC_MUL_SC) != null) {
-                    homeMulCarAccSc = ((Number) zone.getAttribute(ZonalAttributes.ACC_MUL_SC)).doubleValue();
-                }
-            }
-            attributes.putAttribute(HOME_MUL_CAR_ACC_SC, homeMulCarAccSc);
+        for (int i = 0; i < noWorkTours; i++) {
+            Tour tour = new Tour(Tour.TourType.PRIMARY, SBBActivities.work);
+            populateTour(tour, factory, stopFrequencyInboundWorkModel.calculate(person), stopFrequencyOutboundWorkModel.calculate(person), subtourFrequencyModelWork.calculate(person));
+            tours.add(tour);
+        }
 
-            int noOtherTours = numberOfOtherToursModel.calculate(person);
-            attributes.putAttribute(SynpopConstants.NO_OTHER_TOURS, noOtherTours);
+        for (int i = 0; i < noEducationTours; i++) {
+            Tour tour = new Tour(Tour.TourType.PRIMARY, SBBActivities.education);
+            populateTour(tour, factory, stopFrequencyInboundEducationModel.calculate(person), stopFrequencyOutboundEducationModel.calculate(person), subtourFrequencyModelEducation.calculate(person));
+            tours.add(tour);
+        }
 
-            // Cleanup temp attributes
-            attributes.removeAttribute(IS_WORKING_FROM_HOME_AND_HAS_ONE_WORKTOUR);
-            attributes.removeAttribute(HOME_MUL_CAR_ACC_SC);
+        for (int i = 0; i < noBusinessTours; i++) {
+            Tour tour = new Tour(Tour.TourType.SECONDARY, SBBActivities.business);
+            populateTour(tour, factory, stopFrequencyBusinessModel.calculate(person), stopFrequencyBusinessModel.calculate(person), 0);
+            tours.add(tour);
+        }
 
-            // 6. Total Tours
-            int noTotTours = noPrimTours + noOtherTours + noBusinessTours;
-            attributes.putAttribute(SynpopConstants.NO_TOT_TOURS, noTotTours);
+        for (int i = 0; i < noOtherTours; i++) {
+            Tour tour = new Tour(Tour.TourType.SECONDARY, Tour.UNDEFINED_ACTIVITY_TYPE);
+            populateTour(tour, factory, stopFrequencyOtherModel.calculate(person), stopFrequencyOtherModel.calculate(person), 0);
+            tours.add(tour);
+        }
 
-            // 7. Generate Stops and Subtours
-            List<Tour> tours = new ArrayList<>();
-
-            for (int i = 0; i < noWorkTours; i++) {
-                Tour tour = new Tour(Tour.TourType.PRIMARY, SBBActivities.work);
-                populateTour(tour, factory, stopFrequencyInboundWorkModel.calculate(person), stopFrequencyOutboundWorkModel.calculate(person), subtourFrequencyModelWork.calculate(person));
-                tours.add(tour);
-            }
-
-            for (int i = 0; i < noEducationTours; i++) {
-                Tour tour = new Tour(Tour.TourType.PRIMARY, SBBActivities.education);
-                populateTour(tour, factory, stopFrequencyInboundEducationModel.calculate(person), stopFrequencyOutboundEducationModel.calculate(person), subtourFrequencyModelEducation.calculate(person));
-                tours.add(tour);
-            }
-
-            for (int i = 0; i < noBusinessTours; i++) {
-                Tour tour = new Tour(Tour.TourType.SECONDARY, SBBActivities.business);
-                populateTour(tour, factory, stopFrequencyBusinessModel.calculate(person), stopFrequencyBusinessModel.calculate(person), 0);
-                tours.add(tour);
-            }
-
-            for (int i = 0; i < noOtherTours; i++) {
-                Tour tour = new Tour(Tour.TourType.SECONDARY, Tour.UNDEFINED_ACTIVITY_TYPE);
-                populateTour(tour, factory, stopFrequencyOtherModel.calculate(person), stopFrequencyOtherModel.calculate(person), 0);
-                tours.add(tour);
-            }
-
-            attributes.putAttribute(SynpopConstants.TOURS, tours);
-        });
+        attributes.putAttribute(SynpopConstants.TOURS, tours);
     }
 
     /**
