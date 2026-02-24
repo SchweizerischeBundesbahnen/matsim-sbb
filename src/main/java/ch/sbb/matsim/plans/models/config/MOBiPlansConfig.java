@@ -39,6 +39,7 @@ public record MOBiPlansConfig (
     public static final String NUMBER_OF_STOPS_OTHER_CSV = "stop_freq_o.csv";
     public static final String SUBTOUR_FREQUENCY_WORK_CSV = "subtour_frequency_work.csv";
     public static final String SUBTOUR_FREQUENCY_EDUCATION_CSV = "subtour_frequency_education.csv";
+    public static final String SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV = "secondary_activity_type_likelihoods.csv";
 
     /**
      * Reads and parses the master configuration from a YAML file.

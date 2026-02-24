@@ -7,6 +7,7 @@ import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.steps.csvmodels.IntegerSelectionModelFromCSV;
+import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.Zone;
 import jakarta.inject.Inject;
@@ -17,9 +18,13 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ForkJoinPool;
-
-public class NumberOfToursModel implements ModelStep{
+/*
+   * This model step is responsible for building tours for each person in the population based on their attributes. Besides the number of stops for each tour, it also assigns the type of secondary activities for the stops based on a separate model.
+   *  The generated tours are then stored as an attribute of the person for use in later steps.
+ */
+public class TourBuildingModel implements ModelStep{
 
     public static final String IS_WORKING_FROM_HOME_AND_HAS_ONE_WORKTOUR = "is_working_from_home_and_has_one_worktour";
     public static final String HOME_MUL_CAR_ACC_SC = "home_mul_car_acc_sc";
@@ -37,9 +42,11 @@ public class NumberOfToursModel implements ModelStep{
     private final IntegerSelectionModelFromCSV stopFrequencyOtherModel;
     private final IntegerSelectionModelFromCSV subtourFrequencyModelWork;
     private final IntegerSelectionModelFromCSV subtourFrequencyModelEducation;
+    private final SecondaryActivityTypeAssignmentModel secondaryActivityTypeAssignmentModel;
+
 
     @Inject
-           public NumberOfToursModel(Scenario scenario, MOBiPlansConfig mobiPlansConfig) {
+           public TourBuildingModel(Scenario scenario, MOBiPlansConfig mobiPlansConfig) {
         this.scenario = scenario;
         String modelFolder = mobiPlansConfig.data().modelBaseDir()+"/";
         this.threads = mobiPlansConfig.models().threads();
@@ -55,12 +62,12 @@ public class NumberOfToursModel implements ModelStep{
         stopFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_OTHER_CSV);
         subtourFrequencyModelWork = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.SUBTOUR_FREQUENCY_WORK_CSV);
         subtourFrequencyModelEducation = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.SUBTOUR_FREQUENCY_EDUCATION_CSV);
-
+        secondaryActivityTypeAssignmentModel = new SecondaryActivityTypeAssignmentModel(modelFolder + MOBiPlansConfig.SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV);
     }
 
     @Override
     public String getName() {
-        return MOBiPlansRunner.NUMBER_OF_TOURS_MODEL;
+        return MOBiPlansRunner.TOURBUILDING_MODEL;
     }
     @Override
     public void run() {
@@ -136,28 +143,30 @@ public class NumberOfToursModel implements ModelStep{
 
         // 7. Generate Stops and Subtours
         List<Tour> tours = new ArrayList<>();
+        Random activityTypeRandom = SynPopUtils.getRandom(person.getId(),SecondaryActivityTypeAssignmentModel.class.getName());
 
         for (int i = 0; i < noWorkTours; i++) {
             Tour tour = new Tour(Tour.TourType.PRIMARY, SBBActivities.work);
-            populateTour(tour, factory, stopFrequencyInboundWorkModel.calculate(person), stopFrequencyOutboundWorkModel.calculate(person), subtourFrequencyModelWork.calculate(person));
+            populateTour(tour, factory, stopFrequencyInboundWorkModel.calculate(person), stopFrequencyOutboundWorkModel.calculate(person), subtourFrequencyModelWork.calculate(person), person, activityTypeRandom);
             tours.add(tour);
         }
 
         for (int i = 0; i < noEducationTours; i++) {
             Tour tour = new Tour(Tour.TourType.PRIMARY, SBBActivities.education);
-            populateTour(tour, factory, stopFrequencyInboundEducationModel.calculate(person), stopFrequencyOutboundEducationModel.calculate(person), subtourFrequencyModelEducation.calculate(person));
+            populateTour(tour, factory, stopFrequencyInboundEducationModel.calculate(person), stopFrequencyOutboundEducationModel.calculate(person), subtourFrequencyModelEducation.calculate(person), person, activityTypeRandom);
             tours.add(tour);
         }
 
         for (int i = 0; i < noBusinessTours; i++) {
             Tour tour = new Tour(Tour.TourType.SECONDARY, SBBActivities.business);
-            populateTour(tour, factory, stopFrequencyBusinessModel.calculate(person), stopFrequencyBusinessModel.calculate(person), 0);
+            populateTour(tour, factory, stopFrequencyBusinessModel.calculate(person), stopFrequencyBusinessModel.calculate(person), 0, person, activityTypeRandom);
             tours.add(tour);
         }
 
         for (int i = 0; i < noOtherTours; i++) {
-            Tour tour = new Tour(Tour.TourType.SECONDARY, Tour.UNDEFINED_ACTIVITY_TYPE);
-            populateTour(tour, factory, stopFrequencyOtherModel.calculate(person), stopFrequencyOtherModel.calculate(person), 0);
+            String activityType = secondaryActivityTypeAssignmentModel.assignActivityType(person, activityTypeRandom);
+            Tour tour = new Tour(Tour.TourType.SECONDARY, activityType);
+            populateTour(tour, factory, stopFrequencyOtherModel.calculate(person), stopFrequencyOtherModel.calculate(person), 0, person, activityTypeRandom);
             tours.add(tour);
         }
 
@@ -167,15 +176,18 @@ public class NumberOfToursModel implements ModelStep{
     /**
      * Helper method to reduce code duplication when generating activities for tours.
      */
-    private void populateTour(Tour tour, PopulationFactory factory, int inbound, int outbound, int subtours) {
+    private void populateTour(Tour tour, PopulationFactory factory, int inbound, int outbound, int subtours, Person person, Random secondaryActivityTypeAssignementModelPersonalRandom) {
         for (int j = 0; j < inbound; j++) {
-            tour.getInboundStopActivities().add(factory.createActivityFromCoord(Tour.UNDEFINED_ACTIVITY_TYPE, null));
+            String activityType = secondaryActivityTypeAssignmentModel.assignActivityType(person, secondaryActivityTypeAssignementModelPersonalRandom);
+            tour.getInboundStopActivities().add(factory.createActivityFromCoord(activityType, null));
         }
         for (int j = 0; j < outbound; j++) {
-            tour.getOutboundStopActivities().add(factory.createActivityFromCoord(Tour.UNDEFINED_ACTIVITY_TYPE, null));
+            String activityType = secondaryActivityTypeAssignmentModel.assignActivityType(person, secondaryActivityTypeAssignementModelPersonalRandom);
+            tour.getOutboundStopActivities().add(factory.createActivityFromCoord(activityType, null));
         }
         for (int j = 0; j < subtours; j++) {
-            tour.getSubtourActivities().add(factory.createActivityFromCoord(Tour.UNDEFINED_ACTIVITY_TYPE, null));
+            String activityType = secondaryActivityTypeAssignmentModel.assignActivityType(person, secondaryActivityTypeAssignementModelPersonalRandom);
+            tour.getSubtourActivities().add(factory.createActivityFromCoord(activityType, null));
         }
     }
 
