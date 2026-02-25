@@ -14,7 +14,7 @@ public class PredicateComponentTest {
     void testSinglePredicateComponent() {
         UtilityComponent component = UtilityComponentFactory.fromCombinedCondition(List.of("level_of_employment"), List.of(">"),
                 List.of("50"),
-                1.0);
+                1.0, false);
         UtilityCalculator calculator = new UtilityCalculator(List.of(component));
 
 
@@ -35,7 +35,7 @@ public class PredicateComponentTest {
     void testDoublePredicateComponent() {
         UtilityComponent component = UtilityComponentFactory.fromCombinedCondition(List.of("level_of_employment"), List.of("<", ">"),
                 List.of("90", "0"),
-                1.0);
+                1.0, false);
         UtilityCalculator calculator = new UtilityCalculator(List.of(component));
         Person person2 = PopulationUtils.getFactory().createPerson(Id.createPersonId(2));
         person2.getAttributes().putAttribute("level_of_employment", 60);
@@ -54,7 +54,7 @@ public class PredicateComponentTest {
     void testStringCondition() {
         UtilityComponent component = UtilityComponentFactory.fromCombinedCondition(List.of(Variables.PT_SUBSCRIPTION), List.of("=="),
                 List.of("GA"),
-                1.0);
+                1.0, false);
         UtilityCalculator calculator = new UtilityCalculator(List.of(component));
         Person person2 = PopulationUtils.getFactory().createPerson(Id.createPersonId(2));
         person2.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, "HTA");

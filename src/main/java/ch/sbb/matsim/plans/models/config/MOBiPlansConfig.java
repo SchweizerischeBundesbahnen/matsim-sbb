@@ -14,17 +14,10 @@ public record MOBiPlansConfig (
         ModelsConfig models
 ){
     public static final String DRIVING_LICENSE_CSV = "driving_license.csv";
-    public static final String NUMBER_OF_WORK_TOURS_CSV = "number_of_work_tours.csv";
-    public static final String NUMBER_OF_EDUCATION_TOURS_CSV = "number_of_education_tours.csv";
-    public static final String NUMBER_OF_OTHER_TOURS_CSV = "number_of_other_tours.csv";
-    public static final String NUMBER_OF_BUSINESS_TOURS_CSV = "number_of_business_tours.csv";
-    public static final String STOP_FREQ_INB_W_CSV = "stop_freq_inb_w.csv";
-    public static final String STOP_FREQ_OUTB_W_CSV = "stop_freq_outb_w.csv";
-    public static final String STOP_FREQ_INB_E_CSV = "stop_freq_inb_e.csv";
-    public static final String STOP_FREQ_OUTB_E_CSV = "stop_freq_outb_e.csv";
-    public static final String STOP_FREQ_O_CSV = "stop_freq_o.csv";
-    public static final String STOP_FREQ_B_CSV = "stop_freq_b.csv";
-
+    public static final String TOUR_FREQUENCY_WORK_MODEL_CSV = "tour_frequency_work.csv";
+    public static final String TOUR_FREQUENCY_EDUCATION_MODEL_CSV = "tour_frequency_education.csv";
+    public static final String TOUR_FREQUENCY_OTHER_MODEL_CSV = "tour_frequency_other.csv";
+    public static final String TOUR_FREQUENCY_BUSINESS_MODEL_CSV = "tour_frequency_business.csv";
     public static final String EBIKE_45_CSV = "ebike45.csv";
     public static final String CARS_PER_HOUSEHOLD_CSV = "cars_per_household.csv";
     public static final String PT_SUBSCRIPTION_ADULTS_CSV = "pt_subscription_adults.csv";

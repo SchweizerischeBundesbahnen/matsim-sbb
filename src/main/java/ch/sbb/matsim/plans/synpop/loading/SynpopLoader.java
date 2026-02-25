@@ -44,7 +44,7 @@ public class SynpopLoader implements ModelStep {
             logger.info("No synthetic population directories configured. Loading population from standard MATSim XML files.");
             readFromMatsimFiles(config.data().populationFile(), config.data().householdsFile(), config.data().facilitiesFile());
         }
-
+        SynPopUtils.setDefaultAttributes(scenario);
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
         SynPopUtils.calculateHouseHoldCompositions(scenario);

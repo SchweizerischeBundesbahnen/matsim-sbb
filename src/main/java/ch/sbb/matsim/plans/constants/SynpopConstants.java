@@ -51,8 +51,8 @@ public class SynpopConstants {
     public static final String NOGA_CODE = "noga_code";
     public static final String SECTOR = "sector";
     public static final String NET_DIST_SCHOOL_PTSUBSCR = "net_dist_school_ptsubscr";
-    public static final String NET_DIST_SCHOOL = "net_dist_school";
-    public static final String NET_DIST_WORK = "net_dist_work";
+    public static final String NET_DIST_SCHOOL = "network_distance_school";
+    public static final String NET_DIST_WORK = "network_distance_work";
 
 
     public static final List<String> RAW_SYNPOP_ATTRIBUTES = Arrays.asList(

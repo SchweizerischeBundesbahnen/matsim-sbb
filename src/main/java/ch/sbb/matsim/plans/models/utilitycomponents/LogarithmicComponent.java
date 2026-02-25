@@ -13,15 +13,17 @@ public class LogarithmicComponent implements UtilityComponent {
     private final String attributePath;
     private final double beta;
     private final AttributeResolver resolver;
+    private final boolean nullable;
 
-    public LogarithmicComponent(String attributePath, double beta, AttributeResolver resolver) {
+    public LogarithmicComponent(String attributePath, double beta, AttributeResolver resolver,boolean nullable) {
         this.attributePath = attributePath;
         this.beta = beta;
         this.resolver = resolver;
+        this.nullable = nullable;
     }
 
-    public LogarithmicComponent(String attributePath, double beta) {
-        this(attributePath, beta, new NestedAttributeResolver());
+    public LogarithmicComponent(String attributePath, double beta, boolean nullable) {
+        this(attributePath, beta, new NestedAttributeResolver(), nullable);
     }
 
     @Override

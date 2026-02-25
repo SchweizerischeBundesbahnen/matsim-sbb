@@ -14,22 +14,27 @@ public class LinearComponent implements UtilityComponent {
     private final String attributePath;
     private final double beta;
     private final AttributeResolver resolver;
+    private final boolean nullable;
 
-    public LinearComponent(String attributePath, double beta, AttributeResolver resolver) {
+    public LinearComponent(String attributePath, double beta, AttributeResolver resolver, boolean nullable) {
         this.attributePath = attributePath;
         this.beta = beta;
         this.resolver = resolver;
+        this.nullable = nullable;
     }
 
-    public LinearComponent(String attributePath, double beta) {
-        this(attributePath, beta, new NestedAttributeResolver());
+    public LinearComponent(String attributePath, double beta, boolean nullable) {
+        this(attributePath, beta, new NestedAttributeResolver(), nullable);
     }
 
     @Override
     public double calculate(Attributable attributable) {
         Object attribute = resolver.resolve(attributable, attributePath);
         if (attribute == null) {
-            throw new RuntimeException("Attribute '" + attributePath + "' is null for " + ((Identifiable) attributable).getId() + ". ");
+            if (nullable) {
+                return 0.0;
+            }
+            else throw new RuntimeException("Attribute '" + attributePath + "' is null for " + ((Identifiable) attributable).getId() + ". ");
         }
         if (attribute instanceof Boolean b) {
             if (b) {

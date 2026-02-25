@@ -16,12 +16,14 @@ public class PiecewiseComponent implements UtilityComponent {
     private final double[] betas;
     private final String attributePath;
     private final AttributeResolver resolver;
+    private final boolean nullable;
 
 
-    public PiecewiseComponent(String attributePath, double[] thresholds, double[] betas, AttributeResolver resolver) {
+    public PiecewiseComponent(String attributePath, double[] thresholds, double[] betas, AttributeResolver resolver, boolean nullable) {
         this.attributePath = attributePath;
         this.thresholds = thresholds;
         this.betas = betas;
+        this.nullable = nullable;
         this.resolver = resolver;
         if (thresholds.length != betas.length - 1) {
             throw new IllegalArgumentException("Thresholds and betas must have length n and n+1 respectively" +
@@ -29,13 +31,20 @@ public class PiecewiseComponent implements UtilityComponent {
         }
     }
 
-    public PiecewiseComponent(String attributePath, double[] thresholds, double[] betas) {
-        this(attributePath, thresholds, betas, new NestedAttributeResolver());
+    public PiecewiseComponent(String attributePath, double[] thresholds, double[] betas, boolean nullable) {
+        this(attributePath, thresholds, betas, new NestedAttributeResolver(),nullable);
     }
 
 
     public double calculate(Attributable attributable) {
         Object attribute = resolver.resolve(attributable, attributePath);
+        if (attribute == null) {
+            if (nullable) {
+                return 0.0;
+            } else {
+                throw new IllegalArgumentException("Attribute at path '" + attributePath + "' is null but component is not nullable.");
+            }
+        }
         double value = ((Number) attribute).doubleValue();
         double returnValue = 0.0;
         for (int i = 0; i < betas.length; i++) {

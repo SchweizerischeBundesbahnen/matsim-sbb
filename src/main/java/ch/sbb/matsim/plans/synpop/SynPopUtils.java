@@ -269,6 +269,18 @@ public class SynPopUtils {
         }
     }
 
+    public static void setDefaultAttributes(Scenario scenario) {
+        scenario.getPopulation().getPersons().values().parallelStream().forEach(
+                person -> {
+                    person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL, 0.0);
+                    person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, 0.0);
+                    person.getAttributes().putAttribute(SynpopConstants.NET_DIST_WORK, 0.0);
+                    person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, false);
+
+                }
+        );
+    }
+
     record MobilityToolCount(AtomicInteger drivingLicenseCount, AtomicInteger ebikeCount,
                              AtomicInteger carAvailableCount, AtomicInteger carCount, AtomicInteger gaCount,
                              AtomicInteger htCount, AtomicInteger vaCount, AtomicInteger htvCount) {

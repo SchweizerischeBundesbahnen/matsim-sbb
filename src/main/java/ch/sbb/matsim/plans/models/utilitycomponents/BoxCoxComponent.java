@@ -14,29 +14,36 @@ public class BoxCoxComponent implements UtilityComponent {
     private final double beta;
     private final double lambda;
     private final AttributeResolver resolver;
+    private final boolean nullable;
 
-    public BoxCoxComponent(String attributePath, double beta, double lambda, AttributeResolver resolver) {
+    public BoxCoxComponent(String attributePath, double beta, double lambda, AttributeResolver resolver, boolean nullable) {
         this.attributePath = attributePath;
         this.beta = beta;
         this.lambda = lambda;
         this.resolver = resolver;
+        this.nullable = nullable;
     }
 
-    public BoxCoxComponent(String attributePath, double beta, double lambda) {
-        this(attributePath, beta, lambda, new NestedAttributeResolver());
+    public BoxCoxComponent(String attributePath, double beta, double lambda, boolean nullable) {
+        this(attributePath, beta, lambda, new NestedAttributeResolver(), nullable);
     }
 
     @Override
     public double calculate(Attributable attributable) {
         Object attribute = resolver.resolve(attributable, attributePath);
+        if (attribute == null) {
+            if (nullable) {
+                return 0.0;
+            } else {
+                throw new IllegalArgumentException("Attribute at path '" + attributePath + "' is null but component is not nullable.");
+            }
+        }
         double value = ((Number) attribute).doubleValue();
         double result;
         if (lambda == 0.0) {
             result = Math.log(value) * beta;
-//            log.debug("BoxCoxComponent (log): attributePath=" + attributePath + ", attribute=" + attribute + ", value=" + result);
         } else {
             result = ((Math.pow(value, lambda) - 1) / lambda) * beta;
-//            log.debug("BoxCoxComponent (classical): attributePath=" + attributePath + ", attribute=" + attribute + ", value=" + result);
         }
 
 

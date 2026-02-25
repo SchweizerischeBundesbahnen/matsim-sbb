@@ -6,11 +6,11 @@ import java.util.function.Predicate;
 
 public class UtilityComponentFactory {
 
-    public static UtilityComponent fromCondition(String attributeName, String operator, String valueLiteral, double beta) {
-        return fromCombinedCondition(List.of(attributeName), List.of(operator), List.of(valueLiteral), beta);
+    public static UtilityComponent fromCondition(String attributeName, String operator, String valueLiteral, double beta, boolean nullable) {
+        return fromCombinedCondition(List.of(attributeName), List.of(operator), List.of(valueLiteral), beta, nullable);
     }
 
-    public static UtilityComponent fromCombinedCondition(List<String> attributes, List<String> operators, List<String> valueLiterals, double beta) {
+    public static UtilityComponent fromCombinedCondition(List<String> attributes, List<String> operators, List<String> valueLiterals, double beta, boolean nullable) {
         if (operators.size() != valueLiterals.size()) {
             throw new IllegalArgumentException("Operators and values must match in size.");
         }
@@ -28,7 +28,11 @@ public class UtilityComponentFactory {
             String valueLiteral = valueLiterals.get(i);
             Predicate<Object> combinedPredicate = actual -> {
                 if (actual == null) {
+                    if (nullable) {
+                        return false; // If null is allowed, treat it as not passing the condition
+                    } else {
                     throw new IllegalArgumentException("Attribute " + attributeName + " must be a numeric value, but is null.");
+                    }
                 }
                 boolean passed;
                 if (actual instanceof Number value) {

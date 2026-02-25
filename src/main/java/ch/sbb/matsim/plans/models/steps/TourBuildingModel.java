@@ -30,10 +30,10 @@ public class TourBuildingModel implements ModelStep{
     public static final String HOME_MUL_CAR_ACC_SC = "home_mul_car_acc_sc";
     private final Scenario scenario;
     private final int threads;
-    private final IntegerSelectionModelFromCSV numberOfWorkToursModel;
-    private final IntegerSelectionModelFromCSV numberOfEducationToursModel;
-    private final IntegerSelectionModelFromCSV numberOfOtherToursModel;
-    private final IntegerSelectionModelFromCSV numberOfBusinessToursModel;
+    private final IntegerSelectionModelFromCSV tourFrequencyWorkModel;
+    private final IntegerSelectionModelFromCSV tourFrequencyEducationModel;
+    private final IntegerSelectionModelFromCSV tourFrequencyOtherModel;
+    private final IntegerSelectionModelFromCSV tourFrequencyBusinessModel;
     private final IntegerSelectionModelFromCSV stopFrequencyInboundWorkModel;
     private final IntegerSelectionModelFromCSV stopFrequencyOutboundWorkModel;
     private final IntegerSelectionModelFromCSV stopFrequencyInboundEducationModel;
@@ -50,10 +50,10 @@ public class TourBuildingModel implements ModelStep{
         this.scenario = scenario;
         String modelFolder = mobiPlansConfig.data().modelBaseDir()+"/";
         this.threads = mobiPlansConfig.models().threads();
-        numberOfWorkToursModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_WORK_TOURS_CSV);
-        numberOfEducationToursModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_EDUCATION_TOURS_CSV);
-        numberOfOtherToursModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_OTHER_TOURS_CSV);
-        numberOfBusinessToursModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_BUSINESS_TOURS_CSV);
+        tourFrequencyWorkModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV);
+        tourFrequencyEducationModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_EDUCATION_MODEL_CSV);
+        tourFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_OTHER_MODEL_CSV);
+        tourFrequencyBusinessModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_BUSINESS_MODEL_CSV);
         stopFrequencyInboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_WORK_CSV);
         stopFrequencyOutboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_WORK_CSV);
         stopFrequencyInboundEducationModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_EDUCATION_CSV);
@@ -94,7 +94,7 @@ public class TourBuildingModel implements ModelStep{
         int noWorkTours = 0;
         Number levelOfEmployment = (Number) attributes.getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT);
         if (levelOfEmployment != null && levelOfEmployment.intValue() > 0) {
-            noWorkTours = numberOfWorkToursModel.calculate(person);
+            noWorkTours = tourFrequencyWorkModel.calculate(person);
         }
         attributes.putAttribute(SynpopConstants.NO_WORK_TOURS, noWorkTours);
 
@@ -102,7 +102,7 @@ public class TourBuildingModel implements ModelStep{
         int noEducationTours = 0;
         Number currentEdu = (Number) attributes.getAttribute(SynpopConstants.CURRENT_EDU);
         if (currentEdu != null && currentEdu.intValue() > 0) {
-            noEducationTours = numberOfEducationToursModel.calculate(person);
+            noEducationTours = tourFrequencyEducationModel.calculate(person);
         }
         attributes.putAttribute(SynpopConstants.NO_EDUCATION_TOURS, noEducationTours);
 
@@ -113,7 +113,7 @@ public class TourBuildingModel implements ModelStep{
         // 4. Business Tours
         int noBusinessTours = 0;
         if (levelOfEmployment != null && levelOfEmployment.intValue() > 0) {
-            noBusinessTours = numberOfBusinessToursModel.calculate(person);
+            noBusinessTours = tourFrequencyBusinessModel.calculate(person);
         }
         attributes.putAttribute(SynpopConstants.NO_BUSINESS_TOURS, noBusinessTours);
 
@@ -130,7 +130,7 @@ public class TourBuildingModel implements ModelStep{
         }
         attributes.putAttribute(HOME_MUL_CAR_ACC_SC, homeMulCarAccSc);
 
-        int noOtherTours = numberOfOtherToursModel.calculate(person);
+        int noOtherTours = tourFrequencyOtherModel.calculate(person);
         attributes.putAttribute(SynpopConstants.NO_OTHER_TOURS, noOtherTours);
 
         // Cleanup temp attributes

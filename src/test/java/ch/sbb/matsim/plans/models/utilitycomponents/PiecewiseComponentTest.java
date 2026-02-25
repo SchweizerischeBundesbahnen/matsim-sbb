@@ -12,7 +12,7 @@ class PiecewiseComponentTest {
     private PiecewiseComponent createCalculator() {
         double[] thresholds = {22, 26, 69, 89};
         double[] betas = {0.398, 0.0301, 0.0201, -0.118, -0.19};
-        return new PiecewiseComponent(SynpopConstants.AGE, thresholds, betas);
+        return new PiecewiseComponent(SynpopConstants.AGE, thresholds, betas, false);
     }
 
     @Test

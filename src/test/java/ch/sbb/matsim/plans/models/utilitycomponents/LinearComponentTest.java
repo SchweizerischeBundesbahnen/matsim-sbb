@@ -12,7 +12,7 @@ class LinearComponentTest {
 
     @Test
     void testCalculate() {
-        LinearComponent calculator = new LinearComponent("age", 0.5);
+        LinearComponent calculator = new LinearComponent("age", 0.5,false);
         Person person = PopulationUtils.getFactory().createPerson(Id.createPersonId(0));
         person.getAttributes().putAttribute(SynpopConstants.AGE, 40);
 

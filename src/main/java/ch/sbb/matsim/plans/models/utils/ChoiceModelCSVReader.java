@@ -50,6 +50,7 @@ public class ChoiceModelCSVReader {
                     row = reader.readLine();
                     continue;
                 }
+                boolean nullable = Boolean.parseBoolean(row.getOrDefault("nullable", "false"));
                 UtilityComponent.ComponentType type = UtilityComponent.ComponentType.valueOf(typeString);
                 final String attribute = row.get("attribute");
                 if (type.equals(UtilityComponent.ComponentType.SHADOW_UTILS)) {
@@ -62,16 +63,16 @@ public class ChoiceModelCSVReader {
                         UtilityCalculator calculator = choiceModels.get(alternative);
                         switch (type) {
                             case LINEAR ->
-                                    calculator.addComponent(new LinearComponent(attribute, getBeta(alternative, row)));
+                                    calculator.addComponent(new LinearComponent(attribute, getBeta(alternative, row), nullable));
                             case LOGARITHMIC ->
-                                    calculator.addComponent(new LogarithmicComponent(attribute, getBeta(alternative, row)));
+                                    calculator.addComponent(new LogarithmicComponent(attribute, getBeta(alternative, row), nullable));
                             case CONSTANT -> calculator.addComponent(new ConstantComponent(getBeta(alternative, row)));
-                            case CONDITION -> calculator.addComponent(parseConditionComponent(row, alternative));
+                            case CONDITION -> calculator.addComponent(parseConditionComponent(row, alternative,nullable));
                             case BOXCOX ->
-                                    calculator.addComponent(new BoxCoxComponent(attribute, getBeta(alternative, row), Double.parseDouble(row.get("lambda"))));
+                                    calculator.addComponent(new BoxCoxComponent(attribute, getBeta(alternative, row), Double.parseDouble(row.get("lambda")), nullable));
                             case PIECEWISE -> calculator.addComponent(new PiecewiseComponent(attribute,
                                     Arrays.stream(row.get("values").split(",")).mapToDouble(Double::parseDouble).toArray(),
-                                    Arrays.stream(row.get(BETA + alternative).split(",")).mapToDouble(Double::parseDouble).toArray()));
+                                    Arrays.stream(row.get(BETA + alternative).split(",")).mapToDouble(Double::parseDouble).toArray(),nullable));
                             default -> throw new IllegalArgumentException("Unknown component type: " + type);
 
 
@@ -92,7 +93,7 @@ public class ChoiceModelCSVReader {
         return Double.parseDouble(betaValue);
     }
 
-    private static UtilityComponent parseConditionComponent(Map<String, String> row, String alternative) {
+    private static UtilityComponent parseConditionComponent(Map<String, String> row, String alternative,boolean nullable) {
         String attribute = row.get("attribute").trim();
         List<String> attributes = new ArrayList<>();
         for (String part : attribute.split(",")) {
@@ -117,7 +118,7 @@ public class ChoiceModelCSVReader {
             // Ensure that the number of attributes matches the number of operators and values by repeating the attribute
         }
 
-        return UtilityComponentFactory.fromCombinedCondition(attributes, operators, valueLiterals, beta);
+        return UtilityComponentFactory.fromCombinedCondition(attributes, operators, valueLiterals, beta,nullable);
     }
 
 

@@ -12,7 +12,7 @@ public class LogarithmicComponentTest {
 
     @Test
     void testCalculate() {
-        LogarithmicComponent calculator = new LogarithmicComponent("age", 0.5);
+        LogarithmicComponent calculator = new LogarithmicComponent("age", 0.5,false);
         Person person = PopulationUtils.getFactory().createPerson(Id.createPersonId(0));
         person.getAttributes().putAttribute(SynpopConstants.AGE, 40);
         double result = calculator.calculate(person);

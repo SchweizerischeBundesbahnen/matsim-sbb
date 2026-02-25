@@ -60,7 +60,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         this.zones =  zones;
         this.matrices = matrices;
         this.formulaRepository = formulaRepository;
-        this.primaryLocationChoiceConfig = PrimaryLocationChoiceConfig.readFromYamlFile(moBiPlansConfig.data().modelBaseDir() + MOBiPlansConfig.PRIMARY_LOCATION_CHOICE_CONFIG_YAML);
+        this.primaryLocationChoiceConfig = PrimaryLocationChoiceConfig.readFromYamlFile(moBiPlansConfig.data().modelBaseDir() +"/../config/"+ MOBiPlansConfig.PRIMARY_LOCATION_CHOICE_CONFIG_YAML);
         this.strataPredicateFactory = new StrataPredicateFactory();
         this.expressionEvaluator = new ExpressionEvaluator();
         this.writeDetailedAnalysis = moBiPlansConfig.models().write_analysis();
@@ -398,7 +398,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
                         .groupingBy(activityFacility ->
                                 Id.create(String.valueOf(activityFacility.getAttributes().getAttribute(Variables.ZONE_ID))
                                         , Zone.class)));
-        final String distanceName = "net_dist_"+ activityConfig.personResultAttributeName().split("_")[0];
+        final String distanceName = "network_distance_"+ activityConfig.personResultAttributeName().split("_")[0];
         Runnable facilityAllocation = () -> personsByActivityZone.forEach((zoneId, people) -> {
             var facilitiesInZone = activityFacilityByZone.get(zoneId);
             if (facilitiesInZone == null || facilitiesInZone.isEmpty()) {
@@ -427,6 +427,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException("Facility assignment failed", e);
         }
+
         logger.info("[Step 7/7] Finished assigning facilities. Took {}.", Duration.between(startAllocate, Instant.now()));
         logger.info("--- Finished attraction group '{}' in {} ---", attractionAttribute, Duration.between(startGroup, Instant.now()));
     }
