@@ -19,6 +19,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 public class DefaultMOBiPlansModule extends AbstractModule {
     final MOBiPlansConfig config;
+    private final Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
     public DefaultMOBiPlansModule(MOBiPlansConfig config) {
         this.config = config;
@@ -28,7 +29,6 @@ public class DefaultMOBiPlansModule extends AbstractModule {
     protected void configure() {
         super.configure();
         bind(MOBiPlansConfig.class).toInstance(config);
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         bind(Scenario.class).toInstance(scenario);
         //Zones, Matrices should be here immediately available after scenario creation
         bind(Zones.class).toProvider(MOBiZonesProvider.class).asEagerSingleton();
@@ -47,5 +47,9 @@ public class DefaultMOBiPlansModule extends AbstractModule {
 
 
 
+    }
+
+    public Scenario getScenario() {
+        return scenario;
     }
 }

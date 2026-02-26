@@ -26,6 +26,7 @@ public class UtilityComponentFactory {
             String attributeName = attributes.get(i);
             String operator = operators.get(i);
             String valueLiteral = valueLiterals.get(i);
+            List<String> finalAttributes = attributes;
             Predicate<Object> combinedPredicate = actual -> {
                 if (actual == null) {
                     if (nullable) {
@@ -45,13 +46,13 @@ public class UtilityComponentFactory {
                         case ">=" -> v >= compareValue;
                         case "==" -> v == compareValue;
                         case "!=" -> v != compareValue;
-                        default -> throw new IllegalArgumentException("Unsupported operator: " + operator);
+                        default -> throw new IllegalArgumentException("Unsupported operator: " + operator + " attributes: "+ finalAttributes +" operators: "+operators+" values: "+valueLiterals);
                     };
                 } else if (actual instanceof String strValue) {
                     passed = switch (operator) {
                         case "==" -> valueLiteral.equalsIgnoreCase(strValue);
                         case "!=" -> !valueLiteral.equalsIgnoreCase(strValue);
-                        default -> throw new IllegalArgumentException("Unsupported operator: " + operator);
+                        default -> throw new IllegalArgumentException("Unsupported operator: " + operator + " attributes: "+ finalAttributes +" operators: "+operators+" values: "+valueLiterals);
                     };
 
                 } else {

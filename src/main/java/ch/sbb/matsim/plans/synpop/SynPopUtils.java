@@ -102,7 +102,18 @@ public class SynPopUtils {
             household.getAttributes().putAttribute(SynpopConstants.SIZE, household.getMemberIds().size());
             household.getAttributes().putAttribute(SynpopConstants.LANGUAGE, minLanguage);
 
+            if (numberOfChildren>0)
+                {
+                    for (Id<Person> memberId : household.getMemberIds()) {
+                        Person person = scenario.getPopulation().getPersons().get(memberId);
+                        person.getAttributes().putAttribute(SynpopConstants.HAS_CHILD_IN_HH, true);
+                    }
+                }
+
         }
+        scenario.getPopulation().getPersons().values().stream()
+                .filter(person -> person.getAttributes().getAttribute(SynpopConstants.HAS_CHILD_IN_HH) == null)
+                .forEach(person -> person.getAttributes().putAttribute(SynpopConstants.HAS_CHILD_IN_HH, false));
         LogManager.getLogger(SynPopUtils.class).info("Done. Calculating household compositions.");
     }
 
@@ -270,12 +281,17 @@ public class SynPopUtils {
     }
 
     public static void setDefaultAttributes(Scenario scenario) {
+        TreeMap<Integer,Integer> levelOfEmploymentCategories = new TreeMap<>();
+        levelOfEmploymentCategories.putAll(SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT_BOUNDS);
         scenario.getPopulation().getPersons().values().parallelStream().forEach(
                 person -> {
                     person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL, 0.0);
                     person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, 0.0);
                     person.getAttributes().putAttribute(SynpopConstants.NET_DIST_WORK, 0.0);
                     person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, false);
+                    int loe = ((Number)person.getAttributes().getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT)).intValue();
+                    int loeCat = levelOfEmploymentCategories.floorEntry(loe).getValue();
+                    person.getAttributes().putAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT, loeCat);
 
                 }
         );

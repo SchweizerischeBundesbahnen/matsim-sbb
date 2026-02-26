@@ -1,11 +1,17 @@
 package ch.sbb.matsim.plans.models;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
+import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
+import ch.sbb.matsim.plans.modules.DefaultMOBiPlansModule;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
+import ch.sbb.matsim.plans.synpop.loading.SynpopLoader;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
@@ -14,17 +20,19 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.households.HouseholdsReaderV10;
 import org.matsim.households.HouseholdsWriterV10;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.stream.Collectors;
 
 public class GenerateSubModel {
-    public static void main(String[] args) {
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        Zones zones = ZonesLoader.loadZones("zones", "C:\\devsbb\\tmp\\synpop_2022\\35_kalif_secondary.mobi-zones.shp");
-        scenario.addScenarioElement(Variables.ZONES, zones);
-        new PopulationReader(scenario).readFile("C:\\devsbb\\tmp\\synpop_2022\\persons_2022.xml.gz");
-        new HouseholdsReaderV10(scenario.getHouseholds()).readFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022.xml.gz");
-        SynPopUtils.linkHouseholdsAndPopulation(scenario);
-        SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
+     static void main(String[] args) throws IOException {
+         MOBiPlansConfig config = MOBiPlansConfig.readFromYaml("/Users/joschka.bischoff/tmp/mobi_plans_config.yaml");
+
+         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+         Zones zones = ZonesLoader.loadZones("zones", "/Users/joschka.bischoff/tmp/synpop2022/35_kalif_secondary.mobi-zones.shp");
+         scenario.addScenarioElement(Variables.ZONES, zones);
+         SynpopLoader loader = new SynpopLoader(config, scenario);
+         loader.run();
         String aggId = "kt_name";
         String aggregate = "AI";
         var hhNotInAI = scenario.getHouseholds().getHouseholds().values()
@@ -51,8 +59,8 @@ public class GenerateSubModel {
         System.out.println("Number of persons not in AI: " + personsNotInAI.size());
         personsNotInAI.forEach(personId -> scenario.getPopulation().removePerson(personId));
         System.out.println("Number of persons in AI: " + scenario.getPopulation().getPersons().size());
-        new PopulationWriter(scenario.getPopulation()).write("C:\\devsbb\\tmp\\synpop_2022\\persons_2022_" + aggregate + ".xml.gz");
-        new HouseholdsWriterV10(scenario.getHouseholds()).writeFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022_" + aggregate + ".xml.gz");
+        new PopulationWriter(scenario.getPopulation()).write("/Users/joschka.bischoff/tmp/synpop2022/AI/persons_2022_" + aggregate + ".xml.gz");
+        new HouseholdsWriterV10(scenario.getHouseholds()).writeFile("/Users/joschka.bischoff/tmp/synpop2022/AI/households_2022_" + aggregate + ".xml.gz");
 
 
     }

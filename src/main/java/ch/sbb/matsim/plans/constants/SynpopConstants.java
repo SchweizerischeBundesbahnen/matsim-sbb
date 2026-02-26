@@ -5,6 +5,7 @@ import ch.sbb.matsim.config.variables.Variables;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class SynpopConstants {
     public static final String PERSON_ID = "person_id";
@@ -34,6 +35,9 @@ public class SynpopConstants {
     public static final String IS_WORKING_FROM_HOME = "is_working_from_home";
     public static final String NO_OTHER_TOURS = "no_other_tours";
     public static final String NO_TOT_TOURS = "no_tot_tours";
+    public static final String SCHOOL_ZONE = "school_zone";
+    public static final String WORK_ZONE = "work_zone";
+
 
 
 
@@ -53,6 +57,8 @@ public class SynpopConstants {
     public static final String NET_DIST_SCHOOL_PTSUBSCR = "net_dist_school_ptsubscr";
     public static final String NET_DIST_SCHOOL = "network_distance_school";
     public static final String NET_DIST_WORK = "network_distance_work";
+    public static final String LEVEL_OF_EMPLOYMENT_CAT = "level_of_employment_cat";
+
 
 
     public static final List<String> RAW_SYNPOP_ATTRIBUTES = Arrays.asList(
@@ -122,11 +128,11 @@ public class SynpopConstants {
             2, "40_to_79",
             3, "80_to_100"
     );
-    public static final Map<String, Integer> LEVEL_OF_EMPLOYMENT_CAT_REVERSE = Map.of(
-            "0", 0,
-            "1_to_39", 1,
-            "40_to_79", 2,
-            "80_to_100", 3
+    public static final Map<Integer, Integer> LEVEL_OF_EMPLOYMENT_CAT_BOUNDS = Map.of(
+            0, 0,
+            20, 1,
+            40, 2,
+            80, 3
     );
     // ----------------------------
     // Highest education

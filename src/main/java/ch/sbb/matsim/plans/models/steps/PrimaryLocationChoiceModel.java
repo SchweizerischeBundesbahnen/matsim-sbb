@@ -398,7 +398,9 @@ public class PrimaryLocationChoiceModel implements ModelStep{
                         .groupingBy(activityFacility ->
                                 Id.create(String.valueOf(activityFacility.getAttributes().getAttribute(Variables.ZONE_ID))
                                         , Zone.class)));
-        final String distanceName = "network_distance_"+ activityConfig.personResultAttributeName().split("_")[0];
+        String work_or_school_marker = activityConfig.personResultAttributeName().split("_")[0];
+        final String distanceName = "network_distance_"+ work_or_school_marker;
+        final String zonalAttributeName = work_or_school_marker+"_zone";
         Runnable facilityAllocation = () -> personsByActivityZone.forEach((zoneId, people) -> {
             var facilitiesInZone = activityFacilityByZone.get(zoneId);
             if (facilitiesInZone == null || facilitiesInZone.isEmpty()) {
@@ -418,7 +420,9 @@ public class PrimaryLocationChoiceModel implements ModelStep{
                 }
                 Zone homeZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
                 var travelMetrics = matrices.getTravelMetrics(homeZone.getId(), zoneId).get(MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase());
+                // Add the distance to the chosen zone and the zone as an attribute for later analysis and models
                 person.getAttributes().putAttribute(distanceName, travelMetrics);
+                person.getAttributes().putAttribute(zonalAttributeName,zones.getZone(zoneId));
             }
 
         });
