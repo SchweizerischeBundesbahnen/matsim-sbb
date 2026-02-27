@@ -26,6 +26,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.facilities.ActivityFacility;
 
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -60,7 +61,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         this.zones =  zones;
         this.matrices = matrices;
         this.formulaRepository = formulaRepository;
-        this.primaryLocationChoiceConfig = PrimaryLocationChoiceConfig.readFromYamlFile(moBiPlansConfig.data().modelBaseDir() +"/../config/"+ MOBiPlansConfig.PRIMARY_LOCATION_CHOICE_CONFIG_YAML);
+        this.primaryLocationChoiceConfig = PrimaryLocationChoiceConfig.readFromYamlFile(Paths.get(moBiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CONFIG).resolve(MOBiPlansConfig.PRIMARY_LOCATION_CHOICE_CONFIG_YAML).toString());
         this.strataPredicateFactory = new StrataPredicateFactory();
         this.expressionEvaluator = new ExpressionEvaluator();
         this.writeDetailedAnalysis = moBiPlansConfig.models().write_analysis();

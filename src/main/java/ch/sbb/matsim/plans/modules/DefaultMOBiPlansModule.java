@@ -16,6 +16,7 @@ import com.google.inject.multibindings.Multibinder;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import java.nio.file.Paths;
 
 public class DefaultMOBiPlansModule extends AbstractModule {
     final MOBiPlansConfig config;
@@ -35,7 +36,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
 
         //the following are lazy singletons
         bind(Matrices.class).toProvider(MOBiMatricesProvider.class);
-        bind(ModeImpedanceFormulaRepository.class).toInstance(new ModeImpedanceFormulaRepository(config.data().modelBaseDir()+"/"+MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS));
+        bind(ModeImpedanceFormulaRepository.class).toInstance(new ModeImpedanceFormulaRepository(Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString()));
         Multibinder<ModelStep> multibinder = Multibinder.newSetBinder(binder(), ModelStep.class);
 
         multibinder.addBinding().to(SynpopLoader.class);

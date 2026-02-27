@@ -17,6 +17,8 @@ import org.matsim.api.core.v01.Scenario;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.nio.file.Paths;
+import java.nio.file.Path;
 
 public class MobilityToolOwnershipModel implements ModelStep {
 
@@ -35,12 +37,12 @@ public class MobilityToolOwnershipModel implements ModelStep {
         this.scenario = scenario;
         this.mobiPlansConfig = mobiPlansConfig;
         this.zones = zones;
-        String modelFolder = mobiPlansConfig.data().modelBaseDir()+"/";
-        drivingLicenseModel = new BooleanSelectionModelFromCSV(modelFolder + MOBiPlansConfig.DRIVING_LICENSE_CSV);
-        ebikeModel = new BooleanSelectionModelFromCSV(modelFolder + MOBiPlansConfig.EBIKE_45_CSV);
-        carsPerHouseholdModel = new CarsPerHouseholdModel(modelFolder + MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV);
-        ptSubscriptionModelAdults = new StringSelectionModelFromCSV(modelFolder + MOBiPlansConfig.PT_SUBSCRIPTION_ADULTS_CSV);
-        ptSubscriptionModelMinors = new StringSelectionModelFromCSV(modelFolder + MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV);
+        Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
+        drivingLicenseModel = new BooleanSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.DRIVING_LICENSE_CSV).toString());
+        ebikeModel = new BooleanSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.EBIKE_45_CSV).toString());
+        carsPerHouseholdModel = new CarsPerHouseholdModel(modelFolder.resolve(MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV).toString());
+        ptSubscriptionModelAdults = new StringSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.PT_SUBSCRIPTION_ADULTS_CSV).toString());
+        ptSubscriptionModelMinors = new StringSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV).toString());
     }
 
     private static final Logger logger = LogManager.getLogger(MobilityToolOwnershipModel.class);

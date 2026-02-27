@@ -19,6 +19,8 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -54,22 +56,22 @@ public class TourBuildingModel implements ModelStep{
     @Inject
            public TourBuildingModel(Scenario scenario, MOBiPlansConfig mobiPlansConfig) {
         this.scenario = scenario;
-        String modelFolder = mobiPlansConfig.data().modelBaseDir()+"/";
+        Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir());
         this.threads = mobiPlansConfig.models().threads();
         this.mobiPlansConfg = mobiPlansConfig;
-        tourFrequencyWorkModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV);
-        tourFrequencyEducationModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_EDUCATION_MODEL_CSV);
-        tourFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_OTHER_MODEL_CSV);
-        tourFrequencyBusinessModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_BUSINESS_MODEL_CSV);
-        stopFrequencyInboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_WORK_CSV);
-        stopFrequencyOutboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_WORK_CSV);
-        stopFrequencyInboundEducationModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_EDUCATION_CSV);
-        stopFrequencyOutboundEducationModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_EDUCATION_CSV);
-        stopFrequencyBusinessModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_BUSINESS_CSV);
-        stopFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.NUMBER_OF_STOPS_OTHER_CSV);
-        subtourFrequencyModelWork = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.SUBTOUR_FREQUENCY_WORK_CSV);
-        subtourFrequencyModelEducation = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.SUBTOUR_FREQUENCY_EDUCATION_CSV);
-        secondaryActivityTypeAssignmentModel = new SecondaryActivityTypeAssignmentModel(modelFolder + MOBiPlansConfig.SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV);
+        tourFrequencyWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV).toString());
+        tourFrequencyEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_EDUCATION_MODEL_CSV).toString());
+        tourFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_OTHER_MODEL_CSV).toString());
+        tourFrequencyBusinessModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_BUSINESS_MODEL_CSV).toString());
+        stopFrequencyInboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_WORK_CSV).toString());
+        stopFrequencyOutboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_WORK_CSV).toString());
+        stopFrequencyInboundEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_EDUCATION_CSV).toString());
+        stopFrequencyOutboundEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_EDUCATION_CSV).toString());
+        stopFrequencyBusinessModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_BUSINESS_CSV).toString());
+        stopFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_OTHER_CSV).toString());
+        subtourFrequencyModelWork = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.SUBTOUR_FREQUENCY_WORK_CSV).toString());
+        subtourFrequencyModelEducation = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.SUBTOUR_FREQUENCY_EDUCATION_CSV).toString());
+        secondaryActivityTypeAssignmentModel = new SecondaryActivityTypeAssignmentModel(modelFolder.resolve(MOBiPlansConfig.SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV).toString());
     }
 
     @Override
