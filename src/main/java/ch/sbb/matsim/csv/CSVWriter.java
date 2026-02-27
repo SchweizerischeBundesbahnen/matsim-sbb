@@ -106,7 +106,7 @@ public class CSVWriter implements AutoCloseable {
 				if (i > 0) {
 					this.writer.write(this.separator);
 				}
-				this.writer.write(this.currentRow[i]);
+				this.writer.write(this.currentRow[i]==null ? "" : this.currentRow[i]);
 			}
 			this.writer.write("\n");
 			if (flush) {

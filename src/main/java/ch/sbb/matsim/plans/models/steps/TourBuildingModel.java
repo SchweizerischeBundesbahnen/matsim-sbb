@@ -2,6 +2,8 @@ package ch.sbb.matsim.plans.models.steps;
 
 
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
@@ -16,10 +18,13 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
+
 /*
    * This model step is responsible for building tours for each person in the population based on their attributes. Besides the number of stops for each tour, it also assigns the type of secondary activities for the stops based on a separate model.
    *  The generated tours are then stored as an attribute of the person for use in later steps.
@@ -43,6 +48,7 @@ public class TourBuildingModel implements ModelStep{
     private final IntegerSelectionModelFromCSV subtourFrequencyModelWork;
     private final IntegerSelectionModelFromCSV subtourFrequencyModelEducation;
     private final SecondaryActivityTypeAssignmentModel secondaryActivityTypeAssignmentModel;
+    private final MOBiPlansConfig mobiPlansConfg;
 
 
     @Inject
@@ -50,6 +56,7 @@ public class TourBuildingModel implements ModelStep{
         this.scenario = scenario;
         String modelFolder = mobiPlansConfig.data().modelBaseDir()+"/";
         this.threads = mobiPlansConfig.models().threads();
+        this.mobiPlansConfg = mobiPlansConfig;
         tourFrequencyWorkModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV);
         tourFrequencyEducationModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_EDUCATION_MODEL_CSV);
         tourFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder + MOBiPlansConfig.TOUR_FREQUENCY_OTHER_MODEL_CSV);
@@ -84,6 +91,31 @@ public class TourBuildingModel implements ModelStep{
         } finally {
             // 3. Just make sure to always shut it down!
             customPool.shutdown();
+        }
+        if (mobiPlansConfg.models().write_analysis()){
+            writeTourDetails(mobiPlansConfg.data().outputBaseDir()+"/tour_building_model_output.csv.gz");
+        }
+    }
+
+    private void writeTourDetails(String filename) {
+        List<String> columns = List.of(Variables.PERSONID,"tour_no","tourType","mainActivityType","inboundStopActivities","outboundStopActivities","subtourActivities");
+        try (CSVWriter writer = new CSVWriter(columns,filename)){
+            for (Person p : scenario.getPopulation().getPersons().values()){
+                List<Tour> tours = (List<Tour>) p.getAttributes().getAttribute(SynpopConstants.TOURS);
+                for (int i = 0; i <tours.size() ; i++) {
+                    var tour = tours.get(i);
+                    writer.set(Variables.PERSONID,p.getId().toString());
+                    writer.set("tour_no",Integer.toString(i));
+                    writer.set("tourType",tour.getTourType().toString());
+                    writer.set("mainActivityType",tour.getMainActivityType());
+                    writer.set("inboundStopActivities",tour.getInboundStopActivities().stream().map(activity -> activity.getType()).collect(Collectors.joining(",")).toString());
+                    writer.set("outboundStopActivities",tour.getOutboundStopActivities().stream().map(activity -> activity.getType()).collect(Collectors.joining(",")).toString());
+                    writer.set("subtourActivities",tour.getSubtourActivities().stream().map(activity -> activity.getType()).collect(Collectors.joining(",")).toString());
+                    writer.writeRow();
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -7,9 +7,8 @@ import java.util.List;
 
 public class Tour {
 public enum TourType {PRIMARY,SECONDARY,SUBTOUR}
-    public static final String UNDEFINED_ACTIVITY_TYPE = "undefined";
     protected final TourType tourType;
-    protected String mainActivityType;
+    protected  String mainActivityType;
     protected final List<Activity> inboundStopActivities = new ArrayList<>();
     protected final List<Activity> outboundStopActivities = new ArrayList<>();
     protected final List<Activity> subtourActivities = new ArrayList<>();
@@ -17,6 +16,7 @@ public enum TourType {PRIMARY,SECONDARY,SUBTOUR}
 
     public Tour(TourType tourType, String mainActivityType) {
         this.tourType = tourType;
+        this.mainActivityType = mainActivityType;
     }
 
     public TourType getTourType() {
@@ -41,5 +41,16 @@ public enum TourType {PRIMARY,SECONDARY,SUBTOUR}
 
     public void setMainActivityType(String mainActivityType) {
         this.mainActivityType = mainActivityType;
+    }
+
+    @Override
+    public String toString() {
+        return "Tour{" +
+                "tourType=" + tourType +
+                ", mainActivityType='" + mainActivityType + '\'' +
+                ", inboundStopActivities=" + inboundStopActivities +
+                ", outboundStopActivities=" + outboundStopActivities +
+                ", subtourActivities=" + subtourActivities +
+                '}';
     }
 }
