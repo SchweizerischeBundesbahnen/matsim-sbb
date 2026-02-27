@@ -72,11 +72,27 @@ public record DataConfig(
 ) {
 }
     public record ModelsConfig(
-            int threads,
-            boolean write_analysis,
+            Integer threads,
+            Double sampleSize,
+            Boolean write_analysis,
             String run_id,
             Object run
     ) {
+        public ModelsConfig {
+            if (sampleSize == null) {
+                sampleSize = 1.0;
+            }
+            if (threads == null || threads <= 0) {
+                threads = 1;
+            }
+            if (write_analysis == null) {
+                write_analysis = false;
+            }
+
+            if (run_id == null || run_id.isBlank()) {
+                run_id = "mobi_plans_run_" + System.currentTimeMillis();
+            }
+        }
     }
 
 }

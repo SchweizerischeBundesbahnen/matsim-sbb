@@ -3,6 +3,7 @@ package ch.sbb.matsim.plans.models.selector;
 import ch.sbb.matsim.plans.models.utilitycomponents.UtilityCalculator;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
@@ -17,6 +18,7 @@ public class LogitSelector implements ChoiceSelector {
     private final Map<String, UtilityCalculator> calculators;
     private final double scaleParameter;
     private final String modelName;
+    private final static Logger log = LogManager.getLogger(LogitSelector.class);
 
     public LogitSelector(Map<String, UtilityCalculator> calculators, double scaleParameter, String modelName) {
         this.calculators = calculators;
@@ -31,7 +33,7 @@ public class LogitSelector implements ChoiceSelector {
         Map<String, Double> probabilities = getProbabilities(attributes);
         String chosenAlternative = drawByProbability(probabilities, random);
         if (chosenAlternative == null) {
-            throw new IllegalStateException("No alternative was chosen for " + id + ". Check the probabilities.");
+            throw new IllegalStateException("No alternative was chosen for " + id + ". Check the probabilities. Model: " + modelName + ", Probabilities: " + probabilities);
         }
         return chosenAlternative;
     }
@@ -41,6 +43,9 @@ public class LogitSelector implements ChoiceSelector {
         Map<String, Double> expUtilities = new HashMap<>();
         for (Map.Entry<String, UtilityCalculator> entry : calculators.entrySet()) {
             double u = entry.getValue().calculate(attributes);
+            if (Double.isNaN(u) || Double.isInfinite(u)) {
+                log.error("Utility for alternative '" + entry.getKey() + "' is NaN. Check the utility components for this alternative. Model: " + modelName);
+            }
             expUtilities.put(entry.getKey(), Math.exp(scaleParameter * u));
         }
         return normalize(expUtilities);

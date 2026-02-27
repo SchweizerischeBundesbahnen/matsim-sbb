@@ -24,11 +24,14 @@ public class MOBiPlansRunner implements Runnable{
     public static final String PRIMARY_LOCATION_CHOICE = "primary_location_choice_model";
     public static final String TOURBUILDING_MODEL = "tourbuilding_model";
     public static final String WRITE_OUTPUTS = "write_outputs";
+    public static final String POPULATION_SAMPLING = "population_sampling";
 
     public static final List<String> FULL_MODEL_SEQUENCE = List.of(
             LOAD_SYNPOP,
             MOBILITY_TOOL_OWNERSHIP_MODEL,
+            POPULATION_SAMPLING,
             PRIMARY_LOCATION_CHOICE,
+            WRITE_OUTPUTS,
             TOURBUILDING_MODEL,
             WRITE_OUTPUTS
     );

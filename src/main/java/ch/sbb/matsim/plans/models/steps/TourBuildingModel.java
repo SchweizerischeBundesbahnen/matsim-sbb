@@ -86,6 +86,7 @@ public class TourBuildingModel implements ModelStep{
         try {
             customPool.submit(() ->
                     population.getPersons().values().parallelStream()
+                            .filter(person -> new PopulationSampler.ActivePersonPredicate().test(person)) // Only process active persons
                             .forEach(person -> processPerson(person, factory))
             ).get();
         } catch (Exception e) {
@@ -104,6 +105,7 @@ public class TourBuildingModel implements ModelStep{
         try (CSVWriter writer = new CSVWriter(columns,filename)){
             for (Person p : scenario.getPopulation().getPersons().values()){
                 List<Tour> tours = (List<Tour>) p.getAttributes().getAttribute(SynpopConstants.TOURS);
+                if (tours == null) continue; //inactive person
                 for (int i = 0; i <tours.size() ; i++) {
                     var tour = tours.get(i);
                     writer.set(Variables.PERSONID,p.getId().toString());
@@ -179,8 +181,6 @@ public class TourBuildingModel implements ModelStep{
         // 7. Generate Stops and Subtours
         List<Tour> tours = new ArrayList<>();
         Random activityTypeRandom = SynPopUtils.getRandom(person.getId(),SecondaryActivityTypeAssignmentModel.class.getName());
-        if (((Number)person.getAttributes().getAttribute(SynpopConstants.AGE)).intValue()>5) {
-            //FIXME: This is a temporary fix to avoid generating tours for very young children, in the final setup there should be pre-selection
         for (int i = 0; i < noWorkTours; i++) {
             Tour tour = new Tour(Tour.TourType.PRIMARY, SBBActivities.work);
             populateTour(tour, factory, stopFrequencyInboundWorkModel.calculate(person), stopFrequencyOutboundWorkModel.calculate(person), subtourFrequencyModelWork.calculate(person), person, activityTypeRandom);
@@ -189,7 +189,10 @@ public class TourBuildingModel implements ModelStep{
 
         for (int i = 0; i < noEducationTours; i++) {
             Tour tour = new Tour(Tour.TourType.PRIMARY, SBBActivities.education);
-            populateTour(tour, factory, stopFrequencyInboundEducationModel.calculate(person), stopFrequencyOutboundEducationModel.calculate(person), subtourFrequencyModelEducation.calculate(person), person, activityTypeRandom);
+            Integer stopFreQInBound = stopFrequencyInboundEducationModel.calculate(person);
+            Integer stopFreqOutbound = stopFrequencyOutboundEducationModel.calculate(person);
+            Integer subtourEdu = subtourFrequencyModelEducation.calculate(person);
+            populateTour(tour, factory, stopFreQInBound, stopFreqOutbound, subtourEdu, person, activityTypeRandom);
             tours.add(tour);
         }
 
@@ -205,7 +208,7 @@ public class TourBuildingModel implements ModelStep{
             populateTour(tour, factory, stopFrequencyOtherModel.calculate(person), stopFrequencyOtherModel.calculate(person), 0, person, activityTypeRandom);
             tours.add(tour);
         }
-        }
+
 
         attributes.putAttribute(SynpopConstants.TOURS, tours);
     }

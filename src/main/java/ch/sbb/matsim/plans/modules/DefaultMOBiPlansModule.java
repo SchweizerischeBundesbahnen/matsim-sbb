@@ -2,12 +2,9 @@ package ch.sbb.matsim.plans.modules;
 
 import ch.sbb.matsim.plans.matrices.MOBiMatricesProvider;
 import ch.sbb.matsim.plans.matrices.Matrices;
-import ch.sbb.matsim.plans.models.steps.MobilityToolOwnershipModel;
-import ch.sbb.matsim.plans.models.steps.ModelStep;
-import ch.sbb.matsim.plans.models.steps.PrimaryLocationChoiceModel;
+import ch.sbb.matsim.plans.models.steps.*;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
-import ch.sbb.matsim.plans.models.steps.TourBuildingModel;
 import ch.sbb.matsim.plans.models.utils.MOBiPlansOutputWriter;
 import ch.sbb.matsim.plans.synpop.loading.SynpopLoader;
 import ch.sbb.matsim.zones.Zones;
@@ -44,6 +41,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(PrimaryLocationChoiceModel.class);
         multibinder.addBinding().to(MOBiPlansOutputWriter.class);
         multibinder.addBinding().to(TourBuildingModel.class);
+        multibinder.addBinding().to(PopulationSampler.class);
 
 
 

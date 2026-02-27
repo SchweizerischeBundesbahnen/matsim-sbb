@@ -37,6 +37,7 @@ public class SynpopConstants {
     public static final String NO_TOT_TOURS = "no_tot_tours";
     public static final String SCHOOL_ZONE = "school_zone";
     public static final String WORK_ZONE = "work_zone";
+    public static final String ACTIVE_IN_MODEL = "active_in_model";
 
 
 
