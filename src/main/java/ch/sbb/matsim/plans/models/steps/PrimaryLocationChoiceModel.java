@@ -412,6 +412,9 @@ public class PrimaryLocationChoiceModel implements ModelStep{
                 double weight = ((Number) facility.getAttributes().getAttribute(SynpopConstants.FTE_ENDO)).doubleValue();
                 facilityProbabilities.put(facility.getId(), weight);
             });
+            if (facilitiesInZone.size() == 0) {
+                logger.warn("No facilities with valid weights found in zone " + zoneId + " for activity allocation. People in this zone will not be assigned a facility.");
+            }
             for (Person person : people) {
                 var activityFacilityId = ChoiceUtils.selectFromProbabilities(facilityProbabilities, SynPopUtils.getRandom(person.getId(), getClass().getName() + "_facility"));
                 if (activityFacilityId != null) {
