@@ -37,20 +37,47 @@ public class LogitSelector implements ChoiceSelector {
         }
         return chosenAlternative;
     }
-
     @Override
     public Map<String, Double> getProbabilities(Attributable attributes) {
-        Map<String, Double> expUtilities = new HashMap<>();
+        Map<String, Double> rawUtilities = new LinkedHashMap<>();
+        double maxUtility = Double.NEGATIVE_INFINITY;
+
+        // 1. Calculate all utilities and find the maximum scaled utility
         for (Map.Entry<String, UtilityCalculator> entry : calculators.entrySet()) {
             double u = entry.getValue().calculate(attributes);
-            if (Double.isNaN(u) || Double.isInfinite(u)) {
-                log.error("Utility for alternative '" + entry.getKey() + "' is NaN. Check the utility components for this alternative. Model: " + modelName);
+
+            if (Double.isNaN(u)) {
+                log.error("Utility for alternative '" + entry.getKey() + "' is NaN. Check the utility components. Model: " + modelName);
+                u = Double.NEGATIVE_INFINITY; // Treat NaN as impossible
             }
-            expUtilities.put(entry.getKey(), Math.exp(scaleParameter * u));
+
+            double scaledU = scaleParameter * u;
+            rawUtilities.put(entry.getKey(), scaledU);
+
+            if (scaledU > maxUtility) {
+                maxUtility = scaledU;
+            }
         }
+
+        // Fast-fail if all alternatives are impossible
+        if (maxUtility == Double.NEGATIVE_INFINITY) {
+            throw new IllegalStateException("All utilities evaluated to negative infinity for model: " + modelName);
+        }
+
+        // 2. Shift all utilities by the max and exponentiate
+        Map<String, Double> expUtilities = new LinkedHashMap<>();
+        for (Map.Entry<String, Double> entry : rawUtilities.entrySet()) {
+            // Because we subtract maxUtility, the largest value passed to Math.exp() is 0.
+            // Math.exp(0) is 1. All other values are negative, so Math.exp() yields a safe value between 0 and 1.
+            double shiftedU = entry.getValue() - maxUtility;
+            double exp = Math.exp(shiftedU);
+
+            expUtilities.put(entry.getKey(), exp);
+        }
+
+        // 3. Normalize to probabilities
         return normalize(expUtilities);
     }
-
     private Map<String, Double> normalize(Map<String, Double> raw) {
         double sum = raw.values().stream().mapToDouble(Double::doubleValue).sum();
         if (sum == 0.0) throw new IllegalStateException("All utilities resulted in zero probability.");
