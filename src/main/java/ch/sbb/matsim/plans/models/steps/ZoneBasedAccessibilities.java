@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.models.steps;
 
+import ch.sbb.matsim.analysis.skims.FloatMatrix;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
@@ -14,11 +15,15 @@ import ch.sbb.matsim.zones.Zones;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.DoubleAdder;
+
+import static com.google.common.primitives.Doubles.max;
 
 public class ZoneBasedAccessibilities implements ModelStep{
     private final String name = MOBiPlansRunner.ZONE_BASED_ACCESSIBILITIES;
@@ -43,21 +48,49 @@ public class ZoneBasedAccessibilities implements ModelStep{
     }
 
     public void run() {
-        List.of(ZonalAttributes.ACCSIB_CAR, ZonalAttributes.ACCSIB_PT, ZonalAttributes.ACCSIB_MUL).stream().forEach(accessibilityType -> {
+        List<Zone> allZones = zones.getZones();
+
+        FloatMatrix<Id<Zone>> kalifWork = matrices.getKalifMatrix(MatrixNames.KalifMatrices.KALIF_WORK);
+
+        for (String accessibilityType: List.of(ZonalAttributes.ACCSIB_CAR, ZonalAttributes.ACCSIB_PT, ZonalAttributes.ACCSIB_MUL)) {
+
+            Map<String, String> modeFormulas = formulaRepository.getModeFormulas("99",
+                    DecisionStrata.fromStrataName(accessibilityType));
+
             zones.getZones().parallelStream().forEach(origin -> {
-                AtomicReference<Double> zoneAccessibility = new AtomicReference<>(0.0);
-                zones.getZones().parallelStream().forEach(destination -> {
-                    double attraction = destination != null ? ((Number) destination.getAttribute("pop_total")).doubleValue() : 0 + 2.54 * (destination != null ? ((Number) destination.getAttribute("fte_total")).doubleValue() : 0);
+                if (origin == null) return;
+
+                // origin attraction (pop_total + 2.54 * fte_total)
+                Number oPop = (Number) origin.getAttribute("pop_total");
+                Number oFte = (Number) origin.getAttribute("fte_total");
+                double origPop = oPop != null ? oPop.doubleValue() : 0.0;
+                double origFte = oFte != null ? oFte.doubleValue() : 0.0;
+                double zoneAttraction = origPop + 2.54 * origFte;
+
+                DoubleAdder acc = new DoubleAdder();
+
+                for (Zone destination : allZones) {
+                    if (destination == null) continue;
+
+                    Number dPop = (Number) destination.getAttribute("pop_total");
+                    Number dFte = (Number) destination.getAttribute("fte_total");
+                    double destPop = dPop != null ? dPop.doubleValue() : 0.0;
+                    double destFte = dFte != null ? dFte.doubleValue() : 0.0;
+                    double attraction = destPop + 2.54 * destFte;
+
                     Map<String, Double> travelMetrics = getTravelAndAccessibilityMetrics(origin, destination);
-                    double logsum = calculateLogsum(formulaRepository.getModeFormulas("99", DecisionStrata.fromStrataName(accessibilityType)),  travelMetrics);
-                    double expsum = Math.exp(logsum + 0.5 * matrices
-                            .getKalifMatrix(MatrixNames.KalifMatrices.KALIF_WORK)
-                            .get(origin.getId(), destination.getId()));
-                    zoneAccessibility.updateAndGet(v -> new Double((double) (v + expsum * attraction)));
-                });
-                origin.getAttributes().putAttribute(accessibilityType, zoneAccessibility.get());
+
+                    double logsum = calculateLogsum(modeFormulas, travelMetrics);
+
+                    double kalif = kalifWork.get(origin.getId(), destination.getId());
+                    double expsum = Math.exp(logsum + 0.5 * kalif);
+
+                    acc.add(expsum * attraction);
+                };
+                double totalAccessibility = acc.sum();
+                origin.getAttributes().putAttribute(accessibilityType, Math.max(totalAccessibility, zoneAttraction));
             });
-        });
+        };
     }
 
     private Map<String, Double> getTravelAndAccessibilityMetrics(Zone origin, Zone destination) {
