@@ -27,7 +27,7 @@ public class SecondaryActivityTypeAssignmentModel {
 
     // Regex to parse expressions like: current_edu==0 or age<65
     // Group 1: Attribute name, Group 2: Operator, Group 3: Value
-    private static final Pattern RULE_PATTERN = Pattern.compile("\\s*([a-zA-Z_0-9]+)\\s*(==|!=|<=|>=|<|>|>==)\\s*([0-9.-]+)\\s*");
+    private static final Pattern RULE_PATTERN = Pattern.compile("\\s*([a-zA-Z_0-9]+)\\s*(==|!=|<=|>=|<|>)\\s*([0-9.-]+)\\s*");
 
     private final List<RuleSegment> segments = new ArrayList<>();
 
@@ -72,20 +72,21 @@ public class SecondaryActivityTypeAssignmentModel {
                 if (cols.length <= attrExprIdx) continue;
 
                 String expr = cols[attrExprIdx].trim();
-                
+
                 try {
                     // Parse probabilities
                     double[] probs = new double[ACTIVITY_TYPES.length];
                     for (int i = 0; i < ACTIVITY_TYPES.length; i++) {
                         probs[i] = Double.parseDouble(cols[resultCols[i]].trim());
                     }
-                    
+
                     // Compile the string expression into a fast Java Predicate
                     Predicate<Person> predicate = buildPredicate(expr);
                     segments.add(new RuleSegment(expr, predicate, probs));
 
-                } catch (NumberFormatException e) {
-                    log.debug("Skipping invalid or metadata row: {}", line);
+                } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                    // This gracefully skips rows that are text (headers) OR too short (truncated)
+                    log.debug("Skipping invalid, truncated, or metadata row: {}", line);
                 }
             }
             log.info("Successfully loaded {} secondary activity assignment rules.", segments.size());
