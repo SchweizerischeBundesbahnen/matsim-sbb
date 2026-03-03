@@ -6,6 +6,7 @@ import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.steps.csvmodels.BooleanSelectionModelFromCSV;
+import ch.sbb.matsim.plans.models.steps.csvmodels.IntegerSelectionModelFromCSV;
 import ch.sbb.matsim.plans.models.steps.csvmodels.StringSelectionModelFromCSV;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.Zones;
@@ -24,7 +25,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
 
     private  final BooleanSelectionModelFromCSV drivingLicenseModel;
     private  final BooleanSelectionModelFromCSV ebikeModel;
-    private  final CarsPerHouseholdModel carsPerHouseholdModel;
+    private  final IntegerSelectionModelFromCSV carsPerHouseholdModel;
     private  final StringSelectionModelFromCSV ptSubscriptionModelAdults;
     private  final StringSelectionModelFromCSV ptSubscriptionModelMinors;
     final Scenario scenario;
@@ -38,11 +39,11 @@ public class MobilityToolOwnershipModel implements ModelStep {
         this.mobiPlansConfig = mobiPlansConfig;
         this.zones = zones;
         Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
-        drivingLicenseModel = new BooleanSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.DRIVING_LICENSE_CSV).toString());
-        ebikeModel = new BooleanSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.EBIKE_45_CSV).toString());
-        carsPerHouseholdModel = new CarsPerHouseholdModel(modelFolder.resolve(MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV).toString());
-        ptSubscriptionModelAdults = new StringSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.PT_SUBSCRIPTION_ADULTS_CSV).toString());
-        ptSubscriptionModelMinors = new StringSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV).toString());
+        drivingLicenseModel = new BooleanSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.DRIVING_LICENSE_CSV).toString(), MOBiPlansConfig.DRIVING_LICENSE_CSV);
+        ebikeModel = new BooleanSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.EBIKE_45_CSV).toString(), MOBiPlansConfig.EBIKE_45_CSV);
+        carsPerHouseholdModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV).toString(), MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV);
+        ptSubscriptionModelAdults = new StringSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.PT_SUBSCRIPTION_ADULTS_CSV).toString(), MOBiPlansConfig.PT_SUBSCRIPTION_ADULTS_CSV);
+        ptSubscriptionModelMinors = new StringSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV).toString(), MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV);
     }
 
     private static final Logger logger = LogManager.getLogger(MobilityToolOwnershipModel.class);

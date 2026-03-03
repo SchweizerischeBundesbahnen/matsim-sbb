@@ -10,9 +10,15 @@ public class StringSelectionModelFromCSV implements ChoiceModel {
 
     private final ChoiceSelector selector;
 
-    public StringSelectionModelFromCSV(String ptSubscriptionModelDefinitionFile) {
-        var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(ptSubscriptionModelDefinitionFile);
-        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, getClass().getName());
+
+    /*        * @param modeldefinitionFile the CSV file that defines the choice model. The file should have the following format:
+     *                          Alternative,UtilityComponent1,UtilityComponent2,...
+     * @param name a name for the model, used for logging and random seed generation. E.g. "driving_license_model".
+     */
+
+    public StringSelectionModelFromCSV(String csvDefinitionsFile, String name) {
+        var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(csvDefinitionsFile);
+        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, name);
 
     }
 

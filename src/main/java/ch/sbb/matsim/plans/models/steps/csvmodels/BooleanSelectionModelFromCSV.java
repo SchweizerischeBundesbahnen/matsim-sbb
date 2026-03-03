@@ -13,9 +13,13 @@ public class BooleanSelectionModelFromCSV implements ChoiceModel {
 
     private final ChoiceSelector selector;
 
-    public BooleanSelectionModelFromCSV(String modeldefinitionFile) {
-        var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(modeldefinitionFile);
-        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, getClass().getName());
+     /* @param csvDefinitionFile the CSV file that defines the choice model. The file should have the following format:
+     *                          Alternative,UtilityComponent1,UtilityComponent2,...
+     * @param name a name for the model, used for logging and random seed generation. E.g. "driving_license_model".
+     */
+    public BooleanSelectionModelFromCSV(String csvDefinitionFile, String name) {
+        var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(csvDefinitionFile);
+        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, name);
     }
 
     @Override
