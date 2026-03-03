@@ -1,5 +1,7 @@
 package ch.sbb.matsim.plans.synpop;
 
+import ch.sbb.matsim.plans.constants.ZonalAttributes;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -32,7 +34,10 @@ public enum DecisionStrata {
     PRIMLOC_EMPL_VA_NOCAR_GG("PrimLoc_Empl_VA_NoCar_gg"),
     PRIMLOC_EMPL_NOABO_NOCAR_GG("PrimLoc_Empl_NoAbo_NoCar_gg"),
     PRIMLOC_EMPL_GA_NOCAR_GG("PrimLoc_Empl_GA_NoCar_gg"),
-    PRIMLOC_EMPL_VA_CAR_GG("PrimLoc_Empl_VA_Car_gg");
+    PRIMLOC_EMPL_VA_CAR_GG("PrimLoc_Empl_VA_Car_gg"),
+    ACCSIB_CAR(ZonalAttributes.ACCSIB_CAR),
+    ACCSIB_PT(ZonalAttributes.ACCSIB_PT),
+    ACCSIB_MUL(ZonalAttributes.ACCSIB_MUL),;
 
     // A static map for efficient lookup from a string
     private static final Map<String, DecisionStrata> NAME_MAP =
