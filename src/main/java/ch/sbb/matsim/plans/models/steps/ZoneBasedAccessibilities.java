@@ -85,7 +85,6 @@ public class ZoneBasedAccessibilities implements ModelStep{
             double modeUtility = 0.0;
             try {
                 modeUtility = expressionEvaluator.evaluate(formula, travelMetrics);
-                logger.info("modeUtility {}", modeUtility);
             } catch (Exception e) {
                 continue;
             }
