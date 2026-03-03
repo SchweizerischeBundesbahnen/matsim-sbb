@@ -404,6 +404,8 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             Map<Id<ActivityFacility>, Double> facilityProbabilities = new HashMap<>();
             facilitiesInZone.forEach(facility -> {
                 double weight = ((Number) facility.getAttributes().getAttribute(SynpopConstants.FTE_ENDO)).doubleValue();
+                if (weight<=1 )
+                    weight = 1.0;
                 facilityProbabilities.put(facility.getId(), weight);
             });
             if (facilitiesInZone.size() == 0) {
@@ -414,7 +416,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
                 if (activityFacilityId != null) {
                     person.getAttributes().putAttribute(activityConfig.activityName() + "_facility", activityFacilityId.toString());
                 } else {
-                    logger.warn("Could not choose a facility for person " + person.getId() + " despite valid probabilities.");
+                    logger.warn("Could not choose a facility for person " + person.getId() + " despite valid probabilities. Zone ID: " + zoneId);
                 }
                 Zone homeZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
                 var travelMetrics = matrices.getTravelMetrics(homeZone.getId(), zoneId).get(MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase());
