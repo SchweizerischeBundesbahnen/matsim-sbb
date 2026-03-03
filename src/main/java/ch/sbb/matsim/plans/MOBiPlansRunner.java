@@ -20,7 +20,7 @@ public class MOBiPlansRunner implements Runnable{
     private static final Logger logger = LogManager.getLogger(MOBiPlansRunner.class);
 
     public static final String LOAD_SYNPOP = "load_synpop";
-    public static final String CALCULATE_ACCESSIBILITIES = "calculate_accessibilities";
+    public static final String ZONE_BASED_ACCESSIBILITIES = "zone_based_accessibilities";
     public static final String MOBILITY_TOOL_OWNERSHIP_MODEL = "mobility_tool_ownership_model";
     public static final String PRIMARY_LOCATION_CHOICE = "primary_location_choice_model";
     public static final String TOURBUILDING_MODEL = "tourbuilding_model";
@@ -28,7 +28,7 @@ public class MOBiPlansRunner implements Runnable{
 
     public static final List<String> FULL_MODEL_SEQUENCE = List.of(
             LOAD_SYNPOP,
-            CALCULATE_ACCESSIBILITIES,
+            ZONE_BASED_ACCESSIBILITIES,
             MOBILITY_TOOL_OWNERSHIP_MODEL,
             PRIMARY_LOCATION_CHOICE,
             TOURBUILDING_MODEL,
