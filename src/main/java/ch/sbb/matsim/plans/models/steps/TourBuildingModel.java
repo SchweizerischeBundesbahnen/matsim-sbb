@@ -13,6 +13,8 @@ import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.Zone;
 import jakarta.inject.Inject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
@@ -21,9 +23,7 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
@@ -51,6 +51,7 @@ public class TourBuildingModel implements ModelStep{
     private final IntegerSelectionModelFromCSV subtourFrequencyModelEducation;
     private final SecondaryActivityTypeAssignmentModel secondaryActivityTypeAssignmentModel;
     private final MOBiPlansConfig mobiPlansConfg;
+    private final static Logger log = LogManager.getLogger(TourBuildingModel.class);
 
 
     @Inject
@@ -97,9 +98,111 @@ public class TourBuildingModel implements ModelStep{
         }
         if (mobiPlansConfg.models().write_analysis()){
             writeTourDetails(mobiPlansConfg.data().outputBaseDir()+"/tour_building_model_output.csv.gz");
+            writeTourStats(mobiPlansConfg.data().outputBaseDir()+"/tour_building_model_stats.csv.gz");
         }
+        printTourStats();
+
+    }
+    public void printTourStats() {
+        int initialCapacity = scenario.getPopulation().getPersons().size();
+        int[] totTours = new int[initialCapacity];
+        int validPersons = 0;
+
+        // Variables for tour types
+        long sumWork = 0, sumEdu = 0, sumBiz = 0, sumOther = 0;
+
+        // Variables for subtours
+        long sumWorkSubtours = 0, sumEduSubtours = 0;
+        long countWorkTours = 0, countEduTours = 0;
+
+        // Single pass over the population to collect all data efficiently
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+            Integer tot = (Integer) person.getAttributes().getAttribute(SynpopConstants.NO_TOT_TOURS);
+            if (tot == null) continue; // Skip unprocessed/inactive persons
+
+            totTours[validPersons++] = tot;
+
+            sumWork += getIntAttr(person, SynpopConstants.NO_WORK_TOURS);
+            sumEdu += getIntAttr(person, SynpopConstants.NO_EDUCATION_TOURS);
+            sumBiz += getIntAttr(person, SynpopConstants.NO_BUSINESS_TOURS);
+            sumOther += getIntAttr(person, SynpopConstants.NO_OTHER_TOURS);
+
+            @SuppressWarnings("unchecked")
+            List<Tour> tours = (List<Tour>) person.getAttributes().getAttribute(SynpopConstants.TOURS);
+            if (tours != null) {
+                for (Tour t : tours) {
+                    if (SBBActivities.work.equals(t.getMainActivityType())) {
+                        countWorkTours++;
+                        sumWorkSubtours += t.getSubtourActivities().size();
+                    } else if (SBBActivities.education.equals(t.getMainActivityType())) {
+                        countEduTours++;
+                        sumEduSubtours += t.getSubtourActivities().size();
+                    }
+                }
+            }
+        }
+
+        if (validPersons == 0) {
+            log.warn("No tour statistics available. Make sure the model has run and generated tours.");
+            return;
+        }
+
+        // Truncate array to actual size of processed persons and sort for median/min/max
+        int[] exactTotTours = Arrays.copyOf(totTours, validPersons);
+        Arrays.sort(exactTotTours);
+
+        int min = exactTotTours[0];
+        int max = exactTotTours[exactTotTours.length - 1];
+        double average = Arrays.stream(exactTotTours).average().orElse(0.0);
+
+        double median;
+        int middle = exactTotTours.length / 2;
+        if (exactTotTours.length % 2 == 0) {
+            median = (exactTotTours[middle - 1] + exactTotTours[middle]) / 2.0;
+        } else {
+            median = exactTotTours[middle];
+        }
+
+        // Calculate Averages
+        double avgWork = (double) sumWork / validPersons;
+        double avgEdu = (double) sumEdu / validPersons;
+        double avgBiz = (double) sumBiz / validPersons;
+        double avgOther = (double) sumOther / validPersons;
+
+        double avgWorkSubPerTour = countWorkTours > 0 ? (double) sumWorkSubtours / countWorkTours : 0.0;
+        double avgEduSubPerTour = countEduTours > 0 ? (double) sumEduSubtours / countEduTours : 0.0;
+
+        // Print the statistics cleanly
+        log.info("=========================================");
+        log.info("          TOUR BUILDING STATS            ");
+        log.info("=========================================");
+        log.info("Total Active Persons     : {}", validPersons);
+        log.info("-----------------------------------------");
+        log.info("TOTAL TOURS (per person)");
+        log.info("  Average : {}", String.format(Locale.US, "%.2f", average));
+        log.info("  Median  : {}", median);
+        log.info("  Min     : {}", min);
+        log.info("  Max     : {}", max);
+        log.info("-----------------------------------------");
+        log.info("TOUR TYPES (average per person)");
+        log.info("  Work      : {}", String.format(Locale.US, "%.2f", avgWork));
+        log.info("  Education : {}", String.format(Locale.US, "%.2f", avgEdu));
+        log.info("  Business  : {}", String.format(Locale.US, "%.2f", avgBiz));
+        log.info("  Other     : {}", String.format(Locale.US, "%.2f", avgOther));
+        log.info("-----------------------------------------");
+        log.info("SUBTOURS (average per main tour)");
+        log.info("  Work Subtours      : {} (over {} work tours)", String.format(Locale.US, "%.2f", avgWorkSubPerTour), countWorkTours);
+        log.info("  Education Subtours : {} (over {} edu tours)", String.format(Locale.US, "%.2f", avgEduSubPerTour), countEduTours);
+        log.info("=========================================");
     }
 
+    /**
+     * Null-safe attribute extractor helper
+     */
+    private int getIntAttr(Person p, String attrName) {
+        Integer val = (Integer) p.getAttributes().getAttribute(attrName);
+        return val == null ? 0 : val;
+    }
     private void writeTourDetails(String filename) {
         List<String> columns = List.of(Variables.PERSONID,"tour_no","tourType","mainActivityType","inboundStopActivities","outboundStopActivities","subtourActivities");
         try (CSVWriter writer = new CSVWriter(columns,filename)){
@@ -117,6 +220,28 @@ public class TourBuildingModel implements ModelStep{
                     writer.set("subtourActivities",tour.getSubtourActivities().stream().map(activity -> activity.getType()).collect(Collectors.joining(",")).toString());
                     writer.writeRow();
                 }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+private void writeTourStats(String filename) {
+        List<String> columns = List.of(Variables.PERSONID,SynpopConstants.NO_BUSINESS_TOURS,SynpopConstants.NO_EDUCATION_TOURS,SynpopConstants.NO_WORK_TOURS,SynpopConstants.NO_OTHER_TOURS,SynpopConstants.NO_PRIM_TOURS,SynpopConstants.NO_TOT_TOURS);
+        try (CSVWriter writer = new CSVWriter(columns,filename)){
+            for (Person p : scenario.getPopulation().getPersons().values()){
+                    for (String column:columns) {
+                        if ((Boolean)p.getAttributes().getAttribute(SynpopConstants.ACTIVE_IN_MODEL)){
+                        if (column.equals(Variables.PERSONID)) {
+                            writer.set(column, p.getId().toString());
+                            continue;
+                        }
+                        Object value = p.getAttributes().getAttribute(column);
+                        writer.set(column, value != null ? value.toString() : "");
+                        writer.writeRow();
+                        }
+                    }
+
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
