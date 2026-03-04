@@ -3,7 +3,6 @@ package ch.sbb.matsim.plans.models.steps;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
-import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
@@ -37,6 +36,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static ch.sbb.matsim.plans.models.utils.Calculations.calculateLogsum;
+
 public class PrimaryLocationChoiceModel implements ModelStep{
 
     private static final double MIN_LOGSUM = -20.0;
@@ -68,14 +69,6 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         this.customThreadPool = new ForkJoinPool(moBiPlansConfig.models().threads());
         this.outputDir = moBiPlansConfig.data().outputBaseDir();
 
-    }
-
-    private static Double toDouble(Object value) {
-        if (value == null) return null;
-        if (value instanceof Number n) {
-            return n.doubleValue();
-        }
-        throw new IllegalArgumentException("Cannot convert value to Double: " + value + " (" + value.getClass() + ")");
     }
 
     @Override
@@ -122,7 +115,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             return -Double.MAX_VALUE; // Use a very negative number to represent zero probability
         }
 
-        var travelMetrics = getTravelAndAccessibilityMetrics(homeZone, destinationZone);
+        var travelMetrics = matrices.getTravelAndAccessibilityMetrics(homeZone, destinationZone);
         double logsum = calculateLogsum(modeFormulas, travelMetrics);
         if (Double.isNaN(logsum) || Double.isInfinite(logsum)) {
             return -Double.MAX_VALUE;
@@ -133,6 +126,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
 
         return (kalif_ASC * matrixFactor) + BETA_ATTRACTION * Math.log(attraction) + BETA_LOGSUM * logsum;
     }
+
     private double[][] runIPF(double[][] utilityMatrix, double[] rowTargets, double[] colTargets, int maxIterations) {
         int numOrigins = utilityMatrix.length;
         if (numOrigins == 0) return new double[0][0];
@@ -435,49 +429,6 @@ public class PrimaryLocationChoiceModel implements ModelStep{
 
         logger.info("[Step 7/7] Finished assigning facilities. Took {}.", Duration.between(startAllocate, Instant.now()));
         logger.info("--- Finished attraction group '{}' in {} ---", attractionAttribute, Duration.between(startGroup, Instant.now()));
-    }
-
-    private Map<String, Double> getTravelAndAccessibilityMetrics(Zone origin, Zone destination) {
-        var travelMetrics = matrices.getTravelMetrics(origin.getId(), destination.getId());
-
-        travelMetrics.put("va_impedances", toDouble(matrices
-                .getKalifMatrix(MatrixNames.KalifMatrices.VA_IMPEDANCES)
-                .get(origin.getId(), destination.getId())));
-
-        travelMetrics.put("from_acc_car", toDouble(origin.getAttribute(ZonalAttributes.AT_CAR)));
-        travelMetrics.put("to_acc_car", toDouble(destination.getAttribute(ZonalAttributes.AT_CAR)));
-        travelMetrics.put("to_pc_car", toDouble(destination.getAttribute(ZonalAttributes.PC_CAR)));
-
-        travelMetrics.put("from_acc_ride", toDouble(origin.getAttribute(ZonalAttributes.AT_RIDE)));
-        travelMetrics.put("to_acc_ride", toDouble(destination.getAttribute(ZonalAttributes.AT_RIDE)));
-        travelMetrics.put("to_pc_ride", toDouble(destination.getAttribute(ZonalAttributes.PC_RIDE)));
-
-        return travelMetrics;
-    }
-
-    private double calculateLogsum(Map<String, String> modeFormulas, Map<String, Double> travelMetrics) {
-        double sumOfExponentials = 0.0;
-        for (String formula : modeFormulas.values()) {
-            if (formula.trim().equals("-9999")) continue;
-            double modeUtility = expressionEvaluator.evaluate(formula, travelMetrics);
-
-            // Add a check here to prevent individual utilities from being too negative,
-            // which is good practice but the main fix is below.
-            if (modeUtility < -50) { // An arbitrary but safe floor
-                continue; // exp(-50) is effectively zero, skip adding it.
-            }
-
-            sumOfExponentials += Math.exp(modeUtility);
-        }
-
-        if (sumOfExponentials == 0.0) {
-            return MIN_LOGSUM;
-        }
-
-        double logsum = Math.log(sumOfExponentials);
-
-        // Ensure the final logsum does not fall below the defined floor.
-        return Math.max(logsum, MIN_LOGSUM);
     }
 
     @Override

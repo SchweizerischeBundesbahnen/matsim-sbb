@@ -31,6 +31,16 @@ public interface Matrices {
     Map<String, Double> getTravelMetrics(Id<Zone> fromZoneId, Id<Zone> toZoneId);
 
     /**
+     * Retrieves all travel metric values for a specific origin-destination pair.
+     *
+     * @param fromZone The origin zone.
+     * @param toZone   The destination zone.
+     * @return A map where keys are the travel metric names (e.g., "CAR_TRAVEL_TIMES")
+     * and values are the corresponding floating-point values for the given OD pair.
+     */
+    Map<String, Double> getTravelAndAccessibilityMetrics(Zone fromZone, Zone toZone);
+
+    /**
      * Retrieves all Kalif values for a specific origin-destination pair.
      *
      * @param fromZoneId The ID of the origin zone.

@@ -1,6 +1,7 @@
 package ch.sbb.matsim.plans.matrices;
 
 import ch.sbb.matsim.analysis.skims.FloatMatrix;
+import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.zones.Zone;
 import org.matsim.api.core.v01.Id;
 
@@ -47,6 +48,33 @@ public class DefaultMatrices implements Matrices {
     public Map<String, Double> getTravelMetrics(Id<Zone> fromZoneId, Id<Zone> toZoneId) {
         return getMetricsForPair(fromZoneId, toZoneId, MatrixNames.TravelMetricsMatrices.values());
     }
+
+    @Override
+    public Map<String, Double> getTravelAndAccessibilityMetrics(Zone origin, Zone destination) {
+        var travelMetrics = getTravelMetrics(origin.getId(), destination.getId());
+
+        travelMetrics.put("va_impedances", toDouble(getKalifMatrix(MatrixNames.KalifMatrices.VA_IMPEDANCES)
+                .get(origin.getId(), destination.getId())));
+
+        travelMetrics.put("from_acc_car", toDouble(origin.getAttribute(ZonalAttributes.AT_CAR)));
+        travelMetrics.put("to_acc_car", toDouble(destination.getAttribute(ZonalAttributes.AT_CAR)));
+        travelMetrics.put("to_pc_car", toDouble(destination.getAttribute(ZonalAttributes.PC_CAR)));
+
+        travelMetrics.put("from_acc_ride", toDouble(origin.getAttribute(ZonalAttributes.AT_RIDE)));
+        travelMetrics.put("to_acc_ride", toDouble(destination.getAttribute(ZonalAttributes.AT_RIDE)));
+        travelMetrics.put("to_pc_ride", toDouble(destination.getAttribute(ZonalAttributes.PC_RIDE)));
+
+        return travelMetrics;
+    }
+
+    private static Double toDouble(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number n) {
+            return n.doubleValue();
+        }
+        throw new IllegalArgumentException("Cannot convert value to Double: " + value + " (" + value.getClass() + ")");
+    }
+
 
     @Override
     public Map<String, Double> getKalifMetrics(Id<Zone> fromZoneId, Id<Zone> toZoneId) {
