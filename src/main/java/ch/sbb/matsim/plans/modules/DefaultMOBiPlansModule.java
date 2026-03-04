@@ -37,6 +37,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         Multibinder<ModelStep> multibinder = Multibinder.newSetBinder(binder(), ModelStep.class);
 
         multibinder.addBinding().to(SynpopLoader.class);
+        multibinder.addBinding().to(ZoneBasedAccessibilities.class);
         multibinder.addBinding().to(MobilityToolOwnershipModel.class);
         multibinder.addBinding().to(PrimaryLocationChoiceModel.class);
         multibinder.addBinding().to(MOBiPlansOutputWriter.class);
