@@ -38,7 +38,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
         this.scenario = scenario;
         this.mobiPlansConfig = mobiPlansConfig;
         this.zones = zones;
-        Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
+        Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.ACTIVITY_DURATIONS_WITH_SUBTOUR_CSV);
         drivingLicenseModel = new BooleanSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.DRIVING_LICENSE_CSV).toString(), MOBiPlansConfig.DRIVING_LICENSE_CSV);
         ebikeModel = new BooleanSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.EBIKE_45_CSV).toString(), MOBiPlansConfig.EBIKE_45_CSV);
         carsPerHouseholdModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV).toString(), MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV);

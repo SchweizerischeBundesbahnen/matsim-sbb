@@ -33,7 +33,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
 
         //the following are lazy singletons
         bind(Matrices.class).toProvider(MOBiMatricesProvider.class);
-        bind(ModeImpedanceFormulaRepository.class).toInstance(new ModeImpedanceFormulaRepository(Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString()));
+        bind(ModeImpedanceFormulaRepository.class).toInstance(new ModeImpedanceFormulaRepository(Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.ACTIVITY_DURATIONS_WITH_SUBTOUR_CSV).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString()));
         Multibinder<ModelStep> multibinder = Multibinder.newSetBinder(binder(), ModelStep.class);
 
         multibinder.addBinding().to(SynpopLoader.class);

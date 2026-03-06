@@ -40,7 +40,6 @@ import static ch.sbb.matsim.plans.models.utils.Calculations.calculateLogsum;
 
 public class PrimaryLocationChoiceModel implements ModelStep{
 
-    private static final double MIN_LOGSUM = -20.0;
     private static final double BETA_ATTRACTION = 1.0;
     private static final double BETA_LOGSUM = 1.0;
     private final Scenario scenario;
