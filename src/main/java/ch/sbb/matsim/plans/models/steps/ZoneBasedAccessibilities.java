@@ -8,6 +8,7 @@ import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
+import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -45,7 +46,7 @@ public class ZoneBasedAccessibilities implements ModelStep{
         List<Zone> allZones = zones.getZones();
 
         FloatMatrix<Id<Zone>> kalifWork = matrices.getKalifMatrix(MatrixNames.KalifMatrices.KALIF_WORK);
-
+        ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
         for (String accessibilityType: List.of(ZonalAttributes.ACCSIB_CAR, ZonalAttributes.ACCSIB_PT, ZonalAttributes.ACCSIB_MUL)) {
 
             Map<String, String> modeFormulas = formulaRepository.getModeFormulas("99",
@@ -74,7 +75,7 @@ public class ZoneBasedAccessibilities implements ModelStep{
 
                     Map<String, Double> travelMetrics = matrices.getTravelAndAccessibilityMetrics(origin, destination);
 
-                    double logsum = calculateLogsum(modeFormulas, travelMetrics);
+                    double logsum = calculateLogsum(modeFormulas, travelMetrics, expressionEvaluator);
 
                     double kalif = kalifWork.get(origin.getId(), destination.getId());
                     double expsum = Math.exp(logsum + 0.5 * kalif);

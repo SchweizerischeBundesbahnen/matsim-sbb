@@ -12,9 +12,8 @@ public final class Calculations {
     private Calculations() {
     }
 
-    public static double calculateLogsum(Map<String, String> modeFormulas, Map<String, Double> travelMetrics) {
+    public static double calculateLogsum(Map<String, String> modeFormulas, Map<String, Double> travelMetrics, ExpressionEvaluator expressionEvaluator) {
         double sumOfExponentials = 0.0;
-        ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
         for (String formula : modeFormulas.values()) {
             if (formula.trim().equals("-9999")) continue;
             double modeUtility = 0.0;

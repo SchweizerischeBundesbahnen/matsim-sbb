@@ -115,7 +115,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         }
 
         var travelMetrics = matrices.getTravelAndAccessibilityMetrics(homeZone, destinationZone);
-        double logsum = calculateLogsum(modeFormulas, travelMetrics);
+        double logsum = calculateLogsum(modeFormulas, travelMetrics, expressionEvaluator);
         if (Double.isNaN(logsum) || Double.isInfinite(logsum)) {
             return -Double.MAX_VALUE;
         }
