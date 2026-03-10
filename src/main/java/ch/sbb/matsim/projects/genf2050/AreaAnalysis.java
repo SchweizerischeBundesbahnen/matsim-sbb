@@ -56,7 +56,7 @@ public class AreaAnalysis {
 //        runs.put("ref_cut5_25", root + "ref_cut_v5_25");
         runs.put("var_cornavin_gese", root + "var_cornavin_gese");
 //        runs.put("var_cornavin", root + "var_cornavin");
-        runs.put("var_dorciere_gese", root + "var_dorciere_gese");
+        runs.put("var_dorciere_re_modified_3min_more_busses", root + "var_dorciere_re_modified_3min_more_busses");
 
         String roadNet = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/streets/output/network.xml.gz";
         String zonesFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/kanton_GE.shp";
@@ -292,7 +292,9 @@ public class AreaAnalysis {
                     .mapToDouble(link -> getPKM(attribute, link)).sum();
             double tramKM = getAKM(departuresPerLink, trueTramLinks, SBBModes.PTSubModes.TRAM);
             double metroKM = metroLinks.isEmpty()?0.0:getAKM(departuresPerLink, metroLinks, SBBModes.PTSubModes.TRAM);
-
+            if (metroKM == 0.0) {
+                metroKM = metroLinks.isEmpty()?0.0:getAKM(departuresPerLink, metroLinks, SBBModes.PTSubModes.OTHER);
+            }
 
             double busVolume = relevantPtLinks.stream().filter(link -> link.getAllowedModes().contains(SBBModes.PTSubModes.BUS)).mapToDouble(link -> getPKM(attribute, link)).sum();
             double busKM = getAKM(departuresPerLink, relevantPtLinks, SBBModes.PTSubModes.BUS);
