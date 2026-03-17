@@ -19,13 +19,13 @@ public class SecondaryKalifMatrixCache {
     private static final Logger log = LoggerFactory.getLogger(SecondaryKalifMatrixCache.class);
 
     // Maps ActivityType -> double[originIdx][destIdx]
-    private final Map<String, double[][]> kalifMatricesByActivity = new HashMap<>();
+    private final Map<String, float[][]> kalifMatricesByActivity = new HashMap<>();
 
     public SecondaryKalifMatrixCache(String csvFilePath, Matrices matrices, List<Zone> zoneList, Map<Id<Zone>, Integer> zoneIndexMap) {
         parseAndBuildMatrices(csvFilePath, matrices, zoneList, zoneIndexMap);
     }
 
-    public double[][] getKalifMatrixForActivity(String activityType) {
+    public float[][] getKalifMatrixForActivity(String activityType) {
         return kalifMatricesByActivity.get(activityType);
     }
 
@@ -47,7 +47,7 @@ public class SecondaryKalifMatrixCache {
                 String expression = cols[1].trim();
                 
                 // Initialize the combined flat array for this activity
-                double[][] combinedKalif = new double[numZones][numZones];
+                float[][] combinedKalif = new float[numZones][numZones];
                 
                 // Parse the expression (e.g., "kalif_secondary+0.4*kalif_work")
                 // 1. Split by '+'
@@ -78,7 +78,7 @@ public class SecondaryKalifMatrixCache {
                         for (int d = 0; d < numZones; d++) {
                             Id<Zone> destId = zoneList.get(d).getId();
                             // Add factor * base value
-                            combinedKalif[o][d] += factor * baseMatrix.get(originId, destId);
+                            combinedKalif[o][d] += (float) factor * baseMatrix.get(originId, destId);
                         }
                     }
                 }

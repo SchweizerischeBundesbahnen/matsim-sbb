@@ -4,7 +4,6 @@ package ch.sbb.matsim.plans.models.steps;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
@@ -13,6 +12,7 @@ import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.Zone;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -27,11 +27,14 @@ import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
+import static ch.sbb.matsim.plans.models.steps.IterativeDailyPlanGenerationOrchestrator.NEEDS_DAILY_REPLANNING;
+
 /*
    * This model step is responsible for building tours for each person in the population based on their attributes. Besides the number of stops for each tour, it also assigns the type of secondary activities for the stops based on a separate model.
    *  The generated tours are then stored as an attribute of the person for use in later steps.
  */
-public class TourBuildingModel implements ModelStep{
+@Singleton
+public class TourBuildingModel {
 
     public static final String IS_WORKING_FROM_HOME_AND_HAS_ONE_WORKTOUR = "is_working_from_home_and_has_one_worktour";
     public static final String HOME_MUL_CAR_ACC_SC = "home_mul_car_acc_sc";
@@ -75,12 +78,7 @@ public class TourBuildingModel implements ModelStep{
         secondaryActivityTypeAssignmentModel = new SecondaryActivityTypeAssignmentModel(modelFolder.resolve(MOBiPlansConfig.SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV).toString());
     }
 
-    @Override
-    public String getName() {
-        return MOBiPlansRunner.TOURBUILDING_MODEL;
-    }
-    @Override
-    public void run() {
+    public void runIteration() {
         Population population = scenario.getPopulation();
         PopulationFactory factory = population.getFactory();
         ForkJoinPool customPool = new ForkJoinPool(threads);
@@ -88,6 +86,7 @@ public class TourBuildingModel implements ModelStep{
             customPool.submit(() ->
                     population.getPersons().values().parallelStream()
                             .filter(person -> new PopulationSampler.ActivePersonPredicate().test(person)) // Only process active persons
+                            .filter(p -> Boolean.TRUE.equals(p.getAttributes().getAttribute(NEEDS_DAILY_REPLANNING)))
                             .forEach(person -> processPerson(person, factory))
             ).get();
         } catch (Exception e) {
@@ -250,7 +249,7 @@ private void writeTourStats(String filename) {
 
     private void processPerson(Person person, PopulationFactory factory) {
         var attributes = person.getAttributes();
-
+        attributes.removeAttribute(SynpopConstants.TOURS); // Clear any existing tours if re-processing
         // 1. Work Tours
         int noWorkTours = 0;
         Number levelOfEmployment = (Number) attributes.getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT);

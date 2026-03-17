@@ -1,22 +1,23 @@
 package ch.sbb.matsim.plans.models.steps;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
-import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
+import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
+import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 
 import java.nio.file.Path;
@@ -26,7 +27,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
-public class CombinedDestinationAndDurationChoiceModel implements ModelStep {
+@Singleton
+public class CombinedDestinationAndDurationChoiceModel {
 
     private static final Logger log = LogManager.getLogger(CombinedDestinationAndDurationChoiceModel.class);
 
@@ -53,10 +55,11 @@ public class CombinedDestinationAndDurationChoiceModel implements ModelStep {
     private final ActivityDurationAssignmentModel durationModelWithSubtour;
     private final MOBiPlansConfig mobiPlansConfig;
     private SecondaryKalifMatrixCache kalifMatrixCache;
-    private double[][] blendedTravelTimes;
+    private SecondaryDestinationLogsumCache logsumCache;
+    private float[][] blendedTravelTimes;
 
     @Inject
-    public CombinedDestinationAndDurationChoiceModel(Scenario scenario, MOBiPlansConfig config, Zones zones, Matrices matrices) {
+    public CombinedDestinationAndDurationChoiceModel(Scenario scenario, MOBiPlansConfig config, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository) {
         this.scenario = scenario;
         this.zones = zones;
         this.mobiPlansConfig = config;
@@ -65,21 +68,15 @@ public class CombinedDestinationAndDurationChoiceModel implements ModelStep {
         Path modelFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
         this.durationModelNoSubtour = new ActivityDurationAssignmentModel(modelFolder.resolve(MOBiPlansConfig.ACTIVITY_DURATIONS_WITHOUT_SUBTOUR_CSV).toString());
         this.durationModelWithSubtour = new ActivityDurationAssignmentModel(modelFolder.resolve(MOBiPlansConfig.ACTIVITY_DURATIONS_WITH_SUBTOUR_CSV).toString());
-
         this.zoneList = new ArrayList<>(zones.getZones());
         this.zoneIndexMap = new HashMap<>();
+        this.logsumCache = new SecondaryDestinationLogsumCache(matrices, formulaRepository, new ExpressionEvaluator(), zoneList);
+
         for (int i = 0; i < zoneList.size(); i++) {
             zoneIndexMap.put(zoneList.get(i).getId(), i);
         }
     }
-
-    @Override
-    public String getName() {
-        return MOBiPlansRunner.COMBINED_DEST_DUR_CHOICE_MODEL;
-    }
-
-    @Override
-    public void run() {
+    public void prepare() {
         log.info("Starting Combined Destination and Duration Choice Model...");
         Instant start = Instant.now();
         log.info("Building Blended Travel Time Matrix for {} zones...", zoneList.size());
@@ -90,6 +87,10 @@ public class CombinedDestinationAndDurationChoiceModel implements ModelStep {
                 .resolve(MOBiPlansConfig.SECONDARY_ACTIVITY_CHOICE_KALIF_EXPRESSIONS_CSV)
                 .toString();
         this.kalifMatrixCache = new SecondaryKalifMatrixCache(secondaryKalifCsvPath, matrices, zoneList, zoneIndexMap);
+    }
+
+    public void runIteration(double performingBudgetHours, double travelTimeBudgetHours, double outOfHomeTimeBudgetHours) {
+        Instant start = Instant.now();
 
         ForkJoinPool customPool = new ForkJoinPool(threads);
         try {
@@ -161,7 +162,7 @@ public class CombinedDestinationAndDurationChoiceModel implements ModelStep {
             }
         }
         if (activitiesToSchedule.isEmpty()) return;
-        Random random = SynPopUtils.getRandom(person.getId(), getName());
+        Random random = SynPopUtils.getRandom(person.getId(), getClass().getName());
         // 4a. Build 10 Duration Plans
         double[][] durationGuesses = new double[NUM_DURATION_PLANS][activitiesToSchedule.size()];
         double[] totalPerformingTimes = new double[NUM_DURATION_PLANS];
@@ -220,9 +221,9 @@ public class CombinedDestinationAndDurationChoiceModel implements ModelStep {
 /**
  * Translates the Python `get_tt_matrix` logic into a fast Java 2D array.
  */
-private double[][] buildBlendedTravelTimeMatrix() {
+private float[][] buildBlendedTravelTimeMatrix() {
     int numZones = zoneList.size();
-    double[][] blendedTT = new double[numZones][numZones];
+    float[][] blendedTT = new float[numZones][numZones];
 
     zoneList.parallelStream().forEach(origin -> {
         int oIdx = zoneIndexMap.get(origin.getId());
@@ -266,18 +267,18 @@ private double[][] buildBlendedTravelTimeMatrix() {
             }
 
             // --- 5. Final Scaling ---
-            blendedTT[oIdx][dIdx] = 1.2 * blended;
+            blendedTT[oIdx][dIdx] = (float) (1.2 * blended);
         }
     });
 
     return blendedTT;
 }
-private Zone drawDestinationZone(ActivityToSchedule act, double[][] blendedTravelTimes, Random random) {
+private Zone drawDestinationZone(ActivityToSchedule act, float[][] blendedTravelTimes, Random random) {
     int oIdx = zoneIndexMap.get(act.originAnchor.getId());
     int tIdx = zoneIndexMap.get(act.targetAnchor.getId());
 
     // Get the pre-calculated Kalif matrix for this specific activity type
-    double[][] kalifMatrix = this.kalifMatrixCache.getKalifMatrixForActivity(act.activityType);
+    float[][] kalifMatrix = this.kalifMatrixCache.getKalifMatrixForActivity(act.activityType);
 
     // Determine the attraction attribute name based on the activity type
     String attrName = getAttractionAttributeName(act.activityType);
@@ -363,6 +364,12 @@ private double getZoneDouble(Zone zone, String attributeName, double defaultValu
 private double getMetric(Map<String, Double> metrics, String key, double defaultValue) {
     return metrics != null ? metrics.getOrDefault(key, defaultValue) : defaultValue;
 }
+    public void cleanup() {
+        // Nullify the heavy matrices so the Garbage Collector can reclaim 15+ GB of RAM
+        this.blendedTravelTimes = null;
+        this.kalifMatrixCache = null;
+        this.logsumCache.clearCache();
+        }
 
 /**
  * Helper class to keep track of activities that need locations and durations.

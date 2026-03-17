@@ -10,7 +10,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+/*
+    * This class reads the impedance formulas from the CSV and compiles them into exp4j Expressions.
+    * It uses a ThreadLocal cache to ensure that each thread compiles the expression only once
+    *
+ */
 public class ExpressionEvaluator {
 
     private static final Function functionMin = new Function("min", 2) {

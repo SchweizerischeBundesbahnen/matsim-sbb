@@ -23,10 +23,9 @@ public class MOBiPlansRunner implements Runnable{
     public static final String ZONE_BASED_ACCESSIBILITIES = "zone_based_accessibilities";
     public static final String MOBILITY_TOOL_OWNERSHIP_MODEL = "mobility_tool_ownership_model";
     public static final String PRIMARY_LOCATION_CHOICE = "primary_location_choice_model";
-    public static final String TOURBUILDING_MODEL = "tourbuilding_model";
+    public static final String ITERATTIVE_DAILY_PLAN_GENERATION = "iterative_daily_plan_generation";
     public static final String WRITE_OUTPUTS = "write_outputs";
     public static final String POPULATION_SAMPLING = "population_sampling";
-    public static final String COMBINED_DEST_DUR_CHOICE_MODEL = "combined_destination_duration_choice_model";
 
 
     public static final List<String> FULL_MODEL_SEQUENCE = List.of(
@@ -36,7 +35,7 @@ public class MOBiPlansRunner implements Runnable{
             POPULATION_SAMPLING,
             PRIMARY_LOCATION_CHOICE,
             WRITE_OUTPUTS,
-            TOURBUILDING_MODEL,
+            ITERATTIVE_DAILY_PLAN_GENERATION,
             WRITE_OUTPUTS
     );
     private final MOBiPlansConfig config;

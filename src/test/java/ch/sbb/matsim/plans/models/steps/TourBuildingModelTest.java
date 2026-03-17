@@ -103,7 +103,7 @@ class TourBuildingModelTest {
 
         // 2. Act
         TourBuildingModel model = new TourBuildingModel(scenario, configMock);
-        model.run();
+        model.runIteration();
 
         // 3. Assert: Check counts stored in attributes
         assertEquals(1, person.getAttributes().getAttribute(SynpopConstants.NO_WORK_TOURS));
