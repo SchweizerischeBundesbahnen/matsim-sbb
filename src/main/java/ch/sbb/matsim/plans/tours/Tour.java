@@ -1,22 +1,23 @@
 package ch.sbb.matsim.plans.tours;
 
 import org.matsim.api.core.v01.population.Activity;
+import org.matsim.core.population.PopulationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Tour {
 public enum TourType {PRIMARY,SECONDARY,SUBTOUR}
-    protected final TourType tourType;
-    protected  String mainActivityType;
-    protected final List<Activity> inboundStopActivities = new ArrayList<>();
-    protected final List<Activity> outboundStopActivities = new ArrayList<>();
-    protected final List<Activity> subtourActivities = new ArrayList<>();
-
+    private final TourType tourType;
+    private final List<Activity> inboundStopActivities = new ArrayList<>();
+    private final List<Activity> outboundStopActivities = new ArrayList<>();
+    private final List<Activity> subtourActivities = new ArrayList<>();
+    private final List <Activity> mainActivities;
 
     public Tour(TourType tourType, String mainActivityType) {
         this.tourType = tourType;
-        this.mainActivityType = mainActivityType;
+        this.mainActivities = new ArrayList<>();
+        this.mainActivities.add(PopulationUtils.getFactory().createActivityFromCoord(mainActivityType,null));
     }
 
     public TourType getTourType() {
@@ -36,18 +37,18 @@ public enum TourType {PRIMARY,SECONDARY,SUBTOUR}
     }
 
     public String getMainActivityType() {
-        return mainActivityType;
+        return mainActivities.get(0).getType();
     }
 
-    public void setMainActivityType(String mainActivityType) {
-        this.mainActivityType = mainActivityType;
+    public List<Activity> getMainActivities() {
+        return mainActivities;
     }
 
     @Override
     public String toString() {
         return "Tour{" +
                 "tourType=" + tourType +
-                ", mainActivityType='" + mainActivityType + '\'' +
+                ", mainActivityType='" + getMainActivityType() + '\'' +
                 ", inboundStopActivities=" + inboundStopActivities +
                 ", outboundStopActivities=" + outboundStopActivities +
                 ", subtourActivities=" + subtourActivities +
