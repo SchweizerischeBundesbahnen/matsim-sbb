@@ -8,6 +8,8 @@ import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
+import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
+import ch.sbb.matsim.plans.synpop.DecisionStrata;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.Zone;
@@ -18,7 +20,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.core.population.PopulationUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,6 +35,7 @@ import java.util.concurrent.ForkJoinPool;
 public class CombinedDestinationAndDurationChoiceModel {
 
     private static final Logger log = LogManager.getLogger(CombinedDestinationAndDurationChoiceModel.class);
+    private static final double MAX_INTERMEDIATE_DETOUR_SECONDS = 3600.0; // 1 hour max detour for intermediate stops
 
     private final Scenario scenario;
     private final Zones zones;
@@ -54,6 +59,8 @@ public class CombinedDestinationAndDurationChoiceModel {
     private final ActivityDurationAssignmentModel durationModelNoSubtour;
     private final ActivityDurationAssignmentModel durationModelWithSubtour;
     private final MOBiPlansConfig mobiPlansConfig;
+    private final ModeImpedanceFormulaRepository formulaRepository;
+    private final StrataPredicateFactory strataPredicateFactory;
     private SecondaryKalifMatrixCache kalifMatrixCache;
     private SecondaryDestinationLogsumCache logsumCache;
     private float[][] blendedTravelTimes;
@@ -70,7 +77,9 @@ public class CombinedDestinationAndDurationChoiceModel {
         this.durationModelWithSubtour = new ActivityDurationAssignmentModel(modelFolder.resolve(MOBiPlansConfig.ACTIVITY_DURATIONS_WITH_SUBTOUR_CSV).toString());
         this.zoneList = new ArrayList<>(zones.getZones());
         this.zoneIndexMap = new HashMap<>();
-        this.logsumCache = new SecondaryDestinationLogsumCache(matrices, formulaRepository, new ExpressionEvaluator(), zoneList);
+        this.formulaRepository = formulaRepository;
+        this.strataPredicateFactory = new StrataPredicateFactory();
+
 
         for (int i = 0; i < zoneList.size(); i++) {
             zoneIndexMap.put(zoneList.get(i).getId(), i);
@@ -87,6 +96,8 @@ public class CombinedDestinationAndDurationChoiceModel {
                 .resolve(MOBiPlansConfig.SECONDARY_ACTIVITY_CHOICE_KALIF_EXPRESSIONS_CSV)
                 .toString();
         this.kalifMatrixCache = new SecondaryKalifMatrixCache(secondaryKalifCsvPath, matrices, zoneList, zoneIndexMap);
+        this.logsumCache = new SecondaryDestinationLogsumCache(matrices, formulaRepository, new ExpressionEvaluator(), zoneList);
+
     }
 
     public void runIteration(double performingBudgetHours, double travelTimeBudgetHours, double outOfHomeTimeBudgetHours) {
@@ -96,8 +107,8 @@ public class CombinedDestinationAndDurationChoiceModel {
         try {
             customPool.submit(() ->
                     scenario.getPopulation().getPersons().values().parallelStream()
-                            .filter(person -> new PopulationSampler.ActivePersonPredicate().test(person))
-                            .forEach(this::processPerson)
+                            .filter(p -> Boolean.TRUE.equals(p.getAttributes().getAttribute(IterativeDailyPlanGenerationOrchestrator.NEEDS_DAILY_REPLANNING)))
+                            .forEach(person -> processPerson(person, performingBudgetHours, travelTimeBudgetHours, outOfHomeTimeBudgetHours))
             ).get();
         } catch (Exception e) {
             throw new RuntimeException("Parallel execution failed", e);
@@ -108,117 +119,287 @@ public class CombinedDestinationAndDurationChoiceModel {
         log.info("Finished Combined Destination and Duration Choice Model in {}.", Duration.between(start, Instant.now()));
     }
 
-    private void processPerson(Person person) {
-        // 1. Get the Home Zone
-        Zone homeZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
-        if (homeZone == null) return; // Cannot schedule without a home zone
+    record DurationPlans(double[][] guesses, double[] totalTimes) { }
+    record DestinationPlans(Zone[][] guesses, double[] totalTimes) { }
+    record PlanSelection(int durIdx, int destIdx, boolean isValid) { }
 
-        // 2. Get the Primary Locations (assigned in PrimaryLocationChoiceModel)
-        Zone workZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.WORK_ZONE);
-        Zone schoolZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.SCHOOL_ZONE);
+    private void processPerson(Person person, double perfBudgetHours, double travelBudgetHours, double oohBudgetHours) {
+
+        // Setup & Validation
+        Random random = SynPopUtils.getRandom(person.getId(), getClass().getName() + oohBudgetHours);
+
+        Zone homeZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
+        if (homeZone == null) return;
 
         List<Tour> tours = (List<Tour>) person.getAttributes().getAttribute(SynpopConstants.TOURS);
-        if (tours == null || tours.isEmpty()) return;
-
-        // 3. Flatten the schedule into a list of activities that need locations & durations
-        List<ActivityToSchedule> activitiesToSchedule = new ArrayList<>();
-
-        for (Tour tour : tours) {
-            boolean hasSubtour = !tour.getSubtourActivities().isEmpty();
-
-            if (tour.getTourType() == Tour.TourType.PRIMARY) {
-                Zone primaryZone = SBBActivities.work.equals(tour.getMainActivityType()) ? workZone : schoolZone;
-                if (primaryZone == null) continue;
-
-                // Outbound Stops (Home -> Primary)
-                tour.getInboundStopActivities().forEach(act ->
-                        activitiesToSchedule.add(new ActivityToSchedule(act.getType(), homeZone, primaryZone, null, act, false))
-                );
-
-                // MAIN ACTIVITY (Primary) - Needs duration, but destination is FIXED
-                activitiesToSchedule.add(new ActivityToSchedule(tour.getMainActivityType(), homeZone, homeZone, primaryZone, null, hasSubtour));
-
-                // Subtour Stops (Primary -> Primary)
-                tour.getSubtourActivities().forEach(act ->
-                        activitiesToSchedule.add(new ActivityToSchedule(act.getType(), primaryZone, primaryZone, null, act, false))
-                );
-
-                // Inbound Stops (Primary -> Home)
-                tour.getOutboundStopActivities().forEach(act ->
-                        activitiesToSchedule.add(new ActivityToSchedule(act.getType(), primaryZone, homeZone, null, act, false))
-                );
-
-            } else if (tour.getTourType() == Tour.TourType.SECONDARY) {
-                // Secondary Main Activity - Needs BOTH duration and destination
-                activitiesToSchedule.add(new ActivityToSchedule(tour.getMainActivityType(), homeZone, homeZone, null, null, hasSubtour));
-
-                // Secondary Stops
-                tour.getInboundStopActivities().forEach(act ->
-                        activitiesToSchedule.add(new ActivityToSchedule(act.getType(), homeZone, homeZone, null, act, false))
-                );
-                tour.getOutboundStopActivities().forEach(act ->
-                        activitiesToSchedule.add(new ActivityToSchedule(act.getType(), homeZone, homeZone, null, act, false))
-                );
-            }
+        if (tours == null || tours.isEmpty()) {
+            person.getAttributes().putAttribute(IterativeDailyPlanGenerationOrchestrator.NEEDS_DAILY_REPLANNING, false);
+            return;
         }
-        if (activitiesToSchedule.isEmpty()) return;
-        Random random = SynPopUtils.getRandom(person.getId(), getClass().getName());
-        // 4a. Build 10 Duration Plans
-        double[][] durationGuesses = new double[NUM_DURATION_PLANS][activitiesToSchedule.size()];
+
+        Zone workZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.WORK_ZONE);
+        Zone eduZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.SCHOOL_ZONE);
+
+        int totalActivities = countTotalActivities(tours);
+
+        // Step 1: Build Duration Plans
+        DurationPlans durPlans = buildDurationPlans(person, tours, totalActivities, random);
+
+        // Step 2: Build Destination Plans
+        DestinationPlans destPlans = buildDestinationPlans(person, tours, totalActivities, homeZone, workZone, eduZone, travelBudgetHours, random);
+
+        // Step 3: Budget Optimization Loop
+        PlanSelection selection = selectBestPlan(durPlans.totalTimes, destPlans.totalTimes, perfBudgetHours, travelBudgetHours, oohBudgetHours, random);
+
+        // Step 4: Apply Winning Plan
+        applyWinningPlan(person, tours, destPlans.guesses, selection.destIdx, durPlans.guesses, selection.durIdx, selection.isValid);
+    }
+
+
+    private int countTotalActivities(List<Tour> tours) {
+        int total = 0;
+        for (Tour tour : tours) {
+            total += tour.getOutboundStopActivities().size() + tour.getInboundStopActivities().size() + tour.getSubtourActivities().size();
+            total += tour.getSubtourActivities().isEmpty() ? 1 : 2;
+        }
+        return total;
+    }
+
+    private DurationPlans buildDurationPlans(Person person, List<Tour> tours, int totalActivities, Random random) {
+        double[][] durationGuesses = new double[NUM_DURATION_PLANS][totalActivities];
         double[] totalPerformingTimes = new double[NUM_DURATION_PLANS];
 
         for (int p = 0; p < NUM_DURATION_PLANS; p++) {
-            double totalTime = 0.0;
-            for (int a = 0; a < activitiesToSchedule.size(); a++) {
-                ActivityToSchedule act = activitiesToSchedule.get(a);
-                // Pick the correct duration model based on whether a subtour exists
-                ActivityDurationAssignmentModel durModel = act.hasSubtour ? durationModelWithSubtour : durationModelNoSubtour;
-                double dur = durModel.getDurationInSeconds(person, act.activityType, random);
-                durationGuesses[p][a] = dur;
-                totalTime += dur;
+            double totalDur = 0.0;
+            int actIdx = 0;
+
+            for (Tour tour : tours) {
+                boolean hasSubtour = !tour.getSubtourActivities().isEmpty();
+
+                // Outbound
+                for (var act : tour.getOutboundStopActivities()) {
+                    double dur = durationModelNoSubtour.getDurationInSeconds(person, act.getType(), random);
+                    durationGuesses[p][actIdx++] = dur; totalDur += dur;
+                }
+
+                // Main Activity Part 1
+                ActivityDurationAssignmentModel mainDurModel = hasSubtour ? durationModelWithSubtour : durationModelNoSubtour;
+                double mainDur1 = mainDurModel.getDurationInSeconds(person, tour.getMainActivityType(), random);
+                durationGuesses[p][actIdx++] = mainDur1; totalDur += mainDur1;
+
+                // Subtours & Main Activity Part 2
+                if (hasSubtour) {
+                    for (var act : tour.getSubtourActivities()) {
+                        double dur = durationModelNoSubtour.getDurationInSeconds(person, act.getType(), random);
+                        durationGuesses[p][actIdx++] = dur; totalDur += dur;
+                    }
+                    double mainDur2 = durationModelWithSubtour.getDurationInSeconds(person, tour.getMainActivityType(), random);
+                    durationGuesses[p][actIdx++] = mainDur2; totalDur += mainDur2;
+                }
+
+                // Inbound
+                for (var act : tour.getInboundStopActivities()) {
+                    double dur = durationModelNoSubtour.getDurationInSeconds(person, act.getType(), random);
+                    durationGuesses[p][actIdx++] = dur; totalDur += dur;
+                }
             }
-            totalPerformingTimes[p] = totalTime / 3600.0; // Store total in HOURS
+            totalPerformingTimes[p] = totalDur / 3600.0;
         }
-        // 4b. Build 3 Destination Plans
-        Zone[][] destinationGuesses = new Zone[NUM_DESTINATION_PLANS][activitiesToSchedule.size()];
+        return new DurationPlans(durationGuesses, totalPerformingTimes);
+    }
+
+    private DestinationPlans buildDestinationPlans(Person person, List<Tour> tours, int totalActivities, Zone homeZone, Zone workZone, Zone eduZone, double travelBudgetHours, Random random) {
+        Zone[][] destinationGuesses = new Zone[NUM_DESTINATION_PLANS][totalActivities];
         double[] totalTravelTimes = new double[NUM_DESTINATION_PLANS];
 
         for (int p = 0; p < NUM_DESTINATION_PLANS; p++) {
             double totalTT = 0.0;
-            for (int a = 0; a < activitiesToSchedule.size(); a++) {
-                ActivityToSchedule act = activitiesToSchedule.get(a);
+            int actIdx = 0;
 
-                // NEW: Bypass choice model if the destination is already known!
-                Zone chosenZone;
-                if (act.fixedZone != null) {
-                    chosenZone = act.fixedZone;
+            for (Tour tour : tours) {
+                // A. HIERARCHICAL STEP
+                Zone mainZone;
+                if (tour.getTourType() == Tour.TourType.PRIMARY) {
+                    mainZone = SBBActivities.work.equals(tour.getMainActivityType()) ? workZone : eduZone;
                 } else {
-                    chosenZone = drawDestinationZone(act, blendedTravelTimes, random);
+                    mainZone = drawDestinationZone(person, tour.getMainActivityType(), homeZone, homeZone, travelBudgetHours, random);
                 }
-                destinationGuesses[p][a] = chosenZone;
 
-                // Add to the total travel time for this plan (Rubberbanding Detour approximation)
-                int oIdx = zoneIndexMap.get(act.originAnchor.getId());
-                int cIdx = zoneIndexMap.get(chosenZone.getId());
-                int tIdx = zoneIndexMap.get(act.targetAnchor.getId());
+                // B. CHRONOLOGICAL STEP
+                Zone currentPathZone = homeZone;
 
-                totalTT += blendedTravelTimes[oIdx][cIdx] + blendedTravelTimes[cIdx][tIdx];
+                // 1. Outbound Stops
+                for (var act : tour.getOutboundStopActivities()) {
+                    Zone stopZone = drawDestinationZone(person, act.getType(), currentPathZone, mainZone, travelBudgetHours, random);
+                    destinationGuesses[p][actIdx++] = stopZone;
+                    totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(stopZone.getId())];
+                    currentPathZone = stopZone;
+                }
+
+                // 2. Main Activity Part 1
+                destinationGuesses[p][actIdx++] = mainZone;
+                totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(mainZone.getId())];
+                currentPathZone = mainZone;
+
+                // 3. Subtours
+                if (!tour.getSubtourActivities().isEmpty()) {
+                    for (var act : tour.getSubtourActivities()) {
+                        Zone subZone = drawDestinationZone(person, act.getType(), mainZone, mainZone, travelBudgetHours, random);
+                        destinationGuesses[p][actIdx++] = subZone;
+                        totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(subZone.getId())];
+                        currentPathZone = subZone;
+                    }
+                    // Return to Main Activity Part 2
+                    destinationGuesses[p][actIdx++] = mainZone;
+                    totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(mainZone.getId())];
+                    currentPathZone = mainZone;
+                }
+
+                // 4. Inbound Stops
+                for (var act : tour.getInboundStopActivities()) {
+                    Zone stopZone = drawDestinationZone(person, act.getType(), currentPathZone, homeZone, travelBudgetHours, random);
+                    destinationGuesses[p][actIdx++] = stopZone;
+                    totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(stopZone.getId())];
+                    currentPathZone = stopZone;
+                }
+
+                // 5. Finally, return Home
+                totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(homeZone.getId())];
             }
-            totalTravelTimes[p] = totalTT / 3600.0; // Store total in HOURS
+            totalTravelTimes[p] = totalTT / 3600.0;
         }
-
-
-        // TODO: 5. Run the 200-iteration budget optimization loop
-
-        // TODO: 6. Apply winning choices back to the `activitiesToSchedule` and `person`
-
+        return new DestinationPlans(destinationGuesses, totalTravelTimes);
     }
 
+    private PlanSelection selectBestPlan(double[] totalPerformingTimes, double[] totalTravelTimes, double perfBudgetHours, double travelBudgetHours, double oohBudgetHours, Random random) {
+        // Duration Evaluation
+        List<Integer> validDurIndices = new ArrayList<>();
+        int bestInvalidDurIdx = 0;
+        double minDurTime = Double.MAX_VALUE;
+        for (int p = 0; p < NUM_DURATION_PLANS; p++) {
+            if (totalPerformingTimes[p] <= perfBudgetHours) validDurIndices.add(p);
+            if (totalPerformingTimes[p] < minDurTime) {
+                minDurTime = totalPerformingTimes[p];
+                bestInvalidDurIdx = p;
+            }
+        }
+        if (validDurIndices.isEmpty()) validDurIndices.add(bestInvalidDurIdx);
+
+        // Destination Evaluation
+        List<Integer> validDestIndices = new ArrayList<>();
+        int bestInvalidDestIdx = 0;
+        double minDestTime = Double.MAX_VALUE;
+        for (int p = 0; p < NUM_DESTINATION_PLANS; p++) {
+            if (totalTravelTimes[p] <= travelBudgetHours) validDestIndices.add(p);
+            if (totalTravelTimes[p] < minDestTime) {
+                minDestTime = totalTravelTimes[p];
+                bestInvalidDestIdx = p;
+            }
+        }
+        if (validDestIndices.isEmpty()) validDestIndices.add(bestInvalidDestIdx);
+
+        // Finding the winning combination
+        int winningDurIdx = -1;
+        int winningDestIdx = -1;
+        double bestOohTime = Double.MAX_VALUE;
+        boolean foundValidPlan = false;
+
+        List<int[]> combinations = new ArrayList<>();
+        for (int durIdx : validDurIndices) {
+            for (int destIdx : validDestIndices) {
+                combinations.add(new int[]{durIdx, destIdx});
+            }
+        }
+        Collections.shuffle(combinations, random);
+
+        for (int[] combo : combinations) {
+            int durIdx = combo[0];
+            int destIdx = combo[1];
+            double oohTime = totalPerformingTimes[durIdx] + totalTravelTimes[destIdx];
+
+            if (oohTime <= oohBudgetHours) {
+                winningDurIdx = durIdx;
+                winningDestIdx = destIdx;
+                bestOohTime = oohTime;
+                foundValidPlan = true;
+                break;
+            }
+            if (oohTime < bestOohTime) {
+                winningDurIdx = durIdx;
+                winningDestIdx = destIdx;
+                bestOohTime = oohTime;
+            }
+        }
+
+        // Fallback
+        if (winningDurIdx == -1) {
+            winningDurIdx = bestInvalidDurIdx;
+            winningDestIdx = bestInvalidDestIdx;
+        }
+
+        return new PlanSelection(winningDurIdx, winningDestIdx, foundValidPlan);
+    }
+    private static void applyWinningPlan(Person person, List<Tour> tours, Zone[][] destinationGuesses, int winningDestIdx, double[][] durationGuesses, int winningDurIdx, boolean foundValidPlan) {
+        int actIdx = 0; // Track position in the winning arrays
+
+        for (Tour tour : tours) {
+            boolean hasSubtour = !tour.getSubtourActivities().isEmpty();
+
+            // 1. Outbound Stops
+            for (var act : tour.getOutboundStopActivities()) {
+                Zone finalZone = destinationGuesses[winningDestIdx][actIdx];
+                double finalDurationSeconds = durationGuesses[winningDurIdx][actIdx];
+                actIdx++;
+
+                act.setMaximumDuration(finalDurationSeconds);
+                act.getAttributes().putAttribute("assigned_zone", finalZone);
+            }
+
+            // 2. Main Activity Part 1
+            Zone mainZone1 = destinationGuesses[winningDestIdx][actIdx];
+            double mainDur1 = durationGuesses[winningDurIdx][actIdx];
+            actIdx++;
+
+            tour.getMainActivities().get(0).getAttributes().putAttribute("assigned_zone", mainZone1);
+            tour.getMainActivities().get(0).setMaximumDuration(mainDur1);
 
 
+            if (hasSubtour) {
+                // 3. Subtours
+                for (var act : tour.getSubtourActivities()) {
+                    Zone finalZone = destinationGuesses[winningDestIdx][actIdx];
+                    double finalDurationSeconds = durationGuesses[winningDurIdx][actIdx];
+                    actIdx++;
+                    act.setMaximumDuration(finalDurationSeconds);
+                    act.getAttributes().putAttribute("assigned_zone", finalZone);
+                }
 
+                // 4. Main Activity Part 2 (After Subtour)
+                double mainDur2 = durationGuesses[winningDurIdx][actIdx];
+                actIdx++;
+                Activity mainActPart2 = PopulationUtils.getFactory().createActivityFromCoord(tour.getMainActivityType(), null);
+                mainActPart2.setMaximumDuration(mainDur2);
+                tour.getMainActivities().add(mainActPart2);
+            }
 
-/**
+            // 5. Inbound Stops
+            for (var act : tour.getInboundStopActivities()) {
+                Zone finalZone = destinationGuesses[winningDestIdx][actIdx];
+                double finalDurationSeconds = durationGuesses[winningDurIdx][actIdx];
+                actIdx++;
+
+                act.setMaximumDuration(finalDurationSeconds);
+                act.getAttributes().putAttribute("assigned_zone", finalZone);
+            }
+        }
+
+        // If the plan fits within budgets, this agent is finished!
+        if (foundValidPlan) {
+            person.getAttributes().putAttribute(IterativeDailyPlanGenerationOrchestrator.NEEDS_DAILY_REPLANNING, false);
+        }
+    }
+
+    /**
  * Translates the Python `get_tt_matrix` logic into a fast Java 2D array.
  */
 private float[][] buildBlendedTravelTimeMatrix() {
@@ -273,20 +454,24 @@ private float[][] buildBlendedTravelTimeMatrix() {
 
     return blendedTT;
 }
-private Zone drawDestinationZone(ActivityToSchedule act, float[][] blendedTravelTimes, Random random) {
-    int oIdx = zoneIndexMap.get(act.originAnchor.getId());
-    int tIdx = zoneIndexMap.get(act.targetAnchor.getId());
+private Zone drawDestinationZone(Person person, String activityType, Zone originAnchor, Zone targetAnchor, double travelBudgetHours, Random random) {
 
-    // Get the pre-calculated Kalif matrix for this specific activity type
-    float[][] kalifMatrix = this.kalifMatrixCache.getKalifMatrixForActivity(act.activityType);
+    int oIdx = zoneIndexMap.get(originAnchor.getId());
+    int tIdx = zoneIndexMap.get(targetAnchor.getId());
 
     // Determine the attraction attribute name based on the activity type
-    String attrName = getAttractionAttributeName(act.activityType);
+    String attrName = getAttractionAttributeName(activityType);
+    // Strata resolution
+    DecisionStrata strata = getStrataForPerson(person);
+    float[][] kalifMatrix = this.kalifMatrixCache.getKalifMatrixForActivity(activityType);
+    float[][] logsumMatrix = logsumCache.getOrComputeLogsumMatrix(activityType, strata);
+
+    boolean isIntermediateStop = !originAnchor.getId().equals(targetAnchor.getId());
+    double directTT = blendedTravelTimes[oIdx][tIdx];
 
     double[] utilities = new double[zoneList.size()];
     double maxUtility = Double.NEGATIVE_INFINITY;
 
-    // 1. Calculate utilities for all zones
     for (int zIdx = 0; zIdx < zoneList.size(); zIdx++) {
         Zone candidateZone = zoneList.get(zIdx);
         double attraction = getZoneDouble(candidateZone, attrName, 0.0);
@@ -296,23 +481,33 @@ private Zone drawDestinationZone(ActivityToSchedule act, float[][] blendedTravel
             continue;
         }
 
-        // Rubberbanding Detour: Time from Origin -> Candidate -> Target
         double detourTT = blendedTravelTimes[oIdx][zIdx] + blendedTravelTimes[zIdx][tIdx];
 
-        // Utility = ln(Attraction) + Beta * Detour + Kalif(Origin -> Candidate)
+        // Time Ellipse / Bounding Box
+        if (isIntermediateStop) {
+            if (detourTT > directTT + MAX_INTERMEDIATE_DETOUR_SECONDS) {
+                utilities[zIdx] = Double.NEGATIVE_INFINITY; continue;
+            }
+        } else {
+            if (detourTT > travelBudgetHours * 3600.0) {
+                utilities[zIdx] = Double.NEGATIVE_INFINITY; continue;
+            }
+        }
+
+        double logsumDetour = logsumMatrix[oIdx][zIdx] + logsumMatrix[zIdx][tIdx];
+        if (logsumDetour <= -20.0) { // Threshold for impossible connections
+            utilities[zIdx] = Double.NEGATIVE_INFINITY; continue;
+        }
+
         double kalif = kalifMatrix != null ? kalifMatrix[oIdx][zIdx] : 0.0;
-        double u = Math.log(attraction) + (BETA_BLENDED_TT * detourTT) + kalif;
+        double u = Math.log(attraction) + logsumDetour + kalif;
 
         utilities[zIdx] = u;
         if (u > maxUtility) maxUtility = u;
     }
 
-    if (maxUtility == Double.NEGATIVE_INFINITY) {
-        log.warn("No valid destination found for activity {}", act.activityType);
-        return act.originAnchor; // Fallback so we don't crash
-    }
+    if (maxUtility == Double.NEGATIVE_INFINITY) return originAnchor;
 
-    // 2. Exponentiate and normalize (using the LogSumExp trick for stability)
     double sumExp = 0.0;
     double[] probabilities = new double[zoneList.size()];
     for (int zIdx = 0; zIdx < zoneList.size(); zIdx++) {
@@ -322,30 +517,26 @@ private Zone drawDestinationZone(ActivityToSchedule act, float[][] blendedTravel
         }
     }
 
-    // 3. Roulette wheel selection
     double r = random.nextDouble() * sumExp;
     double cumulative = 0.0;
     for (int zIdx = 0; zIdx < zoneList.size(); zIdx++) {
         if (probabilities[zIdx] > 0) {
             cumulative += probabilities[zIdx];
-            if (r <= cumulative) {
-                return zoneList.get(zIdx);
-            }
+            if (r <= cumulative) return zoneList.get(zIdx);
         }
     }
-
-    return act.originAnchor; // Fallback
+    return originAnchor;// Fallback
 }
 
 private String getAttractionAttributeName(String activityType) {
     switch (activityType) {
-        case "accompany": return "Attr_A";
-        case "business": return "Attr_B";
-        case "other": return "Attr_O";
-        case "education_continued": return "Attr_EC";
-        case "leisure": return "Attr_L";
-        case "shopping": return "Attr_S";
-        default: return "Attr_O"; // Fallback
+        case SBBActivities.accompany: return ZonalAttributes.ATTR_A;
+        case SBBActivities.business: return ZonalAttributes.ATTR_B;
+        case SBBActivities.other: return ZonalAttributes.ATTR_O;
+        case SBBActivities.education_continued: return ZonalAttributes.ATTR_EC;
+        case SBBActivities.leisure: return ZonalAttributes.ATTR_L;
+        case SBBActivities.shopping: return ZonalAttributes.ATTR_S;
+        default: return ZonalAttributes.ATTR_O; // Fallback
     }
 }
 
@@ -371,30 +562,12 @@ private double getMetric(Map<String, Double> metrics, String key, double default
         this.logsumCache.clearCache();
         }
 
-/**
- * Helper class to keep track of activities that need locations and durations.
- * Maps perfectly to the Python logic of Origin, Target, and ActivityType.
- */
-private static class ActivityToSchedule {
-    final String activityType;
-    final Zone originAnchor;
-    final Zone targetAnchor;
-    final Zone fixedZone;
-    final org.matsim.api.core.v01.population.Activity matsimActivityRef;
-    final boolean hasSubtour;
-
-    // Variables to hold the optimized choices later
-    Zone chosenZone;
-    double chosenDuration;
-
-    ActivityToSchedule(String activityType, Zone originAnchor, Zone targetAnchor, Zone fixedZone,
-                       org.matsim.api.core.v01.population.Activity matsimActivityRef, boolean hasSubtour) {
-        this.activityType = activityType;
-        this.originAnchor = originAnchor;
-        this.targetAnchor = targetAnchor;
-        this.fixedZone = fixedZone;
-        this.matsimActivityRef = matsimActivityRef;
-        this.hasSubtour = hasSubtour;
+private DecisionStrata getStrataForPerson(Person person) {
+    for (DecisionStrata strata: DecisionStrata.getSecondaryDestinationStratas()) {
+        if (strataPredicateFactory.getPredicate(strata).test(person)) {
+            return strata;
+        }
     }
+    return null;
 }
 }

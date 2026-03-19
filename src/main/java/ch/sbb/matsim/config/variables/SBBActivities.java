@@ -10,7 +10,7 @@ public final class SBBActivities {
 
 	public static final String home = "home";
 	public static final String education = "education";
-    public static String education_continued = "education_continued";
+    public static final String education_continued = "education_continued";
 
     public static final String work = "work";
 	public static final String business = "business";
