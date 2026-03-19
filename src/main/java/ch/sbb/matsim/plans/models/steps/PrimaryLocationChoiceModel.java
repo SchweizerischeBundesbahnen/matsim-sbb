@@ -395,10 +395,22 @@ public class PrimaryLocationChoiceModel implements ModelStep{
                         .groupingBy(activityFacility ->
                                 Id.create(String.valueOf(activityFacility.getAttributes().getAttribute(Variables.ZONE_ID))
                                         , Zone.class)));
+        Runnable facilityAllocation = getFacilityAllocation(activityConfig, personsByActivityZone, activityFacilityByZone);
+        try {
+            customThreadPool.submit(facilityAllocation).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Facility assignment failed", e);
+        }
+
+        logger.info("[Step 7/7] Finished assigning facilities. Took {}.", Duration.between(startAllocate, Instant.now()));
+        logger.info("--- Finished attraction group '{}' in {} ---", attractionAttribute, Duration.between(startGroup, Instant.now()));
+    }
+
+    private Runnable getFacilityAllocation(PrimaryLocationChoiceConfig.ActivityConfigRecord activityConfig, Map<Id<Zone>, List<Person>> personsByActivityZone, Map<Id<Zone>, ? extends List<? extends ActivityFacility>> activityFacilityByZone) {
         String work_or_school_marker = activityConfig.personResultAttributeName().split("_")[0];
         final String distanceName = "network_distance_"+ work_or_school_marker;
         final String zonalAttributeName = work_or_school_marker+"_zone";
-        Runnable facilityAllocation = () -> personsByActivityZone.forEach((zoneId, people) -> {
+        return () -> personsByActivityZone.forEach((zoneId, people) -> {
             var facilitiesInZone = activityFacilityByZone.get(zoneId);
             if (facilitiesInZone == null || facilitiesInZone.isEmpty()) {
                 throw new RuntimeException("No facilities found in zone " + zoneId + " for activity allocation.");
@@ -428,14 +440,6 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             }
 
         });
-        try {
-            customThreadPool.submit(facilityAllocation).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Facility assignment failed", e);
-        }
-
-        logger.info("[Step 7/7] Finished assigning facilities. Took {}.", Duration.between(startAllocate, Instant.now()));
-        logger.info("--- Finished attraction group '{}' in {} ---", attractionAttribute, Duration.between(startGroup, Instant.now()));
     }
 
     @Override
