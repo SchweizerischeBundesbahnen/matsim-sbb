@@ -53,10 +53,11 @@ public class PrimaryLocationChoiceModel implements ModelStep{
     private final ForkJoinPool customThreadPool;
     private final boolean writeDetailedAnalysis;
     private final String outputDir;
+    private final MobilityToolOwnershipModel mobilityToolOwnershipModel;
 
 
     @Inject
-    public PrimaryLocationChoiceModel(Scenario scenario, MOBiPlansConfig moBiPlansConfig, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository ) {
+    public PrimaryLocationChoiceModel(Scenario scenario, MOBiPlansConfig moBiPlansConfig, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, MobilityToolOwnershipModel mobilityToolOwnershipModel ) {
         this.scenario = scenario;
         this.zones =  zones;
         this.matrices = matrices;
@@ -67,6 +68,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         this.writeDetailedAnalysis = moBiPlansConfig.models().write_analysis();
         this.customThreadPool = new ForkJoinPool(moBiPlansConfig.models().threads());
         this.outputDir = moBiPlansConfig.data().outputBaseDir();
+        this.mobilityToolOwnershipModel = mobilityToolOwnershipModel;
 
     }
 
@@ -78,6 +80,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             for (PrimaryLocationChoiceConfig.ActivityConfigRecord activityConfig : primaryLocationChoiceConfig.getPrimaryLocationChoiceConfigs()) {
                 runForActivity(activityConfig);
             }
+            mobilityToolOwnershipModel.rerunForStudentsAfterPrimaryLocationChoice();
             logger.info("Primary Location Choice Model finished in {}.", Duration.between(startRun, Instant.now()));
 
         } finally {

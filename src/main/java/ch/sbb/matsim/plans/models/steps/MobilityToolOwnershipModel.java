@@ -11,6 +11,7 @@ import ch.sbb.matsim.plans.models.steps.csvmodels.StringSelectionModelFromCSV;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.Zones;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 
+@Singleton
 public class MobilityToolOwnershipModel implements ModelStep {
 
     private  final BooleanSelectionModelFromCSV drivingLicenseModel;
@@ -63,7 +65,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
     }
 
     public void rerunForStudentsAfterPrimaryLocationChoice(){
-        logger.info("Starting public transport subscription calculation for students...");
+        logger.info("Starting public transport subscription calculation for students after PrimaryLocationChoice...");
         scenario.getPopulation().getPersons().values().parallelStream()
                 .filter(person -> ((Number) person.getAttributes().getAttribute(SynpopConstants.NET_DIST_SCHOOL)).doubleValue() > 0.0)
                 .filter(person -> (int)person.getAttributes().getAttribute(SynpopConstants.AGE)>=18)
