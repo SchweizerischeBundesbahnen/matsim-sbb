@@ -30,6 +30,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Singleton
 public class CombinedDestinationAndDurationChoiceModel {
@@ -42,16 +44,15 @@ public class CombinedDestinationAndDurationChoiceModel {
     private final Matrices matrices;
     private final int threads;
 
-    // Budgets from the Python code
-    private final double PERFORMING_BUDGET_HOURS = 16.0;
-    private final double TRAVEL_TIME_BUDGET_HOURS = 5.0;
-    private final double OUT_OF_HOME_TIME_BUDGET_HOURS = 18.0;
+    private static final String[] ACTIVITY_TYPES = SBBActivities.secondaryActivities.toArray(new String[SBBActivities.secondaryActivities.size()]);
+    private final Map<String, Integer> activityTypeToIndex;
+    // The flattened Attraction Cache: [ActivityTypeIndex][ZoneIndex]
+    private float[][] zoneAttractions;
+
 
     // Add to class constants (you might want to read these from config later)
     private static final int NUM_DURATION_PLANS = 10;
     private static final int NUM_DESTINATION_PLANS = 3;
-    // Assuming a standard Beta for travel time impedance, you might need to adjust this!
-    private static final double BETA_BLENDED_TT = -0.01;
 
 
     private final List<Zone> zoneList;
@@ -79,7 +80,10 @@ public class CombinedDestinationAndDurationChoiceModel {
         this.zoneIndexMap = new HashMap<>();
         this.formulaRepository = formulaRepository;
         this.strataPredicateFactory = new StrataPredicateFactory();
-
+        this.activityTypeToIndex = new HashMap<>();
+        for (int i = 0; i < ACTIVITY_TYPES.length; i++) {
+            activityTypeToIndex.put(ACTIVITY_TYPES[i], i);
+        }
 
         for (int i = 0; i < zoneList.size(); i++) {
             zoneIndexMap.put(zoneList.get(i).getId(), i);
@@ -98,26 +102,56 @@ public class CombinedDestinationAndDurationChoiceModel {
         this.kalifMatrixCache = new SecondaryKalifMatrixCache(secondaryKalifCsvPath, matrices, zoneList, zoneIndexMap);
         this.logsumCache = new SecondaryDestinationLogsumCache(matrices, formulaRepository, new ExpressionEvaluator(), zoneList);
         this.logsumCache.precomputeAll(SBBActivities.secondaryActivities,DecisionStrata.getSecondaryDestinationStratas());
+        log.info("Pre-caching Zonal Attractions for fast lookups...");
+        this.zoneAttractions = new float[ACTIVITY_TYPES.length][zoneList.size()];
+        for (int aIdx = 0; aIdx < ACTIVITY_TYPES.length; aIdx++) {
+            String attrName = getAttractionAttributeName(ACTIVITY_TYPES[aIdx]);
+            for (int zIdx = 0; zIdx < zoneList.size(); zIdx++) {
+                this.zoneAttractions[aIdx][zIdx] = (float) getZoneDouble(zoneList.get(zIdx), attrName, 0.0);
+            }
+        }
 
     }
 
-    public void runIteration(double performingBudgetHours, double travelTimeBudgetHours, double outOfHomeTimeBudgetHours) {
-        Instant start = Instant.now();
+    public void runIteration(double perfBudgetHours, double travelBudgetHours, double oohBudgetHours) {
+
+        // 1. Collect exactly who needs to be processed to get the total count
+        List<Person> personsToProcess = scenario.getPopulation().getPersons().values().stream()
+                .filter(p -> Boolean.TRUE.equals(p.getAttributes().getAttribute(IterativeDailyPlanGenerationOrchestrator.NEEDS_DAILY_REPLANNING)))
+                .collect(Collectors.toList());
+
+        int totalPersons = personsToProcess.size();
+        if (totalPersons == 0) return;
+
+        log.info("Starting Destination & Duration Choice loop for {} agents...", totalPersons);
+
+        // 2. Set up thread-safe tracking
+        AtomicInteger progressCounter = new AtomicInteger();
+        // Print an update every 5% (ensure it's at least 1 to avoid divide-by-zero)
+        int reportInterval = Math.max(1, totalPersons / 20);
 
         ForkJoinPool customPool = new ForkJoinPool(threads);
         try {
             customPool.submit(() ->
-                    scenario.getPopulation().getPersons().values().parallelStream()
-                            .filter(p -> Boolean.TRUE.equals(p.getAttributes().getAttribute(IterativeDailyPlanGenerationOrchestrator.NEEDS_DAILY_REPLANNING)))
-                            .forEach(person -> processPerson(person, performingBudgetHours, travelTimeBudgetHours, outOfHomeTimeBudgetHours))
+                    personsToProcess.parallelStream().forEach(person -> {
+
+                        // Run the actual heavy lifting
+                        processPerson(person, perfBudgetHours, travelBudgetHours, oohBudgetHours);
+
+                        // Safely increment and log progress
+                        int completed = progressCounter.incrementAndGet();
+                        if (completed % reportInterval == 0 || completed == totalPersons) {
+                            int percentage = (int) Math.round(((double) completed / totalPersons) * 100);
+                            log.info("  ... {}% complete ({} / {} persons processed).",
+                                    percentage, completed, totalPersons);
+                        }
+                    })
             ).get();
         } catch (Exception e) {
             throw new RuntimeException("Parallel execution failed", e);
         } finally {
             customPool.shutdown();
         }
-
-        log.info("Finished Combined Destination and Duration Choice Model in {}.", Duration.between(start, Instant.now()));
     }
 
     record DurationPlans(double[][] guesses, double[] totalTimes) { }
@@ -223,7 +257,13 @@ public class CombinedDestinationAndDurationChoiceModel {
                 if (tour.getTourType() == Tour.TourType.PRIMARY) {
                     mainZone = SBBActivities.work.equals(tour.getMainActivityType()) ? workZone : eduZone;
                 } else {
-                    mainZone = drawDestinationZone(person, tour.getMainActivityType(), homeZone, homeZone, travelBudgetHours, random);
+                    if (SBBActivities.education.equals(tour.getMainActivityType()) && eduZone != null) {
+                        mainZone = eduZone;
+                    }
+                    else
+                        {
+                        mainZone = drawDestinationZone(person, tour.getMainActivityType(), homeZone, homeZone, travelBudgetHours, random);
+                    }
                 }
 
                 // B. CHRONOLOGICAL STEP
@@ -231,7 +271,12 @@ public class CombinedDestinationAndDurationChoiceModel {
 
                 // 1. Outbound Stops
                 for (var act : tour.getOutboundStopActivities()) {
-                    Zone stopZone = drawDestinationZone(person, act.getType(), currentPathZone, mainZone, travelBudgetHours, random);
+                    Zone stopZone;
+                    if (act.getType().equals(SBBActivities.education) && eduZone != null) {
+                        stopZone = eduZone;
+                    } else {
+                    stopZone = drawDestinationZone(person, act.getType(), currentPathZone, mainZone, travelBudgetHours, random);
+                    }
                     destinationGuesses[p][actIdx++] = stopZone;
                     totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(stopZone.getId())];
                     currentPathZone = stopZone;
@@ -245,7 +290,12 @@ public class CombinedDestinationAndDurationChoiceModel {
                 // 3. Subtours
                 if (!tour.getSubtourActivities().isEmpty()) {
                     for (var act : tour.getSubtourActivities()) {
-                        Zone subZone = drawDestinationZone(person, act.getType(), mainZone, mainZone, travelBudgetHours, random);
+                        Zone subZone;
+                        if (act.getType().equals(SBBActivities.education) && eduZone != null) {
+                            subZone = eduZone;
+                        } else {
+                        subZone= drawDestinationZone(person, act.getType(), mainZone, mainZone, travelBudgetHours, random);
+                        }
                         destinationGuesses[p][actIdx++] = subZone;
                         totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(subZone.getId())];
                         currentPathZone = subZone;
@@ -258,7 +308,12 @@ public class CombinedDestinationAndDurationChoiceModel {
 
                 // 4. Inbound Stops
                 for (var act : tour.getInboundStopActivities()) {
-                    Zone stopZone = drawDestinationZone(person, act.getType(), currentPathZone, homeZone, travelBudgetHours, random);
+                    Zone stopZone;
+                    if (act.getType().equals(SBBActivities.education)  && eduZone != null) {
+                          stopZone = eduZone;
+                    } else {
+                     stopZone = drawDestinationZone(person, act.getType(), currentPathZone, homeZone, travelBudgetHours, random);
+                    }
                     destinationGuesses[p][actIdx++] = stopZone;
                     totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(stopZone.getId())];
                     currentPathZone = stopZone;
@@ -274,48 +329,60 @@ public class CombinedDestinationAndDurationChoiceModel {
 
     private PlanSelection selectBestPlan(double[] totalPerformingTimes, double[] totalTravelTimes, double perfBudgetHours, double travelBudgetHours, double oohBudgetHours, Random random) {
         // Duration Evaluation
-        List<Integer> validDurIndices = new ArrayList<>();
+        // 4. Budget Optimization Loop (Zero-Allocation Version)
+
+        int[] validDurIndices = new int[NUM_DURATION_PLANS];
+        int validDurCount = 0;
         int bestInvalidDurIdx = 0;
         double minDurTime = Double.MAX_VALUE;
+
         for (int p = 0; p < NUM_DURATION_PLANS; p++) {
-            if (totalPerformingTimes[p] <= perfBudgetHours) validDurIndices.add(p);
+            if (totalPerformingTimes[p] <= perfBudgetHours) {
+                validDurIndices[validDurCount++] = p;
+            }
             if (totalPerformingTimes[p] < minDurTime) {
                 minDurTime = totalPerformingTimes[p];
                 bestInvalidDurIdx = p;
             }
         }
-        if (validDurIndices.isEmpty()) validDurIndices.add(bestInvalidDurIdx);
+        if (validDurCount == 0) validDurIndices[validDurCount++] = bestInvalidDurIdx;
 
-        // Destination Evaluation
-        List<Integer> validDestIndices = new ArrayList<>();
+        int[] validDestIndices = new int[NUM_DESTINATION_PLANS];
+        int validDestCount = 0;
         int bestInvalidDestIdx = 0;
         double minDestTime = Double.MAX_VALUE;
+
         for (int p = 0; p < NUM_DESTINATION_PLANS; p++) {
-            if (totalTravelTimes[p] <= travelBudgetHours) validDestIndices.add(p);
+            if (totalTravelTimes[p] <= travelBudgetHours) {
+                validDestIndices[validDestCount++] = p;
+            }
             if (totalTravelTimes[p] < minDestTime) {
                 minDestTime = totalTravelTimes[p];
                 bestInvalidDestIdx = p;
             }
         }
-        if (validDestIndices.isEmpty()) validDestIndices.add(bestInvalidDestIdx);
+        if (validDestCount == 0) validDestIndices[validDestCount++] = bestInvalidDestIdx;
 
-        // Finding the winning combination
+        // --- The Zero-Allocation Search ---
         int winningDurIdx = -1;
         int winningDestIdx = -1;
         double bestOohTime = Double.MAX_VALUE;
         boolean foundValidPlan = false;
 
-        List<int[]> combinations = new ArrayList<>();
-        for (int durIdx : validDurIndices) {
-            for (int destIdx : validDestIndices) {
-                combinations.add(new int[]{durIdx, destIdx});
-            }
-        }
-        Collections.shuffle(combinations, random);
+        // Total combinations to check
+        int numCombos = validDurCount * validDestCount;
 
-        for (int[] combo : combinations) {
-            int durIdx = combo[0];
-            int destIdx = combo[1];
+        // Pick a random starting point for the search to mimic shuffling
+        int startOffset = random.nextInt(numCombos);
+
+        for (int i = 0; i < numCombos; i++) {
+            // Modular arithmetic to cycle through all combinations starting from the random offset
+            int comboIndex = (startOffset + i) % numCombos;
+
+            // Map the 1D index back to the 2D grid
+            int durIdx = validDurIndices[comboIndex / validDestCount];
+            int destIdx = validDestIndices[comboIndex % validDestCount];
+
             double oohTime = totalPerformingTimes[durIdx] + totalTravelTimes[destIdx];
 
             if (oohTime <= oohBudgetHours) {
@@ -323,7 +390,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                 winningDestIdx = destIdx;
                 bestOohTime = oohTime;
                 foundValidPlan = true;
-                break;
+                break; // Found one!
             }
             if (oohTime < bestOohTime) {
                 winningDurIdx = durIdx;
@@ -466,18 +533,20 @@ private Zone drawDestinationZone(Person person, String activityType, Zone origin
     DecisionStrata strata = getStrataForPerson(person);
     float[][] kalifMatrix = this.kalifMatrixCache.getKalifMatrixForActivity(activityType);
     float[][] logsumMatrix = logsumCache.getOrComputeLogsumMatrix(activityType, strata);
-
+    // Get the pre-cached attraction array for this specific activity type
+    int actTypeIdx = activityTypeToIndex.getOrDefault(activityType, activityTypeToIndex.get(SBBActivities.other)); // Fallback to 'other' (index 4) if unknown
+    float[] attractions = zoneAttractions[actTypeIdx];
     boolean isIntermediateStop = !originAnchor.getId().equals(targetAnchor.getId());
     double directTT = blendedTravelTimes[oIdx][tIdx];
 
     double[] utilities = new double[zoneList.size()];
     double maxUtility = Double.NEGATIVE_INFINITY;
 
+    // THE BLAZING FAST INNER LOOP: 100% Primitive arrays, no method calls!
     for (int zIdx = 0; zIdx < zoneList.size(); zIdx++) {
-        Zone candidateZone = zoneList.get(zIdx);
-        double attraction = getZoneDouble(candidateZone, attrName, 0.0);
+        float attraction = attractions[zIdx]; // O(1) array lookup!
 
-        if (attraction <= 0) {
+        if (attraction <= 0.0f) {
             utilities[zIdx] = Double.NEGATIVE_INFINITY;
             continue;
         }
@@ -496,11 +565,13 @@ private Zone drawDestinationZone(Person person, String activityType, Zone origin
         }
 
         double logsumDetour = logsumMatrix[oIdx][zIdx] + logsumMatrix[zIdx][tIdx];
-        if (logsumDetour <= -20.0) { // Threshold for impossible connections
+        if (logsumDetour <= -20.0) {
             utilities[zIdx] = Double.NEGATIVE_INFINITY; continue;
         }
 
         double kalif = kalifMatrix != null ? kalifMatrix[oIdx][zIdx] : 0.0;
+
+        // Math.log is the only heavy calculation left, and it's heavily filtered by the Ellipse!
         double u = Math.log(attraction) + logsumDetour + kalif;
 
         utilities[zIdx] = u;
@@ -557,11 +628,13 @@ private double getMetric(Map<String, Double> metrics, String key, double default
     return metrics != null ? metrics.getOrDefault(key, defaultValue) : defaultValue;
 }
     public void cleanup() {
-        // Nullify the heavy matrices so the Garbage Collector can reclaim 15+ GB of RAM
+        // Nullify the heavy matrices
         this.blendedTravelTimes = null;
         this.kalifMatrixCache = null;
         this.logsumCache.clearCache();
-        }
+        this.zoneAttractions = null;
+
+    }
 
 private DecisionStrata getStrataForPerson(Person person) {
     for (DecisionStrata strata: DecisionStrata.getSecondaryDestinationStratas()) {

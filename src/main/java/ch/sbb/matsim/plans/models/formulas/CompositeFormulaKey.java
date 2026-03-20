@@ -29,4 +29,9 @@ public final class CompositeFormulaKey {
     public int hashCode() {
         return Objects.hash(activity, strata);
     }
+
+    @Override
+    public String toString() {
+        return "activity='" + activity + '\'' + ", strata=" + strata;
+    }
 }

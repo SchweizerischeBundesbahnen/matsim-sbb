@@ -95,11 +95,6 @@ public class TourBuildingModel {
             // 3. Just make sure to always shut it down!
             customPool.shutdown();
         }
-        if (mobiPlansConfg.models().write_analysis()){
-            writeTourDetails(mobiPlansConfg.data().outputBaseDir()+"/tour_building_model_output.csv.gz");
-            writeTourStats(mobiPlansConfg.data().outputBaseDir()+"/tour_building_model_stats.csv.gz");
-        }
-        printTourStats();
 
     }
     public void printTourStats() {
@@ -202,7 +197,7 @@ public class TourBuildingModel {
         Integer val = (Integer) p.getAttributes().getAttribute(attrName);
         return val == null ? 0 : val;
     }
-    private void writeTourDetails(String filename) {
+    public void writeTourDetails(String filename) {
         List<String> columns = List.of(Variables.PERSONID,"tour_no","tourType","mainActivityType","inboundStopActivities","outboundStopActivities","subtourActivities");
         try (CSVWriter writer = new CSVWriter(columns,filename)){
             for (Person p : scenario.getPopulation().getPersons().values()){
@@ -225,7 +220,7 @@ public class TourBuildingModel {
         }
     }
 
-private void writeTourStats(String filename) {
+public void writeTourStats(String filename) {
         List<String> columns = List.of(Variables.PERSONID,SynpopConstants.NO_BUSINESS_TOURS,SynpopConstants.NO_EDUCATION_TOURS,SynpopConstants.NO_WORK_TOURS,SynpopConstants.NO_OTHER_TOURS,SynpopConstants.NO_PRIM_TOURS,SynpopConstants.NO_TOT_TOURS);
         try (CSVWriter writer = new CSVWriter(columns,filename)){
             for (Person p : scenario.getPopulation().getPersons().values()){

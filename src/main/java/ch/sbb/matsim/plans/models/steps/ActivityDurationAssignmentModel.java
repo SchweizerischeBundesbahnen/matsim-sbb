@@ -124,10 +124,11 @@ public class ActivityDurationAssignmentModel {
 
         return person -> {
             Object val = person.getAttributes().getAttribute(attrName);
-            if (val == null) return false;
 
             double personValue;
-            if (val instanceof Boolean) {
+            if (val == null) {
+                personValue = 0.0; // Default to 0 if attribute is missing
+            } else if (val instanceof Boolean) {
                 personValue = ((Boolean) val) ? 1.0 : 0.0;
             } else if (val instanceof Number) {
                 personValue = ((Number) val).doubleValue();

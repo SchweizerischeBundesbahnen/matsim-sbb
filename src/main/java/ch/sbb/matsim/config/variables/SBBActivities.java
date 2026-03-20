@@ -24,6 +24,9 @@ public final class SBBActivities {
 
 	public static final List<String> activities = List.of(home,education,work,business,leisure,shopping,accompany,other,cbHome,freight,exogeneous);
 
+    public static final Set<String> secondaryActivities = Set.of(business,leisure,shopping,accompany,other,education_continued);
+    public static final Set<String> primaryActivities = Set.of(education,work);
+
 	public final static Map<String, String> abmActs2matsimActs;
 	public final static Map<String, String> matsimActs2abmActs;
 	public final static Set<String> stageActivityTypeList;

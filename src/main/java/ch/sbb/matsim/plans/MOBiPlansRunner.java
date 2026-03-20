@@ -7,6 +7,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.matsim.core.gbl.Gbl;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -74,6 +75,7 @@ public class MOBiPlansRunner implements Runnable{
 
             if (modelClass != null) {
                 logger.info("--- [START] Running model: '{}' ---", modelKey);
+                Gbl.printMemoryUsage();
                 Instant startTask = Instant.now();
                 // Ask the injector to create an instance of this specific class, right now.
                 // This is lazy loading. The object is only created if it's in the run list.
