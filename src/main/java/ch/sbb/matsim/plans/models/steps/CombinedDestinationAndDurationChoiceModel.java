@@ -97,6 +97,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                 .toString();
         this.kalifMatrixCache = new SecondaryKalifMatrixCache(secondaryKalifCsvPath, matrices, zoneList, zoneIndexMap);
         this.logsumCache = new SecondaryDestinationLogsumCache(matrices, formulaRepository, new ExpressionEvaluator(), zoneList);
+        this.logsumCache.precomputeAll(SBBActivities.secondaryActivities,DecisionStrata.getSecondaryDestinationStratas());
 
     }
 
