@@ -11,7 +11,9 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.IntStream;
 
 public class SecondaryDestinationLogsumCache {
     private static final Logger log = LogManager.getLogger(SecondaryDestinationLogsumCache.class);
@@ -21,11 +23,10 @@ public class SecondaryDestinationLogsumCache {
     private final ExpressionEvaluator expressionEvaluator;
     private final List<Zone> zoneList;
 
-
     private final Map<String, float[][]> cache = new ConcurrentHashMap<>();
 
-    public SecondaryDestinationLogsumCache(Matrices matrices, 
-                                           ModeImpedanceFormulaRepository formulaRepository, 
+    public SecondaryDestinationLogsumCache(Matrices matrices,
+                                           ModeImpedanceFormulaRepository formulaRepository,
                                            ExpressionEvaluator expressionEvaluator,
                                            List<Zone> zoneList) {
         this.matrices = matrices;
@@ -35,13 +36,25 @@ public class SecondaryDestinationLogsumCache {
     }
 
     /**
+     * Pre-computes all matrices sequentially.
+     * This avoids ForkJoinPool starvation caused by nested parallel streams.
+     */
+    public void precomputeAll(Set<String> activities, Set<DecisionStrata> allStrata) {
+        log.info("Pre-computing all Secondary Logsum matrices to prevent thread contention...");
+        for (String activityType : activities) {
+            for (DecisionStrata strata : allStrata) {
+                getOrComputeLogsumMatrix(activityType, strata);
+            }
+        }
+        log.info("Finished pre-computing {} logsum matrices.", cache.size());
+    }
+
+    /**
      * Lazily gets or computes the logsum matrix for a specific activity and stratum.
-     * Caches the result so subsequent global loops don't have to recompute it.
      */
     public float[][] getOrComputeLogsumMatrix(String activityType, DecisionStrata strata) {
         String key = activityType + "_" + strata.getStrataName();
 
-        // ConcurrentHashMap safely handles threads asking for the same matrix simultaneously
         return cache.computeIfAbsent(key, k -> {
             log.info("Computing Secondary Logsum matrix for {}...", key);
             float[][] matrix = computeMatrix(activityType, strata);
@@ -65,9 +78,9 @@ public class SecondaryDestinationLogsumCache {
             return matrix;
         }
 
-        // Parallel compute the Logsums for this specific demographic group
-        zoneList.parallelStream().forEach(origin -> {
-            int oIdx = zoneList.indexOf(origin); 
+        // FIXED: Using IntStream avoids the O(N) zoneList.indexOf() penalty!
+        IntStream.range(0, numZones).parallel().forEach(oIdx -> {
+            Zone origin = zoneList.get(oIdx);
             for (int dIdx = 0; dIdx < numZones; dIdx++) {
                 Zone destination = zoneList.get(dIdx);
                 var travelMetrics = matrices.getTravelAndAccessibilityMetrics(origin, destination);
