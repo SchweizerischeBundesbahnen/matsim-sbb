@@ -19,7 +19,6 @@ public class ModeImpedanceFormulaRepository {
             Map<String, String> record;
             while ((record = csvReader.readLine()) != null && !record.isEmpty()) {
                 String activity = record.get(ACTID);
-                System.out.println(record);
                 DecisionStrata strata = DecisionStrata.fromStrataName(record.get(DSTRAT));
                 CompositeFormulaKey key = new CompositeFormulaKey(activity, strata);
                 Map<String, String> modeFormulas = new ConcurrentHashMap<>();
