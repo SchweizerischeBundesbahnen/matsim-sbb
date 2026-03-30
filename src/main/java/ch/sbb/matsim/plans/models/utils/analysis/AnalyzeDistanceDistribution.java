@@ -17,15 +17,19 @@ public class AnalyzeDistanceDistribution {
         int workDistances[] = new int[40];
         int eduDistances[] = new int[40];
         for (Person person : population.getPersons().values()) {
-            if (person.getAttributes().getAttribute(SynpopConstants.NET_DIST_WORK) != null) {
-                double workDistance = (double) person.getAttributes().getAttribute(SynpopConstants.NET_DIST_WORK);
-                int distanceBin = (int) Math.min(workDistance / 10000.0, 39);
-                workDistances[distanceBin]++;
+            if (person.getAttributes().getAttribute(SynpopConstants.WORK_ZONE) != null) {
+                if (person.getAttributes().getAttribute(SynpopConstants.NET_DIST_WORK) != null) {
+                    double workDistance = (double) person.getAttributes().getAttribute(SynpopConstants.NET_DIST_WORK);
+                    int distanceBin = (int) Math.min(workDistance / 10000.0, 39);
+                    workDistances[distanceBin]++;
+                }
             }
-            if (person.getAttributes().getAttribute(SynpopConstants.NET_DIST_SCHOOL) != null) {
-                double eduDistance = (double) person.getAttributes().getAttribute(SynpopConstants.NET_DIST_SCHOOL);
-                int distanceBin = (int) Math.min(eduDistance / 10000.0, 39);
-                eduDistances[distanceBin]++;
+            if (person.getAttributes().getAttribute(SynpopConstants.SCHOOL_ZONE) != null) {
+                if (person.getAttributes().getAttribute(SynpopConstants.NET_DIST_SCHOOL) != null) {
+                    double eduDistance = (double) person.getAttributes().getAttribute(SynpopConstants.NET_DIST_SCHOOL);
+                    int distanceBin = (int) Math.min(eduDistance / 10000.0, 39);
+                    eduDistances[distanceBin]++;
+                }
             }
         }
         try (CSVWriter writer = new CSVWriter(null, new String[]{"distance_bin", "work_count", "edu_count"},distanceDistributionFile)) {

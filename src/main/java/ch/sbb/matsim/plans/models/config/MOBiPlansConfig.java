@@ -35,6 +35,8 @@ public record MOBiPlansConfig (
     public static final String SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV = "secondary_activity_type_likelihoods.csv";
     public static final String MODEL_BASE_FOLDER_CONFIG = "config";
     public static final String MODEL_BASE_FOLDER_CHOICE_MODELS = "choice_models";
+    public static final String ATTRACTION_RATES = "attraction_rates.csv";
+    public static final String SPECIAL_CASES_ATIMES_PCOSTS = "special_cases_atimes_pcosts.csv";
 
     /**
      * Reads and parses the master configuration from a YAML file.

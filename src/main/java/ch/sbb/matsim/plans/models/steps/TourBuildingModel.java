@@ -54,7 +54,7 @@ public class TourBuildingModel implements ModelStep{
 
 
     @Inject
-           public TourBuildingModel(Scenario scenario, MOBiPlansConfig mobiPlansConfig) {
+    public TourBuildingModel(Scenario scenario, MOBiPlansConfig mobiPlansConfig) {
         this.scenario = scenario;
         Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
         this.threads = mobiPlansConfig.models().threads();

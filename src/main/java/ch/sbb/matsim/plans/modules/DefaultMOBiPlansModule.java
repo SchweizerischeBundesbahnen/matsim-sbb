@@ -43,10 +43,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(MOBiPlansOutputWriter.class);
         multibinder.addBinding().to(TourBuildingModel.class);
         multibinder.addBinding().to(PopulationSampler.class);
-
-
-
-
+        multibinder.addBinding().to(CalcZonalAttributes.class);
     }
 
     public Scenario getScenario() {
