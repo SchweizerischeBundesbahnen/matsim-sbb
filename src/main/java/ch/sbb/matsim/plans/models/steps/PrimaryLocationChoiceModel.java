@@ -40,7 +40,6 @@ import static ch.sbb.matsim.plans.models.utils.Calculations.calculateLogsum;
 
 public class PrimaryLocationChoiceModel implements ModelStep{
 
-    private static final double MIN_LOGSUM = -20.0;
     private static final double BETA_ATTRACTION = 1.0;
     private static final double BETA_LOGSUM = 1.0;
     private final Scenario scenario;
@@ -54,10 +53,11 @@ public class PrimaryLocationChoiceModel implements ModelStep{
     private final ForkJoinPool customThreadPool;
     private final boolean writeDetailedAnalysis;
     private final String outputDir;
+    private final MobilityToolOwnershipModel mobilityToolOwnershipModel;
 
 
     @Inject
-    public PrimaryLocationChoiceModel(Scenario scenario, MOBiPlansConfig moBiPlansConfig, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository ) {
+    public PrimaryLocationChoiceModel(Scenario scenario, MOBiPlansConfig moBiPlansConfig, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, MobilityToolOwnershipModel mobilityToolOwnershipModel ) {
         this.scenario = scenario;
         this.zones =  zones;
         this.matrices = matrices;
@@ -68,6 +68,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         this.writeDetailedAnalysis = moBiPlansConfig.models().write_analysis();
         this.customThreadPool = new ForkJoinPool(moBiPlansConfig.models().threads());
         this.outputDir = moBiPlansConfig.data().outputBaseDir();
+        this.mobilityToolOwnershipModel = mobilityToolOwnershipModel;
 
     }
 
@@ -79,6 +80,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             for (PrimaryLocationChoiceConfig.ActivityConfigRecord activityConfig : primaryLocationChoiceConfig.getPrimaryLocationChoiceConfigs()) {
                 runForActivity(activityConfig);
             }
+            mobilityToolOwnershipModel.rerunForStudentsAfterPrimaryLocationChoice();
             logger.info("Primary Location Choice Model finished in {}.", Duration.between(startRun, Instant.now()));
 
         } finally {
@@ -116,7 +118,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         }
 
         var travelMetrics = matrices.getTravelAndAccessibilityMetrics(homeZone, destinationZone);
-        double logsum = calculateLogsum(modeFormulas, travelMetrics);
+        double logsum = calculateLogsum(modeFormulas, travelMetrics, expressionEvaluator);
         if (Double.isNaN(logsum) || Double.isInfinite(logsum)) {
             return -Double.MAX_VALUE;
         }
@@ -393,10 +395,22 @@ public class PrimaryLocationChoiceModel implements ModelStep{
                         .groupingBy(activityFacility ->
                                 Id.create(String.valueOf(activityFacility.getAttributes().getAttribute(Variables.ZONE_ID))
                                         , Zone.class)));
+        Runnable facilityAllocation = getFacilityAllocation(activityConfig, personsByActivityZone, activityFacilityByZone);
+        try {
+            customThreadPool.submit(facilityAllocation).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Facility assignment failed", e);
+        }
+
+        logger.info("[Step 7/7] Finished assigning facilities. Took {}.", Duration.between(startAllocate, Instant.now()));
+        logger.info("--- Finished attraction group '{}' in {} ---", attractionAttribute, Duration.between(startGroup, Instant.now()));
+    }
+
+    private Runnable getFacilityAllocation(PrimaryLocationChoiceConfig.ActivityConfigRecord activityConfig, Map<Id<Zone>, List<Person>> personsByActivityZone, Map<Id<Zone>, ? extends List<? extends ActivityFacility>> activityFacilityByZone) {
         String work_or_school_marker = activityConfig.personResultAttributeName().split("_")[0];
         final String distanceName = "network_distance_"+ work_or_school_marker;
         final String zonalAttributeName = work_or_school_marker+"_zone";
-        Runnable facilityAllocation = () -> personsByActivityZone.forEach((zoneId, people) -> {
+        return () -> personsByActivityZone.forEach((zoneId, people) -> {
             var facilitiesInZone = activityFacilityByZone.get(zoneId);
             if (facilitiesInZone == null || facilitiesInZone.isEmpty()) {
                 throw new RuntimeException("No facilities found in zone " + zoneId + " for activity allocation.");
@@ -404,6 +418,8 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             Map<Id<ActivityFacility>, Double> facilityProbabilities = new HashMap<>();
             facilitiesInZone.forEach(facility -> {
                 double weight = ((Number) facility.getAttributes().getAttribute(SynpopConstants.FTE_ENDO)).doubleValue();
+                if (weight<=1 )
+                    weight = 1.0;
                 facilityProbabilities.put(facility.getId(), weight);
             });
             if (facilitiesInZone.size() == 0) {
@@ -414,7 +430,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
                 if (activityFacilityId != null) {
                     person.getAttributes().putAttribute(activityConfig.activityName() + "_facility", activityFacilityId.toString());
                 } else {
-                    logger.warn("Could not choose a facility for person " + person.getId() + " despite valid probabilities.");
+                    logger.warn("Could not choose a facility for person " + person.getId() + " despite valid probabilities. Zone ID: " + zoneId);
                 }
                 Zone homeZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
                 var travelMetrics = matrices.getTravelMetrics(homeZone.getId(), zoneId).get(MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase());
@@ -424,14 +440,6 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             }
 
         });
-        try {
-            customThreadPool.submit(facilityAllocation).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Facility assignment failed", e);
-        }
-
-        logger.info("[Step 7/7] Finished assigning facilities. Took {}.", Duration.between(startAllocate, Instant.now()));
-        logger.info("--- Finished attraction group '{}' in {} ---", attractionAttribute, Duration.between(startGroup, Instant.now()));
     }
 
     @Override

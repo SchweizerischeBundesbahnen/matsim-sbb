@@ -13,6 +13,9 @@ public record MOBiPlansConfig (
         DataConfig data,
         ModelsConfig models
 ){
+    public static final String MODEL_BASE_FOLDER_CONFIG = "config";
+    public static final String MODEL_BASE_FOLDER_CHOICE_MODELS = "choice_models";
+    public static final String MODEL_BASE_FOLDER_DATA = "data";
     public static final String DRIVING_LICENSE_CSV = "driving_license.csv";
     public static final String TOUR_FREQUENCY_WORK_MODEL_CSV = "tour_frequency_work.csv";
     public static final String TOUR_FREQUENCY_EDUCATION_MODEL_CSV = "tour_frequency_education.csv";
@@ -33,8 +36,9 @@ public record MOBiPlansConfig (
     public static final String SUBTOUR_FREQUENCY_WORK_CSV = "subtour_frequency_work.csv";
     public static final String SUBTOUR_FREQUENCY_EDUCATION_CSV = "subtour_frequency_education.csv";
     public static final String SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV = "secondary_activity_type_likelihoods.csv";
-    public static final String MODEL_BASE_FOLDER_CONFIG = "config";
-    public static final String MODEL_BASE_FOLDER_CHOICE_MODELS = "choice_models";
+    public static final String ACTIVITY_DURATIONS_WITH_SUBTOUR_CSV = "activity_durations_with_subtour.csv";
+    public static final String ACTIVITY_DURATIONS_WITHOUT_SUBTOUR_CSV = "activity_durations.csv";
+    public static final String SECONDARY_ACTIVITY_CHOICE_KALIF_EXPRESSIONS_CSV = "secondary_activity_choice_kalif_expressions.csv";
     public static final String ATTRACTION_RATES = "attraction_rates.csv";
     public static final String SPECIAL_CASES_ATIMES_PCOSTS = "special_cases_atimes_pcosts.csv";
 

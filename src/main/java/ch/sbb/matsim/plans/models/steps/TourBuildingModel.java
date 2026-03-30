@@ -4,7 +4,6 @@ package ch.sbb.matsim.plans.models.steps;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
-import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
@@ -13,6 +12,9 @@ import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.Zone;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
@@ -21,17 +23,18 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
+
+import static ch.sbb.matsim.plans.models.steps.IterativeDailyPlanGenerationOrchestrator.NEEDS_DAILY_REPLANNING;
 
 /*
    * This model step is responsible for building tours for each person in the population based on their attributes. Besides the number of stops for each tour, it also assigns the type of secondary activities for the stops based on a separate model.
    *  The generated tours are then stored as an attribute of the person for use in later steps.
  */
-public class TourBuildingModel implements ModelStep{
+@Singleton
+public class TourBuildingModel {
 
     public static final String IS_WORKING_FROM_HOME_AND_HAS_ONE_WORKTOUR = "is_working_from_home_and_has_one_worktour";
     public static final String HOME_MUL_CAR_ACC_SC = "home_mul_car_acc_sc";
@@ -51,6 +54,7 @@ public class TourBuildingModel implements ModelStep{
     private final IntegerSelectionModelFromCSV subtourFrequencyModelEducation;
     private final SecondaryActivityTypeAssignmentModel secondaryActivityTypeAssignmentModel;
     private final MOBiPlansConfig mobiPlansConfg;
+    private final static Logger log = LogManager.getLogger(TourBuildingModel.class);
 
 
     @Inject
@@ -59,27 +63,22 @@ public class TourBuildingModel implements ModelStep{
         Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
         this.threads = mobiPlansConfig.models().threads();
         this.mobiPlansConfg = mobiPlansConfig;
-        tourFrequencyWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV).toString());
-        tourFrequencyEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_EDUCATION_MODEL_CSV).toString());
-        tourFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_OTHER_MODEL_CSV).toString());
-        tourFrequencyBusinessModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_BUSINESS_MODEL_CSV).toString());
-        stopFrequencyInboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_WORK_CSV).toString());
-        stopFrequencyOutboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_WORK_CSV).toString());
-        stopFrequencyInboundEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_EDUCATION_CSV).toString());
-        stopFrequencyOutboundEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_EDUCATION_CSV).toString());
-        stopFrequencyBusinessModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_BUSINESS_CSV).toString());
-        stopFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_OTHER_CSV).toString());
-        subtourFrequencyModelWork = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.SUBTOUR_FREQUENCY_WORK_CSV).toString());
-        subtourFrequencyModelEducation = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.SUBTOUR_FREQUENCY_EDUCATION_CSV).toString());
+        tourFrequencyWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV).toString(), MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV);
+        tourFrequencyEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_EDUCATION_MODEL_CSV).toString(), MOBiPlansConfig.TOUR_FREQUENCY_EDUCATION_MODEL_CSV);
+        tourFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_OTHER_MODEL_CSV).toString(), MOBiPlansConfig.TOUR_FREQUENCY_OTHER_MODEL_CSV);
+        tourFrequencyBusinessModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_BUSINESS_MODEL_CSV).toString(), MOBiPlansConfig.TOUR_FREQUENCY_BUSINESS_MODEL_CSV);
+        stopFrequencyInboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_WORK_CSV).toString(), MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_WORK_CSV);
+        stopFrequencyOutboundWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_WORK_CSV).toString(), MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_WORK_CSV);
+        stopFrequencyInboundEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_EDUCATION_CSV).toString(), MOBiPlansConfig.NUMBER_OF_STOPS_INBOUND_EDUCATION_CSV);
+        stopFrequencyOutboundEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_EDUCATION_CSV).toString(), MOBiPlansConfig.NUMBER_OF_STOPS_OUTBOUND_EDUCATION_CSV);
+        stopFrequencyBusinessModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_BUSINESS_CSV).toString(), MOBiPlansConfig.NUMBER_OF_STOPS_BUSINESS_CSV);
+        stopFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.NUMBER_OF_STOPS_OTHER_CSV).toString(), MOBiPlansConfig.NUMBER_OF_STOPS_OTHER_CSV);
+        subtourFrequencyModelWork = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.SUBTOUR_FREQUENCY_WORK_CSV).toString(), MOBiPlansConfig.SUBTOUR_FREQUENCY_WORK_CSV);
+        subtourFrequencyModelEducation = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.SUBTOUR_FREQUENCY_EDUCATION_CSV).toString(), MOBiPlansConfig.SUBTOUR_FREQUENCY_EDUCATION_CSV);
         secondaryActivityTypeAssignmentModel = new SecondaryActivityTypeAssignmentModel(modelFolder.resolve(MOBiPlansConfig.SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV).toString());
     }
 
-    @Override
-    public String getName() {
-        return MOBiPlansRunner.TOURBUILDING_MODEL;
-    }
-    @Override
-    public void run() {
+    public void runIteration() {
         Population population = scenario.getPopulation();
         PopulationFactory factory = population.getFactory();
         ForkJoinPool customPool = new ForkJoinPool(threads);
@@ -87,6 +86,7 @@ public class TourBuildingModel implements ModelStep{
             customPool.submit(() ->
                     population.getPersons().values().parallelStream()
                             .filter(person -> new PopulationSampler.ActivePersonPredicate().test(person)) // Only process active persons
+                            .filter(p -> Boolean.TRUE.equals(p.getAttributes().getAttribute(NEEDS_DAILY_REPLANNING)))
                             .forEach(person -> processPerson(person, factory))
             ).get();
         } catch (Exception e) {
@@ -95,12 +95,109 @@ public class TourBuildingModel implements ModelStep{
             // 3. Just make sure to always shut it down!
             customPool.shutdown();
         }
-        if (mobiPlansConfg.models().write_analysis()){
-            writeTourDetails(mobiPlansConfg.data().outputBaseDir()+"/tour_building_model_output.csv.gz");
+
+    }
+    public void printTourStats() {
+        int initialCapacity = scenario.getPopulation().getPersons().size();
+        int[] totTours = new int[initialCapacity];
+        int validPersons = 0;
+
+        // Variables for tour types
+        long sumWork = 0, sumEdu = 0, sumBiz = 0, sumOther = 0;
+
+        // Variables for subtours
+        long sumWorkSubtours = 0, sumEduSubtours = 0;
+        long countWorkTours = 0, countEduTours = 0;
+
+        // Single pass over the population to collect all data efficiently
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+            Integer tot = (Integer) person.getAttributes().getAttribute(SynpopConstants.NO_TOT_TOURS);
+            if (tot == null) continue; // Skip unprocessed/inactive persons
+
+            totTours[validPersons++] = tot;
+
+            sumWork += getIntAttr(person, SynpopConstants.NO_WORK_TOURS);
+            sumEdu += getIntAttr(person, SynpopConstants.NO_EDUCATION_TOURS);
+            sumBiz += getIntAttr(person, SynpopConstants.NO_BUSINESS_TOURS);
+            sumOther += getIntAttr(person, SynpopConstants.NO_OTHER_TOURS);
+
+            @SuppressWarnings("unchecked")
+            List<Tour> tours = (List<Tour>) person.getAttributes().getAttribute(SynpopConstants.TOURS);
+            if (tours != null) {
+                for (Tour t : tours) {
+                    if (SBBActivities.work.equals(t.getMainActivityType())) {
+                        countWorkTours++;
+                        sumWorkSubtours += t.getSubtourActivities().size();
+                    } else if (SBBActivities.education.equals(t.getMainActivityType())) {
+                        countEduTours++;
+                        sumEduSubtours += t.getSubtourActivities().size();
+                    }
+                }
+            }
         }
+
+        if (validPersons == 0) {
+            log.warn("No tour statistics available. Make sure the model has run and generated tours.");
+            return;
+        }
+
+        // Truncate array to actual size of processed persons and sort for median/min/max
+        int[] exactTotTours = Arrays.copyOf(totTours, validPersons);
+        Arrays.sort(exactTotTours);
+
+        int min = exactTotTours[0];
+        int max = exactTotTours[exactTotTours.length - 1];
+        double average = Arrays.stream(exactTotTours).average().orElse(0.0);
+
+        double median;
+        int middle = exactTotTours.length / 2;
+        if (exactTotTours.length % 2 == 0) {
+            median = (exactTotTours[middle - 1] + exactTotTours[middle]) / 2.0;
+        } else {
+            median = exactTotTours[middle];
+        }
+
+        // Calculate Averages
+        double avgWork = (double) sumWork / validPersons;
+        double avgEdu = (double) sumEdu / validPersons;
+        double avgBiz = (double) sumBiz / validPersons;
+        double avgOther = (double) sumOther / validPersons;
+
+        double avgWorkSubPerTour = countWorkTours > 0 ? (double) sumWorkSubtours / countWorkTours : 0.0;
+        double avgEduSubPerTour = countEduTours > 0 ? (double) sumEduSubtours / countEduTours : 0.0;
+
+        // Print the statistics cleanly
+        log.info("=========================================");
+        log.info("          TOUR BUILDING STATS            ");
+        log.info("=========================================");
+        log.info("Total Active Persons     : {}", validPersons);
+        log.info("-----------------------------------------");
+        log.info("TOTAL TOURS (per person)");
+        log.info("  Average : {}", String.format(Locale.US, "%.2f", average));
+        log.info("  Median  : {}", median);
+        log.info("  Min     : {}", min);
+        log.info("  Max     : {}", max);
+        log.info("-----------------------------------------");
+        log.info("TOUR TYPES (average per person)");
+        log.info("  Work      : {}", String.format(Locale.US, "%.2f", avgWork));
+        log.info("  Education : {}", String.format(Locale.US, "%.2f", avgEdu));
+        log.info("  Business  : {}", String.format(Locale.US, "%.2f", avgBiz));
+        log.info("  Other     : {}", String.format(Locale.US, "%.2f", avgOther));
+        log.info("-----------------------------------------");
+        log.info("SUBTOURS (average per main tour)");
+        log.info("  Work Subtours      : {} (over {} work tours)", String.format(Locale.US, "%.2f", avgWorkSubPerTour), countWorkTours);
+        log.info("  Education Subtours : {} (over {} edu tours)", String.format(Locale.US, "%.2f", avgEduSubPerTour), countEduTours);
+        log.info("=========================================");
     }
 
-    private void writeTourDetails(String filename) {
+    /**
+     * Null-safe attribute extractor helper
+     */
+    private int getIntAttr(Person p, String attrName) {
+        Integer val = (Integer) p.getAttributes().getAttribute(attrName);
+        return val == null ? 0 : val;
+    }
+    public void writeTourDetails(String filename) {
         List<String> columns = List.of(Variables.PERSONID,"tour_no","tourType","mainActivityType","inboundStopActivities","outboundStopActivities","subtourActivities");
         try (CSVWriter writer = new CSVWriter(columns,filename)){
             for (Person p : scenario.getPopulation().getPersons().values()){
@@ -123,9 +220,31 @@ public class TourBuildingModel implements ModelStep{
         }
     }
 
+public void writeTourStats(String filename) {
+        List<String> columns = List.of(Variables.PERSONID,SynpopConstants.NO_BUSINESS_TOURS,SynpopConstants.NO_EDUCATION_TOURS,SynpopConstants.NO_WORK_TOURS,SynpopConstants.NO_OTHER_TOURS,SynpopConstants.NO_PRIM_TOURS,SynpopConstants.NO_TOT_TOURS);
+        try (CSVWriter writer = new CSVWriter(columns,filename)){
+            for (Person p : scenario.getPopulation().getPersons().values()){
+                    for (String column:columns) {
+                        if ((Boolean)p.getAttributes().getAttribute(SynpopConstants.ACTIVE_IN_MODEL)){
+                        if (column.equals(Variables.PERSONID)) {
+                            writer.set(column, p.getId().toString());
+                            continue;
+                        }
+                        Object value = p.getAttributes().getAttribute(column);
+                        writer.set(column, value != null ? value.toString() : "");
+                        writer.writeRow();
+                        }
+                    }
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void processPerson(Person person, PopulationFactory factory) {
         var attributes = person.getAttributes();
-
+        attributes.removeAttribute(SynpopConstants.TOURS); // Clear any existing tours if re-processing
         // 1. Work Tours
         int noWorkTours = 0;
         Number levelOfEmployment = (Number) attributes.getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT);

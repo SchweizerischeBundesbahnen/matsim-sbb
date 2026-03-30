@@ -30,10 +30,12 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         bind(Scenario.class).toInstance(scenario);
         //Zones, Matrices should be here immediately available after scenario creation
         bind(Zones.class).toProvider(MOBiZonesProvider.class).asEagerSingleton();
+        bind(Matrices.class).toProvider(MOBiMatricesProvider.class).asEagerSingleton();
 
         //the following are lazy singletons
-        bind(Matrices.class).toProvider(MOBiMatricesProvider.class);
         bind(ModeImpedanceFormulaRepository.class).toInstance(new ModeImpedanceFormulaRepository(Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString()));
+        bind(TourBuildingModel.class);
+        bind(CombinedDestinationAndDurationChoiceModel.class);
         Multibinder<ModelStep> multibinder = Multibinder.newSetBinder(binder(), ModelStep.class);
 
         multibinder.addBinding().to(SynpopLoader.class);
@@ -41,9 +43,13 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(MobilityToolOwnershipModel.class);
         multibinder.addBinding().to(PrimaryLocationChoiceModel.class);
         multibinder.addBinding().to(MOBiPlansOutputWriter.class);
-        multibinder.addBinding().to(TourBuildingModel.class);
         multibinder.addBinding().to(PopulationSampler.class);
+        multibinder.addBinding().to(IterativeDailyPlanGenerationOrchestrator.class);
         multibinder.addBinding().to(CalcZonalAttributes.class);
+
+
+
+
     }
 
     public Scenario getScenario() {

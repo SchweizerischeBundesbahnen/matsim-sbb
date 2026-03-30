@@ -4,6 +4,7 @@ import ch.sbb.matsim.plans.constants.ZonalAttributes;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -49,6 +50,17 @@ public enum DecisionStrata {
         this.strataName = strataName;
     }
 
+    public static Set<DecisionStrata> getSecondaryDestinationStratas() {
+        return Set.of(
+                SECDEST_AGE_1865_NOABO_NOCAR,
+                SECDEST_AGE_1865_ABO_NOCAR,
+                SECDEST_AGE_O75,
+                SECDEST_AGE_U18,
+                SECDEST_AGE_1865_ABO_CAR,
+                SECDEST_AGE_6575,
+                SECDEST_AGE_1865_NOABO_CAR
+        );
+    }
     /**
      * @param name The exact string from your data file.
      * @return The corresponding DecisionStrata enum.

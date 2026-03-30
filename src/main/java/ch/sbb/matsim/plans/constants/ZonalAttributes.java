@@ -72,4 +72,12 @@ public class ZonalAttributes {
     public static final String ZONE_INDEX = "zone_index";
     public static final String ZONE_NAME = "zone_name";
 
+    public static final String ATTR_A = "Attr_A";
+    public static final String ATTR_B = "Attr_B";
+    public static final String ATTR_O = "Attr_O";
+    public static final String ATTR_EC = "Attr_EC";
+    public static final String ATTR_L = "Attr_L";
+    public static final String ATTR_S = "Attr_S";
+
+
 }

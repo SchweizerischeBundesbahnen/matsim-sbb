@@ -8,6 +8,7 @@ import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
+import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -43,8 +44,8 @@ public class ZoneBasedAccessibilities implements ModelStep{
 
     public void run() {
         List<Zone> allZones = zones.getZones();
-
         FloatMatrix<Id<Zone>> kalifWork = matrices.getKalifMatrix(MatrixNames.KalifMatrices.KALIF_WORK);
+        ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
 
         for (String accessibilityType: List.of(ZonalAttributes.ACCSIB_CAR, ZonalAttributes.ACCSIB_PT, ZonalAttributes.ACCSIB_MUL)) {
 
@@ -54,14 +55,15 @@ public class ZoneBasedAccessibilities implements ModelStep{
             zones.getZones().parallelStream().forEach(origin -> {
                 if (origin == null) return;
 
-                // origin attraction (pop_total + 2.54 * fte_total)
+                // Origin attraction
                 Number oPop = (Number) origin.getAttribute("pop_total");
                 Number oFte = (Number) origin.getAttribute("fte_total");
                 double origPop = oPop != null ? oPop.doubleValue() : 0.0;
                 double origFte = oFte != null ? oFte.doubleValue() : 0.0;
                 double zoneAttraction = origPop + 2.54 * origFte;
 
-                DoubleAdder acc = new DoubleAdder();
+                // FIX 1: Use a primitive double instead of DoubleAdder!
+                double totalAccessibility = 0.0;
 
                 for (Zone destination : allZones) {
                     if (destination == null) continue;
@@ -70,21 +72,26 @@ public class ZoneBasedAccessibilities implements ModelStep{
                     Number dFte = (Number) destination.getAttribute("fte_total");
                     double destPop = dPop != null ? dPop.doubleValue() : 0.0;
                     double destFte = dFte != null ? dFte.doubleValue() : 0.0;
+
                     double attraction = destPop + 2.54 * destFte;
 
+                    // Micro-optimization: If attraction is 0, the product will be 0. Skip the heavy math!
+                    if (attraction <= 0.0) continue;
+
+                    // Note: If this method creates a `new HashMap()`, it is generating 50GB of garbage.
                     Map<String, Double> travelMetrics = matrices.getTravelAndAccessibilityMetrics(origin, destination);
 
-                    double logsum = calculateLogsum(modeFormulas, travelMetrics);
+                    double logsum = calculateLogsum(modeFormulas, travelMetrics, expressionEvaluator);
 
                     double kalif = kalifWork.get(origin.getId(), destination.getId());
                     double expsum = Math.exp(logsum + 0.5 * kalif);
 
-                    acc.add(expsum * attraction);
-                };
-                double totalAccessibility = acc.sum();
+                    totalAccessibility += (expsum * attraction);
+                }
+
                 origin.getAttributes().putAttribute(accessibilityType, Math.max(totalAccessibility, zoneAttraction));
             });
-        };
+        }
     }
 
 
