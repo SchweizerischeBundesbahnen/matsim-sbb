@@ -37,10 +37,10 @@ public class CalcZonalAttributes implements ModelStep {
     );
 
     // Education category codes expected on current_edu attribute
-    private static final String EDU_PUPIL_PRIMARY = "pupil_primary";
-    private static final String EDU_PUPIL_SECONDARY = "pupil_secondary";
-    private static final String EDU_STUDENT = "student";
-    private static final String EDU_APPRENTICE = "apprentice";
+    private static final String EDU_PUPIL_PRIMARY = "2";
+    private static final String EDU_PUPIL_SECONDARY = "3";
+    private static final String EDU_STUDENT = "4";
+    private static final String EDU_APPRENTICE = "5";
 
     // Aggregate output variable names (match Python)
     private static final String POP_PUP_1 = "pop_pup_1";
