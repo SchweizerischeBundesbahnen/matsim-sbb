@@ -589,9 +589,10 @@ public class CalcZonalAttributes implements ModelStep {
     }
 
     private static Map<String, Integer> computeAgeGroupLowerBounds(List<String> labels) {
+        // labels are pop_0017, pop_1844, etc.
         Map<String, Integer> map = new HashMap<>();
         for (String l : labels) {
-            map.put(l, parseFirstTwoDigits(l, 0));
+            map.put(l, Integer.parseInt(l.substring(4, 6)));
         }
         return map;
     }
@@ -614,17 +615,6 @@ public class CalcZonalAttributes implements ModelStep {
             }
         }
         return null;
-    }
-
-    private static final Pattern TWO_DIGITS = Pattern.compile("\\d{2}");
-
-    private static int parseFirstTwoDigits(String s, int defaultVal) {
-        if (s == null) return defaultVal;
-        Matcher m = TWO_DIGITS.matcher(s);
-        if (m.find()) {
-            return Integer.parseInt(m.group());
-        }
-        return defaultVal;
     }
 
     private static double readDoubleAttribute(Zone z, String key, double defaultVal) {
