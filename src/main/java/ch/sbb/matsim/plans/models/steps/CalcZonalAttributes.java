@@ -443,7 +443,7 @@ public class CalcZonalAttributes implements ModelStep {
         List<String> orderedAgeLabels = orderAgeLabelsByLowerBound(PERSON_AGE_GROUP_VARS, ageGroupLowerBounds);
 
         for (Person p : scenario.getPopulation().getPersons().values()) {
-            String zoneId = asString(p.getAttributes().getAttribute("residence_zone_id"));
+            String zoneId = asString(p.getAttributes().getAttribute("zone_id"));
             if (zoneId == null) {
                 continue; // person without zone
             }
