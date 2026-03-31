@@ -24,8 +24,7 @@ public final class Calculations {
             }
 
 
-            // Add a check here to prevent individual utilities from being too negative,
-            // which is good practice but the main fix is below.
+
             if (modeUtility < -50) { // An arbitrary but safe floor
                 continue; // exp(-50) is effectively zero, skip adding it.
             }
@@ -39,7 +38,6 @@ public final class Calculations {
 
         double logsum = Math.log(sumOfExponentials);
 
-        // Ensure the final logsum does not fall below the defined floor.
         return Math.max(logsum, MIN_LOGSUM);
     }
 }

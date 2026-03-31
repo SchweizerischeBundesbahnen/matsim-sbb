@@ -27,6 +27,8 @@ public class MOBiPlansRunner implements Runnable{
     public static final String ITERATTIVE_DAILY_PLAN_GENERATION = "iterative_daily_plan_generation";
     public static final String WRITE_OUTPUTS = "write_outputs";
     public static final String POPULATION_SAMPLING = "population_sampling";
+    public static final String INITIAL_MODE_CHOICE = "initial_mode_choice";
+
 
 
     public static final List<String> FULL_MODEL_SEQUENCE = List.of(

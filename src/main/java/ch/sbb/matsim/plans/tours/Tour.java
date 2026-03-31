@@ -13,6 +13,8 @@ public enum TourType {PRIMARY,SECONDARY,SUBTOUR}
     private final List<Activity> outboundStopActivities = new ArrayList<>();
     private final List<Activity> subtourActivities = new ArrayList<>();
     private final List <Activity> mainActivities;
+    private String maintourMode;
+    private String subtourMode;
 
     public Tour(TourType tourType, String mainActivityType) {
         this.tourType = tourType;
@@ -40,6 +42,22 @@ public enum TourType {PRIMARY,SECONDARY,SUBTOUR}
         return mainActivities.get(0).getType();
     }
 
+    public String getMaintourMode() {
+        return maintourMode;
+    }
+
+    public void setMaintourMode(String maintourMode) {
+        this.maintourMode = maintourMode;
+    }
+
+    public String getSubtourMode() {
+        return subtourMode;
+    }
+
+    public void setSubtourMode(String subtourMode) {
+        this.subtourMode = subtourMode;
+    }
+
     public List<Activity> getMainActivities() {
         return mainActivities;
     }
@@ -52,6 +70,7 @@ public enum TourType {PRIMARY,SECONDARY,SUBTOUR}
                 ", inboundStopActivities=" + inboundStopActivities +
                 ", outboundStopActivities=" + outboundStopActivities +
                 ", subtourActivities=" + subtourActivities +
+
                 '}';
     }
 }

@@ -38,6 +38,7 @@ public class CombinedDestinationAndDurationChoiceModel {
 
     private static final Logger log = LogManager.getLogger(CombinedDestinationAndDurationChoiceModel.class);
     private static final double MAX_INTERMEDIATE_DETOUR_SECONDS = 3600.0; // 1 hour max detour for intermediate stops
+    public static final String ASSIGNED_ZONE = "assigned_zone";
 
     private final Scenario scenario;
     private final Zones zones;
@@ -67,7 +68,7 @@ public class CombinedDestinationAndDurationChoiceModel {
     private float[][] blendedTravelTimes;
 
     @Inject
-    public CombinedDestinationAndDurationChoiceModel(Scenario scenario, MOBiPlansConfig config, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository) {
+    public CombinedDestinationAndDurationChoiceModel(Scenario scenario, MOBiPlansConfig config, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, StrataPredicateFactory strataPredicateFactory) {
         this.scenario = scenario;
         this.zones = zones;
         this.mobiPlansConfig = config;
@@ -79,7 +80,7 @@ public class CombinedDestinationAndDurationChoiceModel {
         this.zoneList = new ArrayList<>(zones.getZones());
         this.zoneIndexMap = new HashMap<>();
         this.formulaRepository = formulaRepository;
-        this.strataPredicateFactory = new StrataPredicateFactory();
+        this.strataPredicateFactory = strataPredicateFactory;
         this.activityTypeToIndex = new HashMap<>();
         for (int i = 0; i < ACTIVITY_TYPES.length; i++) {
             activityTypeToIndex.put(ACTIVITY_TYPES[i], i);
@@ -420,7 +421,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                 actIdx++;
 
                 act.setMaximumDuration(finalDurationSeconds);
-                act.getAttributes().putAttribute("assigned_zone", finalZone);
+                act.getAttributes().putAttribute(ASSIGNED_ZONE, finalZone);
             }
 
             // 2. Main Activity Part 1
@@ -428,7 +429,7 @@ public class CombinedDestinationAndDurationChoiceModel {
             double mainDur1 = durationGuesses[winningDurIdx][actIdx];
             actIdx++;
 
-            tour.getMainActivities().get(0).getAttributes().putAttribute("assigned_zone", mainZone1);
+            tour.getMainActivities().get(0).getAttributes().putAttribute(ASSIGNED_ZONE, mainZone1);
             tour.getMainActivities().get(0).setMaximumDuration(mainDur1);
 
 
@@ -439,7 +440,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                     double finalDurationSeconds = durationGuesses[winningDurIdx][actIdx];
                     actIdx++;
                     act.setMaximumDuration(finalDurationSeconds);
-                    act.getAttributes().putAttribute("assigned_zone", finalZone);
+                    act.getAttributes().putAttribute(ASSIGNED_ZONE, finalZone);
                 }
 
                 // 4. Main Activity Part 2 (After Subtour)
@@ -457,7 +458,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                 actIdx++;
 
                 act.setMaximumDuration(finalDurationSeconds);
-                act.getAttributes().putAttribute("assigned_zone", finalZone);
+                act.getAttributes().putAttribute(ASSIGNED_ZONE, finalZone);
             }
         }
 

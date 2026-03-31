@@ -57,13 +57,13 @@ public class PrimaryLocationChoiceModel implements ModelStep{
 
 
     @Inject
-    public PrimaryLocationChoiceModel(Scenario scenario, MOBiPlansConfig moBiPlansConfig, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, MobilityToolOwnershipModel mobilityToolOwnershipModel ) {
+    public PrimaryLocationChoiceModel(Scenario scenario, MOBiPlansConfig moBiPlansConfig, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, MobilityToolOwnershipModel mobilityToolOwnershipModel, StrataPredicateFactory strataPredicateFactory ) {
         this.scenario = scenario;
         this.zones =  zones;
         this.matrices = matrices;
         this.formulaRepository = formulaRepository;
         this.primaryLocationChoiceConfig = PrimaryLocationChoiceConfig.readFromYamlFile(Paths.get(moBiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CONFIG).resolve(MOBiPlansConfig.PRIMARY_LOCATION_CHOICE_CONFIG_YAML).toString());
-        this.strataPredicateFactory = new StrataPredicateFactory();
+        this.strataPredicateFactory = strataPredicateFactory;
         this.expressionEvaluator = new ExpressionEvaluator();
         this.writeDetailedAnalysis = moBiPlansConfig.models().write_analysis();
         this.customThreadPool = new ForkJoinPool(moBiPlansConfig.models().threads());

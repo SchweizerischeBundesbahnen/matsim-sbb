@@ -78,7 +78,6 @@ public class SecondaryDestinationLogsumCache {
             return matrix;
         }
 
-        // FIXED: Using IntStream avoids the O(N) zoneList.indexOf() penalty!
         IntStream.range(0, numZones).parallel().forEach(oIdx -> {
             Zone origin = zoneList.get(oIdx);
             for (int dIdx = 0; dIdx < numZones; dIdx++) {

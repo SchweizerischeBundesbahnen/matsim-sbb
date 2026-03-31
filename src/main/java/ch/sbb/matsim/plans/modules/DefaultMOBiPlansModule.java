@@ -6,6 +6,7 @@ import ch.sbb.matsim.plans.models.steps.*;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
 import ch.sbb.matsim.plans.models.utils.MOBiPlansOutputWriter;
+import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
 import ch.sbb.matsim.plans.synpop.loading.SynpopLoader;
 import ch.sbb.matsim.zones.Zones;
 import com.google.inject.AbstractModule;
@@ -34,6 +35,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
 
         //the following are lazy singletons
         bind(ModeImpedanceFormulaRepository.class).toInstance(new ModeImpedanceFormulaRepository(Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString()));
+        bind(StrataPredicateFactory.class).toInstance(new StrataPredicateFactory());
         bind(TourBuildingModel.class);
         bind(CombinedDestinationAndDurationChoiceModel.class);
         Multibinder<ModelStep> multibinder = Multibinder.newSetBinder(binder(), ModelStep.class);
