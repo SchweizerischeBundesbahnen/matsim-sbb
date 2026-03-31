@@ -47,6 +47,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(MOBiPlansOutputWriter.class);
         multibinder.addBinding().to(PopulationSampler.class);
         multibinder.addBinding().to(IterativeDailyPlanGenerationOrchestrator.class);
+        multibinder.addBinding().to(CalcZonalAttributes.class);
 
 
 
