@@ -34,4 +34,12 @@ public final class CompositeFormulaKey {
     public String toString() {
         return "activity='" + activity + '\'' + ", strata=" + strata;
     }
+
+    public String getActivity() {
+        return activity;
+    }
+
+    public DecisionStrata getStrata() {
+        return strata;
+    }
 }

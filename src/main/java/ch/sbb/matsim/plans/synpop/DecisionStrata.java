@@ -61,6 +61,29 @@ public enum DecisionStrata {
                 SECDEST_AGE_1865_NOABO_CAR
         );
     }
+    public static Set<DecisionStrata> getPrimaryDestinactionChoiceStratas() {
+        return Set.of(
+                PRIMLOC_EMPL_NOABO_CAR,
+                PRIMLOC_EMPL_GA_CAR_GG,
+                PRIMLOC_EMPL_VA_NOCAR_GG,
+                PRIMLOC_EMPL_NOABO_NOCAR_GG,
+                PRIMLOC_EMPL_GA_NOCAR_GG,
+                PRIMLOC_EMPL_VA_CAR_GG,
+                PRIMLOC_EMPL_NOABO_CAR,
+                PRIMLOC_STUD_SEC_MOBTOOL,
+                PRIMLOC_STUD_APPR_MOBTOOL,
+                PRIMLOC_STUD_TERT_MOBTOOL,
+                PRIMLOC_STUD_TERT_NOMOBTOOL,
+                PRIMLOC_EMPL_GA_CAR,
+                PRIMLOC_STUD_PRIM,
+                PRIMLOC_EMPL_VA_NOCAR,
+                PRIMLOC_EMPL_NOABO_NOCAR,
+                PRIMLOC_EMPL_GA_NOCAR,
+                PRIMLOC_STUD_SEC_NOMOBTOOL,
+                PRIMLOC_EMPL_VA_CAR,
+                PRIMLOC_STUD_APPR_NOMOBTOOL
+        );
+    }
     /**
      * @param name The exact string from your data file.
      * @return The corresponding DecisionStrata enum.
