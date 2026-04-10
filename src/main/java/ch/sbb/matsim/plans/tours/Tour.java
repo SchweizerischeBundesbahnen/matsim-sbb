@@ -69,7 +69,7 @@ public class Tour {
         return mainActivities;
     }
     public void setTourElements(List<PlanElement> planElements) {
-
+        this.tourElements = planElements;
     }
 
     public List<PlanElement> getTourElements() {

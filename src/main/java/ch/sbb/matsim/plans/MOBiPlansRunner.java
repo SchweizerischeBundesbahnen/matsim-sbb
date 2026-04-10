@@ -29,6 +29,7 @@ public class MOBiPlansRunner implements Runnable{
     public static final String WRITE_OUTPUTS = "write_outputs";
     public static final String POPULATION_SAMPLING = "population_sampling";
     public static final String INITIAL_MODE_CHOICE = "initial_mode_choice";
+    public static final String START_TIME_CHOICE = "start_time_choice";
 
 
 
@@ -39,8 +40,9 @@ public class MOBiPlansRunner implements Runnable{
             MOBILITY_TOOL_OWNERSHIP_MODEL,
             POPULATION_SAMPLING,
             PRIMARY_LOCATION_CHOICE,
-            WRITE_OUTPUTS,
             ITERATTIVE_DAILY_PLAN_GENERATION,
+            INITIAL_MODE_CHOICE,
+            START_TIME_CHOICE,
             WRITE_OUTPUTS
     );
     private final MOBiPlansConfig config;

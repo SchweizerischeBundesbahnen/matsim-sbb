@@ -39,6 +39,7 @@ public record MOBiPlansConfig (
     public static final String ACTIVITY_DURATIONS_WITH_SUBTOUR_CSV = "activity_durations_with_subtour.csv";
     public static final String ACTIVITY_DURATIONS_WITHOUT_SUBTOUR_CSV = "activity_durations.csv";
     public static final String SECONDARY_ACTIVITY_CHOICE_KALIF_EXPRESSIONS_CSV = "secondary_activity_choice_kalif_expressions.csv";
+    public static final String TIME_OF_DAY_CHOICE_CSV = "time_of_day_choice.csv";
     public static final String ATTRACTION_RATES = "attraction_rates.csv";
     public static final String SPECIAL_CASES_ATIMES_PCOSTS = "special_cases_atimes_pcosts.csv";
 

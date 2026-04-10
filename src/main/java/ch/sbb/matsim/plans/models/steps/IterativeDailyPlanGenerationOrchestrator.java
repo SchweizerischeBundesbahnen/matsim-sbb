@@ -57,9 +57,7 @@ public class IterativeDailyPlanGenerationOrchestrator implements ModelStep {
             }
             
             log.info("--- Starting Daily Plan Iteration {} for {} agents ---", iter + 1, remainingAgents);
-
-            // 1. Tour Building (Only processes agents with needs_daily_replanning == true)
-            tourBuildingModel.runIteration();
+            tourBuildingModel.runIteration(iter);
             log.info("Finished Tour Building for iteration {}. Starting Destination and Duration Choice.", iter + 1);
             // 2. Dest/Dur Choice (Checks budgets based on 'replanning_iteration')
             // If they pass, it sets needs_daily_replanning = false.
@@ -79,39 +77,11 @@ public class IterativeDailyPlanGenerationOrchestrator implements ModelStep {
             log.warn("{} agents failed to find a valid daily plan after {} iterations. Keeping their best fallback plan.", failedAgents, maxIterations);
         }
         destDurModel.cleanup();
-        PopulationFactory populationFactory = PopulationUtils.getFactory();
+        scenario.getPopulation().getPersons().values().stream().forEach(person -> person.getAttributes().removeAttribute(NEEDS_DAILY_REPLANNING));
 
-        for (Person person : scenario.getPopulation().getPersons().values()) {
-            person.getAttributes().removeAttribute(NEEDS_DAILY_REPLANNING);
-            Plan plan = populationFactory.createPlan();
-            person.addPlan(plan);
-            var tours = (List<Tour>) person.getAttributes().getAttribute("tours");
-            if (tours!=null) {
-
-                for (Tour tour : tours) {
-                    plan.addActivity(populationFactory.createActivityFromCoord(SBBActivities.home, null));
-                    for (Activity activity : tour.getOutboundStopActivities()) {
-                        plan.addActivity(activity);
-                    }
-                    plan.addActivity(tour.getMainActivities().get(0));
-
-                    if (tour.getSubtourActivities().size() > 0) {
-                        for (Activity subtourActivity : tour.getSubtourActivities()) {
-                            plan.addActivity(subtourActivity);
-                        }
-                        plan.addActivity(tour.getMainActivities().get(1));
-                    }
-                    for (Activity activity : tour.getInboundStopActivities()) {
-                        plan.addActivity(activity);
-                    }
-                }
-                plan.addActivity(populationFactory.createActivityFromCoord(SBBActivities.home, null));
-
-            }
         }
 
 
-    }
 
 
 

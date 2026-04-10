@@ -16,7 +16,6 @@ import ch.sbb.matsim.plans.synpop.DecisionStrata;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.Zone;
-import com.sun.jdi.connect.Transport;
 import jakarta.inject.Inject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -31,6 +30,7 @@ import java.util.concurrent.ForkJoinPool;
  */
 public class InitialModeChoiceModel implements ModelStep {
 
+    public static final String CAR_NET_DISTANCE = "car_net_distance";
     private final Matrices matrices;
     private final Scenario scenario;
     private final MOBiPlansConfig moBiPlansConfig;
@@ -132,30 +132,34 @@ public class InitialModeChoiceModel implements ModelStep {
         List<PlanElement> planElements = new ArrayList<>();
         for (LegInTour legInTour : relationsWithActivityType) {
             String mode = legInTour.partOfSubtour ? tour.getSubtourMode() : tour.getMaintourMode();
-            double travelTime = getTravelTimeForMode(legInTour.fromZone,legInTour.toZone, mode);
             Leg leg = populationFactory.createLeg(mode);
-            leg.setTravelTime(travelTime);
+            setTravelTimeAndDistanceForMode(legInTour.fromZone,legInTour.toZone, mode, leg);
             planElements.add(legInTour.nextActivity);
         }
             tour.setTourElements(planElements);
     }
 
-    private double getTravelTimeForMode(Zone fromZone, Zone toZone, String mode) {
+
+
+    private void setTravelTimeAndDistanceForMode(Zone fromZone, Zone toZone, String mode, Leg leg) {
         // Fetch travel metrics for the O-D pair
         Map<String, Double> metrics = matrices.getTravelMetrics(fromZone.getId(), toZone.getId());
         double distanceMeters = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase(), 0.0);
+        leg.getAttributes().putAttribute(CAR_NET_DISTANCE, distanceMeters);
+        //add the distance as a leg attribute,
+        // it is needed in the Start Time Choice model. Not using the route here, as no actual route has been calculated.
 
         // Base Walk travel time (Python speed: 4.7 km/h. Conversion to m/s is 4.7 / 3.6)
         double walkTtSeconds = distanceMeters / (4.7 / 3.6);
 
-        switch (mode) {
+        double travelTime = switch (mode) {
             case SBBModes.WALK_MAIN_MAINMODE:
             case "walk":
-                return walkTtSeconds;
+                yield walkTtSeconds;
 
             case SBBModes.BIKE:
                 // Base Bike travel time (Python speed: 13.0 km/h. Conversion to m/s is 13.0 / 3.6)
-                return distanceMeters / (13.0 / 3.6);
+                yield distanceMeters / (13.0 / 3.6);
 
             case SBBModes.CAR:
                 double carTt = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase(), 0.0);
@@ -164,7 +168,7 @@ public class InitialModeChoiceModel implements ModelStep {
                 double pcCar = getZoneDouble(toZone, ZonalAttributes.PC_CAR, 0.0);
 
                 // Parking penalty remains exactly as we established earlier
-                return carTt + atCarOrigin + atCarDest + (60.0 * pcCar * 2.0 * 0.047 / 0.125);
+                yield carTt + atCarOrigin + atCarDest + (60.0 * pcCar * 2.0 * 0.047 / 0.125);
 
             case SBBModes.RIDE:
                 double rideTt = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase(), 0.0);
@@ -173,7 +177,7 @@ public class InitialModeChoiceModel implements ModelStep {
                 double atRideDest = getZoneDouble(toZone, "at_ride", 0.0);
                 double pcRide = getZoneDouble(toZone, "pc_ride", 0.0);
 
-                return rideTt + atRideOrigin + atRideDest + (60.0 * pcRide * 2.0 * 0.047 / 0.125);
+                yield rideTt + atRideOrigin + atRideDest + (60.0 * pcRide * 2.0 * 0.047 / 0.125);
 
             case SBBModes.PT:
                 // 5 minute transfer penalty translates to 300 seconds
@@ -184,11 +188,13 @@ public class InitialModeChoiceModel implements ModelStep {
 
                 // Python logic: "np.where(tt_mat_pt < tt_mat_walk, tt_mat_pt, tt_mat_walk)"
                 // Meaning, if walking is faster than waiting for the train, the agent just walks!
-                return Math.min(ptTt, walkTtSeconds);
+                yield Math.min(ptTt, walkTtSeconds);
 
             default:
-                return walkTtSeconds; // Safe fallback
-        }
+                yield walkTtSeconds; // Safe fallback
+        };
+
+        leg.setTravelTime(travelTime);
     }
 
     // --- Helper Methods (if not already in your class) ---

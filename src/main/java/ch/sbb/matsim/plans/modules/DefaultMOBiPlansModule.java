@@ -2,9 +2,11 @@ package ch.sbb.matsim.plans.modules;
 
 import ch.sbb.matsim.plans.matrices.MOBiMatricesProvider;
 import ch.sbb.matsim.plans.matrices.Matrices;
+import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
 import ch.sbb.matsim.plans.models.steps.*;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
-import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
+import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepositoryFromCSV;
+import ch.sbb.matsim.plans.models.steps.starttimechoice.StartTimeChoiceModel;
 import ch.sbb.matsim.plans.models.utils.MOBiPlansOutputWriter;
 import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
 import ch.sbb.matsim.plans.synpop.loading.SynpopLoader;
@@ -34,7 +36,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         bind(Matrices.class).toProvider(MOBiMatricesProvider.class).asEagerSingleton();
 
         //the following are lazy singletons
-        bind(ModeImpedanceFormulaRepository.class).toInstance(new ModeImpedanceFormulaRepository(Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString()));
+        bind(ModeImpedanceFormulaRepository.class).toInstance(new ModeImpedanceFormulaRepositoryFromCSV(Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString()));
         bind(StrataPredicateFactory.class).toInstance(new StrataPredicateFactory());
         bind(TourBuildingModel.class);
         bind(CombinedDestinationAndDurationChoiceModel.class);
@@ -48,6 +50,8 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(PopulationSampler.class);
         multibinder.addBinding().to(IterativeDailyPlanGenerationOrchestrator.class);
         multibinder.addBinding().to(CalcZonalAttributes.class);
+        multibinder.addBinding().to(InitialModeChoiceModel.class);
+        multibinder.addBinding().to(StartTimeChoiceModel.class);
 
 
 

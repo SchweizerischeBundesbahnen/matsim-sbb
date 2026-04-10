@@ -53,16 +53,14 @@ public class TourBuildingModel {
     private final IntegerSelectionModelFromCSV subtourFrequencyModelWork;
     private final IntegerSelectionModelFromCSV subtourFrequencyModelEducation;
     private final SecondaryActivityTypeAssignmentModel secondaryActivityTypeAssignmentModel;
-    private final MOBiPlansConfig mobiPlansConfg;
     private final static Logger log = LogManager.getLogger(TourBuildingModel.class);
-
+    private final PopulationFactory factory;
 
     @Inject
     public TourBuildingModel(Scenario scenario, MOBiPlansConfig mobiPlansConfig) {
         this.scenario = scenario;
         Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
         this.threads = mobiPlansConfig.models().threads();
-        this.mobiPlansConfg = mobiPlansConfig;
         tourFrequencyWorkModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV).toString(), MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV);
         tourFrequencyEducationModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_EDUCATION_MODEL_CSV).toString(), MOBiPlansConfig.TOUR_FREQUENCY_EDUCATION_MODEL_CSV);
         tourFrequencyOtherModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.TOUR_FREQUENCY_OTHER_MODEL_CSV).toString(), MOBiPlansConfig.TOUR_FREQUENCY_OTHER_MODEL_CSV);
@@ -76,18 +74,18 @@ public class TourBuildingModel {
         subtourFrequencyModelWork = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.SUBTOUR_FREQUENCY_WORK_CSV).toString(), MOBiPlansConfig.SUBTOUR_FREQUENCY_WORK_CSV);
         subtourFrequencyModelEducation = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.SUBTOUR_FREQUENCY_EDUCATION_CSV).toString(), MOBiPlansConfig.SUBTOUR_FREQUENCY_EDUCATION_CSV);
         secondaryActivityTypeAssignmentModel = new SecondaryActivityTypeAssignmentModel(modelFolder.resolve(MOBiPlansConfig.SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV).toString());
+        this.factory = scenario.getPopulation().getFactory();
     }
 
-    public void runIteration() {
+    public void runIteration(int iteration) {
         Population population = scenario.getPopulation();
-        PopulationFactory factory = population.getFactory();
         ForkJoinPool customPool = new ForkJoinPool(threads);
         try {
             customPool.submit(() ->
                     population.getPersons().values().parallelStream()
                             .filter(person -> new PopulationSampler.ActivePersonPredicate().test(person)) // Only process active persons
                             .filter(p -> Boolean.TRUE.equals(p.getAttributes().getAttribute(NEEDS_DAILY_REPLANNING)))
-                            .forEach(person -> processPerson(person, factory))
+                            .forEach(person -> processPerson(person, iteration))
             ).get();
         } catch (Exception e) {
             throw new RuntimeException("Parallel execution failed", e);
@@ -242,7 +240,7 @@ public void writeTourStats(String filename) {
         }
     }
 
-    private void processPerson(Person person, PopulationFactory factory) {
+    private void processPerson(Person person, int iteration) {
         var attributes = person.getAttributes();
         attributes.removeAttribute(SynpopConstants.TOURS); // Clear any existing tours if re-processing
         // 1. Work Tours
@@ -299,7 +297,7 @@ public void writeTourStats(String filename) {
 
         // 7. Generate Stops and Subtours
         List<Tour> tours = new ArrayList<>();
-        Random activityTypeRandom = SynPopUtils.getRandom(person.getId(),SecondaryActivityTypeAssignmentModel.class.getName());
+        Random activityTypeRandom = SynPopUtils.getRandom(person.getId(),SecondaryActivityTypeAssignmentModel.class.getName()+iteration);
         for (int i = 0; i < noWorkTours; i++) {
             Tour tour = new Tour(Tour.TourType.PRIMARY, SBBActivities.work);
             populateTour(tour, factory, stopFrequencyInboundWorkModel.calculate(person), stopFrequencyOutboundWorkModel.calculate(person), subtourFrequencyModelWork.calculate(person), person, activityTypeRandom);

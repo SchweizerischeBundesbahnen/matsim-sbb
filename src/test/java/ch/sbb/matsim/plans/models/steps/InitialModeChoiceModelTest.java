@@ -16,7 +16,6 @@ import ch.sbb.matsim.zones.AttributableZone;
 import ch.sbb.matsim.zones.Zone;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
@@ -24,34 +23,26 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class InitialModeChoiceModelTest {
-
-    @Mock private Matrices matricesMock;
-    @Mock private MOBiPlansConfig configMock;
-    @Mock private MOBiPlansConfig.ModelsConfig modelsConfigMock;
-    @Mock private ModeImpedanceFormulaRepository formulaRepoMock;
-    @Mock private StrataPredicateFactory strataFactoryMock;
-    @Mock private ExpressionEvaluator evaluatorMock;
-    @Mock private FloatMatrix<Id<Zone>> distanceMatrixMock;
 
     private Scenario scenario;
     private PopulationFactory popFactory;
     private Zone homeZone, stopZone, workZone, subZone;
+
+    private MOBiPlansConfig mobiPlansConfig;
+    private Matrices dummyMatrices;
+    private ModeImpedanceFormulaRepository dummyFormulaRepo;
+    private StrataPredicateFactory dummyStrataFactory;
+    private ExpressionEvaluator dummyEvaluator;
 
     @BeforeEach
     void setUp() {
@@ -59,57 +50,131 @@ class InitialModeChoiceModelTest {
         popFactory = scenario.getPopulation().getFactory();
 
         // 1. Thread Config
-        when(configMock.models()).thenReturn(modelsConfigMock);
-        when(modelsConfigMock.threads()).thenReturn(1);
+        MOBiPlansConfig.DataConfig dataConfig = new MOBiPlansConfig.DataConfig(
+                List.of(), null, null, null, null, null, null, null,
+                "dummy/path", null, null, null, null, null
+        );
+        MOBiPlansConfig.ModelsConfig modelsConfig = new MOBiPlansConfig.ModelsConfig(
+                1, 1.0, false, "test_run", null
+        );
+        mobiPlansConfig = new MOBiPlansConfig(dataConfig, modelsConfig);
 
-        // 2. Matrices Setup
-        when(matricesMock.getTravelMetricsMatrix(MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE)).thenReturn(distanceMatrixMock);
-        lenient().when(matricesMock.getTravelAndAccessibilityMetrics(any(), any())).thenReturn(Collections.emptyMap());
-
-        // 3. Create Zones
-        homeZone = new AttributableZone(Id.create("home", Zone.class),null);
+        // 2. Create Zones
+        homeZone = new AttributableZone(Id.create("home", Zone.class), null);
         stopZone = new AttributableZone(Id.create("stop", Zone.class), null);
         workZone = new AttributableZone(Id.create("work", Zone.class), null);
-        subZone = new AttributableZone(Id.create("sub", Zone.class),  null);
+        subZone = new AttributableZone(Id.create("sub", Zone.class), null);
 
-        // 4. Mock the Distances so we can test the "Longest Leg" sorting
-        // Outbound: Home -> Stop (2000m) -> Work (5000m). Max Main Leg = 5000m
-        lenient().when(distanceMatrixMock.get(homeZone.getId(), stopZone.getId())).thenReturn(2000f);
-        lenient().when(distanceMatrixMock.get(stopZone.getId(), workZone.getId())).thenReturn(5000f);
+        // 3. Setup Distances so we can test the "Longest Leg" sorting
+        List<Id<Zone>> zoneIds = List.of(homeZone.getId(), stopZone.getId(), workZone.getId(), subZone.getId());
+        float[][] distances = new float[4][4];
 
-        // Subtour: Work -> Sub (1500m) -> Work (1000m). Max Subtour Leg = 1500m
-        lenient().when(distanceMatrixMock.get(workZone.getId(), subZone.getId())).thenReturn(1500f);
-        lenient().when(distanceMatrixMock.get(subZone.getId(), workZone.getId())).thenReturn(1000f);
+        // Outbound: Home(0) -> Stop(1) -> Work(2). Max Main Leg = 5000m
+        distances[0][1] = 2000f;
+        distances[1][2] = 5000f;
+        // Subtour: Work(2) -> Sub(3) -> Work(2). Max Subtour Leg = 1500m
+        distances[2][3] = 1500f;
+        distances[3][2] = 1000f;
+        // Inbound: Work(2) -> Home(0)
+        distances[2][0] = 4000f;
 
-        // Inbound: Work -> Home (4000m)
-        lenient().when(distanceMatrixMock.get(workZone.getId(), homeZone.getId())).thenReturn(4000f);
+        FloatMatrix<Id<Zone>> distanceMatrix = FloatMatrix.createFloatMatrix(zoneIds, distances);
 
-        // 5. Setup Formulas and Strata
-        DecisionStrata dummyStrata = DecisionStrata.PRIMLOC_EMPL_NOABO_CAR; // The actual strata doesn't matter for this test since we mock the predicate to always return true
-        lenient().when(formulaRepoMock.getStratasPerActivityType()).thenReturn(
-                Map.of(
+        // 4. Pure Java Matrices Stub
+        dummyMatrices = new Matrices() {
+            @Override
+            public FloatMatrix<Id<Zone>> getTravelMetricsMatrix(MatrixNames.TravelMetricsMatrices name) {
+                if (MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.equals(name)) {
+                    return distanceMatrix;
+                }
+                return null;
+            }
+
+            @Override
+            public FloatMatrix<Id<Zone>> getMatrix(String matrixName) {
+                return null;
+            }
+
+            @Override
+            public void addMatrix(String matrixName, FloatMatrix<Id<Zone>> matrix) {
+
+            }
+
+            @Override
+            public void addMatrices(Map<String, FloatMatrix<Id<Zone>>> matrices) {
+
+            }
+
+            @Override
+            public void removeMatrix(String matrixName) {
+
+            }
+
+            @Override
+            public FloatMatrix<Id<Zone>> getKalifMatrix(MatrixNames.KalifMatrices matrixName) {
+                return null;
+            }
+
+            @Override
+            public Map<String, Double> getTravelMetrics(Id<Zone> fromZoneId, Id<Zone> toZoneId) {
+                return Map.of();
+            }
+
+            @Override
+            public Map<String, Double> getTravelAndAccessibilityMetrics(Zone origin, Zone destination) {
+                return Collections.emptyMap(); // Not needed for the direct formula evaluator stub
+            }
+
+            @Override
+            public Map<String, Double> getKalifMetrics(Id<Zone> fromZoneId, Id<Zone> toZoneId) {
+                return Map.of();
+            }
+        };
+
+        // 5. Setup Formulas and Strata Stubs
+        DecisionStrata dummyStrata = DecisionStrata.PRIMLOC_EMPL_NOABO_CAR;
+
+        dummyStrataFactory = new StrataPredicateFactory() {
+            @Override
+            public Predicate<Person> getPredicate(DecisionStrata strata) {
+                return p -> true; // Applies to everyone in this test
+            }
+        };
+
+        dummyFormulaRepo = new ModeImpedanceFormulaRepository() {
+            @Override
+            public Map<String, Set<DecisionStrata>> getStratasPerActivityType() {
+                return Map.of(
                         SBBActivities.work, Set.of(dummyStrata),
                         SBBActivities.leisure, Set.of(dummyStrata)
-                )
-        );
-        lenient().when(strataFactoryMock.getPredicate(dummyStrata)).thenReturn(p -> true); // Applies to everyone
+                );
+            }
 
-        // Mock the formulas that will be returned
-        Map<String, String> workFormulas = Map.of(SBBModes.CAR, "car_work_util", SBBModes.PT, "pt_work_util");
-        Map<String, String> subFormulas = Map.of(SBBModes.CAR, "car_sub_util", SBBModes.PT, "pt_sub_util", SBBModes.WALK_MAIN_MAINMODE, "walk_sub_util");
+            @Override
+            public Map<String, String> getModeFormulas(String activityType, DecisionStrata strata) {
+                if (SBBActivities.work.equals(activityType)) {
+                    return Map.of(SBBModes.CAR, "car_work_util", SBBModes.PT, "pt_work_util");
+                } else if (SBBActivities.leisure.equals(activityType)) {
+                    return Map.of(SBBModes.CAR, "car_sub_util", SBBModes.PT, "pt_sub_util", SBBModes.WALK_MAIN_MAINMODE, "walk_sub_util");
+                }
+                return Collections.emptyMap();
+            }
+        };
 
-        lenient().when(formulaRepoMock.getModeFormulas(SBBActivities.work, dummyStrata)).thenReturn(workFormulas);
-        lenient().when(formulaRepoMock.getModeFormulas("leisure", dummyStrata)).thenReturn(subFormulas);
-
-        // Setup the Evaluator to return fixed utilities based on the formula string
-        // Work: CAR is highly preferred (10.0 vs 0.0)
-        lenient().when(evaluatorMock.evaluate(eq("car_work_util"), any())).thenReturn(10.0);
-        lenient().when(evaluatorMock.evaluate(eq("pt_work_util"), any())).thenReturn(0.0);
-
-        // Subtour: PT is highly preferred over car/walk (20.0 vs 10.0 vs 0.0)
-        lenient().when(evaluatorMock.evaluate(eq("car_sub_util"), any())).thenReturn(10.0);
-        lenient().when(evaluatorMock.evaluate(eq("pt_sub_util"), any())).thenReturn(20.0);
-        lenient().when(evaluatorMock.evaluate(eq("walk_sub_util"), any())).thenReturn(0.0);
+        // 6. Setup Expression Evaluator Stub
+        dummyEvaluator = new ExpressionEvaluator() {
+            @Override
+            public double evaluate(String formulaString, Map<String, Double> variableData) {
+                switch (formulaString) {
+                    case "car_work_util": return 10.0;
+                    case "pt_work_util": return 0.0;
+                    case "car_sub_util": return 10.0;
+                    case "pt_sub_util": return 20.0;
+                    case "walk_sub_util": return 0.0;
+                    default: return Double.NEGATIVE_INFINITY;
+                }
+            }
+        };
     }
 
     private Tour buildTestTour() {
@@ -117,20 +182,20 @@ class InitialModeChoiceModelTest {
 
         // Add Outbound Stop
         Activity stop1 = popFactory.createActivityFromCoord("shopping", null);
-        stop1.getAttributes().putAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE, stopZone);
+        stop1.getAttributes().putAttribute("assigned_zone", stopZone);
         tour.getOutboundStopActivities().add(stop1);
 
         // Set Main Activity Part 1
-        tour.getMainActivities().get(0).getAttributes().putAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE, workZone);
+        tour.getMainActivities().get(0).getAttributes().putAttribute("assigned_zone", workZone);
 
         // Add Subtour Stop
         Activity subStop = popFactory.createActivityFromCoord("leisure", null);
-        subStop.getAttributes().putAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE, subZone);
+        subStop.getAttributes().putAttribute("assigned_zone", subZone);
         tour.getSubtourActivities().add(subStop);
 
         // Set Main Activity Part 2
         Activity mainWork2 = popFactory.createActivityFromCoord(SBBActivities.work, null);
-        mainWork2.getAttributes().putAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE, workZone);
+        mainWork2.getAttributes().putAttribute("assigned_zone", workZone);
         tour.getMainActivities().add(mainWork2);
 
         return tour;
@@ -149,7 +214,7 @@ class InitialModeChoiceModelTest {
         scenario.getPopulation().addPerson(p1);
 
         // 2. Run Model
-        InitialModeChoiceModel model = new InitialModeChoiceModel(matricesMock, scenario, configMock, formulaRepoMock, strataFactoryMock, evaluatorMock);
+        InitialModeChoiceModel model = new InitialModeChoiceModel(dummyMatrices, scenario, mobiPlansConfig, dummyFormulaRepo, dummyStrataFactory, dummyEvaluator);
         model.run();
 
         // 3. Assertions
@@ -173,14 +238,14 @@ class InitialModeChoiceModelTest {
         scenario.getPopulation().addPerson(p2);
 
         // 2. Run Model
-        InitialModeChoiceModel model = new InitialModeChoiceModel(matricesMock, scenario, configMock, formulaRepoMock, strataFactoryMock, evaluatorMock);
+        InitialModeChoiceModel model = new InitialModeChoiceModel(dummyMatrices, scenario, mobiPlansConfig, dummyFormulaRepo, dummyStrataFactory, dummyEvaluator);
         model.run();
 
         // 3. Assertions
         // Because Car was not available, the model only evaluated PT (0.0). PT wins by default.
         assertEquals(SBBModes.PT, tour.getMaintourMode());
 
-        // For the subtour, even though evaluatorMock returns 10.0 for CAR and 20.0 for PT,
+        // For the subtour, even though evaluator returns 10.0 for CAR and 20.0 for PT,
         // the chain-based logic should completely remove CAR from the choice set.
         assertEquals(SBBModes.PT, tour.getSubtourMode());
     }

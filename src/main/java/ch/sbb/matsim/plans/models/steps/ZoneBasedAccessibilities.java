@@ -20,7 +20,6 @@ import org.matsim.api.core.v01.Scenario;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.DoubleAdder;
 
 import static ch.sbb.matsim.plans.models.utils.Calculations.calculateLogsum;
 
