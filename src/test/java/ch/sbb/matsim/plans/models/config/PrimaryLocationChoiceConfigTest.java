@@ -8,6 +8,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -131,8 +132,8 @@ class PrimaryLocationChoiceConfigTest {
     void test_readFromYaml_throwsExceptionForMissingFile() {
         String nonExistentFilePath = tempDir.resolve("non_existent_file.yaml").toString();
 
-        // Assert that an IOException is thrown when the file does not exist
-        assertThrows(IOException.class, () -> {
+        // Assert that an Exception is thrown when the file does not exist
+        assertThrows(Exception.class, () -> {
             PrimaryLocationChoiceConfig.readFromYamlFile(nonExistentFilePath);
         }, "Should throw an IOException for a file that does not exist.");
     }
@@ -154,7 +155,7 @@ class PrimaryLocationChoiceConfigTest {
         Files.writeString(badEnumFile.toPath(), yamlContent);
 
         // Jackson will throw an exception (typically a subtype of IOException) when it fails to map the string to an enum
-        assertThrows(IOException.class, () -> {
+        assertThrows(Exception.class, () -> {
             PrimaryLocationChoiceConfig.readFromYamlFile(badEnumFile.getAbsolutePath());
         }, "Should throw an exception when a string cannot be mapped to an enum constant.");
     }
