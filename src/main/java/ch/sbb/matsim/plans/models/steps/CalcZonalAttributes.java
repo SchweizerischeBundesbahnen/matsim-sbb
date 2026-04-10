@@ -3,7 +3,10 @@ package ch.sbb.matsim.plans.models.steps;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
+import ch.sbb.matsim.plans.constants.SynpopConstants;
+import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
+import ch.sbb.matsim.plans.synpop.loading.arrow.BusinessesReader;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import jakarta.inject.Inject;
@@ -32,8 +35,8 @@ public class CalcZonalAttributes implements ModelStep {
     // Example age group variables similar to sc.SynpopAttrs.person_age_groups_vars in Python
     // The code parses the lower bound from each label (e.g., "age_00_04" -> 0).
     private final List<String> PERSON_AGE_GROUP_VARS = Arrays.asList(
-            "pop_0017", "pop_1824", "pop_2544", "pop_4564", "pop_6574",
-            "pop_75xx"
+            ZonalAttributes.POP_0017, ZonalAttributes.POP_1824, ZonalAttributes.POP_2544, ZonalAttributes.POP_4564, ZonalAttributes.POP_6574,
+            ZonalAttributes.POP_75XX
     );
 
     // Education category codes expected on current_edu attribute
@@ -42,20 +45,7 @@ public class CalcZonalAttributes implements ModelStep {
     private static final String EDU_STUDENT = "4";
     private static final String EDU_APPRENTICE = "5";
 
-    // Aggregate output variable names (match Python)
-    private static final String POP_PUP_1 = "pop_pup_1";
-    private static final String POP_PUP_2 = "pop_pup_2";
-    private static final String POP_STUD_3 = "pop_stud_3";
-    private static final String POP_APPR = "pop_appr";
-    private static final String POP_TOTAL = "pop_total";
-    private static final String POP_EMPL = "pop_empl";
-    private static final String JOBS_ENDO = "jobs_endo";
-    private static final String JOBS_TOTAL = "jobs_total";
-    private static final String JOBS_EXO = "jobs_exo";
-    private static final String FTE_ENDO = "fte_endo";
-    private static final String FTE_TOTAL = "fte_total";
-    private static final String DENSITY = "density";
-    private static final String AREA_LAND = "area_land";
+
 
     @Inject
     public CalcZonalAttributes(MOBiPlansConfig config, Scenario scenario) {
@@ -402,10 +392,10 @@ public class CalcZonalAttributes implements ModelStep {
             }
 
             // ---- Write back to zone attributes ----
-            z.getAttributes().putAttribute("at_car", atCarRounded);
-            z.getAttributes().putAttribute("at_ride", atRideRounded);
-            z.getAttributes().putAttribute("pc_car", pcCar);
-            z.getAttributes().putAttribute("pc_ride", pcRide);
+            z.getAttributes().putAttribute(ZonalAttributes.AT_CAR, atCarRounded);
+            z.getAttributes().putAttribute(ZonalAttributes.AT_RIDE, atRideRounded);
+            z.getAttributes().putAttribute(ZonalAttributes.PC_CAR, pcCar);
+            z.getAttributes().putAttribute(ZonalAttributes.PC_RIDE, pcRide);
         }
 
         logger.info("Finished calculating access times and parking costs.");
@@ -433,7 +423,7 @@ public class CalcZonalAttributes implements ModelStep {
             Zone z = e.getValue();
 
             Aggregates a = new Aggregates(PERSON_AGE_GROUP_VARS);
-            a.areaLand = readDoubleAttribute(z, AREA_LAND, 0.0);
+            a.areaLand = readDoubleAttribute(z, ZonalAttributes.AREA_LAND, 0.0);
             aggByZone.put(zId, a);
         }
     }
@@ -443,7 +433,7 @@ public class CalcZonalAttributes implements ModelStep {
         List<String> orderedAgeLabels = orderAgeLabelsByLowerBound(PERSON_AGE_GROUP_VARS, ageGroupLowerBounds);
 
         for (Person p : scenario.getPopulation().getPersons().values()) {
-            String zoneId = asString(p.getAttributes().getAttribute("zone_id"));
+            String zoneId = asString(p.getAttributes().getAttribute(SynpopConstants.ZONE_ID));
             if (zoneId == null) {
                 continue; // person without zone
             }
@@ -457,13 +447,13 @@ public class CalcZonalAttributes implements ModelStep {
             a.pop_total++;
 
             // Employment
-            double levelOfEmployment = asDouble(p.getAttributes().getAttribute("level_of_employment"), Double.NaN);
+            double levelOfEmployment = asDouble(p.getAttributes().getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT), Double.NaN);
             if (!Double.isNaN(levelOfEmployment) && levelOfEmployment > 0.0) {
                 a.pop_empl++;
             }
 
             // Age group counts
-            Integer age = asInteger(p.getAttributes().getAttribute("age"));
+            Integer age = asInteger(p.getAttributes().getAttribute(SynpopConstants.AGE));
             if (age != null && age >= 0) {
                 String label = findAgeLabel(age, orderedAgeLabels, ageGroupLowerBounds);
                 if (label != null) {
@@ -472,7 +462,7 @@ public class CalcZonalAttributes implements ModelStep {
             }
 
             // Education categories
-            String edu = asString(p.getAttributes().getAttribute("current_edu"));
+            String edu = asString(p.getAttributes().getAttribute(SynpopConstants.CURRENT_EDU));
             if (edu != null) {
                 switch (edu) {
                     case EDU_PUPIL_PRIMARY -> a.pop_pup_1++;
@@ -487,15 +477,15 @@ public class CalcZonalAttributes implements ModelStep {
 
     private void processBusinesses(Map<String, Aggregates> aggByZone, Map<String, Zone> zoneById) {
         for (ActivityFacility f : scenario.getActivityFacilities().getFacilities().values()) {
-            String zoneId = f.getAttributes().getAttribute("zone_id").toString();
+            String zoneId = f.getAttributes().getAttribute(SynpopConstants.ZONE_ID).toString();
             if (zoneId == null) continue;
             Aggregates a = aggByZone.get(zoneId);
             if (a == null) continue; // zone not modeled
 
-            double jobsEndo = parseDouble(f.getAttributes().getAttribute("jobs_endo").toString(), 0.0);
-            double jobsExo = parseDouble(f.getAttributes().getAttribute("jobs_exo").toString(), 0.0);
-            double fteEndo = parseDouble(f.getAttributes().getAttribute("fte_endo").toString(), 0.0);
-            double fteExo = parseDouble(f.getAttributes().getAttribute("fte_exo").toString(), 0.0);
+            double jobsEndo = parseDouble(f.getAttributes().getAttribute(SynpopConstants.JOBS_ENDO).toString(), 0.0);
+            double jobsExo = parseDouble(f.getAttributes().getAttribute(SynpopConstants.JOBS_EXO).toString(), 0.0);
+            double fteEndo = parseDouble(f.getAttributes().getAttribute(SynpopConstants.FTE_ENDO).toString(), 0.0);
+            double fteExo = parseDouble(f.getAttributes().getAttribute(SynpopConstants.FTE_EXO).toString(), 0.0);
 
             a.jobs_endo += jobsEndo;
             a.jobs_exo += jobsExo;
@@ -540,22 +530,22 @@ public class CalcZonalAttributes implements ModelStep {
             }
 
             // Person aggregates
-            z.getAttributes().putAttribute(POP_PUP_1, a.pop_pup_1);
-            z.getAttributes().putAttribute(POP_PUP_2, a.pop_pup_2);
-            z.getAttributes().putAttribute(POP_STUD_3, a.pop_stud_3);
-            z.getAttributes().putAttribute(POP_APPR, a.pop_appr);
-            z.getAttributes().putAttribute(POP_TOTAL, a.pop_total);
-            z.getAttributes().putAttribute(POP_EMPL, a.pop_empl);
+            z.getAttributes().putAttribute(ZonalAttributes.POP_PUP_1, a.pop_pup_1);
+            z.getAttributes().putAttribute(ZonalAttributes.POP_PUP_2, a.pop_pup_2);
+            z.getAttributes().putAttribute(ZonalAttributes.POP_STUD_3, a.pop_stud_3);
+            z.getAttributes().putAttribute(ZonalAttributes.POP_APPR, a.pop_appr);
+            z.getAttributes().putAttribute(ZonalAttributes.POP_TOTAL, a.pop_total);
+            z.getAttributes().putAttribute(ZonalAttributes.POP_EMPL, a.pop_empl);
 
             // Business aggregates
-            z.getAttributes().putAttribute(JOBS_ENDO, a.jobs_endo);
-            z.getAttributes().putAttribute(JOBS_TOTAL, a.jobs_total);
-            z.getAttributes().putAttribute(JOBS_EXO, a.jobs_exo);
-            z.getAttributes().putAttribute(FTE_ENDO, a.fte_endo);
-            z.getAttributes().putAttribute(FTE_TOTAL, a.fte_total);
+            z.getAttributes().putAttribute(ZonalAttributes.JOBS_ENDO, a.jobs_endo);
+            z.getAttributes().putAttribute(ZonalAttributes.JOBS_TOTAL, a.jobs_total);
+            z.getAttributes().putAttribute(ZonalAttributes.JOBS_EXO, a.jobs_exo);
+            z.getAttributes().putAttribute(ZonalAttributes.FTE_ENDO, a.fte_endo);
+            z.getAttributes().putAttribute(ZonalAttributes.FTE_TOTAL, a.fte_total);
 
             // Density
-            z.getAttributes().putAttribute(DENSITY, a.density);
+            z.getAttributes().putAttribute(ZonalAttributes.DENSITY, a.density);
         }
     }
 
