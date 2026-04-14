@@ -41,7 +41,7 @@ public class DefaultMatrices implements Matrices {
 
     @Override
     public FloatMatrix<Id<Zone>> getTravelMetricsMatrix(MatrixNames.TravelMetricsMatrices matrixName) {
-        return matrices.get(matrixName.name());
+        return matrices.get(matrixName.name().toLowerCase());
     }
 
     @Override

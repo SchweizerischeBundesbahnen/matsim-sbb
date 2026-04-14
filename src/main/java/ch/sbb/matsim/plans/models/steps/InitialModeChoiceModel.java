@@ -102,7 +102,7 @@ public class InitialModeChoiceModel implements ModelStep {
             boolean carAvail = Boolean.TRUE.equals(person.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE));
             Set<String> availableModes = carAvail ? allModes : modesWithoutDriving;
 
-            String mainTourMode = chooseMode(longestDistanceLeg, person, availableModes, random);
+            String mainTourMode = chooseMode(longestDistanceLeg, tour.getMainActivityType(), person, availableModes, random);
             tour.setMaintourMode(mainTourMode);
 
             if (!tour.getSubtourActivities().isEmpty()){
@@ -118,7 +118,7 @@ public class InitialModeChoiceModel implements ModelStep {
                     availableSubtourModes.add(mainTourMode);
                 }
 
-                String subtourMode = chooseMode(longestSubtourLeg, person, availableSubtourModes, random);
+                String subtourMode = chooseMode(longestSubtourLeg, longestSubtourLeg.nextActivity().getType(), person, availableSubtourModes, random);
                 tour.setSubtourMode(subtourMode);
 
 
@@ -212,8 +212,7 @@ public class InitialModeChoiceModel implements ModelStep {
         return defaultValue;
     }
 
-    private String chooseMode(LegInTour longestDistanceLeg, Person person, Set<String> availableModes, Random random) {
-        String activityType = longestDistanceLeg.nextActivity().getType();
+    private String chooseMode(LegInTour longestDistanceLeg, String activityType, Person person, Set<String> availableModes, Random random) {
 
         DecisionStrata strata = getStrataForPersonAndActivity(person, activityType);
         Map<String, String> modeFormulas = modeImpedanceFormulaRepository.getModeFormulas(activityType, strata);
@@ -291,7 +290,12 @@ public class InitialModeChoiceModel implements ModelStep {
     }
 
     private DecisionStrata getStrataForPersonAndActivity(Person person, String type) {
-        return modeImpedanceFormulaRepository.getStratasPerActivityType().get(type).stream()
+        Set<DecisionStrata> decisionStrata = modeImpedanceFormulaRepository.getStratasPerActivityType().get(type);
+        if (decisionStrata == null || decisionStrata.isEmpty()){
+            throw new RuntimeException(" no strata found for activity "+ type + " found activity types: " + modeImpedanceFormulaRepository.getStratasPerActivityType().entrySet());
+        }
+
+        return decisionStrata.stream()
                 .filter(strata -> strataPredicateFactory.getPredicate(strata).test(person))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No strata found for person " + person.getId() + " and activity type " + type));
@@ -326,7 +330,7 @@ public class InitialModeChoiceModel implements ModelStep {
 
             // Back to main activity
             Activity mainActivity1 = tour.getMainActivities().get(1);
-            toZone = (Zone) mainActivity1.getAttributes().getAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE);
+            toZone = (Zone) mainActivity0.getAttributes().getAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE);
             float distanceToMainActivity2 = networkDistances.get(fromZone.getId(), toZone.getId());
             relationsWithActivityType.add(new LegInTour(fromZone, toZone, distanceToMainActivity2, true, mainActivity1));
             fromZone = toZone;

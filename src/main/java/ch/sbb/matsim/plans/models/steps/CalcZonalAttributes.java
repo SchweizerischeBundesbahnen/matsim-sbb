@@ -52,7 +52,7 @@ public class CalcZonalAttributes implements ModelStep {
         this.config = config;
         this.scenario = scenario;
         this.zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
-        this.modelFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
+        this.modelFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_DATA);
     }
 
     @Override
