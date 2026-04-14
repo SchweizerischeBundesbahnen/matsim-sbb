@@ -44,6 +44,7 @@ public class MOBiPlansRunner implements Runnable{
             ITERATTIVE_DAILY_PLAN_GENERATION,
             INITIAL_MODE_CHOICE,
             START_TIME_CHOICE,
+            FACILITY_ALLOCATION,
             WRITE_OUTPUTS
     );
     private final MOBiPlansConfig config;

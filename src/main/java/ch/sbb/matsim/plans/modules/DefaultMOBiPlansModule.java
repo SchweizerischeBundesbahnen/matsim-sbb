@@ -52,6 +52,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(CalcZonalAttributes.class);
         multibinder.addBinding().to(InitialModeChoiceModel.class);
         multibinder.addBinding().to(StartTimeChoiceModel.class);
+        multibinder.addBinding().to(AssignFacilityLocations.class);
 
 
 

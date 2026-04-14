@@ -8,6 +8,7 @@ import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.utils.ChoiceUtils;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.Zone;
+import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -38,7 +39,7 @@ public class AssignFacilityLocations implements ModelStep{
     private static final Logger log = LogManager.getLogger(AssignFacilityLocations.class);
 
 
-
+    @Inject
     public AssignFacilityLocations(Scenario scenario, MOBiPlansConfig mobiPlansConfig) {
         this.scenario = scenario;
         this.activityFacilities = scenario.getActivityFacilities();
@@ -71,6 +72,7 @@ public class AssignFacilityLocations implements ModelStep{
             customPool.submit(() ->
                     scenario.getPopulation().getPersons().values().parallelStream()
                             .filter(p -> new PopulationSampler.ActivePersonPredicate().test(p))
+                            .filter((person) -> person.getSelectedPlan() != null)
                             .forEach(person -> processPerson(person, facilityWeights))
             ).get();
         } catch (Exception e) {
@@ -91,13 +93,13 @@ public class AssignFacilityLocations implements ModelStep{
                     assignFacilityToActivity(act, facId);
                 }
                 else if (act.getType().equals(SBBActivities.work)) {
-                    Id<ActivityFacility> workFacility = (Id<ActivityFacility>) act.getAttributes().getAttribute(SynpopConstants.WORK_FACILITY);
+                    Id<ActivityFacility> workFacility =  Id.create(act.getAttributes().getAttribute(SynpopConstants.WORK_FACILITY).toString(), ActivityFacility.class);
                     if (workFacility != null) {
                    assignFacilityToActivity(act, workFacility);
                     }
                 }
                 else if (act.getType().equals(SBBActivities.education)) {
-                    Id<ActivityFacility> educationFacility = (Id<ActivityFacility>) act.getAttributes().getAttribute(SynpopConstants.EDUCATION_FACILITY);
+                   Id<ActivityFacility> educationFacility = Id.create(act.getAttributes().getAttribute(SynpopConstants.EDUCATION_FACILITY).toString(), ActivityFacility.class);
                     if (educationFacility != null) {
                    assignFacilityToActivity(act, educationFacility);
                     }
@@ -157,7 +159,7 @@ public class AssignFacilityLocations implements ModelStep{
 
                 if (weight > 0) {
                     ZoneActivityKey key = new ZoneActivityKey(zoneId, opt.getType());
-                    grouped.computeIfAbsent(key, k -> new HashMap<>()).put(f.getId(), weight);
+                    grouped.computeIfAbsent(key, _ -> new HashMap<>()).put(f.getId(), weight);
                 }
             }
         }

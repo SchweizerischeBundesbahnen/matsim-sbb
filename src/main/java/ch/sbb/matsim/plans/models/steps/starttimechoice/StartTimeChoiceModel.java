@@ -53,7 +53,7 @@ public class StartTimeChoiceModel implements ModelStep {
     private void processPerson(Person person) {
         Random random = SynPopUtils.getRandom(person.getId(), getName());
         @SuppressWarnings("unchecked") List<Tour> sortedTours = (List<Tour>) person.getAttributes().getAttribute(SynpopConstants.TOURS);
-        if (sortedTours != null && sortedTours.isEmpty()) {
+        if (sortedTours != null && !sortedTours.isEmpty()) {
             sortToursByPriority(sortedTours);
             CandidateSchedule bestSchedule = findBestSchedule(person, sortedTours, random);
             applyScheduleToMATSimPlan(person, sortedTours, bestSchedule.mainActivityStartTimes());
