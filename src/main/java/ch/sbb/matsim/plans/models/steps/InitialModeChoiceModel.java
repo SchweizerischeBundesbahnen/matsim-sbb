@@ -134,6 +134,7 @@ public class InitialModeChoiceModel implements ModelStep {
             String mode = legInTour.partOfSubtour ? tour.getSubtourMode() : tour.getMaintourMode();
             Leg leg = populationFactory.createLeg(mode);
             setTravelTimeAndDistanceForMode(legInTour.fromZone,legInTour.toZone, mode, leg);
+            planElements.add(leg);
             planElements.add(legInTour.nextActivity);
         }
             tour.setTourElements(planElements);
