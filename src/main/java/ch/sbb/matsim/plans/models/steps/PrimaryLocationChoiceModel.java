@@ -47,7 +47,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
     private final Matrices matrices;
     private final ModeImpedanceFormulaRepository formulaRepository;
     private final ExpressionEvaluator expressionEvaluator;
-    private  PrimaryLocationChoiceConfig primaryLocationChoiceConfig;
+    private final PrimaryLocationChoiceConfig primaryLocationChoiceConfig;
     private final StrataPredicateFactory strataPredicateFactory;
     private final Logger logger = LogManager.getLogger(PrimaryLocationChoiceModel.class);
     private final ForkJoinPool customThreadPool;
@@ -274,7 +274,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         List<Zone> allDestinationZones = new ArrayList<>(zones.getZones());
         List<Zone> validDestinationZones = allDestinationZones.stream()
                 .filter(zone -> ((Number) zone.getAttribute(attractionAttribute)).doubleValue() > 0)
-                .collect(Collectors.toList());
+                .toList();
 
         if (validDestinationZones.isEmpty()) {
             logger.warn("No destination zones with attraction > 0 found for attribute '{}'. Cannot assign locations for this group.", attractionAttribute);
@@ -342,7 +342,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         logger.info("[Step 4/6] Finished preparing IPF targets.");
 
         // 5. Run IPF on the combined matrix
-        int ipfIterations = perStrataDataList.get(0).strataConfig.ipfIterations();
+        int ipfIterations = perStrataDataList.getFirst().strataConfig.ipfIterations();
         logger.info("[Step 5/6] Running IPF with {} iterations...", ipfIterations);
         Instant startIpf = Instant.now();
         double[][] combinedProbabilityMatrix = runIPF(combinedUtilityMatrix, combinedRowTargets, colTargets, ipfIterations);
@@ -422,7 +422,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
                     weight = 1.0;
                 facilityProbabilities.put(facility.getId(), weight);
             });
-            if (facilitiesInZone.size() == 0) {
+            if (facilitiesInZone.isEmpty()) {
                 logger.warn("No facilities with valid weights found in zone " + zoneId + " for activity allocation. People in this zone will not be assigned a facility.");
             }
             for (Person person : people) {

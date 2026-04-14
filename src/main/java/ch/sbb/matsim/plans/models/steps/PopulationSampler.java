@@ -35,18 +35,15 @@ public class PopulationSampler implements ModelStep {
         int slice = 0;
         for (Household household : scenario.getHouseholds().getHouseholds().values()) {
             int householdSlice = slice % 200;
-            household.getMemberIds().stream().forEach(
+            household.getMemberIds().forEach(
                     personId ->
                             scenario.getPopulation().getPersons().get(personId).getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, householdSlice));
             household.getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, householdSlice);
             slice++;
         }
-        scenario.getPopulation().getPersons().values().stream().forEach(person -> {
+        scenario.getPopulation().getPersons().values().forEach(person -> {
             int age = ((Number) person.getAttributes().getAttribute("age")).intValue();
-            boolean active = true;
-            if (age < lowerAgeBound || (int) person.getAttributes().getAttribute(PopulationSlicerByAttribute.SLICE) >= maximumSlice) {
-              active = false;
-            }
+            boolean active = age >= lowerAgeBound && (int) person.getAttributes().getAttribute(PopulationSlicerByAttribute.SLICE) < maximumSlice;
             person.getAttributes().putAttribute(SynpopConstants.ACTIVE_IN_MODEL, active);
         });
     }

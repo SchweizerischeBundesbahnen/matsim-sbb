@@ -19,8 +19,6 @@ import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiPredicate;
 
-import static ch.sbb.matsim.plans.models.steps.IterativeDailyPlanGenerationOrchestrator.NEEDS_DAILY_REPLANNING;
-
 public class StartTimeChoiceModel implements ModelStep {
    private final Scenario scenario;
    private final MOBiPlansConfig mobiPlansConfig;
@@ -41,28 +39,21 @@ public class StartTimeChoiceModel implements ModelStep {
 
     @Override
     public void run() {
-        ForkJoinPool customPool = new ForkJoinPool(mobiPlansConfig.models().threads());
-        try {
+        try (ForkJoinPool customPool = new ForkJoinPool(mobiPlansConfig.models().threads())){
             customPool.submit(() ->
                     scenario.getPopulation().getPersons().values().parallelStream()
                             .filter(person -> new PopulationSampler.ActivePersonPredicate().test(person)) // Only process active persons
-                            .forEach(person -> processPerson(person))
+                            .forEach(this::processPerson)
             ).get();
         } catch (Exception e) {
             throw new RuntimeException("Parallel execution failed", e);
-        } finally {
-            customPool.shutdown();
         }
     }
 
     private void processPerson(Person person) {
         Random random = SynPopUtils.getRandom(person.getId(), getName());
-        List<Tour> sortedTours = (List<Tour>) person.getAttributes().getAttribute(SynpopConstants.TOURS);
-        if (sortedTours == null || sortedTours.isEmpty()) {
-            // No tours to schedule, skip this person
-            return;
-        } else
-        {
+        @SuppressWarnings("unchecked") List<Tour> sortedTours = (List<Tour>) person.getAttributes().getAttribute(SynpopConstants.TOURS);
+        if (sortedTours != null && sortedTours.isEmpty()) {
             sortToursByPriority(sortedTours);
             CandidateSchedule bestSchedule = findBestSchedule(person, sortedTours, random);
             applyScheduleToMATSimPlan(person, sortedTours, bestSchedule.mainActivityStartTimes());
@@ -151,7 +142,7 @@ public class StartTimeChoiceModel implements ModelStep {
             // 4. Roulette Wheel Draw for the specific Intersection
             double r = random.nextDouble() * totalWeight;
             double cumulative = 0.0;
-            ValidIntersection chosenIntersection = intersections.get(intersections.size() - 1);
+            ValidIntersection chosenIntersection = intersections.getLast();
 
             for (ValidIntersection intersection : intersections) {
                 cumulative += intersection.weight;
@@ -186,7 +177,7 @@ public class StartTimeChoiceModel implements ModelStep {
 
     private double calculateDurationBeforeMain(Tour tour) {
         double durationBefore = 0.0;
-        Activity mainActivity = tour.getMainActivities().get(0); // The exact object reference
+        Activity mainActivity = tour.getMainActivities().getFirst(); // The exact object reference
 
         for (var pe : tour.getTourElements()) {
             // Stop exactly when we hit the physical Main Activity object
@@ -208,7 +199,7 @@ public class StartTimeChoiceModel implements ModelStep {
      */
     private double calculateDistanceBeforeMain(Tour tour) {
         double cumulativeDistance = 0.0;
-        Activity mainActivity = tour.getMainActivities().get(0);
+        Activity mainActivity = tour.getMainActivities().getFirst();
 
         for (var pe : tour.getTourElements()) {
             if (pe == mainActivity) {
@@ -417,7 +408,8 @@ public class StartTimeChoiceModel implements ModelStep {
                     newWindows.add(new TimeWindow(blockEnd, window.endSec));
                 }
                 // 3. Block completely surrounds this window -> window is destroyed (do not add to new list)
-                else if (blockStart <= window.startSec && blockEnd >= window.endSec) {
+                else //noinspection StatementWithEmptyBody
+                    if (blockStart <= window.startSec && blockEnd >= window.endSec) {
                     // Do nothing
                 }
                 // 4. Block overlaps the right side of the window
@@ -425,7 +417,7 @@ public class StartTimeChoiceModel implements ModelStep {
                     newWindows.add(new TimeWindow(window.startSec, blockStart));
                 }
                 // 5. Block overlaps the left side of the window
-                else if (blockEnd < window.endSec) {
+                else {
                     newWindows.add(new TimeWindow(blockEnd, window.endSec));
                 }
             }

@@ -66,17 +66,16 @@ public class InitialModeChoiceModel implements ModelStep {
 
     @Override
     public void run() {
-        ForkJoinPool customPool = new ForkJoinPool(moBiPlansConfig.models().threads());
-        try {
+        try (ForkJoinPool customPool = new ForkJoinPool(moBiPlansConfig.models().threads())) {
+
             customPool.submit(() ->
                     scenario.getPopulation().getPersons().values().parallelStream()
                             .filter(person -> new PopulationSampler.ActivePersonPredicate().test(person)) // Only process active persons
                             .forEach(this::processPerson)
             ).get();
+
         } catch (Exception e) {
             throw new RuntimeException("Parallel execution failed", e);
-        } finally {
-            customPool.shutdown();
         }
     }
 
@@ -92,7 +91,7 @@ public class InitialModeChoiceModel implements ModelStep {
             // Flatten each tour into a chain of relations
             List<LegInTour> relationsWithActivityType = flattenTourIntoLegs(tour, homeZone);
 
-            // Find longest leg for main tour
+            // Find the longest leg for main tour
             LegInTour longestDistanceLeg = relationsWithActivityType.stream()
                     .filter(leg -> !leg.partOfSubtour())
                     .max(Comparator.comparingDouble(LegInTour::networkDistance))
@@ -145,7 +144,7 @@ public class InitialModeChoiceModel implements ModelStep {
     private void setTravelTimeAndDistanceForMode(Zone fromZone, Zone toZone, String mode, Leg leg) {
         // Fetch travel metrics for the O-D pair
         Map<String, Double> metrics = matrices.getTravelMetrics(fromZone.getId(), toZone.getId());
-        double distanceMeters = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase(), 0.0);
+        double distanceMeters = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase());
         leg.getAttributes().putAttribute(CAR_NET_DISTANCE, distanceMeters);
         //add the distance as a leg attribute,
         // it is needed in the Start Time Choice model. Not using the route here, as no actual route has been calculated.
@@ -163,29 +162,29 @@ public class InitialModeChoiceModel implements ModelStep {
                 yield distanceMeters / (13.0 / 3.6);
 
             case SBBModes.CAR:
-                double carTt = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase(), 0.0);
-                double atCarOrigin = getZoneDouble(fromZone, ZonalAttributes.AT_CAR, 0.0);
-                double atCarDest = getZoneDouble(toZone, ZonalAttributes.AT_CAR, 0.0);
-                double pcCar = getZoneDouble(toZone, ZonalAttributes.PC_CAR, 0.0);
+                double carTt = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase());
+                double atCarOrigin = getZoneDouble(fromZone, ZonalAttributes.AT_CAR);
+                double atCarDest = getZoneDouble(toZone, ZonalAttributes.AT_CAR);
+                double pcCar = getZoneDouble(toZone, ZonalAttributes.PC_CAR);
 
                 // Parking penalty remains exactly as we established earlier
                 yield carTt + atCarOrigin + atCarDest + (60.0 * pcCar * 2.0 * 0.047 / 0.125);
 
             case SBBModes.RIDE:
-                double rideTt = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase(), 0.0);
+                double rideTt = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase());
                 // Adjust "at_ride" and "pc_ride" if you have them as constants in ZonalAttributes!
-                double atRideOrigin = getZoneDouble(fromZone, "at_ride", 0.0);
-                double atRideDest = getZoneDouble(toZone, "at_ride", 0.0);
-                double pcRide = getZoneDouble(toZone, "pc_ride", 0.0);
+                double atRideOrigin = getZoneDouble(fromZone, "at_ride");
+                double atRideDest = getZoneDouble(toZone, "at_ride");
+                double pcRide = getZoneDouble(toZone, "pc_ride");
 
                 yield rideTt + atRideOrigin + atRideDest + (60.0 * pcRide * 2.0 * 0.047 / 0.125);
 
             case SBBModes.PT:
                 // 5 minute transfer penalty translates to 300 seconds
-                double ptTt = getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TOTAL.name().toLowerCase(), 0.0)
-                        + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_ACCESS_TIME.name().toLowerCase(), 0.0)
-                        + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_EGRESS_TIME.name().toLowerCase(), 0.0)
-                        + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_TRANSFERS.name().toLowerCase(), 0.0) * 300.0;
+                double ptTt = getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TOTAL.name().toLowerCase())
+                        + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_ACCESS_TIME.name().toLowerCase())
+                        + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_EGRESS_TIME.name().toLowerCase())
+                        + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_TRANSFERS.name().toLowerCase()) * 300.0;
 
                 // Python logic: "np.where(tt_mat_pt < tt_mat_walk, tt_mat_pt, tt_mat_walk)"
                 // Meaning, if walking is faster than waiting for the train, the agent just walks!
@@ -200,17 +199,17 @@ public class InitialModeChoiceModel implements ModelStep {
 
     // --- Helper Methods (if not already in your class) ---
 
-    private double getMetric(Map<String, Double> metrics, String key, double defaultValue) {
-        return metrics != null ? metrics.getOrDefault(key, defaultValue) : defaultValue;
+    private double getMetric(Map<String, Double> metrics, String key) {
+        return metrics != null ? metrics.getOrDefault(key, 0.0) : 0.0;
     }
 
-    private double getZoneDouble(Zone zone, String attributeName, double defaultValue) {
+    private double getZoneDouble(Zone zone, String attributeName) {
         Object val = zone.getAttributes().getAttribute(attributeName);
         if (val instanceof Number) return ((Number) val).doubleValue();
         if (val instanceof String) {
             try { return Double.parseDouble((String) val); } catch (NumberFormatException ignored) {}
         }
-        return defaultValue;
+        return 0.0;
     }
 
     private String chooseMode(LegInTour longestDistanceLeg, String activityType, Person person, Set<String> availableModes, Random random) {
@@ -315,7 +314,7 @@ public class InitialModeChoiceModel implements ModelStep {
             fromZone = toZone;
         }
 
-        Activity mainActivity0 = tour.getMainActivities().get(0);
+        Activity mainActivity0 = tour.getMainActivities().getFirst();
         toZone = (Zone) mainActivity0.getAttributes().getAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE);
         float distanceToMainActivity = networkDistances.get(fromZone.getId(), toZone.getId());
         relationsWithActivityType.add(new LegInTour(fromZone, toZone, distanceToMainActivity, false, mainActivity0));

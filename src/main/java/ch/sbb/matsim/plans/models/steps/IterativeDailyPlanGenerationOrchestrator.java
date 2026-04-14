@@ -1,20 +1,11 @@
 package ch.sbb.matsim.plans.models.steps;
 
-import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
-import ch.sbb.matsim.plans.tours.Tour;
 import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PopulationFactory;
-import org.matsim.core.population.PopulationUtils;
-
-import java.util.List;
 
 public class IterativeDailyPlanGenerationOrchestrator implements ModelStep {
 

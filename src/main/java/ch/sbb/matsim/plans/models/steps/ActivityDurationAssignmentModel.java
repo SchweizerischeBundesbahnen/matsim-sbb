@@ -1,7 +1,5 @@
 package ch.sbb.matsim.plans.models.steps;
 
-import org.apache.commons.math3.distribution.LogNormalDistribution;
-import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.WeibullDistribution;
 import org.matsim.api.core.v01.population.Person;
 import org.slf4j.Logger;
@@ -98,9 +96,9 @@ public class ActivityDurationAssignmentModel {
     }
 
     private Predicate<Person> buildPredicate(String expr) {
-        if (expr == null || expr.isEmpty()) return p -> true;
+        if (expr == null || expr.isEmpty()) return _ -> true;
 
-        Predicate<Person> combined = p -> true;
+        Predicate<Person> combined = _ -> true;
         String[] conditions = expr.split(" & ");
 
         for (String cond : conditions) {
@@ -126,29 +124,28 @@ public class ActivityDurationAssignmentModel {
             Object val = person.getAttributes().getAttribute(attrName);
 
             double personValue;
-            if (val == null) {
-                personValue = 0.0; // Default to 0 if attribute is missing
-            } else if (val instanceof Boolean) {
-                personValue = ((Boolean) val) ? 1.0 : 0.0;
-            } else if (val instanceof Number) {
-                personValue = ((Number) val).doubleValue();
-            } else {
-                try {
-                    personValue = Double.parseDouble(val.toString());
-                } catch (NumberFormatException e) {
-                    return false;
+            switch (val) {
+                case null -> personValue = 0.0; // Default to 0 if attribute is missing
+                case Boolean b -> personValue = b ? 1.0 : 0.0;
+                case Number number -> personValue = number.doubleValue();
+                default -> {
+                    try {
+                        personValue = Double.parseDouble(val.toString());
+                    } catch (NumberFormatException e) {
+                        return false;
+                    }
                 }
             }
 
-            switch (cleanOperator) {
-                case "==": return personValue == targetValue;
-                case "!=": return personValue != targetValue;
-                case ">":  return personValue > targetValue;
-                case "<":  return personValue < targetValue;
-                case ">=": return personValue >= targetValue;
-                case "<=": return personValue <= targetValue;
-                default:   return false;
-            }
+            return switch (cleanOperator) {
+                case "==" -> personValue == targetValue;
+                case "!=" -> personValue != targetValue;
+                case ">" -> personValue > targetValue;
+                case "<" -> personValue < targetValue;
+                case ">=" -> personValue >= targetValue;
+                case "<=" -> personValue <= targetValue;
+                default -> false;
+            };
         };
     }
 
@@ -160,55 +157,36 @@ public class ActivityDurationAssignmentModel {
     }
 
     /**
-     * Internal class representing a parsed duration rule.
-     */
-    private static class DurationRule {
-        final String activityType;
-        final String rawExpression;
-        final Predicate<Person> condition;
-        final double param1;
-        final double param2;
-        final double min;
-        final double max;
-        final String distributionType;
-
-        DurationRule(String activityType, String rawExpression, Predicate<Person> condition,
-                     double param1, double param2, double min, double max, String distributionType) {
-            this.activityType = activityType;
-            this.rawExpression = rawExpression;
-            this.condition = condition;
-            this.param1 = param1;
-            this.param2 = param2;
-            this.min = min;
-            this.max = max;
-            this.distributionType = distributionType;
-        }
+         * Internal class representing a parsed duration rule.
+         */
+        private record DurationRule(String activityType, String rawExpression, Predicate<Person> condition, double param1,
+                                    double param2, double min, double max, String distributionType) {
 
         double drawDurationInHours(Random random) {
-            double rawDuration;
+                double rawDuration;
 
-            switch (distributionType) {
-                case "normal":
-                    // param1 = Mean, param2 = StdDev
-                    rawDuration = param1 + random.nextGaussian() * param2;
-                    break;
-                case "lognormal":
-                    // param1 = Mu (Location), param2 = Sigma (Scale)
-                    double gaussianDist = param1 + random.nextGaussian() * param2;
-                    rawDuration = Math.exp(gaussianDist);
-                    break;
-                case "weibull":
-                    // param1 = Shape (k), param2 = Scale (lambda)
-                    WeibullDistribution weibull = new WeibullDistribution(param1, param2);
-                    weibull.reseedRandomGenerator(random.nextLong());
-                    rawDuration = weibull.sample();
-                    break;
-                default:
-                    rawDuration = param1; // Fallback to PARAM_1 if unknown
+                switch (distributionType) {
+                    case "normal":
+                        // param1 = Mean, param2 = StdDev
+                        rawDuration = param1 + random.nextGaussian() * param2;
+                        break;
+                    case "lognormal":
+                        // param1 = Mu (Location), param2 = Sigma (Scale)
+                        double gaussianDist = param1 + random.nextGaussian() * param2;
+                        rawDuration = Math.exp(gaussianDist);
+                        break;
+                    case "weibull":
+                        // param1 = Shape (k), param2 = Scale (lambda)
+                        WeibullDistribution weibull = new WeibullDistribution(param1, param2);
+                        weibull.reseedRandomGenerator(random.nextLong());
+                        rawDuration = weibull.sample();
+                        break;
+                    default:
+                        rawDuration = param1; // Fallback to PARAM_1 if unknown
+                }
+
+                // Clamp between MIN and MAX
+                return Math.max(min, Math.min(max, rawDuration));
             }
-
-            // Clamp between MIN and MAX
-            return Math.max(min, Math.min(max, rawDuration));
         }
-    }
 }

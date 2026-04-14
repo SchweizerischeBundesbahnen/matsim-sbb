@@ -97,9 +97,9 @@ public class SecondaryActivityTypeAssignmentModel {
     }
 
     private Predicate<Person> buildPredicate(String expr) {
-        if (expr == null || expr.isEmpty()) return p -> true;
+        if (expr == null || expr.isEmpty()) return _ -> true;
 
-        Predicate<Person> combined = p -> true;
+        Predicate<Person> combined = _ -> true;
         String[] conditions = expr.split(" & ");
 
         for (String cond : conditions) {
@@ -138,15 +138,15 @@ public class SecondaryActivityTypeAssignmentModel {
                 }
             }
 
-            switch (operator) {
-                case "==": return personValue == targetValue;
-                case "!=": return personValue != targetValue;
-                case ">":  return personValue > targetValue;
-                case "<":  return personValue < targetValue;
-                case ">=": return personValue >= targetValue;
-                case "<=": return personValue <= targetValue;
-                default:   return false;
-            }
+            return switch (operator) {
+                case "==" -> personValue == targetValue;
+                case "!=" -> personValue != targetValue;
+                case ">" -> personValue > targetValue;
+                case "<" -> personValue < targetValue;
+                case ">=" -> personValue >= targetValue;
+                case "<=" -> personValue <= targetValue;
+                default -> false;
+            };
         };
     }
 

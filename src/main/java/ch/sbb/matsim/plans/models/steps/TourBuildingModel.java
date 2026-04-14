@@ -16,6 +16,7 @@ import jakarta.inject.Singleton;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
@@ -79,8 +80,7 @@ public class TourBuildingModel {
 
     public void runIteration(int iteration) {
         Population population = scenario.getPopulation();
-        ForkJoinPool customPool = new ForkJoinPool(threads);
-        try {
+        try (ForkJoinPool customPool = new ForkJoinPool(threads)){
             customPool.submit(() ->
                     population.getPersons().values().parallelStream()
                             .filter(person -> new PopulationSampler.ActivePersonPredicate().test(person)) // Only process active persons
@@ -89,9 +89,6 @@ public class TourBuildingModel {
             ).get();
         } catch (Exception e) {
             throw new RuntimeException("Parallel execution failed", e);
-        } finally {
-            // 3. Just make sure to always shut it down!
-            customPool.shutdown();
         }
 
     }
@@ -207,9 +204,9 @@ public class TourBuildingModel {
                     writer.set("tour_no",Integer.toString(i));
                     writer.set("tourType",tour.getTourType().toString());
                     writer.set("mainActivityType",tour.getMainActivityType());
-                    writer.set("inboundStopActivities",tour.getInboundStopActivities().stream().map(activity -> activity.getType()).collect(Collectors.joining(",")).toString());
-                    writer.set("outboundStopActivities",tour.getOutboundStopActivities().stream().map(activity -> activity.getType()).collect(Collectors.joining(",")).toString());
-                    writer.set("subtourActivities",tour.getSubtourActivities().stream().map(activity -> activity.getType()).collect(Collectors.joining(",")).toString());
+                    writer.set("inboundStopActivities", tour.getInboundStopActivities().stream().map(Activity::getType).collect(Collectors.joining(",")));
+                    writer.set("outboundStopActivities", tour.getOutboundStopActivities().stream().map(Activity::getType).collect(Collectors.joining(",")));
+                    writer.set("subtourActivities", tour.getSubtourActivities().stream().map(Activity::getType).collect(Collectors.joining(",")));
                     writer.writeRow();
                 }
             }

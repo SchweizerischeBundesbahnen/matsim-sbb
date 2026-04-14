@@ -41,7 +41,6 @@ public class CombinedDestinationAndDurationChoiceModel {
     public static final String ASSIGNED_ZONE = "assigned_zone";
 
     private final Scenario scenario;
-    private final Zones zones;
     private final Matrices matrices;
     private final int threads;
 
@@ -70,7 +69,6 @@ public class CombinedDestinationAndDurationChoiceModel {
     @Inject
     public CombinedDestinationAndDurationChoiceModel(Scenario scenario, MOBiPlansConfig config, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, StrataPredicateFactory strataPredicateFactory) {
         this.scenario = scenario;
-        this.zones = zones;
         this.mobiPlansConfig = config;
         this.matrices = matrices;
         this.threads = config.models().threads();
@@ -131,8 +129,7 @@ public class CombinedDestinationAndDurationChoiceModel {
         // Print an update every 5% (ensure it's at least 1 to avoid divide-by-zero)
         int reportInterval = Math.max(1, totalPersons / 20);
 
-        ForkJoinPool customPool = new ForkJoinPool(threads);
-        try {
+        try (ForkJoinPool customPool = new ForkJoinPool(threads)){
             customPool.submit(() ->
                     personsToProcess.parallelStream().forEach(person -> {
 
@@ -150,8 +147,6 @@ public class CombinedDestinationAndDurationChoiceModel {
             ).get();
         } catch (Exception e) {
             throw new RuntimeException("Parallel execution failed", e);
-        } finally {
-            customPool.shutdown();
         }
     }
 

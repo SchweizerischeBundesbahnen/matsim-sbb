@@ -6,15 +6,12 @@ import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
-import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import com.google.inject.Inject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 
@@ -24,18 +21,12 @@ import java.util.Map;
 import static ch.sbb.matsim.plans.models.utils.Calculations.calculateLogsum;
 
 public class ZoneBasedAccessibilities implements ModelStep{
-    private final String name = MOBiPlansRunner.ZONE_BASED_ACCESSIBILITIES;
-    private final static Logger logger = LogManager.getLogger(ZoneBasedAccessibilities.class);
-    private final MOBiPlansConfig config;
-    private final Scenario scenario;
     private final Zones zones;
     private final Matrices matrices;
     private final ModeImpedanceFormulaRepository formulaRepository;
 
     @Inject
-    public ZoneBasedAccessibilities(MOBiPlansConfig config, Scenario scenario, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository ) {
-        this.config = config;
-        this.scenario = scenario;
+    public ZoneBasedAccessibilities(Scenario scenario, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository ) {
         this.zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
         this.matrices = matrices;
         this.formulaRepository = formulaRepository;
@@ -96,6 +87,6 @@ public class ZoneBasedAccessibilities implements ModelStep{
 
 
     public String getName() {
-        return name;
+        return MOBiPlansRunner.ZONE_BASED_ACCESSIBILITIES;
     }
 }

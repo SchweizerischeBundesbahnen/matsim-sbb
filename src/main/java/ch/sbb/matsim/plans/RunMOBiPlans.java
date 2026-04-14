@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class RunMOBiPlans {
-    public static void main(String[] args) throws IOException {
+    static void main(String[] args) throws IOException {
         String configFile = args[0];
         MOBiPlansConfig config = MOBiPlansConfig.readFromYaml(configFile);
 
