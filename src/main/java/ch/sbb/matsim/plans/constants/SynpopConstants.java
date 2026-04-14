@@ -55,6 +55,7 @@ public class SynpopConstants {
     public static final String SCHOOL_TYPE = "school_type";
     public static final String NOGA_CODE = "noga_code";
     public static final String SECTOR = "sector";
+    public static final String RELATIVE_ATTRACTION = "relative_attraction";
     public static final String NET_DIST_SCHOOL_PTSUBSCR = "net_dist_school_ptsubscr";
     public static final String NET_DIST_SCHOOL = "network_distance_school";
     public static final String NET_DIST_WORK = "network_distance_work";
@@ -185,6 +186,8 @@ public class SynpopConstants {
             "management", 3
     );
     public static final String TOURS = "tours";
+    public static final String WORK_FACILITY = "work_facility";
+    public static final String EDUCATION_FACILITY = "education_facility";
 
     public static Integer getCodeOrFail(Map<String, Integer> reverseMap, String label, String categoryName) {
         Integer code = reverseMap.get(label);

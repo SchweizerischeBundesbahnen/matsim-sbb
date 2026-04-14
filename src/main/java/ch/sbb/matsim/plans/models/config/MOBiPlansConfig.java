@@ -42,6 +42,8 @@ public record MOBiPlansConfig (
     public static final String TIME_OF_DAY_CHOICE_CSV = "time_of_day_choice.csv";
     public static final String ATTRACTION_RATES = "attraction_rates.csv";
     public static final String SPECIAL_CASES_ATIMES_PCOSTS = "special_cases_atimes_pcosts.csv";
+    public static final String HOUSEHOLD_ACTIVITY_ATTRACTION_CSV = "household_activity_attraction.csv";
+    public static final String NOGA_TO_ACTIVITIES_MAPPING_CSV = "noga_to_activities_mapping.csv";
 
     /**
      * Reads and parses the master configuration from a YAML file.

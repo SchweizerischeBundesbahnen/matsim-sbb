@@ -6,7 +6,6 @@ import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
-import ch.sbb.matsim.plans.synpop.loading.arrow.BusinessesReader;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import jakarta.inject.Inject;
@@ -20,8 +19,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CalcZonalAttributes implements ModelStep {
     private final String name = MOBiPlansRunner.CALC_ZONAL_ATTRIBUTES;
@@ -29,7 +26,7 @@ public class CalcZonalAttributes implements ModelStep {
     private final MOBiPlansConfig config;
     private final Scenario scenario;
     private final Zones zones;
-    private final Path modelFolder;
+    private final Path dataFolder;
 
     // Configure these to match your SynPop attribute naming
     // Example age group variables similar to sc.SynpopAttrs.person_age_groups_vars in Python
@@ -52,7 +49,7 @@ public class CalcZonalAttributes implements ModelStep {
         this.config = config;
         this.scenario = scenario;
         this.zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
-        this.modelFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_DATA);
+        this.dataFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_DATA);
     }
 
     @Override
@@ -93,7 +90,7 @@ public class CalcZonalAttributes implements ModelStep {
         logger.info("Calculating zonal destination-choice attractions...");
 
         // Resolve CSV paths from config (adjust keys to your config if they differ)
-        String ratesPath = modelFolder.resolve(MOBiPlansConfig.ATTRACTION_RATES).toString();
+        String ratesPath = dataFolder.resolve(MOBiPlansConfig.ATTRACTION_RATES).toString();
         String foreignPath = config.data().foreign_attractions();
         if (ratesPath == null || ratesPath.isBlank()) {
             throw new IllegalStateException("Missing config value 'attractionRatesFile' for attraction rates CSV.");
@@ -263,7 +260,7 @@ public class CalcZonalAttributes implements ModelStep {
 
         // Path to special cases CSV from config (adjust the config key if yours differs)
 
-        String specialCasesPath = modelFolder.resolve(MOBiPlansConfig.SPECIAL_CASES_ATIMES_PCOSTS).toString();
+        String specialCasesPath = dataFolder.resolve(MOBiPlansConfig.SPECIAL_CASES_ATIMES_PCOSTS).toString();
 
         // Read special cases keyed by zone_id
         Map<String, Map<String, String>> specialCases = new HashMap<>();

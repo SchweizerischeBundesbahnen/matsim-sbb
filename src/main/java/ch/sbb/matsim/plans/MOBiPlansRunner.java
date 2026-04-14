@@ -30,6 +30,7 @@ public class MOBiPlansRunner implements Runnable{
     public static final String POPULATION_SAMPLING = "population_sampling";
     public static final String INITIAL_MODE_CHOICE = "initial_mode_choice";
     public static final String START_TIME_CHOICE = "start_time_choice";
+    public static final String FACILITY_ALLOCATION = "facility_allocation";
 
 
 

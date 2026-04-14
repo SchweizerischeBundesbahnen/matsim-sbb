@@ -54,6 +54,8 @@ public class BusinessesReader {
                 ValueVector jobsEndoVector = root.getVector(SynpopConstants.JOBS_ENDO);
                 ValueVector schoolTypeVector = root.getVector(SynpopConstants.SCHOOL_TYPE);
                 ValueVector sectorVector = root.getVector(SynpopConstants.SECTOR);
+                ValueVector attractionVector = root.getVector(SynpopConstants.RELATIVE_ATTRACTION);
+
 
                 for (int i = 0; i < rowCount; i++) {
                     Id<ActivityFacility> facilityId = Id.create(getVectorValue(businessIdVector, i).toString(), ActivityFacility.class);
@@ -61,12 +63,19 @@ public class BusinessesReader {
                     var facility = facilities.getFactory().createActivityFacility(facilityId, coord);
                     facility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, String.valueOf(getVectorValue(zoneIdVector, i)));
                     facility.getAttributes().putAttribute(SynpopConstants.NOGA_CODE, getVectorValue(nogaCodeVector, i));
-                    facility.getAttributes().putAttribute(SynpopConstants.FTE_ENDO, getVectorValue(fteEndoVector, i));
-                    facility.getAttributes().putAttribute(SynpopConstants.FTE_EXO, getVectorValue(fteExoVector, i));
+                    Object fteEndo = getVectorValue(fteEndoVector, i);
+                    facility.getAttributes().putAttribute(SynpopConstants.FTE_ENDO, fteEndo);
+                    Object fteExo = getVectorValue(fteExoVector, i);
+                    facility.getAttributes().putAttribute(SynpopConstants.FTE_EXO, fteExo);
                     facility.getAttributes().putAttribute(SynpopConstants.JOBS_ENDO, getVectorValue(jobsEndoVector, i));
                     facility.getAttributes().putAttribute(SynpopConstants.JOBS_EXO, getVectorValue(jobsExoVector, i));
                     facility.getAttributes().putAttribute(SynpopConstants.SCHOOL_TYPE, getVectorValue(schoolTypeVector, i));
                     facility.getAttributes().putAttribute(SynpopConstants.SECTOR, getVectorValue(sectorVector, i));
+                    if (attractionVector != null) {
+                        facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, getVectorValue(attractionVector, i));
+                    } else {
+                        facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, (double)fteEndo+(double)fteExo);
+                    }
                     facilities.addActivityFacility(facility);
                 }
             }

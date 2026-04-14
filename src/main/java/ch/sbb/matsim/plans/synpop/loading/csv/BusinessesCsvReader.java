@@ -45,6 +45,7 @@ public class BusinessesCsvReader {
                                                     .withFirstRecordAsHeader()
                                                     .withTrim())
         ) {
+
             for (CSVRecord record : parser) {
                 // BUSINESS_ID can be a Long or String based on your Arrow getVectorValue.
                 // Assuming it's a value that can be represented as a String for Id.create.
@@ -63,11 +64,17 @@ public class BusinessesCsvReader {
                 facility.getAttributes().putAttribute(SynpopConstants.NOGA_CODE, record.get(SynpopConstants.NOGA_CODE));
 
                 // Assuming FTE_ENDO, FTE_EXO, JOBS_ENDO, JOBS_EXO are numeric (Doubles or Longs)
-                facility.getAttributes().putAttribute(SynpopConstants.FTE_ENDO, Double.parseDouble(record.get(SynpopConstants.FTE_ENDO)));
-                facility.getAttributes().putAttribute(SynpopConstants.FTE_EXO, Double.parseDouble(record.get(SynpopConstants.FTE_EXO)));
+                double fteEndo = Double.parseDouble(record.get(SynpopConstants.FTE_ENDO));
+                facility.getAttributes().putAttribute(SynpopConstants.FTE_ENDO, fteEndo);
+                double fteExo = Double.parseDouble(record.get(SynpopConstants.FTE_EXO));
+                facility.getAttributes().putAttribute(SynpopConstants.FTE_EXO, fteExo);
                 facility.getAttributes().putAttribute(SynpopConstants.JOBS_ENDO, Long.parseLong(record.get(SynpopConstants.JOBS_ENDO)));
                 facility.getAttributes().putAttribute(SynpopConstants.JOBS_EXO, Long.parseLong(record.get(SynpopConstants.JOBS_EXO)));
-
+                if (record.isMapped(SynpopConstants.RELATIVE_ATTRACTION)) {
+                    facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, Long.parseLong(record.get(SynpopConstants.RELATIVE_ATTRACTION)));
+                } else {
+                    facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, fteEndo+fteExo);
+                }
                 facility.getAttributes().putAttribute(SynpopConstants.SCHOOL_TYPE, record.get(SynpopConstants.SCHOOL_TYPE));
                 facility.getAttributes().putAttribute(SynpopConstants.SECTOR, record.get(SynpopConstants.SECTOR));
 
