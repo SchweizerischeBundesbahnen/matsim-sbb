@@ -93,16 +93,18 @@ public class AssignFacilityLocations implements ModelStep{
                     assignFacilityToActivity(act, facId);
                 }
                 else if (act.getType().equals(SBBActivities.work)) {
-                    Id<ActivityFacility> workFacility =  Id.create(act.getAttributes().getAttribute(SynpopConstants.WORK_FACILITY).toString(), ActivityFacility.class);
-                    if (workFacility != null) {
-                   assignFacilityToActivity(act, workFacility);
-                    }
+                    Object rawWork = Objects.requireNonNull(
+                            person.getAttributes().getAttribute(SynpopConstants.WORK_FACILITY),
+                            "CRITICAL: Agent " + person.getId() + " is missing a Work Facility!"
+                    );
+                    assignFacilityToActivity(act, Id.create(rawWork.toString(), ActivityFacility.class));
                 }
                 else if (act.getType().equals(SBBActivities.education)) {
-                   Id<ActivityFacility> educationFacility = Id.create(act.getAttributes().getAttribute(SynpopConstants.EDUCATION_FACILITY).toString(), ActivityFacility.class);
-                    if (educationFacility != null) {
-                   assignFacilityToActivity(act, educationFacility);
-                    }
+                    Object rawEdu = Objects.requireNonNull(
+                            person.getAttributes().getAttribute(SynpopConstants.EDUCATION_FACILITY),
+                            "CRITICAL: Agent " + person.getId() + " is missing an Education Facility!"
+                    );
+                    assignFacilityToActivity(act, Id.create(rawEdu.toString(), ActivityFacility.class));
                 }
                 else {
 
