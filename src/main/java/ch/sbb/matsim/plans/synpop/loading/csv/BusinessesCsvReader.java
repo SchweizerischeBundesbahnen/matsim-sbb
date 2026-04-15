@@ -20,7 +20,7 @@ import java.io.Reader;
 
 public class BusinessesCsvReader {
 
-    public static void main(String[] args) {
+     static void main(String[] args) {
         String csvBusinesses = "/Volumes/mobi/40_Projekte/20241104_MOBi_5.1/synpop/cb_commuters/v10/businesses.csv"; // Adjust path as needed
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         var activityFacilities = scenario.getActivityFacilities();
@@ -61,7 +61,7 @@ public class BusinessesCsvReader {
                 // If specific attributes need numerical parsing (e.g., FTE_ENDO, JOBS_EXO),
                 // you would add Double.parseDouble or Long.parseLong as appropriate.
                 facility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, record.get(SynpopConstants.ZONE_ID));
-                facility.getAttributes().putAttribute(SynpopConstants.NOGA_CODE, record.get(SynpopConstants.NOGA_CODE));
+                facility.getAttributes().putAttribute(SynpopConstants.NOGA_CODE, Integer.parseInt(record.get(SynpopConstants.NOGA_CODE)));
 
                 // Assuming FTE_ENDO, FTE_EXO, JOBS_ENDO, JOBS_EXO are numeric (Doubles or Longs)
                 double fteEndo = Double.parseDouble(record.get(SynpopConstants.FTE_ENDO));
@@ -71,7 +71,7 @@ public class BusinessesCsvReader {
                 facility.getAttributes().putAttribute(SynpopConstants.JOBS_ENDO, Long.parseLong(record.get(SynpopConstants.JOBS_ENDO)));
                 facility.getAttributes().putAttribute(SynpopConstants.JOBS_EXO, Long.parseLong(record.get(SynpopConstants.JOBS_EXO)));
                 if (record.isMapped(SynpopConstants.RELATIVE_ATTRACTION)) {
-                    facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, Long.parseLong(record.get(SynpopConstants.RELATIVE_ATTRACTION)));
+                    facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, Double.parseDouble(record.get(SynpopConstants.RELATIVE_ATTRACTION)));
                 } else {
                     facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, fteEndo+fteExo);
                 }

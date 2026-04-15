@@ -241,7 +241,6 @@ public class CalcZonalAttributes implements ModelStep {
                 if (vals == null) {
                     // Default zeros if not found
                     for (int j = 0; j < nAttractions; j++) {
-                        logger.info(attractions.get(j));
                         z.getAttributes().putAttribute(attractions.get(j), 0.0);
                     }
                 } else {
