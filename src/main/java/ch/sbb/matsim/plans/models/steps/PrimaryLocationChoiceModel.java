@@ -273,7 +273,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         // 2. Define consistent destination zone ordering
         List<Zone> allDestinationZones = new ArrayList<>(zones.getZones());
         List<Zone> validDestinationZones = allDestinationZones.stream()
-                .filter(zone -> ((Number) zone.getAttribute(attractionAttribute)).doubleValue() > 0)
+                .filter(zone -> zone.getAttribute(attractionAttribute) instanceof Number n && n.doubleValue() > 0)
                 .toList();
 
         if (validDestinationZones.isEmpty()) {

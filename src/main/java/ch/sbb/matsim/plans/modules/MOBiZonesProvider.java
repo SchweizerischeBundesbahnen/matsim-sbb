@@ -3,6 +3,7 @@ package ch.sbb.matsim.plans.modules;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
+import ch.sbb.matsim.zones.AttributableZone;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
@@ -64,7 +65,12 @@ public class MOBiZonesProvider implements Provider<Zones> {
                 logger.info("Loaded additional zonal attributes from file: " + filename);
             }
         }
-        //convenience: add zones to scenario elements for easier access later
+        logger.info("loaded the following attributes: "+ zones.getZones().stream()
+                .filter(z -> z instanceof AttributableZone)
+                .flatMap(z -> z.getAttributes().getAsMap().keySet().stream())
+                .distinct()
+                .toList());
+
         scenario.addScenarioElement(Variables.ZONES, zones);
         return zones;
     }
