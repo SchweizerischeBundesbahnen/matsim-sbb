@@ -19,7 +19,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.households.Household;
 import org.matsim.households.HouseholdImpl;
-import org.matsim.households.Income;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,14 +35,13 @@ class AssignFacilityLocationsTest {
     private Scenario scenario;
     private Person person;
     private MOBiPlansConfig mobiPlansConfig;
-    private Zone testZone;
 
     @BeforeEach
     void setUp() throws IOException {
         scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
         // 1. Create Zone (with a dummy Envelope so centroid fallback works)
-        testZone = new AttributableZone(Id.create("z1", Zone.class), null);
+        Zone testZone = new AttributableZone(Id.create("z1", Zone.class), null);
         // MATSim tests usually mock the Geometry or use a standard Coord if Envelope is too hard to mock.
         // For simplicity in this test, we assume the zone centroid logic relies on a valid Geometry.
 
@@ -70,7 +68,7 @@ class AssignFacilityLocationsTest {
         // Work Activity (Primary, mapped to fixed facility)
         Activity workAct = scenario.getPopulation().getFactory().createActivityFromCoord(SBBActivities.work, null);
         Id<ActivityFacility> workFacId = Id.create("work_fac_1", ActivityFacility.class);
-        workAct.getAttributes().putAttribute(SynpopConstants.WORK_FACILITY, workFacId);
+        person.getAttributes().putAttribute(SynpopConstants.WORK_FACILITY, workFacId);
         plan.addActivity(workAct);
 
         // Shopping Activity (Secondary, mapped to Zone to be rolled on Roulette)
@@ -111,15 +109,19 @@ class AssignFacilityLocationsTest {
         Files.createDirectories(dataDir);
 
         // Household Attraction CSV
-        String hhCsv = "activity;attraction_rate\n" +
-                "leisure;2.5\n" +
-                "accompany;1.0\n";
+        String hhCsv = """
+                activity;attraction_rate
+                leisure;2.5
+                accompany;1.0
+                """;
         Files.writeString(dataDir.resolve(MOBiPlansConfig.HOUSEHOLD_ACTIVITY_ATTRACTION_CSV), hhCsv);
 
         // NOGA Mapping CSV
         // NOGA_Code;B;E;S;A;L;O;EC
-        String nogaCsv = "NOGA_Code;B;E;S;A;L;O;EC\n" +
-                "4700;0;0;1;0;0;0;0\n"; // 4700 is Shopping (S=1)
+        String nogaCsv = """
+                NOGA_Code;B;E;S;A;L;O;EC
+                4700;0;0;1;0;0;0;0
+                """; // 4700 is Shopping (S=1)
         Files.writeString(dataDir.resolve(MOBiPlansConfig.NOGA_TO_ACTIVITIES_MAPPING_CSV), nogaCsv);
     }
 
