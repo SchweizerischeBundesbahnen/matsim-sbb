@@ -37,6 +37,51 @@ public class ChoiceModelCSVReader {
     }
 
 
+    public static Map<String, UtilityCalculator> getChoiceModelFromRows(ArrayList<Map<String, String>> rows) {
+        Map<String, UtilityCalculator> choiceModels = new HashMap<>();
+        List<String> alternatives = rows.getFirst().keySet().stream().filter(s -> s.startsWith(BETA)).map(s -> s.substring(BETA.length())).toList();
+        alternatives.forEach(alternative -> choiceModels.put(alternative, new UtilityCalculator()));
+        for (Map<String, String> row:rows) {
+            readRow(null, alternatives, choiceModels, row);
+        }
+        return choiceModels;
+    }
+
+    private static void readRow(String filePath, List<String> alternatives, Map<String, UtilityCalculator> choiceModels, Map<String, String> row) {
+        String typeString = row.get("type").toUpperCase();
+        if (typeString.startsWith("#")) {
+            // Skip comment lines
+            return;
+        }
+        boolean nullable = Boolean.parseBoolean(row.getOrDefault("nullable", "false"));
+        UtilityComponent.ComponentType type = UtilityComponent.ComponentType.valueOf(typeString);
+        final String attribute = row.get("attribute");
+        if (type.equals(UtilityComponent.ComponentType.SHADOW_UTILS)) {
+            var shadowUtilities = readShadowUtilitiesFromCSV(filePath.replace(".csv", "_shadow_utils.csv"));
+            for (String alternative : alternatives) {
+                choiceModels.get(alternative).addComponent(new ShadowUtility(attribute, shadowUtilities.get(alternative)));
+            }
+        } else {
+            for (String alternative : alternatives) {
+                UtilityCalculator calculator = choiceModels.get(alternative);
+                switch (type) {
+                    case LINEAR ->
+                            calculator.addComponent(new LinearComponent(attribute, getBeta(alternative, row), nullable));
+                    case LOGARITHMIC ->
+                            calculator.addComponent(new LogarithmicComponent(attribute, getBeta(alternative, row), nullable));
+                    case CONSTANT -> calculator.addComponent(new ConstantComponent(getBeta(alternative, row)));
+                    case CONDITION -> calculator.addComponent(parseConditionComponent(row, alternative,nullable));
+                    case BOXCOX ->
+                            calculator.addComponent(new BoxCoxComponent(attribute, getBeta(alternative, row), Double.parseDouble(row.get("lambda")), nullable));
+                    case PIECEWISE -> calculator.addComponent(new PiecewiseComponent(attribute,
+                            Arrays.stream(row.get("values").split(",")).mapToDouble(Double::parseDouble).toArray(),
+                            Arrays.stream(row.get(BETA + alternative).split(",")).mapToDouble(Double::parseDouble).toArray(),nullable));
+                    default -> throw new IllegalArgumentException("Unknown component type: " + type);
+                }
+            }
+        }
+
+    }
     public static Map<String, UtilityCalculator> readChoiceModelFromCSV(String filePath) {
         Map<String, UtilityCalculator> choiceModels = new HashMap<>();
         try (CSVReader reader = new CSVReader(filePath, ";")) {
@@ -44,41 +89,7 @@ public class ChoiceModelCSVReader {
             alternatives.forEach(alternative -> choiceModels.put(alternative, new UtilityCalculator()));
             var row = reader.readLine();
             while (row != null) {
-                String typeString = row.get("type").toUpperCase();
-                if (typeString.startsWith("#")) {
-                    // Skip comment lines
-                    row = reader.readLine();
-                    continue;
-                }
-                boolean nullable = Boolean.parseBoolean(row.getOrDefault("nullable", "false"));
-                UtilityComponent.ComponentType type = UtilityComponent.ComponentType.valueOf(typeString);
-                final String attribute = row.get("attribute");
-                if (type.equals(UtilityComponent.ComponentType.SHADOW_UTILS)) {
-                    var shadowUtilities = readShadowUtilitiesFromCSV(filePath.replace(".csv", "_shadow_utils.csv"));
-                    for (String alternative : alternatives) {
-                        choiceModels.get(alternative).addComponent(new ShadowUtility(attribute, shadowUtilities.get(alternative)));
-                    }
-                } else {
-                    for (String alternative : alternatives) {
-                        UtilityCalculator calculator = choiceModels.get(alternative);
-                        switch (type) {
-                            case LINEAR ->
-                                    calculator.addComponent(new LinearComponent(attribute, getBeta(alternative, row), nullable));
-                            case LOGARITHMIC ->
-                                    calculator.addComponent(new LogarithmicComponent(attribute, getBeta(alternative, row), nullable));
-                            case CONSTANT -> calculator.addComponent(new ConstantComponent(getBeta(alternative, row)));
-                            case CONDITION -> calculator.addComponent(parseConditionComponent(row, alternative,nullable));
-                            case BOXCOX ->
-                                    calculator.addComponent(new BoxCoxComponent(attribute, getBeta(alternative, row), Double.parseDouble(row.get("lambda")), nullable));
-                            case PIECEWISE -> calculator.addComponent(new PiecewiseComponent(attribute,
-                                    Arrays.stream(row.get("values").split(",")).mapToDouble(Double::parseDouble).toArray(),
-                                    Arrays.stream(row.get(BETA + alternative).split(",")).mapToDouble(Double::parseDouble).toArray(),nullable));
-                            default -> throw new IllegalArgumentException("Unknown component type: " + type);
-
-
-                        }
-                    }
-                }
+                readRow(filePath, alternatives, choiceModels, row);
                 row = reader.readLine();
             }
         } catch (IOException e) {
@@ -90,7 +101,11 @@ public class ChoiceModelCSVReader {
     private static double getBeta(String alternative, Map<String, String> row) {
         String betaKey = BETA + alternative;
         String betaValue = row.get(betaKey);
-        return Double.parseDouble(betaValue);
+        try {
+            return Double.parseDouble(betaValue);
+        } catch (NumberFormatException e) {
+            return Double.NaN;
+        }
     }
 
     private static UtilityComponent parseConditionComponent(Map<String, String> row, String alternative,boolean nullable) {
