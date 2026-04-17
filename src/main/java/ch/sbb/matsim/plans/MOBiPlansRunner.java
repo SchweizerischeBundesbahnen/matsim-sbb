@@ -26,6 +26,7 @@ public class MOBiPlansRunner implements Runnable{
     public static final String MOBILITY_TOOL_OWNERSHIP_MODEL = "mobility_tool_ownership_model";
     public static final String PRIMARY_LOCATION_CHOICE = "primary_location_choice_model";
     public static final String ITERATTIVE_DAILY_PLAN_GENERATION = "iterative_daily_plan_generation";
+    public static final String RAIL_ACCESS_CHOICESET = "rail_access_choiceset";
     public static final String WRITE_OUTPUTS = "write_outputs";
     public static final String POPULATION_SAMPLING = "population_sampling";
     public static final String INITIAL_MODE_CHOICE = "initial_mode_choice";
@@ -45,6 +46,7 @@ public class MOBiPlansRunner implements Runnable{
             INITIAL_MODE_CHOICE,
             START_TIME_CHOICE,
             FACILITY_ALLOCATION,
+            RAIL_ACCESS_CHOICESET,
             WRITE_OUTPUTS
     );
     private final MOBiPlansConfig config;
@@ -119,5 +121,5 @@ public class MOBiPlansRunner implements Runnable{
         } else {
             throw new IllegalArgumentException("The 'run' configuration in your YAML must be the string 'full_model' or a list of model keys.");
         }
-}
+    }
 }
