@@ -102,9 +102,9 @@ public class RailaccessChoiceSet implements ModelStep {
                 StringSelectionModelFromRows activityModel = segment.modelsPerActivity.get(activityType);
                 scenario.getPopulation().getPersons().values().parallelStream()
                         .filter(segment.filterPredicate)
-                        .filter(person -> person.getAttributes().getAttribute(attribute).equals("1"))
+                        .filter(person -> ("1").equals(person.getAttributes().getAttribute(attribute).toString()))
                         .forEach(person -> {
-                            boolean accessAvailable = activityModel.calculate(person).equals("1");
+                            boolean accessAvailable = activityModel==null?true:("1").equals(activityModel.calculate(person));
                             String value;
                             if (accessAvailable) {
                                 value = activityType.toLowerCase();
