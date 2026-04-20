@@ -7,6 +7,7 @@ import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
 import ch.sbb.matsim.zones.Zone;
@@ -46,29 +47,21 @@ public class ZoneBasedAccessibilities implements ModelStep{
                 if (origin == null) return;
 
                 // Origin attraction
-                Number oPop = (Number) origin.getAttribute("pop_total");
-                Number oFte = (Number) origin.getAttribute("fte_total");
-                double origPop = oPop != null ? oPop.doubleValue() : 0.0;
-                double origFte = oFte != null ? oFte.doubleValue() : 0.0;
+                double origPop = AttributeUtils.getAsDouble(origin, ZonalAttributes.POP_TOTAL, 0.0);
+                double origFte = AttributeUtils.getAsDouble(origin, ZonalAttributes.FTE_TOTAL, 0.0);
                 double zoneAttraction = origPop + 2.54 * origFte;
 
-                // FIX 1: Use a primitive double instead of DoubleAdder!
                 double totalAccessibility = 0.0;
 
                 for (Zone destination : allZones) {
                     if (destination == null) continue;
-
-                    Number dPop = (Number) destination.getAttribute("pop_total");
-                    Number dFte = (Number) destination.getAttribute("fte_total");
-                    double destPop = dPop != null ? dPop.doubleValue() : 0.0;
-                    double destFte = dFte != null ? dFte.doubleValue() : 0.0;
+                    double destPop = AttributeUtils.getAsDouble(destination, ZonalAttributes.POP_TOTAL, 0.0);
+                    double destFte = AttributeUtils.getAsDouble(destination, ZonalAttributes.FTE_TOTAL, 0.0);
 
                     double attraction = destPop + 2.54 * destFte;
 
-                    // Micro-optimization: If attraction is 0, the product will be 0. Skip the heavy math!
                     if (attraction <= 0.0) continue;
 
-                    // Note: If this method creates a `new HashMap()`, it is generating 50GB of garbage.
                     Map<String, Double> travelMetrics = matrices.getTravelAndAccessibilityMetrics(origin, destination);
 
                     double logsum = calculateLogsum(modeFormulas, travelMetrics, expressionEvaluator);

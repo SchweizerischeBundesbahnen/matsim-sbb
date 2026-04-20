@@ -8,6 +8,7 @@ import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.steps.csvmodels.BooleanSelectionModelFromCSV;
 import ch.sbb.matsim.plans.models.steps.csvmodels.IntegerSelectionModelFromCSV;
 import ch.sbb.matsim.plans.models.steps.csvmodels.StringSelectionModelFromCSV;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.Zones;
 import jakarta.inject.Inject;
@@ -21,6 +22,7 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.LongAdder;
 
 @Singleton
 public class MobilityToolOwnershipModel implements ModelStep {
@@ -67,12 +69,12 @@ public class MobilityToolOwnershipModel implements ModelStep {
     public void rerunForStudentsAfterPrimaryLocationChoice(){
         logger.info("Starting public transport subscription calculation for students after PrimaryLocationChoice...");
         scenario.getPopulation().getPersons().values().parallelStream()
-                .filter(person -> ((Number) person.getAttributes().getAttribute(SynpopConstants.NET_DIST_SCHOOL)).doubleValue() > 0.0)
-                .filter(person -> (int)person.getAttributes().getAttribute(SynpopConstants.AGE)>=18)
+                .filter(person -> (AttributeUtils.getAsDouble(person,SynpopConstants.NET_DIST_SCHOOL,0.0) > 0.0))
+                .filter(person -> AttributeUtils.getAsInteger(person,SynpopConstants.AGE,-1)>=18)
                 .forEach(
                         person -> {
-                            double netDistanceSchool = ((Number) person.getAttributes().getAttribute(SynpopConstants.NET_DIST_SCHOOL)).doubleValue();
-                            person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, netDistanceSchool/10.0); //in km divided by 10
+                            double netDistanceSchool = AttributeUtils.getAsDouble(person,SynpopConstants.NET_DIST_SCHOOL,0.0);
+                            person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, netDistanceSchool/10_000.0); //in km divided by 10
                             String ptSubscription = ptSubscriptionModelAdults.calculate(person);
                             person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, ptSubscription);
                             }
@@ -86,7 +88,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
                 .forEach(
                         person -> {
                             boolean hasEbike45 = false;
-                            if ((int) person.getAttributes().getAttribute(SynpopConstants.AGE) > 13) {
+                            if (AttributeUtils.getAsInteger(person,SynpopConstants.AGE,-1) > 13) {
                                 hasEbike45 = ebikeModel.calculate(person);
                             }
                             person.getAttributes().putAttribute(SynpopConstants.HAS_EBIKE45, hasEbike45);
@@ -102,7 +104,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
                         person -> {
                             person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, 0.0);
                             String ptSubscription;
-                            if ((int) person.getAttributes().getAttribute(SynpopConstants.AGE) < 18) {
+                            if (AttributeUtils.getAsInteger(person,SynpopConstants.AGE,-1) < 18) {
                                 ptSubscription = ptSubscriptionModelMinors.calculate(person);
                             } else {
                                 ptSubscription = ptSubscriptionModelAdults.calculate(person);
@@ -121,11 +123,11 @@ public class MobilityToolOwnershipModel implements ModelStep {
                 .forEach(household ->
                         {
                             Integer numberOfCars = 0;
-                            if ((Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_DRIVING_LICENSES) > 0) {
+                            if (AttributeUtils.getAsInteger(household,SynpopConstants.NB_OF_DRIVING_LICENSES,0)> 0) {
                                 numberOfCars = carsPerHouseholdModel.calculate(household);
                             }
                             household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS, numberOfCars);
-                            double numberOfAdults = (Integer) household.getAttributes().getAttribute(SynpopConstants.NB_OF_ADULTS);
+                            double numberOfAdults = AttributeUtils.getAsInteger(household,SynpopConstants.NB_OF_ADULTS,0);
                             household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS_PER_ADULT, numberOfCars / Math.max(numberOfAdults, 1));
                             cars.addAndGet(numberOfCars);
                             if (numberOfCars > 0) {
@@ -140,15 +142,19 @@ public class MobilityToolOwnershipModel implements ModelStep {
     private void runDrivingLicenseModel() {
         logger.info("Starting driving license calculation...");
         Instant start = Instant.now();
-        long adults = scenario.getPopulation().getPersons().values().parallelStream()
-                .peek(person -> person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, false))
-                .filter(p -> (int) p.getAttributes().getAttribute(SynpopConstants.AGE) >= 18)
-                .peek(person -> {
-                    boolean hasDrivingLicense = drivingLicenseModel.calculate(person);
-                    person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, hasDrivingLicense);
-                })
-                .count();
+        LongAdder adultCounter = new LongAdder();
+        scenario.getPopulation().getPersons().values().parallelStream().forEach(person -> {
+            int age = AttributeUtils.getAsInteger(person, SynpopConstants.AGE, -1);
+            if (age >= 18) {
+                boolean hasDrivingLicense = drivingLicenseModel.calculate(person);
+                person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, hasDrivingLicense);
+                adultCounter.increment();
+            } else {
+                person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, false);
+            }
+        });
 
+        long adults = adultCounter.sum();
         long drivingLicenseCount = scenario.getPopulation().getPersons().values().parallelStream()
                 .filter(p -> (Boolean) p.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE))
                 .count();

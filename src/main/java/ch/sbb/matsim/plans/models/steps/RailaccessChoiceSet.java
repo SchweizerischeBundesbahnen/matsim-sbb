@@ -3,8 +3,16 @@ package ch.sbb.matsim.plans.models.steps;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
+import ch.sbb.matsim.plans.constants.SynpopConstants;
+import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
-import ch.sbb.matsim.plans.models.steps.csvmodels.StringSelectionModelFromRows;
+import ch.sbb.matsim.plans.models.selector.BinaryProbabilisticSelector;
+import ch.sbb.matsim.plans.models.selector.ChoiceSelector;
+import ch.sbb.matsim.plans.models.selector.LogitSelector;
+import ch.sbb.matsim.plans.models.utilitycomponents.UtilityCalculator;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
+import ch.sbb.matsim.plans.models.utils.ChoiceModelCSVReader;
+import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import jakarta.inject.Inject;
@@ -17,44 +25,44 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 public class RailaccessChoiceSet implements ModelStep {
 
+    public static final String AGE_CAT = "age_cat";
+    private static final Logger logger = LogManager.getLogger(RailaccessChoiceSet.class);
+    private static final Pattern RULE_PATTERN = Pattern.compile("\\s*([a-zA-Z_0-9]+)\\s*(==|!=|<=|>=|<|>|=)\\s*([0-9.-]+)\\s*");
+
     private final List<String> PERSON_AGE_GROUP_VARS = Arrays.asList(
-            "pop_0017", "pop_1824", "pop_2544", "pop_4564", "pop_6574",
-            "pop_75xx"
+            "pop_0017", "pop_1824", "pop_2544", "pop_4564", "pop_6574", "pop_75xx"
     );
 
     private static final String[] ACTIVITY_TYPES = {
             SBBActivities.accompany, SBBActivities.business, SBBActivities.education, SBBActivities.education_continued,
-            SBBActivities.leisure, SBBActivities.other, SBBActivities.shopping, SBBActivities.home
+            SBBActivities.leisure, SBBActivities.other, SBBActivities.shopping, SBBActivities.home, SBBActivities.work
     };
 
+    private final Scenario scenario;
+    private final MOBiPlansConfig mobiPlansConfig;
+    private final Zones zones;
+    private final String csvFilePath;
+    private final HashMap<String, SegmentModel> segmentModels;
+
     private static class SegmentModel {
-        private final Predicate<Person>  filterPredicate;
+        private final Predicate<Person> filterPredicate;
         private final String attribute;
-        private StringSelectionModelFromRows selectionModel;
-        private final HashMap<String, StringSelectionModelFromRows> modelsPerActivity;
+        private ChoiceSelector selectionModel;
+        private final HashMap<String, Double> activityProbabilities;
 
         public SegmentModel(Predicate<Person> filterPredicate, String attribute) {
             this.filterPredicate = filterPredicate;
             this.attribute = attribute;
-            this.selectionModel = null;
-            this.modelsPerActivity = new HashMap<>();
+            this.activityProbabilities = new HashMap<>();
         }
     }
-
-    final Scenario scenario;
-    final MOBiPlansConfig mobiPlansConfig;
-    final Zones zones;
-    HashMap<String, SegmentModel> segmentModels;
-    private final String csvFilePath;
-
-    private static final Logger logger = LogManager.getLogger(RailaccessChoiceSet.class);
 
     @Inject
     public RailaccessChoiceSet(Scenario scenario, MOBiPlansConfig mobiPlansConfig, Zones zones) {
@@ -64,7 +72,11 @@ public class RailaccessChoiceSet implements ModelStep {
         this.segmentModels = new HashMap<>();
         Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
         this.csvFilePath = modelFolder.resolve(MOBiPlansConfig.RAILACCESS_CHOICESET_CSV).toString();
+    }
 
+    @Override
+    public String getName() {
+        return MOBiPlansRunner.RAIL_ACCESS_CHOICESET;
     }
 
     @Override
@@ -73,72 +85,111 @@ public class RailaccessChoiceSet implements ModelStep {
         try {
             prepareSegmentModels(csvFilePath);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to load Railaccess config", e);
         }
 
-        calculateExtraVariables();
-        calculate();
-    }
-
-    public void calculate() {
-        HashMap<String, Long> counts = new HashMap<>();
-
-        for (String segmentKey: segmentModels.keySet()) {
-            SegmentModel segment = segmentModels.get(segmentKey);
-            String attribute = segment.attribute + "2pt";
-            StringSelectionModelFromRows model = segment.selectionModel;
-            counts.put(segmentKey, scenario.getPopulation().getPersons().values().parallelStream()
-                    .filter(segment.filterPredicate)
-                    .peek(person -> {
-                        String accessAvailable = model.calculate(person);
-                        person.getAttributes().putAttribute(attribute, accessAvailable);
-                    })
-                    .count());
-            String attributeForActivities = segment.attribute + "2pt_act";
-            scenario.getPopulation().getPersons().values().parallelStream()
-                    .filter(segment.filterPredicate)
-                    .forEach(person -> person.getAttributes().putAttribute(attributeForActivities, ""));
-            for (String activityType: ACTIVITY_TYPES) {
-                StringSelectionModelFromRows activityModel = segment.modelsPerActivity.get(activityType);
-                scenario.getPopulation().getPersons().values().parallelStream()
-                        .filter(segment.filterPredicate)
-                        .filter(person -> ("1").equals(person.getAttributes().getAttribute(attribute).toString()))
-                        .forEach(person -> {
-                            boolean accessAvailable = activityModel==null?true:("1").equals(activityModel.calculate(person));
-                            String value;
-                            if (accessAvailable) {
-                                value = activityType.toLowerCase();
-                                String prevValue = person.getAttributes().getAttribute(attributeForActivities).toString();
-                                if (!prevValue.isEmpty()) {
-                                    value = prevValue + "," + value;
-                                }
-                                person.getAttributes().putAttribute(attributeForActivities, value);
-                            }
-                        });
-            }
+        // ONE single parallel stream for both Extra Variables AND Model Calculation
+        ForkJoinPool customPool = new ForkJoinPool(mobiPlansConfig.models().threads());
+        try {
+            customPool.submit(this::processPopulation).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Parallel execution failed", e);
+        } finally {
+            customPool.shutdown();
         }
+
+        logger.info("Finished railaccess choiceset calculation.");
     }
 
-    public void calculateExtraVariables() {
+    private void processPopulation() {
         Map<String, Integer> ageGroupLowerBounds = computeAgeGroupLowerBounds(PERSON_AGE_GROUP_VARS);
         List<String> orderedAgeLabels = orderAgeLabelsByLowerBound(PERSON_AGE_GROUP_VARS, ageGroupLowerBounds);
-        Map<String, Zone> zoneById = indexZonesById(zones);
-        scenario.getPopulation().getPersons().values().parallelStream()
-                .forEach(person -> {
-                    int age = (Integer) person.getAttributes().getAttribute("age");
-                    String age_cat = String.valueOf(getAgeCat(age, orderedAgeLabels, ageGroupLowerBounds));
-                    person.getAttributes().putAttribute("age_cat", age_cat);
 
-                    String zone_id = person.getAttributes().getAttribute("zone_id").toString();
-                    Double motorisation_level = (Double) zoneById.get(zone_id).getAttribute("motorisation_level");
-                    person.getAttributes().putAttribute("motorisation_level", motorisation_level);
+        scenario.getPopulation().getPersons().values().parallelStream().forEach(person -> {
 
-                    Integer sl3_id = (Integer) zoneById.get(zone_id).getAttribute("sl3_id");
-                    person.getAttributes().putAttribute("sl3_id", sl3_id);
+            // 1. Calculate Extra Variables
+            int age = AttributeUtils.getAsInteger(person, SynpopConstants.AGE, -1);
+            String age_cat = String.valueOf(getAgeCat(age, orderedAgeLabels, ageGroupLowerBounds));
+            person.getAttributes().putAttribute(AGE_CAT, age_cat);
+            Random random = SynPopUtils.getRandom(person.getId(), getName());
 
-                    Boolean car_available = (Boolean) person.getAttributes().getAttribute("car_available");
-                    person.getAttributes().putAttribute("car_avail", car_available ? 1 : 0);
-                });
+            Zone zone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
+            if (zone != null) {
+                Double motorisation_level = AttributeUtils.getAsDouble(zone, ZonalAttributes.MOTORISATION_LEVEL, 0.0);
+                person.getAttributes().putAttribute(ZonalAttributes.MOTORISATION_LEVEL, motorisation_level);
+
+                Integer sl3_id = AttributeUtils.getAsInteger(zone, ZonalAttributes.SL3_ID, -1);
+                person.getAttributes().putAttribute(ZonalAttributes.SL3_ID, sl3_id);
+            }
+
+            // 2. Evaluate Segment Models
+            for (SegmentModel segment : segmentModels.values()) {
+                if (segment.filterPredicate.test(person)) {
+
+                    // A. Main Access - Let your LogitSelector do the math!
+                    // It returns "0" or "1" based on the utilities and random draw inside the selector
+                    String accessAvailable = segment.selectionModel.select(person);
+                    person.getAttributes().putAttribute(segment.attribute + "2pt", accessAvailable);
+
+                    // B. Activity-Specific Access
+                    String attributeForActivities = segment.attribute + "2pt_act";
+                    StringBuilder valueBuilder = new StringBuilder();
+
+                    if ("1".equals(accessAvailable)) {
+                        for (String activityType : ACTIVITY_TYPES) {
+                            Double actProb = segment.activityProbabilities.get(activityType);
+
+                            // If actProb exists, do a random draw. If it doesn't exist, assume true.
+                            boolean actAccessAvailable = (actProb == null) || (random.nextDouble() <= actProb);
+
+                            if (actAccessAvailable) {
+                                if (!valueBuilder.isEmpty()) valueBuilder.append(",");
+                                valueBuilder.append(activityType.toLowerCase());
+                            }
+                        }
+                    }
+                    person.getAttributes().putAttribute(attributeForActivities, valueBuilder.toString());
+                }
+            }
+        });
+    }
+    public void prepareSegmentModels(String filePath) throws IOException {
+        HashMap<String, ArrayList<Map<String, String>>> linesForModels = new HashMap<>();
+
+        try (CSVReader reader = new CSVReader(filePath, ";")) {
+            var row = reader.readLine();
+            while (row != null) {
+                String attribute = row.get("railaccess_attribute").toLowerCase();
+                String segment = row.get("segment").toLowerCase();
+                String filter_expression = row.get("filter_expression").toLowerCase();
+                String key = attribute + "_" + segment;
+
+                segmentModels.putIfAbsent(key, new SegmentModel(buildPredicate(filter_expression), attribute));
+                SegmentModel model = segmentModels.get(key);
+
+                if ("activity".equals(row.get("type"))) {
+                    // Store the simple probabilities for the sub-activities
+                    String activityType = row.get("attribute").toLowerCase();
+                    Double activityProbability = Double.valueOf(row.get("beta_1"));
+                    model.activityProbabilities.put(activityType, activityProbability);
+                } else {
+                    // Save the raw row to pass to your ChoiceModelCSVReader
+                    linesForModels.computeIfAbsent(key, k -> new ArrayList<>()).add(row);
+                }
+                row = reader.readLine();
+            }
+        }
+
+        // Build the Logit models using your existing architecture!
+        for (String segmentKey : linesForModels.keySet()) {
+            SegmentModel segmentModel = segmentModels.get(segmentKey);
+            ArrayList<Map<String, String>> rows = linesForModels.get(segmentKey);
+
+            // Create the Utility Calculators for alternatives "0" and "1"
+            Map<String, UtilityCalculator> calculators = ChoiceModelCSVReader.getChoiceModelFromRows(rows);
+
+            segmentModel.selectionModel = new BinaryProbabilisticSelector(calculators,  getName()+ segmentKey);
+        }
     }
 
     private List<String> orderAgeLabelsByLowerBound(List<String> personAgeGroupVars, Map<String, Integer> ageGroupLowerBounds) {
@@ -152,107 +203,35 @@ public class RailaccessChoiceSet implements ModelStep {
         Map<String, Integer> lowerBounds = new HashMap<>();
         for (String var : personAgeGroupVars) {
             String[] parts = var.split("_");
-            if (parts.length != 2) {
-                logger.warn("Unexpected age group variable format: '{}'. Expected format is 'pop_XY' where XY are age bounds. This variable will be ignored.", var);
-                continue;
-            }
+            if (parts.length != 2) continue;
+
             String agePart = parts[1];
-            int lowerBound;
             try {
-                lowerBound = Integer.parseInt(agePart.substring(0, agePart.length() - 2));
+                int lowerBound = Integer.parseInt(agePart.substring(0, agePart.length() - 2));
                 lowerBounds.put(var, lowerBound);
             } catch (NumberFormatException e) {
-                logger.warn("Could not parse age bounds from variable '{}'. This variable will be ignored.", var);
+                logger.warn("Could not parse age bounds from variable '{}'.", var);
             }
         }
         return lowerBounds;
     }
 
-    private Map<String, Zone> indexZonesById(Zones zones) {
-        Map<String, Zone> map = new HashMap<>();
-        // Adapt the iteration over your Zones implementation
-        for (Zone z : zones.getZones()) {
-            map.put(z.getId().toString(), z);
-        }
-        return map;
-    }
-
     private static int getAgeCat(int age, List<String> orderedLabels, Map<String, Integer> lowerBounds) {
-        // Equivalent to pandas.cut with right=false and labels ordered by lower bound.
-        // We create artificial upper bound 1000 like in Python.
         for (int i = 0; i < orderedLabels.size(); i++) {
             String label = orderedLabels.get(i);
             int lower = lowerBounds.get(label);
             int upper = (i + 1 < orderedLabels.size()) ? lowerBounds.get(orderedLabels.get(i + 1)) : 1000;
             if (age >= lower && age < upper) {
-                return i;
+                return i + 1; // FIX: Make it 1-indexed to match the CSV (age_cat_1, age_cat_2, etc.)
             }
         }
         return -1;
     }
 
-    public void prepareSegmentModels(String filePath) throws IOException {
-        HashMap<String, ArrayList<Map<String, String>>> linesForModels = new HashMap<>();
-        HashMap<String, Map<String, Double>> activityProbabilities = new HashMap<>();
-        try (CSVReader reader = new CSVReader(filePath, ";")) {
-            var row = reader.readLine();
-            while (row != null) {
-                String attribute = row.get("railaccess_attribute").toLowerCase();
-                String segment = row.get("segment").toLowerCase();
-                String filter_expression = row.get("filter_expression").toLowerCase();
-                Predicate<Person> filterPredicate = buildPredicate(filter_expression);
-
-                String key = attribute + "_" + segment;
-                final List<String> attributes = List.of("type", "attribute", "values", "lambda", "beta_0", "beta_1");
-                if (row.get("type").equals("activity")) {
-                    if (!activityProbabilities.containsKey(key)) {
-                        activityProbabilities.put(key, new HashMap<>());
-                    }
-                    String activityType = row.get("attribute").toLowerCase();
-                    Double activityProbability = Double.valueOf(row.get("beta_1"));
-                    activityProbabilities.get(key).put(activityType, activityProbability);
-                } else {
-                    if (!segmentModels.containsKey(key)) {
-                        SegmentModel model = new SegmentModel(filterPredicate, attribute);
-                        segmentModels.put(key, model);
-                        ArrayList<Map<String, String>> rows = new ArrayList<>();
-                        linesForModels.put(key, rows);
-                    }
-                    HashMap<String, String> newRow = new HashMap<>();
-                    for (String att : attributes) {
-                        newRow.put(att, row.get(att));
-                    }
-                    ArrayList<Map<String, String>> rows = linesForModels.get(key);
-                    rows.add(newRow);
-                }
-                row = reader.readLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        for (String segmentKey : linesForModels.keySet()) {
-            SegmentModel segmentModel = segmentModels.get(segmentKey);
-            segmentModel.selectionModel = new StringSelectionModelFromRows(linesForModels.get(segmentKey), MOBiPlansConfig.RAILACCESS_CHOICESET_CSV+"_"+segmentKey);
-            for (String activityType: ACTIVITY_TYPES) {
-                if (activityProbabilities.containsKey(segmentKey)) {
-                    HashMap<String, String> newRow = new HashMap<>();
-                    newRow.put("type", "constant");
-                    Double prob_1 = activityProbabilities.get(segmentKey).get(activityType);
-                    newRow.put("beta_1", String.valueOf(prob_1));
-                    ArrayList<Map<String, String>> rows = new ArrayList<>();
-                    rows.add(newRow);
-                    segmentModel.modelsPerActivity.put(activityType, new StringSelectionModelFromRows(rows, MOBiPlansConfig.RAILACCESS_CHOICESET_CSV + "_" + segmentKey + "_" + activityType));
-                }
-            }
-        }
-    }
-
-    private static final Pattern RULE_PATTERN = Pattern.compile("\\s*([a-zA-Z_0-9]+)\\s*(==|!=|<=|>=|<|>|=)\\s*([0-9.-]+)\\s*");
-
     private Predicate<Person> buildPredicate(String expr) {
-        if (expr == null || expr.isEmpty()) return _ -> true;
+        if (expr == null || expr.isEmpty()) return p -> true;
 
-        Predicate<Person> combined = _ -> true;
+        Predicate<Person> combined = p -> true;
         String[] conditions = expr.split(" & ");
 
         for (String cond : conditions) {
@@ -280,16 +259,17 @@ public class RailaccessChoiceSet implements ModelStep {
             Object val = person.getAttributes().getAttribute(attrName);
 
             double personValue;
-            switch (val) {
-                case null -> personValue = 0.0; // Default to 0 if attribute is missing
-                case Boolean b -> personValue = b ? 1.0 : 0.0;
-                case Number number -> personValue = number.doubleValue();
-                default -> {
-                    try {
-                        personValue = Double.parseDouble(val.toString());
-                    } catch (NumberFormatException e) {
-                        return false;
-                    }
+            if (val == null) {
+                personValue = 0.0; // Default to 0 if attribute is missing
+            } else if (val instanceof Boolean) {
+                personValue = ((Boolean) val) ? 1.0 : 0.0;
+            } else if (val instanceof Number) {
+                personValue = ((Number) val).doubleValue();
+            } else {
+                try {
+                    personValue = Double.parseDouble(val.toString());
+                } catch (NumberFormatException e) {
+                    return false;
                 }
             }
 
@@ -303,10 +283,5 @@ public class RailaccessChoiceSet implements ModelStep {
                 default -> false;
             };
         };
-    }
-
-    @Override
-    public String getName() {
-        return MOBiPlansRunner.RAIL_ACCESS_CHOICESET;
     }
 }

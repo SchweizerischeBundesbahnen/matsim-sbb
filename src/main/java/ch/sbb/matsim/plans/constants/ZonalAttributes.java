@@ -80,6 +80,5 @@ public class ZonalAttributes {
     public static final String ATTR_S = "Attr_S";
 
 
-
-
+    public static final String MOTORISATION_LEVEL = "motorisation_level" ;
 }

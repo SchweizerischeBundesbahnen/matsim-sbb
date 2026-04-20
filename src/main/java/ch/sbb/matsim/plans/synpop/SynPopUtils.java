@@ -4,6 +4,7 @@ import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import com.google.common.hash.HashFunction;
@@ -201,6 +202,8 @@ public class SynPopUtils {
             zone.getAttributes().putAttribute(ZonalAttributes.POP_HT, mobilityToolCount.htCount().get());
             zone.getAttributes().putAttribute(ZonalAttributes.POP_VA_HT, mobilityToolCount.htvCount().get());
             zone.getAttributes().putAttribute(ZonalAttributes.POP_EBIKE45, mobilityToolCount.ebikeCount().get());
+            double motorisationLevel = (double) mobilityToolCount.carAvailableCount().get() / AttributeUtils.getAsDouble(zone, ZonalAttributes.POP_TOTAL, 1);
+            zone.getAttributes().putAttribute(ZonalAttributes.MOTORISATION_LEVEL, motorisationLevel);
         }
         LogManager.getLogger(SynPopUtils.class).info("Done. Aggregating mobility tools per zone.");
     }

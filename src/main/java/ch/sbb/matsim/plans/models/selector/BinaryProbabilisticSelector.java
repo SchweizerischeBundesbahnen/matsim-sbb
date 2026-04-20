@@ -24,52 +24,43 @@ public class BinaryProbabilisticSelector implements ChoiceSelector {
 
     @Override
     public String select(Attributable attributes) {
-        @SuppressWarnings("rawtypes") var id = ((Identifiable) attributes).getId();
-        @SuppressWarnings("unchecked") Random random = SynPopUtils.getRandom(id, modelName);
+        var id = ((Identifiable) attributes).getId();
+        Random random = SynPopUtils.getRandom(id, modelName);
         Map<String, Double> probabilities = getProbabilities(attributes);
-        String chosenAlternative = drawByProbability(probabilities, random);
-        if (chosenAlternative == null) {
-            throw new IllegalStateException("No alternative was chosen for " + id + ". Check the probabilities. Model: " + modelName + ", Probabilities: " + probabilities);
-        }
-        return chosenAlternative;
+        return drawByProbability(probabilities, random);
     }
+
     @Override
     public Map<String, Double> getProbabilities(Attributable attributes) {
-        Map<String, Double> utilities = new LinkedHashMap<>();
-        double maxUtility = Double.NEGATIVE_INFINITY;
+        Map<String, Double> probabilities = new LinkedHashMap<>();
 
-        // 1. Calculate all utilities and find the maximum scaled utility
-        for (Map.Entry<String, UtilityCalculator> entry : calculators.entrySet()) {
-            double u = entry.getValue().calculate(attributes);
-
-            if (Double.isNaN(u)) {
-                log.error("Utility for alternative '" + entry.getKey() + "' is NaN. Check the utility components. Model: " + modelName);
-                u = Double.NEGATIVE_INFINITY; // Treat NaN as impossible
-            }
-
-            utilities.put(entry.getKey(), u);
-
-            if (u > maxUtility) {
-                maxUtility = u;
-            }
+        // In this linear probability model, the CSV defines the utility for alternative "1"
+        UtilityCalculator calc1 = calculators.get("1");
+        if (calc1 == null) {
+            throw new IllegalStateException("BinaryProbabilisticSelector expects a calculator for alternative '1'. Model: " + modelName);
         }
 
-        utilities.put("0", 1-utilities.get("1"));
+        double u = calc1.calculate(attributes);
 
-        // Fast-fail if all alternatives are impossible
-        if (maxUtility == Double.NEGATIVE_INFINITY) {
-            throw new IllegalStateException("All utilities evaluated to negative infinity for model: " + modelName);
+        if (Double.isNaN(u)) {
+            log.error("Utility for '1' is NaN. Check the utility components. Model: " + modelName);
+            u = 0.0;
         }
 
-        // 3. Normalize to probabilities
-        return utilities;
+        // Python Equivalent: utils[utils < 0] = 0; utils[utils > 1] = 1;
+        double prob1 = Math.max(0.0, Math.min(1.0, u));
+        double prob0 = 1.0 - prob1;
+
+        // Python Equivalent: utils = np.array([1 - utils, utils])
+        probabilities.put("1", prob1);
+        probabilities.put("0", prob0);
+
+        return probabilities;
     }
 
     private String drawByProbability(Map<String, Double> probabilities, Random random) {
         double rand = random.nextDouble();
         double cumulative = 0.0;
-//        LogManager.getLogger(getClass()).debug("Probabilities: " + probabilities);
-//        LogManager.getLogger(getClass()).debug("Random " + rand);
 
         for (Map.Entry<String, Double> entry : probabilities.entrySet()) {
             cumulative += entry.getValue();
@@ -78,8 +69,7 @@ public class BinaryProbabilisticSelector implements ChoiceSelector {
             }
         }
 
-        LogManager.getLogger(getClass()).error("Probabilistic draw failed – check if probabilities sum to 1:");
-        LogManager.getLogger(getClass()).error(probabilities);
-        return null;
+        // Fallback for extreme rounding errors
+        return "0";
     }
 }

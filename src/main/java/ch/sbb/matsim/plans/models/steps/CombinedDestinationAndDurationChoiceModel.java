@@ -7,6 +7,7 @@ import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
 import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
 import ch.sbb.matsim.plans.synpop.DecisionStrata;
@@ -106,7 +107,7 @@ public class CombinedDestinationAndDurationChoiceModel {
         for (int aIdx = 0; aIdx < ACTIVITY_TYPES.length; aIdx++) {
             String attrName = getAttractionAttributeName(ACTIVITY_TYPES[aIdx]);
             for (int zIdx = 0; zIdx < zoneList.size(); zIdx++) {
-                this.zoneAttractions[aIdx][zIdx] = (float) getZoneDouble(zoneList.get(zIdx), attrName, 0.0);
+                this.zoneAttractions[aIdx][zIdx] = (float) AttributeUtils.getAsDouble(zoneList.get(zIdx), attrName, 0.0);
             }
         }
 
@@ -472,18 +473,18 @@ private float[][] buildBlendedTravelTimeMatrix() {
 
     zoneList.parallelStream().forEach(origin -> {
         int oIdx = zoneIndexMap.get(origin.getId());
-        double atCarOrigin = getZoneDouble(origin, ZonalAttributes.AT_CAR, 0.0);
+        double atCarOrigin = AttributeUtils.getAsDouble(origin, ZonalAttributes.AT_CAR, 0.0);
 
         for (Zone destination : zoneList) {
             int dIdx = zoneIndexMap.get(destination.getId());
-            double atCarDest = getZoneDouble(destination, ZonalAttributes.AT_CAR, 0.0);
+            double atCarDest = AttributeUtils.getAsDouble(destination, ZonalAttributes.AT_CAR, 0.0);
 
             // Fetch all metrics between these two zones
             var metrics = matrices.getTravelMetrics(origin.getId(), destination.getId());
 
             // --- 1. Calculate Car Travel Time ---
             // Python: car_travel_times_sym * 60 + at_car(O) + at_car(D) + 60 * pc_car * 2 * 0.047 / 0.125
-            double pcCar = getZoneDouble(destination, ZonalAttributes.PC_CAR, 0.0);
+            double pcCar = AttributeUtils.getAsDouble(destination, ZonalAttributes.PC_CAR, 0.0);
             double carTT = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase(), 0.0)
                     + atCarOrigin + atCarDest
                     + 60.0 * pcCar * 2.0 * 0.047 / 0.125;
@@ -608,19 +609,7 @@ private String getAttractionAttributeName(String activityType) {
     }
 }
 
-private double getZoneDouble(Zone zone, String attributeName, double defaultValue) {
-    Object val = zone.getAttributes().getAttribute(attributeName);
-    if (val instanceof Number) return ((Number) val).doubleValue();
-    if (val instanceof String) {
-        try {
-            return Double.parseDouble((String) val);
-        } catch (NumberFormatException ignored) {
-        }
-    }
-    return defaultValue;
-}
-
-private double getMetric(Map<String, Double> metrics, String key, double defaultValue) {
+    private double getMetric(Map<String, Double> metrics, String key, double defaultValue) {
     return metrics != null ? metrics.getOrDefault(key, defaultValue) : defaultValue;
 }
     public void cleanup() {
