@@ -10,6 +10,7 @@
 
 
         public static final String BETA = "beta_";
+        public static final String VALUE = "value";
 
         public static Map<String, Map<String, Double>> readShadowUtilitiesFromCSV(String filePath) {
             Map<String, Map<String, Double>> shadowUtilities = new HashMap<>();
@@ -98,9 +99,28 @@
             return choiceModels;
         }
 
+        public static UtilityCalculator readRegressionModelFromCSV(String filePath) {
+            Map<String, UtilityCalculator> choiceModels = new HashMap<>();
+            try (CSVReader reader = new CSVReader(filePath, ";")) {
+                List<String> alternatives = List.of(VALUE);
+                alternatives.forEach(alternative -> choiceModels.put(alternative, new UtilityCalculator()));
+                var row = reader.readLine();
+                while (row != null) {
+                    readRow(filePath, alternatives, choiceModels, row);
+                    row = reader.readLine();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return choiceModels.get(VALUE);
+        }
+
         private static double getBeta(String alternative, Map<String, String> row) {
             String betaKey = BETA + alternative;
             String betaValue = row.get(betaKey);
+            if (betaValue == null) {
+                betaValue = row.get(alternative);
+            }
             try {
                 return Double.parseDouble(betaValue);
             } catch (NumberFormatException e) {
