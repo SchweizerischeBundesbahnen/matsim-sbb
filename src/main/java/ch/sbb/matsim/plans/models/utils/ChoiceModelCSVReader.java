@@ -74,9 +74,13 @@
                         case CONDITION -> calculator.addComponent(parseConditionComponent(row, alternative,nullable));
                         case BOXCOX ->
                                 calculator.addComponent(new BoxCoxComponent(attribute, getBeta(alternative, row), Double.parseDouble(row.get("lambda")), nullable));
-                        case PIECEWISE -> calculator.addComponent(new PiecewiseComponent(attribute,
-                                Arrays.stream(row.get("values").split(",")).mapToDouble(Double::parseDouble).toArray(),
-                                Arrays.stream(row.get(BETA + alternative).split(",")).mapToDouble(Double::parseDouble).toArray(),nullable));
+                        case PIECEWISE -> {
+                            String valuesStrings = row.get(BETA + alternative)!=null ? row.get(BETA + alternative) : row.get(alternative);
+                            double[] values = Arrays.stream(valuesStrings.split(",")).mapToDouble(Double::parseDouble).toArray();
+                            calculator.addComponent(new PiecewiseComponent(attribute,
+                                    Arrays.stream(row.get("values").split(",")).mapToDouble(Double::parseDouble).toArray(),
+                                    values,nullable));
+                        }
                         default -> throw new IllegalArgumentException("Unknown component type: " + type);
                     }
                 }

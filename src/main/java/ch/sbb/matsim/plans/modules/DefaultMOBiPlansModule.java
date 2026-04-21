@@ -54,6 +54,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(StartTimeChoiceModel.class);
         multibinder.addBinding().to(AssignFacilityLocations.class);
         multibinder.addBinding().to(RailaccessChoiceSet.class);
+        multibinder.addBinding().to(PedestrianSpeedModel.class);
 
 
 

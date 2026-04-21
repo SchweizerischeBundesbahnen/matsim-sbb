@@ -5,7 +5,6 @@ import ch.sbb.matsim.config.variables.Variables;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class SynpopConstants {
     public static final String PERSON_ID = "person_id";
@@ -60,6 +59,7 @@ public class SynpopConstants {
     public static final String NET_DIST_SCHOOL = "network_distance_school";
     public static final String NET_DIST_WORK = "network_distance_work";
     public static final String LEVEL_OF_EMPLOYMENT_CAT = "level_of_employment_cat";
+    public static final String PEDESTRIAN_SPEED = "pedestrian_speed";
 
 
 

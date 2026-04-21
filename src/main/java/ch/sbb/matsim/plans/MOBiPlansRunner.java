@@ -32,6 +32,7 @@ public class MOBiPlansRunner implements Runnable{
     public static final String INITIAL_MODE_CHOICE = "initial_mode_choice";
     public static final String START_TIME_CHOICE = "start_time_choice";
     public static final String FACILITY_ALLOCATION = "facility_allocation";
+    public static final String PEDESTRIAN_SPEED = "pedestrian_speed";
 
 
 
@@ -47,6 +48,7 @@ public class MOBiPlansRunner implements Runnable{
             START_TIME_CHOICE,
             FACILITY_ALLOCATION,
             RAIL_ACCESS_CHOICESET,
+            PEDESTRIAN_SPEED,
             WRITE_OUTPUTS
     );
     private final MOBiPlansConfig config;

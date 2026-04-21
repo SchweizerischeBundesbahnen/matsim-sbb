@@ -45,6 +45,7 @@ public record MOBiPlansConfig (
     public static final String HOUSEHOLD_ACTIVITY_ATTRACTION_CSV = "household_activity_attraction.csv";
     public static final String NOGA_TO_ACTIVITIES_MAPPING_CSV = "noga_to_activities_mapping.csv";
     public static final String RAILACCESS_CHOICESET_CSV = "railaccess_choiceset.csv";
+    public static final String PEDESTRIAN_SPEED_CSV = "pedestrian_speed.csv";
 
     /**
      * Reads and parses the master configuration from a YAML file.
