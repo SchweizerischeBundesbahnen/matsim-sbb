@@ -49,7 +49,8 @@ class PedestrianSpeedModelTest {
         scenario.getPopulation().addPerson(person);
 
         // 2. CSV Generation
-        Path csvFile = tempDir.resolve("pedestrian_speed.csv");
+        tempDir.resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).toFile().mkdirs();
+        Path csvFile = tempDir.resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve("pedestrian_speed.csv");
         String csvContent = """
                 type;attribute;values;lambda;value;parameter_name
                 constant;;;;4.272817801;const
