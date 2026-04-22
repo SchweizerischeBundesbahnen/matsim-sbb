@@ -33,6 +33,7 @@ public class MOBiPlansRunner implements Runnable{
     public static final String START_TIME_CHOICE = "start_time_choice";
     public static final String FACILITY_ALLOCATION = "facility_allocation";
     public static final String PEDESTRIAN_SPEED = "pedestrian_speed";
+    public static final String WRITE_STATS = "write_stats";
 
 
 
