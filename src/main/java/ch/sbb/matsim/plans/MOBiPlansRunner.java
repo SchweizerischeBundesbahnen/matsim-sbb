@@ -33,6 +33,7 @@ public class MOBiPlansRunner implements Runnable{
     public static final String START_TIME_CHOICE = "start_time_choice";
     public static final String FACILITY_ALLOCATION = "facility_allocation";
     public static final String PEDESTRIAN_SPEED = "pedestrian_speed";
+    public static final String WORK_FROM_HOME = "work_from_home";
 
 
 
@@ -43,6 +44,7 @@ public class MOBiPlansRunner implements Runnable{
             MOBILITY_TOOL_OWNERSHIP_MODEL,
             POPULATION_SAMPLING,
             PRIMARY_LOCATION_CHOICE,
+            WORK_FROM_HOME,
             ITERATTIVE_DAILY_PLAN_GENERATION,
             INITIAL_MODE_CHOICE,
             START_TIME_CHOICE,
