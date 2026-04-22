@@ -18,6 +18,7 @@ import org.matsim.api.core.v01.Scenario;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static ch.sbb.matsim.plans.models.utils.Calculations.calculateLogsum;
 
@@ -42,6 +43,7 @@ public class ZoneBasedAccessibilities implements ModelStep{
 
             Map<String, String> modeFormulas = formulaRepository.getModeFormulas("99",
                     DecisionStrata.fromStrataName(accessibilityType));
+            Map<Id<Zone>, Double> calculatedAccessibilities = new ConcurrentHashMap<>();
 
             zones.getZones().parallelStream().forEach(origin -> {
                 if (origin == null) return;
@@ -72,8 +74,14 @@ public class ZoneBasedAccessibilities implements ModelStep{
                     totalAccessibility += (expsum * attraction);
                 }
 
-                origin.getAttributes().putAttribute(accessibilityType, Math.max(totalAccessibility, zoneAttraction));
+                calculatedAccessibilities.put(origin.getId(), Math.max(totalAccessibility, zoneAttraction));
             });
+            for (Zone origin : allZones) {
+                Double accValue = calculatedAccessibilities.get(origin.getId());
+                if (accValue != null) {
+                    origin.getAttributes().putAttribute(accessibilityType, accValue);
+                }
+            }
         }
     }
 
