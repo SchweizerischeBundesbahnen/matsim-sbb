@@ -57,24 +57,44 @@ public class ExpressionEvaluator {
             fullVariableNames.add(matcher.group(0));
         }
 
+        Map<String, String> shortVariableNames = getRequiredVariables(formulaString);
         String modifiedFormula = formulaString;
-        Set<String> shortVariableNames = new HashSet<>();
 
-        for (String fullName : fullVariableNames) {
-            String shortName;
-            if (fullName.startsWith("matrix_")) {
-                shortName = fullName.substring("matrix_".length());
+        for (String fullName : shortVariableNames.keySet()) {
+            String shortName =  shortVariableNames.get(fullName);
+            if (!shortName.equals(fullName)) {
                 modifiedFormula = modifiedFormula.replace(fullName, shortName);
-            } else {
-                shortName = fullName;
             }
-            shortVariableNames.add(shortName);
         }
 
         ExpressionBuilder builder = new ExpressionBuilder(modifiedFormula)
                 .functions(functionMin, functionMax)
-                .variables(shortVariableNames);
+                .variables((Set<String>) shortVariableNames.values());
 
         return builder.build();
+    }
+
+    /**
+     * Returns the set of variable names that must be provided in the variableData map
+     * to evaluate the given formulaString. Variable names are returned in the same
+     * (short) form used when building the exp4j Expression (i.e. "matrix_X" becomes "X").
+     */
+    public Map<String, String> getRequiredVariables(String formulaString) {
+        Set<String> fullVariableNames = new HashSet<>();
+        Matcher matcher = VARIABLE_PATTERN.matcher(formulaString);
+        while (matcher.find()) {
+            fullVariableNames.add(matcher.group(0));
+        }
+
+        Map<String, String> shortVariableNames = new HashMap<>();
+        for (String fullName : fullVariableNames) {
+            if (fullName.startsWith("matrix_")) {
+                shortVariableNames.put(fullName, fullName.substring("matrix_".length()));
+            } else {
+                shortVariableNames.put(fullName, fullName);
+            }
+        }
+
+        return shortVariableNames;
     }
 }
