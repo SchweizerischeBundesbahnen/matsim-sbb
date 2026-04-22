@@ -6,9 +6,8 @@ import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
-import ch.sbb.matsim.plans.models.selector.BinaryProbabilisticSelector;
+import ch.sbb.matsim.plans.models.selector.BinaryLinearProbabilitySelector;
 import ch.sbb.matsim.plans.models.selector.ChoiceSelector;
-import ch.sbb.matsim.plans.models.selector.LogitSelector;
 import ch.sbb.matsim.plans.models.utilitycomponents.UtilityCalculator;
 import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import ch.sbb.matsim.plans.models.utils.ChoiceModelCSVReader;
@@ -31,6 +30,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RailaccessChoiceSet implements ModelStep {
+    @Inject
+    Scenario scenario;
+    @Inject
+    MOBiPlansConfig config;
+    @Inject
+    Zones zones;
+
 
     public static final String AGE_CAT = "age_cat";
     private static final Logger logger = LogManager.getLogger(RailaccessChoiceSet.class);
@@ -45,9 +51,6 @@ public class RailaccessChoiceSet implements ModelStep {
             SBBActivities.leisure, SBBActivities.other, SBBActivities.shopping, SBBActivities.home, SBBActivities.work
     };
 
-    private final Scenario scenario;
-    private final MOBiPlansConfig mobiPlansConfig;
-    private final Zones zones;
     private final String csvFilePath;
     private final HashMap<String, SegmentModel> segmentModels;
 
@@ -65,12 +68,9 @@ public class RailaccessChoiceSet implements ModelStep {
     }
 
     @Inject
-    public RailaccessChoiceSet(Scenario scenario, MOBiPlansConfig mobiPlansConfig, Zones zones) {
-        this.scenario = scenario;
-        this.mobiPlansConfig = mobiPlansConfig;
-        this.zones = zones;
+    public RailaccessChoiceSet(Scenario scenario, MOBiPlansConfig config, Zones zones) {
         this.segmentModels = new HashMap<>();
-        Path modelFolder = Paths.get(mobiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
+        Path modelFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
         this.csvFilePath = modelFolder.resolve(MOBiPlansConfig.RAILACCESS_CHOICESET_CSV).toString();
     }
 
@@ -89,7 +89,7 @@ public class RailaccessChoiceSet implements ModelStep {
         }
 
         // ONE single parallel stream for both Extra Variables AND Model Calculation
-        ForkJoinPool customPool = new ForkJoinPool(mobiPlansConfig.models().threads());
+        ForkJoinPool customPool = new ForkJoinPool(config.models().threads());
         try {
             customPool.submit(this::processPopulation).get();
         } catch (Exception e) {
@@ -188,7 +188,7 @@ public class RailaccessChoiceSet implements ModelStep {
             // Create the Utility Calculators for alternatives "0" and "1"
             Map<String, UtilityCalculator> calculators = ChoiceModelCSVReader.getChoiceModelFromRows(rows);
 
-            segmentModel.selectionModel = new BinaryProbabilisticSelector(calculators,  getName()+ segmentKey);
+            segmentModel.selectionModel = new BinaryLinearProbabilitySelector(calculators,  getName()+ segmentKey);
         }
     }
 
