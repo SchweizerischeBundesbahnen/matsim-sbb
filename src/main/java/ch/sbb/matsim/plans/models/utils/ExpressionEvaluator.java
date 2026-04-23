@@ -21,9 +21,11 @@ public class ExpressionEvaluator {
         @Override public double apply(double... args) { return Math.max(args[0], args[1]); }
     };
 
+//    private static final Pattern VARIABLE_PATTERN = Pattern.compile(
+//            "\\b(matrix_\\w+|va_impedances|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride|\\[([A-Za-z0-9.:-]+)\\]\\b"
+//    );
     private static final Pattern VARIABLE_PATTERN = Pattern.compile(
-            "\\b(matrix_\\w+|va_impedances|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride|\\[([A-Za-z0-9.:-]+)\\]\\b"
-    );
+            "\\b(matrix_\\w+|va_impedances|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride)\\b\\[([A-Za-z0-9.:-]+)\\]");
 
     // ThreadLocal cache to ensure thread-safety during parallelStream evaluations.
     // Maps original formulaString -> Compiled exp4j Expression

@@ -59,10 +59,10 @@ public class StatsWriter implements ModelStep {
                 variable_names.add(variable.name);
             }
 
-            Double[][] sums;
-            Integer[][] counts;
-            sums = new Double[s.groups.size()][s.variables.size()];
-            counts = new Integer[s.groups.size()][s.variables.size()];
+            double[][] sums;
+            int[][] counts;
+            sums = new double[s.groups.size()][s.variables.size()];
+            counts = new int[s.groups.size()][s.variables.size()];
             for (int groupIndex = 0; groupIndex < s.groups.size(); groupIndex++) {
                 ReadReportJson.ReportGroup group = s.groups.get(groupIndex);
                 switch (s.table_ref) {
@@ -103,17 +103,25 @@ public class StatsWriter implements ModelStep {
                     csvWriter.set("Name", group.name);
                     for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
                         ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
+                        Double val = 0.0;
                         switch (variable.aggregation) {
-                            case "Sum": csvWriter.set(variable.name, String.valueOf(sums[groupIndex][varIndex]));
-                            case "Count": csvWriter.set(variable.name, String.valueOf(counts[groupIndex][varIndex]));
+                            case "Sum": val = sums[groupIndex][varIndex];
+                            case "Count": val = Double.valueOf(String.valueOf(counts[groupIndex][varIndex]));
                             case "Mean": {
-                                if (counts[groupIndex][varIndex] != 0) csvWriter.set(variable.name, String.valueOf((Double) sums[groupIndex][varIndex]/counts[groupIndex][varIndex]));
+                                if (counts[groupIndex][varIndex] != 0) val = sums[groupIndex][varIndex]/counts[groupIndex][varIndex];
                             }
                         }
-                        varIndex++;
+                        if (variable.normalize != null) {
+                            double total = sums[groupIndex][s.variables.indexOf(variable)];
+                            if (total != 0) {
+                                val = val / total;
+                            } else {
+                                val = 0.0;
+                            }
+                        }
+                        csvWriter.set(variable.name, String.valueOf(val));
                     }
                     csvWriter.writeRow();
-                    groupIndex++;
                 }
             } catch (Exception e) {
                 //noinspection CallToPrintStackTrace
