@@ -4,10 +4,7 @@ import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import net.objecthunter.exp4j.function.Function;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 /*
@@ -25,7 +22,7 @@ public class ExpressionEvaluator {
     };
 
     private static final Pattern VARIABLE_PATTERN = Pattern.compile(
-            "\\b(matrix_\\w+|va_impedances|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride)\\b"
+            "\\b(matrix_\\w+|va_impedances|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride|\\[([A-Za-z0-9.:-]+)\\]\\b"
     );
 
     // ThreadLocal cache to ensure thread-safety during parallelStream evaluations.
@@ -51,12 +48,6 @@ public class ExpressionEvaluator {
      * The heavy-lifting method. This is now only called ONCE per formula per thread!
      */
     private Expression compileExpression(String formulaString) {
-        Set<String> fullVariableNames = new HashSet<>();
-        Matcher matcher = VARIABLE_PATTERN.matcher(formulaString);
-        while (matcher.find()) {
-            fullVariableNames.add(matcher.group(0));
-        }
-
         Map<String, String> shortVariableNames = getRequiredVariables(formulaString);
         String modifiedFormula = formulaString;
 
@@ -69,9 +60,13 @@ public class ExpressionEvaluator {
 
         ExpressionBuilder builder = new ExpressionBuilder(modifiedFormula)
                 .functions(functionMin, functionMax)
-                .variables((Set<String>) shortVariableNames.values());
+                .variables(new HashSet<String>(getShortVariableNames(formulaString)));
 
         return builder.build();
+    }
+
+    public List<String> getShortVariableNames(String formulaString) {
+        return new ArrayList<>(getRequiredVariables(formulaString).values());
     }
 
     /**
@@ -85,11 +80,16 @@ public class ExpressionEvaluator {
         while (matcher.find()) {
             fullVariableNames.add(matcher.group(0));
         }
+        if (fullVariableNames.isEmpty()) {
+            fullVariableNames.add(formulaString);
+        }
 
         Map<String, String> shortVariableNames = new HashMap<>();
         for (String fullName : fullVariableNames) {
             if (fullName.startsWith("matrix_")) {
                 shortVariableNames.put(fullName, fullName.substring("matrix_".length()));
+            } else if (fullName.startsWith("[")) {
+                shortVariableNames.put(fullName, fullName.substring(1,fullName.length()-1));
             } else {
                 shortVariableNames.put(fullName, fullName);
             }

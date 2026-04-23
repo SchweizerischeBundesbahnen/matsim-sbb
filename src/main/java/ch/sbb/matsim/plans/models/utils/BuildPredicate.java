@@ -86,6 +86,13 @@ public class BuildPredicate {
         } catch (Exception ex) {
             logger.warn("Error reading attribute '{}' on {}: {}", attrName, clazz.getName(), ex.toString());
         }
+        try {
+            Object val = obj.getAttributes().getAttribute(attrName);
+            if (val instanceof Number) return ((Number) val).doubleValue();
+            if (val != null) return Double.parseDouble(val.toString());
+        } catch (Exception ex) {
+            logger.warn("Error reading attribute '{}' on {}: {}", attrName, clazz.getName(), ex.toString());
+        }
         return null;
     }
 }
