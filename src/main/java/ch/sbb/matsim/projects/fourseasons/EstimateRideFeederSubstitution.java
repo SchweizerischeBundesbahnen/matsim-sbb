@@ -72,7 +72,7 @@ public class EstimateRideFeederSubstitution {
         this.carnet = nfm.applyFilters();
         new NetworkCleaner().run(carnet);
         var lcp = new DijkstraFactory().createPathCalculator(carnet, disutility, travelTime);
-        this.networkRoutingModule = new NetworkRoutingModule(SBBModes.RIDEFEEDER, scenario.getPopulation().getFactory(), carnet, lcp);
+        this.networkRoutingModule = new NetworkRoutingModule(SBBModes.RIDEFEEDER, scenario.getPopulation().getFactory(), scenario, carnet, lcp);
     }
 
     public static void main(String[] args) throws IOException {

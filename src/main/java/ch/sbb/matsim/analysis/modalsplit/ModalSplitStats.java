@@ -143,7 +143,7 @@ public class ModalSplitStats {
         analyzeAndWriteStats(outputLocation, experiencedPlansService.getExperiencedPlans());
     }
 
-    public void analyzeAndWriteStats(String outputLocation, IdMap<Person, Plan> experiencedPlans) {
+    public void analyzeAndWriteStats(String outputLocation, Map<Id<Person>, Plan> experiencedPlans) {
 
         this.feederModesFromConfig = getFeederModesinConfig();
         this.possibleModesAtStop = getPossibleModesAtStop();
@@ -218,7 +218,7 @@ public class ModalSplitStats {
     }
 
 
-    private void analyze(IdMap<Person, Plan> experiencedPlans) {
+    private void analyze(Map <Id<Person>, Plan> experiencedPlans) {
         for (Entry<Id<Person>, Plan> entry : experiencedPlans.entrySet()) {
 
             // analysis for access and egress mode for each stop station

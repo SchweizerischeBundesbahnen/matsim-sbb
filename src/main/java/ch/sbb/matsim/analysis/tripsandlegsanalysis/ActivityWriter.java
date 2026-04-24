@@ -25,9 +25,11 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import java.io.IOException;
+import java.util.Map;
 
 import jakarta.inject.Inject;
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.IdMap;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
@@ -69,7 +71,7 @@ public class ActivityWriter {
         writeActivities(filename, experiencedPlansService.getExperiencedPlans());
     }
 
-    public void writeActivities(String filename, IdMap<Person, Plan> experiencedPlans) {
+    public void writeActivities(String filename, Map<Id<Person>, Plan> experiencedPlans) {
         try (CSVWriter csvWriter = new CSVWriter(null, new String[]{ACTIVITY_ID, PERSON_ID, FACILITY_ID, START_TIME, END_TIME, X, Y, ZONE}, filename)) {
             int i = 0;
             for (var e : experiencedPlans.entrySet()) {

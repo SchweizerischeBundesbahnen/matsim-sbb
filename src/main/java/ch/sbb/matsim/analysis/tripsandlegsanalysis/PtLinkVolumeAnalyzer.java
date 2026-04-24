@@ -158,7 +158,7 @@ public class PtLinkVolumeAnalyzer {
         analyzer.writePtLinkUsage(folderPrefix + "pt_volumes_rewritten.att", scaleFactor, experiencedPlans);
     }
 
-    public Map<Id<Link>, Long> analysePtLinkUsage(IdMap<Person, Plan> experiencedPlans) {
+    public Map<Id<Link>, Long> analysePtLinkUsage(Map<Id<Person>,Plan> experiencedPlans) {
         Map<Id<Link>, Long> ptUsage = experiencedPlans.values()
                 .stream()
                 .flatMap(p -> TripStructureUtils.getLegs(p).stream())
@@ -170,7 +170,7 @@ public class PtLinkVolumeAnalyzer {
 
     }
 
-    public Map<Id<Link>, Double> analysePtLinkUsageincludingDNWV(IdMap<Person, Plan> experiencedPlans) {
+    public Map<Id<Link>, Double> analysePtLinkUsageincludingDNWV(Map<Id<Person>, Plan> experiencedPlans) {
         IdMap<Person, LinkedList<Variables.MOBiTripAttributes>> additionalTripAttributes = new IdMap<>(Person.class, 100);
         additionalTripAttributes = Variables.MOBiTripAttributes.extractTripAttributes(population);
         boolean containsDNWVValues = additionalTripAttributes.values().stream().flatMap(moBiTripAttributes -> moBiTripAttributes.stream())
@@ -206,7 +206,7 @@ public class PtLinkVolumeAnalyzer {
 
     }
 
-    public void writePtLinkUsage(String outputfile, double scalefactor, IdMap<Person, Plan> experiencedPlans) {
+    public void writePtLinkUsage(String outputfile, double scalefactor, Map <Id<Person>, Plan> experiencedPlans) {
         NetworkFilterManager nfm = new NetworkFilterManager(network, new NetworkConfigGroup());
         nfm.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
         Network ptNetwork = nfm.applyFilters();

@@ -35,11 +35,11 @@ public class SamplesizeFactors {
 
     static {
         qsimStorageCapacityFactor = new HashMap<>();
-        qsimStorageCapacityFactor.put(0.25, 0.60);
-        qsimStorageCapacityFactor.put(0.10, 0.40);
-        qsimStorageCapacityFactor.put(0.05, 0.20);
-        qsimStorageCapacityFactor.put(0.033, 0.12);
-        qsimStorageCapacityFactor.put(0.01, 0.05);
+        qsimStorageCapacityFactor.put(0.25, 0.25);
+        qsimStorageCapacityFactor.put(0.10, 0.10);
+        qsimStorageCapacityFactor.put(0.05, 0.05);
+        qsimStorageCapacityFactor.put(0.033, 0.033);
+        qsimStorageCapacityFactor.put(0.01, 0.01);
 
         hermesStorageCapacityFactor = new HashMap<>();
         hermesStorageCapacityFactor.put(0.10, 0.20);
