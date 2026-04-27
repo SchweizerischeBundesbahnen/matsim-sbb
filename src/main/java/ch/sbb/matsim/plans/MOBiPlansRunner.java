@@ -50,7 +50,8 @@ public class MOBiPlansRunner implements Runnable{
             FACILITY_ALLOCATION,
             RAIL_ACCESS_CHOICESET,
             PEDESTRIAN_SPEED,
-            WRITE_OUTPUTS
+            WRITE_OUTPUTS,
+            WRITE_STATS
     );
     private final MOBiPlansConfig config;
 
