@@ -105,18 +105,27 @@ public class StatsWriter implements ModelStep {
                         ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
                         Double val = 0.0;
                         switch (variable.aggregation) {
-                            case "Sum": val = sums[groupIndex][varIndex];
-                            case "Count": val = Double.valueOf(String.valueOf(counts[groupIndex][varIndex]));
+                            case "Sum":
+                                val = sums[groupIndex][varIndex];
+                                break;
+                            case "Count":
+                                val = Double.valueOf(String.valueOf(counts[groupIndex][varIndex]));
+                                break;
                             case "Mean": {
                                 if (counts[groupIndex][varIndex] != 0) val = sums[groupIndex][varIndex]/counts[groupIndex][varIndex];
+                                break;
                             }
                         }
                         if (variable.normalize != null) {
-                            double total = sums[groupIndex][s.variables.indexOf(variable)];
+                            double total = 0.0;
+                            for (int vIndex = 0; vIndex < s.variables.size(); vIndex++) {
+                                if (s.variables.get(vIndex).name.equals(variable.normalize)) {
+                                    total = sums[groupIndex][vIndex];
+                                    break;
+                                }
+                            }
                             if (total != 0) {
                                 val = val / total;
-                            } else {
-                                val = 0.0;
                             }
                         }
                         csvWriter.set(variable.name, String.valueOf(val));
