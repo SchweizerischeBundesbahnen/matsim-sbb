@@ -24,8 +24,10 @@ public class ExpressionEvaluator {
 //    private static final Pattern VARIABLE_PATTERN = Pattern.compile(
 //            "\\b(matrix_\\w+|va_impedances|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride|\\[([A-Za-z0-9.:-]+)\\]\\b"
 //    );
-    private static final Pattern VARIABLE_PATTERN = Pattern.compile(
-            "\\b(matrix_\\w+|va_impedances|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride)\\b\\[([A-Za-z0-9.:-]+)\\]");
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile(     "\\[\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*\\]" +                       // group(1): any bracketed identifier (not a number)
+        "|" +
+        "(matrix_[A-Za-z0-9_]+|va_impedances|from_acc_car|to_acc_car|to_pc_car|from_acc_ride|to_acc_ride|to_pc_ride)" // group(2): explicit names
+);
 
     // ThreadLocal cache to ensure thread-safety during parallelStream evaluations.
     // Maps original formulaString -> Compiled exp4j Expression
