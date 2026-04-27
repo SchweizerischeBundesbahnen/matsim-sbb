@@ -74,7 +74,7 @@ class StartTimeChoiceModelTest {
                 1.0, // sampleSize
                 false, // write_analysis
                 "test_run", // run_id
-                null // run
+                null,null,null
         );
         this.mobiPlansConfig = new MOBiPlansConfig(dataConfig, modelsConfig);
 

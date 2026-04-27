@@ -63,7 +63,7 @@ class RailaccessChoiceSetTest {
                 tempDir.toString(), null, null, null, null, null
         );
         MOBiPlansConfig.ModelsConfig modelsConfig = new MOBiPlansConfig.ModelsConfig(
-                1, 1.0, false, "test_run", null
+                1, 1.0, false, "test_run", null,null,null
         );
         mobiPlansConfig = new MOBiPlansConfig(dataConfig, modelsConfig);
 

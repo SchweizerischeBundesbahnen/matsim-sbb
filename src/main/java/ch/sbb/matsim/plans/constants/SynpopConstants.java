@@ -36,6 +36,7 @@ public class SynpopConstants {
     public static final String NO_TOT_TOURS = "no_tot_tours";
     public static final String SCHOOL_ZONE = "school_zone";
     public static final String WORK_ZONE = "work_zone";
+    public static final String ORIGINAL_WORK_ZONE = "original_work_zone";
     public static final String ACTIVE_IN_MODEL = "active_in_model";
 
 
@@ -187,6 +188,7 @@ public class SynpopConstants {
     );
     public static final String TOURS = "tours";
     public static final String WORK_FACILITY = "work_facility";
+    public static final String ORIGINAL_WORK_FACILITY = "original_work_facility";
     public static final String EDUCATION_FACILITY = "education_facility";
 
     public static Integer getCodeOrFail(Map<String, Integer> reverseMap, String label, String categoryName) {
