@@ -78,6 +78,7 @@ public class StatsWriter implements ModelStep {
                                 }
                             }
                         });
+                        break;
                     }
                     case "Zones": {
                         Predicate<Zone> groupFilterPredicate = BuildPredicate.buildPredicate(group.filter_expression, Zone.class);
@@ -91,6 +92,21 @@ public class StatsWriter implements ModelStep {
                                 }
                             }
                         });
+                        break;
+                    }
+                    case "Trips": {
+                        Predicate<Person> groupFilterPredicate = BuildPredicate.buildPredicate(group.filter_expression, Person.class);
+                        int finalGroupIndex1 = groupIndex;
+                        scenario.getPopulation().getPersons().values().stream().forEach(person -> {
+                            if (groupFilterPredicate.test(person)) {
+                                for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
+                                    ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
+                                    sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(person, requiredVariables.get(variable.name)));
+                                    counts[finalGroupIndex1][varIndex]++;
+                                }
+                            }
+                        });
+                        break;
                     }
                 }
             }
@@ -156,4 +172,8 @@ public class StatsWriter implements ModelStep {
         }
         return result;
     }
+}
+
+interface PersonTrip extends Attributable {
+
 }
