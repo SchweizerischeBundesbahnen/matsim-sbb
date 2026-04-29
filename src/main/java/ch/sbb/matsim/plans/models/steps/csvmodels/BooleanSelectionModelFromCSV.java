@@ -27,5 +27,10 @@ public class BooleanSelectionModelFromCSV implements ChoiceModel {
         return Boolean.parseBoolean(selector.select(person));
     }
 
+    @Override
+    public double getProbabilityForAlternative(Attributable attributable, String alternative) {
+        return selector.getProbabilities(attributable).getOrDefault(alternative, 0.0);
+    }
+
 }
 

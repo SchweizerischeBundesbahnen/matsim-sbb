@@ -26,4 +26,9 @@ public class IntegerSelectionModelFromCSV implements ChoiceModel {
     public Integer calculate(Attributable attributable) {
         return Integer.parseInt(this.selector.select(attributable));
     }
+
+    @Override
+    public double getProbabilityForAlternative(Attributable attributable, String alternative) {
+        return selector.getProbabilities(attributable).getOrDefault(alternative, 0.0);
+    }
 }

@@ -11,7 +11,6 @@ import ch.sbb.matsim.zones.Zone;
 import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
@@ -89,22 +88,27 @@ public class AssignFacilityLocations implements ModelStep{
                 // home, work and education are handled differently
                 if (act.getType().equals(SBBActivities.home)) {
                     Household household = ((Household) person.getAttributes().getAttribute(SynpopConstants.HOUSEHOLD));
-                    Id<ActivityFacility> facId = createFacilityIdForHouseholdId(household.getId());
-                    assignFacilityToActivity(act, facId);
+                    ActivityFacility activityFacility = (ActivityFacility) household.getAttributes().getAttribute(SynpopConstants.FACILITY);
+                    assignFacilityToActivity(act, activityFacility);
                 }
                 else if (act.getType().equals(SBBActivities.work)) {
-                    Object rawWork = Objects.requireNonNull(
-                            person.getAttributes().getAttribute(SynpopConstants.WORK_FACILITY),
-                            "CRITICAL: Agent " + person.getId() + " is missing a Work Facility!"
-                    );
-                    assignFacilityToActivity(act, Id.create(rawWork.toString(), ActivityFacility.class));
+                    ActivityFacility workFacility = (ActivityFacility) person.getAttributes().getAttribute(SynpopConstants.WORK_FACILITY);
+                    if (workFacility != null) {
+                        assignFacilityToActivity(act, workFacility);
+                    }
+                    else {
+                        log.error("Person {} has a work activity but no assigned work facility. Skipping facility assignment for this activity.", person.getId());
+                    }
                 }
                 else if (act.getType().equals(SBBActivities.education)) {
-                    Object rawEdu = Objects.requireNonNull(
-                            person.getAttributes().getAttribute(SynpopConstants.EDUCATION_FACILITY),
-                            "CRITICAL: Agent " + person.getId() + " is missing an Education Facility!"
-                    );
-                    assignFacilityToActivity(act, Id.create(rawEdu.toString(), ActivityFacility.class));
+                    ActivityFacility educationFacility = (ActivityFacility) person.getAttributes().getAttribute(SynpopConstants.EDUCATION_FACILITY);
+                    if (educationFacility != null){
+                         assignFacilityToActivity(act, educationFacility);
+                    }
+                    else {
+                        log.error("Person {} has an education activity but no assigned education facility. Skipping facility assignment for this activity.", person.getId());
+                    }
+
                 }
                 else {
 
@@ -113,14 +117,12 @@ public class AssignFacilityLocations implements ModelStep{
 
                 if (assignedZone != null) {
                     ZoneActivityKey lookupKey = new ZoneActivityKey(assignedZone.getId(), act.getType());
-
                     // A single, clean lookup!
                     Map<Id<ActivityFacility>, Double> options = facilityWeights.getOrDefault(lookupKey, Collections.emptyMap());
-
                     if (!options.isEmpty()) {
                         // Roll the roulette wheel!
                         Id<ActivityFacility> chosenFacId = ChoiceUtils.selectFromProbabilities(options, random);
-                        assignFacilityToActivity(act, chosenFacId);
+                        assignFacilityToActivity(act, scenario.getActivityFacilities().getFacilities().get(chosenFacId));
                     } else {
                         // Fallback: If no facilities offer this activity in this zone, just use the Zone Centroid
                         act.setCoord(MGC.coordinate2Coord(assignedZone.getEnvelope().centre()));
@@ -135,12 +137,10 @@ public class AssignFacilityLocations implements ModelStep{
         }
     }
 
-    private void assignFacilityToActivity(Activity act, Id<ActivityFacility> facId) {
-        ActivityFacility f = activityFacilities.getFacilities().get(facId);
-        if (f != null) {
-            act.setFacilityId(f.getId());
-            act.setCoord(f.getCoord());
-        }
+    private void assignFacilityToActivity(Activity act, ActivityFacility facility) {
+        act.setFacilityId(facility.getId());
+        act.setCoord(facility.getCoord());
+
     }
 
 
@@ -178,7 +178,7 @@ public class AssignFacilityLocations implements ModelStep{
         Map<String, Double> householdAttractionRates = readAttractionFromCSV(dataFolder.resolve(MOBiPlansConfig.HOUSEHOLD_ACTIVITY_ATTRACTION_CSV).toString());
             for (Household household : scenario.getHouseholds().getHouseholds().values()){
                 int members = household.getMemberIds().size();
-                ActivityFacility facility = activityFacilities.getFactory().createActivityFacility(createFacilityIdForHouseholdId(household.getId()), (Coord) household.getAttributes().getAttribute(SynpopConstants.COORD));
+                ActivityFacility facility = (ActivityFacility) household.getAttributes().getAttribute(SynpopConstants.FACILITY);
                 facility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, household.getAttributes().getAttribute(SynpopConstants.ZONE_ID));
                 for (String activityType: householdAttractionRates.keySet()) {
                     double attraction = householdAttractionRates.get(activityType) * members;
@@ -186,13 +186,10 @@ public class AssignFacilityLocations implements ModelStep{
                     option.setCapacity(attraction);
                     facility.addActivityOption(option);
                 }
-                activityFacilities.addActivityFacility(facility);
             }
     }
 
-    private static Id<ActivityFacility> createFacilityIdForHouseholdId(Id<Household> householdId) {
-        return Id.create("hh_" + householdId, ActivityFacility.class);
-    }
+
 
     private Map<String, Double> readAttractionFromCSV(String filename) {
         Map<String,Double> householdAttractionRates = new HashMap<>();

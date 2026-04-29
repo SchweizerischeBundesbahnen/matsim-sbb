@@ -10,10 +10,13 @@ import ch.sbb.matsim.zones.Zones;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.apache.logging.log4j.LogManager;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.facilities.ActivityFacilitiesFactory;
+import org.matsim.facilities.ActivityFacility;
 import org.matsim.households.Household;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
@@ -56,10 +59,10 @@ public class SynPopUtils {
     public static void calculateHouseHoldCompositions(Scenario scenario) {
         LogManager.getLogger(SynPopUtils.class).info("Calculating household compositions...");
         for (Household household : scenario.getHouseholds().getHouseholds().values()) {
-            Integer numberOfAdults = 0;
-            Integer numberOfAdultsAbove24 = 0;
-            Integer numberOfChildren = 0;
-            Integer numberOfChildrenUnder24 = 0;
+            int numberOfAdults = 0;
+            int numberOfAdultsAbove24 = 0;
+            int numberOfChildren = 0;
+            int numberOfChildrenUnder24 = 0;
             int minLanguage = Integer.MAX_VALUE;
             for (Id<Person> memberId : household.getMemberIds()) {
                 Person person = scenario.getPopulation().getPersons().get(memberId);
@@ -85,7 +88,7 @@ public class SynPopUtils {
                 }
             }
             //default: no couple
-            Integer coupleType = 0;
+            int coupleType = 0;
             if (numberOfAdultsAbove24 >= 2 && numberOfAdultsAbove24 <= 3) {
                 if (numberOfChildrenUnder24 > 0) {
                     coupleType = 1; // couple with children
@@ -93,7 +96,7 @@ public class SynPopUtils {
                     coupleType = 2; // couple without children
                 }
             }
-            Boolean singleParent = numberOfAdults == 1 && numberOfChildren > 0;
+            boolean singleParent = numberOfAdults == 1 && numberOfChildren > 0;
             // not more than 9 children and 11 adults per household according to the MTMC
             household.getAttributes().putAttribute(SynpopConstants.NB_OF_KIDS, Math.min(numberOfChildren, 9));
             household.getAttributes().putAttribute(SynpopConstants.NB_OF_ADULTS, Math.min(numberOfAdults, 11));
@@ -284,8 +287,7 @@ public class SynPopUtils {
     }
 
     public static void setDefaultAttributes(Scenario scenario) {
-        TreeMap<Integer,Integer> levelOfEmploymentCategories = new TreeMap<>();
-        levelOfEmploymentCategories.putAll(SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT_BOUNDS);
+        TreeMap<Integer, Integer> levelOfEmploymentCategories = new TreeMap<>(SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT_BOUNDS);
         scenario.getPopulation().getPersons().values().parallelStream().forEach(
                 person -> {
                     person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL, 0.0);
@@ -298,6 +300,20 @@ public class SynPopUtils {
 
                 }
         );
+    }
+
+    public static void createFacilitiesForHouseholds(Scenario scenario) {
+        ActivityFacilitiesFactory factory = scenario.getActivityFacilities().getFactory();
+
+        for (Household household : scenario.getHouseholds().getHouseholds().values()) {
+        String facilityId = "hh_" + household.getId();
+            ActivityFacility activityFacility = factory.createActivityFacility(
+                    Id.create(facilityId, ActivityFacility.class),
+                    (Coord) household.getAttributes().getAttribute(SynpopConstants.COORD)
+            );
+            scenario.getActivityFacilities().addActivityFacility(activityFacility);
+            household.getAttributes().putAttribute(SynpopConstants.FACILITY, activityFacility);
+        }
     }
 
     record MobilityToolCount(AtomicInteger drivingLicenseCount, AtomicInteger ebikeCount,
