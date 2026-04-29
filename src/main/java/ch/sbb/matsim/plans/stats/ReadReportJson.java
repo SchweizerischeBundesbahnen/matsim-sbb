@@ -41,6 +41,7 @@ public class ReadReportJson {
     public static class ReportGroup {
         public String name;
         public String filter_expression;
+        public String filter_expression_person;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
