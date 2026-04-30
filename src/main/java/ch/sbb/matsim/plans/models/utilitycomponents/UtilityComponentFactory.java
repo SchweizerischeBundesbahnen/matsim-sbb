@@ -52,7 +52,7 @@ public class UtilityComponentFactory {
                     passed = switch (operator) {
                         case "==" -> valueLiteral.equalsIgnoreCase(strValue);
                         case "!=" -> !valueLiteral.equalsIgnoreCase(strValue);
-                        default -> throw new IllegalArgumentException("Unsupported operator: " + operator + " attributes: "+ finalAttributes +" operators: "+operators+" values: "+valueLiterals);
+                        default -> throw new IllegalArgumentException("Unsupported operator: " + operator + " attributes: "+ finalAttributes +" operators: "+operators+" values: "+valueLiterals +". String Value: "+strValue );
                     };
 
                 } else {

@@ -22,14 +22,13 @@ import java.io.IOException;
 public class BusinessesReader {
 
     public static void main(String[] args) {
-        String featherPopulation = "C:\\devsbb\\tmp\\synpop_2022\\businesses_2022.feather";
+        String featherPopulation = "/Volumes/mobi/50_Ergebnisse/MOBi_5.1/synpop/20250407_synpop_jobs_for_work_kalif_on_amr_v6/synpop_2022/businesses_2022.feather";
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         var activityFacilities = scenario.getActivityFacilities();
         double time = System.nanoTime();
         readBusinessesFile(featherPopulation, activityFacilities);
         System.out.println(activityFacilities.getFacilities().size());
         System.out.println("Calculation time " + 0.001 * (System.nanoTime() - time));
-        new FacilitiesWriter(activityFacilities).write("C:\\devsbb\\tmp\\synpop_2022\\businesses_2022_facilities.xml.gz");
     }
 
     public static void readBusinessesFile(String filePath, ActivityFacilities facilities) {
@@ -95,7 +94,9 @@ public class BusinessesReader {
             return v.get(index);
         } else if (vector instanceof TinyIntVector v) {
             return Integer.valueOf(v.get(index));
-        } else if (vector instanceof BitVector v) {
+        } else if (vector instanceof org.apache.arrow.vector.SmallIntVector v) {
+            return v.get(index);}
+        else if (vector instanceof BitVector v) {
             return v.get(index);
         } else if (vector instanceof VarCharVector v) {
             return v.getObject(index).toString();
