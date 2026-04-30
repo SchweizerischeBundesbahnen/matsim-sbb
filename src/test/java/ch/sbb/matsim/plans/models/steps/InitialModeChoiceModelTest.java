@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.ConfigUtils;
@@ -137,7 +138,7 @@ class InitialModeChoiceModelTest {
         dummyStrataFactory = new StrataPredicateFactory() {
             @Override
             public Predicate<Person> getPredicate(DecisionStrata strata) {
-                return p -> true; // Applies to everyone in this test
+                return _ -> true; // Applies to everyone in this test
             }
         };
 
@@ -165,14 +166,14 @@ class InitialModeChoiceModelTest {
         dummyEvaluator = new ExpressionEvaluator() {
             @Override
             public double evaluate(String formulaString, Map<String, Double> variableData) {
-                switch (formulaString) {
-                    case "car_work_util": return 10.0;
-                    case "pt_work_util": return 0.0;
-                    case "car_sub_util": return 10.0;
-                    case "pt_sub_util": return 20.0;
-                    case "walk_sub_util": return 0.0;
-                    default: return Double.NEGATIVE_INFINITY;
-                }
+                return switch (formulaString) {
+                    case "car_work_util" -> 10.0;
+                    case "pt_work_util" -> 0.0;
+                    case "car_sub_util" -> 10.0;
+                    case "pt_sub_util" -> 20.0;
+                    case "walk_sub_util" -> 0.0;
+                    default -> Double.NEGATIVE_INFINITY;
+                };
             }
         };
     }
@@ -186,7 +187,7 @@ class InitialModeChoiceModelTest {
         tour.getOutboundStopActivities().add(stop1);
 
         // Set Main Activity Part 1
-        tour.getMainActivities().get(0).getAttributes().putAttribute("assigned_zone", workZone);
+        tour.getMainActivities().getFirst().getAttributes().putAttribute("assigned_zone", workZone);
 
         // Add Subtour Stop
         Activity subStop = popFactory.createActivityFromCoord("leisure", null);
@@ -248,5 +249,49 @@ class InitialModeChoiceModelTest {
         // For the subtour, even though evaluator returns 10.0 for CAR and 20.0 for PT,
         // the chain-based logic should completely remove CAR from the choice set.
         assertEquals(SBBModes.PT, tour.getSubtourMode());
+    }
+
+    @Test
+    void testModeChoice_WorkingFromHome_NoStops_AssignsWalkForAnalysis() {
+        // 1. Setup Person who works from home
+        Person p3 = popFactory.createPerson(Id.createPersonId("p3_wfh"));
+        p3.getAttributes().putAttribute(SynpopConstants.ZONE, homeZone);
+        p3.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, true);
+        p3.getAttributes().putAttribute(SynpopConstants.ACTIVE_IN_MODEL, true);
+
+        // TRIGGER: Set Working From Home to true!
+        p3.getAttributes().putAttribute(SynpopConstants.IS_WORKING_FROM_HOME, true);
+
+        // 2. Create a Work Tour with NO outbound or inbound stops
+        Tour wfhTour = new Tour(Tour.TourType.PRIMARY, SBBActivities.work);
+
+        // Add Main Activity (Work is in the homeZone)
+        Activity mainWork = popFactory.createActivityFromCoord(SBBActivities.work, null);
+        mainWork.getAttributes().putAttribute("assigned_zone", homeZone);
+
+        // Replace the default instantiated one
+        wfhTour.getMainActivities().clear();
+        wfhTour.getMainActivities().add(mainWork);
+
+        p3.getAttributes().putAttribute(SynpopConstants.TOURS, List.of(wfhTour));
+        scenario.getPopulation().addPerson(p3);
+
+        // 3. Run Model
+        InitialModeChoiceModel model = new InitialModeChoiceModel(
+                dummyMatrices, scenario, mobiPlansConfig, dummyFormulaRepo, dummyStrataFactory, dummyEvaluator);
+        model.run();
+
+        // 4. Assertions
+        // Because the person works from home and has no stops, the mode should be automatically set
+        // to WALK_FOR_ANALYSIS, bypassing the standard utility math and avoiding 0-distance penalties!
+        assertEquals(SBBModes.WALK_FOR_ANALYSIS, wfhTour.getMaintourMode(),
+                "WFH tour with no stops should be forced to WALK_FOR_ANALYSIS");
+
+        // Ensure distance and travel time were explicitly forced to 0.0 in generateTourElements
+        Leg commuteLeg = (Leg) wfhTour.getTourElements().stream().filter(pe -> pe instanceof Leg).findFirst().orElseThrow();
+        assertEquals(0.0, commuteLeg.getTravelTime().orElse(-1.0),
+                "WFH commute travel time should be 0.0");
+        assertEquals(0.0, (Double) commuteLeg.getAttributes().getAttribute(InitialModeChoiceModel.CAR_NET_DISTANCE),
+                "WFH commute distance should be 0.0");
     }
 }
