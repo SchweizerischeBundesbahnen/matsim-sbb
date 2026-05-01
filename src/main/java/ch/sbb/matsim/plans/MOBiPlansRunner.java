@@ -34,6 +34,7 @@ public class MOBiPlansRunner implements Runnable{
     public static final String FACILITY_ALLOCATION = "facility_allocation";
     public static final String PEDESTRIAN_SPEED = "pedestrian_speed";
     public static final String WORK_FROM_HOME = "work_from_home";
+    public static final String MERGE_EXOGENOUS_PLANS = "merge_exogenous_plans";
 
 
 
@@ -51,6 +52,7 @@ public class MOBiPlansRunner implements Runnable{
             FACILITY_ALLOCATION,
             RAIL_ACCESS_CHOICESET,
             PEDESTRIAN_SPEED,
+            MERGE_EXOGENOUS_PLANS,
             WRITE_OUTPUTS
     );
     private final MOBiPlansConfig config;

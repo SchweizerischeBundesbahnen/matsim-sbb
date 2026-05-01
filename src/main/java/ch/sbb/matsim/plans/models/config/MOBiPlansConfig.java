@@ -80,9 +80,8 @@ public record DataConfig(
         String sff_attributes,
         String school_enr_apprentices,
         String foreign_attractions,
-        String zone_informations
-
-) {
+        String zone_informations,
+        String exogenousPlansFolder) {
 }
     public record ModelsConfig(
             Integer threads,

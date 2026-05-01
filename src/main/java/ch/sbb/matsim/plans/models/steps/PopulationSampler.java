@@ -1,9 +1,9 @@
 package ch.sbb.matsim.plans.models.steps;
 
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
-import ch.sbb.matsim.preparation.slicer.PopulationSlicerByAttribute;
 import com.google.inject.Inject;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -37,13 +37,13 @@ public class PopulationSampler implements ModelStep {
             int householdSlice = slice % 200;
             household.getMemberIds().forEach(
                     personId ->
-                            scenario.getPopulation().getPersons().get(personId).getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, householdSlice));
-            household.getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, householdSlice);
+                            scenario.getPopulation().getPersons().get(personId).getAttributes().putAttribute(Variables.SLICE, householdSlice));
+            household.getAttributes().putAttribute(Variables.SLICE, householdSlice);
             slice++;
         }
         scenario.getPopulation().getPersons().values().forEach(person -> {
             int age = ((Number) person.getAttributes().getAttribute("age")).intValue();
-            boolean active = age >= lowerAgeBound && (int) person.getAttributes().getAttribute(PopulationSlicerByAttribute.SLICE) < maximumSlice;
+            boolean active = age >= lowerAgeBound && (int) person.getAttributes().getAttribute(Variables.SLICE) < maximumSlice;
             person.getAttributes().putAttribute(SynpopConstants.ACTIVE_IN_MODEL, active);
         });
     }

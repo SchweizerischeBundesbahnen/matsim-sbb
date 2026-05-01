@@ -60,7 +60,7 @@ class RailaccessChoiceSetTest {
         // 3. Config Setup
         MOBiPlansConfig.DataConfig dataConfig = new MOBiPlansConfig.DataConfig(
                 List.of(), null, null, null, null, null, null, null,
-                tempDir.toString(), null, null, null, null, null
+                tempDir.toString(), null, null, null, null, null,null
         );
         MOBiPlansConfig.ModelsConfig modelsConfig = new MOBiPlansConfig.ModelsConfig(
                 1, 1.0, false, "test_run", null,null,null
@@ -81,11 +81,13 @@ class RailaccessChoiceSetTest {
         // - Activity 'leisure': beta_1 = 1.0 -> 100% probability
         // - Activity 'shopping': beta_1 = 0.0 -> 0% probability
 
-        String csvContent = "railaccess_attribute;segment;filter_expression;type;attribute;values;lambda;beta_0;beta_1;comment\n" +
-                "car;non_rural;age>=18;constant;;;0;0.0;100.0;Force main model to 1\n" +
-                "car;non_rural;age>=18;activity;work;;0;0.0;1.0;Always work\n" +
-                "car;non_rural;age>=18;activity;leisure;;0;0.0;1.0;Always leisure\n" +
-                "car;non_rural;age>=18;activity;shopping;;0;0.0;0.0;Never shopping\n";
+        String csvContent = """
+                railaccess_attribute;segment;filter_expression;type;attribute;values;lambda;beta_0;beta_1;comment
+                car;non_rural;age>=18;constant;;;0;0.0;100.0;Force main model to 1
+                car;non_rural;age>=18;activity;work;;0;0.0;1.0;Always work
+                car;non_rural;age>=18;activity;leisure;;0;0.0;1.0;Always leisure
+                car;non_rural;age>=18;activity;shopping;;0;0.0;0.0;Never shopping
+                """;
 
         Files.writeString(choiceModelsDir.resolve(MOBiPlansConfig.RAILACCESS_CHOICESET_CSV), csvContent);
     }

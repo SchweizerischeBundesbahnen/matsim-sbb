@@ -1,7 +1,6 @@
 package ch.sbb.matsim.preparation.casestudies;
 
 import ch.sbb.matsim.config.variables.Variables;
-import ch.sbb.matsim.preparation.slicer.PopulationSlicerByAttribute;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import org.apache.logging.log4j.LogManager;
@@ -91,7 +90,7 @@ public class CutPlansForCasestudies {
     private int getMaxSliceNo(Population population, boolean isEndogeneous) {
         return population.getPersons().values().stream()
                 .filter(person -> isEndogeneous == Variables.REGULAR.equals(PopulationUtils.getSubpopulation(person)))
-                .mapToInt(person -> (int) person.getAttributes().getAttribute(PopulationSlicerByAttribute.SLICE))
+                .mapToInt(person -> (int) person.getAttributes().getAttribute(Variables.SLICE))
                 .max().orElse(-1);
     }
 
@@ -109,7 +108,7 @@ public class CutPlansForCasestudies {
             if (counter == maxSliceNo) {
                 counter = 0;
             }
-            population.getPersons().get(personId).getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, counter);
+            population.getPersons().get(personId).getAttributes().putAttribute(Variables.SLICE, counter);
             counter++;
         }
     }

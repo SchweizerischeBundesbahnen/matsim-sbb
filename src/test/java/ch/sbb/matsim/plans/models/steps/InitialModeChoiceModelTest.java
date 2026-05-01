@@ -53,7 +53,7 @@ class InitialModeChoiceModelTest {
         // 1. Thread Config
         MOBiPlansConfig.DataConfig dataConfig = new MOBiPlansConfig.DataConfig(
                 List.of(), null, null, null, null, null, null, null,
-                "dummy/path", null, null, null, null, null
+                "dummy/path", null, null, null, null, null,null
         );
         MOBiPlansConfig.ModelsConfig modelsConfig = new MOBiPlansConfig.ModelsConfig(
                 1, 1.0, false, "test_run", null,null,null

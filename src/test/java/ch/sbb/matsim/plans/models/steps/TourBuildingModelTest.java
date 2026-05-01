@@ -63,7 +63,7 @@ class TourBuildingModelTest {
         MOBiPlansConfig.DataConfig dataConfig = new MOBiPlansConfig.DataConfig(
                 List.of(), null, null, null, null, null, null, null,
                 tempDir.toString(), // modelBaseDir points to tempDir
-                null, null, null, null, null
+                null, null, null, null, null,null
         );
         MOBiPlansConfig.ModelsConfig modelsConfig = new MOBiPlansConfig.ModelsConfig(
                 1, 1.0, false, "test_run", null,null,null
@@ -80,8 +80,10 @@ class TourBuildingModelTest {
 
         // 1. Fake Integer Selection Model (Forces probability=1.0 for the value '1')
         // Since we want exactly 1 tour and 1 stop for everything, we just map all 12 model files to this same content!
-        String integerCsvContent = "type;attribute;values;lambda;beta_0;beta_1\n" +
-                "constant;;1;1.0;0.0;100.0\n"; // Beta 100 for value 1 forces ~100% probability
+        String integerCsvContent = """
+                type;attribute;values;lambda;beta_0;beta_1
+                constant;;1;1.0;0.0;100.0
+                """; // Beta 100 for value 1 forces ~100% probability
 
         List<String> integerFiles = List.of(
                 MOBiPlansConfig.TOUR_FREQUENCY_WORK_MODEL_CSV,
@@ -104,8 +106,10 @@ class TourBuildingModelTest {
 
         // 2. Fake Secondary Activity Assignment Model (Forces 100% "shopping")
         // Header exactly as expected by the SecondaryActivityTypeAssignmentModel class
-        String secondaryCsvContent = "comment;filter_expression;accompany;business;education;education_continued;leisure;other;shopping\n" +
-                "ForceShopping;;0.0;0.0;0.0;0.0;0.0;0.0;1.0\n";
+        String secondaryCsvContent = """
+                comment;filter_expression;accompany;business;education;education_continued;leisure;other;shopping
+                ForceShopping;;0.0;0.0;0.0;0.0;0.0;0.0;1.0
+                """;
         Files.writeString(choiceModelsDir.resolve(MOBiPlansConfig.SECONDARY_ACTIVITY_TYPE_ASSIGNMENT_CSV), secondaryCsvContent);
     }
 
@@ -132,7 +136,7 @@ class TourBuildingModelTest {
         assertEquals(4, tours.size(), "Person should have exactly 4 tours generated.");
 
         // Check Work Tour (Index 0)
-        Tour workTour = tours.get(0);
+        Tour workTour = tours.getFirst();
         assertEquals(Tour.TourType.PRIMARY, workTour.getTourType());
         assertEquals(SBBActivities.work, workTour.getMainActivityType());
         assertStopsGenerated(workTour);
@@ -162,8 +166,8 @@ class TourBuildingModelTest {
         assertEquals(1, tour.getOutboundStopActivities().size());
         assertEquals(1, tour.getSubtourActivities().size());
 
-        assertEquals("shopping", tour.getInboundStopActivities().get(0).getType());
-        assertEquals("shopping", tour.getOutboundStopActivities().get(0).getType());
-        assertEquals("shopping", tour.getSubtourActivities().get(0).getType());
+        assertEquals("shopping", tour.getInboundStopActivities().getFirst().getType());
+        assertEquals("shopping", tour.getOutboundStopActivities().getFirst().getType());
+        assertEquals("shopping", tour.getSubtourActivities().getFirst().getType());
     }
 }

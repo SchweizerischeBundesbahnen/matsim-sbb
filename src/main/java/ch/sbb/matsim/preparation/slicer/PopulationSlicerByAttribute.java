@@ -1,5 +1,6 @@
 package ch.sbb.matsim.preparation.slicer;
 
+import ch.sbb.matsim.config.variables.Variables;
 import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
@@ -9,8 +10,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PopulationSlicerByAttribute {
-
-    public static final String SLICE = "slice";
 
 
     /**
@@ -34,7 +33,7 @@ public class PopulationSlicerByAttribute {
         LogManager.getLogger(PopulationSlicerByAttribute.class).warn("Only agents between slice " + startSlice + " and " + endSlice + " will be simulated.");
         Set<Id<Person>> personsToRemove = new HashSet<>();
         for (Person p : population.getPersons().values()) {
-            Integer slice = (Integer) p.getAttributes().getAttribute(SLICE);
+            Integer slice = (Integer) p.getAttributes().getAttribute(Variables.SLICE);
             if (slice == null) {
                 LogManager.getLogger(PopulationSlicerByAttribute.class).warn("Person " + p.getId() + " has no slice attribute. Will not apply any slicing. ");
                 return;
