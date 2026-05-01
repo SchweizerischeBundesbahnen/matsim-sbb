@@ -81,7 +81,6 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 		TransportModeNetworkFilter networkFilter = new TransportModeNetworkFilter(network);
 		Network carNet = NetworkUtils.createNetwork();
 		networkFilter.filter(carNet, Collections.singleton(SBBModes.CAR));
-		new RunTravelTimeValidation(carNet, ttc.getLinkTravelTimes(), startTime).run(travelTimeRelationsFile, outputFolder + "/congestedTravelTimeComparison_" + startTime + ".csv");
 
 	}
 

@@ -129,7 +129,7 @@ public class TripsAndDistanceStats {
         analyzeAndWriteStats(fullFileName, condensedFilename, experiencedPlansService.getExperiencedPlans());
     }
 
-    public void analyzeAndWriteStats(String fullStatsFileName, String condensedStatsFilename, IdMap<Person, Plan> experiencedPlans) {
+    public void analyzeAndWriteStats(String fullStatsFileName, String condensedStatsFilename, Map<Id<Person>, Plan> experiencedPlans) {
         Map<String, SubpopulationStats> stats = new TreeMap<>();
         analyze(stats, experiencedPlans);
         writeFile(fullStatsFileName, stats);
@@ -228,7 +228,7 @@ public class TripsAndDistanceStats {
         stats.put("xx", allPaxTraffic);
     }
 
-    private void analyze(Map<String, SubpopulationStats> statsPerSubpopulation, IdMap<Person, Plan> experiencedPlans) {
+    private void analyze(Map<String, SubpopulationStats> statsPerSubpopulation, Map<Id<Person>, Plan> experiencedPlans) {
         for (Entry<Id<Person>, Plan> e : experiencedPlans.entrySet()) {
             String subpopulation = PopulationUtils.getSubpopulation(population.getPersons().get(e.getKey()));
             if (subpopulation == null) {

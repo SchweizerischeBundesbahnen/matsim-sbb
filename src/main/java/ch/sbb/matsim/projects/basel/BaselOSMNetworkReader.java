@@ -27,8 +27,8 @@ import java.util.List;
  */
 public class BaselOSMNetworkReader {
 
-    private static final String inputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240911_Fussgaenger_Oberwinterthur\\plans\\winterthur.pbf";
-    private static final String outputFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240911_Fussgaenger_Oberwinterthur\\plans\\winterthur.xml.gz";
+    private static final String inputFile = "/Users/joschka.bischoff/Downloads/pratteln.osm.pbf";
+    private static final String outputFile = "/Volumes/mobi/40_Projekte/20260114_Personenfluss_Pratteln/network/pratteln_pedestrian_network.xml.gz";
     private static final CoordinateTransformation coordinateTransformation = TransformationFactory.getCoordinateTransformation(TransformationFactory.WGS84, "EPSG:2056");
 
     public static void main(String[] args) {

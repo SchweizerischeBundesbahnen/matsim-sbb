@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.drt.run.DrtConfigs;
 import org.matsim.contrib.drt.run.DrtControlerCreator;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
@@ -41,6 +42,10 @@ public class RunSBBDRTScenario {
 		prepareDrtConfig(config);
 		Scenario scenario = DrtControlerCreator.createScenarioWithDrtRouteFactory(config);
 		ScenarioUtils.loadScenario(scenario);
+        for (Link link : scenario.getNetwork().getLinks().values()) {
+            if (link.getLength()<1)
+                link.setLength(1.0);
+        }
 		RunSBB.addSBBDefaultScenarioModules(scenario);
 		Controler controler = new Controler(scenario);
 		RunSBB.addSBBDefaultControlerModules(controler);
@@ -67,7 +72,7 @@ public class RunSBBDRTScenario {
 		controler.addOverridingModule(new MultiModeDrtModule());
 		controler.addOverridingModule(new DvrpModule());
 		controler.configureQSimComponents(DvrpQSimComponents.activateAllModes(MultiModeDrtConfigGroup.get(controler.getConfig())));
-		controler.addOverridingModule(new SBBDRTAnalysisModule());
+		//controler.addOverridingModule(new SBBDRTAnalysisModule());
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {

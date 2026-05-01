@@ -178,7 +178,7 @@
         <!-- Specifies over how many iterations the link volumes should be averaged that are used for the counts comparison. Use 1 or 0 to only use the link volumes of a single iteration. This values cannot be larger than the value specified for writeCountsInterval -->
         <param name="averageCountsOverIterations" value="10"/>
         <!-- factor by which to re-scale the simulated values.  necessary when simulation runs with something different from 100%.  needs to be adapted manually -->
-        <param name="countsScaleFactor" value="10.0"/>
+        <param name="countsScaleFactor" value="1.0"/>
         <!-- node id for center node of distance filter -->
         <param name="distanceFilterCenterNode" value="null"/>
         <!-- If true, link counts from legs performed on modes not included in the 'analyzedModes' parameter are ignored. -->

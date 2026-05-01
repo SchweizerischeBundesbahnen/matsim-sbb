@@ -190,28 +190,28 @@ public class SBBScoringFunctionTest {
 		SBBCharyparNagelScoringParametersForPerson spfp = new SBBCharyparNagelScoringParametersForPerson(config.plans(), config.scoring(), config.scenario(), sbbBehaviour);
 
         SBBScoringParameters sp1 = spfp.getSBBScoringParameters(w1);
-        ActivityUtilityParameters home1 = sp1.getMatsimScoringParameters().utilParams.get("home");
-        ActivityUtilityParameters work1 = sp1.getMatsimScoringParameters().utilParams.get("work");
-        ActivityUtilityParameters edu1 = sp1.getMatsimScoringParameters().utilParams.get("edu");
-		Assertions.assertEquals(2 + interactionActtypeCount, sp1.getMatsimScoringParameters().utilParams.size(), "ScoringFunction should only contain parameters for activity types used by this agent.");
+        ActivityUtilityParameters home1 = sp1.getMatsimScoringParameters().actParams.get("home");
+        ActivityUtilityParameters work1 = sp1.getMatsimScoringParameters().actParams.get("work");
+        ActivityUtilityParameters edu1 = sp1.getMatsimScoringParameters().actParams.get("edu");
+		Assertions.assertEquals(2 + interactionActtypeCount, sp1.getMatsimScoringParameters().actParams.size(), "ScoringFunction should only contain parameters for activity types used by this agent.");
 		Assertions.assertNotNull(home1, "ScoringFunction should contain parameters für activity 'home'.");
 		Assertions.assertNotNull(work1, "ScoringFunction should contain parameters für activity 'work'.");
 		Assertions.assertNull(edu1, "ScoringFunction should not contain parameters für activity 'edu'.");
 
 		SBBScoringParameters sp2 = spfp.getSBBScoringParameters(w2);
-		ActivityUtilityParameters home2 = sp2.getMatsimScoringParameters().utilParams.get("home");
-		ActivityUtilityParameters work2 = sp2.getMatsimScoringParameters().utilParams.get("work");
-		ActivityUtilityParameters edu2 = sp2.getMatsimScoringParameters().utilParams.get("edu");
-		Assertions.assertEquals(2 + interactionActtypeCount, sp2.getMatsimScoringParameters().utilParams.size(), "ScoringFunction should only contain parameters for activity types used by this agent.");
+		ActivityUtilityParameters home2 = sp2.getMatsimScoringParameters().actParams.get("home");
+		ActivityUtilityParameters work2 = sp2.getMatsimScoringParameters().actParams.get("work");
+		ActivityUtilityParameters edu2 = sp2.getMatsimScoringParameters().actParams.get("edu");
+		Assertions.assertEquals(2 + interactionActtypeCount, sp2.getMatsimScoringParameters().actParams.size(), "ScoringFunction should only contain parameters for activity types used by this agent.");
 		Assertions.assertNotNull(home2, "ScoringFunction should contain parameters für activity 'home'.");
 		Assertions.assertNotNull(work2, "ScoringFunction should contain parameters für activity 'work'.");
 		Assertions.assertNull(edu2, "ScoringFunction should not contain parameters für activity 'edu'.");
 
 		SBBScoringParameters sp3 = spfp.getSBBScoringParameters(e3);
-		ActivityUtilityParameters home3 = sp3.getMatsimScoringParameters().utilParams.get("home");
-		ActivityUtilityParameters work3 = sp3.getMatsimScoringParameters().utilParams.get("work");
-		ActivityUtilityParameters edu3 = sp3.getMatsimScoringParameters().utilParams.get("edu");
-		Assertions.assertEquals(2 + interactionActtypeCount, sp3.getMatsimScoringParameters().utilParams.size(), "ScoringFunction should only contain parameters for activity types used by this agent.");
+		ActivityUtilityParameters home3 = sp3.getMatsimScoringParameters().actParams.get("home");
+		ActivityUtilityParameters work3 = sp3.getMatsimScoringParameters().actParams.get("work");
+		ActivityUtilityParameters edu3 = sp3.getMatsimScoringParameters().actParams.get("edu");
+		Assertions.assertEquals(2 + interactionActtypeCount, sp3.getMatsimScoringParameters().actParams.size(), "ScoringFunction should only contain parameters for activity types used by this agent.");
 		Assertions.assertNotNull(home3, "ScoringFunction should contain parameters für activity 'home'.");
 		Assertions.assertNull(work3, "ScoringFunction should not contain parameters für activity 'work'.");
 		Assertions.assertNotNull(edu3, "ScoringFunction should contain parameters für activity 'edu'.");

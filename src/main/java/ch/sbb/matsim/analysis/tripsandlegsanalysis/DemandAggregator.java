@@ -136,7 +136,7 @@ public class DemandAggregator {
 
     }
 
-    void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerAmrFile, IdMap<Person, Plan> experiencedPlans) {
+    void aggregateAndWriteMatrix(double scalefactor, String outputMatrixFile, String stationToStationFile, String stationToStationFQFile, String tripsPerMunFile, String tripsPerAmrFile, Map<Id<Person>, Plan> experiencedPlans) {
         LOG.info("aggregating Rail Demand");
         aggregateRailDemand(scalefactor, experiencedPlans.values());
         var railDemandMatrix = prepareRailMatrix(false);
@@ -227,7 +227,7 @@ public class DemandAggregator {
 
     }
 
-    public void aggregateTripDemand(double scalefactor, IdMap<Person, Plan> experiencedPlans) {
+    public void aggregateTripDemand(double scalefactor, Map<Id<Person>, Plan> experiencedPlans) {
         if (scalefactor < 1.0) {
             throw new RuntimeException("Scalefactor set below 1. This will scale traffic down and should not be intended.");
         }
