@@ -1,6 +1,9 @@
 package ch.sbb.matsim.plans.stats;
 
 import ch.sbb.matsim.zones.Zone;
+import ch.sbb.matsim.zones.Zones;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.utils.objectattributes.attributable.Attributable;
@@ -14,6 +17,8 @@ import java.util.regex.Pattern;
 import static ch.sbb.matsim.plans.stats.LookupFormulaParser.parseFormula;
 
 public class LookupAttributeHandler {
+    private static final Logger logger = LogManager.getLogger(LookupAttributeHandler.class);
+
     private static final Pattern ATTR_WITH_SLASH = Pattern.compile("([A-Za-z0-9_\\-]+(?:/[A-Za-z0-9_\\-]+)+)");
 
     public Map<String, Map<String, String>> lookupVariables = new HashMap<>();
@@ -23,14 +28,13 @@ public class LookupAttributeHandler {
         Map<String, String> attributes = new HashMap<>();
         if (expression == null) { return attributes; }
         Matcher m = ATTR_WITH_SLASH.matcher(expression);
-        List<String> found = new ArrayList<>();
         while (m.find()) {
             String attr = m.group(1);
-            if (!found.contains(attr)) {
-                String shortAttribute = mapAttribute(attr);
-                if (!shortAttribute.equals(attr)) {
-                    found.add(attr);
-                    attributes.put(attr, shortAttribute);
+            if (!attributes.containsKey(attr)) {
+                String normAttr = normalizeToLowerRight(attr);
+                String shortAttribute = mapAttribute(normAttr);
+                if (!shortAttribute.equals(normAttr)) {
+                    attributes.put(attr, normAttr);
                 }
             }
         }
@@ -41,7 +45,7 @@ public class LookupAttributeHandler {
     public String replaceAttributes(String expression) {
         Map<String, String> attributesWithSlash = findAttributesWithSlash(expression);
         for (String attribute : attributesWithSlash.keySet()) {
-            expression = expression.replace(attribute, attributesWithSlash.get(attribute));
+            expression = expression.replace(attribute, mapAttribute(attributesWithSlash.get(attribute)));
         }
         return expression;
     }
@@ -73,35 +77,37 @@ public class LookupAttributeHandler {
                     table = parseResult.lookupTable;
                 }
                 for (String attribute : attributeMap.keySet()) {
-                    addLookupVariable(table, attribute, attributeMap.get(attribute));
+                    addLookupVariable(table, attribute, mapAttribute(attributeMap.get(attribute)));
                 }
             }
             for (ReadReportJson.ReportGroup group : s.groups) {
                 Map<String, String> attributeMap = findAttributesWithSlash(group.filter_expression);
                 for (String attribute : attributeMap.keySet()) {
-                    addLookupVariable(s.table_ref, attribute, attributeMap.get(attribute));
+                    addLookupVariable(s.table_ref, attribute, mapAttribute(attributeMap.get(attribute)));
                 }
                 group.filter_expression = replaceAttributes(group.filter_expression);
 
                 attributeMap = findAttributesWithSlash(group.filter_expression_person);
                 for (String attribute : attributeMap.keySet()) {
-                    addLookupVariable("Person", attribute, attributeMap.get(attribute));
+                    addLookupVariable("Person", attribute, mapAttribute(attributeMap.get(attribute)));
                 }
                 group.filter_expression_person = replaceAttributes(group.filter_expression_person);
             }
         }
     }
 
-    public void setLookupAttributes(Collection<? extends Person> persons, List<Zone> zones){
+    public void setLookupAttributes(Collection<? extends Person> persons, Zones zones){
         if (lookupVariables.keySet().contains("Persons")) {
             persons.stream().forEach(person -> {
+                person.getAttributes().putAttribute("zone", zones.getZone(Id.create(person.getAttributes().getAttribute("zone_id").toString(), Zone.class)));
+                if (person.getAttributes().getAttribute("work_zone_no")!= null) person.getAttributes().putAttribute("work_zone", zones.getZone(Id.create(person.getAttributes().getAttribute("work_zone_no").toString(), Zone.class)));
                 for (String attr : lookupVariables.get("Persons").keySet()) {
                     person.getAttributes().putAttribute(lookupVariables.get("Persons").get(attr), getFieldValue(person, attr, Person.class));
                 }
             });
         }
         if (lookupVariables.keySet().contains("Zones")) {
-            zones.stream().forEach(zone -> {
+            zones.getZones().stream().forEach(zone -> {
                 for (String attr : lookupVariables.get("Zones").keySet()) {
                     zone.getAttributes().putAttribute(lookupVariables.get("Zones").get(attr), getFieldValue(zone, attr, Zone.class));
                 }
@@ -131,10 +137,16 @@ public class LookupAttributeHandler {
                 // keep looking
             }
         }
+        try {
+            return obj.getAttributes().getAttribute(variable);
+        } catch (Exception ex) {
+            logger.warn("Error reading attribute '{}' on {}: {}", variable, clazz.getName(), ex.toString());
+        }
+
         return ob;
     }
 
-    public static Double getFieldValue(Attributable obj, String variable, Class<? extends Attributable> clazz) {
+    public static Object getFieldValue(Attributable obj, String variable, Class<? extends Attributable> clazz) {
         String regex = "[//]";
         String[] parts = variable.split(regex);
         Object ob = null;
@@ -143,6 +155,8 @@ public class LookupAttributeHandler {
             ob = getFieldObject(obj, part, clazz);
             if (i==parts.length-1) {
                 if (ob instanceof Number) return ((Number) ob).doubleValue();
+                if (ob instanceof Boolean) return ((Boolean) ob).booleanValue();
+                if (ob instanceof String) return ((String) ob).toString();
             }
             if (ob == null) return null;
             obj = (Attributable) ob;
@@ -150,4 +164,24 @@ public class LookupAttributeHandler {
         }
         return null;
     }
+
+    public static String normalizeToLowerRight(String attribute) {
+        if (attribute == null) return null;
+        String[] parts = attribute.split("/", -1); // keep empty segments if any
+        if (parts.length == 0) return attribute;
+
+        // normalize first part: make first char lowercase (if present), keep rest as-is
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i<parts.length; i++) {
+            String part = parts[i];
+            if (!part.isEmpty()) {
+                part = Character.toLowerCase(part.charAt(0)) + (part.length() > 1 ? part.substring(1) : "");
+                if (i>0) sb.append('/');
+                sb.append(part);
+            }
+        }
+
+        return sb.toString();
+    }
+
 }
