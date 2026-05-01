@@ -181,7 +181,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
                 carTravelTime = carLeastCostPathTree.getTime(nearestCarNodeIndex).seconds() * CAR_FREESPEED_TRAVELTIME_FACTOR;
                 carDistance = carLeastCostPathTree.getDistance(nearestCarNodeIndex);
                 found++;
-            } catch (ArrayIndexOutOfBoundsException e) {
+            } catch (Exception e) {
                 var carpath = carlcp.calcLeastCostPath(nearestCarNode, carFromNode, 0, null, null);
                 if (carpath != null) {
                     carTravelTime = carpath.travelTime * CAR_FREESPEED_TRAVELTIME_FACTOR;
@@ -199,7 +199,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             try{
                 bikeTravelTime = bikeLeastCostPathTree.getTime(nearestBikeNodeIndex).seconds();
                 bikeDistance = bikeLeastCostPathTree.getDistance(nearestBikeNodeIndex);
-            } catch (ArrayIndexOutOfBoundsException e) {
+            } catch (Exception e) {
                 var bikepath = bikelcp.calcLeastCostPath(nearestBikeNode, bikeFromNode, 0, null, bike);
                 if (bikepath != null) {
                     bikeTravelTime = bikepath.travelTime;
