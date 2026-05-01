@@ -9,15 +9,15 @@ public class LookupFormulaParser {
     public static class ParseResult {
         public final String aggregator;         // z.B. "Sum" oder null
         public final String lookupTable;        // z.B. "Trips" oder null
-        public final String lookupField;        // z.B. "weight" oder "OriginActivity" or null
+        public final String lookupExpression;        // z.B. "weight" oder "OriginActivity" or null
         public final String innerExpression;    // innerer Inhalt der Aggregation oder die ganze Formel, falls keine Aggregation
         public final String filterExpression;   // falls vorhanden (nach dem top-level Komma)
         public final List<String> attributes;   // alle [..] tokens (inkl. Slashes)
-        public ParseResult(String aggregator, String lookupTable, String lookupField, String innerExpression, String filterExpression, List<String> attributes) {
-            this.aggregator = aggregator;
-            this.lookupTable = lookupTable;
-            this.lookupField = lookupField;
-            this.innerExpression = innerExpression;
+        public ParseResult(String aggregator, String lookupTable, String lookupExpression, String innerExpression, String filterExpression, List<String> attributes) {
+            this.aggregator = aggregator; // Sum, Count, ...
+            this.lookupTable = lookupTable; // e.g. Trips-> iterates through all Trips of a Person / is null if no lookup
+            this.lookupExpression = lookupExpression; // and aggregates lookupExpression / is null if no lookup
+            this.innerExpression = innerExpression; // if no lookup, just take innerExpression
             this.filterExpression = filterExpression;
             this.attributes = attributes;
         }
@@ -26,7 +26,7 @@ public class LookupFormulaParser {
             return "ParseResult{" +
                     "aggregator='" + aggregator + '\'' +
                     ", lookupTable='" + lookupTable + '\'' +
-                    ", lookupField='" + lookupField + '\'' +
+                    ", lookupField='" + lookupExpression + '\'' +
                     ", innerExpression='" + innerExpression + '\'' +
                     ", filterExpression='" + filterExpression + '\'' +
                     ", attributes=" + attributes +
@@ -68,28 +68,52 @@ public class LookupFormulaParser {
 
         // 3) attempt to extract lookup: pattern "Table->Field" where Field may be [name] or bare token
         String lookupTable = null;
-        String lookupField = null;
+        String lookupExpression = null;
 
         // look for -> at top-level (again not inside brackets)
         int arrowIndex = indexOfTopLevelArrow(leftPart);
         if (arrowIndex >= 0) {
             lookupTable = leftPart.substring(0, arrowIndex).trim();
-            lookupField = leftPart.substring(arrowIndex + 2).trim();
-            // strip surrounding brackets for lookupField if present
-            if (lookupField.startsWith("[") && lookupField.endsWith("]") && lookupField.length() >= 2) {
-                lookupField = lookupField.substring(1, lookupField.length() - 1);
-            }
+            lookupExpression = leftPart.substring(arrowIndex + 2).trim();
+            inner = "";
         }
 
         // 4) collect all attributes in square brackets (could be in leftPart or filterPart or anywhere)
+        Map<String, String> normalizeAttributes = new HashMap<>(); // put first character of attribute part always to lower case
         List<String> attrs = new ArrayList<>();
         Matcher mAttr = BRACKET_ATTR.matcher(trimmed); // search whole formula to capture all occurrences
         while (mAttr.find()) {
             String attr = mAttr.group(1);
+            String normAttr = normalizeToLowerRight(attr);
+            if (!normAttr.equals(attr)) { normalizeAttributes.put(attr, normAttr); }
             if (!attrs.contains(attr)) attrs.add(attr);
         }
+        for (String attr : normalizeAttributes.keySet()) {
+            if (lookupTable != null) lookupTable = lookupTable.replace(attr, normalizeAttributes.get(attr));
+            if (inner != null) inner = inner.replace(attr, normalizeAttributes.get(attr));
+            if (filterPart != null) filterPart = filterPart.replace(attr, normalizeAttributes.get(attr));
+        }
 
-        return new ParseResult(aggregator, lookupTable, lookupField, inner, filterPart, attrs);
+        return new ParseResult(aggregator, lookupTable, lookupExpression, inner, filterPart, attrs);
+    }
+
+    public static String normalizeToLowerRight(String attribute) {
+        if (attribute == null) return null;
+        String[] parts = attribute.split("/", -1); // keep empty segments if any
+        if (parts.length == 0) return attribute;
+
+        // normalize first part: make first char lowercase (if present), keep rest as-is
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i<parts.length; i++) {
+            String part = parts[i];
+            if (!part.isEmpty()) {
+                part = Character.toLowerCase(part.charAt(0)) + (part.length() > 1 ? part.substring(1) : "");
+                if (i>0) sb.append('/');
+                sb.append(part);
+            }
+        }
+
+        return sb.toString();
     }
 
     // finds comma at top level (not inside [], (), or quotes)
@@ -104,9 +128,9 @@ public class LookupFormulaParser {
             else if (c == '"' && !inSingleQuote) inDoubleQuote = !inDoubleQuote;
             else if (!inSingleQuote && !inDoubleQuote) {
                 if (c == '(') levelParen++;
-                else if (c == ')') if (levelParen > 0) levelParen--;
-                else if (c == '[') levelBracket++;
-                else if (c == ']') if (levelBracket > 0) levelBracket--;
+                else if (c == ')') {if (levelParen > 0) levelParen--;}
+                else if (c == '[') {levelBracket++;}
+                else if (c == ']') {if (levelBracket > 0) levelBracket--;}
                 else if (c == ',' && levelParen == 0 && levelBracket == 0) {
                     return i;
                 }
@@ -127,9 +151,9 @@ public class LookupFormulaParser {
             else if (c == '"' && !inSingleQuote) inDoubleQuote = !inDoubleQuote;
             else if (!inSingleQuote && !inDoubleQuote) {
                 if (c == '(') levelParen++;
-                else if (c == ')') if (levelParen > 0) levelParen--;
-                else if (c == '[') levelBracket++;
-                else if (c == ']') if (levelBracket > 0) levelBracket--;
+                else if (c == ')') {if (levelParen > 0) levelParen--;}
+                else if (c == '[') {levelBracket++;}
+                else if (c == ']') {if (levelBracket > 0) levelBracket--;}
                 else if (c == '-' && s.charAt(i + 1) == '>' && levelParen == 0 && levelBracket == 0) {
                     return i;
                 }
@@ -142,7 +166,7 @@ public class LookupFormulaParser {
     public static void main(String[] args) {
         List<String> inputs = List.of(
                 "Sum(Trips->[weight], [fromActivity/Type]='work'&[toActivity/type]='home' | [fromActivity/Type]='home'&[toActivity/Type]='work')",
-                "Count(Trips->OriginActivity)",
+                "Count(Trips->[OriginActivity])",
                 "100 * [pop_ga]",
                 "[fromActivity/Type] + [toActivity/Type]"
         );
