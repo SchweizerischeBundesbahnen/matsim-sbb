@@ -240,7 +240,7 @@
         <param name="endTime" value="32:00:00"/>
         <param name="flowCapacityFactor" value="0.1"/>
         <param name="mainMode" value="car"/>
-        <param name="storageCapacityFactor" value="0.2"/>
+        <param name="storageCapacityFactor" value="0.1"/>
         <!-- time in seconds.  Time after which the frontmost vehicle on a link is called `stuck' if it does not move. Set to Integer.MAX_VALUE to disable this behavior -->
         <param name="stuckTime" value="30"/>
         <!-- treats PT as deterministic. PT vehicles will run with a steady speed. Should be used with separate network layers for PT and other network modes. -->

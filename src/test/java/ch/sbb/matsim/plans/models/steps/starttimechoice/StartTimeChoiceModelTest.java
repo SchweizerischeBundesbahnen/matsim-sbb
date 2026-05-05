@@ -67,14 +67,15 @@ class StartTimeChoiceModelTest {
                 null, // sff_attributes
                 null, // school_enr_apprentices
                 null, // foreign_attractions
-                null  // zone_informations
+                null,
+                null// zone_informations
         );
         MOBiPlansConfig.ModelsConfig modelsConfig = new MOBiPlansConfig.ModelsConfig(
                 1, // threads
                 1.0, // sampleSize
                 false, // write_analysis
                 "test_run", // run_id
-                null // run
+                null,null,null
         );
         this.mobiPlansConfig = new MOBiPlansConfig(dataConfig, modelsConfig);
 
@@ -87,9 +88,11 @@ class StartTimeChoiceModelTest {
         Path csvFile = choiceModelsDir.resolve(MOBiPlansConfig.TIME_OF_DAY_CHOICE_CSV);
         // A minimal CSV ensuring Work is FORCED into the morning (0-43199s)
         // and Shopping is FORCED into the afternoon (43200-86399s)
-        String csvContent = "comment;activity;attribute_expression;exp_beta;TIMESERIESNO;0_43199;43200_86399\n" +
-                "Work;work;;1.0;1;1.0;0.0\n" +
-                "Shop;shopping;;1.0;2;0.0;1.0\n";
+        String csvContent = """
+                comment;activity;attribute_expression;exp_beta;TIMESERIESNO;0_43199;43200_86399
+                Work;work;;1.0;1;1.0;0.0
+                Shop;shopping;;1.0;2;0.0;1.0
+                """;
         Files.writeString(csvFile, csvContent);
     }
 
@@ -152,13 +155,10 @@ class StartTimeChoiceModelTest {
         assertEquals(9, plan.getPlanElements().size());
 
         Activity firstHome = (Activity) plan.getPlanElements().get(0);
-        Leg firstCommute = (Leg) plan.getPlanElements().get(1);
         Activity work = (Activity) plan.getPlanElements().get(2);
         Leg returnFromWork = (Leg) plan.getPlanElements().get(3);
         Activity midDayHome = (Activity) plan.getPlanElements().get(4);
-        Leg goShopping = (Leg) plan.getPlanElements().get(5);
         Activity shop = (Activity) plan.getPlanElements().get(6);
-        Leg returnFromShop = (Leg) plan.getPlanElements().get(7);
         Activity finalHome = (Activity) plan.getPlanElements().get(8);
 
         // Check Types

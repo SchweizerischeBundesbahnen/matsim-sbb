@@ -293,8 +293,14 @@ public class CalcZonalAttributes implements ModelStep {
             }
 
             pcCar = Math.max(pcCar, pcCar2017);
-            double pcRide = 2.0 * (pcCar / 2.0) - pcRide2017;
-
+            double pcRide;
+            if (pcRide2017 > 0.0 && pcCar2017 > 0.0) {
+                // Apply the same absolute price increase/decrease to the ride baseline
+                pcRide = Math.max(0.0, pcRide2017 + (pcCar - pcCar2017));
+            } else {
+                // Theoretical fallback: ride parking is half the price of a car
+                pcRide = pcCar / 2.0;
+            }
             // ---- Write back to zone attributes ----
             z.getAttributes().putAttribute(ZonalAttributes.AT_CAR, Math.round(atCar));
             z.getAttributes().putAttribute(ZonalAttributes.AT_RIDE, Math.round(atRide));

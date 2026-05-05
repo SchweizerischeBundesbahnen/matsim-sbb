@@ -52,15 +52,15 @@ public class AreaAnalysis {
     public static void main(String[] args) {
         Map<String, String> runs = new TreeMap<>();
         String root = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/sim/";
-//        runs.put("refkt_v1", root + "refkt_cut_v1");
-//        runs.put("ref_cut5_25", root + "ref_cut_v5_25");
-        runs.put("var_ev_gese", root + "var_ev_gese");
-//        runs.put("var_cornavin", root + "var_cornavin");
-//        runs.put("var_dorciere", root + "var_dorciere");
+
+        //runs.put("ref_runde_2", root + "ref_runde_2");
+        runs.put("var_dorciere_metro_as_other", root + "var_dorciere_metro_as_other");
+        runs.put("var_cornavin_metro_as_other", root + "var_cornavin_metro_as_other");
+        runs.put("var_eaux_vives_re_metro_as_other", root + "var_eaux_vives_re_metro_as_other");
 
         String roadNet = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/streets/output/network.xml.gz";
         String zonesFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/kanton_GE.shp";
-        String outputFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/perimeter-ge3.csv";
+        String outputFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/perimeter-ge2.csv";
         Network network = NetworkUtils.createNetwork();
         new MatsimNetworkReader(network).readFile(roadNet);
         Zones zones = ZonesLoader.loadZones(Variables.ZONE_ID, zonesFile);
@@ -284,15 +284,16 @@ public class AreaAnalysis {
                             .collect(Collectors.toList());
             double tramVolume = trueTramLinks.stream()
                     .mapToDouble(link -> getPKM(attribute, link)).sum();
-            List<Link> metroLinks = relevantPtLinks.stream().filter(link -> link.getAllowedModes()
-                            .contains(SBBModes.PTSubModes.TRAM))
+            List<Link> metroLinks = relevantPtLinks.stream()
                     .filter(link -> metroLinkIds.contains(link.getId()))
                     .collect(Collectors.toList());
             double metroVolume = metroLinks.stream()
                     .mapToDouble(link -> getPKM(attribute, link)).sum();
             double tramKM = getAKM(departuresPerLink, trueTramLinks, SBBModes.PTSubModes.TRAM);
             double metroKM = metroLinks.isEmpty()?0.0:getAKM(departuresPerLink, metroLinks, SBBModes.PTSubModes.TRAM);
-
+            if (metroKM == 0.0) {
+                metroKM = metroLinks.isEmpty()?0.0:getAKM(departuresPerLink, metroLinks, SBBModes.PTSubModes.OTHER);
+            }
 
             double busVolume = relevantPtLinks.stream().filter(link -> link.getAllowedModes().contains(SBBModes.PTSubModes.BUS)).mapToDouble(link -> getPKM(attribute, link)).sum();
             double busKM = getAKM(departuresPerLink, relevantPtLinks, SBBModes.PTSubModes.BUS);

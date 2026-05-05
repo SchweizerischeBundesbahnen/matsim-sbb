@@ -20,7 +20,7 @@ public class AttributableZone implements Zone {
             this.geometry = (Geometry) feature.getDefaultGeometry();
             feature.getFeatureType().getAttributeDescriptors().forEach(attributeDescriptor -> {
                 String name = attributeDescriptor.getLocalName();
-                if (name.equals("geometry")) {
+                if (name.equals("geometry") || name.equals("the_geom") || name.equals("geom")) {
                     // Skip the geometry attribute, as we already have it in geometry.
                     return;
                 }

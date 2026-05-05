@@ -48,6 +48,8 @@ public record MOBiPlansConfig (
     public static final String RAILACCESS_CHOICESET_CSV = "railaccess_choiceset.csv";
     public static final String PEDESTRIAN_SPEED_CSV = "pedestrian_speed.csv";
     public static final String REPORT_CONFIG_JSON = "report_config.json";
+    public static final String WORK_FROM_HOME_MODEL_CSV = "work_from_home.csv";
+    public static final String FLEXIBLE_WORKING_HOURS_CSV = "flexible_working_hours.csv";
 
     /**
      * Reads and parses the master configuration from a YAML file.
@@ -80,16 +82,17 @@ public record DataConfig(
         String sff_attributes,
         String school_enr_apprentices,
         String foreign_attractions,
-        String zone_informations
-
-) {
+        String zone_informations,
+        String exogenousPlansFolder) {
 }
     public record ModelsConfig(
             Integer threads,
             Double sampleSize,
             Boolean write_analysis,
             String run_id,
-            Object run
+            Object run,
+            Double wfh_rate,
+            Double work_flexible_rate
     ) {
         public ModelsConfig {
             if (sampleSize == null) {
@@ -104,6 +107,12 @@ public record DataConfig(
 
             if (run_id == null || run_id.isBlank()) {
                 run_id = "mobi_plans_run_" + System.currentTimeMillis();
+            }
+            if (wfh_rate == null) {
+                wfh_rate = 0.0;
+            }
+            if (work_flexible_rate == null) {
+                work_flexible_rate = 0.0;
             }
         }
     }

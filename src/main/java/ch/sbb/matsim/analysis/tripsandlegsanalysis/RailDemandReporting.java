@@ -220,7 +220,12 @@ public class RailDemandReporting {
     private void prepareCategories(TransitSchedule schedule) {
         Set<String> allModes = new HashSet<>();
         for (TransitLine line : schedule.getTransitLines().values()) {
-            var route = line.getRoutes().values().stream().findFirst().get();
+            var routeC = line.getRoutes().values().stream().findFirst();
+            if (routeC.isEmpty()) {
+                logger.warn("No route found for transit line " + line.getId());
+                continue;
+            }
+            var route = routeC.get();
             var mode = route.getTransportMode();
             line2Mode.put(line.getId(), mode);
             allModes.add(mode);

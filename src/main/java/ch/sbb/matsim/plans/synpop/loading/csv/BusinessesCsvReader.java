@@ -76,7 +76,7 @@ public class BusinessesCsvReader {
                     facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, fteEndo+fteExo);
                 }
                 facility.getAttributes().putAttribute(SynpopConstants.SCHOOL_TYPE, record.get(SynpopConstants.SCHOOL_TYPE));
-                facility.getAttributes().putAttribute(SynpopConstants.SECTOR, record.get(SynpopConstants.SECTOR));
+                facility.getAttributes().putAttribute(SynpopConstants.SECTOR, Integer.parseInt(record.get(SynpopConstants.SECTOR)));
 
                 facilities.addActivityFacility(facility);
             }

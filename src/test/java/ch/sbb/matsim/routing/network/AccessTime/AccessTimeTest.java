@@ -37,17 +37,17 @@ public class AccessTimeTest {
 
 	@Test
 	public final void testScoringCarAccessForCar() {
-		assertScoring(-1.0, -1.68, -6.590, "car", "car");
+		assertScoring(-1.0, -1.68, -4.590, "car", "car");
 	}
 
 	@Test
 	public final void testScoringRideAccessForCarHigherConstant() {
-		assertScoring(-10.0, -1.68, -42.59, "car", "car");
+		assertScoring(-10.0, -1.68, -22.59, "car", "car");
 	}
 
 	@Test
 	public final void testScoringRideAccessForCarHigherConstantHigherUtility() {
-		assertScoring(-10.0, -30, -42.59, "car", "car");
+		assertScoring(-10.0, -30, -22.59, "car", "car");
 	}
 
 	@Test

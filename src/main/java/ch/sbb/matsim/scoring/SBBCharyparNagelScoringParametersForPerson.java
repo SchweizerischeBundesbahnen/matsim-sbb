@@ -176,7 +176,7 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 		sbbParams = builder.build();
 
 		// make sure we re-use activity params when possible
-		Map<String, ActivityUtilityParameters> actParams = sbbParams.getMatsimScoringParameters().utilParams;
+		Map<String, ActivityUtilityParameters> actParams = sbbParams.getMatsimScoringParameters().actParams;
 		for (String actType : usedActTypes) {
 			final ActivityUtilityParameters activityUtilityParameters = actParams.get(actType);
 			if (activityUtilityParameters == null) {

@@ -32,10 +32,12 @@ public class SynpopConstants {
     public static final String NO_PRIM_TOURS= "no_prim_tours";
     public static final String NO_BUSINESS_TOURS = "no_business_tours";
     public static final String IS_WORKING_FROM_HOME = "is_working_from_home";
+    public static final String HAS_FLEXIBLE_WORK_HOURS = "has_flexible_work_hours";
     public static final String NO_OTHER_TOURS = "no_other_tours";
     public static final String NO_TOT_TOURS = "no_tot_tours";
     public static final String SCHOOL_ZONE = "school_zone";
     public static final String WORK_ZONE = "work_zone";
+    public static final String ORIGINAL_WORK_ZONE = "original_work_zone";
     public static final String ACTIVE_IN_MODEL = "active_in_model";
 
 
@@ -187,13 +189,15 @@ public class SynpopConstants {
     );
     public static final String TOURS = "tours";
     public static final String WORK_FACILITY = "work_facility";
+    public static final String ORIGINAL_WORK_FACILITY = "original_work_facility";
     public static final String EDUCATION_FACILITY = "education_facility";
+    public static final String FACILITY = "facility";
 
     public static Integer getCodeOrFail(Map<String, Integer> reverseMap, String label, String categoryName) {
         Integer code = reverseMap.get(label);
         if (code != null)
             return code;
-        else if (reverseMap.values().contains(Integer.parseInt(label)))
+        else if (reverseMap.containsValue(Integer.parseInt(label)))
             return Integer.parseInt(label);
         else
             throw new IllegalArgumentException("Unknown value for category '" + categoryName + "': " + label);

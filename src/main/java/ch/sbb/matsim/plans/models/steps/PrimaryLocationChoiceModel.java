@@ -428,7 +428,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             for (Person person : people) {
                 var activityFacilityId = ChoiceUtils.selectFromProbabilities(facilityProbabilities, SynPopUtils.getRandom(person.getId(), getClass().getName() + "_facility"));
                 if (activityFacilityId != null) {
-                    person.getAttributes().putAttribute(activityConfig.activityName() + "_facility", activityFacilityId.toString());
+                    person.getAttributes().putAttribute(activityConfig.activityName() + "_facility", scenario.getActivityFacilities().getFacilities().get(activityFacilityId));
                 } else {
                     logger.warn("Could not choose a facility for person " + person.getId() + " despite valid probabilities. Zone ID: " + zoneId);
                 }

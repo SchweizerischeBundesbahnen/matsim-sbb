@@ -28,4 +28,9 @@ public class StringSelectionModelFromCSV implements ChoiceModel {
         return this.selector.select(attributable).toUpperCase();
     }
 
+    @Override
+    public double getProbabilityForAlternative(Attributable attributable, String alternative) {
+        return selector.getProbabilities(attributable).getOrDefault(alternative, 0.0);
+    }
+
 }

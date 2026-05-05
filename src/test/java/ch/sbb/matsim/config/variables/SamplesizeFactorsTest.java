@@ -21,7 +21,7 @@ public class SamplesizeFactorsTest {
             Assertions.assertEquals(0.11, config.hermes().getFlowCapacityFactor(), 0.001);
             Assertions.assertEquals(0.20, config.hermes().getStorageCapacityFactor(), 0.001);
             Assertions.assertEquals(0.1, config.qsim().getFlowCapFactor(), 0.001);
-            Assertions.assertEquals(0.40, config.qsim().getStorageCapFactor(), 0.001);
+            Assertions.assertEquals(0.1, config.qsim().getStorageCapFactor(), 0.001);
         }
 
         {

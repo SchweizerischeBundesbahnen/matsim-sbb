@@ -25,7 +25,7 @@ public class SynpopLoader implements ModelStep {
     private final static Logger logger = LogManager.getLogger(SynpopLoader.class);
     private final MOBiPlansConfig config;
     private final Scenario scenario;
-    private final String name = MOBiPlansRunner.LOAD_SYNPOP;
+
     @Inject
     public SynpopLoader(MOBiPlansConfig config, Scenario scenario) {
         this.config = config;
@@ -48,6 +48,7 @@ public class SynpopLoader implements ModelStep {
         SynPopUtils.linkHouseholdsAndPopulation(scenario);
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
         SynPopUtils.calculateHouseHoldCompositions(scenario);
+        SynPopUtils.createFacilitiesForHouseholds(scenario);
         logger.info("Finished loading. Total persons: " + scenario.getPopulation().getPersons().size());
     }
 
@@ -80,7 +81,7 @@ public class SynpopLoader implements ModelStep {
                 continue;
             }
 
-            File[] arrowFiles = directory.listFiles((d, name) -> name.toLowerCase().endsWith(".arrow") || name.toLowerCase().endsWith(".feather"));
+            File[] arrowFiles = directory.listFiles((_, name) -> name.toLowerCase().endsWith(".arrow") || name.toLowerCase().endsWith(".feather"));
             if (arrowFiles != null) {
                 for (File arrowFile : arrowFiles) {
                     if (arrowFile.getAbsolutePath().toLowerCase().contains("households")) {
@@ -97,7 +98,7 @@ public class SynpopLoader implements ModelStep {
             } else {
                 logger.info("No ARROW files found in directory: " + dir);
             }
-            File[] csvFiles = directory.listFiles((d, name) -> name.toLowerCase().endsWith(".csv"));
+            File[] csvFiles = directory.listFiles((_, name) -> name.toLowerCase().endsWith(".csv"));
             if (csvFiles != null) {
                 for (File csvFile : csvFiles) {
                     if (csvFile.getAbsolutePath().toLowerCase().contains("households")) {
@@ -123,6 +124,6 @@ public class SynpopLoader implements ModelStep {
 
     @Override
     public String getName() {
-        return name;
+        return MOBiPlansRunner.LOAD_SYNPOP;
     }
 }

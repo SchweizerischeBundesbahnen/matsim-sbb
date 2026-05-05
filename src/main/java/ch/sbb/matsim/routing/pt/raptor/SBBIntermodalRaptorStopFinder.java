@@ -43,7 +43,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 
 	private final RaptorIntermodalAccessEgress intermodalAE;
 	private final Map<String, SBBIntermodalModeParameterSet> intermodalModeParams;
-	private final Map<String, RoutingModule> routingModules;
+    private final Map<String, ThreadLocal<RoutingModule>> routingModules;
 	private final TransitSchedule transitSchedule;
 	private final Random random = MatsimRandom.getLocalInstance();
 	private final AccessEgressRouteCache accessEgressRouteCache;
@@ -65,9 +65,10 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 		if (srrConfig.isUseIntermodalAccessEgress()) {
 			for (IntermodalAccessEgressParameterSet params : srrConfig.getIntermodalAccessEgressParameterSets()) {
 				String mode = params.getMode();
-				this.routingModules.put(mode, routingModuleProviders.get(mode).get());
+                Provider<RoutingModule> provider = routingModuleProviders.get(mode);
+                this.routingModules.put(mode, ThreadLocal.withInitial(provider::get));
 
-			}
+            }
 		}
 
 	}
@@ -234,7 +235,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 				}
 
 				List<? extends PlanElement> routeParts;
-				RoutingModule module = this.routingModules.get(mode);
+				RoutingModule module = this.routingModules.get(mode).get();
 				if (direction == Direction.ACCESS) {
 					if (params != null && params.isRoutedOnNetwork() && (!params.isSimulatedOnNetwork())) {
 						routeParts = getCachedTravelTime(stopFacility, facility, departureTime, person, mode, module, true);
@@ -330,12 +331,11 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 	}
 	
 	private double getStopAccessTime(TransitStopFacility stop, String mode) {
-		Double accessTime;
-        accessTime = ((Number) stop.getAttributes().getAttribute("at_"+mode)).doubleValue();
-		if (accessTime == null) accessTime = 0.0;
-
-
-		return Double.isFinite(accessTime) ? accessTime : 0.0;
+		Number accessTime = ((Number) stop.getAttributes().getAttribute("at_"+mode));
+        if (accessTime == null) {
+            return 0.0;
+        }
+		return Double.isFinite(accessTime.doubleValue()) ? accessTime.doubleValue() : 0.0;
 	}
 
 	private List<? extends PlanElement> getCachedTravelTime(Facility stopFacility, Facility actFacility, double departureTime, Person person, String mode, RoutingModule module, boolean backwards) {

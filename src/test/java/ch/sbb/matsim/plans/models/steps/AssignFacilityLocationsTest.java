@@ -3,6 +3,7 @@ package ch.sbb.matsim.plans.models.steps;
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
+import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.AttributableZone;
 import ch.sbb.matsim.zones.Zone;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +59,7 @@ class AssignFacilityLocationsTest {
         person = scenario.getPopulation().getFactory().createPerson(Id.createPersonId("p1"));
         person.getAttributes().putAttribute(SynpopConstants.HOUSEHOLD, household);
         person.getAttributes().putAttribute(SynpopConstants.ACTIVE_IN_MODEL, true);
-
+        SynPopUtils.createFacilitiesForHouseholds(scenario);
         Plan plan = scenario.getPopulation().getFactory().createPlan();
 
         // Home Activity
@@ -68,7 +69,9 @@ class AssignFacilityLocationsTest {
         // Work Activity (Primary, mapped to fixed facility)
         Activity workAct = scenario.getPopulation().getFactory().createActivityFromCoord(SBBActivities.work, null);
         Id<ActivityFacility> workFacId = Id.create("work_fac_1", ActivityFacility.class);
-        person.getAttributes().putAttribute(SynpopConstants.WORK_FACILITY, workFacId);
+        ActivityFacility workFacility = scenario.getActivityFacilities().getFactory().createActivityFacility(workFacId, new Coord(200, 200));
+        person.getAttributes().putAttribute(SynpopConstants.WORK_FACILITY, workFacility);
+
         plan.addActivity(workAct);
 
         // Shopping Activity (Secondary, mapped to Zone to be rolled on Roulette)
@@ -81,7 +84,6 @@ class AssignFacilityLocationsTest {
         scenario.getPopulation().addPerson(person);
 
         // 4. Create Pre-Existing Facilities in Scenario
-        ActivityFacility workFacility = scenario.getActivityFacilities().getFactory().createActivityFacility(workFacId, new Coord(200, 200));
         scenario.getActivityFacilities().addActivityFacility(workFacility);
 
         ActivityFacility shopFacility = scenario.getActivityFacilities().getFactory().createActivityFacility(Id.create("shop_fac_1", ActivityFacility.class), new Coord(300, 300));
@@ -96,10 +98,10 @@ class AssignFacilityLocationsTest {
         // 6. Config Setup
         MOBiPlansConfig.DataConfig dataConfig = new MOBiPlansConfig.DataConfig(
                 List.of(), null, null, null, null, null, null, null,
-                tempDir.toString(), null, null, null, null, null
+                tempDir.toString(), null, null, null, null, null,null
         );
         MOBiPlansConfig.ModelsConfig modelsConfig = new MOBiPlansConfig.ModelsConfig(
-                1, 1.0, false, "test_run", null
+                1, 1.0, false, "test_run", null,null,null
         );
         mobiPlansConfig = new MOBiPlansConfig(dataConfig, modelsConfig);
     }

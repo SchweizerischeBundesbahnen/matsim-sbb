@@ -41,6 +41,7 @@ public class Variables {
     public static final String HTV = "HTV";
 
     public static final String MATRICES = "matrices";
+    public static final String SLICE = "slice";
 
     public enum PTSubscriptionType {
         NONE("NONE"),
