@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Inject;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 import org.matsim.utils.objectattributes.attributable.Attributes;
@@ -90,27 +91,30 @@ public class StatsWriter implements ModelStep {
                                     ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
                                     LookupFormulaParser.ParseResult formulaParser = parseFormula(variable.formula);
                                     if ("Trips".equals(formulaParser.lookupTable)){
-                                        for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(person.getSelectedPlan())) {
-                                            Attributables.AttributableProvider.TripAttributable tripAtt= new Attributables.AttributableProvider.TripAttributable(trip, person);
-                                            tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
-                                            boolean tripFilter = true;
-                                            if (formulaParser.filterExpression != null){
-                                                Predicate<Attributables.AttributableProvider.TripAttributable> groupFilterPredicateTrip = BuildPredicate.buildPredicate(formulaParser.filterExpression, Attributables.AttributableProvider.TripAttributable.class);
-                                                tripFilter =  groupFilterPredicateTrip.test(tripAtt);
-                                            }
-                                            if (tripFilter) {
-                                                switch (formulaParser.aggregator) {
-                                                    case "Sum": {
-                                                        sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(tripAtt, requiredVariables.get(variable.name), Attributables.AttributableProvider.TripAttributable.class));
-                                                        break;
-                                                    }
-                                                    case "Count": {
-                                                        sums[finalGroupIndex1][varIndex]++;
-                                                        break;
+                                        Plan plan = person.getSelectedPlan();
+                                        if (plan != null){
+                                            for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
+                                                Attributables.AttributableProvider.TripAttributable tripAtt= new Attributables.AttributableProvider.TripAttributable(trip, person);
+                                                tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
+                                                boolean tripFilter = true;
+                                                if (formulaParser.filterExpression != null){
+                                                    Predicate<Attributables.AttributableProvider.TripAttributable> groupFilterPredicateTrip = BuildPredicate.buildPredicate(formulaParser.filterExpression, Attributables.AttributableProvider.TripAttributable.class);
+                                                    tripFilter =  groupFilterPredicateTrip.test(tripAtt);
+                                                }
+                                                if (tripFilter) {
+                                                    switch (formulaParser.aggregator) {
+                                                        case "Sum": {
+                                                            sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(formulaParser.lookupExpression, collectAttributeStrings(tripAtt, requiredVariables.get(variable.name), Attributables.AttributableProvider.TripAttributable.class));
+                                                            break;
+                                                        }
+                                                        case "Count": {
+                                                            sums[finalGroupIndex1][varIndex]++;
+                                                            break;
+                                                        }
                                                     }
                                                 }
+                                                counts[finalGroupIndex1][varIndex]++;
                                             }
-                                            counts[finalGroupIndex1][varIndex]++;
                                         }
                                     } else {
                                         sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(person, requiredVariables.get(variable.name), Person.class));
@@ -139,19 +143,22 @@ public class StatsWriter implements ModelStep {
                     case "Trips": {
                         String filterExpression = group.filter_expression;
                         String filterExpressionPerson = group.filter_expression_person;
-                        Predicate<Attributables.AttributableProvider.TripAttributable> groupFilterPredicateTrip = BuildPredicate.buildPredicate(filterExpression, Attributables.AttributableProvider.TripAttributable.class);
                         Predicate<Person> groupFilterPredicatePerson = BuildPredicate.buildPredicate(filterExpressionPerson, Person.class);
                         int finalGroupIndex1 = groupIndex;
                         scenario.getPopulation().getPersons().values().stream().forEach(person -> {
                             if (groupFilterPredicatePerson.test(person)) {
-                                for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(person.getSelectedPlan())) {
-                                    Attributables.AttributableProvider.TripAttributable tripAtt= new Attributables.AttributableProvider.TripAttributable(trip, person);
-                                    tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
-                                    if (groupFilterPredicateTrip.test(tripAtt)) {
-                                        for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
-                                            ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
-                                            sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(tripAtt, requiredVariables.get(variable.name), Attributables.AttributableProvider.TripAttributable.class));
-                                            counts[finalGroupIndex1][varIndex]++;
+                                Plan plan = person.getSelectedPlan();
+                                if (plan != null) {
+                                    for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
+                                        Attributables.AttributableProvider.TripAttributable tripAtt = new Attributables.AttributableProvider.TripAttributable(trip, person);
+                                        tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
+                                        Predicate<Attributables.AttributableProvider.TripAttributable> groupFilterPredicateTrip = BuildPredicate.buildPredicate(filterExpression, Attributables.AttributableProvider.TripAttributable.class);
+                                        if (groupFilterPredicateTrip.test(tripAtt)) {
+                                            for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
+                                                ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
+                                                sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(tripAtt, requiredVariables.get(variable.name), Attributables.AttributableProvider.TripAttributable.class));
+                                                counts[finalGroupIndex1][varIndex]++;
+                                            }
                                         }
                                     }
                                 }
@@ -217,6 +224,7 @@ public class StatsWriter implements ModelStep {
             if (attrs.getAttribute(variable) != null) {
                 Object att_value = attrs.getAttribute(variable);
                 if (att_value == null) continue;
+                if (!(att_value instanceof Number)) continue;
                 Double value = Double.valueOf(att_value.toString());
                 result.put(variable, value);
             }

@@ -54,16 +54,16 @@ public class LookupFormulaParser {
             inner = mAgg.group(2).trim();
         }
 
-        // 2) split inner into (lookup/expression) and optional filter part by top-level comma
+        // 2) split inner into (lookup/expression) and optional filter expression by top-level comma
         // We need to find a comma that is not inside brackets [] or parentheses ()
         int commaIndex = indexOfTopLevelComma(inner);
-        String leftPart;
-        String filterPart = null;
+        String lookupPart;
+        String filterExpression = null;
         if (commaIndex >= 0) {
-            leftPart = inner.substring(0, commaIndex).trim();
-            filterPart = inner.substring(commaIndex + 1).trim();
+            lookupPart = inner.substring(0, commaIndex).trim();
+            filterExpression = inner.substring(commaIndex + 1).trim();
         } else {
-            leftPart = inner.trim();
+            lookupPart = inner.trim();
         }
 
         // 3) attempt to extract lookup: pattern "Table->Field" where Field may be [name] or bare token
@@ -71,10 +71,10 @@ public class LookupFormulaParser {
         String lookupExpression = null;
 
         // look for -> at top-level (again not inside brackets)
-        int arrowIndex = indexOfTopLevelArrow(leftPart);
+        int arrowIndex = indexOfTopLevelArrow(lookupPart);
         if (arrowIndex >= 0) {
-            lookupTable = leftPart.substring(0, arrowIndex).trim();
-            lookupExpression = leftPart.substring(arrowIndex + 2).trim();
+            lookupTable = lookupPart.substring(0, arrowIndex).trim();
+            lookupExpression = lookupPart.substring(arrowIndex + 2).trim();
             inner = "";
         }
 
@@ -91,10 +91,13 @@ public class LookupFormulaParser {
         for (String attr : normalizeAttributes.keySet()) {
             if (lookupTable != null) lookupTable = lookupTable.replace(attr, normalizeAttributes.get(attr));
             if (inner != null) inner = inner.replace(attr, normalizeAttributes.get(attr));
-            if (filterPart != null) filterPart = filterPart.replace(attr, normalizeAttributes.get(attr));
+            if (filterExpression != null) filterExpression = filterExpression.replace(attr, normalizeAttributes.get(attr));
         }
 
-        return new ParseResult(aggregator, lookupTable, lookupExpression, inner, filterPart, attrs);
+        // we needed the brackets only for identifing the attributes, drop them here
+        if (filterExpression != null) {filterExpression = filterExpression.replace("[", ""). replace("]", "");}
+
+        return new ParseResult(aggregator, lookupTable, lookupExpression, inner, filterExpression, attrs);
     }
 
     public static String normalizeToLowerRight(String attribute) {

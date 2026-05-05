@@ -16,7 +16,7 @@ public class BuildPredicate {
     private static final Logger logger = LogManager.getLogger(BuildPredicate.class);
     private static final char quote = '\'';
     // your regex, for example: (\w+)\s*(<=|>=|<|>|=)\s*([\d.]+)
-    private static final java.util.regex.Pattern RULE_PATTERN = java.util.regex.Pattern.compile("(\\w+)\\s*(<=|>=|<|>|=)\\s*('?)([\\w?.]+)('?)");
+    private static final java.util.regex.Pattern RULE_PATTERN = java.util.regex.Pattern.compile("(\\w+)\\s*(<=|>=|<|>|=|!=)\\s*('?)([\\w?.]+)('?)");
 
 
     public static <T extends Attributable> Predicate<T> buildPredicate(String expr, Class<T> clazz) {

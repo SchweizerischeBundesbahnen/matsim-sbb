@@ -133,6 +133,7 @@ public class LookupAttributeHandler {
             try {
                 Method m = clazz.getMethod(mName);
                 ob = m.invoke(obj);
+                return ob;
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ignored) {
                 // keep looking
             }
@@ -157,6 +158,7 @@ public class LookupAttributeHandler {
                 if (ob instanceof Number) return ((Number) ob).doubleValue();
                 if (ob instanceof Boolean) return ((Boolean) ob).booleanValue();
                 if (ob instanceof String) return ((String) ob).toString();
+                if (ob != null) return ob.toString();
             }
             if (ob == null) return null;
             obj = (Attributable) ob;
