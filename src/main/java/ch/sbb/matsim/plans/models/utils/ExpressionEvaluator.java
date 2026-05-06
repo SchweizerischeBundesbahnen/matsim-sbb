@@ -3,6 +3,7 @@ package ch.sbb.matsim.plans.models.utils;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import net.objecthunter.exp4j.function.Function;
+import net.objecthunter.exp4j.operator.Operator;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -14,6 +15,9 @@ import java.util.regex.Pattern;
  */
 public class ExpressionEvaluator {
 
+    private static final Operator equalOperator = new Operator("=", 2, false, 0){
+        @Override public double apply(double... args) { if(args[0]==args[1]) return 1; return 0; }
+    };
     private static final Function functionMin = new Function("min", 2) {
         @Override public double apply(double... args) { return Math.min(args[0], args[1]); }
     };
@@ -64,7 +68,8 @@ public class ExpressionEvaluator {
 
         ExpressionBuilder builder = new ExpressionBuilder(modifiedFormula)
                 .functions(functionMin, functionMax)
-                .variables(new HashSet<String>(getShortVariableNames(formulaString)));
+                .variables(new HashSet<String>(getShortVariableNames(formulaString)))
+                .operator(equalOperator);
 
         return builder.build();
     }
