@@ -63,12 +63,12 @@ public class LookupAttributeHandler {
         }
         lookupVariablesForTable.put(attribute, attributeShort);
     }
-    public void createLookUpVariables(ReadReportJson.ReportConfig reportConfig) {
+    public void createLookUpVariables(ReportJson.ReportConfig reportConfig) {
         // Zuerst alle Lookup-Variablen identifizieren, in den Formeln ersetzen und in Persons und Zones setzen
         // in Trips erst beim erzeugen des TripAttributes-Objekts setzen
         String table;
-        for (ReadReportJson.Sheet s : reportConfig.sheets) {
-            for (ReadReportJson.ReportVariable variable : s.variables) {
+        for (ReportJson.Sheet s : reportConfig.sheets) {
+            for (ReportJson.ReportVariable variable : s.variables) {
                 Map<String, String> attributeMap = findAttributesWithSlash(variable.formula);
                 variable.formula = replaceAttributes(variable.formula);
                 LookupFormulaParser.ParseResult parseResult = parseFormula(variable.formula);
@@ -80,7 +80,7 @@ public class LookupAttributeHandler {
                     addLookupVariable(table, attribute, mapAttribute(attributeMap.get(attribute)));
                 }
             }
-            for (ReadReportJson.ReportGroup group : s.groups) {
+            for (ReportJson.ReportGroup group : s.groups) {
                 Map<String, String> attributeMap = findAttributesWithSlash(group.filter_expression);
                 for (String attribute : attributeMap.keySet()) {
                     addLookupVariable(s.table_ref, attribute, mapAttribute(attributeMap.get(attribute)));
@@ -93,14 +93,16 @@ public class LookupAttributeHandler {
                 }
                 group.filter_expression_person = replaceAttributes(group.filter_expression_person);
             }
-            if (!s.pivots.isEmpty()) {
-                List<String> list = Arrays.asList("index_formula", "column_formula", "filter_expression", "attribute");
-                for (String exp : list) {
-                    if (s.pivots.get(exp)!=null) {
-                        Map<String, String> attributeMap = findAttributesWithSlash(s.pivots.get(exp).toString());
-                        for (String attribute : attributeMap.keySet()) {
-                            addLookupVariable(s.table_ref, attribute, mapAttribute(attributeMap.get(attribute)));
-                            s.pivots.put(exp, replaceAttributes(s.pivots.get(exp).toString()));
+            if (s.pivots != null) {
+                if (!s.pivots.isEmpty()) {
+                    List<String> list = Arrays.asList("index_formula", "column_formula", "filter_expression", "attribute");
+                    for (String exp : list) {
+                        if (s.pivots.get(exp) != null) {
+                            Map<String, String> attributeMap = findAttributesWithSlash(s.pivots.get(exp).toString());
+                            for (String attribute : attributeMap.keySet()) {
+                                addLookupVariable(s.table_ref, attribute, mapAttribute(attributeMap.get(attribute)));
+                                s.pivots.put(exp, replaceAttributes(s.pivots.get(exp).toString()));
+                            }
                         }
                     }
                 }

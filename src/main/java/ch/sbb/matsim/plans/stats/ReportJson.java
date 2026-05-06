@@ -13,7 +13,7 @@ import java.util.*;
   Usage: java ConfigSummaryDemo <path-to-json-file>
 */
 
-public class ReadReportJson {
+public class ReportJson {
 
     // Root object
     public static class ReportConfig {

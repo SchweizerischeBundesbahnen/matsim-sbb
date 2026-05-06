@@ -8,7 +8,7 @@ import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
 import ch.sbb.matsim.plans.stats.Attributables;
 import ch.sbb.matsim.plans.stats.LookupAttributeHandler;
 import ch.sbb.matsim.plans.stats.LookupFormulaParser;
-import ch.sbb.matsim.plans.stats.ReadReportJson;
+import ch.sbb.matsim.plans.stats.ReportJson;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,10 +53,10 @@ public class StatsWriter implements ModelStep {
         String reportConfigFilePath = reportsFolder.resolve(MOBiPlansConfig.REPORT_CONFIG_JSON).toString();
 
         File jsonFile = new File(reportConfigFilePath);
-        ReadReportJson.ReportConfig reportConfig = null;
+        ReportJson.ReportConfig reportConfig = null;
         ObjectMapper mapper = new ObjectMapper();
         try {
-            reportConfig = mapper.readValue(jsonFile, ReadReportJson.ReportConfig.class);
+            reportConfig = mapper.readValue(jsonFile, ReportJson.ReportConfig.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -64,23 +64,23 @@ public class StatsWriter implements ModelStep {
         lookupAttributeHandler.createLookUpVariables(reportConfig);
         lookupAttributeHandler.setLookupAttributes(scenario.getPopulation().getPersons().values(), zones);
 
-        for (ReadReportJson.Sheet s : reportConfig.sheets) {
-            if (s.pivots.isEmpty()) {
-                writeSheet(s);
-            } else {
+        for (ReportJson.Sheet s : reportConfig.sheets) {
+            if (s.pivots != null && !s.pivots.isEmpty()) {
                 writePivotSheet(s);
+            } else {
+                writeSheet(s);
             }
         }
     }
 
-    public void writeSheet(ReadReportJson.Sheet s) {
+    public void writeSheet(ReportJson.Sheet s) {
         Map<String, List<String>> requiredVariables = new HashMap<>();
         List<String> variable_names = new ArrayList<>();
-        for (ReadReportJson.ReportVariable variable : s.variables) {
+        for (ReportJson.ReportVariable variable : s.variables) {
             requiredVariables.put(variable.name, expressionEvaluator.getShortVariableNames(variable.formula));
             variable_names.add(variable.name);
         }
-        for (ReadReportJson.ReportGroup group : s.groups) {
+        for (ReportJson.ReportGroup group : s.groups) {
             group.filter_expression = group.filter_expression.replace("[", "").replace("]", "");
         }
 
@@ -89,7 +89,7 @@ public class StatsWriter implements ModelStep {
         sums = new double[s.groups.size()][s.variables.size()];
         counts = new int[s.groups.size()][s.variables.size()];
         for (int groupIndex = 0; groupIndex < s.groups.size(); groupIndex++) {
-            ReadReportJson.ReportGroup group = s.groups.get(groupIndex);
+            ReportJson.ReportGroup group = s.groups.get(groupIndex);
             switch (s.table_ref) {
                 case "Persons": {
                     String filterExpression = group.filter_expression;
@@ -98,7 +98,7 @@ public class StatsWriter implements ModelStep {
                     scenario.getPopulation().getPersons().values().stream().forEach(person -> {
                         if (groupFilterPredicate.test(person)) {
                             for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
-                                ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
+                                ReportJson.ReportVariable variable = s.variables.get(varIndex);
                                 LookupFormulaParser.ParseResult formulaParser = parseFormula(variable.formula);
                                 if ("Trips".equals(formulaParser.lookupTable)) {
                                     Plan plan = person.getSelectedPlan();
@@ -142,7 +142,7 @@ public class StatsWriter implements ModelStep {
                     zones.getZones().stream().forEach(zone -> {
                         if (groupFilterPredicate.test(zone)) {
                             for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
-                                ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
+                                ReportJson.ReportVariable variable = s.variables.get(varIndex);
                                 sums[finalGroupIndex][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(zone, requiredVariables.get(variable.name), Zone.class));
                                 counts[finalGroupIndex][varIndex]++;
                             }
@@ -165,7 +165,7 @@ public class StatsWriter implements ModelStep {
                                     Predicate<Attributables.AttributableProvider.TripAttributable> groupFilterPredicateTrip = BuildPredicate.buildPredicate(filterExpression, Attributables.AttributableProvider.TripAttributable.class);
                                     if (groupFilterPredicateTrip.test(tripAtt)) {
                                         for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
-                                            ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
+                                            ReportJson.ReportVariable variable = s.variables.get(varIndex);
                                             sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(tripAtt, requiredVariables.get(variable.name), Attributables.AttributableProvider.TripAttributable.class));
                                             counts[finalGroupIndex1][varIndex]++;
                                         }
@@ -183,10 +183,10 @@ public class StatsWriter implements ModelStep {
         variable_names.addFirst("Name");
         try (CSVWriter csvWriter = new CSVWriter("", variable_names.toArray(String[]::new), outputFile)) {
             for (int groupIndex = 0; groupIndex < s.groups.size(); groupIndex++) {
-                ReadReportJson.ReportGroup group = s.groups.get(groupIndex);
+                ReportJson.ReportGroup group = s.groups.get(groupIndex);
                 csvWriter.set("Name", group.name);
                 for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
-                    ReadReportJson.ReportVariable variable = s.variables.get(varIndex);
+                    ReportJson.ReportVariable variable = s.variables.get(varIndex);
                     Double val = 0.0;
                     switch (variable.aggregation) {
                         case "Sum":
@@ -223,7 +223,7 @@ public class StatsWriter implements ModelStep {
         }
     }
 
-    public void writePivotSheet(ReadReportJson.Sheet s) {
+    public void writePivotSheet(ReportJson.Sheet s) {
         Map<String, List<String>> requiredVariables = new HashMap<>();
         List<String> variable_names = new ArrayList<>();
         requiredVariables.put("index_formula", expressionEvaluator.getShortVariableNames(s.pivots.get("index_formula").toString()));
