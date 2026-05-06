@@ -93,6 +93,18 @@ public class LookupAttributeHandler {
                 }
                 group.filter_expression_person = replaceAttributes(group.filter_expression_person);
             }
+            if (!s.pivots.isEmpty()) {
+                List<String> list = Arrays.asList("index_formula", "column_formula", "filter_expression", "attribute");
+                for (String exp : list) {
+                    if (s.pivots.get(exp)!=null) {
+                        Map<String, String> attributeMap = findAttributesWithSlash(s.pivots.get(exp).toString());
+                        for (String attribute : attributeMap.keySet()) {
+                            addLookupVariable(s.table_ref, attribute, mapAttribute(attributeMap.get(attribute)));
+                            s.pivots.put(exp, replaceAttributes(s.pivots.get(exp).toString()));
+                        }
+                    }
+                }
+            }
         }
     }
 
