@@ -35,6 +35,7 @@ public class MOBiPlansRunner implements Runnable{
     public static final String PEDESTRIAN_SPEED = "pedestrian_speed";
     public static final String WORK_FROM_HOME = "work_from_home";
     public static final String MERGE_EXOGENOUS_PLANS = "merge_exogenous_plans";
+    public static final String WRITE_STATS = "write_stats";
 
 
 
@@ -53,7 +54,8 @@ public class MOBiPlansRunner implements Runnable{
             RAIL_ACCESS_CHOICESET,
             PEDESTRIAN_SPEED,
             MERGE_EXOGENOUS_PLANS,
-            WRITE_OUTPUTS
+            WRITE_OUTPUTS,
+            WRITE_STATS
     );
     private final MOBiPlansConfig config;
 

@@ -1,6 +1,6 @@
 package ch.sbb.matsim.plans.models.steps.csvmodels;
 
-import ch.sbb.matsim.plans.models.selector.BinaryProbabilisticSelector;
+import ch.sbb.matsim.plans.models.selector.BinaryLinearProbabilitySelector;
 import ch.sbb.matsim.plans.models.selector.ChoiceSelector;
 import ch.sbb.matsim.plans.models.steps.ChoiceModel;
 import ch.sbb.matsim.plans.models.utils.ChoiceModelCSVReader;
@@ -19,7 +19,7 @@ public class StringSelectionModelFromRows implements ChoiceModel {
      */
     public StringSelectionModelFromRows(ArrayList<Map<String, String>> rows, String name) {
         var calculatorsPerAlternative = ChoiceModelCSVReader.getChoiceModelFromRows(rows);
-        this.selector = new BinaryProbabilisticSelector(calculatorsPerAlternative, name);
+        this.selector = new BinaryLinearProbabilitySelector(calculatorsPerAlternative, name);
     }
 
     @Override

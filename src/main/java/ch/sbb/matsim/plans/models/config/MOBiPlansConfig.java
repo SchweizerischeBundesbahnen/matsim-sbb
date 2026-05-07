@@ -16,6 +16,7 @@ public record MOBiPlansConfig (
     public static final String MODEL_BASE_FOLDER_CONFIG = "config";
     public static final String MODEL_BASE_FOLDER_CHOICE_MODELS = "choice_models";
     public static final String MODEL_BASE_FOLDER_DATA = "data";
+    public static final String MODEL_BASE_FOLDER_REPORTS = "reports";
     public static final String DRIVING_LICENSE_CSV = "driving_license.csv";
     public static final String TOUR_FREQUENCY_WORK_MODEL_CSV = "tour_frequency_work.csv";
     public static final String TOUR_FREQUENCY_EDUCATION_MODEL_CSV = "tour_frequency_education.csv";
@@ -46,6 +47,7 @@ public record MOBiPlansConfig (
     public static final String NOGA_TO_ACTIVITIES_MAPPING_CSV = "noga_to_activities_mapping.csv";
     public static final String RAILACCESS_CHOICESET_CSV = "railaccess_choiceset.csv";
     public static final String PEDESTRIAN_SPEED_CSV = "pedestrian_speed.csv";
+    public static final String REPORT_CONFIG_JSON = "report_config.json";
     public static final String WORK_FROM_HOME_MODEL_CSV = "work_from_home.csv";
     public static final String FLEXIBLE_WORKING_HOURS_CSV = "flexible_working_hours.csv";
 

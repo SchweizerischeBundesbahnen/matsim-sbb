@@ -11,13 +11,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class BinaryProbabilisticSelector implements ChoiceSelector {
+public class BinaryLinearProbabilitySelector implements ChoiceSelector {
 
     private final Map<String, UtilityCalculator> calculators;
     private final String modelName;
-    private final static Logger log = LogManager.getLogger(BinaryProbabilisticSelector.class);
+    private final static Logger log = LogManager.getLogger(BinaryLinearProbabilitySelector.class);
 
-    public BinaryProbabilisticSelector(Map<String, UtilityCalculator> calculators, String modelName) {
+    public BinaryLinearProbabilitySelector(Map<String, UtilityCalculator> calculators, String modelName) {
         this.calculators = calculators;
         this.modelName = modelName;
     }
@@ -37,7 +37,7 @@ public class BinaryProbabilisticSelector implements ChoiceSelector {
         // In this linear probability model, the CSV defines the utility for alternative "1"
         UtilityCalculator calc1 = calculators.get("1");
         if (calc1 == null) {
-            throw new IllegalStateException("BinaryProbabilisticSelector expects a calculator for alternative '1'. Model: " + modelName);
+            throw new IllegalStateException("BinaryLinearProbabilitySelector expects a calculator for alternative '1'. Model: " + modelName);
         }
 
         double u = calc1.calculate(attributes);
