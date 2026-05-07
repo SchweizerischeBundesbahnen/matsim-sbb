@@ -7,6 +7,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.lang.reflect.Method;
@@ -17,6 +18,28 @@ public class BuildPredicate {
     private static final char quote = '\'';
     // your regex, for example: (\w+)\s*(<=|>=|<|>|=)\s*([\d.]+)
     private static final java.util.regex.Pattern RULE_PATTERN = java.util.regex.Pattern.compile("(\\w+)\\s*(<=|>=|<|>|=|!=)\\s*('?)([\\w?.]+)('?)");
+
+    // Reflection caches keyed by (class, attributeName). We cache both successful Method lookups
+    // and a "no-method" sentinel to avoid repeated NoSuchMethodException throwing in the hot path.
+    private static final Method NO_METHOD;
+    private static final Field NO_FIELD;
+    static {
+        Method m;
+        Field f;
+        try {
+            m = BuildPredicate.class.getDeclaredMethod("noMethodSentinel");
+            f = BuildPredicate.class.getDeclaredField("NO_METHOD");
+        } catch (NoSuchMethodException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+        NO_METHOD = m;
+        NO_FIELD = f;
+    }
+    @SuppressWarnings("unused")
+    private static void noMethodSentinel() {}
+
+    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Method>> METHOD_CACHE = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Field>> FIELD_CACHE = new ConcurrentHashMap<>();
 
 
     public static <T extends Attributable> Predicate<T> buildPredicate(String expr, Class<T> clazz) {
@@ -164,31 +187,56 @@ public class BuildPredicate {
     }
 
     private static <T extends Attributable> Object getAttributeValue(T obj, String attrName, Class<T> clazz) {
-        try {
-            // Try getter methods: getX or isX
-            Object val = null;
+        // Fast path: cached Method lookup
+        ConcurrentHashMap<String, Method> methodMap = METHOD_CACHE.computeIfAbsent(clazz, c -> new ConcurrentHashMap<>());
+        Method cachedMethod = methodMap.get(attrName);
+        if (cachedMethod == null) {
             String capitalized = attrName.substring(0, 1).toUpperCase() + attrName.substring(1);
             String[] methodNames = {"get" + capitalized, "is" + capitalized, attrName};
+            Method found = null;
             for (String mName : methodNames) {
                 try {
-                    Method m = clazz.getMethod(mName);
-                    return m.invoke(obj);
+                    found = clazz.getMethod(mName);
+                    break;
                 } catch (NoSuchMethodException ignored) {
                     // keep looking
                 }
             }
-
-            // Try direct field access
-            Field f = clazz.getDeclaredField(attrName);
-            f.setAccessible(true);
-            return f.get(obj);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            // attribute not found or inaccessible
-        } catch (NumberFormatException nfe) {
-            logger.warn("Attribute '{}' exists but is not numeric for class {}: {}", attrName, clazz.getName(), nfe.getMessage());
-        } catch (Exception ex) {
-            logger.warn("Error reading attribute '{}' on {}: {}", attrName, clazz.getName(), ex.toString());
+            cachedMethod = (found != null) ? found : NO_METHOD;
+            methodMap.put(attrName, cachedMethod);
         }
+        if (cachedMethod != NO_METHOD) {
+            try {
+                return cachedMethod.invoke(obj);
+            } catch (Exception ex) {
+                logger.warn("Error invoking '{}' on {}: {}", cachedMethod.getName(), clazz.getName(), ex.toString());
+            }
+        }
+
+        // Fast path: cached Field lookup
+        ConcurrentHashMap<String, Field> fieldMap = FIELD_CACHE.computeIfAbsent(clazz, c -> new ConcurrentHashMap<>());
+        Field cachedField = fieldMap.get(attrName);
+        if (cachedField == null) {
+            Field found = null;
+            try {
+                found = clazz.getDeclaredField(attrName);
+                found.setAccessible(true);
+            } catch (NoSuchFieldException ignored) {
+                // not found
+            }
+            cachedField = (found != null) ? found : NO_FIELD;
+            fieldMap.put(attrName, cachedField);
+        }
+        if (cachedField != NO_FIELD) {
+            try {
+                return cachedField.get(obj);
+            } catch (IllegalAccessException ignored) {
+                // fall through
+            } catch (Exception ex) {
+                logger.warn("Error reading attribute '{}' on {}: {}", attrName, clazz.getName(), ex.toString());
+            }
+        }
+
         try {
             return obj.getAttributes().getAttribute(attrName);
         } catch (Exception ex) {

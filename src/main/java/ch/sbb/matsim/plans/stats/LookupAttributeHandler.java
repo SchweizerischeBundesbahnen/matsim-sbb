@@ -11,6 +11,7 @@ import org.matsim.utils.objectattributes.attributable.Attributable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +21,21 @@ public class LookupAttributeHandler {
     private static final Logger logger = LogManager.getLogger(LookupAttributeHandler.class);
 
     private static final Pattern ATTR_WITH_SLASH = Pattern.compile("([A-Za-z0-9_\\-]+(?:/[A-Za-z0-9_\\-]+)+)");
+
+    // Cache: per (class, attribute) -> resolved Method, or NO_METHOD sentinel meaning "use attributes map".
+    private static final Method NO_METHOD;
+    static {
+        try {
+            NO_METHOD = LookupAttributeHandler.class.getDeclaredMethod("noMethodSentinel");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    @SuppressWarnings("unused")
+    private static void noMethodSentinel() {}
+    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Method>> METHOD_CACHE = new ConcurrentHashMap<>();
+    // Pre-split parts for "a/b/c" attribute paths
+    private static final ConcurrentHashMap<String, String[]> SPLIT_CACHE = new ConcurrentHashMap<>();
 
     public Map<String, Map<String, String>> lookupVariables = new HashMap<>();
 
@@ -140,16 +156,28 @@ public class LookupAttributeHandler {
     }
 
     public static Object getFieldObject(Attributable obj, String variable, Class<? extends Attributable> clazz) {
-        String capitalized = variable.substring(0, 1).toUpperCase() + variable.substring(1);
-        String[] methodNames = {"get" + capitalized, "is" + capitalized, variable};
-        Object ob = null;
-        for (String mName : methodNames) {
+        ConcurrentHashMap<String, Method> methodMap = METHOD_CACHE.computeIfAbsent(clazz, c -> new ConcurrentHashMap<>());
+        Method cached = methodMap.get(variable);
+        if (cached == null) {
+            String capitalized = variable.substring(0, 1).toUpperCase() + variable.substring(1);
+            String[] methodNames = {"get" + capitalized, "is" + capitalized, variable};
+            Method found = null;
+            for (String mName : methodNames) {
+                try {
+                    found = clazz.getMethod(mName);
+                    break;
+                } catch (NoSuchMethodException ignored) {
+                    // keep looking
+                }
+            }
+            cached = (found != null) ? found : NO_METHOD;
+            methodMap.put(variable, cached);
+        }
+        if (cached != NO_METHOD) {
             try {
-                Method m = clazz.getMethod(mName);
-                ob = m.invoke(obj);
-                return ob;
-            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ignored) {
-                // keep looking
+                return cached.invoke(obj);
+            } catch (InvocationTargetException | IllegalAccessException ignored) {
+                // fall through
             }
         }
         try {
@@ -157,21 +185,19 @@ public class LookupAttributeHandler {
         } catch (Exception ex) {
             logger.warn("Error reading attribute '{}' on {}: {}", variable, clazz.getName(), ex.toString());
         }
-
-        return ob;
+        return null;
     }
 
     public static Object getFieldValue(Attributable obj, String variable, Class<? extends Attributable> clazz) {
-        String regex = "[//]";
-        String[] parts = variable.split(regex);
+        String[] parts = SPLIT_CACHE.computeIfAbsent(variable, v -> v.split("/"));
         Object ob = null;
-        for (int i=0; i < parts.length; i++) {
+        for (int i = 0; i < parts.length; i++) {
             String part = parts[i];
             ob = getFieldObject(obj, part, clazz);
-            if (i==parts.length-1) {
+            if (i == parts.length - 1) {
                 if (ob instanceof Number) return ((Number) ob).doubleValue();
                 if (ob instanceof Boolean) return ((Boolean) ob).booleanValue();
-                if (ob instanceof String) return ((String) ob).toString();
+                if (ob instanceof String) return (String) ob;
                 if (ob != null) return ob.toString();
             }
             if (ob == null) return null;

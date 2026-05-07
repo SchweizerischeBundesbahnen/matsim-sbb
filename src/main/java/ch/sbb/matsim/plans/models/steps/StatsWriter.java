@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.DoubleAdder;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -74,138 +76,231 @@ public class StatsWriter implements ModelStep {
     }
 
     public void writeSheet(ReportJson.Sheet s) {
-        Map<String, List<String>> requiredVariables = new HashMap<>();
-        List<String> variable_names = new ArrayList<>();
-        for (ReportJson.ReportVariable variable : s.variables) {
-            requiredVariables.put(variable.name, expressionEvaluator.getShortVariableNames(variable.formula));
+        // ---- Pre-compute everything that does not depend on the iterated element ----
+        final int nGroups = s.groups.size();
+        final int nVars = s.variables.size();
+
+        final List<String> variable_names = new ArrayList<>(nVars);
+        // Per variable: required short variable names (as String[] for fast iteration, no per-call allocation)
+        final String[][] requiredVariables = new String[nVars][];
+        for (int v = 0; v < nVars; v++) {
+            ReportJson.ReportVariable variable = s.variables.get(v);
+            List<String> req = expressionEvaluator.getShortVariableNames(variable.formula);
+            requiredVariables[v] = req.toArray(new String[0]);
             variable_names.add(variable.name);
         }
+
+        // Sanitize group filter expressions once (the original code did this in-place every call)
         for (ReportJson.ReportGroup group : s.groups) {
             group.filter_expression = group.filter_expression.replace("[", "").replace("]", "");
         }
 
-        double[][] sums;
-        int[][] counts;
-        sums = new double[s.groups.size()][s.variables.size()];
-        counts = new int[s.groups.size()][s.variables.size()];
-        for (int groupIndex = 0; groupIndex < s.groups.size(); groupIndex++) {
-            ReportJson.ReportGroup group = s.groups.get(groupIndex);
-            switch (s.table_ref) {
-                case "Persons": {
-                    String filterExpression = group.filter_expression;
-                    Predicate<Person> groupFilterPredicate = BuildPredicate.buildPredicate(filterExpression, Person.class);
-                    int finalGroupIndex1 = groupIndex;
-                    scenario.getPopulation().getPersons().values().stream().forEach(person -> {
-                        if (groupFilterPredicate.test(person)) {
-                            for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
-                                ReportJson.ReportVariable variable = s.variables.get(varIndex);
-                                LookupFormulaParser.ParseResult formulaParser = parseFormula(variable.formula);
-                                if ("Trips".equals(formulaParser.lookupTable)) {
-                                    Plan plan = person.getSelectedPlan();
-                                    if (plan != null) {
-                                        for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
-                                            Attributables.AttributableProvider.TripAttributable tripAtt = new Attributables.AttributableProvider.TripAttributable(trip, person);
-                                            tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
-                                            boolean tripFilter = true;
-                                            if (formulaParser.filterExpression != null) {
-                                                Predicate<Attributables.AttributableProvider.TripAttributable> groupFilterPredicateTrip = BuildPredicate.buildPredicate(formulaParser.filterExpression, Attributables.AttributableProvider.TripAttributable.class);
-                                                tripFilter = groupFilterPredicateTrip.test(tripAtt);
-                                            }
-                                            if (tripFilter) {
-                                                switch (formulaParser.aggregator) {
-                                                    case "Sum": {
-                                                        sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(formulaParser.lookupExpression, collectAttributeStrings(tripAtt, requiredVariables.get(variable.name), Attributables.AttributableProvider.TripAttributable.class));
-                                                        break;
-                                                    }
-                                                    case "Count": {
-                                                        sums[finalGroupIndex1][varIndex]++;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            counts[finalGroupIndex1][varIndex]++;
+        // Use thread-safe accumulators so we can run with parallel streams.
+        final DoubleAdder[][] sums = new DoubleAdder[nGroups][nVars];
+        final LongAdder[][] counts = new LongAdder[nGroups][nVars];
+        for (int g = 0; g < nGroups; g++) {
+            for (int v = 0; v < nVars; v++) {
+                sums[g][v] = new DoubleAdder();
+                counts[g][v] = new LongAdder();
+            }
+        }
+
+        switch (s.table_ref) {
+            case "Persons": {
+                // Pre-build per-group person predicates and per-variable parsed formulas (incl. trip filters).
+                @SuppressWarnings("unchecked")
+                final Predicate<Person>[] groupPreds = new Predicate[nGroups];
+                for (int g = 0; g < nGroups; g++) {
+                    groupPreds[g] = BuildPredicate.buildPredicate(s.groups.get(g).filter_expression, Person.class);
+                }
+                final LookupFormulaParser.ParseResult[] parsed = new LookupFormulaParser.ParseResult[nVars];
+                @SuppressWarnings("unchecked")
+                final Predicate<Attributables.AttributableProvider.TripAttributable>[] tripFilters = new Predicate[nVars];
+                final boolean[] varIsTripLookup = new boolean[nVars];
+                for (int v = 0; v < nVars; v++) {
+                    ReportJson.ReportVariable variable = s.variables.get(v);
+                    LookupFormulaParser.ParseResult pr = parseFormula(variable.formula);
+                    parsed[v] = pr;
+                    varIsTripLookup[v] = "Trips".equals(pr.lookupTable);
+                    if (varIsTripLookup[v] && pr.filterExpression != null) {
+                        tripFilters[v] = BuildPredicate.buildPredicate(
+                                pr.filterExpression, Attributables.AttributableProvider.TripAttributable.class);
+                    }
+                }
+
+                scenario.getPopulation().getPersons().values().parallelStream().forEach(person -> {
+                    // Determine which groups apply to this person
+                    boolean[] inGroup = new boolean[nGroups];
+                    boolean any = false;
+                    for (int g = 0; g < nGroups; g++) {
+                        if (groupPreds[g].test(person)) {
+                            inGroup[g] = true;
+                            any = true;
+                        }
+                    }
+                    if (!any) return;
+
+                    // Pre-collect attribute maps for non-trip variables once per person
+                    Map<Integer, Map<String, Double>> personAttrCache = null;
+
+                    // Lazily build trips list (only if any variable needs it)
+                    List<Attributables.AttributableProvider.TripAttributable> trips = null;
+                    boolean needsTrips = false;
+                    for (int v = 0; v < nVars; v++) if (varIsTripLookup[v]) { needsTrips = true; break; }
+                    if (needsTrips) {
+                        Plan plan = person.getSelectedPlan();
+                        if (plan != null) {
+                            List<TripStructureUtils.Trip> rawTrips = TripStructureUtils.getTrips(plan);
+                            trips = new ArrayList<>(rawTrips.size());
+                            for (TripStructureUtils.Trip trip : rawTrips) {
+                                Attributables.AttributableProvider.TripAttributable tripAtt =
+                                        new Attributables.AttributableProvider.TripAttributable(trip, person);
+                                tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
+                                trips.add(tripAtt);
+                            }
+                        } else {
+                            trips = Collections.emptyList();
+                        }
+                    }
+
+                    for (int v = 0; v < nVars; v++) {
+                        ReportJson.ReportVariable variable = s.variables.get(v);
+                        if (varIsTripLookup[v]) {
+                            if (trips == null || trips.isEmpty()) continue;
+                            LookupFormulaParser.ParseResult pr = parsed[v];
+                            Predicate<Attributables.AttributableProvider.TripAttributable> tripFilter = tripFilters[v];
+                            String[] reqVars = requiredVariables[v];
+                            for (Attributables.AttributableProvider.TripAttributable tripAtt : trips) {
+                                boolean tripPass = (tripFilter == null) || tripFilter.test(tripAtt);
+                                if (tripPass) {
+                                    if ("Sum".equals(pr.aggregator)) {
+                                        double val = expressionEvaluator.evaluate(
+                                                pr.lookupExpression,
+                                                collectAttributeStrings(tripAtt, reqVars));
+                                        for (int g = 0; g < nGroups; g++) {
+                                            if (inGroup[g]) sums[g][v].add(val);
+                                        }
+                                    } else if ("Count".equals(pr.aggregator)) {
+                                        for (int g = 0; g < nGroups; g++) {
+                                            if (inGroup[g]) sums[g][v].add(1.0);
                                         }
                                     }
-                                } else {
-                                    sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(person, requiredVariables.get(variable.name), Person.class));
-                                    counts[finalGroupIndex1][varIndex]++;
+                                }
+                                // Preserve original semantics: counts incremented for every trip regardless of filter.
+                                for (int g = 0; g < nGroups; g++) {
+                                    if (inGroup[g]) counts[g][v].increment();
+                                }
+                            }
+                        } else {
+                            // Non-trip variable on Persons table
+                            String[] reqVars = requiredVariables[v];
+                            double val = expressionEvaluator.evaluate(
+                                    variable.formula,
+                                    collectAttributeStrings(person, reqVars));
+                            for (int g = 0; g < nGroups; g++) {
+                                if (inGroup[g]) {
+                                    sums[g][v].add(val);
+                                    counts[g][v].increment();
                                 }
                             }
                         }
-                    });
-                    break;
+                    }
+                });
+                break;
+            }
+            case "Zones": {
+                @SuppressWarnings("unchecked")
+                final Predicate<Zone>[] groupPreds = new Predicate[nGroups];
+                for (int g = 0; g < nGroups; g++) {
+                    groupPreds[g] = BuildPredicate.buildPredicate(s.groups.get(g).filter_expression, Zone.class);
                 }
-                case "Zones": {
-                    String filterExpression = group.filter_expression;
-                    Predicate<Zone> groupFilterPredicate = BuildPredicate.buildPredicate(filterExpression, Zone.class);
-                    int finalGroupIndex = groupIndex;
-                    zones.getZones().stream().forEach(zone -> {
-                        if (groupFilterPredicate.test(zone)) {
-                            for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
-                                ReportJson.ReportVariable variable = s.variables.get(varIndex);
-                                sums[finalGroupIndex][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(zone, requiredVariables.get(variable.name), Zone.class));
-                                counts[finalGroupIndex][varIndex]++;
+                zones.getZones().parallelStream().forEach(zone -> {
+                    for (int g = 0; g < nGroups; g++) {
+                        if (!groupPreds[g].test(zone)) continue;
+                        for (int v = 0; v < nVars; v++) {
+                            ReportJson.ReportVariable variable = s.variables.get(v);
+                            double val = expressionEvaluator.evaluate(
+                                    variable.formula,
+                                    collectAttributeStrings(zone, requiredVariables[v]));
+                            sums[g][v].add(val);
+                            counts[g][v].increment();
+                        }
+                    }
+                });
+                break;
+            }
+            case "Trips": {
+                @SuppressWarnings("unchecked")
+                final Predicate<Person>[] personPreds = new Predicate[nGroups];
+                @SuppressWarnings("unchecked")
+                final Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds = new Predicate[nGroups];
+                for (int g = 0; g < nGroups; g++) {
+                    ReportJson.ReportGroup group = s.groups.get(g);
+                    personPreds[g] = BuildPredicate.buildPredicate(group.filter_expression_person, Person.class);
+                    tripPreds[g] = BuildPredicate.buildPredicate(
+                            group.filter_expression, Attributables.AttributableProvider.TripAttributable.class);
+                }
+                scenario.getPopulation().getPersons().values().parallelStream().forEach(person -> {
+                    // Determine which groups potentially match by person
+                    boolean[] personMatch = new boolean[nGroups];
+                    boolean any = false;
+                    for (int g = 0; g < nGroups; g++) {
+                        if (personPreds[g].test(person)) { personMatch[g] = true; any = true; }
+                    }
+                    if (!any) return;
+                    Plan plan = person.getSelectedPlan();
+                    if (plan == null) return;
+                    for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
+                        Attributables.AttributableProvider.TripAttributable tripAtt =
+                                new Attributables.AttributableProvider.TripAttributable(trip, person);
+                        tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
+                        for (int g = 0; g < nGroups; g++) {
+                            if (!personMatch[g]) continue;
+                            if (!tripPreds[g].test(tripAtt)) continue;
+                            for (int v = 0; v < nVars; v++) {
+                                ReportJson.ReportVariable variable = s.variables.get(v);
+                                double val = expressionEvaluator.evaluate(
+                                        variable.formula,
+                                        collectAttributeStrings(tripAtt, requiredVariables[v]));
+                                sums[g][v].add(val);
+                                counts[g][v].increment();
                             }
                         }
-                    });
-                    break;
-                }
-                case "Trips": {
-                    String filterExpression = group.filter_expression;
-                    String filterExpressionPerson = group.filter_expression_person;
-                    Predicate<Person> groupFilterPredicatePerson = BuildPredicate.buildPredicate(filterExpressionPerson, Person.class);
-                    int finalGroupIndex1 = groupIndex;
-                    scenario.getPopulation().getPersons().values().stream().forEach(person -> {
-                        if (groupFilterPredicatePerson.test(person)) {
-                            Plan plan = person.getSelectedPlan();
-                            if (plan != null) {
-                                for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
-                                    Attributables.AttributableProvider.TripAttributable tripAtt = new Attributables.AttributableProvider.TripAttributable(trip, person);
-                                    tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
-                                    Predicate<Attributables.AttributableProvider.TripAttributable> groupFilterPredicateTrip = BuildPredicate.buildPredicate(filterExpression, Attributables.AttributableProvider.TripAttributable.class);
-                                    if (groupFilterPredicateTrip.test(tripAtt)) {
-                                        for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
-                                            ReportJson.ReportVariable variable = s.variables.get(varIndex);
-                                            sums[finalGroupIndex1][varIndex] += expressionEvaluator.evaluate(variable.formula, collectAttributeStrings(tripAtt, requiredVariables.get(variable.name), Attributables.AttributableProvider.TripAttributable.class));
-                                            counts[finalGroupIndex1][varIndex]++;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    break;
-                }
+                    }
+                });
+                break;
             }
         }
 
         String outputFile = config.data().outputBaseDir() + config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
         variable_names.addFirst("Name");
         try (CSVWriter csvWriter = new CSVWriter("", variable_names.toArray(String[]::new), outputFile)) {
-            for (int groupIndex = 0; groupIndex < s.groups.size(); groupIndex++) {
+            for (int groupIndex = 0; groupIndex < nGroups; groupIndex++) {
                 ReportJson.ReportGroup group = s.groups.get(groupIndex);
                 csvWriter.set("Name", group.name);
-                for (int varIndex = 0; varIndex < s.variables.size(); varIndex++) {
+                for (int varIndex = 0; varIndex < nVars; varIndex++) {
                     ReportJson.ReportVariable variable = s.variables.get(varIndex);
+                    double sumVal = sums[groupIndex][varIndex].sum();
+                    long countVal = counts[groupIndex][varIndex].sum();
                     Double val = 0.0;
                     switch (variable.aggregation) {
                         case "Sum":
-                            val = sums[groupIndex][varIndex];
+                            val = sumVal;
                             break;
                         case "Count":
-                            val = Double.valueOf(String.valueOf(counts[groupIndex][varIndex]));
+                            val = (double) countVal;
                             break;
                         case "Mean": {
-                            if (counts[groupIndex][varIndex] != 0)
-                                val = sums[groupIndex][varIndex] / counts[groupIndex][varIndex];
+                            if (countVal != 0)
+                                val = sumVal / countVal;
                             break;
                         }
                     }
                     if (variable.normalize != null) {
                         double total = 0.0;
-                        for (int vIndex = 0; vIndex < s.variables.size(); vIndex++) {
+                        for (int vIndex = 0; vIndex < nVars; vIndex++) {
                             if (s.variables.get(vIndex).name.equals(variable.normalize)) {
-                                total = sums[groupIndex][vIndex];
+                                total = sums[groupIndex][vIndex].sum();
                                 break;
                             }
                         }
@@ -346,6 +441,20 @@ public class StatsWriter implements ModelStep {
             e.printStackTrace();
         }
 
+    }
+
+    private static Map<String, Double> collectAttributeStrings(Attributable obj, String[] variables) {
+        if (obj == null || variables == null || variables.length == 0) return Collections.emptyMap();
+        Attributes attrs = obj.getAttributes();
+        Map<String, Double> result = new HashMap<>(variables.length * 2);
+        for (String variable : variables) {
+            if (variable == null) continue;
+            Object att_value = attrs.getAttribute(variable);
+            if (att_value == null) continue;
+            if (!(att_value instanceof Number)) continue;
+            result.put(variable, ((Number) att_value).doubleValue());
+        }
+        return result;
     }
 
     private static Map<String, Double> collectAttributeStrings(Attributable obj, Iterable<String> variables, Class<? extends Attributable> clazz) {
