@@ -30,11 +30,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RailaccessChoiceSet implements ModelStep {
-    @Inject
     Scenario scenario;
-    @Inject
     MOBiPlansConfig config;
-    @Inject
     Zones zones;
 
 
@@ -69,6 +66,9 @@ public class RailaccessChoiceSet implements ModelStep {
 
     @Inject
     public RailaccessChoiceSet(Scenario scenario, MOBiPlansConfig config, Zones zones) {
+        this.scenario = scenario;
+        this.config = config;
+        this.zones = zones;
         this.segmentModels = new HashMap<>();
         Path modelFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
         this.csvFilePath = modelFolder.resolve(MOBiPlansConfig.RAILACCESS_CHOICESET_CSV).toString();
