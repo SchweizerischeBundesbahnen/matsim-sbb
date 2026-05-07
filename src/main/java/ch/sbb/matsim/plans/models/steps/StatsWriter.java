@@ -40,8 +40,6 @@ public class StatsWriter implements ModelStep {
     @Inject
     Zones zones;
     ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
-    LookupFormulaParser lookupFormulaParser = new LookupFormulaParser();
-    Attributables.AttributableProvider attributableProvider = new Attributables.AttributableProvider(zones);
     LookupAttributeHandler lookupAttributeHandler = new LookupAttributeHandler();
 
     @Override
@@ -55,7 +53,7 @@ public class StatsWriter implements ModelStep {
         String reportConfigFilePath = reportsFolder.resolve(MOBiPlansConfig.REPORT_CONFIG_JSON).toString();
 
         File jsonFile = new File(reportConfigFilePath);
-        ReportJson.ReportConfig reportConfig = null;
+        ReportJson.ReportConfig reportConfig;
         ObjectMapper mapper = new ObjectMapper();
         try {
             reportConfig = mapper.readValue(jsonFile, ReportJson.ReportConfig.class);
@@ -272,7 +270,7 @@ public class StatsWriter implements ModelStep {
             }
         }
 
-        String outputFile = config.data().outputBaseDir() + config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
+        String outputFile = config.data().outputBaseDir() +"/"+ config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
         variable_names.addFirst("Name");
         try (CSVWriter csvWriter = new CSVWriter("", variable_names.toArray(String[]::new), outputFile)) {
             for (int groupIndex = 0; groupIndex < nGroups; groupIndex++) {
@@ -320,7 +318,6 @@ public class StatsWriter implements ModelStep {
 
     public void writePivotSheet(ReportJson.Sheet s) {
         Map<String, List<String>> requiredVariables = new HashMap<>();
-        List<String> variable_names = new ArrayList<>();
         requiredVariables.put("index_formula", expressionEvaluator.getShortVariableNames(s.pivots.get("index_formula").toString()));
         requiredVariables.put("column_formula", expressionEvaluator.getShortVariableNames(s.pivots.get("column_formula").toString()));
         requiredVariables.put("attribute", expressionEvaluator.getShortVariableNames(s.pivots.get("attribute").toString()));
@@ -360,7 +357,6 @@ public class StatsWriter implements ModelStep {
                 break;
             }
             case "Trips": {
-                Predicate<Attributables.AttributableProvider.TripAttributable> filterPredicate = BuildPredicate.buildPredicate(filterExpression, Attributables.AttributableProvider.TripAttributable.class);
                 if ("Sum".equals(s.pivots.get("aggregation").toString())) {
                    pivot = scenario.getPopulation().getPersons().values().stream()
                             .collect(Collectors.groupingBy(
