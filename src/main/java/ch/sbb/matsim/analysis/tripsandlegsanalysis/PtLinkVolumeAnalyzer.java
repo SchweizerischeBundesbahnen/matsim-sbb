@@ -171,8 +171,7 @@ public class PtLinkVolumeAnalyzer {
     }
 
     public Map<Id<Link>, Double> analysePtLinkUsageincludingDNWV(Map<Id<Person>, Plan> experiencedPlans) {
-        IdMap<Person, LinkedList<Variables.MOBiTripAttributes>> additionalTripAttributes = new IdMap<>(Person.class, 100);
-        additionalTripAttributes = Variables.MOBiTripAttributes.extractTripAttributes(population);
+        IdMap<Person, LinkedList<Variables.MOBiTripAttributes>> additionalTripAttributes =  Variables.MOBiTripAttributes.extractTripAttributes(population);
         boolean containsDNWVValues = additionalTripAttributes.values().stream().flatMap(moBiTripAttributes -> moBiTripAttributes.stream())
                 .anyMatch(mobiTripAttribute -> mobiTripAttribute.getDNWVFactor() != null);
         if (!containsDNWVValues) {
