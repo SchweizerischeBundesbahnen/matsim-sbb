@@ -11,12 +11,18 @@ import ch.sbb.matsim.plans.stats.LookupFormulaParser;
 import ch.sbb.matsim.plans.stats.ReportJson;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesLoader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Inject;
+import org.apache.logging.log4j.LogManager;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.router.TripStructureUtils;
+import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 
@@ -33,11 +39,8 @@ import java.util.stream.Collectors;
 import static ch.sbb.matsim.plans.stats.LookupFormulaParser.parseFormula;
 
 public class StatsWriter implements ModelStep {
-    @Inject
     Scenario scenario;
-    @Inject
     MOBiPlansConfig config;
-    @Inject
     Zones zones;
     ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
     LookupAttributeHandler lookupAttributeHandler = new LookupAttributeHandler();
@@ -45,6 +48,13 @@ public class StatsWriter implements ModelStep {
     @Override
     public String getName() {
         return MOBiPlansRunner.WRITE_STATS;
+    }
+
+    @Inject
+    public StatsWriter(Scenario scenario, MOBiPlansConfig config, Zones zones) {
+        this.scenario = scenario;
+        this.config = config;
+        this.zones = zones;
     }
 
     @Override
@@ -469,6 +479,27 @@ public class StatsWriter implements ModelStep {
             }
         }
         return result;
+    }
+
+    public static void main(String[] args) throws IOException {
+        String experiencedPlansFile = args[0];
+        String zonesFile = args[2];
+        String plansFile = args[1];
+        String configFile = args[3];
+        Scenario scenario = null;
+        Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
+        final Config matsimConfig = ConfigUtils.createConfig();
+        scenario = ScenarioUtils.createScenario(matsimConfig);
+        MOBiPlansConfig config = MOBiPlansConfig.readFromYaml(configFile);
+        if (!"-".equals(experiencedPlansFile)) {
+            new PopulationReader(scenario).readFile(experiencedPlansFile);
+        } else {
+            new PopulationReader(scenario).readFile(plansFile);
+        }
+        LogManager.getLogger(StatsWriter.class).info("write zone_id");
+        scenario.getPopulation().getPersons().values().stream().forEach(person -> person.getAttributes().putAttribute("zone_id", person.getAttributes().getAttribute("residence_zone_id")));
+        StatsWriter statsWriter = new StatsWriter(scenario, config, zones);
+        statsWriter.run();
     }
 }
 
