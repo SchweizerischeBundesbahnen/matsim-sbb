@@ -48,10 +48,10 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     private Network carnet;
     private Network bikenet;
     private final int gridsizeInM = 200;
-    private final int diameterInM = 30000;
+    private int diameterInM = 30000;
     private int cellSize;
     private int rowSize;
-    private String linkIdAttribute;
+    private String carLinkIdAttribute;
     private final Scenario scenario;
     private final SBBIntermodalConfiggroup sbbIntermodalConfiggroup;
     final FreespeedTravelTimeAndDisutility disutility = new FreespeedTravelTimeAndDisutility(-0.1, 0.1, -0.01);
@@ -73,12 +73,18 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
         if (buildCache) {
             var railRaptorConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), SwissRailRaptorConfigGroup.class);
-            SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet carInterModalSet = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().filter(set -> set.getMode().equals(SBBModes.CARFEEDER)).findAny().get();
-            this.linkIdAttribute = carInterModalSet.getLinkIdAttribute();
-            String stopFilterValue = carInterModalSet.getStopFilterValue();
-            String stopFilterAttribute = carInterModalSet.getStopFilterAttribute();
+            SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet carInterModalSet = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().filter(set -> set.getMode().equals(SBBModes.CARFEEDER)).findAny().orElse(new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet());
+            SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet bikeInterModalSet = railRaptorConfigGroup.getIntermodalAccessEgressParameterSets().stream().filter(set -> set.getMode().equals(SBBModes.BIKEFEEDER)).findAny().orElse(carInterModalSet);
+            this.carLinkIdAttribute = carInterModalSet.getLinkIdAttribute();
+            int maxCarRadius = (int) Math.min(carInterModalSet.getMaxRadius(), 100_000); // Sanity cap at 100km
+            int maxBikeRadius = (int) Math.min(bikeInterModalSet.getMaxRadius(), 100_000);
+            this.diameterInM = Math.max(Math.max(maxCarRadius * 3, maxBikeRadius * 3), diameterInM);
             scenario.getNetwork().getLinks().values().stream().filter(link -> link.getLength() < 0.1).forEach(link -> link.setLength(0.1));
-            this.cachedStops = scenario.getTransitSchedule().getFacilities().values().stream().filter(transitStopFacility -> transitStopFacility.getAttributes().getAttribute(stopFilterAttribute).equals(stopFilterValue)).map(TransitStopFacility::getId).collect(Collectors.toList());
+            this.cachedStops = scenario.getTransitSchedule().getFacilities().values().stream()
+                    .filter(transitStopFacility ->
+                            carInterModalSet.getStopFilterValue().equals(transitStopFacility.getAttributes().getAttribute(carInterModalSet.getStopFilterAttribute()))
+                                    || bikeInterModalSet.getStopFilterValue().equals(transitStopFacility.getAttributes().getAttribute(bikeInterModalSet.getStopFilterAttribute())))
+                    .map(TransitStopFacility::getId).collect(Collectors.toList());
             logger.info("Cache will consist of " + cachedStops.size() + " stops.");
 
             rowSize = diameterInM / gridsizeInM;
@@ -110,8 +116,10 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             Map<String, Integer> accessTimesPerMode = new HashMap<>();
             this.accessTimesAtStops.put(stopId, accessTimesPerMode);
             var stop = scenario.getTransitSchedule().getFacilities().get(stopId);
-            Link carFromLink = carnet.getLinks().get(Id.createLinkId(String.valueOf(stop.getAttributes().getAttribute(linkIdAttribute))));
-
+            Object carLinkAttr = stop.getAttributes().getAttribute(carLinkIdAttribute);
+            Link carFromLink = carLinkAttr != null
+                    ? carnet.getLinks().get(Id.createLinkId(String.valueOf(carLinkAttr)))
+                    : NetworkUtils.getNearestLink(carnet, stop.getCoord());
             for (var param : sbbIntermodalConfiggroup.getModeParameterSets()) {
                 if (param.getAccessTimeZoneId() != null) {
                     int accessTime = (int) NetworkUtils.getLinkAccessTime(carFromLink, param.getMode()).seconds();
@@ -125,8 +133,8 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     void calculateGridTraveltimesViaTree() {
         Gbl.printMemoryUsage();
         bikenet.getLinks().values().stream().filter(link -> link.getFreespeed() > bikeFreespeed).forEach(link -> link.setFreespeed(bikeFreespeed));
-        SpeedyGraph carGraph = SpeedyGraphBuilder.build(carnet);
-        SpeedyGraph bikeGraph = SpeedyGraphBuilder.build(bikenet);
+        SpeedyGraph carGraph = SpeedyGraphBuilder.build(carnet, SBBModes.CAR);
+        SpeedyGraph bikeGraph = SpeedyGraphBuilder.build(bikenet, SBBModes.BIKE);
         SpeedyALTFactory factory = new SpeedyALTFactory();
         logger.info("Building Cache Structure for " + cachedStops.size() + " stops.");
 
@@ -157,18 +165,20 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
 
     int[][] calculateGridForStopViaTree(TransitStopFacility stop, LeastCostPathTree carLeastCostPathTree, LeastCostPathTree bikeLeastCostPathTree, LeastCostPathCalculator carlcp, LeastCostPathCalculator bikelcp) {
-        Link carFromLink = carnet.getLinks().get(Id.createLinkId(String.valueOf(stop.getAttributes().getAttribute(linkIdAttribute))));
+        Object carLinkAttr = stop.getAttributes().getAttribute(carLinkIdAttribute);
+        Link carFromLink = carLinkAttr != null
+                ? carnet.getLinks().get(Id.createLinkId(String.valueOf(carLinkAttr)))
+                : NetworkUtils.getNearestLink(carnet, stop.getCoord());
         Node carFromNode = carFromLink.getToNode();
 
         Link bikeFromLink = NetworkUtils.getNearestLink(bikenet, stop.getCoord());
         Node bikeFromNode = bikeFromLink.getToNode();
-        carLeastCostPathTree.calculate(carFromNode, 0, null, null, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
-        bikeLeastCostPathTree.calculate(bikeFromNode, 0, null, bike, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
+        carLeastCostPathTree.calculate(carFromLink, 0, null, null, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
+        bikeLeastCostPathTree.calculate(bikeFromLink, 0, null, bike, new LeastCostPathTree.TravelDistanceStopCriterion(this.diameterInM * 5.0));
 
 
         int[][] dist = new int[cellSize][4];
 
-        int found = 0;
         for (int i = 0; i < cellSize; i++) {
             Coord coord = getCellCoordinate(stop.getCoord(), i);
             Node nearestCarNode = NetworkUtils.getNearestNode(carnet, coord);
@@ -180,12 +190,11 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             try{
                 carTravelTime = carLeastCostPathTree.getTime(nearestCarNodeIndex).seconds() * CAR_FREESPEED_TRAVELTIME_FACTOR;
                 carDistance = carLeastCostPathTree.getDistance(nearestCarNodeIndex);
-                found++;
             } catch (Exception e) {
                 var carpath = carlcp.calcLeastCostPath(nearestCarNode, carFromNode, 0, null, null);
                 if (carpath != null) {
                     carTravelTime = carpath.travelTime * CAR_FREESPEED_TRAVELTIME_FACTOR;
-                    carDistance = carpath.links.stream().mapToDouble(l -> l.getLength()).sum();
+                    carDistance = carpath.links.stream().mapToDouble(Link::getLength).sum();
                 } else {
                     carTravelTime = 9999;
                     carDistance = 99999;
@@ -203,7 +212,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
                 var bikepath = bikelcp.calcLeastCostPath(nearestBikeNode, bikeFromNode, 0, null, bike);
                 if (bikepath != null) {
                     bikeTravelTime = bikepath.travelTime;
-                    bikeDistance = bikepath.links.stream().mapToDouble(l -> l.getLength()).sum();
+                    bikeDistance = bikepath.links.stream().mapToDouble(Link::getLength).sum();
                 } else {
                     bikeTravelTime = 9999;
                     bikeDistance = 99999;
@@ -219,34 +228,41 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     }
 
     Coord getCellCoordinate(Coord stopCoord, int i) {
-        double initialYOffset = stopCoord.getY() + diameterInM / 2; //top left
-        double initialXOffset = stopCoord.getX() - diameterInM / 2;
+        double initialYOffset = stopCoord.getY() + diameterInM / 2.; //top left
+        double initialXOffset = stopCoord.getX() - diameterInM / 2.;
         int rowNumber = i / rowSize;
-        int columNumber = i % rowSize;
-        double x = initialXOffset + columNumber * gridsizeInM;
+        int columnNumber = i % rowSize;
+        double x = initialXOffset + columnNumber * gridsizeInM;
         double y = initialYOffset - rowNumber * gridsizeInM;
         return new Coord(x, y);
     }
 
+
     /**
-     * @param coord
-     * @param stopCoord
+     * @param coord the coordinate to check
+     * @param stopCoord the coordinate of the stop (center of the grid)
      * @return grid field number, sorted from top left to bottom right
      */
     int getCellNumber(Coord stopCoord, Coord coord) {
-        double topLeftY = stopCoord.getY() + diameterInM / 2;
-        double topLeftX = stopCoord.getX() - diameterInM / 2;
-        double xOffset = coord.getX() - topLeftX; //>=0
-        double yOffset = -coord.getY() + topLeftY; //>=0
-        int row = (int) (yOffset / gridsizeInM);
-        int column = (int) (xOffset / gridsizeInM);
-        int i = row * rowSize + column;
-        return i;
+        double topLeftY = stopCoord.getY() + diameterInM / 2.0;
+        double topLeftX = stopCoord.getX() - diameterInM / 2.0;
+
+        double xOffset = coord.getX() - topLeftX;
+        double yOffset = topLeftY - coord.getY();
+
+        int row = (int) Math.floor(yOffset / gridsizeInM);
+        int column = (int) Math.floor(xOffset / gridsizeInM);
+
+        if (row < 0 || row >= rowSize || column < 0 || column >= rowSize) {
+            return -1; // Correctly triggers the fallback routing
+        }
+
+        return row * rowSize + column;
     }
 
     @Override
     public RouteCharacteristics getCachedRouteCharacteristics(String mode, Facility stopFacility, Facility actFacility, RoutingModule module, Person person) {
-        Id<TransitStopFacility> transitStopFacilityId = ((Identifiable<TransitStopFacility>) stopFacility).getId();
+        @SuppressWarnings("unchecked") Id<TransitStopFacility> transitStopFacilityId = ((Identifiable<TransitStopFacility>) stopFacility).getId();
         int cell = getCellNumber(stopFacility.getCoord(), actFacility.getCoord());
         int[][] cache = this.cachedDistancesAndTimes.get(transitStopFacilityId);
         if (cache != null && cellInBound(cell)) {
