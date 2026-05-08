@@ -49,7 +49,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
     private final ExpressionEvaluator expressionEvaluator;
     private final PrimaryLocationChoiceConfig primaryLocationChoiceConfig;
     private final StrataPredicateFactory strataPredicateFactory;
-    private final Logger logger = LogManager.getLogger(PrimaryLocationChoiceModel.class);
+    private static final Logger logger = LogManager.getLogger(PrimaryLocationChoiceModel.class);
     private final ForkJoinPool customThreadPool;
     private final boolean writeDetailedAnalysis;
     private final String outputDir;
@@ -129,7 +129,8 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         return (kalif_ASC * matrixFactor) + BETA_ATTRACTION * Math.log(attraction) + BETA_LOGSUM * logsum;
     }
 
-    private double[][] runIPF(double[][] utilityMatrix, double[] rowTargets, double[] colTargets, int maxIterations) {
+    // package-private for unit testing
+    static double[][] runIPF(double[][] utilityMatrix, double[] rowTargets, double[] colTargets, int maxIterations) {
         int numOrigins = utilityMatrix.length;
         if (numOrigins == 0) return new double[0][0];
         int numDests = utilityMatrix[0].length;
