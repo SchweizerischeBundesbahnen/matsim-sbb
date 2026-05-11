@@ -507,11 +507,11 @@ public class StatsWriter implements ModelStep {
 
     public static void main(String[] args) throws IOException {
         String experiencedPlansFile = args[0];
-        String zonesFile = args[2];
         String plansFile = args[1];
+        String zonesFile = args[2];
         String configFile = args[3];
         Scenario scenario = null;
-        Zones zones = ZonesLoader.loadZones("zones", zonesFile, "zone_id");
+        Zones zones = ZonesLoader.loadZones("zones", zonesFile);
         final Config matsimConfig = ConfigUtils.createConfig();
         scenario = ScenarioUtils.createScenario(matsimConfig);
         MOBiPlansConfig config = MOBiPlansConfig.readFromYaml(configFile);
