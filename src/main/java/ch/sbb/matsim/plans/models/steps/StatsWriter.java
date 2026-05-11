@@ -323,7 +323,12 @@ public class StatsWriter implements ModelStep {
                         double total = 0.0;
                         for (int vIndex = 0; vIndex < nVars; vIndex++) {
                             if (s.variables.get(vIndex).name.equals(variable.normalize)) {
-                                total = sums[groupIndex][vIndex].sum();
+                                total = switch (s.variables.get(vIndex).aggregation) {
+                                    case "Sum" -> sums[groupIndex][vIndex].sum();
+                                    case "Count" -> counts[groupIndex][vIndex].sum();
+                                    case "Mean" -> sums[groupIndex][vIndex].sum() / counts[groupIndex][vIndex].sum();
+                                    default -> total;
+                                };
                                 break;
                             }
                         }
