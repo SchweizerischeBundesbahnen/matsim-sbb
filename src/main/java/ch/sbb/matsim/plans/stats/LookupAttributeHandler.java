@@ -128,7 +128,9 @@ public class LookupAttributeHandler {
 
     public void setLookupAttributes(Collection<? extends Person> persons, Zones zones){
         if (lookupVariables.keySet().contains("Persons")) {
-            persons.stream().forEach(person -> {
+            persons.stream()
+                    .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
+                    .forEach(person -> {
                 person.getAttributes().putAttribute("zone", zones.getZone(Id.create(person.getAttributes().getAttribute("zone_id").toString(), Zone.class)));
                 if (person.getAttributes().getAttribute("work_zone_no")!= null) person.getAttributes().putAttribute("work_zone", zones.getZone(Id.create(person.getAttributes().getAttribute("work_zone_no").toString(), Zone.class)));
                 for (String attr : lookupVariables.get("Persons").keySet()) {
