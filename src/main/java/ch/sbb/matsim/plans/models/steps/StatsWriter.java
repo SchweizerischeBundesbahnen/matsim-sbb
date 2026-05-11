@@ -255,7 +255,7 @@ public class StatsWriter implements ModelStep {
                     tripPreds[g] = BuildPredicate.buildPredicate(
                             group.filter_expression, Attributables.AttributableProvider.TripAttributable.class);
                 }
-                scenario.getPopulation().getPersons().values().parallelStream().forEach(person -> {
+                scenario.getPopulation().getPersons().values().parallelStream().filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation"))).forEach(person -> {
                     // Determine which groups potentially match by person
                     boolean[] personMatch = new boolean[nGroups];
                     boolean any = false;
