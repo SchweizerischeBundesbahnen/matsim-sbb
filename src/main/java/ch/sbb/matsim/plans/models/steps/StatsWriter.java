@@ -525,5 +525,128 @@ public class StatsWriter implements ModelStep {
         StatsWriter statsWriter = new StatsWriter(scenario, config, zones);
         statsWriter.run();
     }
-}
 
+
+    public boolean checkPlans() {
+        List<String> requiredAttributes = List.of(
+                "zone_id",
+                "residence_zone_id",
+                "active_in_model",
+                "age",
+                "current_edu",
+                "current_job_rank",
+                "is_working_from_home",
+                "subpopulation"
+        );
+        Map<String, Boolean> result = new HashMap<>();
+
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+            if (person.getAttributes().getAttribute("subpopulation") == null) {
+                person.getAttributes().putAttribute("subpopulation", "regular");
+            }
+            if ("regular".equals(person.getAttributes().getAttribute("subpopulation"))) {
+                if (person.getAttributes().getAttribute("zone_id") == null) {
+                    if (person.getAttributes().getAttribute("residence_zone_id") != null) {
+                        person.getAttributes().putAttribute("zone_id", person.getAttributes().getAttribute("residence_zone_id"));
+                    }
+                }
+                ;
+                if (person.getAttributes().getAttribute("active_in_model") == null) {
+                    person.getAttributes().putAttribute("active_in_model", true);
+                }
+                if (person.getAttributes().getAttribute("is_working_from_home") == null) {
+                    person.getAttributes().putAttribute("is_working_from_home", false);
+                }
+                if (person.getAttributes().getAttribute("age") == null) {
+                    person.getAttributes().putAttribute("age", 50);
+                    if ("65_to_74".equals(person.getAttributes().getAttribute("age_cat")) | "75_to_xx".equals(person.getAttributes().getAttribute("age_cat")))
+                        person.getAttributes().putAttribute("age", 66);
+                }
+            }
+            if (person.getAttributes().getAttribute("current_job_rank") == null) {
+                person.getAttributes().putAttribute("current_job_rank", 0);
+                Plan plan = person.getSelectedPlan();
+                if (plan != null) {
+                    for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
+                        if (trip.getDestinationActivity().getType().toLowerCase().contains("work")) {
+                            person.getAttributes().putAttribute("current_job_rank", 1);
+                            if (trip.getDestinationActivity().getFacilityId() == trip.getOriginActivity().getFacilityId()) {
+                                person.getAttributes().putAttribute("is_working_from_home", true);
+                            } else {
+                                person.getAttributes().putAttribute("work_zone_no", zones.findZone(trip.getDestinationActivity().getCoord()).getId().toString());
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            if (person.getAttributes().getAttribute("current_edu") == null) {
+                person.getAttributes().putAttribute("current_edu", 0);
+                Plan plan = person.getSelectedPlan();
+                if (plan != null) {
+                    for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
+                        if (trip.getDestinationActivity().getType().toLowerCase().contains("education")) {
+                            person.getAttributes().putAttribute("current_edu", 1);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                if (person.getAttributes().getAttribute("current_edu") instanceof String) {
+                    switch (person.getAttributes().getAttribute("current_edu").toString().toLowerCase()) {
+                        case "pupil_primary": {
+                            person.getAttributes().putAttribute("current_edu", 1);
+                            break;
+                        }
+                        case "pupil_secondary": {
+                            person.getAttributes().putAttribute("current_edu", 2);
+                            break;
+                        }
+                        case "student": {
+                            person.getAttributes().putAttribute("current_edu", 3);
+                            break;
+                        }
+                        case "apprentice": {
+                            person.getAttributes().putAttribute("current_edu", 4);
+                            break;
+                        }
+                        default: {
+                            person.getAttributes().putAttribute("current_edu", 0);
+                        }
+
+                    }
+                }
+            }
+
+            for (String attribute : requiredAttributes) {
+                if (!result.containsKey(attribute)) {
+                    if (person.getAttributes().getAttribute(attribute) == null) {
+                        LogManager.getLogger(StatsWriter.class)
+                                .warn("Person {} is missing required attribute '{}'", person.getId(), attribute);
+                        result.put(attribute, true);
+                    }
+                }
+            }
+
+            // only required for reports that use work-zone-based statistics
+            if (person.getAttributes().getAttribute("current_job_rank") != null) {
+                Object currentJobRank = person.getAttributes().getAttribute("current_job_rank");
+                try {
+                    double jobRank = Double.parseDouble(currentJobRank.toString());
+                    if (!result.containsKey("work_zone_no")) {
+                        if (jobRank > 0 && person.getAttributes().getAttribute("work_zone_no") == null) {
+                            LogManager.getLogger(StatsWriter.class)
+                                    .warn("Person {} is employed but missing required attribute 'work_zone_no'", person.getId());
+                            result.put("work_zone_no", true);
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    LogManager.getLogger(StatsWriter.class)
+                            .warn("Person {} has non-numeric attribute 'current_job_rank': {}", person.getId(), currentJobRank);
+                }
+            }
+        }
+        return result.isEmpty();
+    }
+
+}
