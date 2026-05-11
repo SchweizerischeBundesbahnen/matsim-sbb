@@ -151,28 +151,32 @@ public class StatsWriter implements ModelStep {
                             }
                             if (!any) return;
 
-                    // Pre-collect attribute maps for non-trip variables once per person
-                    Map<Integer, Map<String, Double>> personAttrCache = null;
+                            // Pre-collect attribute maps for non-trip variables once per person
+                            Map<Integer, Map<String, Double>> personAttrCache = null;
 
-                    // Lazily build trips list (only if any variable needs it)
-                    List<Attributables.AttributableProvider.TripAttributable> trips = null;
-                    boolean needsTrips = false;
-                    for (int v = 0; v < nVars; v++) if (varIsTripLookup[v]) { needsTrips = true; break; }
-                    if (needsTrips) {
-                        Plan plan = person.getSelectedPlan();
-                        if (plan != null) {
-                            List<TripStructureUtils.Trip> rawTrips = TripStructureUtils.getTrips(plan);
-                            trips = new ArrayList<>(rawTrips.size());
-                            for (TripStructureUtils.Trip trip : rawTrips) {
-                                Attributables.AttributableProvider.TripAttributable tripAtt =
-                                        new Attributables.AttributableProvider.TripAttributable(trip, person);
-                                tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
-                                trips.add(tripAtt);
+                            // Lazily build trips list (only if any variable needs it)
+                            List<Attributables.AttributableProvider.TripAttributable> trips = null;
+                            boolean needsTrips = false;
+                            for (int v = 0; v < nVars; v++)
+                                if (varIsTripLookup[v]) {
+                                    needsTrips = true;
+                                    break;
+                                }
+                            if (needsTrips) {
+                                Plan plan = person.getSelectedPlan();
+                                if (plan != null) {
+                                    List<TripStructureUtils.Trip> rawTrips = TripStructureUtils.getTrips(plan);
+                                    trips = new ArrayList<>(rawTrips.size());
+                                    for (TripStructureUtils.Trip trip : rawTrips) {
+                                        Attributables.AttributableProvider.TripAttributable tripAtt =
+                                                new Attributables.AttributableProvider.TripAttributable(trip, person);
+                                        tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
+                                        trips.add(tripAtt);
+                                    }
+                                } else {
+                                    trips = Collections.emptyList();
+                                }
                             }
-                        } else {
-                            trips = Collections.emptyList();
-                        }
-                    }
 
                             for (int v = 0; v < nVars; v++) {
                                 ReportJson.ReportVariable variable = s.variables.get(v);
@@ -220,8 +224,7 @@ public class StatsWriter implements ModelStep {
                 break;
             }
             case "Zones": {
-                @SuppressWarnings("unchecked")
-                final Predicate<Zone>[] groupPreds = new Predicate[nGroups];
+                @SuppressWarnings("unchecked") final Predicate<Zone>[] groupPreds = new Predicate[nGroups];
                 for (int g = 0; g < nGroups; g++) {
                     groupPreds[g] = BuildPredicate.buildPredicate(s.groups.get(g).filter_expression, Zone.class);
                 }
@@ -241,10 +244,8 @@ public class StatsWriter implements ModelStep {
                 break;
             }
             case "Trips": {
-                @SuppressWarnings("unchecked")
-                final Predicate<Person>[] personPreds = new Predicate[nGroups];
-                @SuppressWarnings("unchecked")
-                final Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds = new Predicate[nGroups];
+                @SuppressWarnings("unchecked") final Predicate<Person>[] personPreds = new Predicate[nGroups];
+                @SuppressWarnings("unchecked") final Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds = new Predicate[nGroups];
                 for (int g = 0; g < nGroups; g++) {
                     ReportJson.ReportGroup group = s.groups.get(g);
                     if (group.filter_expression_person!=null) {
@@ -295,7 +296,7 @@ public class StatsWriter implements ModelStep {
             }
         }
 
-        String outputFile = config.data().outputBaseDir() +"/"+ config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
+        String outputFile = config.data().outputBaseDir() + "/" + config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
         variable_names.addFirst("Name");
         try (CSVWriter csvWriter = new CSVWriter("", variable_names.toArray(String[]::new), outputFile)) {
             for (int groupIndex = 0; groupIndex < nGroups; groupIndex++) {
@@ -360,7 +361,7 @@ public class StatsWriter implements ModelStep {
 
         Map<Double, Map<Double, Double>> pivot = null;
 
-        switch(s.table_ref){
+        switch (s.table_ref) {
             case "Persons": {
                 Predicate<Person> filterPredicate = BuildPredicate.buildPredicate(filterExpression, Person.class);
                 if ("Sum".equals(s.pivots.get("aggregation").toString())) {
