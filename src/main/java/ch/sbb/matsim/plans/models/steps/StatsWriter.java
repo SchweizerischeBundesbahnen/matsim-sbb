@@ -137,17 +137,19 @@ public class StatsWriter implements ModelStep {
                     }
                 }
 
-                scenario.getPopulation().getPersons().values().parallelStream().forEach(person -> {
-                    // Determine which groups apply to this person
-                    boolean[] inGroup = new boolean[nGroups];
-                    boolean any = false;
-                    for (int g = 0; g < nGroups; g++) {
-                        if (groupPreds[g].test(person)) {
-                            inGroup[g] = true;
-                            any = true;
-                        }
-                    }
-                    if (!any) return;
+                scenario.getPopulation().getPersons().values().parallelStream()
+                        .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
+                        .forEach(person -> {
+                            // Determine which groups apply to this person
+                            boolean[] inGroup = new boolean[nGroups];
+                            boolean any = false;
+                            for (int g = 0; g < nGroups; g++) {
+                                if (groupPreds[g].test(person)) {
+                                    inGroup[g] = true;
+                                    any = true;
+                                }
+                            }
+                            if (!any) return;
 
                     // Pre-collect attribute maps for non-trip variables once per person
                     Map<Integer, Map<String, Double>> personAttrCache = null;
