@@ -445,7 +445,7 @@ public class StatsWriter implements ModelStep {
             }
         }
 
-        String outputFile = config.data().outputBaseDir() + config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
+        String outputFile = config.data().outputBaseDir() + "/"+ config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
 
         String[] cols = pivot.values().stream()
                 .flatMap(inner -> inner.keySet().stream())
