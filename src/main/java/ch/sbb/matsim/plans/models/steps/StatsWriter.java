@@ -244,7 +244,11 @@ public class StatsWriter implements ModelStep {
                 final Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds = new Predicate[nGroups];
                 for (int g = 0; g < nGroups; g++) {
                     ReportJson.ReportGroup group = s.groups.get(g);
-                    personPreds[g] = BuildPredicate.buildPredicate(group.filter_expression_person, Person.class);
+                    if (group.filter_expression_person!=null) {
+                        personPreds[g] = BuildPredicate.buildPredicate(group.filter_expression_person, Person.class);
+                    } else {
+                        personPreds[g] = null;
+                    }
                     tripPreds[g] = BuildPredicate.buildPredicate(
                             group.filter_expression, Attributables.AttributableProvider.TripAttributable.class);
                 }
@@ -253,7 +257,15 @@ public class StatsWriter implements ModelStep {
                     boolean[] personMatch = new boolean[nGroups];
                     boolean any = false;
                     for (int g = 0; g < nGroups; g++) {
-                        if (personPreds[g].test(person)) { personMatch[g] = true; any = true; }
+                        if (personPreds[g] != null) {
+                            if (personPreds[g].test(person)) {
+                                personMatch[g] = true;
+                                any = true;
+                            }
+                        } else {
+                            personMatch[g] = true;
+                            any = true;
+                        }
                     }
                     if (!any) return;
                     Plan plan = person.getSelectedPlan();
