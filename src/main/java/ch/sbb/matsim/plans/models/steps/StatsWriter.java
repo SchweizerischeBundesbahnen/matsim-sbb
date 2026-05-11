@@ -365,6 +365,7 @@ public class StatsWriter implements ModelStep {
                 Predicate<Person> filterPredicate = BuildPredicate.buildPredicate(filterExpression, Person.class);
                 if ("Sum".equals(s.pivots.get("aggregation").toString())) {
                     pivot = scenario.getPopulation().getPersons().values().stream()
+                            .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
                             .filter(person -> filterPredicate.test(person))
                             .collect(Collectors.groupingBy(
                                     person -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, requiredVariables.get("index_formula"), Person.class)),
@@ -375,6 +376,7 @@ public class StatsWriter implements ModelStep {
                             ));
                 } else if ("Count".equals(s.pivots.get("aggregation").toString())) {
                     pivot = scenario.getPopulation().getPersons().values().stream()
+                            .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
                             .filter(person -> filterPredicate.test(person))
                             .collect(Collectors.groupingBy(
                                     person -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, requiredVariables.get("index_formula"), Person.class)),
@@ -388,7 +390,8 @@ public class StatsWriter implements ModelStep {
             }
             case "Trips": {
                 if ("Sum".equals(s.pivots.get("aggregation").toString())) {
-                   pivot = scenario.getPopulation().getPersons().values().stream()
+                    pivot = scenario.getPopulation().getPersons().values().stream()
+                            .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
                             .collect(Collectors.groupingBy(
                                     person -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, requiredVariables.get("index_formula"), Person.class)),
                                     // downstream collector: group by column and sum the values
@@ -399,6 +402,7 @@ public class StatsWriter implements ModelStep {
                             ));
                 } else if ("Count".equals(s.pivots.get("aggregation").toString())) {
                     pivot = scenario.getPopulation().getPersons().values().stream()
+                            .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
                             .collect(Collectors.groupingBy(
                                     person -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, requiredVariables.get("index_formula"), Person.class)),
                                     // downstream collector: group by column and sum the values
