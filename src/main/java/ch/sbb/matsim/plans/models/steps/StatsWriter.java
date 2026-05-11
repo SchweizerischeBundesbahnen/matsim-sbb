@@ -520,8 +520,6 @@ public class StatsWriter implements ModelStep {
         } else {
             new PopulationReader(scenario).readFile(plansFile);
         }
-        LogManager.getLogger(StatsWriter.class).info("write zone_id");
-        scenario.getPopulation().getPersons().values().stream().forEach(person -> person.getAttributes().putAttribute("zone_id", person.getAttributes().getAttribute("residence_zone_id")));
         StatsWriter statsWriter = new StatsWriter(scenario, config, zones);
         statsWriter.checkPlans();
         statsWriter.run();
