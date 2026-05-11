@@ -387,6 +387,9 @@ public class StatsWriter implements ModelStep {
                                     )
                             ));
                 }
+                // Zeilen und Spalten sortieren
+                pivot = new TreeMap<>(pivot);
+                pivot.replaceAll((k, v) -> new TreeMap<>(v));
                 break;
             }
             case "Trips": {
@@ -414,6 +417,9 @@ public class StatsWriter implements ModelStep {
                             ));
 
                 }
+                // Zeilen und Spalten sortieren
+                pivot = new TreeMap<>(pivot);
+                pivot.replaceAll((k, v) -> new TreeMap<>(v));
                 break;
             }
             case "Zones": {
@@ -442,6 +448,9 @@ public class StatsWriter implements ModelStep {
                             ));
 
                 }
+                // Zeilen und Spalten sortieren
+                pivot = new TreeMap<>(pivot);
+                pivot.replaceAll((k, v) -> new TreeMap<>(v));
                 break;
             }
         }
