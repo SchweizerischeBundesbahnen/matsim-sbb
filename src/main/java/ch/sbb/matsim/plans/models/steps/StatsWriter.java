@@ -44,7 +44,7 @@ public class StatsWriter implements ModelStep {
     Zones zones;
     ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
     LookupAttributeHandler lookupAttributeHandler = new LookupAttributeHandler();
-
+    Attributables.AttributableProvider attributableProvider = null;
     @Override
     public String getName() {
         return MOBiPlansRunner.WRITE_STATS;
@@ -55,6 +55,7 @@ public class StatsWriter implements ModelStep {
         this.scenario = scenario;
         this.config = config;
         this.zones = zones;
+        attributableProvider = new Attributables.AttributableProvider(zones);
     }
 
     @Override
