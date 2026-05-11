@@ -572,8 +572,10 @@ public class StatsWriter implements ModelStep {
                             person.getAttributes().putAttribute("current_job_rank", 1);
                             if (trip.getDestinationActivity().getFacilityId() == trip.getOriginActivity().getFacilityId()) {
                                 person.getAttributes().putAttribute("is_working_from_home", true);
+                                person.getAttributes().putAttribute("work_zone_no", zones.findZone(trip.getDestinationActivity().getCoord()).getId().toString());
                             } else {
                                 person.getAttributes().putAttribute("work_zone_no", zones.findZone(trip.getDestinationActivity().getCoord()).getId().toString());
+                                person.getAttributes().putAttribute("original_work_zone", zones.findZone(trip.getDestinationActivity().getCoord()));
                             }
                             break;
                         }
