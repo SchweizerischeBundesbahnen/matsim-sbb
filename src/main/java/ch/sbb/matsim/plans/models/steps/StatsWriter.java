@@ -174,49 +174,49 @@ public class StatsWriter implements ModelStep {
                         }
                     }
 
-                    for (int v = 0; v < nVars; v++) {
-                        ReportJson.ReportVariable variable = s.variables.get(v);
-                        if (varIsTripLookup[v]) {
-                            if (trips == null || trips.isEmpty()) continue;
-                            LookupFormulaParser.ParseResult pr = parsed[v];
-                            Predicate<Attributables.AttributableProvider.TripAttributable> tripFilter = tripFilters[v];
-                            String[] reqVars = requiredVariables[v];
-                            for (Attributables.AttributableProvider.TripAttributable tripAtt : trips) {
-                                boolean tripPass = (tripFilter == null) || tripFilter.test(tripAtt);
-                                if (tripPass) {
-                                    if ("Sum".equals(pr.aggregator)) {
-                                        double val = expressionEvaluator.evaluate(
-                                                pr.lookupExpression,
-                                                collectAttributeStrings(tripAtt, reqVars));
-                                        for (int g = 0; g < nGroups; g++) {
-                                            if (inGroup[g]) sums[g][v].add(val);
+                            for (int v = 0; v < nVars; v++) {
+                                ReportJson.ReportVariable variable = s.variables.get(v);
+                                if (varIsTripLookup[v]) {
+                                    if (trips == null || trips.isEmpty()) continue;
+                                    LookupFormulaParser.ParseResult pr = parsed[v];
+                                    Predicate<Attributables.AttributableProvider.TripAttributable> tripFilter = tripFilters[v];
+                                    String[] reqVars = requiredVariables[v];
+                                    for (Attributables.AttributableProvider.TripAttributable tripAtt : trips) {
+                                        boolean tripPass = (tripFilter == null) || tripFilter.test(tripAtt);
+                                        if (tripPass) {
+                                            if ("Sum".equals(pr.aggregator)) {
+                                                double val = expressionEvaluator.evaluate(
+                                                        pr.lookupExpression,
+                                                        collectAttributeStrings(tripAtt, reqVars));
+                                                for (int g = 0; g < nGroups; g++) {
+                                                    if (inGroup[g]) sums[g][v].add(val);
+                                                }
+                                            } else if ("Count".equals(pr.aggregator)) {
+                                                for (int g = 0; g < nGroups; g++) {
+                                                    if (inGroup[g]) sums[g][v].add(1.0);
+                                                }
+                                            }
+                                            // Preserve original semantics: counts incremented for every trip regardless of filter.
+                                            for (int g = 0; g < nGroups; g++) {
+                                                if (inGroup[g]) counts[g][v].increment();
+                                            }
                                         }
-                                    } else if ("Count".equals(pr.aggregator)) {
-                                        for (int g = 0; g < nGroups; g++) {
-                                            if (inGroup[g]) sums[g][v].add(1.0);
+                                    }
+                                } else {
+                                    // Non-trip variable on Persons table
+                                    String[] reqVars = requiredVariables[v];
+                                    double val = expressionEvaluator.evaluate(
+                                            variable.formula,
+                                            collectAttributeStrings(person, reqVars));
+                                    for (int g = 0; g < nGroups; g++) {
+                                        if (inGroup[g]) {
+                                            sums[g][v].add(val);
+                                            counts[g][v].increment();
                                         }
                                     }
                                 }
-                                // Preserve original semantics: counts incremented for every trip regardless of filter.
-                                for (int g = 0; g < nGroups; g++) {
-                                    if (inGroup[g]) counts[g][v].increment();
-                                }
                             }
-                        } else {
-                            // Non-trip variable on Persons table
-                            String[] reqVars = requiredVariables[v];
-                            double val = expressionEvaluator.evaluate(
-                                    variable.formula,
-                                    collectAttributeStrings(person, reqVars));
-                            for (int g = 0; g < nGroups; g++) {
-                                if (inGroup[g]) {
-                                    sums[g][v].add(val);
-                                    counts[g][v].increment();
-                                }
-                            }
-                        }
-                    }
-                });
+                        });
                 break;
             }
             case "Zones": {
