@@ -108,6 +108,12 @@ public class SynpopLoader implements ModelStep {
                     } else if (csvFile.getAbsolutePath().toLowerCase().contains("persons")) {
                         logger.info("Reading persons from CSV file: " + csvFile.getAbsolutePath());
                         SynpopCsvReader.readSynpopCsvFile(csvFile, scenario.getPopulation());
+                        scenario.getPopulation().getPersons().values().forEach(
+                                person -> {
+                                    if (person.getAttributes().getAttribute("subpopulation") == null) {
+                                        person.getAttributes().putAttribute("subpopulation", "regular");
+                                    }
+                                });
                     } else if (csvFile.getAbsolutePath().toLowerCase().contains("businesses")) {
                         logger.info("Reading Businesses from CSV file: " + csvFile.getAbsolutePath());
                         BusinessesCsvReader.readBusinessesCsvFile(csvFile, scenario.getActivityFacilities());
