@@ -69,6 +69,7 @@ public class SynpopLoader implements ModelStep {
             throw new IllegalArgumentException("Facilities file does not exist: " + facilitiesFile);
         }
         new PopulationReader(scenario).readFile(populationFile);
+        scenario.getPopulation().getPersons().values().forEach(person -> person.getAttributes().putAttribute("subpopulation", "regular"));
         new HouseholdsReaderV10(scenario.getHouseholds()).readFile(householdsFile);
         new MatsimFacilitiesReader(scenario).readFile(facilitiesFile);
     }
