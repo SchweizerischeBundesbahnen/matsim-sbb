@@ -244,8 +244,8 @@ public class StatsWriter implements ModelStep {
                 break;
             }
             case "Trips": {
-                @SuppressWarnings("unchecked") final Predicate<Person>[] personPreds = new Predicate[nGroups];
-                @SuppressWarnings("unchecked") final Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds = new Predicate[nGroups];
+                final Predicate<Person>[] personPreds = new Predicate[nGroups];
+                final Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds = new Predicate[nGroups];
                 for (int g = 0; g < nGroups; g++) {
                     ReportJson.ReportGroup group = s.groups.get(g);
                     if (group.filter_expression_person!=null) {
@@ -551,7 +551,11 @@ public class StatsWriter implements ModelStep {
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
             if (person.getAttributes().getAttribute("subpopulation") == null) {
-                person.getAttributes().putAttribute("subpopulation", "regular");
+                if (person.getAttributes().getAttribute("analysis_subpopulation")!=null){
+                    person.getAttributes().putAttribute("subpopulation", person.getAttributes().getAttribute("analysis_subpopulation"));
+                } else {
+                    person.getAttributes().putAttribute("subpopulation", "regular");
+                }
             }
             if ("regular".equals(person.getAttributes().getAttribute("subpopulation"))) {
                 if (person.getAttributes().getAttribute("zone_id") == null) {
