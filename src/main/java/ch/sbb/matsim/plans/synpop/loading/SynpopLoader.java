@@ -49,6 +49,12 @@ public class SynpopLoader implements ModelStep {
         SynPopUtils.linkZonesToHouseHoldsAndPersons(scenario);
         SynPopUtils.calculateHouseHoldCompositions(scenario);
         SynPopUtils.createFacilitiesForHouseholds(scenario);
+        scenario.getPopulation().getPersons().values().forEach(
+                person -> {
+                    if (person.getAttributes().getAttribute("subpopulation") == null) {
+                        person.getAttributes().putAttribute("subpopulation", "regular");
+                    }
+                });
         logger.info("Finished loading. Total persons: " + scenario.getPopulation().getPersons().size());
     }
 
@@ -69,7 +75,6 @@ public class SynpopLoader implements ModelStep {
             throw new IllegalArgumentException("Facilities file does not exist: " + facilitiesFile);
         }
         new PopulationReader(scenario).readFile(populationFile);
-        scenario.getPopulation().getPersons().values().forEach(person -> person.getAttributes().putAttribute("subpopulation", "regular"));
         new HouseholdsReaderV10(scenario.getHouseholds()).readFile(householdsFile);
         new MatsimFacilitiesReader(scenario).readFile(facilitiesFile);
     }
@@ -108,12 +113,6 @@ public class SynpopLoader implements ModelStep {
                     } else if (csvFile.getAbsolutePath().toLowerCase().contains("persons")) {
                         logger.info("Reading persons from CSV file: " + csvFile.getAbsolutePath());
                         SynpopCsvReader.readSynpopCsvFile(csvFile, scenario.getPopulation());
-                        scenario.getPopulation().getPersons().values().forEach(
-                                person -> {
-                                    if (person.getAttributes().getAttribute("subpopulation") == null) {
-                                        person.getAttributes().putAttribute("subpopulation", "regular");
-                                    }
-                                });
                     } else if (csvFile.getAbsolutePath().toLowerCase().contains("businesses")) {
                         logger.info("Reading Businesses from CSV file: " + csvFile.getAbsolutePath());
                         BusinessesCsvReader.readBusinessesCsvFile(csvFile, scenario.getActivityFacilities());
