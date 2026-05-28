@@ -89,7 +89,7 @@ public class PtLinkVolumeAnalyzer {
 
     }
 
-    private static <T extends Number> void writeFile(String outputfile, double scalefactor, Map<Id<Link>, T> ptVolumes, Map<Id<Link>, Map<Id<TransitLine>, Long>> ptVolumesPerLine, Network ptNetwork) {
+    private static <T extends Number> void writeFile(String outputfile, double scalefactor, Map<Id<Link>, T> ptVolumes, Network ptNetwork) {
         try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile)) {
             for (Entry<Id<Link>, T> e : ptVolumes.entrySet()) {
                 Id<Link> currentLinkId = e.getKey();
@@ -98,17 +98,6 @@ public class PtLinkVolumeAnalyzer {
                 if (l != null) {
                 	// Set attribute for XML output
                     l.getAttributes().putAttribute(VOLUME, scaledVolume);
-
-                    // Set per-line volume attributes
-                    if (ptVolumesPerLine != null) {
-                        Map<Id<TransitLine>, Long> lineVolumes = ptVolumesPerLine.get(currentLinkId);
-                        if (lineVolumes != null) {
-                            for (Entry<Id<TransitLine>, Long> lineEntry : lineVolumes.entrySet()) {
-                                int scaledLineVolume = (int) Math.round(lineEntry.getValue() * scalefactor);
-                                l.getAttributes().putAttribute(VOLUME + "_" + lineEntry.getKey().toString(), scaledLineVolume);
-                            }
-                        }
-                    }
 
                     // Set standard CSV columns
                     writer.set(LINK_ID_SIM, currentLinkId.toString());
@@ -130,6 +119,50 @@ public class PtLinkVolumeAnalyzer {
                     writer.writeRow();
                 }
                 else {
+                    log.warn("Could not find link " + currentLinkId + ". Skipping.");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        new NetworkWriter(ptNetwork).write(outputfile + "_network.xml.gz");
+        NetworkFilterManager nfm2 = new NetworkFilterManager(ptNetwork, new NetworkConfigGroup());
+        nfm2.addLinkFilter(link -> link.getAllowedModes().contains(PTSubModes.RAIL));
+        Network railNet = nfm2.applyFilters();
+        new NetworkWriter(railNet).write(outputfile + "_rail_network.xml.gz");
+    }
+
+    private static <T extends Number> void writeDetailedFile(String outputfile, double scalefactor, Map<Id<Link>, T> ptVolumes, Map<Id<Link>, Map<Id<TransitLine>, Long>> ptVolumesPerLine, Network ptNetwork) {
+        try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile)) {
+            for (Entry<Id<Link>, T> e : ptVolumes.entrySet()) {
+                Id<Link> currentLinkId = e.getKey();
+                int scaledVolume = (int) Math.round(e.getValue().doubleValue() * scalefactor);
+                Link l = ptNetwork.getLinks().get(currentLinkId);
+                if (l != null) {
+                    l.getAttributes().putAttribute(VOLUME, scaledVolume);
+
+                    // Set per-line volume attributes
+                    Map<Id<TransitLine>, Long> lineVolumes = ptVolumesPerLine.get(currentLinkId);
+                    if (lineVolumes != null) {
+                        for (Entry<Id<TransitLine>, Long> lineEntry : lineVolumes.entrySet()) {
+                            int scaledLineVolume = (int) Math.round(lineEntry.getValue() * scalefactor);
+                            l.getAttributes().putAttribute(VOLUME + "_" + lineEntry.getKey().toString(), scaledLineVolume);
+                        }
+                    }
+
+                    writer.set(LINK_ID_SIM, currentLinkId.toString());
+                    writer.set(VOLUME, Integer.toString(scaledVolume));
+
+                    var visumNodeAndLink = MaviHelper.extractVisumNodeAndLinkId(currentLinkId);
+                    if (visumNodeAndLink != null) {
+                        writer.set(FROMNODENO, Integer.toString(visumNodeAndLink.getFirst()));
+                        writer.set(LINK_NO, Integer.toString(visumNodeAndLink.getSecond()));
+                    } else {
+                        writer.set(FROMNODENO, "0");
+                        writer.set(LINK_NO, "0");
+                    }
+                    writer.writeRow();
+                } else {
                     log.warn("Could not find link " + currentLinkId + ". Skipping.");
                 }
             }
@@ -239,11 +272,22 @@ public class PtLinkVolumeAnalyzer {
         nfm.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
         Network ptNetwork = nfm.applyFilters();
         var ptVolumes = analysePtLinkUsage(experiencedPlans);
+        writeFile(outputfile, scalefactor, ptVolumes, ptNetwork);
+
         var ptVolumesPerLine = analysePtLinkUsagePerLine(experiencedPlans);
-        writeFile(outputfile, scalefactor, ptVolumes, ptVolumesPerLine, ptNetwork);
+        NetworkFilterManager nfmDetailed = new NetworkFilterManager(network, new NetworkConfigGroup());
+        nfmDetailed.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
+        Network ptNetworkDetailed = nfmDetailed.applyFilters();
+        writeDetailedFile(outputfile + "_detailed", scalefactor, ptVolumes, ptVolumesPerLine, ptNetworkDetailed);
+
         var ptVolumesIncludingDNWV = analysePtLinkUsageincludingDNWV(experiencedPlans);
         if (ptVolumesIncludingDNWV != null) {
-            writeFile(outputfile + "_dnwv", scalefactor, ptVolumesIncludingDNWV, ptVolumesPerLine, ptNetwork);
+            writeFile(outputfile + "_dnwv", scalefactor, ptVolumesIncludingDNWV, ptNetwork);
+
+            NetworkFilterManager nfmDnwvDetailed = new NetworkFilterManager(network, new NetworkConfigGroup());
+            nfmDnwvDetailed.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
+            Network ptNetworkDnwvDetailed = nfmDnwvDetailed.applyFilters();
+            writeDetailedFile(outputfile + "_dnwv_detailed", scalefactor, ptVolumesIncludingDNWV, ptVolumesPerLine, ptNetworkDnwvDetailed);
         }
     }
 
