@@ -48,6 +48,7 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.pt.routes.TransitPassengerRoute;
+import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import java.io.IOException;
@@ -88,7 +89,7 @@ public class PtLinkVolumeAnalyzer {
 
     }
 
-    private static <T extends Number> void writeFile(String outputfile, double scalefactor, Map<Id<Link>, T> ptVolumes, Network ptNetwork) {
+    private static <T extends Number> void writeFile(String outputfile, double scalefactor, Map<Id<Link>, T> ptVolumes, Map<Id<Link>, Map<Id<TransitLine>, Long>> ptVolumesPerLine, Network ptNetwork) {
         try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile)) {
             for (Entry<Id<Link>, T> e : ptVolumes.entrySet()) {
                 Id<Link> currentLinkId = e.getKey();
@@ -97,6 +98,17 @@ public class PtLinkVolumeAnalyzer {
                 if (l != null) {
                 	// Set attribute for XML output
                     l.getAttributes().putAttribute(VOLUME, scaledVolume);
+
+                    // Set per-line volume attributes
+                    if (ptVolumesPerLine != null) {
+                        Map<Id<TransitLine>, Long> lineVolumes = ptVolumesPerLine.get(currentLinkId);
+                        if (lineVolumes != null) {
+                            for (Entry<Id<TransitLine>, Long> lineEntry : lineVolumes.entrySet()) {
+                                int scaledLineVolume = (int) Math.round(lineEntry.getValue() * scalefactor);
+                                l.getAttributes().putAttribute(VOLUME + "_" + lineEntry.getKey().toString(), scaledLineVolume);
+                            }
+                        }
+                    }
 
                     // Set standard CSV columns
                     writer.set(LINK_ID_SIM, currentLinkId.toString());
@@ -158,6 +170,7 @@ public class PtLinkVolumeAnalyzer {
         analyzer.writePtLinkUsage(folderPrefix + "pt_volumes_rewritten.att", scaleFactor, experiencedPlans);
     }
 
+
     public Map<Id<Link>, Long> analysePtLinkUsage(Map<Id<Person>,Plan> experiencedPlans) {
         Map<Id<Link>, Long> ptUsage = experiencedPlans.values()
                 .stream()
@@ -168,6 +181,22 @@ public class PtLinkVolumeAnalyzer {
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
         return ptUsage;
 
+    }
+
+    public Map<Id<Link>, Map<Id<TransitLine>, Long>> analysePtLinkUsagePerLine(Map<Id<Person>, Plan> experiencedPlans) {
+        Map<Id<Link>, Map<Id<TransitLine>, Long>> ptUsagePerLine = new HashMap<>();
+        experiencedPlans.values()
+                .stream()
+                .flatMap(p -> TripStructureUtils.getLegs(p).stream())
+                .filter(l -> SBBModes.PT_PASSENGER_MODES.contains(l.getMode()))
+                .map(l -> (TransitPassengerRoute) l.getRoute())
+                .forEach(route -> {
+                    Id<TransitLine> lineId = route.getLineId();
+                    for (Id<Link> linkId : railTripsAnalyzer.getPtLinkIdsTraveledOn(route)) {
+                        ptUsagePerLine.computeIfAbsent(linkId, k -> new HashMap<>()).merge(lineId, 1L, Long::sum);
+                    }
+                });
+        return ptUsagePerLine;
     }
 
     public Map<Id<Link>, Double> analysePtLinkUsageincludingDNWV(Map<Id<Person>, Plan> experiencedPlans) {
@@ -210,10 +239,11 @@ public class PtLinkVolumeAnalyzer {
         nfm.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
         Network ptNetwork = nfm.applyFilters();
         var ptVolumes = analysePtLinkUsage(experiencedPlans);
-        writeFile(outputfile, scalefactor, ptVolumes, ptNetwork);
+        var ptVolumesPerLine = analysePtLinkUsagePerLine(experiencedPlans);
+        writeFile(outputfile, scalefactor, ptVolumes, ptVolumesPerLine, ptNetwork);
         var ptVolumesIncludingDNWV = analysePtLinkUsageincludingDNWV(experiencedPlans);
         if (ptVolumesIncludingDNWV != null) {
-            writeFile(outputfile + "_dnwv", scalefactor, ptVolumesIncludingDNWV, ptNetwork);
+            writeFile(outputfile + "_dnwv", scalefactor, ptVolumesIncludingDNWV, ptVolumesPerLine, ptNetwork);
         }
     }
 
