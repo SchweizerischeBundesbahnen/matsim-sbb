@@ -180,13 +180,13 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             for(int i = 0; i < numOrigins; i++) {
                 double expUtilSumForRow = 0.0;
                 for (int j = 0; j < numDests; j++) {
-                    expUtilSumForRow += expUtilityMatrix[i][j] * colTargetsCurrent[j];
+                    expUtilSumForRow += expUtilityMatrix[i][j] * colTargetsCurrent[j] / colTargetsOriginal[j];
                 }
 
                 if (expUtilSumForRow <= 0) expUtilSumForRow = 1.0; // Guard against division by zero
 
                 for (int j = 0; j < numDests; j++) {
-                    trips[i][j] = rowTargetsCurrent[i] * (expUtilityMatrix[i][j] * colTargetsCurrent[j]) / expUtilSumForRow;
+                    trips[i][j] = rowTargetsCurrent[i] * (expUtilityMatrix[i][j] * colTargetsCurrent[j] / colTargetsOriginal[j]) / expUtilSumForRow;
                 }
             }
 
@@ -215,7 +215,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         for (int i = 0; i < numOrigins; i++) {
             double rowSum = 0;
             for (int j = 0; j < numDests; j++) {
-                probabilities[i][j] = expUtilityMatrix[i][j] * colTargetsCurrent[j];
+                probabilities[i][j] = expUtilityMatrix[i][j] * colTargetsCurrent[j] / colTargetsOriginal[j];
                 rowSum += probabilities[i][j];
             }
 
