@@ -91,7 +91,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amgr_id", scenario, "zone_id", "work_zone_no", outputDir + "/work_zones_amgr_matrix.csv");
             WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amgr_id", scenario, "zone_id", "school_zone_no", outputDir + "/edu_zones_amgr_matrix.csv");
             WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amr_id", scenario, "zone_id", "school_zone_no", outputDir + "/edu_zones_amr_matrix.csv");
-            AnalyzeDistanceDistribution.writeDistanceDistribution(outputDir + "/distance_distribution_long_term_location_choice.csv", scenario.getPopulation());
+            AnalyzeDistanceDistribution.writeDistanceDistribution(outputDir + "/distance_distribution_long_term_location_choice.csv", scenario.getPopulation(), scenario, primaryLocationChoiceConfig, strataPredicateFactory);
         }
     }
 
@@ -181,13 +181,13 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             for(int i = 0; i < numOrigins; i++) {
                 double expUtilSumForRow = 0.0;
                 for (int j = 0; j < numDests; j++) {
-                    expUtilSumForRow += expUtilityMatrix[i][j] * colTargetsCurrent[j];
+                    expUtilSumForRow += expUtilityMatrix[i][j] * colTargetsCurrent[j] / colTargetsOriginal[j];
                 }
 
                 if (expUtilSumForRow <= 0) expUtilSumForRow = 1.0; // Guard against division by zero
 
                 for (int j = 0; j < numDests; j++) {
-                    trips[i][j] = rowTargetsCurrent[i] * (expUtilityMatrix[i][j] * colTargetsCurrent[j]) / expUtilSumForRow;
+                    trips[i][j] = rowTargetsCurrent[i] * (expUtilityMatrix[i][j] * colTargetsCurrent[j] / colTargetsOriginal[j]) / expUtilSumForRow;
                 }
             }
 
@@ -216,7 +216,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         for (int i = 0; i < numOrigins; i++) {
             double rowSum = 0;
             for (int j = 0; j < numDests; j++) {
-                probabilities[i][j] = expUtilityMatrix[i][j] * colTargetsCurrent[j];
+                probabilities[i][j] = expUtilityMatrix[i][j] * colTargetsCurrent[j] / colTargetsOriginal[j];
                 rowSum += probabilities[i][j];
             }
 
@@ -449,13 +449,13 @@ public class PrimaryLocationChoiceModel implements ModelStep{
     }
 
     // Helper class to hold data for each stratum within a group
-    private static class PerStrataData {
-        final DecisionStrata strata;
+    public static class PerStrataData {
+        public final DecisionStrata strata;
         final PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig;
         final List<Person> persons;
         final Map<Id<Zone>, List<Person>> personsByZone;
 
-        PerStrataData(Map.Entry<DecisionStrata, PrimaryLocationChoiceConfig.StrataConfigRecord> strataEntry) {
+        public PerStrataData(Map.Entry<DecisionStrata, PrimaryLocationChoiceConfig.StrataConfigRecord> strataEntry) {
             this.strata = strataEntry.getKey();
             this.strataConfig = strataEntry.getValue();
             this.persons = new ArrayList<>();

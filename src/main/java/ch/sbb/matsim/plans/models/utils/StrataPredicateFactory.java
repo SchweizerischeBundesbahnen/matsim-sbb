@@ -23,7 +23,7 @@ public class StrataPredicateFactory {
         Predicate<Person> isEmployed = p -> ((Number) p.getAttributes().getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT)).intValue() > 0;
 
         Predicate<Person> hasGA = person -> person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION).equals(Variables.PTSubscriptionType.GA.getValue());
-        Predicate<Person> hasVA = person -> person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION).equals(Variables.PTSubscriptionType.VA.getValue());
+        Predicate<Person> hasVA = person -> (person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION).equals(Variables.PTSubscriptionType.VA.getValue())|person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION).equals(Variables.PTSubscriptionType.HTV.getValue()));
         Predicate<Person> hasAbo = hasGA.or(hasVA);
         Predicate<Person> hasNoAbo = Predicate.not(hasAbo);
         Predicate<Person> hasCar = p -> p.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE) != null && (Boolean) p.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE);

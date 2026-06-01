@@ -37,7 +37,7 @@ public class LogarithmicComponent implements UtilityComponent {
 //            log.debug("LogarithmicComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=0.0");
             return 0.0;
         }
-        double result = value * Math.log(value) * beta;
+        double result = Math.log(value) * beta;
 //        log.debug("LogarithmicComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=" + result);
         return result;
     }
