@@ -91,7 +91,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amgr_id", scenario, "zone_id", "work_zone_no", outputDir + "/work_zones_amgr_matrix.csv");
             WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amgr_id", scenario, "zone_id", "school_zone_no", outputDir + "/edu_zones_amgr_matrix.csv");
             WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amr_id", scenario, "zone_id", "school_zone_no", outputDir + "/edu_zones_amr_matrix.csv");
-            AnalyzeDistanceDistribution.writeDistanceDistribution(outputDir + "/distance_distribution_long_term_location_choice.csv", scenario.getPopulation());
+            AnalyzeDistanceDistribution.writeDistanceDistribution(outputDir + "/distance_distribution_long_term_location_choice.csv", scenario.getPopulation(), scenario, primaryLocationChoiceConfig, strataPredicateFactory);
         }
     }
 
@@ -448,13 +448,13 @@ public class PrimaryLocationChoiceModel implements ModelStep{
     }
 
     // Helper class to hold data for each stratum within a group
-    private static class PerStrataData {
-        final DecisionStrata strata;
+    public static class PerStrataData {
+        public final DecisionStrata strata;
         final PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig;
         final List<Person> persons;
         final Map<Id<Zone>, List<Person>> personsByZone;
 
-        PerStrataData(Map.Entry<DecisionStrata, PrimaryLocationChoiceConfig.StrataConfigRecord> strataEntry) {
+        public PerStrataData(Map.Entry<DecisionStrata, PrimaryLocationChoiceConfig.StrataConfigRecord> strataEntry) {
             this.strata = strataEntry.getKey();
             this.strataConfig = strataEntry.getValue();
             this.persons = new ArrayList<>();
