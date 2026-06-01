@@ -91,7 +91,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
             WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amgr_id", scenario, "zone_id", "work_zone_no", outputDir + "/work_zones_amgr_matrix.csv");
             WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amgr_id", scenario, "zone_id", "school_zone_no", outputDir + "/edu_zones_amgr_matrix.csv");
             WriteDataRelationAsMatrix.computeAndWriteMatrix(zones, "amr_id", scenario, "zone_id", "school_zone_no", outputDir + "/edu_zones_amr_matrix.csv");
-            AnalyzeDistanceDistribution.writeDistanceDistribution(outputDir + "/distance_distribution_long_term_location_choice.csv", scenario.getPopulation(), scenario, primaryLocationChoiceConfig, strataPredicateFactory);
+            AnalyzeDistanceDistribution.writeDistanceDistribution(outputDir + "/distance_distribution_long_term_location_choice.csv", scenario.getPopulation());
         }
     }
 

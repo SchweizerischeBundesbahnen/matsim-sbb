@@ -162,11 +162,11 @@ public class Attributables {
                 attributes.put("distance", trip.getLegsOnly().stream().mapToDouble(leg -> {
                     Attributes atts = leg.getAttributes();
                     Double d = null;
-                    d = (Double) atts.getAttribute("car_net_distance")/1000;
-                    if (d != null) return d;
+                    d = (Double) atts.getAttribute("car_net_distance");
+                    if (d != null) return d/1000.0;
                     Route r = leg.getRoute();
                     if (r != null) {
-                        d = r.getDistance();
+                        d = r.getDistance()/1000.0;
                     }
                     return d == null ? 0.0 : d;
                 }).sum());

@@ -62,7 +62,7 @@ public class AttributablesTest {
         assertEquals(1.0, ((Number) t.getAttributes().getAttribute("modeMIV")).doubleValue(), EPS);
         assertEquals(0.0, ((Number) t.getAttributes().getAttribute("modePt")).doubleValue(), EPS);
         assertEquals(0.0, ((Number) t.getAttributes().getAttribute("modeLV")).doubleValue(), EPS);
-        assertEquals(12345.0, ((Number) t.getAttributes().getAttribute("distance")).doubleValue(), EPS);
+        assertEquals(12.3450, ((Number) t.getAttributes().getAttribute("distance")).doubleValue(), EPS);
     }
 
     @Test
@@ -142,7 +142,7 @@ public class AttributablesTest {
         Attributables.AttributableProvider.TripAttributable t =
                 new Attributables.AttributableProvider.TripAttributable(trip, p);
 
-        assertEquals(9999.0, ((Number) t.getAttributes().getAttribute("distance")).doubleValue(), EPS);
+        assertEquals(9.999, ((Number) t.getAttributes().getAttribute("distance")).doubleValue(), EPS);
     }
 
     @Test
