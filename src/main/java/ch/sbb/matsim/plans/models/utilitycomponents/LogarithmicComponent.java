@@ -29,16 +29,19 @@ public class LogarithmicComponent implements UtilityComponent {
     @Override
     public double calculate(Attributable attributable) {
         Object attribute = resolver.resolve(attributable, attributePath);
+        if (attribute == null && nullable) {
+            return 0;
+        }
         double value = ((Number) attribute).doubleValue();
         if (value < 0) {
             throw new IllegalArgumentException("Value must be greater than zero for logarithmic calculation.");
         }
         if (value == 0) {
-//            log.debug("LogarithmicComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=0.0");
+
             return 0.0;
         }
-        double result = Math.log(value) * beta;
-//        log.debug("LogarithmicComponent: attributePath=" + attributePath + ", attribute=" + attribute + ", value=" + result);
+        double result = value *  Math.log(value) * beta;
+        //multiplication with the value is intentional.
         return result;
     }
 }
