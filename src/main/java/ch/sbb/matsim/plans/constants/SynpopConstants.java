@@ -39,6 +39,11 @@ public class SynpopConstants {
     public static final String WORK_ZONE = "work_zone";
     public static final String ORIGINAL_WORK_ZONE = "original_work_zone";
     public static final String ACTIVE_IN_MODEL = "active_in_model";
+    public static final String RESIDENCE_AMR_ID = "residence_amr_id";
+    public static final String RESIDENCE_ZONE_ID = "residence_zone_id";
+    public static final String AGE_CAT = "age_cat";
+
+
 
 
 

@@ -99,7 +99,7 @@ class RailaccessChoiceSetTest {
         model.run();
 
         // 2. Assert Extra Variables (Age Cat & Zonal Attributes)
-        assertEquals("3", person.getAttributes().getAttribute(RailaccessChoiceSet.AGE_CAT),
+        assertEquals("3", person.getAttributes().getAttribute(SynpopConstants.AGE_CAT),
                 "Age 30 should map to age_cat 3 (pop_2544)");
 
         assertEquals(1.75, (Double) person.getAttributes().getAttribute(ZonalAttributes.MOTORISATION_LEVEL), 0.001,

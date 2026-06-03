@@ -29,13 +29,14 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ch.sbb.matsim.plans.constants.SynpopConstants.AGE_CAT;
+
 public class RailaccessChoiceSet implements ModelStep {
     Scenario scenario;
     MOBiPlansConfig config;
     Zones zones;
 
 
-    public static final String AGE_CAT = "age_cat";
     private static final Logger logger = LogManager.getLogger(RailaccessChoiceSet.class);
     private static final Pattern RULE_PATTERN = Pattern.compile("\\s*([a-zA-Z_0-9]+)\\s*(==|!=|<=|>=|<|>|=)\\s*([0-9.-]+)\\s*");
 
