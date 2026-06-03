@@ -2,7 +2,6 @@ package ch.sbb.matsim.plans.models.steps;
 
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import jakarta.inject.Inject;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Plan;
