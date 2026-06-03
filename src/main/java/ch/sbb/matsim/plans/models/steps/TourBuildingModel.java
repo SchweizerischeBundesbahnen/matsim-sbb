@@ -312,14 +312,20 @@ public void writeTourStats(String filename) {
 
         for (int i = 0; i < noBusinessTours; i++) {
             Tour tour = new Tour(Tour.TourType.SECONDARY, SBBActivities.business);
-            populateTour(tour, factory, stopFrequencyBusinessModel.calculate(person), stopFrequencyBusinessModel.calculate(person), 0, person, activityTypeRandom);
+            int totalStops = stopFrequencyBusinessModel.calculate(person);
+            int outboundStops = totalStops == 0 ? 0 : activityTypeRandom.nextInt(totalStops + 1);
+            int inboundStops = totalStops - outboundStops;
+            populateTour(tour, factory, outboundStops, inboundStops, 0, person, activityTypeRandom);
             tours.add(tour);
         }
 
         for (int i = 0; i < noOtherTours; i++) {
             String activityType = secondaryActivityTypeAssignmentModel.assignActivityType(person, activityTypeRandom);
             Tour tour = new Tour(Tour.TourType.SECONDARY, activityType);
-            populateTour(tour, factory, stopFrequencyOtherModel.calculate(person), stopFrequencyOtherModel.calculate(person), 0, person, activityTypeRandom);
+            int totalStops = stopFrequencyOtherModel.calculate(person);
+            int outboundStops = totalStops == 0 ? 0 : activityTypeRandom.nextInt(totalStops + 1);
+            int inboundStops = totalStops - outboundStops;
+            populateTour(tour, factory, inboundStops, outboundStops, 0, person, activityTypeRandom);
             tours.add(tour);
         }
 

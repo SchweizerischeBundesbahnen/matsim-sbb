@@ -68,11 +68,9 @@ public class IterativeDailyPlanGenerationOrchestrator implements ModelStep {
         if (failedAgents > 0) {
             log.warn("{} agents failed to find a valid daily plan after {} iterations. Keeping their best fallback plan.", failedAgents, maxIterations);
         }
-        log.info("=== ABSOLUTE PEAK MEMORY CHECK (Before Caches are Dropped) ===");
         Gbl.printMemoryUsage();
         destDurModel.cleanup();
-        log.info("=== MEMORY AFTER CLEANUP ===");
-        Gbl.printMemoryUsage();
+
         scenario.getPopulation().getPersons().values().stream().forEach(person -> person.getAttributes().removeAttribute(NEEDS_DAILY_REPLANNING));
 
         }
