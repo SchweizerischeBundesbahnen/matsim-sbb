@@ -58,6 +58,7 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(WorkFromHomeModel.class);
         multibinder.addBinding().to(StatsWriter.class);
         multibinder.addBinding().to(MergeExogenousPlans.class);
+        multibinder.addBinding().to(AddAdditionalTripVariables.class);
 
 
 
