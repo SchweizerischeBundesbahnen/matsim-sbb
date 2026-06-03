@@ -38,14 +38,13 @@ import java.util.stream.Collectors;
 public class CombinedDestinationAndDurationChoiceModel {
 
     private static final Logger log = LogManager.getLogger(CombinedDestinationAndDurationChoiceModel.class);
-    private static final double MAX_INTERMEDIATE_DETOUR_SECONDS = 3600.0; // 1 hour max detour for intermediate stops
     public static final String ASSIGNED_ZONE = "assigned_zone";
 
     private final Scenario scenario;
     private final Matrices matrices;
     private final int threads;
 
-    private static final String[] ACTIVITY_TYPES = SBBActivities.secondaryActivities.toArray(new String[SBBActivities.secondaryActivities.size()]);
+    private static final String[] ACTIVITY_TYPES = SBBActivities.secondaryActivities.toArray(new String[0]);
     private final Map<String, Integer> activityTypeToIndex;
     // The flattened Attraction Cache: [ActivityTypeIndex][ZoneIndex]
     private float[][] zoneAttractions;
@@ -163,7 +162,7 @@ public class CombinedDestinationAndDurationChoiceModel {
         Zone homeZone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
         if (homeZone == null) return;
 
-        List<Tour> tours = (List<Tour>) person.getAttributes().getAttribute(SynpopConstants.TOURS);
+        @SuppressWarnings("unchecked") List<Tour> tours = (List<Tour>) person.getAttributes().getAttribute(SynpopConstants.TOURS);
         if (tours == null || tours.isEmpty()) {
             person.getAttributes().putAttribute(IterativeDailyPlanGenerationOrchestrator.NEEDS_DAILY_REPLANNING, false);
             return;
@@ -259,7 +258,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                     }
                     else
                         {
-                        mainZone = drawDestinationZone(person, tour.getMainActivityType(), homeZone, homeZone, travelBudgetHours, random);
+                        mainZone = drawDestinationZone(person, tour.getMainActivityType(), homeZone, homeZone, random, false);
                     }
                 }
 
@@ -272,7 +271,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                     if (act.getType().equals(SBBActivities.education) && eduZone != null) {
                         stopZone = eduZone;
                     } else {
-                    stopZone = drawDestinationZone(person, act.getType(), currentPathZone, mainZone, travelBudgetHours, random);
+                    stopZone = drawDestinationZone(person, act.getType(), currentPathZone, mainZone, random,true);
                     }
                     destinationGuesses[p][actIdx++] = stopZone;
                     totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(stopZone.getId())];
@@ -291,7 +290,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                         if (act.getType().equals(SBBActivities.education) && eduZone != null) {
                             subZone = eduZone;
                         } else {
-                        subZone= drawDestinationZone(person, act.getType(), mainZone, mainZone, travelBudgetHours, random);
+                        subZone= drawDestinationZone(person, act.getType(), mainZone, mainZone, random, false);
                         }
                         destinationGuesses[p][actIdx++] = subZone;
                         totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(subZone.getId())];
@@ -309,7 +308,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                     if (act.getType().equals(SBBActivities.education)  && eduZone != null) {
                           stopZone = eduZone;
                     } else {
-                     stopZone = drawDestinationZone(person, act.getType(), currentPathZone, homeZone, travelBudgetHours, random);
+                     stopZone = drawDestinationZone(person, act.getType(), currentPathZone, homeZone, random,true);
                     }
                     destinationGuesses[p][actIdx++] = stopZone;
                     totalTT += blendedTravelTimes[zoneIndexMap.get(currentPathZone.getId())][zoneIndexMap.get(stopZone.getId())];
@@ -425,8 +424,8 @@ public class CombinedDestinationAndDurationChoiceModel {
             double mainDur1 = durationGuesses[winningDurIdx][actIdx];
             actIdx++;
 
-            tour.getMainActivities().get(0).getAttributes().putAttribute(ASSIGNED_ZONE, mainZone1);
-            tour.getMainActivities().get(0).setMaximumDuration(mainDur1);
+            tour.getMainActivities().getFirst().getAttributes().putAttribute(ASSIGNED_ZONE, mainZone1);
+            tour.getMainActivities().getFirst().setMaximumDuration(mainDur1);
 
 
             if (hasSubtour) {
@@ -519,13 +518,9 @@ private float[][] buildBlendedTravelTimeMatrix() {
 
     return blendedTT;
 }
-private Zone drawDestinationZone(Person person, String activityType, Zone originAnchor, Zone targetAnchor, double travelBudgetHours, Random random) {
+private Zone drawDestinationZone(Person person, String activityType, Zone originAnchor, Zone targetAnchor, Random random, boolean isRubberbanding) {
 
     int oIdx = zoneIndexMap.get(originAnchor.getId());
-    int tIdx = zoneIndexMap.get(targetAnchor.getId());
-
-    // Determine the attraction attribute name based on the activity type
-    String attrName = getAttractionAttributeName(activityType);
     // Strata resolution
     DecisionStrata strata = getStrataForPerson(person);
     float[][] kalifMatrix = this.kalifMatrixCache.getKalifMatrixForActivity(activityType);
@@ -533,43 +528,59 @@ private Zone drawDestinationZone(Person person, String activityType, Zone origin
     // Get the pre-cached attraction array for this specific activity type
     int actTypeIdx = activityTypeToIndex.getOrDefault(activityType, activityTypeToIndex.get(SBBActivities.other)); // Fallback to 'other' (index 4) if unknown
     float[] attractions = zoneAttractions[actTypeIdx];
-    boolean isIntermediateStop = !originAnchor.getId().equals(targetAnchor.getId());
-    double directTT = blendedTravelTimes[oIdx][tIdx];
 
     double[] utilities = new double[zoneList.size()];
     double maxUtility = Double.NEGATIVE_INFINITY;
 
     // THE BLAZING FAST INNER LOOP: 100% Primitive arrays, no method calls!
     for (int zIdx = 0; zIdx < zoneList.size(); zIdx++) {
-        float attraction = attractions[zIdx]; // O(1) array lookup!
+        float attraction = attractions[zIdx];
 
         if (attraction <= 0.0f) {
             utilities[zIdx] = Double.NEGATIVE_INFINITY;
             continue;
         }
 
-        double detourTT = blendedTravelTimes[oIdx][zIdx] + blendedTravelTimes[zIdx][tIdx];
+        double logsumImpedance;
+        double kalif;
 
-        // Time Ellipse / Bounding Box
-        if (isIntermediateStop) {
-            if (detourTT > directTT + MAX_INTERMEDIATE_DETOUR_SECONDS) {
-                utilities[zIdx] = Double.NEGATIVE_INFINITY; continue;
+        if (isRubberbanding) {
+            // Intermediate Stop: O -> C -> T
+            int tIdx = zoneIndexMap.get(targetAnchor.getId());
+
+            double logsumOC = logsumMatrix[oIdx][zIdx];
+            double logsumCT = logsumMatrix[zIdx][tIdx];
+
+            // CRITICAL: Check BOTH legs individually! If either leg is impossible (-20.0),
+            // the entire detour is physically impossible.
+            if (logsumOC <= -19.0 || logsumCT <= -19.0) {
+                utilities[zIdx] = Double.NEGATIVE_INFINITY;
+                continue;
             }
+
+            // Apply the 0.5 weighting from Python to the detour logsums
+            logsumImpedance = 0.5 * (logsumOC + logsumCT);
+
+            // Kalif was added to the matrix BEFORE rubberbanding in Python,
+            // so it must also receive the exact same 0.5 detour weighting!
+            double kalifOC = kalifMatrix != null ? kalifMatrix[oIdx][zIdx] : 0.0;
+            double kalifCT = kalifMatrix != null ? kalifMatrix[zIdx][tIdx] : 0.0;
+            kalif = 0.5 * (kalifOC + kalifCT);
+
         } else {
-            if (detourTT > travelBudgetHours * 3600.0) {
-                utilities[zIdx] = Double.NEGATIVE_INFINITY; continue;
+            // Main Activity: Standard 1-way utility
+            logsumImpedance = logsumMatrix[oIdx][zIdx];
+
+            if (logsumImpedance <= -19.0) {
+                utilities[zIdx] = Double.NEGATIVE_INFINITY;
+                continue;
             }
+
+            kalif = kalifMatrix != null ? kalifMatrix[oIdx][zIdx] : 0.0;
         }
 
-        double logsumDetour = logsumMatrix[oIdx][zIdx] + logsumMatrix[zIdx][tIdx];
-        if (logsumDetour <= -20.0) {
-            utilities[zIdx] = Double.NEGATIVE_INFINITY; continue;
-        }
-
-        double kalif = kalifMatrix != null ? kalifMatrix[oIdx][zIdx] : 0.0;
-
-        // Math.log is the only heavy calculation left, and it's heavily filtered by the Ellipse!
-        double u = Math.log(attraction) + logsumDetour + kalif;
+        // The pure, perfectly scaled logit utility
+        double u = Math.log(attraction) + logsumImpedance + kalif;
 
         utilities[zIdx] = u;
         if (u > maxUtility) maxUtility = u;
@@ -598,15 +609,15 @@ private Zone drawDestinationZone(Person person, String activityType, Zone origin
 }
 
 private String getAttractionAttributeName(String activityType) {
-    switch (activityType) {
-        case SBBActivities.accompany: return ZonalAttributes.ATTR_A;
-        case SBBActivities.business: return ZonalAttributes.ATTR_B;
-        case SBBActivities.other: return ZonalAttributes.ATTR_O;
-        case SBBActivities.education_continued: return ZonalAttributes.ATTR_EC;
-        case SBBActivities.leisure: return ZonalAttributes.ATTR_L;
-        case SBBActivities.shopping: return ZonalAttributes.ATTR_S;
-        default: return ZonalAttributes.ATTR_O; // Fallback
-    }
+    return switch (activityType) {
+        case SBBActivities.accompany -> ZonalAttributes.ATTR_A;
+        case SBBActivities.business -> ZonalAttributes.ATTR_B;
+        case SBBActivities.other -> ZonalAttributes.ATTR_O;
+        case SBBActivities.education_continued -> ZonalAttributes.ATTR_EC;
+        case SBBActivities.leisure -> ZonalAttributes.ATTR_L;
+        case SBBActivities.shopping -> ZonalAttributes.ATTR_S;
+        default -> ZonalAttributes.ATTR_O; // Fallback
+    };
 }
 
     private double getMetric(Map<String, Double> metrics, String key, double defaultValue) {
