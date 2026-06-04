@@ -56,11 +56,8 @@ public class IterativeDailyPlanGenerationOrchestrator implements ModelStep {
             // If they fail, it increments replanning_iteration.
             destDurModel.runIteration(BUD_PERF[iter],BUD_TRAVEL[iter],BUD_OOH[iter] );
         }
-        if (this.mobiPlansConfig.models().write_analysis()){
-            tourBuildingModel.writeTourDetails(mobiPlansConfig.data().outputBaseDir()+"/tour_building_model_output.csv.gz");
-            tourBuildingModel.writeTourStats(mobiPlansConfig.data().outputBaseDir()+"/tour_building_model_stats.csv.gz");
-            tourBuildingModel.printTourStats();
-        }
+        tourBuildingModel.printTourStats();
+
 
         long failedAgents = scenario.getPopulation().getPersons().values().stream()
                 .filter(p -> Boolean.TRUE.equals(p.getAttributes().getAttribute(NEEDS_DAILY_REPLANNING)))

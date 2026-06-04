@@ -192,50 +192,6 @@ public class TourBuildingModel {
         Integer val = (Integer) p.getAttributes().getAttribute(attrName);
         return val == null ? 0 : val;
     }
-    public void writeTourDetails(String filename) {
-        List<String> columns = List.of(Variables.PERSONID,"tour_no","tourType","mainActivityType","inboundStopActivities","outboundStopActivities","subtourActivities");
-        try (CSVWriter writer = new CSVWriter(columns,filename)){
-            for (Person p : scenario.getPopulation().getPersons().values()){
-                List<Tour> tours = (List<Tour>) p.getAttributes().getAttribute(SynpopConstants.TOURS);
-                if (tours == null) continue; //inactive person
-                for (int i = 0; i <tours.size() ; i++) {
-                    var tour = tours.get(i);
-                    writer.set(Variables.PERSONID,p.getId().toString());
-                    writer.set("tour_no",Integer.toString(i));
-                    writer.set("tourType",tour.getTourType().toString());
-                    writer.set("mainActivityType",tour.getMainActivityType());
-                    writer.set("inboundStopActivities", tour.getInboundStopActivities().stream().map(Activity::getType).collect(Collectors.joining(",")));
-                    writer.set("outboundStopActivities", tour.getOutboundStopActivities().stream().map(Activity::getType).collect(Collectors.joining(",")));
-                    writer.set("subtourActivities", tour.getSubtourActivities().stream().map(Activity::getType).collect(Collectors.joining(",")));
-                    writer.writeRow();
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-public void writeTourStats(String filename) {
-        List<String> columns = List.of(Variables.PERSONID,SynpopConstants.NO_BUSINESS_TOURS,SynpopConstants.NO_EDUCATION_TOURS,SynpopConstants.NO_WORK_TOURS,SynpopConstants.NO_OTHER_TOURS,SynpopConstants.NO_PRIM_TOURS,SynpopConstants.NO_TOT_TOURS);
-        try (CSVWriter writer = new CSVWriter(columns,filename)){
-            for (Person p : scenario.getPopulation().getPersons().values()){
-                    for (String column:columns) {
-                        if ((Boolean)p.getAttributes().getAttribute(SynpopConstants.ACTIVE_IN_MODEL)){
-                        if (column.equals(Variables.PERSONID)) {
-                            writer.set(column, p.getId().toString());
-                            continue;
-                        }
-                        Object value = p.getAttributes().getAttribute(column);
-                        writer.set(column, value != null ? value.toString() : "");
-                        writer.writeRow();
-                        }
-                    }
-
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private void processPerson(Person person, int iteration) {
         var attributes = person.getAttributes();
