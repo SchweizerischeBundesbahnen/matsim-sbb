@@ -3,12 +3,13 @@ package ch.sbb.matsim.zones;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Point;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Identifiable;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
 /**
  * @author mrieser
  */
-public interface Zone extends Attributable {
+public interface Zone extends Attributable, Identifiable {
 
 	Id<Zone> getId();
 
