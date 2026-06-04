@@ -13,6 +13,9 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.households.HouseholdsWriterV10;
@@ -54,27 +57,29 @@ public class MOBiPlansOutputWriter implements ModelStep {
     @Override
     public void run() {
         String outputDirPrefix = config.data().outputBaseDir()+"/"+config.models().run_id()+".";
-        new PopulationWriter(scenario.getPopulation()).write(outputDirPrefix+"plans_complete.xml.gz");
+        new PopulationWriter(scenario.getPopulation()).write(outputDirPrefix+"plans_complete.xml.zst");
 
-        new FacilitiesWriter(scenario.getActivityFacilities()).write(outputDirPrefix+"facilities.xml.gz");
-        new HouseholdsWriterV10(scenario.getHouseholds()).writeFile(outputDirPrefix+"households.xml.gz");
+        new FacilitiesWriter(scenario.getActivityFacilities()).write(outputDirPrefix+"facilities.xml.zst");
+        new HouseholdsWriterV10(scenario.getHouseholds()).writeFile(outputDirPrefix+"households.xml.zst");
         ZoneGeoPackageWriter.writeGeoPackage(zones, outputDirPrefix+"mobi_zones.gpkg");
         ZoneGeoPackageWriter.writeAttributesToCSV(zones, outputDirPrefix+"mobi_zones.csv");
 
         /*
         produce a plans file with only those attributes needed in MATSim
          */
-        reducePopulation();
-        new PopulationWriter(scenario.getPopulation()).write(outputDirPrefix+"plans.xml.gz");
+        Population reducedPopulation = reducePopulation();
+        new PopulationWriter(reducedPopulation).write(outputDirPrefix+"plans.xml.zst");
     }
 
-    private void reducePopulation() {
-        var personsToRemove = scenario.getPopulation().getPersons().values().stream()
-                .filter(person -> person.getSelectedPlan() == null)
-                .map(person -> person.getId())
-                .collect(Collectors.toSet());
-        personsToRemove.forEach(scenario.getPopulation()::removePerson);
-        scenario.getPopulation().getPersons().values().forEach(
+    private Population reducePopulation() {
+        Population population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
+        scenario.getPopulation().getPersons().values().stream()
+                .filter(person -> !(person.getSelectedPlan() == null))
+                .forEach(person -> population.addPerson(person));
+
+
+
+        population.getPersons().values().forEach(
                 person->{
                     Set<String> attributes = person.getAttributes().getAsMap().keySet();
                     Set<String> attributesToKeep = findAttributesToKeep(attributes);
@@ -103,6 +108,7 @@ public class MOBiPlansOutputWriter implements ModelStep {
                     }
                 }
         );
+        return population;
     }
 
     private Set<String> findAttributesToKeep(Set<String> attributes) {
