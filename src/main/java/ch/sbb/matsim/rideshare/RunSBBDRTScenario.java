@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.contrib.drt.run.DrtConfigGroup;
 import org.matsim.contrib.drt.run.DrtConfigs;
 import org.matsim.contrib.drt.run.DrtControlerCreator;
 import org.matsim.contrib.drt.run.MultiModeDrtConfigGroup;
@@ -24,6 +25,7 @@ import org.matsim.core.router.MainModeIdentifier;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import ch.sbb.matsim.RunSBB;
+import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.intermodal.IntermodalAwareRouterModeIdentifier;
 import ch.sbb.matsim.rideshare.analysis.SBBDRTAnalysisModule;
 
@@ -64,6 +66,11 @@ public class RunSBBDRTScenario {
 
 	public static void prepareDrtConfig(Config config) {
 		RunSBB.adjustMobiConfig(config);
+		
+		for (DrtConfigGroup drtCfg : MultiModeDrtConfigGroup.get(config).getModalElements()) {
+		    SBBActivities.stageActivityTypeList.add(drtCfg.getMode() + " interaction");
+		}
+		
 		DrtConfigs.adjustMultiModeDrtConfig(MultiModeDrtConfigGroup.get(config), config.scoring(), config.routing());
 		config.checkConsistency();
 	}
