@@ -1,6 +1,6 @@
 package ch.sbb.matsim.plans.models.formulas;
 
-import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
 
 import java.util.Objects;
 
@@ -9,9 +9,9 @@ import java.util.Objects;
  */
 public final class CompositeFormulaKey {
     private final String activity;
-    private final DecisionStrata strata;
+    private final DemandStrata strata;
 
-    public CompositeFormulaKey(String activity, DecisionStrata strata) {
+    public CompositeFormulaKey(String activity, DemandStrata strata) {
         this.activity = activity;
         this.strata = strata;
     }
@@ -39,7 +39,7 @@ public final class CompositeFormulaKey {
         return activity;
     }
 
-    public DecisionStrata getStrata() {
+    public DemandStrata getStrata() {
         return strata;
     }
 }

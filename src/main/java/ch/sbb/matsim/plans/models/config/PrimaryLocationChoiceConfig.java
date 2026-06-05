@@ -1,7 +1,7 @@
 package ch.sbb.matsim.plans.models.config;
 
 import ch.sbb.matsim.plans.matrices.MatrixNames;
-import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +45,7 @@ public class PrimaryLocationChoiceConfig {
     public record ActivityConfigRecord(
             String activityName,
             String personResultAttributeName,
-            Map<DecisionStrata, StrataConfigRecord> strataConfigs
+            Map<String, StrataConfigRecord> strataConfigs
     ) {
     }
 

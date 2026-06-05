@@ -7,10 +7,10 @@ import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrataRegistry;
 import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
-import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
-import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.Zone;
@@ -61,13 +61,13 @@ public class CombinedDestinationAndDurationChoiceModel {
     private final ActivityDurationAssignmentModel durationModelWithSubtour;
     private final MOBiPlansConfig mobiPlansConfig;
     private final ModeImpedanceFormulaRepository formulaRepository;
-    private final StrataPredicateFactory strataPredicateFactory;
+    private final DemandStrataRegistry demandStrataRegistry;
     private SecondaryKalifMatrixCache kalifMatrixCache;
     private SecondaryDestinationLogsumCache logsumCache;
     private float[][] blendedTravelTimes;
 
     @Inject
-    public CombinedDestinationAndDurationChoiceModel(Scenario scenario, MOBiPlansConfig config, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, StrataPredicateFactory strataPredicateFactory) {
+    public CombinedDestinationAndDurationChoiceModel(Scenario scenario, MOBiPlansConfig config, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, DemandStrataRegistry demandStrataRegistry) {
         this.scenario = scenario;
         this.mobiPlansConfig = config;
         this.matrices = matrices;
@@ -78,7 +78,7 @@ public class CombinedDestinationAndDurationChoiceModel {
         this.zoneList = new ArrayList<>(zones.getZones());
         this.zoneIndexMap = new HashMap<>();
         this.formulaRepository = formulaRepository;
-        this.strataPredicateFactory = strataPredicateFactory;
+        this.demandStrataRegistry = demandStrataRegistry;
         this.activityTypeToIndex = new HashMap<>();
         for (int i = 0; i < ACTIVITY_TYPES.length; i++) {
             activityTypeToIndex.put(ACTIVITY_TYPES[i], i);
@@ -100,7 +100,7 @@ public class CombinedDestinationAndDurationChoiceModel {
                 .toString();
         this.kalifMatrixCache = new SecondaryKalifMatrixCache(secondaryKalifCsvPath, matrices, zoneList, zoneIndexMap);
         this.logsumCache = new SecondaryDestinationLogsumCache(matrices, formulaRepository, new ExpressionEvaluator(), zoneList);
-        this.logsumCache.precomputeAll(SBBActivities.secondaryActivities,DecisionStrata.getSecondaryDestinationStratas());
+        this.logsumCache.precomputeAll(SBBActivities.secondaryActivities, demandStrataRegistry.getSecondaryDestinationStratas());
         log.info("Pre-caching Zonal Attractions for fast lookups...");
         this.zoneAttractions = new float[ACTIVITY_TYPES.length][zoneList.size()];
         for (int aIdx = 0; aIdx < ACTIVITY_TYPES.length; aIdx++) {
@@ -522,7 +522,7 @@ private Zone drawDestinationZone(Person person, String activityType, Zone origin
 
     int oIdx = zoneIndexMap.get(originAnchor.getId());
     // Strata resolution
-    DecisionStrata strata = getStrataForPerson(person);
+    DemandStrata strata = getStrataForPerson(person);
     float[][] kalifMatrix = this.kalifMatrixCache.getKalifMatrixForActivity(activityType);
     float[][] logsumMatrix = logsumCache.getOrComputeLogsumMatrix(activityType, strata);
     // Get the pre-cached attraction array for this specific activity type
@@ -632,9 +632,9 @@ private String getAttractionAttributeName(String activityType) {
 
     }
 
-private DecisionStrata getStrataForPerson(Person person) {
-    for (DecisionStrata strata: DecisionStrata.getSecondaryDestinationStratas()) {
-        if (strataPredicateFactory.getPredicate(strata).test(person)) {
+private DemandStrata getStrataForPerson(Person person) {
+    for (DemandStrata strata: demandStrataRegistry.getSecondaryDestinationStratas()) {
+        if (strata.test(person)) {
             return strata;
         }
     }

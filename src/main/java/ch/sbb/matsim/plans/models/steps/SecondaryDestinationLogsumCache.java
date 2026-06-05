@@ -4,7 +4,7 @@ import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
 import ch.sbb.matsim.plans.models.utils.Calculations;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
-import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
 import ch.sbb.matsim.zones.Zone;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,10 +39,10 @@ public class SecondaryDestinationLogsumCache {
      * Pre-computes all matrices sequentially.
      * This avoids ForkJoinPool starvation caused by nested parallel streams.
      */
-    public void precomputeAll(Set<String> activities, Set<DecisionStrata> allStrata) {
+    public void precomputeAll(Set<String> activities, Set<DemandStrata> allStrata) {
         log.info("Pre-computing all Secondary Logsum matrices to prevent thread contention...");
         for (String activityType : activities) {
-            for (DecisionStrata strata : allStrata) {
+            for (DemandStrata strata : allStrata) {
                 getOrComputeLogsumMatrix(activityType, strata);
             }
         }
@@ -52,8 +52,8 @@ public class SecondaryDestinationLogsumCache {
     /**
      * Lazily gets or computes the logsum matrix for a specific activity and stratum.
      */
-    public float[][] getOrComputeLogsumMatrix(String activityType, DecisionStrata strata) {
-        String key = activityType + "_" + strata.getStrataName();
+    public float[][] getOrComputeLogsumMatrix(String activityType, DemandStrata strata) {
+        String key = activityType + "_" + strata.getName();
 
         return cache.computeIfAbsent(key, k -> {
             log.info("Computing Secondary Logsum matrix for {}...", key);
@@ -63,7 +63,7 @@ public class SecondaryDestinationLogsumCache {
         });
     }
 
-    private float[][] computeMatrix(String activityType, DecisionStrata strata) {
+    private float[][] computeMatrix(String activityType, DemandStrata strata) {
         int numZones = zoneList.size();
         float[][] matrix = new float[numZones][numZones];
 

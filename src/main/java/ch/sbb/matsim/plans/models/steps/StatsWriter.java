@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Predicate;
@@ -58,6 +59,77 @@ public class StatsWriter implements ModelStep {
         attributableProvider = new Attributables.AttributableProvider(zones);
     }
 
+    // ---- Per-sheet precomputed state (kept across the single person loop) ----
+
+    private static final class PersonSheetCtx {
+        final ReportJson.Sheet sheet;
+        final int nGroups, nVars;
+        final Predicate<Person>[] groupPreds;
+        final LookupFormulaParser.ParseResult[] parsed;
+        final Predicate<Attributables.AttributableProvider.TripAttributable>[] tripFilters;
+        final boolean[] varIsTripLookup;
+        final String[][] requiredVars;
+        final boolean needsTrips;
+        final DoubleAdder[][] sums;
+        final LongAdder[][] counts;
+
+        @SuppressWarnings("unchecked")
+        PersonSheetCtx(ReportJson.Sheet sheet, int nGroups, int nVars,
+                       Predicate<Person>[] groupPreds,
+                       LookupFormulaParser.ParseResult[] parsed,
+                       Predicate<Attributables.AttributableProvider.TripAttributable>[] tripFilters,
+                       boolean[] varIsTripLookup, String[][] requiredVars, boolean needsTrips) {
+            this.sheet = sheet;
+            this.nGroups = nGroups;
+            this.nVars = nVars;
+            this.groupPreds = groupPreds;
+            this.parsed = parsed;
+            this.tripFilters = tripFilters;
+            this.varIsTripLookup = varIsTripLookup;
+            this.requiredVars = requiredVars;
+            this.needsTrips = needsTrips;
+            this.sums = new DoubleAdder[nGroups][nVars];
+            this.counts = new LongAdder[nGroups][nVars];
+            for (int g = 0; g < nGroups; g++) {
+                for (int v = 0; v < nVars; v++) {
+                    this.sums[g][v] = new DoubleAdder();
+                    this.counts[g][v] = new LongAdder();
+                }
+            }
+        }
+    }
+
+    private static final class TripSheetCtx {
+        final ReportJson.Sheet sheet;
+        final int nGroups, nVars;
+        final Predicate<Person>[] personPreds;
+        final Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds;
+        final String[][] requiredVars;
+        final DoubleAdder[][] sums;
+        final LongAdder[][] counts;
+
+        @SuppressWarnings("unchecked")
+        TripSheetCtx(ReportJson.Sheet sheet, int nGroups, int nVars,
+                     Predicate<Person>[] personPreds,
+                     Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds,
+                     String[][] requiredVars) {
+            this.sheet = sheet;
+            this.nGroups = nGroups;
+            this.nVars = nVars;
+            this.personPreds = personPreds;
+            this.tripPreds = tripPreds;
+            this.requiredVars = requiredVars;
+            this.sums = new DoubleAdder[nGroups][nVars];
+            this.counts = new LongAdder[nGroups][nVars];
+            for (int g = 0; g < nGroups; g++) {
+                for (int v = 0; v < nVars; v++) {
+                    this.sums[g][v] = new DoubleAdder();
+                    this.counts[g][v] = new LongAdder();
+                }
+            }
+        }
+    }
+
     @Override
     public void run() {
         Path reportsFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_REPORTS);
@@ -75,12 +147,288 @@ public class StatsWriter implements ModelStep {
         lookupAttributeHandler.createLookUpVariables(reportConfig);
         lookupAttributeHandler.setLookupAttributes(scenario.getPopulation().getPersons().values(), zones);
 
+        // --- Categorize sheets ---
+        List<PersonSheetCtx> personCtxs = new ArrayList<>();
+        List<TripSheetCtx> tripCtxs = new ArrayList<>();
+        List<ReportJson.Sheet> zoneSheets = new ArrayList<>();
+        List<ReportJson.Sheet> pivotSheets = new ArrayList<>();
+
         for (ReportJson.Sheet s : reportConfig.sheets) {
             if (s.pivots != null && !s.pivots.isEmpty()) {
-                writePivotSheet(s);
-            } else {
-                writeSheet(s);
+                pivotSheets.add(s);
+            } else if ("Persons".equals(s.table_ref)) {
+                personCtxs.add(buildPersonCtx(s));
+            } else if ("Trips".equals(s.table_ref)) {
+                tripCtxs.add(buildTripCtx(s));
+            } else if ("Zones".equals(s.table_ref)) {
+                zoneSheets.add(s);
             }
+        }
+
+        boolean anyNeedsTrips = !tripCtxs.isEmpty();
+        if (!anyNeedsTrips) {
+            for (PersonSheetCtx c : personCtxs) {
+                if (c.needsTrips) { anyNeedsTrips = true; break; }
+            }
+        }
+        final boolean needsTripsFinal = anyNeedsTrips;
+
+        // --- Single parallel pass over the regular population ---
+        if (!personCtxs.isEmpty() || !tripCtxs.isEmpty()) {
+            scenario.getPopulation().getPersons().values().parallelStream()
+                    .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
+                    .forEach(person -> {
+                        List<Attributables.AttributableProvider.TripAttributable> trips = null;
+                        if (needsTripsFinal) {
+                            trips = buildTripsForPerson(person);
+                        }
+                        for (PersonSheetCtx ctx : personCtxs) {
+                            processPersonSheet(ctx, person, trips);
+                        }
+                        if (!tripCtxs.isEmpty() && trips != null && !trips.isEmpty()) {
+                            for (TripSheetCtx ctx : tripCtxs) {
+                                processTripsSheet(ctx, person, trips);
+                            }
+                        }
+                    });
+        }
+
+        // --- Write outputs ---
+        for (PersonSheetCtx ctx : personCtxs) writeAggregatedSheet(ctx.sheet, ctx.nGroups, ctx.nVars, ctx.sums, ctx.counts);
+        for (TripSheetCtx ctx : tripCtxs) writeAggregatedSheet(ctx.sheet, ctx.nGroups, ctx.nVars, ctx.sums, ctx.counts);
+
+        // Zones and pivots use the legacy code paths (they are not the dominant cost)
+        for (ReportJson.Sheet s : zoneSheets) writeSheet(s);
+        for (ReportJson.Sheet s : pivotSheets) writePivotSheet(s);
+
+        scenario.getPopulation().getPersons().values().forEach(person -> {
+            Set<String> attributesThatAreNull = person.getAttributes().getAsMap().entrySet().stream().filter(attr -> attr.getValue() == null).map(Map.Entry::getKey).collect(Collectors.toSet());
+            attributesThatAreNull.forEach(attr -> person.getAttributes().removeAttribute(attr));
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private PersonSheetCtx buildPersonCtx(ReportJson.Sheet s) {
+        final int nGroups = s.groups.size();
+        final int nVars = s.variables.size();
+        // sanitize group filters once
+        for (ReportJson.ReportGroup group : s.groups) {
+            group.filter_expression = group.filter_expression.replace("[", "").replace("]", "");
+        }
+        Predicate<Person>[] groupPreds = new Predicate[nGroups];
+        for (int g = 0; g < nGroups; g++) {
+            groupPreds[g] = BuildPredicate.buildPredicate(s.groups.get(g).filter_expression, Person.class);
+        }
+        LookupFormulaParser.ParseResult[] parsed = new LookupFormulaParser.ParseResult[nVars];
+        Predicate<Attributables.AttributableProvider.TripAttributable>[] tripFilters = new Predicate[nVars];
+        boolean[] varIsTripLookup = new boolean[nVars];
+        String[][] requiredVars = new String[nVars][];
+        boolean needsTrips = false;
+        for (int v = 0; v < nVars; v++) {
+            ReportJson.ReportVariable variable = s.variables.get(v);
+            LookupFormulaParser.ParseResult pr = parseFormula(variable.formula);
+            parsed[v] = pr;
+            varIsTripLookup[v] = "Trips".equals(pr.lookupTable);
+            if (varIsTripLookup[v]) {
+                needsTrips = true;
+                if (pr.filterExpression != null) {
+                    tripFilters[v] = BuildPredicate.buildPredicate(
+                            pr.filterExpression, Attributables.AttributableProvider.TripAttributable.class);
+                }
+            }
+            requiredVars[v] = expressionEvaluator.getShortVariableNames(variable.formula).toArray(new String[0]);
+        }
+        return new PersonSheetCtx(s, nGroups, nVars, groupPreds, parsed, tripFilters, varIsTripLookup, requiredVars, needsTrips);
+    }
+
+    @SuppressWarnings("unchecked")
+    private TripSheetCtx buildTripCtx(ReportJson.Sheet s) {
+        final int nGroups = s.groups.size();
+        final int nVars = s.variables.size();
+        for (ReportJson.ReportGroup group : s.groups) {
+            group.filter_expression = group.filter_expression.replace("[", "").replace("]", "");
+        }
+        Predicate<Person>[] personPreds = new Predicate[nGroups];
+        Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds = new Predicate[nGroups];
+        for (int g = 0; g < nGroups; g++) {
+            ReportJson.ReportGroup group = s.groups.get(g);
+            personPreds[g] = (group.filter_expression_person != null)
+                    ? BuildPredicate.buildPredicate(group.filter_expression_person, Person.class)
+                    : null;
+            tripPreds[g] = BuildPredicate.buildPredicate(
+                    group.filter_expression, Attributables.AttributableProvider.TripAttributable.class);
+        }
+        String[][] requiredVars = new String[nVars][];
+        for (int v = 0; v < nVars; v++) {
+            requiredVars[v] = expressionEvaluator.getShortVariableNames(s.variables.get(v).formula).toArray(new String[0]);
+        }
+        return new TripSheetCtx(s, nGroups, nVars, personPreds, tripPreds, requiredVars);
+    }
+
+    private List<Attributables.AttributableProvider.TripAttributable> buildTripsForPerson(Person person) {
+        Plan plan = person.getSelectedPlan();
+        if (plan == null) return Collections.emptyList();
+        List<TripStructureUtils.Trip> rawTrips = TripStructureUtils.getTrips(plan);
+        if (rawTrips.isEmpty()) return Collections.emptyList();
+        List<Attributables.AttributableProvider.TripAttributable> trips = new ArrayList<>(rawTrips.size());
+        for (TripStructureUtils.Trip trip : rawTrips) {
+            Attributables.AttributableProvider.TripAttributable tripAtt =
+                    new Attributables.AttributableProvider.TripAttributable(trip, person);
+            tripAtt.addLookupAttributes(lookupAttributeHandler.getLookupAttributesForTrip(tripAtt));
+            trips.add(tripAtt);
+        }
+        return trips;
+    }
+
+    private void processPersonSheet(PersonSheetCtx ctx,
+                                    Person person,
+                                    List<Attributables.AttributableProvider.TripAttributable> trips) {
+        final int nGroups = ctx.nGroups;
+        final int nVars = ctx.nVars;
+        boolean[] inGroup = null;
+        boolean any = false;
+        for (int g = 0; g < nGroups; g++) {
+            if (ctx.groupPreds[g].test(person)) {
+                if (inGroup == null) inGroup = new boolean[nGroups];
+                inGroup[g] = true;
+                any = true;
+            }
+        }
+        if (!any) return;
+
+        for (int v = 0; v < nVars; v++) {
+            ReportJson.ReportVariable variable = ctx.sheet.variables.get(v);
+            if (ctx.varIsTripLookup[v]) {
+                if (trips == null || trips.isEmpty()) continue;
+                LookupFormulaParser.ParseResult pr = ctx.parsed[v];
+                Predicate<Attributables.AttributableProvider.TripAttributable> tripFilter = ctx.tripFilters[v];
+                String[] reqVars = ctx.requiredVars[v];
+                final boolean isSum = "Sum".equals(pr.aggregator);
+                final boolean isCount = "Count".equals(pr.aggregator);
+                for (Attributables.AttributableProvider.TripAttributable tripAtt : trips) {
+                    if (tripFilter != null && !tripFilter.test(tripAtt)) continue;
+                    double valSum = 0.0;
+                    if (isSum) {
+                        valSum = expressionEvaluator.evaluate(pr.lookupExpression, reqVars, tripAtt);
+                    } else if (isCount) {
+                        valSum = 1.0;
+                    }
+                    for (int g = 0; g < nGroups; g++) {
+                        if (inGroup[g]) {
+                            if (isSum || isCount) ctx.sums[g][v].add(valSum);
+                            ctx.counts[g][v].increment();
+                        }
+                    }
+                }
+            } else {
+                String[] reqVars = ctx.requiredVars[v];
+                double val = expressionEvaluator.evaluate(variable.formula, reqVars, person);
+                for (int g = 0; g < nGroups; g++) {
+                    if (inGroup[g]) {
+                        ctx.sums[g][v].add(val);
+                        ctx.counts[g][v].increment();
+                    }
+                }
+            }
+        }
+    }
+
+    private void processTripsSheet(TripSheetCtx ctx,
+                                   Person person,
+                                   List<Attributables.AttributableProvider.TripAttributable> trips) {
+        final int nGroups = ctx.nGroups;
+        final int nVars = ctx.nVars;
+        // Determine which groups potentially match by person
+        boolean[] personMatch = null;
+        boolean any = false;
+        for (int g = 0; g < nGroups; g++) {
+            boolean ok = (ctx.personPreds[g] == null) || ctx.personPreds[g].test(person);
+            if (ok) {
+                if (personMatch == null) personMatch = new boolean[nGroups];
+                personMatch[g] = true;
+                any = true;
+            }
+        }
+        if (!any) return;
+
+        boolean[] tripMatches = new boolean[nGroups];
+        for (Attributables.AttributableProvider.TripAttributable tripAtt : trips) {
+            boolean anyTripMatch = false;
+            for (int g = 0; g < nGroups; g++) {
+                if (personMatch[g] && ctx.tripPreds[g].test(tripAtt)) {
+                    tripMatches[g] = true;
+                    anyTripMatch = true;
+                } else {
+                    tripMatches[g] = false;
+                }
+            }
+            if (!anyTripMatch) continue;
+            // Evaluate each variable ONCE per trip, then distribute to all matching groups.
+            for (int v = 0; v < nVars; v++) {
+                ReportJson.ReportVariable variable = ctx.sheet.variables.get(v);
+                double val = expressionEvaluator.evaluate(variable.formula, ctx.requiredVars[v], tripAtt);
+                for (int g = 0; g < nGroups; g++) {
+                    if (tripMatches[g]) {
+                        ctx.sums[g][v].add(val);
+                        ctx.counts[g][v].increment();
+                    }
+                }
+            }
+        }
+    }
+
+    private void writeAggregatedSheet(ReportJson.Sheet s, int nGroups, int nVars,
+                                      DoubleAdder[][] sums, LongAdder[][] counts) {
+        List<String> variable_names = new ArrayList<>(nVars + 1);
+        for (int v = 0; v < nVars; v++) variable_names.add(s.variables.get(v).name);
+        String outputFile = config.data().outputBaseDir() + "/" + config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
+        variable_names.addFirst("Name");
+        try (CSVWriter csvWriter = new CSVWriter("", variable_names.toArray(String[]::new), outputFile)) {
+            for (int groupIndex = 0; groupIndex < nGroups; groupIndex++) {
+                ReportJson.ReportGroup group = s.groups.get(groupIndex);
+                csvWriter.set("Name", group.name);
+                for (int varIndex = 0; varIndex < nVars; varIndex++) {
+                    ReportJson.ReportVariable variable = s.variables.get(varIndex);
+                    double sumVal = sums[groupIndex][varIndex].sum();
+                    long countVal = counts[groupIndex][varIndex].sum();
+                    Double val = 0.0;
+                    switch (variable.aggregation) {
+                        case "Sum":
+                            val = sumVal;
+                            break;
+                        case "Count":
+                            val = (double) countVal;
+                            break;
+                        case "Mean": {
+                            if (countVal != 0)
+                                val = sumVal / countVal;
+                            break;
+                        }
+                    }
+                    if (variable.normalize != null) {
+                        double total = 0.0;
+                        for (int vIndex = 0; vIndex < nVars; vIndex++) {
+                            if (s.variables.get(vIndex).name.equals(variable.normalize)) {
+                                total = switch (s.variables.get(vIndex).aggregation) {
+                                    case "Sum" -> sums[groupIndex][vIndex].sum();
+                                    case "Count" -> counts[groupIndex][vIndex].sum();
+                                    case "Mean" -> sums[groupIndex][vIndex].sum() / counts[groupIndex][vIndex].sum();
+                                    default -> total;
+                                };
+                                break;
+                            }
+                        }
+                        if (total != 0) {
+                            val = val / total;
+                        }
+                    }
+                    csvWriter.set(variable.name, String.valueOf(val));
+                }
+                csvWriter.writeRow();
+            }
+        } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
+            e.printStackTrace();
         }
     }
 
@@ -348,111 +696,77 @@ public class StatsWriter implements ModelStep {
     }
 
     public void writePivotSheet(ReportJson.Sheet s) {
-        Map<String, List<String>> requiredVariables = new HashMap<>();
-        requiredVariables.put("index_formula", expressionEvaluator.getShortVariableNames(s.pivots.get("index_formula").toString()));
-        requiredVariables.put("column_formula", expressionEvaluator.getShortVariableNames(s.pivots.get("column_formula").toString()));
-        requiredVariables.put("attribute", expressionEvaluator.getShortVariableNames(s.pivots.get("attribute").toString()));
-        String indexName = s.pivots.get("index_name").toString();
-        String columnFormula = s.pivots.get("column_formula").toString().replace("[", "").replace("]", "");
-        String indexFormula = s.pivots.get("index_formula").toString().replace("[", "").replace("]", "");
-        String attribute = s.pivots.get("attribute").toString().replace("[", "").replace("]", "");
+        // ---- Pre-compute everything once (no per-person allocation of these) ----
+        final String indexName = s.pivots.get("index_name").toString();
+        final String columnFormula = s.pivots.get("column_formula").toString().replace("[", "").replace("]", "");
+        final String indexFormula = s.pivots.get("index_formula").toString().replace("[", "").replace("]", "");
+        final String attribute = s.pivots.get("attribute").toString().replace("[", "").replace("]", "");
+        final String filterExpression = s.pivots.get("filter_expression").toString().replace("[", "").replace("]", "");
+        final String aggregation = s.pivots.get("aggregation").toString();
+        final boolean isSum = "Sum".equals(aggregation);
 
-        String filterExpression = s.pivots.get("filter_expression").toString().replace("[", "").replace("]", "");
+        final String[] indexVars = expressionEvaluator.getShortVariableNames(indexFormula).toArray(new String[0]);
+        final String[] columnVars = expressionEvaluator.getShortVariableNames(columnFormula).toArray(new String[0]);
+        final String[] attrVars = isSum ? expressionEvaluator.getShortVariableNames(attribute).toArray(new String[0]) : new String[0];
 
-        Map<Double, Map<Double, Double>> pivot = null;
+        // Concurrent accumulator: row -> col -> sum
+        final ConcurrentHashMap<Double, ConcurrentHashMap<Double, DoubleAdder>> acc = new ConcurrentHashMap<>();
 
         switch (s.table_ref) {
             case "Persons": {
-                Predicate<Person> filterPredicate = BuildPredicate.buildPredicate(filterExpression, Person.class);
-                if ("Sum".equals(s.pivots.get("aggregation").toString())) {
-                    pivot = scenario.getPopulation().getPersons().values().stream()
-                            .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
-                            .filter(person -> filterPredicate.test(person))
-                            .collect(Collectors.groupingBy(
-                                    person -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, requiredVariables.get("index_formula"), Person.class)),
-                                    Collectors.groupingBy(
-                                            person -> expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(person, requiredVariables.get("column_formula"), Person.class)),
-                                            Collectors.summingDouble(person -> expressionEvaluator.evaluate(attribute, collectAttributeStrings(person, requiredVariables.get("attribute"), Person.class)))
-                                    )
-                            ));
-                } else if ("Count".equals(s.pivots.get("aggregation").toString())) {
-                    pivot = scenario.getPopulation().getPersons().values().stream()
-                            .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
-                            .filter(person -> filterPredicate.test(person))
-                            .collect(Collectors.groupingBy(
-                                    person -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, requiredVariables.get("index_formula"), Person.class)),
-                                    Collectors.groupingBy(
-                                            person -> expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(person, requiredVariables.get("column_formula"), Person.class)),
-                                            Collectors.summingDouble(p -> 1.0)
-                                    )
-                            ));
-                }
-                // Zeilen und Spalten sortieren
-                pivot = new TreeMap<>(pivot);
-                pivot.replaceAll((k, v) -> new TreeMap<>(v));
+                final Predicate<Person> filterPredicate = BuildPredicate.buildPredicate(filterExpression, Person.class);
+                scenario.getPopulation().getPersons().values().parallelStream()
+                        .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
+                        .filter(filterPredicate::test)
+                        .forEach(person -> {
+                            double idx = expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, indexVars));
+                            double col = expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(person, columnVars));
+                            double val = isSum ? expressionEvaluator.evaluate(attribute, collectAttributeStrings(person, attrVars)) : 1.0;
+                            acc.computeIfAbsent(idx, k -> new ConcurrentHashMap<>())
+                               .computeIfAbsent(col, k -> new DoubleAdder())
+                               .add(val);
+                        });
                 break;
             }
             case "Trips": {
-                if ("Sum".equals(s.pivots.get("aggregation").toString())) {
-                    pivot = scenario.getPopulation().getPersons().values().stream()
-                            .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
-                            .collect(Collectors.groupingBy(
-                                    person -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, requiredVariables.get("index_formula"), Person.class)),
-                                    // downstream collector: group by column and sum the values
-                                    Collectors.groupingBy(
-                                            person -> expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(person, requiredVariables.get("column_formula"), Person.class)),
-                                            Collectors.summingDouble(person -> expressionEvaluator.evaluate(attribute, collectAttributeStrings(person, requiredVariables.get("attribute"), Person.class)))
-                                    )
-                            ));
-                } else if ("Count".equals(s.pivots.get("aggregation").toString())) {
-                    pivot = scenario.getPopulation().getPersons().values().stream()
-                            .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
-                            .collect(Collectors.groupingBy(
-                                    person -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, requiredVariables.get("index_formula"), Person.class)),
-                                    // downstream collector: group by column and sum the values
-                                    Collectors.groupingBy(
-                                            person -> expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(person, requiredVariables.get("column_formula"), Person.class)),
-                                            Collectors.summingDouble(p -> 1.0)
-                                    )
-                            ));
-
-                }
-                // Zeilen und Spalten sortieren
-                pivot = new TreeMap<>(pivot);
-                pivot.replaceAll((k, v) -> new TreeMap<>(v));
+                // Note: pivot for "Trips" historically iterates Persons (treating attributes as person attributes).
+                // We keep that semantics but parallelize it.
+                scenario.getPopulation().getPersons().values().parallelStream()
+                        .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
+                        .forEach(person -> {
+                            double idx = expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, indexVars));
+                            double col = expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(person, columnVars));
+                            double val = isSum ? expressionEvaluator.evaluate(attribute, collectAttributeStrings(person, attrVars)) : 1.0;
+                            acc.computeIfAbsent(idx, k -> new ConcurrentHashMap<>())
+                               .computeIfAbsent(col, k -> new DoubleAdder())
+                               .add(val);
+                        });
                 break;
             }
             case "Zones": {
-                Predicate<Zone> filterPredicate = BuildPredicate.buildPredicate(filterExpression, Zone.class);
-                if ("Sum".equals(s.pivots.get("aggregation").toString())) {
-                    pivot = zones.getZones().stream()
-                            .filter(zone -> filterPredicate.test(zone))
-                            .collect(Collectors.groupingBy(
-                                    zone -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(zone, requiredVariables.get("indexName"), Zone.class)),
-                                    // downstream collector: group by column and sum the values
-                                    Collectors.groupingBy(
-                                            zone -> expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(zone, requiredVariables.get("columnName"), Zone.class)),
-                                            Collectors.summingDouble(zone -> expressionEvaluator.evaluate(attribute, collectAttributeStrings(zone, requiredVariables.get("attribute"), Zone.class)))
-                                    )
-                            ));
-                } else if ("Count".equals(s.pivots.get("aggregation").toString())) {
-                    pivot = zones.getZones().stream()
-                            .filter(zone -> filterPredicate.test(zone))
-                            .collect(Collectors.groupingBy(
-                                    person -> expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, requiredVariables.get("indexName"), Person.class)),
-                                    // downstream collector: group by column and sum the values
-                                    Collectors.groupingBy(
-                                            person -> expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(person, requiredVariables.get("columnName"), Person.class)),
-                                            Collectors.summingDouble(p -> 1.0)
-                                    )
-                            ));
-
-                }
-                // Zeilen und Spalten sortieren
-                pivot = new TreeMap<>(pivot);
-                pivot.replaceAll((k, v) -> new TreeMap<>(v));
+                final Predicate<Zone> filterPredicate = BuildPredicate.buildPredicate(filterExpression, Zone.class);
+                zones.getZones().parallelStream()
+                        .filter(filterPredicate::test)
+                        .forEach(zone -> {
+                            double idx = expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(zone, indexVars));
+                            double col = expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(zone, columnVars));
+                            double val = isSum ? expressionEvaluator.evaluate(attribute, collectAttributeStrings(zone, attrVars)) : 1.0;
+                            acc.computeIfAbsent(idx, k -> new ConcurrentHashMap<>())
+                               .computeIfAbsent(col, k -> new DoubleAdder())
+                               .add(val);
+                        });
                 break;
             }
+        }
+
+        // Sort rows and columns into TreeMaps for stable, deterministic output
+        Map<Double, Map<Double, Double>> pivot = new TreeMap<>();
+        for (Map.Entry<Double, ConcurrentHashMap<Double, DoubleAdder>> rowEntry : acc.entrySet()) {
+            TreeMap<Double, Double> row = new TreeMap<>();
+            for (Map.Entry<Double, DoubleAdder> colEntry : rowEntry.getValue().entrySet()) {
+                row.put(colEntry.getKey(), colEntry.getValue().sum());
+            }
+            pivot.put(rowEntry.getKey(), row);
         }
 
         String outputFile = config.data().outputBaseDir() + "/"+ config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
@@ -557,24 +871,27 @@ public class StatsWriter implements ModelStep {
                     person.getAttributes().putAttribute("subpopulation", "regular");
                 }
             }
-            if ("regular".equals(person.getAttributes().getAttribute("subpopulation"))) {
-                if (person.getAttributes().getAttribute("zone_id") == null) {
-                    if (person.getAttributes().getAttribute("residence_zone_id") != null) {
-                        person.getAttributes().putAttribute("zone_id", person.getAttributes().getAttribute("residence_zone_id"));
-                    }
+            // Only the "regular" subpopulation participates in mobi-plans statistics. Skip everything
+            // else (freight, cb_*, airport_*, ...) early to avoid NPEs (e.g. when destinations of
+            // freight/cb trips are outside the zonal layer) and to save substantial runtime.
+            if (!"regular".equals(person.getAttributes().getAttribute("subpopulation"))) {
+                continue;
+            }
+            if (person.getAttributes().getAttribute("zone_id") == null) {
+                if (person.getAttributes().getAttribute("residence_zone_id") != null) {
+                    person.getAttributes().putAttribute("zone_id", person.getAttributes().getAttribute("residence_zone_id"));
                 }
-                ;
-                if (person.getAttributes().getAttribute("active_in_model") == null) {
-                    person.getAttributes().putAttribute("active_in_model", true);
-                }
-                if (person.getAttributes().getAttribute("is_working_from_home") == null) {
-                    person.getAttributes().putAttribute("is_working_from_home", false);
-                }
-                if (person.getAttributes().getAttribute("age") == null) {
-                    person.getAttributes().putAttribute("age", 50);
-                    if ("65_to_74".equals(person.getAttributes().getAttribute("age_cat")) | "75_to_xx".equals(person.getAttributes().getAttribute("age_cat")))
-                        person.getAttributes().putAttribute("age", 66);
-                }
+            }
+            if (person.getAttributes().getAttribute("active_in_model") == null) {
+                person.getAttributes().putAttribute("active_in_model", true);
+            }
+            if (person.getAttributes().getAttribute("is_working_from_home") == null) {
+                person.getAttributes().putAttribute("is_working_from_home", false);
+            }
+            if (person.getAttributes().getAttribute("age") == null) {
+                person.getAttributes().putAttribute("age", 50);
+                if ("65_to_74".equals(person.getAttributes().getAttribute("age_cat")) | "75_to_xx".equals(person.getAttributes().getAttribute("age_cat")))
+                    person.getAttributes().putAttribute("age", 66);
             }
             if (person.getAttributes().getAttribute("current_job_rank") == null) {
                 person.getAttributes().putAttribute("current_job_rank", 0);
@@ -583,12 +900,19 @@ public class StatsWriter implements ModelStep {
                     for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
                         if (trip.getDestinationActivity().getType().toLowerCase().contains("work")) {
                             person.getAttributes().putAttribute("current_job_rank", 1);
+                            Zone destZone = (Zone) trip.getDestinationActivity().getAttributes().getAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE);
+                            if (destZone == null) {
+                                destZone = zones.findZone(trip.getDestinationActivity().getCoord());
+                                if (destZone == null) {
+                                    break;
+                                }
+                            }
                             if (trip.getDestinationActivity().getFacilityId() == trip.getOriginActivity().getFacilityId()) {
                                 person.getAttributes().putAttribute("is_working_from_home", true);
-                                person.getAttributes().putAttribute("work_zone_no", zones.findZone(trip.getDestinationActivity().getCoord()).getId().toString());
+                                person.getAttributes().putAttribute("work_zone_no", destZone.getId().toString());
                             } else {
-                                person.getAttributes().putAttribute("work_zone_no", zones.findZone(trip.getDestinationActivity().getCoord()).getId().toString());
-                                person.getAttributes().putAttribute("original_work_zone", zones.findZone(trip.getDestinationActivity().getCoord()));
+                                person.getAttributes().putAttribute("work_zone_no", destZone.getId().toString());
+                                person.getAttributes().putAttribute("original_work_zone", destZone);
                             }
                             break;
                         }

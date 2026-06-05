@@ -1,6 +1,8 @@
 package ch.sbb.matsim.plans.synpop.loading;
 
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
+import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.models.steps.ModelStep;
 import ch.sbb.matsim.plans.synpop.loading.arrow.BusinessesReader;
 import ch.sbb.matsim.plans.synpop.loading.arrow.HouseholdsReader;
@@ -51,8 +53,11 @@ public class SynpopLoader implements ModelStep {
         SynPopUtils.createFacilitiesForHouseholds(scenario);
         scenario.getPopulation().getPersons().values().forEach(
                 person -> {
-                    if (person.getAttributes().getAttribute("subpopulation") == null) {
-                        person.getAttributes().putAttribute("subpopulation", "regular");
+                    if (person.getAttributes().getAttribute(Variables.SUBPOPULATION) == null) {
+                        person.getAttributes().putAttribute(Variables.SUBPOPULATION, Variables.REGULAR);
+                    }
+                    if (person.getAttributes().getAttribute(SynpopConstants.ANALYSIS_SUBPOPULATION) == null) {
+                        person.getAttributes().putAttribute(SynpopConstants.ANALYSIS_SUBPOPULATION, Variables.REGULAR);
                     }
                 });
         logger.info("Finished loading. Total persons: " + scenario.getPopulation().getPersons().size());

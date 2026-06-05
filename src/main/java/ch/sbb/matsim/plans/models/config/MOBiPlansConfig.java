@@ -50,6 +50,7 @@ public record MOBiPlansConfig (
     public static final String REPORT_CONFIG_JSON = "report_config.json";
     public static final String WORK_FROM_HOME_MODEL_CSV = "work_from_home.csv";
     public static final String FLEXIBLE_WORKING_HOURS_CSV = "flexible_working_hours.csv";
+    public static final String STRATA_DEFINITIONS = "strata_definitions.csv";
 
     /**
      * Reads and parses the master configuration from a YAML file.

@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.stats;
 
+import ch.sbb.matsim.plans.models.steps.CombinedDestinationAndDurationChoiceModel;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import org.matsim.api.core.v01.Id;
@@ -26,6 +27,8 @@ public class Attributables {
 
         public static class TripAttributable implements Attributable {
             TripAttributes tripAttributes;
+            private ActivityAttributable cachedOrigin;
+            private ActivityAttributable cachedDestination;
 
             public TripAttributable(TripStructureUtils.Trip trip, Person person) {
                 this.tripAttributes = new TripAttributes(trip);
@@ -44,11 +47,17 @@ public class Attributables {
             }
 
             public ActivityAttributable getOriginActivity() {
-                return tripAttributes.getOriginActivity();
+                if (cachedOrigin == null) {
+                    cachedOrigin = tripAttributes.getOriginActivity();
+                }
+                return cachedOrigin;
             }
 
             public ActivityAttributable getDestinationActivity() {
-                return tripAttributes.getDestinationActivity();
+                if (cachedDestination == null) {
+                    cachedDestination = tripAttributes.getDestinationActivity();
+                }
+                return cachedDestination;
             }
         }
 
@@ -122,62 +131,62 @@ public class Attributables {
 
             TripAttributes(TripStructureUtils.Trip trip) {
                 this.trip = trip;
-                attributes = new HashMap<>();
+                attributes = new HashMap<>(16);
                 attributes.put("weight", 1);
-                attributes.put("mode", "-");
-                for (Leg leg: trip.getLegsOnly()) {
-                    if (leg.getMode() != null) {
-                        attributes.put("mode", leg.getMode());
+                String mode = "-";
+                for (Leg leg : trip.getLegsOnly()) {
+                    String legMode = leg.getMode();
+                    if (legMode != null) {
+                        mode = legMode;
                         break;
                     }
                 }
-                switch (attributes.get("mode").toString()) {
+                attributes.put("mode", mode);
+
+                double modeMIV = 0.0, modePt = 0.0, modeLV = 0.0;
+                switch (mode) {
                     case "car":
                     case "ride":
-                    case "avtaxi": {
-                        attributes.put("modeMIV", 1.0);
+                    case "avtaxi":
+                        modeMIV = 1.0;
                         break;
-                    }
-                    default: attributes.put("modeMIV", 0.0);
-                }
-
-                switch (attributes.get("mode").toString()) {
-                    case "pt": {
-                        attributes.put("modePt", 1.0);
+                    case "pt":
+                        modePt = 1.0;
                         break;
-                    }
-                    default: attributes.put("modePt", 0.0);
-                }
-
-                switch (attributes.get("mode").toString()) {
                     case "walk":
                     case "walk_main":
                     case "bike":
-                        attributes.put("modeLV", 1.0);
+                        modeLV = 1.0;
                         break;
                     default:
-                        attributes.put("modeLV", 0.0);
+                        // keep zeros
                 }
+                attributes.put("modeMIV", modeMIV);
+                attributes.put("modePt", modePt);
+                attributes.put("modeLV", modeLV);
 
-                attributes.put("distance", trip.getLegsOnly().stream().mapToDouble(leg -> {
+                double distance = 0.0;
+                double railDistance = 0.0;
+                for (Leg leg : trip.getLegsOnly()) {
                     Attributes atts = leg.getAttributes();
-                    Double d = null;
-                    d = (Double) atts.getAttribute("car_net_distance");
-                    if (d != null) return d/1000.0;
-                    Route r = leg.getRoute();
-                    if (r != null) {
-                        d = r.getDistance()/1000.0;
+                    Double d = (Double) atts.getAttribute("car_net_distance");
+                    if (d != null) {
+                        distance += d / 1000.0;
+                    } else {
+                        Route r = leg.getRoute();
+                        if (r != null) {
+                            distance += r.getDistance() / 1000.0;
+                        }
                     }
-                    return d == null ? 0.0 : d;
-                }).sum());
-                attributes.put("rail_distance", trip.getLegsOnly().stream().filter(leg -> leg.getMode().equals("rail")).mapToDouble(leg -> {
-                    Route r = leg.getRoute();
-                    Double d = null;
-                    if (r != null) {
-                        d = r.getDistance();
+                    if ("rail".equals(leg.getMode())) {
+                        Route r = leg.getRoute();
+                        if (r != null) {
+                            railDistance += r.getDistance();
+                        }
                     }
-                    return d == null ? 0.0 : d;
-                }).sum());
+                }
+                attributes.put("distance", distance);
+                attributes.put("rail_distance", railDistance);
             }
 
             public ActivityAttributable getOriginActivity() {
@@ -223,7 +232,8 @@ public class Attributables {
             }
 
             Zone getZone() {
-                return zones.findZone(activity.getCoord());
+                Zone zone = (Zone) activity.getAttributes().getAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE);
+                return zone==null?zones.findZone(activity.getCoord()):zone;
             }
             Id<ActivityFacility> getFacilityId() {
                 return activity.getFacilityId();

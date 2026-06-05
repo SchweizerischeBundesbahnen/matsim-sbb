@@ -7,9 +7,10 @@ import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrataRegistry;
 import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
-import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import com.google.inject.Inject;
@@ -26,12 +27,14 @@ public class ZoneBasedAccessibilities implements ModelStep{
     private final Zones zones;
     private final Matrices matrices;
     private final ModeImpedanceFormulaRepository formulaRepository;
+    private final DemandStrataRegistry demandStrataRegistry;
 
     @Inject
-    public ZoneBasedAccessibilities(Scenario scenario, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository ) {
+    public ZoneBasedAccessibilities(Scenario scenario, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, DemandStrataRegistry demandStrataRegistry) {
         this.zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
         this.matrices = matrices;
         this.formulaRepository = formulaRepository;
+        this.demandStrataRegistry = demandStrataRegistry;
     }
 
     public void run() {
@@ -42,7 +45,7 @@ public class ZoneBasedAccessibilities implements ModelStep{
         for (String accessibilityType: List.of(ZonalAttributes.ACCSIB_CAR, ZonalAttributes.ACCSIB_PT, ZonalAttributes.ACCSIB_MUL)) {
 
             Map<String, String> modeFormulas = formulaRepository.getModeFormulas("99",
-                    DecisionStrata.fromStrataName(accessibilityType));
+                    demandStrataRegistry.getByName(accessibilityType));
             Map<Id<Zone>, Double> calculatedAccessibilities = new ConcurrentHashMap<>();
 
             zones.getZones().parallelStream().forEach(origin -> {

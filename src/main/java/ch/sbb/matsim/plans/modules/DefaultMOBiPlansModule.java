@@ -6,13 +6,16 @@ import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
 import ch.sbb.matsim.plans.models.steps.*;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepositoryFromCSV;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrataRegistry;
+import ch.sbb.matsim.plans.models.steps.demandstrata.StrataConfigLoader;
 import ch.sbb.matsim.plans.models.steps.starttimechoice.StartTimeChoiceModel;
 import ch.sbb.matsim.plans.models.utils.MOBiPlansOutputWriter;
-import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
 import ch.sbb.matsim.plans.synpop.loading.SynpopLoader;
 import ch.sbb.matsim.zones.Zones;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Singleton;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -31,13 +34,12 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         super.configure();
         bind(MOBiPlansConfig.class).toInstance(config);
         bind(Scenario.class).toInstance(scenario);
-        //Zones, Matrices should be here immediately available after scenario creation
+        //Zones, Matrices and Strata definitions should be here immediately available after scenario creation
         bind(Zones.class).toProvider(MOBiZonesProvider.class).asEagerSingleton();
         bind(Matrices.class).toProvider(MOBiMatricesProvider.class).asEagerSingleton();
+        bind(ModeImpedanceFormulaRepository.class).to(ModeImpedanceFormulaRepositoryFromCSV.class).asEagerSingleton();
 
         //the following are lazy singletons
-        bind(ModeImpedanceFormulaRepository.class).toInstance(new ModeImpedanceFormulaRepositoryFromCSV(Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString()));
-        bind(StrataPredicateFactory.class).toInstance(new StrataPredicateFactory());
         bind(TourBuildingModel.class);
         bind(CombinedDestinationAndDurationChoiceModel.class);
         Multibinder<ModelStep> multibinder = Multibinder.newSetBinder(binder(), ModelStep.class);
@@ -67,5 +69,11 @@ public class DefaultMOBiPlansModule extends AbstractModule {
 
     public Scenario getScenario() {
         return scenario;
+    }
+
+    @Provides
+    @Singleton
+    public DemandStrataRegistry provideDemandStrataRegistry() {
+        return StrataConfigLoader.createAndLoad(config);
     }
 }

@@ -13,16 +13,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.households.HouseholdsWriterV10;
+import org.matsim.utils.objectattributes.attributable.AttributesUtils;
 
 import java.io.BufferedWriter;
 import java.util.List;
@@ -70,7 +68,7 @@ public class MOBiPlansOutputWriter implements ModelStep {
         new HouseholdsWriterV10(scenario.getHouseholds()).writeFile(outputDirPrefix+"households.xml.zst");
         ZoneGeoPackageWriter.writeGeoPackage(zones, outputDirPrefix+"mobi_zones.gpkg");
         ZoneGeoPackageWriter.writeAttributesToCSV(zones, outputDirPrefix+"mobi_zones.csv");
-        writePopulationAttributes(scenario.getPopulation(),outputDirPrefix+"population_attributes.csv.gz");
+        writePopulationAttributes(scenario.getPopulation(),outputDirPrefix+"population_attributes.csv.zst");
         /*
         produce a plans file with only those attributes needed in MATSim
          */
@@ -128,8 +126,14 @@ public class MOBiPlansOutputWriter implements ModelStep {
         Population population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
         scenario.getPopulation().getPersons().values().stream()
                 .filter(person -> !(person.getSelectedPlan() == null))
-                .forEach(person -> population.addPerson(person));
-
+                .forEach(person -> {
+                    var copiedPerson = population.getFactory().createPerson(person.getId());
+                    AttributesUtils.copyAttributesFromTo( person,copiedPerson );
+                    Plan plan = PopulationUtils.getFactory().createPlan();
+                    copiedPerson.addPlan(plan);
+                    PopulationUtils.copyFromTo(person.getSelectedPlan(),plan);
+                    population.addPerson(copiedPerson);
+                });
 
 
         population.getPersons().values().forEach(

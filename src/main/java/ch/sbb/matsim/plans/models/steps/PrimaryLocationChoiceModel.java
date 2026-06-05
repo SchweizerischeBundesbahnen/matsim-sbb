@@ -8,12 +8,12 @@ import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.config.PrimaryLocationChoiceConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrataRegistry;
 import ch.sbb.matsim.plans.models.utils.ChoiceUtils;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
-import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
 import ch.sbb.matsim.plans.models.utils.WriteDataRelationAsMatrix;
 import ch.sbb.matsim.plans.models.utils.analysis.AnalyzeDistanceDistribution;
-import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
 import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -32,7 +32,6 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -48,7 +47,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
     private final ModeImpedanceFormulaRepository formulaRepository;
     private final ExpressionEvaluator expressionEvaluator;
     private final PrimaryLocationChoiceConfig primaryLocationChoiceConfig;
-    private final StrataPredicateFactory strataPredicateFactory;
+    private final DemandStrataRegistry demandStrataRegistry;
     private static final Logger logger = LogManager.getLogger(PrimaryLocationChoiceModel.class);
     private final ForkJoinPool customThreadPool;
     private final boolean writeDetailedAnalysis;
@@ -57,13 +56,13 @@ public class PrimaryLocationChoiceModel implements ModelStep{
 
 
     @Inject
-    public PrimaryLocationChoiceModel(Scenario scenario, MOBiPlansConfig moBiPlansConfig, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, MobilityToolOwnershipModel mobilityToolOwnershipModel, StrataPredicateFactory strataPredicateFactory ) {
+    public PrimaryLocationChoiceModel(Scenario scenario, MOBiPlansConfig moBiPlansConfig, Zones zones, Matrices matrices, ModeImpedanceFormulaRepository formulaRepository, MobilityToolOwnershipModel mobilityToolOwnershipModel, DemandStrataRegistry demandStrataRegistry) {
         this.scenario = scenario;
         this.zones =  zones;
         this.matrices = matrices;
         this.formulaRepository = formulaRepository;
         this.primaryLocationChoiceConfig = PrimaryLocationChoiceConfig.readFromYamlFile(Paths.get(moBiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CONFIG).resolve(MOBiPlansConfig.PRIMARY_LOCATION_CHOICE_CONFIG_YAML).toString());
-        this.strataPredicateFactory = strataPredicateFactory;
+        this.demandStrataRegistry = demandStrataRegistry;
         this.expressionEvaluator = new ExpressionEvaluator();
         this.writeDetailedAnalysis = moBiPlansConfig.models().write_analysis();
         this.customThreadPool = new ForkJoinPool(moBiPlansConfig.models().threads());
@@ -100,11 +99,11 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         Instant startAttraction = Instant.now();
 
         // Group strata by their shared attraction attribute.
-        Map<String, List<Map.Entry<DecisionStrata, PrimaryLocationChoiceConfig.StrataConfigRecord>>> strataByAttraction =
+        Map<String, List<Map.Entry<String, PrimaryLocationChoiceConfig.StrataConfigRecord>>> strataByAttraction =
                 activityConfig.strataConfigs().entrySet().stream()
                         .collect(Collectors.groupingBy(entry -> entry.getValue().attractionAttributeName()));
 
-        for (Map.Entry<String, List<Map.Entry<DecisionStrata, PrimaryLocationChoiceConfig.StrataConfigRecord>>> attractionGroup : strataByAttraction.entrySet()) {
+        for (Map.Entry<String, List<Map.Entry<String, PrimaryLocationChoiceConfig.StrataConfigRecord>>> attractionGroup : strataByAttraction.entrySet()) {
             runForAttractionGroup(activityConfig, attractionGroup.getKey(), attractionGroup.getValue());
         }
         logger.info("===== Finished activity '{}' in {} =====", activityConfig.activityName(), Duration.between(startAttraction, Instant.now()));
@@ -230,7 +229,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         return probabilities;
     }
 
-    private void runForAttractionGroup(PrimaryLocationChoiceConfig.ActivityConfigRecord activityConfig, String attractionAttribute, List<Map.Entry<DecisionStrata, PrimaryLocationChoiceConfig.StrataConfigRecord>> strataGroup) {
+    private void runForAttractionGroup(PrimaryLocationChoiceConfig.ActivityConfigRecord activityConfig, String attractionAttribute, List<Map.Entry<String, PrimaryLocationChoiceConfig.StrataConfigRecord>> strataGroup) {
         logger.info("--- Starting attraction group '{}' with {} strata. ---", attractionAttribute, strataGroup.size());
         Instant startGroup = Instant.now();
 
@@ -242,18 +241,18 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         int totalPersonsInGroup = 0;
 
         for (var strataEntry : strataGroup) {
-            PerStrataData data = new PerStrataData(strataEntry);
-            Predicate<Person> strataPredicate = strataPredicateFactory.getPredicate(data.strata);
+            DemandStrata strata = demandStrataRegistry.getByName(strataEntry.getKey());
+            PerStrataData data = new PerStrataData(strata,strataEntry.getValue());
 
             Map<Id<Zone>, List<Person>> personsByZoneInStrata = scenario.getPopulation().getPersons().values().stream()
-                    .filter(strataPredicate)
+                    .filter(data.strata)
                     .collect(Collectors.groupingBy(p -> Id.create(p.getAttributes().getAttribute(SynpopConstants.ZONE_ID).toString(), Zone.class)));
 
             if (personsByZoneInStrata.isEmpty()) continue;
 
             int personCount = personsByZoneInStrata.values().stream().mapToInt(List::size).sum();
             totalPersonsInGroup += personCount;
-            logger.info("  - Found {} persons in {} active origin zones for strata '{}'", personCount, personsByZoneInStrata.size(), data.strata.getStrataName());
+            logger.info("  - Found {} persons in {} active origin zones for strata '{}'", personCount, personsByZoneInStrata.size(), data.strata.getName());
 
 
             data.personsByZone.putAll(personsByZoneInStrata);
@@ -450,14 +449,14 @@ public class PrimaryLocationChoiceModel implements ModelStep{
 
     // Helper class to hold data for each stratum within a group
     public static class PerStrataData {
-        public final DecisionStrata strata;
+        public final DemandStrata strata;
         final PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig;
         final List<Person> persons;
         final Map<Id<Zone>, List<Person>> personsByZone;
 
-        public PerStrataData(Map.Entry<DecisionStrata, PrimaryLocationChoiceConfig.StrataConfigRecord> strataEntry) {
-            this.strata = strataEntry.getKey();
-            this.strataConfig = strataEntry.getValue();
+        public PerStrataData(DemandStrata strata, PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig) {
+            this.strata = strata;
+            this.strataConfig = strataConfig;
             this.persons = new ArrayList<>();
             this.personsByZone = new HashMap<>();
         }

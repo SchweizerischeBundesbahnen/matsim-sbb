@@ -129,8 +129,6 @@ public class AssignFacilityLocations implements ModelStep{
                         log.debug("Fallback: No facilities for '{}' in Zone {}. Using zone centroid.", lookupKey.activityType, lookupKey.zoneId);
                     }
 
-                    // Clean up the temporary attribute so it doesn't bloat the final output XML
-                    act.getAttributes().removeAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE);
                 }
             }
             }

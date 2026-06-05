@@ -58,7 +58,7 @@ public class MOBiPlansRunner implements Runnable{
             MERGE_EXOGENOUS_PLANS,
             WRITE_OUTPUTS,
             WRITE_STATS
-    );
+            );
     private final MOBiPlansConfig config;
 
     private final Injector injector; // The ultimate factory

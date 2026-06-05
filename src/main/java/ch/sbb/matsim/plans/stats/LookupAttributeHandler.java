@@ -128,18 +128,26 @@ public class LookupAttributeHandler {
 
     public void setLookupAttributes(Collection<? extends Person> persons, Zones zones){
         if (lookupVariables.keySet().contains("Persons")) {
-            persons.stream()
+            persons.parallelStream()
                     .filter(person -> "regular".equals(person.getAttributes().getAttribute("subpopulation")))
                     .forEach(person -> {
-                person.getAttributes().putAttribute("zone", zones.getZone(Id.create(person.getAttributes().getAttribute("zone_id").toString(), Zone.class)));
-                if (person.getAttributes().getAttribute("work_zone_no")!= null) person.getAttributes().putAttribute("work_zone", zones.getZone(Id.create(person.getAttributes().getAttribute("work_zone_no").toString(), Zone.class)));
+                Object zoneId = person.getAttributes().getAttribute("zone_id");
+                if (zoneId != null) {
+                    Zone z = zones.getZone(Id.create(zoneId.toString(), Zone.class));
+                    if (z != null) person.getAttributes().putAttribute("zone", z);
+                }
+                Object workZoneNo = person.getAttributes().getAttribute("work_zone_no");
+                if (workZoneNo != null) {
+                    Zone wz = zones.getZone(Id.create(workZoneNo.toString(), Zone.class));
+                    if (wz != null) person.getAttributes().putAttribute("work_zone", wz);
+                }
                 for (String attr : lookupVariables.get("Persons").keySet()) {
                     person.getAttributes().putAttribute(lookupVariables.get("Persons").get(attr), getFieldValue(person, attr, Person.class));
                 }
             });
         }
         if (lookupVariables.keySet().contains("Zones")) {
-            zones.getZones().stream().forEach(zone -> {
+            zones.getZones().parallelStream().forEach(zone -> {
                 for (String attr : lookupVariables.get("Zones").keySet()) {
                     zone.getAttributes().putAttribute(lookupVariables.get("Zones").get(attr), getFieldValue(zone, attr, Zone.class));
                 }
@@ -148,11 +156,12 @@ public class LookupAttributeHandler {
     }
 
     public Map<String, Object> getLookupAttributesForTrip(Attributable obj) {
-        Map<String, Object> lookupAttributes = new HashMap<>();
-        if (lookupVariables.keySet().contains("Trips")) {
-            for (String attr : lookupVariables.get("Trips").keySet()) {
-                lookupAttributes.put(lookupVariables.get("Trips").get(attr), getFieldValue(obj, attr, obj.getClass()));
-            }
+        Map<String, String> tripVars = lookupVariables.get("Trips");
+        if (tripVars == null || tripVars.isEmpty()) return Collections.emptyMap();
+        Map<String, Object> lookupAttributes = new HashMap<>(tripVars.size() * 2);
+        Class<? extends Attributable> clazz = obj.getClass();
+        for (Map.Entry<String, String> e : tripVars.entrySet()) {
+            lookupAttributes.put(e.getValue(), getFieldValue(obj, e.getKey(), clazz));
         }
         return lookupAttributes;
     }

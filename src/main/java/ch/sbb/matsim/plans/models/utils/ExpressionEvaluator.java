@@ -4,6 +4,8 @@ import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import net.objecthunter.exp4j.function.Function;
 import net.objecthunter.exp4j.operator.Operator;
+import org.matsim.utils.objectattributes.attributable.Attributable;
+import org.matsim.utils.objectattributes.attributable.Attributes;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -49,6 +51,27 @@ public class ExpressionEvaluator {
 
         // 3. Set the variables and evaluate (Thread-safe because the Expression instance is private to this thread)
         expression.setVariables(variableData);
+        return expression.evaluate();
+    }
+
+    /**
+     * Allocation-free variant: reads the required variables directly from the Attributable
+     * and pushes them into the cached Expression via {@link Expression#setVariable(String,double)}.
+     * Avoids the HashMap allocation that {@link #evaluate(String,Map)} would require.
+     */
+    public double evaluate(String formulaString, String[] requiredShortVars, Attributable obj) {
+        Map<String, Expression> cache = expressionCache.get();
+        Expression expression = cache.computeIfAbsent(formulaString, this::compileExpression);
+        if (requiredShortVars != null && requiredShortVars.length > 0 && obj != null) {
+            Attributes attrs = obj.getAttributes();
+            for (String var : requiredShortVars) {
+                if (var == null) continue;
+                Object v = attrs.getAttribute(var);
+                if (v instanceof Number) {
+                    expression.setVariable(var, ((Number) v).doubleValue());
+                }
+            }
+        }
         return expression.evaluate();
     }
 

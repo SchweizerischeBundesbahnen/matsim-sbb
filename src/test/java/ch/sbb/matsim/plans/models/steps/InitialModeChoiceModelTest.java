@@ -9,8 +9,7 @@ import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
-import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
-import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.AttributableZone;
 import ch.sbb.matsim.zones.Zone;
@@ -42,7 +41,6 @@ class InitialModeChoiceModelTest {
     private MOBiPlansConfig mobiPlansConfig;
     private Matrices dummyMatrices;
     private ModeImpedanceFormulaRepository dummyFormulaRepo;
-    private StrataPredicateFactory dummyStrataFactory;
     private ExpressionEvaluator dummyEvaluator;
 
     @BeforeEach
@@ -133,18 +131,11 @@ class InitialModeChoiceModelTest {
         };
 
         // 5. Setup Formulas and Strata Stubs
-        DecisionStrata dummyStrata = DecisionStrata.PRIMLOC_EMPL_NOABO_CAR;
-
-        dummyStrataFactory = new StrataPredicateFactory() {
-            @Override
-            public Predicate<Person> getPredicate(DecisionStrata strata) {
-                return _ -> true; // Applies to everyone in this test
-            }
-        };
+        DemandStrata dummyStrata = new  DemandStrata("default", DemandStrata.Type.PRIMARY_DESTINATION,null);
 
         dummyFormulaRepo = new ModeImpedanceFormulaRepository() {
             @Override
-            public Map<String, Set<DecisionStrata>> getStratasPerActivityType() {
+            public Map<String, Set<DemandStrata>> getStratasPerActivityType() {
                 return Map.of(
                         SBBActivities.work, Set.of(dummyStrata),
                         SBBActivities.leisure, Set.of(dummyStrata)
@@ -152,7 +143,7 @@ class InitialModeChoiceModelTest {
             }
 
             @Override
-            public Map<String, String> getModeFormulas(String activityType, DecisionStrata strata) {
+            public Map<String, String> getModeFormulas(String activityType, DemandStrata strata) {
                 if (SBBActivities.work.equals(activityType)) {
                     return Map.of(SBBModes.CAR, "car_work_util", SBBModes.PT, "pt_work_util");
                 } else if (SBBActivities.leisure.equals(activityType)) {
@@ -215,7 +206,7 @@ class InitialModeChoiceModelTest {
         scenario.getPopulation().addPerson(p1);
 
         // 2. Run Model
-        InitialModeChoiceModel model = new InitialModeChoiceModel(dummyMatrices, scenario, mobiPlansConfig, dummyFormulaRepo, dummyStrataFactory, dummyEvaluator);
+        InitialModeChoiceModel model = new InitialModeChoiceModel(dummyMatrices, scenario, mobiPlansConfig, dummyFormulaRepo, dummyEvaluator);
         model.run();
 
         // 3. Assertions
@@ -239,7 +230,7 @@ class InitialModeChoiceModelTest {
         scenario.getPopulation().addPerson(p2);
 
         // 2. Run Model
-        InitialModeChoiceModel model = new InitialModeChoiceModel(dummyMatrices, scenario, mobiPlansConfig, dummyFormulaRepo, dummyStrataFactory, dummyEvaluator);
+        InitialModeChoiceModel model = new InitialModeChoiceModel(dummyMatrices, scenario, mobiPlansConfig, dummyFormulaRepo, dummyEvaluator);
         model.run();
 
         // 3. Assertions
@@ -278,7 +269,7 @@ class InitialModeChoiceModelTest {
 
         // 3. Run Model
         InitialModeChoiceModel model = new InitialModeChoiceModel(
-                dummyMatrices, scenario, mobiPlansConfig, dummyFormulaRepo, dummyStrataFactory, dummyEvaluator);
+                dummyMatrices, scenario, mobiPlansConfig, dummyFormulaRepo, dummyEvaluator);
         model.run();
 
         // 4. Assertions

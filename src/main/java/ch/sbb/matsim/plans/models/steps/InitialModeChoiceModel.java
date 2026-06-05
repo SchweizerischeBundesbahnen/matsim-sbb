@@ -11,8 +11,7 @@
     import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
     import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
     import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
-    import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
-    import ch.sbb.matsim.plans.synpop.DecisionStrata;
+    import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
     import ch.sbb.matsim.plans.synpop.SynPopUtils;
     import ch.sbb.matsim.plans.tours.Tour;
     import ch.sbb.matsim.zones.Zone;
@@ -35,7 +34,6 @@
         private final Scenario scenario;
         private final MOBiPlansConfig moBiPlansConfig;
         private final ModeImpedanceFormulaRepository modeImpedanceFormulaRepository;
-        private final StrataPredicateFactory strataPredicateFactory;
         private final ExpressionEvaluator expressionEvaluator; // NEW: Required for formulas
         private final FloatMatrix<Id<Zone>> networkDistances;
         private final PopulationFactory populationFactory;
@@ -47,13 +45,11 @@
         @Inject
         public InitialModeChoiceModel(Matrices matrices, Scenario scenario, MOBiPlansConfig moBiPlansConfig,
                                       ModeImpedanceFormulaRepository modeImpedanceFormulaRepository,
-                                      StrataPredicateFactory strataPredicateFactory,
                                       ExpressionEvaluator expressionEvaluator) {
             this.matrices = matrices;
             this.scenario = scenario;
             this.moBiPlansConfig = moBiPlansConfig;
             this.modeImpedanceFormulaRepository = modeImpedanceFormulaRepository;
-            this.strataPredicateFactory = strataPredicateFactory;
             this.expressionEvaluator = expressionEvaluator;
             this.networkDistances = matrices.getTravelMetricsMatrix(MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE);
             this.populationFactory = scenario.getPopulation().getFactory();
@@ -225,11 +221,11 @@
 
         private String chooseMode(LegInTour longestDistanceLeg, String activityType, Person person, Set<String> availableModes, Random random) {
 
-            DecisionStrata strata = getStrataForPersonAndActivity(person, activityType);
+            DemandStrata strata = getStrataForPersonAndActivity(person, activityType);
             Map<String, String> modeFormulas = modeImpedanceFormulaRepository.getModeFormulas(activityType, strata);
 
             if (modeFormulas == null || modeFormulas.isEmpty()) {
-                throw new IllegalStateException("No mode formulas found for activity '" + activityType + "' and strata '" + strata.getStrataName() + "'");
+                throw new IllegalStateException("No mode formulas found for activity '" + activityType + "' and strata '" + strata.getName() + "'");
             }
 
             // Fetch the travel metrics for this specific O-D pair
@@ -300,14 +296,14 @@
 
         }
 
-        private DecisionStrata getStrataForPersonAndActivity(Person person, String type) {
-            Set<DecisionStrata> decisionStrata = modeImpedanceFormulaRepository.getStratasPerActivityType().get(type);
-            if (decisionStrata == null || decisionStrata.isEmpty()){
+        private DemandStrata getStrataForPersonAndActivity(Person person, String type) {
+            Set<DemandStrata> demandStrata = modeImpedanceFormulaRepository.getStratasPerActivityType().get(type);
+            if (demandStrata == null || demandStrata.isEmpty()){
                 throw new RuntimeException(" no strata found for activity "+ type + " found activity types: " + modeImpedanceFormulaRepository.getStratasPerActivityType().entrySet());
             }
 
-            return decisionStrata.stream()
-                    .filter(strata -> strataPredicateFactory.getPredicate(strata).test(person))
+            return demandStrata.stream()
+                    .filter(strata -> strata.test(person))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("No strata found for person " + person.getId() + " and activity type " + type));
         }

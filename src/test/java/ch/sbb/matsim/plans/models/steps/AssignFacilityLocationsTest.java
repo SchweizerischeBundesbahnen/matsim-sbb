@@ -152,7 +152,5 @@ class AssignFacilityLocationsTest {
         assertEquals(300.0, shopAct.getCoord().getX());
         assertEquals(Id.create("shop_fac_1", ActivityFacility.class), shopAct.getFacilityId());
 
-        // 4. Ensure temporary assigned_zone attribute is scrubbed
-        assertNull(shopAct.getAttributes().getAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE));
     }
 }

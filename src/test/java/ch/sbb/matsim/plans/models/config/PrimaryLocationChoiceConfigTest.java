@@ -1,14 +1,13 @@
 package ch.sbb.matsim.plans.models.config;
 
 import ch.sbb.matsim.plans.matrices.MatrixNames;
-import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,12 +46,12 @@ class PrimaryLocationChoiceConfigTest {
                     personResultAttributeName: "work_zone_no"
                     strataConfigs:
                       # This strata has NO matrixFactor, so it should default to 1.0
-                      PRIMLOC_EMPL_NOABO_CAR:
+                      test_strata_without_matrix_factor:
                         attractionAttributeName: "jobs_endo"
                         kalifMatrixName: "KALIF_WORK"
                         ipfIterations: 10
                       # This strata has a specific matrixFactor
-                      PRIMLOC_EMPL_GA_CAR_GG:
+                      test_strata_with_matrix_factor:
                         attractionAttributeName: "jobs_exo"
                         kalifMatrixName: "KALIF_WORK_CB"
                         matrixFactor: 0.75
@@ -60,7 +59,7 @@ class PrimaryLocationChoiceConfigTest {
                   - activityName: "education"
                     personResultAttributeName: "school_zone_no"
                     strataConfigs:
-                      PRIMLOC_STUD_PRIM:
+                      test_strata_school:
                         attractionAttributeName: "schl_enr_1"
                         kalifMatrixName: "KALIF_EDUCATION_PRIM"
                         ipfIterations: 5
@@ -94,8 +93,8 @@ class PrimaryLocationChoiceConfigTest {
         assertEquals(2, workConfig.strataConfigs().size(), "Work config should contain 2 strata configurations.");
 
         // Assert details of a specific strata
-        PrimaryLocationChoiceConfig.StrataConfigRecord noAboCarStrata = workConfig.strataConfigs().get(DecisionStrata.PRIMLOC_EMPL_NOABO_CAR);
-        assertNotNull(noAboCarStrata, "Strata config for PRIMLOC_EMPL_NOABO_CAR should exist.");
+        PrimaryLocationChoiceConfig.StrataConfigRecord noAboCarStrata = workConfig.strataConfigs().get("test_strata_without_matrix_factor");
+        assertNotNull(noAboCarStrata, "Strata config for test_strata should exist.");
         assertEquals("jobs_endo", noAboCarStrata.attractionAttributeName());
         assertEquals(MatrixNames.KalifMatrices.KALIF_WORK, noAboCarStrata.kalifMatrixName());
         assertEquals(10, noAboCarStrata.ipfIterations());
@@ -106,7 +105,7 @@ class PrimaryLocationChoiceConfigTest {
         // Get the specific strata config that we know has no matrixFactor defined in the YAML
         PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig = loadedConfig.getPrimaryLocationChoiceConfigs().stream()
                 .filter(c -> "work".equals(c.activityName())).findFirst().get()
-                .strataConfigs().get(DecisionStrata.PRIMLOC_EMPL_NOABO_CAR);
+                .strataConfigs().get("test_strata_without_matrix_factor");
 
         // The 'matrixFactor' field itself should be null
         assertNull(strataConfig.matrixFactor(), "The raw matrixFactor field should be null when omitted from YAML.");
@@ -121,7 +120,7 @@ class PrimaryLocationChoiceConfigTest {
         // Get the specific strata config that we know has a matrixFactor defined
         PrimaryLocationChoiceConfig.StrataConfigRecord strataConfig = loadedConfig.getPrimaryLocationChoiceConfigs().stream()
                 .filter(c -> "work".equals(c.activityName())).findFirst().get()
-                .strataConfigs().get(DecisionStrata.PRIMLOC_EMPL_GA_CAR_GG);
+                .strataConfigs().get("test_strata_with_matrix_factor");
 
         // The convenience getter should return the specified value
         assertEquals(0.75, strataConfig.getMatrixFactor(),
@@ -147,7 +146,7 @@ class PrimaryLocationChoiceConfigTest {
                   - activityName: "work"
                     personResultAttributeName: "work_zone_no"
                     strataConfigs:
-                      PRIMLOC_EMPL_NOABO_CAR:
+                      test_strata:
                         attractionAttributeName: "jobs_endo"
                         kalifMatrixName: "THIS_IS_NOT_A_VALID_ENUM_VALUE"
                         ipfIterations: 10

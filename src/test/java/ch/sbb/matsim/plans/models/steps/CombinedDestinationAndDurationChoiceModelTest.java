@@ -8,8 +8,8 @@ import ch.sbb.matsim.plans.matrices.Matrices;
 import ch.sbb.matsim.plans.matrices.MatrixNames;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepository;
-import ch.sbb.matsim.plans.models.utils.StrataPredicateFactory;
-import ch.sbb.matsim.plans.synpop.DecisionStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrata;
+import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrataRegistry;
 import ch.sbb.matsim.plans.tours.Tour;
 import ch.sbb.matsim.zones.AttributableZone;
 import ch.sbb.matsim.zones.Zone;
@@ -45,7 +45,7 @@ class CombinedDestinationAndDurationChoiceModelTest {
     private Zones zones;
     private Matrices dummyMatrices;
     private ModeImpedanceFormulaRepository dummyFormulaRepo;
-    private StrataPredicateFactory dummyStrataFactory;
+    private DemandStrataRegistry demandStrataRegistry;
 
     private Person person;
     private Zone homeZone;
@@ -110,24 +110,19 @@ class CombinedDestinationAndDurationChoiceModelTest {
     }
 
     private void setupDummies() {
-        // Dummy Strata Factory (Always returns true so our person is matched)
-        dummyStrataFactory = new StrataPredicateFactory() {
-            @Override
-            public Predicate<Person> getPredicate(DecisionStrata strata) {
-                return p -> true;
-            }
-        };
+        demandStrataRegistry = new DemandStrataRegistry();
+        demandStrataRegistry.register(new DemandStrata("default", DemandStrata.Type.SECONDARY_DESTINATION,null));
 
         // Dummy Formula Repository (Returns a simple travel time penalty)
         dummyFormulaRepo = new ModeImpedanceFormulaRepository() {
             @Override
-            public Map<String, String> getModeFormulas(String activityType, DecisionStrata strata) {
+            public Map<String, String> getModeFormulas(String activityType, DemandStrata strata) {
                 // Changed from -0.1 to -0.01 so it evaluates to -6.0 instead of -60.0!
                 return Map.of("car", "-0.01 * matrix_car_travel_times");
             }
 
             @Override
-            public Map<String, Set<DecisionStrata>> getStratasPerActivityType() {
+            public Map<String, Set<DemandStrata>> getStratasPerActivityType() {
                 return Map.of();
             }
         };
@@ -209,7 +204,7 @@ class CombinedDestinationAndDurationChoiceModelTest {
 
         // 2. Act
         CombinedDestinationAndDurationChoiceModel model = new CombinedDestinationAndDurationChoiceModel(
-                scenario, mobiPlansConfig, zones, dummyMatrices, dummyFormulaRepo, dummyStrataFactory);
+                scenario, mobiPlansConfig, zones, dummyMatrices, dummyFormulaRepo, demandStrataRegistry);
 
         // Build the caches (Kalif, Logsum, Blended TT)
         model.prepare();
