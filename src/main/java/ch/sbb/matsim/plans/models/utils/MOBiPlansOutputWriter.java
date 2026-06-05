@@ -50,6 +50,7 @@ public class MOBiPlansOutputWriter implements ModelStep {
             SynpopConstants.CURRENT_JOB_RANK,
             SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT,
             SynpopConstants.PEDESTRIAN_SPEED,
+            Variables.SUBPOPULATION,
             Variables.SLICE);
     List<String> activityAttributesToKeep =  List.of(Variables.MOBiTripAttributes.PURPOSE,Variables.MOBiTripAttributes.DIRECTION, Variables.MOBiTripAttributes.DNWV_FACTOR);
 
