@@ -1,5 +1,7 @@
 package ch.sbb.matsim.plans.models.utils;
 
+import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.plans.constants.SynpopConstants;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
 public final class AttributeUtils {
@@ -60,5 +62,37 @@ public final class AttributeUtils {
             }
         }
         return defaultValue;
+    }
+
+    public static boolean hasEbike45(Attributable attributable) {
+        return hasSomething(attributable, SynpopConstants.HAS_EBIKE45);
+    }
+    public static boolean hasDrivingLicense(Attributable attributable) {
+        return hasSomething(attributable, SynpopConstants.HAS_DRIVING_LICENSE);
+    }
+    public static boolean hasCarAvailable(Attributable attributable) {
+        return hasSomething(attributable, SynpopConstants.CAR_AVAILABLE);
+    }
+
+    public static boolean hasSomething(Attributable attributable, String attributeName) {
+        Object val = attributable.getAttributes().getAttribute(attributeName);
+        if (val == null) {
+            return false;
+        }
+        if (val instanceof Boolean b) {
+            return b.booleanValue(); }
+        if (val instanceof Number) {
+            return ((Number) val).intValue() != 0;
+        }
+        if (val instanceof String) {
+            if ("1".equals(val.toString())) {
+                return true;
+            }
+            else if ("0".equals(val.toString())) {
+                return false; }
+            else {
+                return Boolean.parseBoolean(val.toString()); }
+        }
+        return false;
     }
 }

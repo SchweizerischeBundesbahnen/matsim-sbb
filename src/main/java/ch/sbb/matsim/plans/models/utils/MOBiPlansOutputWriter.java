@@ -3,8 +3,10 @@ package ch.sbb.matsim.plans.models.utils;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
+import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.steps.ModelStep;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
+import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.ZoneGeoPackageWriter;
 import ch.sbb.matsim.zones.Zones;
 import jakarta.inject.Inject;
@@ -46,6 +48,8 @@ public class MOBiPlansOutputWriter implements ModelStep {
             Variables.PT_SUBSCRIPTION,
             SynpopConstants.RESIDENCE_ZONE_ID,
             SynpopConstants.RESIDENCE_AMR_ID,
+            "residence_msr_id",
+            SynpopConstants.AGE_CAT,
             SynpopConstants.CURRENT_EDU,
             SynpopConstants.CURRENT_JOB_RANK,
             SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT,
@@ -163,6 +167,21 @@ public class MOBiPlansOutputWriter implements ModelStep {
                     int ageCat = AttributeUtils.getAsInteger(person,SynpopConstants.AGE_CAT,-1);
                     if (ageCat != -1){
                         person.getAttributes().putAttribute(SynpopConstants.AGE_CAT, SynpopConstants.AGE_CATEGORIES.get(ageCat));
+                    }
+                    Boolean carAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE);
+                    int car = Boolean.TRUE.equals(carAvailable) ? 1 : 0;
+                    person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, car);
+                    Boolean licenseAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
+                    int license = Boolean.TRUE.equals(licenseAvailable) ? 1 : 0;
+                    person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, license);
+                    Boolean ebikeAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_EBIKE45);
+                    int ebike = Boolean.TRUE.equals(ebikeAvailable) ? 1 : 0;
+                    person.getAttributes().putAttribute(SynpopConstants.HAS_EBIKE45, ebike);
+                    Zone zone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
+                    if (zone != null) {
+                    person.getAttributes().putAttribute(SynpopConstants.RESIDENCE_ZONE_ID, zone.getId().toString());
+                    person.getAttributes().putAttribute(SynpopConstants.RESIDENCE_AMR_ID, zone.getAttributes().getAttribute(ZonalAttributes.AMR_ID).toString());
+                    person.getAttributes().putAttribute("residence_msr_id", zone.getAttributes().getAttribute(ZonalAttributes.MSR_ID).toString());
                     }
                 }
         );

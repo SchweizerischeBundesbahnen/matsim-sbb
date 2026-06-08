@@ -3,6 +3,7 @@ package ch.sbb.matsim.replanning;
 import ch.sbb.matsim.config.SBBReplanningConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import jakarta.inject.Inject;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
@@ -45,9 +46,9 @@ public class SBBPermissibleModesCalculator implements PermissibleModesCalculator
 			final boolean carAvailToAgent = switch (carModeAllowedSetting) {
 				case always -> true;
 				case carAvailable ->
-                        Objects.equals(String.valueOf(person.getAttributes().getAttribute(Variables.CAR_AVAIL)), Variables.AVAIL_TRUE);
+                        AttributeUtils.hasCarAvailable(person);
 				case licenseAvailable ->
-						Objects.equals(String.valueOf(person.getAttributes().getAttribute(Variables.HAS_DRIVING_LICENSE)), Variables.AVAIL_TRUE);
+						AttributeUtils.hasDrivingLicense(person);
 			};
 
 			return carAvailToAgent ? availableModes : availableModesWithoutCar;

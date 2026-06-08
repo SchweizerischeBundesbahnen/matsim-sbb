@@ -2,6 +2,7 @@ package ch.sbb.matsim.vehicles;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -66,7 +67,7 @@ public class CreateAgentVehicles {
 			this.vehicles.addVehicle(vehicle);
 
 			Id<Vehicle> vehicleIdBike = Id.create("v_bike_" + personId, Vehicle.class);
-			boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.HAS_EBIKE_45)).equals(Variables.AVAIL_TRUE);
+			boolean hasEBike = AttributeUtils.hasEbike45(person);
 
 			Vehicle vehicleBike = vf.createVehicle(vehicleIdBike, hasEBike ? vehicleTypeEBike : vehicleTypeBike);
 			this.vehicles.addVehicle(vehicleBike);

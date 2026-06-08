@@ -25,6 +25,7 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -158,7 +159,7 @@ public class CarLinkAnalysis {
         for (var person : population.getPersons().values()) {
             var personVehicleType = vehicleType;
             if (mode.equals(SBBModes.BIKE)) {
-                boolean hasEBike = String.valueOf(person.getAttributes().getAttribute(Variables.HAS_EBIKE_45)).equals(Variables.AVAIL_TRUE);
+                boolean hasEBike = AttributeUtils.hasEbike45(person);
                 if (hasEBike) {
                     personVehicleType = AnalysisVehicleType.ebike;
                 }
