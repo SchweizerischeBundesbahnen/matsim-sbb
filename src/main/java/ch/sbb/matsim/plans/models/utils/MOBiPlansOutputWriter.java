@@ -143,6 +143,12 @@ public class MOBiPlansOutputWriter implements ModelStep {
 
         population.getPersons().values().forEach(
                 person->{
+                    Zone zone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
+                    if (zone != null) {
+                        person.getAttributes().putAttribute(SynpopConstants.RESIDENCE_ZONE_ID, zone.getId().toString());
+                        person.getAttributes().putAttribute(SynpopConstants.RESIDENCE_AMR_ID, zone.getAttributes().getAttribute(ZonalAttributes.AMR_ID).toString());
+                        person.getAttributes().putAttribute("residence_msr_id", zone.getAttributes().getAttribute(ZonalAttributes.MSR_ID).toString());
+                    }
                     Set<String> attributes = person.getAttributes().getAsMap().keySet();
                     Set<String> attributesToKeep = findAttributesToKeep(attributes);
                     for (var attribute : attributes){
@@ -168,6 +174,9 @@ public class MOBiPlansOutputWriter implements ModelStep {
                     if (ageCat != -1){
                         person.getAttributes().putAttribute(SynpopConstants.AGE_CAT, SynpopConstants.AGE_CATEGORIES.get(ageCat));
                     }
+
+
+                    //TODO: remove this block again once working with the proper release in mobi sim
                     Boolean carAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE);
                     int car = Boolean.TRUE.equals(carAvailable) ? 1 : 0;
                     person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, car);
@@ -177,19 +186,14 @@ public class MOBiPlansOutputWriter implements ModelStep {
                     Boolean ebikeAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_EBIKE45);
                     int ebike = Boolean.TRUE.equals(ebikeAvailable) ? 1 : 0;
                     person.getAttributes().putAttribute(SynpopConstants.HAS_EBIKE45, ebike);
-                    Zone zone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
-                    if (zone != null) {
-                    person.getAttributes().putAttribute(SynpopConstants.RESIDENCE_ZONE_ID, zone.getId().toString());
-                    person.getAttributes().putAttribute(SynpopConstants.RESIDENCE_AMR_ID, zone.getAttributes().getAttribute(ZonalAttributes.AMR_ID).toString());
-                    person.getAttributes().putAttribute("residence_msr_id", zone.getAttributes().getAttribute(ZonalAttributes.MSR_ID).toString());
-                    }
+
                 }
         );
         return population;
     }
 
     private Set<String> findAttributesToKeep(Set<String> attributes) {
-        return attributes.stream().filter(attribute -> attributesToKeep.contains(attribute) || attributes.contains("2pt"))
+        return attributes.stream().filter(attribute -> attributesToKeep.contains(attribute) || attribute.contains("2pt"))
                 .collect(Collectors.toSet());
     }
 }

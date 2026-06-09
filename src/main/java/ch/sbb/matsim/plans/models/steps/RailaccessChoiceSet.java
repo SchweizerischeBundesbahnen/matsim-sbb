@@ -49,7 +49,6 @@ public class RailaccessChoiceSet implements ModelStep {
             SBBActivities.leisure, SBBActivities.other, SBBActivities.shopping, SBBActivities.home, SBBActivities.work
     };
 
-    private final String csvFilePath;
     private final HashMap<String, SegmentModel> segmentModels;
 
     private static class SegmentModel {
@@ -71,8 +70,7 @@ public class RailaccessChoiceSet implements ModelStep {
         this.config = config;
         this.zones = zones;
         this.segmentModels = new HashMap<>();
-        Path modelFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
-        this.csvFilePath = modelFolder.resolve(MOBiPlansConfig.RAILACCESS_CHOICESET_CSV).toString();
+
     }
 
     @Override
@@ -84,6 +82,8 @@ public class RailaccessChoiceSet implements ModelStep {
     public void run() {
         logger.info("Starting railaccess choiceset calculation...");
         try {
+            Path modelFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS);
+            String csvFilePath = modelFolder.resolve(MOBiPlansConfig.RAILACCESS_CHOICESET_CSV).toString();
             prepareSegmentModels(csvFilePath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load Railaccess config", e);
@@ -122,7 +122,11 @@ public class RailaccessChoiceSet implements ModelStep {
                 Integer sl3_id = AttributeUtils.getAsInteger(zone, ZonalAttributes.SL3_ID, -1);
                 person.getAttributes().putAttribute(ZonalAttributes.SL3_ID, sl3_id);
             }
-
+            //initialize to 0
+            for (SegmentModel segment : segmentModels.values()) {
+                person.getAttributes().putAttribute(segment.attribute + "2pt", "0");
+                person.getAttributes().putAttribute(segment.attribute + "2pt_act", "");
+            }
             // 2. Evaluate Segment Models
             for (SegmentModel segment : segmentModels.values()) {
                 if (segment.filterPredicate.test(person)) {
@@ -151,6 +155,7 @@ public class RailaccessChoiceSet implements ModelStep {
                     }
                     person.getAttributes().putAttribute(attributeForActivities, valueBuilder.toString());
                 }
+
             }
         });
     }
