@@ -10,6 +10,7 @@ import ch.sbb.matsim.zones.Zones;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
@@ -24,6 +25,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SynPopUtils {
+
+    private static final Logger log = LogManager.getLogger(SynPopUtils.class);
 
     public static void setAttribute(Person person, String attributeName, Object attribute) {
         person.getAttributes().putAttribute(attributeName, attribute);
@@ -56,7 +59,7 @@ public class SynPopUtils {
     }
 
     public static void calculateHouseHoldCompositions(Scenario scenario) {
-        LogManager.getLogger(SynPopUtils.class).info("Calculating household compositions...");
+        log.info("Calculating household compositions...");
         for (Household household : scenario.getHouseholds().getHouseholds().values()) {
             int numberOfAdults = 0;
             int numberOfAdultsAbove24 = 0;
@@ -114,7 +117,7 @@ public class SynPopUtils {
 
         }
         scenario.getPopulation().getPersons().values().stream().filter(person -> person.getAttributes().getAttribute(SynpopConstants.HAS_CHILD_IN_HH) == null).forEach(person -> person.getAttributes().putAttribute(SynpopConstants.HAS_CHILD_IN_HH, false));
-        LogManager.getLogger(SynPopUtils.class).info("Done. Calculating household compositions.");
+        log.info("Done. Calculating household compositions.");
     }
 
     public static <T> Random getRandom(Id<T> identifiable, String modelName) {
@@ -130,7 +133,7 @@ public class SynPopUtils {
     }
 
     public static void calculateDrivinglicensesPerHousehold(Scenario scenario) {
-        LogManager.getLogger(SynPopUtils.class).info("Calculating driving licenses per household...");
+        log.info("Calculating driving licenses per household...");
         for (Household household : scenario.getHouseholds().getHouseholds().values()) {
             int drivingLicenseCount = 0;
             for (Id<Person> memberId : household.getMemberIds()) {
@@ -147,11 +150,11 @@ public class SynPopUtils {
             double drivingLicensesPerAdult = (double) Math.min(drivingLicenseCount, numberOfAdults) / Math.max(numberOfAdults, 1);
             household.getAttributes().putAttribute(SynpopConstants.NB_OF_DRIVING_LICENSES_PER_ADULT, drivingLicensesPerAdult);
         }
-        LogManager.getLogger(SynPopUtils.class).info("Done. Calculating driving licenses per household.");
+        log.info("Done. Calculating driving licenses per household.");
     }
 
     public static void setCarAvailableForPopulation(Scenario scenario) {
-        LogManager.getLogger(SynPopUtils.class).info("Setting car availability for population...");
+        log.info("Setting car availability for population...");
         for (Person person : scenario.getPopulation().getPersons().values()) {
             Boolean hasDrivingLicense = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
             if (hasDrivingLicense) {
@@ -163,11 +166,11 @@ public class SynPopUtils {
                 }
             }
         }
-        LogManager.getLogger(SynPopUtils.class).info("Done. Setting car availability for population.");
+        log.info("Done. Setting car availability for population.");
     }
 
     public static void aggregateMobilityToolsPerZone(Scenario scenario) {
-        LogManager.getLogger(SynPopUtils.class).info("Aggregating mobility tools per zone...");
+        log.info("Aggregating mobility tools per zone...");
         Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
         Map<Id<Zone>, MobilityToolCount> zoneMap = zones.getZones().stream().collect(HashMap::new, (map, zone) -> map.put(zone.getId(), new MobilityToolCount()), HashMap::putAll);
         for (Person person : scenario.getPopulation().getPersons().values()) {
@@ -200,11 +203,11 @@ public class SynPopUtils {
             double motorisationLevel = (double) mobilityToolCount.carAvailableCount().get() / AttributeUtils.getAsDouble(zone, ZonalAttributes.POP_TOTAL, 1);
             zone.getAttributes().putAttribute(ZonalAttributes.MOTORISATION_LEVEL, motorisationLevel);
         }
-        LogManager.getLogger(SynPopUtils.class).info("Done. Aggregating mobility tools per zone.");
+        log.info("Done. Aggregating mobility tools per zone.");
     }
 
     public static void aggregatePrimaryLocationChoicePerZone(Scenario scenario) {
-        LogManager.getLogger(SynPopUtils.class).info("Aggregating primary location choices per zone...");
+        log.info("Aggregating primary location choices per zone...");
         Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
         Map<Id<Zone>, PrimaryLocationCount> zoneMap = zones.getZones().stream().collect(HashMap::new, (map, zone) -> map.put(zone.getId(), new PrimaryLocationCount()), HashMap::putAll);
         for (Person person : scenario.getPopulation().getPersons().values()) {
@@ -224,11 +227,11 @@ public class SynPopUtils {
             zone.getAttributes().putAttribute("pop_work", count.workCount.get());
             zone.getAttributes().putAttribute("pop_school", count.schoolCount.get());
         }
-        LogManager.getLogger(SynPopUtils.class).info("Done.");
+        log.info("Done.");
     }
 
     public static void linkZonesToFacilities(Scenario scenario, boolean allowNullZones) {
-        LogManager.getLogger(SynPopUtils.class).info("Matching facilities to zones...");
+        log.info("Matching facilities to zones...");
         final boolean[] warnedAboutNullZones = {false};
         Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
         scenario.getActivityFacilities().getFacilities().values().parallelStream().forEach(activityFacility -> {
@@ -241,7 +244,7 @@ public class SynPopUtils {
                     activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE, null);
                     activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, null);
                     if (!warnedAboutNullZones[0]) {
-                        LogManager.getLogger(SynPopUtils.class).warn("Some facilities have no zone assigned. This should only be allowed in test cases.");
+                        log.warn("Some facilities have no zone assigned. This should only be allowed in test cases.");
                         warnedAboutNullZones[0] = true;
                     }
                 } else {
@@ -250,7 +253,7 @@ public class SynPopUtils {
             }
 
         });
-        LogManager.getLogger(SynPopUtils.class).info("Done.");
+        log.info("Done.");
     }
 
 
@@ -271,7 +274,7 @@ public class SynPopUtils {
         try {
             java.nio.file.Files.write(java.nio.file.Paths.get(outputfile), sb.toString().getBytes());
         } catch (java.io.IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -293,7 +296,7 @@ public class SynPopUtils {
             facilitiyIdsWithoutSector.add(facility.getId());
         });
         if (!facilitiyIdsWithoutSector.isEmpty()) {
-            LogManager.getLogger(SynPopUtils.class).warn(facilitiyIdsWithoutSector.size() + " facilities have no sector assigned. Setting sector to 0 for these facilities. Facility IDs: " + facilitiyIdsWithoutSector);
+            log.warn(facilitiyIdsWithoutSector.size() + " facilities have no sector assigned. Setting sector to 0 for these facilities. Facility IDs: " + facilitiyIdsWithoutSector);
         }
     }
 

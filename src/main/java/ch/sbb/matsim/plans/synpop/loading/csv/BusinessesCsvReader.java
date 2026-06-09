@@ -40,10 +40,12 @@ public class BusinessesCsvReader {
 
         try (
                 Reader in = new FileReader(file);
-                CSVParser parser = new CSVParser(in, CSVFormat.DEFAULT
-                                                    .withDelimiter(';') // Set semicolon as delimiter
-                                                    .withFirstRecordAsHeader()
-                                                    .withTrim())
+                CSVParser parser = CSVParser.parse(in, CSVFormat.DEFAULT.builder()
+                        .setDelimiter(';')
+                        .setHeader()
+                        .setSkipHeaderRecord(true)
+                        .setTrim(true)
+                        .get())
         ) {
 
             for (CSVRecord record : parser) {
@@ -81,10 +83,9 @@ public class BusinessesCsvReader {
                 facilities.addActivityFacility(facility);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         } catch (NumberFormatException e) {
-            System.err.println("Error parsing a number from CSV: " + e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException("Error parsing a number from CSV: " + e.getMessage(), e);
         }
     }
 }

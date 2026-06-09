@@ -27,7 +27,7 @@ import java.util.List;
 @Singleton
 public class MOBiZonesProvider implements Provider<Zones> {
 
-    private static Logger logger = LogManager.getLogger(MOBiZonesProvider.class);
+    private static final Logger logger = LogManager.getLogger(MOBiZonesProvider.class);
     @Inject
     MOBiPlansConfig config;
 
@@ -53,7 +53,7 @@ public class MOBiZonesProvider implements Provider<Zones> {
         } else {
             logger.warn("No sff_attributes file provided in config. Skipping loading additional school enrolment and apprentices data.");
         }
-        if (config.data().foreign_attractions()!= null) {;
+        if (config.data().foreign_attractions()!= null) {
             additionalZonalAttributesFiles.add(config.data().foreign_attractions());
         } else {
             logger.warn("No foreign_attractions file provided in config. Skipping loading additional foreign attractions data.");
@@ -90,10 +90,10 @@ public class MOBiZonesProvider implements Provider<Zones> {
                 .setHeader()
                 .setSkipHeaderRecord(true)
                 .setTrim(true)
-                .build();
+                .get();
 
         try (BufferedReader reader = IOUtils.getBufferedReader(filename);
-             CSVParser csvParser = new CSVParser(reader, csvFormat)) {
+             CSVParser csvParser = CSVParser.parse(reader, csvFormat)) {
 
             // Ensure the required ZONE_ID header exists.
             if (!csvParser.getHeaderMap().containsKey(ZonalAttributes.ZONE_ID)) {

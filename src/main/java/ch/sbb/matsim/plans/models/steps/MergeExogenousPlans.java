@@ -18,9 +18,9 @@ import java.io.File;
 
 public class MergeExogenousPlans implements ModelStep {
 
+    private static final Logger logger = LogManager.getLogger(MergeExogenousPlans.class);
     private final MOBiPlansConfig config;
     private final Scenario scenario;
-    private final Logger logger = LogManager.getLogger(MergeExogenousPlans.class);
 
 
     @Inject
@@ -61,8 +61,7 @@ public class MergeExogenousPlans implements ModelStep {
         try {
             SingleTripAgentToCSVConverter.readCSVAndGetPlans(planFile.toString(), newScenario.getPopulation());
         } catch (Exception e) {
-            logger.error("Population file could not be read {} and is skipped.", planFile);
-            e.printStackTrace();
+            logger.error("Population file could not be read {} and is skipped.", planFile, e);
         }
         checkPopulationAndAddToScenario(planFile, newScenario);
 
@@ -73,8 +72,7 @@ public class MergeExogenousPlans implements ModelStep {
         try {
             new PopulationReader(newScenario).readFile(planFile.toString());
         } catch (Exception e) {
-            logger.error("Population file could not be read {} and is skipped.", planFile);
-            e.printStackTrace();
+            logger.error("Population file could not be read {} and is skipped.", planFile, e);
         }
         checkPopulationAndAddToScenario(planFile, newScenario);
 

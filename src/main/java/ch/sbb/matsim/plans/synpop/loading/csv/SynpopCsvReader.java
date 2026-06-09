@@ -36,7 +36,12 @@ public class SynpopCsvReader {
     public static void readSynpopCsvFile(File file, Population population) {
         try (
                 Reader in = new FileReader(file);
-                CSVParser parser = new CSVParser(in, CSVFormat.DEFAULT.withDelimiter(';').withFirstRecordAsHeader().withTrim())
+                CSVParser parser = CSVParser.parse(in, CSVFormat.DEFAULT.builder()
+                        .setDelimiter(';')
+                        .setHeader()
+                        .setSkipHeaderRecord(true)
+                        .setTrim(true)
+                        .get())
         ) {
             for (CSVRecord record : parser) {
                 Id<Person> personId = Id.createPersonId(Long.parseLong(record.get(SynpopConstants.PERSON_ID)));
@@ -63,13 +68,14 @@ public class SynpopCsvReader {
                 boolean isApprentice = false;
                 try {
                     isApprentice = Boolean.parseBoolean(record.get(SynpopConstants.IS_APPRENTICE));
-                } catch (IllegalArgumentException e) {
+                } catch (IllegalArgumentException ignored) {
+                    // column not present in this dataset – default remains false
                 }
                 person.getAttributes().putAttribute(SynpopConstants.IS_APPRENTICE, isApprentice);
                 population.addPerson(person);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

@@ -15,6 +15,7 @@ import ch.sbb.matsim.zones.ZonesLoader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 import static ch.sbb.matsim.plans.stats.LookupFormulaParser.parseFormula;
 
 public class StatsWriter implements ModelStep {
+    private static final Logger log = LogManager.getLogger(StatsWriter.class);
     Scenario scenario;
     MOBiPlansConfig config;
     Zones zones;
@@ -427,8 +429,7 @@ public class StatsWriter implements ModelStep {
                 csvWriter.writeRow();
             }
         } catch (Exception e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            log.error("Error writing CSV", e);
         }
     }
 
@@ -690,8 +691,7 @@ public class StatsWriter implements ModelStep {
                 csvWriter.writeRow();
             }
         } catch (Exception e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            log.error("Error writing CSV", e);
         }
     }
 
@@ -791,8 +791,7 @@ public class StatsWriter implements ModelStep {
                 csvWriter.writeRow();
             }
         } catch (Exception e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
+            log.error("Error writing CSV", e);
         }
 
     }

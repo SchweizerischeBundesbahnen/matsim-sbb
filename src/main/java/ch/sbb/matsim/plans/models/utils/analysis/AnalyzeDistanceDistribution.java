@@ -14,8 +14,8 @@ public class AnalyzeDistanceDistribution {
 
     public static void writeDistanceDistribution(String distanceDistributionFile,
                                                                                                   Population population) {
-        int workDistances[] = new int[40];
-        int eduDistances[] = new int[40];
+        int[] workDistances = new int[40];
+        int[] eduDistances = new int[40];
         for (Person person : population.getPersons().values()) {
             if (person.getAttributes().getAttribute(SynpopConstants.WORK_ZONE) != null) {
                 if (person.getAttributes().getAttribute(SynpopConstants.NET_DIST_WORK) != null) {
@@ -40,7 +40,7 @@ public class AnalyzeDistanceDistribution {
                 writer.writeRow();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
 
     }
 

@@ -90,7 +90,7 @@ public class SynpopReader {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

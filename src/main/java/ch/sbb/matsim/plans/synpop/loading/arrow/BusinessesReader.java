@@ -81,7 +81,7 @@ public class BusinessesReader {
 
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

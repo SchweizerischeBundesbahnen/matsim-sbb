@@ -39,7 +39,12 @@ public class HouseholdsCsvReader {
     public static void readHouseholdCsvFile(File file, Households households) {
         try (
                 Reader in = new FileReader(file);
-                CSVParser parser = new CSVParser(in, CSVFormat.DEFAULT.withDelimiter(';').withFirstRecordAsHeader().withTrim())
+                CSVParser parser = CSVParser.parse(in, CSVFormat.DEFAULT.builder()
+                        .setDelimiter(';')
+                        .setHeader()
+                        .setSkipHeaderRecord(true)
+                        .setTrim(true)
+                        .get())
         ) {
             for (CSVRecord record : parser) {
                 Id<Household> householdId = Id.create(Long.parseLong(record.get(SynpopConstants.HOUSEHOLD_ID)), Household.class);
@@ -54,7 +59,7 @@ public class HouseholdsCsvReader {
                 household.getAttributes().putAttribute(SynpopConstants.ZONE_ID, record.get(SynpopConstants.ZONE_ID)); // Assuming ZONE_ID is read as String directly
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

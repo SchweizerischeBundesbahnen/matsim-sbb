@@ -62,7 +62,7 @@ public class HouseholdsReader {
 
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }
