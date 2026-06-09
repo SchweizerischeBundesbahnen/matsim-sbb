@@ -10,9 +10,6 @@ import org.apache.arrow.vector.ipc.SeekableReadChannel;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.api.core.v01.population.PopulationWriter;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.PopulationUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,17 +18,7 @@ import java.util.Map;
 
 public class SynpopReader {
 
-    public static void main(String[] args) {
-        String featherPopulation = "/Users/joschka.bischoff/tmp/synpop2022/persons_2022.arrow";
-        Population pop = PopulationUtils.createPopulation(ConfigUtils.createConfig());
-        double time = System.nanoTime();
-        readSynpopFile(featherPopulation, pop);
-        System.out.println(pop.getPersons().size());
-        System.out.println("Calculation time " + 0.001 * (System.nanoTime() - time));
-        new PopulationWriter(pop).write("/Users/joschka.bischoff/tmp/synpop2022/persons_2022.xml.gz");
-    }
-
-    public static void readSynpopFile(String filePath, Population population) {
+        public static void readSynpopFile(String filePath, Population population) {
         File file = new File(filePath);
         readSynpopFile(file, population);
     }

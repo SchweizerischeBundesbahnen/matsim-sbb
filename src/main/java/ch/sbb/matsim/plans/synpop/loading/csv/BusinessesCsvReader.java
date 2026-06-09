@@ -6,12 +6,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
-import org.matsim.facilities.FacilitiesWriter;
 
 import java.io.File;
 import java.io.FileReader;
@@ -20,16 +16,6 @@ import java.io.Reader;
 
 public class BusinessesCsvReader {
 
-     static void main(String[] args) {
-        String csvBusinesses = "/Volumes/mobi/40_Projekte/20241104_MOBi_5.1/synpop/cb_commuters/v10/businesses.csv"; // Adjust path as needed
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        var activityFacilities = scenario.getActivityFacilities();
-        double time = System.nanoTime();
-        readBusinessesCsvFile(csvBusinesses, activityFacilities);
-        System.out.println(activityFacilities.getFacilities().size());
-        System.out.println("Calculation time " + 0.001 * (System.nanoTime() - time));
-        new FacilitiesWriter(activityFacilities).write("/Users/joschka.bischoff/tmp/synpop2022/businesses_2022_facilities_from_csv_cb.xml.gz");
-    }
 
     public static void readBusinessesCsvFile(String filePath, ActivityFacilities facilities) {
         File file = new File(filePath);

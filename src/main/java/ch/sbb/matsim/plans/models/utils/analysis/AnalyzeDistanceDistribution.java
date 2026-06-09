@@ -46,7 +46,7 @@ public class AnalyzeDistanceDistribution {
 
 }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         String inputPopulationFile = args[0];
         String outputDistanceDistributionFile = args[1];
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());

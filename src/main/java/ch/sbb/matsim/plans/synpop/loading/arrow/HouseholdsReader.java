@@ -10,12 +10,8 @@ import org.apache.arrow.vector.ipc.ArrowFileReader;
 import org.apache.arrow.vector.ipc.SeekableReadChannel;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.households.Household;
 import org.matsim.households.Households;
-import org.matsim.households.HouseholdsWriterV10;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,16 +19,6 @@ import java.io.IOException;
 
 public class HouseholdsReader {
 
-    public static void main(String[] args) {
-        String featherPopulation = "C:\\devsbb\\tmp\\synpop_2022\\households_2022.feather";
-        Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        var households = scenario.getHouseholds();
-        double time = System.nanoTime();
-        readHouseholdFile(featherPopulation, households);
-        System.out.println(households.getHouseholds().size());
-        System.out.println("Calculation time " + 0.001 * (System.nanoTime() - time));
-        new HouseholdsWriterV10(households).writeFile("C:\\devsbb\\tmp\\synpop_2022\\households_2022.xml.gz");
-    }
 
     public static void readHouseholdFile(String filePath, Households households) {
         File file = new File(filePath);

@@ -44,8 +44,8 @@ public class PrepareActivitiesInPlans {
 			if (PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)) {
 				for (Plan plan : p.getPlans()) {
 					List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
-					Activity firstAct = activities.get(0);
-					Activity lastAct = activities.get(activities.size() - 1);
+					Activity firstAct = activities.getFirst();
+					Activity lastAct = activities.getLast();
 
 					for (Activity act : activities) {
 						if (act == firstAct) {
@@ -66,7 +66,7 @@ public class PrepareActivitiesInPlans {
 								long ii = roundSecondsToMinInterval(duration, 60);
 
 								double hours = startTime / 3600 * 1;
-								double yy = ((int) (hours + 0.25)) / 1.0;
+								double yy = ((int) (hours + 0.25));
 								String type = SBBActivities.home + "_" + ii + "_" + yy;
 								act.setType(type);
 							} else {

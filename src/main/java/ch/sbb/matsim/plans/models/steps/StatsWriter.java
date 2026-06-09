@@ -47,7 +47,7 @@ public class StatsWriter implements ModelStep {
     Zones zones;
     ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
     LookupAttributeHandler lookupAttributeHandler = new LookupAttributeHandler();
-    Attributables.AttributableProvider attributableProvider = null;
+    Attributables.AttributableProvider attributableProvider;
     @Override
     public String getName() {
         return MOBiPlansRunner.WRITE_STATS;
@@ -75,7 +75,6 @@ public class StatsWriter implements ModelStep {
         final DoubleAdder[][] sums;
         final LongAdder[][] counts;
 
-        @SuppressWarnings("unchecked")
         PersonSheetCtx(ReportJson.Sheet sheet, int nGroups, int nVars,
                        Predicate<Person>[] groupPreds,
                        LookupFormulaParser.ParseResult[] parsed,
@@ -110,7 +109,6 @@ public class StatsWriter implements ModelStep {
         final DoubleAdder[][] sums;
         final LongAdder[][] counts;
 
-        @SuppressWarnings("unchecked")
         TripSheetCtx(ReportJson.Sheet sheet, int nGroups, int nVars,
                      Predicate<Person>[] personPreds,
                      Predicate<Attributables.AttributableProvider.TripAttributable>[] tripPreds,
@@ -500,9 +498,6 @@ public class StatsWriter implements ModelStep {
                             }
                             if (!any) return;
 
-                            // Pre-collect attribute maps for non-trip variables once per person
-                            Map<Integer, Map<String, Double>> personAttrCache = null;
-
                             // Lazily build trips list (only if any variable needs it)
                             List<Attributables.AttributableProvider.TripAttributable> trips = null;
                             boolean needsTrips = false;
@@ -722,8 +717,8 @@ public class StatsWriter implements ModelStep {
                             double idx = expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, indexVars));
                             double col = expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(person, columnVars));
                             double val = isSum ? expressionEvaluator.evaluate(attribute, collectAttributeStrings(person, attrVars)) : 1.0;
-                            acc.computeIfAbsent(idx, k -> new ConcurrentHashMap<>())
-                               .computeIfAbsent(col, k -> new DoubleAdder())
+                            acc.computeIfAbsent(idx, _ -> new ConcurrentHashMap<>())
+                               .computeIfAbsent(col, _ -> new DoubleAdder())
                                .add(val);
                         });
                 break;

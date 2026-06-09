@@ -257,27 +257,6 @@ public class SynPopUtils {
     }
 
 
-    public static void writeAttributesToCSV(Collection<? extends Attributable> values, List<String> attributes, String outputfile) {
-        NestedAttributeResolver resolver = new NestedAttributeResolver();
-        StringBuilder sb = new StringBuilder();
-        sb.append("id;").append(String.join(";", attributes)).append("\n");
-        for (Attributable attributable : values) {
-            String id = ((Identifiable) attributable).getId().toString();
-            sb.append(id).append(";");
-            for (String attribute : attributes) {
-                Object value = resolver.resolve(attributable, attribute);
-                sb.append(value != null ? value.toString() : "null").append(";");
-            }
-            sb.setLength(sb.length() - 1); // Remove last comma
-            sb.append("\n");
-        }
-        try {
-            java.nio.file.Files.write(java.nio.file.Paths.get(outputfile), sb.toString().getBytes());
-        } catch (java.io.IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public static void setDefaultAttributes(Scenario scenario) {
         TreeMap<Integer, Integer> levelOfEmploymentCategories = new TreeMap<>(SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT_BOUNDS);
         scenario.getPopulation().getPersons().values().parallelStream().forEach(person -> {

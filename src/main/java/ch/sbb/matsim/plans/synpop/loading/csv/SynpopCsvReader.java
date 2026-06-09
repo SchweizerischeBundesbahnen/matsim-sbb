@@ -7,9 +7,6 @@ import org.apache.commons.csv.CSVRecord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.api.core.v01.population.PopulationWriter;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.PopulationUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -17,16 +14,6 @@ import java.io.IOException;
 import java.io.Reader;
 
 public class SynpopCsvReader {
-
-    public static void main(String[] args) {
-        String csvPopulation = "/Volumes/mobi/40_Projekte/20241104_MOBi_5.1/synpop/cb_commuters/v10/persons.csv"; // Adjust path as needed
-        Population pop = PopulationUtils.createPopulation(ConfigUtils.createConfig());
-        double time = System.nanoTime();
-        readSynpopCsvFile(csvPopulation, pop);
-        System.out.println(pop.getPersons().size());
-        System.out.println("Calculation time " + 0.001 * (System.nanoTime() - time));
-        new PopulationWriter(pop).write("/Users/joschka.bischoff/tmp/synpop2022/cb_commuters.xml.gz");
-    }
 
     public static void readSynpopCsvFile(String filePath, Population population) {
         File file = new File(filePath);
