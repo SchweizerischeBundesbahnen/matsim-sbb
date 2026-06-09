@@ -183,18 +183,6 @@ public class MOBiPlansOutputWriter implements ModelStep {
                         person.getAttributes().putAttribute(SynpopConstants.AGE_CAT, SynpopConstants.AGE_CATEGORIES.get(ageCat));
                     }
 
-
-                    //TODO: remove this block again once working with the proper release in mobi sim
-                    Boolean carAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE);
-                    int car = Boolean.TRUE.equals(carAvailable) ? 1 : 0;
-                    person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, car);
-                    Boolean licenseAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
-                    int license = Boolean.TRUE.equals(licenseAvailable) ? 1 : 0;
-                    person.getAttributes().putAttribute(SynpopConstants.HAS_DRIVING_LICENSE, license);
-                    Boolean ebikeAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_EBIKE45);
-                    int ebike = Boolean.TRUE.equals(ebikeAvailable) ? 1 : 0;
-                    person.getAttributes().putAttribute(SynpopConstants.HAS_EBIKE45, ebike);
-
                 }
         );
         return newPopulation;
