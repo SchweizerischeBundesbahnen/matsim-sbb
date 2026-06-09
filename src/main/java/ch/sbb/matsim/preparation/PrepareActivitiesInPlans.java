@@ -93,7 +93,7 @@ public class PrepareActivitiesInPlans {
 								String type = SBBActivities.work + "_" + ii;
 								act.setType(type);
 							}
-						} else if (act.getType().equals(SBBActivities.education)) {
+						} else if (act.getType().equals(SBBActivities.education) || act.getType().equals(SBBActivities.education_continued)) {
 							// process morning peak (between 7am and 9am)
 							if (startTime >= (6.75 * 3600) && startTime <= (8.5 * 3600)) {
 								long ii = roundSecondsToMinInterval(duration, 60);
@@ -168,7 +168,7 @@ public class PrepareActivitiesInPlans {
 	private static long roundSecondsToMinInterval(double seconds, int interval) {
 		double minutes = seconds / 60;
 		double toRound = minutes / interval;
-		long rounded = (int) Math.ceil(toRound);
+		long rounded = Math.min((int) Math.ceil(toRound),1);
 		return (rounded * interval);
 	}
 }

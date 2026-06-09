@@ -1,5 +1,6 @@
 package ch.sbb.matsim.plans.models.utils;
 
+import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
@@ -25,6 +26,7 @@ import org.matsim.households.HouseholdsWriterV10;
 import org.matsim.utils.objectattributes.attributable.AttributesUtils;
 
 import java.io.BufferedWriter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -128,20 +130,20 @@ public class MOBiPlansOutputWriter implements ModelStep {
 
     private Population reducePopulation() {
         LOG.info("Reducing Population for MATSim export");
-        Population population = PopulationUtils.createPopulation(ConfigUtils.createConfig());
+        Population newPopulation = PopulationUtils.createPopulation(ConfigUtils.createConfig());
         scenario.getPopulation().getPersons().values().stream()
                 .filter(person -> !(person.getSelectedPlan() == null))
                 .forEach(person -> {
-                    var copiedPerson = population.getFactory().createPerson(person.getId());
+                    var copiedPerson = newPopulation.getFactory().createPerson(person.getId());
                     AttributesUtils.copyAttributesFromTo( person,copiedPerson );
                     Plan plan = PopulationUtils.getFactory().createPlan();
                     copiedPerson.addPlan(plan);
                     PopulationUtils.copyFromTo(person.getSelectedPlan(),plan);
-                    population.addPerson(copiedPerson);
+                    newPopulation.addPerson(copiedPerson);
                 });
 
 
-        population.getPersons().values().forEach(
+        newPopulation.getPersons().values().forEach(
                 person->{
                     Zone zone = (Zone) person.getAttributes().getAttribute(SynpopConstants.ZONE);
                     if (zone != null) {
@@ -149,7 +151,7 @@ public class MOBiPlansOutputWriter implements ModelStep {
                         person.getAttributes().putAttribute(SynpopConstants.RESIDENCE_AMR_ID, zone.getAttributes().getAttribute(ZonalAttributes.AMR_ID).toString());
                         person.getAttributes().putAttribute("residence_msr_id", zone.getAttributes().getAttribute(ZonalAttributes.MSR_ID).toString());
                     }
-                    Set<String> attributes = person.getAttributes().getAsMap().keySet();
+                    Set<String> attributes = new HashSet<>(person.getAttributes().getAsMap().keySet());
                     Set<String> attributesToKeep = findAttributesToKeep(attributes);
                     for (var attribute : attributes){
                         if (!attributesToKeep.contains(attribute)){
@@ -158,15 +160,21 @@ public class MOBiPlansOutputWriter implements ModelStep {
                     }
                     for (PlanElement planElement : person.getSelectedPlan().getPlanElements()){
                         if (planElement instanceof  Leg leg){
-                            for (var legAtt: leg.getAttributes().getAsMap().keySet()){
+                            Set<String> legAttributes = new HashSet<>(leg.getAttributes().getAsMap().keySet());
+                            for (var legAtt: legAttributes){
                                 leg.getAttributes().removeAttribute(legAtt);
                             }
                         }
                         if (planElement instanceof Activity activity){
-                            for (var activityAtt: activity.getAttributes().getAsMap().keySet()){
+                            if (activity.getType().equals(SBBActivities.education_continued))
+                            {activity.setType(SBBActivities.education);
+                            }
+                            Set<String> actAttributes = new HashSet<>(activity.getAttributes().getAsMap().keySet());
+                            for (var activityAtt: actAttributes){
                                 if (!activityAttributesToKeep.contains(activityAtt)) {
                                     activity.getAttributes().removeAttribute(activityAtt);
                                 }
+
                             }
                         }
                     }
@@ -189,7 +197,7 @@ public class MOBiPlansOutputWriter implements ModelStep {
 
                 }
         );
-        return population;
+        return newPopulation;
     }
 
     private Set<String> findAttributesToKeep(Set<String> attributes) {
