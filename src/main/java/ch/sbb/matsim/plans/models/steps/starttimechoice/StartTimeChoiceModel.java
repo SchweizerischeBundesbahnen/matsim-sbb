@@ -56,125 +56,123 @@ public class StartTimeChoiceModel implements ModelStep {
         if (sortedTours != null && !sortedTours.isEmpty()) {
             sortToursByPriority(sortedTours);
             CandidateSchedule bestSchedule = findBestSchedule(person, sortedTours, random);
-            applyScheduleToMATSimPlan(person, sortedTours, bestSchedule.mainActivityStartTimes());
+            applyScheduleToMATSimPlan(person, sortedTours, bestSchedule);
         }
     }
 
-
     private CandidateSchedule findBestSchedule(Person person, List<Tour> sortedTours, Random random) {
         CandidateSchedule bestSchedule = null;
-        CandidateSchedule bestInvalidSchedule = null; // Fallback if no 100% valid schedule is found
 
         for (int i = 0; i < 100; i++) {
             CandidateSchedule candidate = buildCandidateSchedule(person, sortedTours, rulesMap, random);
 
-            if (candidate.isValid()) {
-                if (bestSchedule == null) {
+            if (bestSchedule == null) {
+                bestSchedule = candidate;
+                continue;
+            }
+
+            // 1. Maximize the number of valid tours!
+            if (candidate.numValidTours() > bestSchedule.numValidTours()) {
+                bestSchedule = candidate;
+            }
+            // 2. If they fit the same number of tours, use the Simulated Annealing logit score
+            else if (candidate.numValidTours() == bestSchedule.numValidTours()) {
+                double logitProb = 1.0 / (1.0 + Math.exp(-5.0 * (candidate.score() - bestSchedule.score())));
+                if (random.nextDouble() < logitProb) {
                     bestSchedule = candidate;
-                } else {
-                    // Simulated Annealing / Logit acceptance of the new schedule
-                    // Python: binary_choice_prob = 1 / (1 + exp(-5 * (new_score - best_score)))
-                    double logitProb = 1.0 / (1.0 + Math.exp(-5.0 * (candidate.score() - bestSchedule.score())));
-                    if (random.nextDouble() < logitProb) {
-                        bestSchedule = candidate;
-                    }
-                }
-            } else {
-                // Track invalid schedules just in case this agent has an impossible day
-                if (bestInvalidSchedule == null || candidate.score() > bestInvalidSchedule.score()) {
-                    bestInvalidSchedule = candidate;
                 }
             }
         }
 
-        return bestSchedule != null ? bestSchedule : bestInvalidSchedule;
+        return bestSchedule;
     }
+
 
     private CandidateSchedule buildCandidateSchedule(Person person, List<Tour> sortedTours, Map<String, List<TimeSeriesRule>> rulesMap, Random random) {
         DailyCalendar calendar = new DailyCalendar();
         int[] chosenStartTimes = new int[sortedTours.size()];
+        boolean[] tourFits = new boolean[sortedTours.size()];
+
+        int numValidTours = 0;
         double totalDayScore = 0.0;
-        boolean allToursFit = true;
 
         for (int i = 0; i < sortedTours.size(); i++) {
             Tour tour = sortedTours.get(i);
 
-            // 1. Calculate duration parts (Before Main Act, Main Act, After Main Act)
-            double durBeforeMainActivityStart = calculateDurationBeforeMain(tour);
-            double durAfterMainActivityStart = estimateTotalTourDuration(tour) - durBeforeMainActivityStart;
+            double durBeforeMain = calculateDurationBeforeMain(tour);
+            double durAfterMain = estimateTotalTourDuration(tour) - durBeforeMain;
 
-            // 2. Find the matching TimeSeriesRule for this activity and person
             TimeSeriesRule rule = findMatchingRule(person, tour, rulesMap);
             if (rule == null) {
-                allToursFit = false; break;
+                tourFits[i] = false; continue; // Skip invalid tours!
             }
 
-            // 3. Find intersections between Free Windows and Time Bins
-            List<ValidIntersection> intersections = new ArrayList<>();
+            // Group overlaps by the TimeBin to match Python exactly
+            Map<TimeBin, List<DailyCalendar.TimeWindow>> validBins = new LinkedHashMap<>();
             double totalWeight = 0.0;
 
             for (DailyCalendar.TimeWindow window : calendar.getFreeWindows()) {
-                // Apply the 15-minute (900s) buffer from the Python code
-                int constrainedBegin = window.startSec() + (int) durBeforeMainActivityStart + 900;
-                int constrainedEnd = window.endSec() - (int) durAfterMainActivityStart - 900;
+                int constrainedBegin = window.startSec() + (int) durBeforeMain + 900;
+                int constrainedEnd = window.endSec() - (int) durAfterMain - 900;
 
                 if (constrainedEnd > constrainedBegin) {
                     for (TimeBin bin : rule.timeBins()) {
                         int overlapBegin = Math.max(constrainedBegin, bin.startTimeSec());
                         int overlapEnd = Math.min(constrainedEnd, bin.endTimeSec());
-                        int overlapDuration = overlapEnd - overlapBegin;
 
-                        if (overlapDuration > 0 && bin.probability() > 0) {
-                            double weight = bin.probability() * overlapDuration; // Weight by overlap size
-                            intersections.add(new ValidIntersection(overlapBegin, overlapEnd, bin, weight));
-                            totalWeight += weight;
+                        if (overlapEnd > overlapBegin && bin.probability() > 0) {
+                            // If this bin hasn't been added yet, add its raw probability to the total weight!
+                            if (!validBins.containsKey(bin)) {
+                                totalWeight += bin.probability();
+                                validBins.put(bin, new ArrayList<>());
+                            }
+                            // Save the actual overlapping window so we can pick a random second inside it
+                            validBins.get(bin).add(new DailyCalendar.TimeWindow(overlapBegin, overlapEnd));
                         }
                     }
                 }
             }
 
-            if (intersections.isEmpty() || totalWeight <= 0.0) {
-                // The tour physically cannot fit into the remaining free time!
-                allToursFit = false;
-                break;
+            if (validBins.isEmpty()) {
+                tourFits[i] = false; continue; // Tour cannot fit!
             }
 
-            // 4. Roulette Wheel Draw for the specific Intersection
+            // 1. Roll the dice to pick the Time Bin (using raw CSV probability!)
             double r = random.nextDouble() * totalWeight;
             double cumulative = 0.0;
-            ValidIntersection chosenIntersection = intersections.getLast();
+            TimeBin chosenBin = null;
 
-            for (ValidIntersection intersection : intersections) {
-                cumulative += intersection.weight;
+            for (Map.Entry<TimeBin, List<DailyCalendar.TimeWindow>> entry : validBins.entrySet()) {
+                cumulative += entry.getKey().probability();
                 if (r <= cumulative) {
-                    chosenIntersection = intersection;
+                    chosenBin = entry.getKey();
                     break;
                 }
             }
+            if (chosenBin == null) chosenBin = validBins.keySet().iterator().next(); // Fallback
 
-            // 5. Pick an exact second within the chosen overlapping window
-            int exactMainActStart = chosenIntersection.overlapBegin +
-                    (int) (random.nextDouble() * (chosenIntersection.overlapEnd - chosenIntersection.overlapBegin));
+            // 2. If the bin spans multiple free windows, pick one randomly (Python: rand.choice)
+            List<DailyCalendar.TimeWindow> overlaps = validBins.get(chosenBin);
+            DailyCalendar.TimeWindow chosenOverlap = overlaps.get(random.nextInt(overlaps.size()));
+
+            // 3. Pick exact second inside the chosen overlap
+            int exactMainActStart = chosenOverlap.startSec() +
+                    (int) (random.nextDouble() * (chosenOverlap.endSec() - chosenOverlap.startSec()));
 
             chosenStartTimes[i] = exactMainActStart;
+            tourFits[i] = true;
+            numValidTours++;
 
-            // 6. Block the calendar! (Block = Leave Home to Return Home)
-            int tourLeaveHomeTime = exactMainActStart - (int) durBeforeMainActivityStart;
-            int tourReturnHomeTime = exactMainActStart + (int) durAfterMainActivityStart;
-            calendar.blockTime(tourLeaveHomeTime, tourReturnHomeTime);
+            // 4. Block the calendar
+            calendar.blockTime(exactMainActStart - (int) durBeforeMain, exactMainActStart + (int) durAfterMain);
 
-            // 7. Calculate the Score for this choice (Python translation)
-            double binShare = chosenIntersection.bin.probability();
-            double binWidth = chosenIntersection.bin.getDurationSec();
-            // prob_post_choice = (3600 / bin_width) * bin_share * expBeta
-            double probPostChoice = (3600.0 / binWidth) * binShare / 100.0;
-            double score = Math.exp(probPostChoice * rule.expBeta());
-            totalDayScore += score;
+            // 5. Score
+            double probPostChoice = (3600.0 / chosenBin.getDurationSec()) * chosenBin.probability();
+            totalDayScore += Math.exp(probPostChoice * rule.expBeta());
         }
 
-        return new CandidateSchedule(totalDayScore, chosenStartTimes, allToursFit);
+        return new CandidateSchedule(totalDayScore, chosenStartTimes, tourFits, numValidTours);
     }
-
     private double calculateDurationBeforeMain(Tour tour) {
         double durationBefore = 0.0;
         Activity mainActivity = tour.getMainActivities().getFirst(); // The exact object reference
@@ -233,7 +231,7 @@ public class StartTimeChoiceModel implements ModelStep {
         }
         return null;
     }
-    private void applyScheduleToMATSimPlan(Person person, List<Tour> tours, int[] mainActStartTimes) {
+    private void applyScheduleToMATSimPlan(Person person, List<Tour> tours, CandidateSchedule bestSchedule) {
         PopulationFactory factory = PopulationUtils.getFactory();
         Plan plan = factory.createPlan();
 
@@ -242,9 +240,14 @@ public class StartTimeChoiceModel implements ModelStep {
         List<ScheduledTour> scheduledTours = new ArrayList<>();
 
         for (int i = 0; i < tours.size(); i++) {
+            // DROP TOURS THAT DID NOT FIT THE CALENDAR!
+            if (!bestSchedule.tourFits()[i]) {
+                continue;
+            }
+
             Tour tour = tours.get(i);
             double durBeforeMain = calculateDurationBeforeMain(tour);
-            double departureTime = mainActStartTimes[i] - durBeforeMain;
+            double departureTime = bestSchedule.mainActivityStartTimes()[i] - durBeforeMain;
             scheduledTours.add(new ScheduledTour(tour, departureTime));
         }
 
@@ -260,9 +263,10 @@ public class StartTimeChoiceModel implements ModelStep {
         for (ScheduledTour st : scheduledTours) {
             Tour tour = st.tour();
             List<PlanElement> tourElements = tour.getTourElements();
-
             // Safety fallback: Prevent overlapping tours if the schedule was tightly squished
-            double actualDepartureTime = Math.max(currentTime, st.departureTime());
+            // All tours must wait at least 300 seconds (5 mins) at home!
+            double minAllowedDeparture = currentTime + 300.0;
+            double actualDepartureTime = Math.max(minAllowedDeparture, st.departureTime());
 
             // Close the previous Home activity exactly when this tour starts
             currentHomeActivity.setEndTime(actualDepartureTime);
@@ -352,14 +356,19 @@ public class StartTimeChoiceModel implements ModelStep {
 
 
     }
+
+
+
+
     // Tracks the assigned start time for the Main Activity of each tour
-    public record CandidateSchedule(double score, int[] mainActivityStartTimes, boolean isValid) {}
+    public record CandidateSchedule(double score, int[] mainActivityStartTimes, boolean[] tourFits, int numValidTours) {}
 
     public record TimeBin(int startTimeSec, int endTimeSec, double probability) {
         public int getDurationSec() {
             return endTimeSec - startTimeSec;
         }
     }
+
 
     public record TimeSeriesRule(
             String activityType,
@@ -428,4 +437,5 @@ public class StartTimeChoiceModel implements ModelStep {
             freeWindows.sort(Comparator.comparingInt(TimeWindow::startSec));
         }
     }
-}
+    }
+

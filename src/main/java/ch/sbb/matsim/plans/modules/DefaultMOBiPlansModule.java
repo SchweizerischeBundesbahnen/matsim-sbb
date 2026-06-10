@@ -9,7 +9,7 @@ import ch.sbb.matsim.plans.models.formulas.ModeImpedanceFormulaRepositoryFromCSV
 import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrataRegistry;
 import ch.sbb.matsim.plans.models.steps.demandstrata.StrataConfigLoader;
 import ch.sbb.matsim.plans.models.steps.starttimechoice.StartTimeChoiceModel;
-import ch.sbb.matsim.plans.models.utils.MOBiPlansOutputWriter;
+import ch.sbb.matsim.plans.models.steps.MOBiPlansOutputWriter;
 import ch.sbb.matsim.plans.synpop.loading.SynpopLoader;
 import ch.sbb.matsim.zones.Zones;
 import com.google.inject.AbstractModule;
@@ -19,7 +19,6 @@ import jakarta.inject.Singleton;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
-import java.nio.file.Paths;
 
 public class DefaultMOBiPlansModule extends AbstractModule {
     final MOBiPlansConfig config;
