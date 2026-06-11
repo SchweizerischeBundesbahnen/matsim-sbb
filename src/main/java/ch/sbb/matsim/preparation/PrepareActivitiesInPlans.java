@@ -18,7 +18,10 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PrepareActivitiesInPlans {
 
@@ -32,20 +35,21 @@ public class PrepareActivitiesInPlans {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new PopulationReader(scenario).readFile(pathIn);
 
-		overwriteActivitiesInPlans(scenario.getPopulation());
+		overwriteActivitiesInPlans(scenario.getPopulation(),config);
 		ActivityParamsBuilder.buildActivityParams(config);
 
 		new ConfigWriter(config).write(configOut);
 		new PopulationWriter(scenario.getPopulation()).write(pathOut);
 	}
 
-	public static void overwriteActivitiesInPlans(Population population) {
+	public static void overwriteActivitiesInPlans(Population population, Config config) {
+		Set<String> allActivityTypes = new HashSet<>();
 		for (Person p : population.getPersons().values()) {
 			if (PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)) {
 				for (Plan plan : p.getPlans()) {
 					List<Activity> activities = TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities);
-					Activity firstAct = activities.getFirst();
-					Activity lastAct = activities.getLast();
+					Activity firstAct = activities.get(0);
+					Activity lastAct = activities.get(activities.size() - 1);
 
 					for (Activity act : activities) {
 						if (act == firstAct) {
@@ -66,7 +70,7 @@ public class PrepareActivitiesInPlans {
 								long ii = roundSecondsToMinInterval(duration, 60);
 
 								double hours = startTime / 3600 * 1;
-								double yy = ((int) (hours + 0.25));
+								double yy = ((int) (hours + 0.25)) / 1.0;
 								String type = SBBActivities.home + "_" + ii + "_" + yy;
 								act.setType(type);
 							} else {
@@ -93,7 +97,7 @@ public class PrepareActivitiesInPlans {
 								String type = SBBActivities.work + "_" + ii;
 								act.setType(type);
 							}
-						} else if (act.getType().equals(SBBActivities.education) || act.getType().equals(SBBActivities.education_continued)) {
+						} else if (act.getType().equals(SBBActivities.education)) {
 							// process morning peak (between 7am and 9am)
 							if (startTime >= (6.75 * 3600) && startTime <= (8.5 * 3600)) {
 								long ii = roundSecondsToMinInterval(duration, 60);
@@ -134,9 +138,18 @@ public class PrepareActivitiesInPlans {
 							act.setType(type);
 						}
 					}
+					TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities).stream().map(Activity::getType).forEach(allActivityTypes::add);
+
 				}
 			}
+
 		}
+		var allTypesInConfig = config.scoring().getActivityTypes();
+		Set<String> notFoundActivityTypes = allActivityTypes.stream().filter(type->!allTypesInConfig.contains(type)).collect(Collectors.toSet());
+		if (!notFoundActivityTypes.isEmpty()) {
+			throw new RuntimeException("Activity types are not in scoring: " + notFoundActivityTypes);
+		}
+
 	}
 
 	private static void processOvernightAct(Activity firstAct, Activity lastAct) {
@@ -168,7 +181,7 @@ public class PrepareActivitiesInPlans {
 	private static long roundSecondsToMinInterval(double seconds, int interval) {
 		double minutes = seconds / 60;
 		double toRound = minutes / interval;
-		long rounded = Math.min((int) Math.ceil(toRound),1);
+		long rounded = (int) Math.ceil(toRound);
 		return (rounded * interval);
 	}
 }
