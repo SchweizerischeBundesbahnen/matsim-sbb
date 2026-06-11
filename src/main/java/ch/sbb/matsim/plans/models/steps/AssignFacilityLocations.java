@@ -36,6 +36,8 @@ public class AssignFacilityLocations implements ModelStep{
     private final int numberOfThreads;
     private final Path dataFolder;
     private static final Logger log = LogManager.getLogger(AssignFacilityLocations.class);
+    private Map<ZoneActivityKey, Map<Id<ActivityFacility>, Double>> facilityWeightsByZoneAndType;
+    private Map<Id<Zone>, List<Id<ActivityFacility>>> facilityIdsByZone;
 
 
     @Inject
@@ -59,27 +61,27 @@ public class AssignFacilityLocations implements ModelStep{
         log.info("Preparing attractiveness data per facility...");
 
         log.info("Grouping facilities by Zone and Activity Type for fast lookup...");
-        var facilityWeightsByZoneAndType = groupFacilities();
+        groupFacilities();
 
         log.info("Assigning exact facility coordinates to Secondary Activities...");
-        assignFacilitiesToPopulation(facilityWeightsByZoneAndType);
+        assignFacilitiesToPopulation();
     }
     
     
-    private void assignFacilitiesToPopulation(Map<ZoneActivityKey, Map<Id<ActivityFacility>, Double>> facilityWeights) {
+    private void assignFacilitiesToPopulation() {
         try (ForkJoinPool customPool = new ForkJoinPool(numberOfThreads)) {
             customPool.submit(() ->
                     scenario.getPopulation().getPersons().values().parallelStream()
                             .filter(p -> new PopulationSampler.ActivePersonPredicate().test(p))
                             .filter((person) -> person.getSelectedPlan() != null)
-                            .forEach(person -> processPerson(person, facilityWeights))
+                            .forEach(person -> processPerson(person))
             ).get();
         } catch (Exception e) {
             throw new RuntimeException("Parallel facility assignment failed", e);
         }
     }
 
-    private void processPerson(Person person, Map<ZoneActivityKey, Map<Id<ActivityFacility>, Double>> facilityWeights) {
+    private void processPerson(Person person) {
         Random random = SynPopUtils.getRandom(person.getId(), getName());
         Plan plan = person.getSelectedPlan();
         for (PlanElement pe : plan.getPlanElements()) {
@@ -118,15 +120,33 @@ public class AssignFacilityLocations implements ModelStep{
                 if (assignedZone != null) {
                     ZoneActivityKey lookupKey = new ZoneActivityKey(assignedZone.getId(), act.getType());
                     // A single, clean lookup!
-                    Map<Id<ActivityFacility>, Double> options = facilityWeights.getOrDefault(lookupKey, Collections.emptyMap());
+                    Map<Id<ActivityFacility>, Double> options = facilityWeightsByZoneAndType.getOrDefault(lookupKey, Collections.emptyMap());
                     if (!options.isEmpty()) {
                         // Roll the roulette wheel!
                         Id<ActivityFacility> chosenFacId = ChoiceUtils.selectFromProbabilities(options, random);
                         assignFacilityToActivity(act, scenario.getActivityFacilities().getFacilities().get(chosenFacId));
                     } else {
-                        // Fallback: If no facilities offer this activity in this zone, just use the Zone Centroid
-                        act.setCoord(MGC.coordinate2Coord(assignedZone.getEnvelope().centre()));
-                        log.debug("Fallback: No facilities for '{}' in Zone {}. Using zone centroid.", lookupKey.activityType, lookupKey.zoneId);
+                        //Fallback: Use a leisure facility, these include all households
+                        Map<Id<ActivityFacility>, Double> alternativeOptions = facilityWeightsByZoneAndType.getOrDefault(new ZoneActivityKey(assignedZone.getId(), SBBActivities.leisure), Collections.emptyMap());
+                        if (!alternativeOptions.isEmpty()) {
+                            // Roll the roulette wheel!
+                            Id<ActivityFacility> chosenFacId = ChoiceUtils.selectFromProbabilities(alternativeOptions, random);
+                            assignFacilityToActivity(act, scenario.getActivityFacilities().getFacilities().get(chosenFacId));
+                        }
+                        else {
+                            // Fallback 2: Use any facility in the zone
+                            List<Id<ActivityFacility>> facilitiesInZone = facilityIdsByZone.get(assignedZone.getId());
+                            if (facilitiesInZone == null || facilitiesInZone.isEmpty()) {
+                                // Fallback 3: should not happen
+                                act.setCoord(MGC.coordinate2Coord(assignedZone.getEnvelope().centre()));
+                                log.warn("Fallback: No facilities for '{}' in Zone {}. Using zone centroid.", lookupKey.activityType, lookupKey.zoneId);
+                            } else{
+                                int draw = random.nextInt(facilitiesInZone.size());
+                                Id<ActivityFacility> chosenFacId = facilitiesInZone.get(draw);
+                                assignFacilityToActivity(act, scenario.getActivityFacilities().getFacilities().get(chosenFacId));
+                            }
+
+                        }
                     }
 
                 }
@@ -147,23 +167,23 @@ public class AssignFacilityLocations implements ModelStep{
     /*
         * Groups facilities by their zone and activity type, and sums up the weights (capacities) for each group.
      */
-    private Map<ZoneActivityKey, Map<Id<ActivityFacility>, Double>> groupFacilities() {
-        Map<ZoneActivityKey, Map<Id<ActivityFacility>, Double>> grouped = new HashMap<>();
-
+    private void groupFacilities() {
+        this.facilityWeightsByZoneAndType = new HashMap<>();
+        this.facilityIdsByZone = new HashMap<>();
         for (ActivityFacility f : activityFacilities.getFacilities().values()) {
             Object zoneAttr = f.getAttributes().getAttribute(SynpopConstants.ZONE_ID);
             if (zoneAttr == null) continue;
             Id<Zone> zoneId = Id.create(zoneAttr.toString(), Zone.class);
+            this.facilityIdsByZone.computeIfAbsent(zoneId,_ -> new ArrayList<>()).add(f.getId());
             for (ActivityOption opt : f.getActivityOptions().values()) {
                 double weight = opt.getCapacity();
 
                 if (weight > 0) {
                     ZoneActivityKey key = new ZoneActivityKey(zoneId, opt.getType());
-                    grouped.computeIfAbsent(key, _ -> new HashMap<>()).put(f.getId(), weight);
+                    facilityWeightsByZoneAndType.computeIfAbsent(key, _ -> new HashMap<>()).put(f.getId(), weight);
                 }
             }
         }
-        return grouped;
     }
 
     private void prepareAttractivenessDataPerFacility() {
