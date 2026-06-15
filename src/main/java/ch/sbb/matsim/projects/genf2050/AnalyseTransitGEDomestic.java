@@ -16,7 +16,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +35,7 @@ public class AnalyseTransitGEDomestic {
             Plan plan = person.getSelectedPlan();
             TripStructureUtils.getTrips(plan).stream()
                     .filter(trip -> trip.getLegsOnly().stream().anyMatch(leg -> leg.getRoutingMode().equals(SBBModes.PT)))
-                    .filter(trip -> isABoolean(trip, zonesOfInterest, zones))
+                    .filter(trip -> isEntirelyInZones(trip, zonesOfInterest, zones))
                     .forEach(trip -> {
                                 double ptDistance = trip.getLegsOnly().stream().filter(leg -> leg.getRoute() instanceof TransitPassengerRoute).mapToDouble(leg -> leg.getRoute().getDistance()).sum();
                                 Set<Id<TransitLine>> collectedLinesOfInterest = new HashSet<>();
@@ -70,12 +69,12 @@ public class AnalyseTransitGEDomestic {
 
         }
 
-    private static boolean isABoolean(TripStructureUtils.Trip trip, Set<Id<Zone>> zonesOfInterest, Zones zones) {
+    private static boolean isEntirelyInZones(TripStructureUtils.Trip trip, Set<Id<Zone>> zonesOfInterest, Zones zones) {
         Zone originZone = zones.findZone(trip.getOriginActivity().getCoord());
         Zone destinationZone = zones.findZone(trip.getDestinationActivity().getCoord());
         if (originZone == null || destinationZone == null) {
             return false;}
-        return zonesOfInterest.contains(originZone.getId()) && zonesOfInterest.contains(destinationZone.getId());
+        return zonesOfInterest.contains(originZone.getId()) || zonesOfInterest.contains(destinationZone.getId());
     }
 
 }
