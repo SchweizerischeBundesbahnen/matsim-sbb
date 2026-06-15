@@ -1,6 +1,7 @@
 package ch.sbb.matsim.plans.models.steps;
 
 import ch.sbb.matsim.config.variables.SBBActivities;
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
@@ -160,6 +161,9 @@ public class MOBiPlansOutputWriter implements ModelStep {
                     }
                     for (PlanElement planElement : person.getSelectedPlan().getPlanElements()){
                         if (planElement instanceof  Leg leg){
+                            if (leg.getMode().equals(SBBModes.WALK_FOR_ANALYSIS)){
+                                leg.setMode(SBBModes.WALK_MAIN_MAINMODE);
+                            }
                             Set<String> legAttributes = new HashSet<>(leg.getAttributes().getAsMap().keySet());
                             for (var legAtt: legAttributes){
                                 leg.getAttributes().removeAttribute(legAtt);
