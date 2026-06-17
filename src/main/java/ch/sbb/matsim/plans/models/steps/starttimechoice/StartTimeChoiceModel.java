@@ -151,13 +151,23 @@ public class StartTimeChoiceModel implements ModelStep {
             }
             if (chosenBin == null) chosenBin = validBins.keySet().iterator().next(); // Fallback
 
-            // 2. If the bin spans multiple free windows, pick one randomly (Python: rand.choice)
-            List<DailyCalendar.TimeWindow> overlaps = validBins.get(chosenBin);
-            DailyCalendar.TimeWindow chosenOverlap = overlaps.get(random.nextInt(overlaps.size()));
+            // 2. Pick exact second inside the ENTIRE ORIGINAL BIN (Matches Python exactly)
+            int exactMainActStart = chosenBin.startTimeSec() +
+                    (int) (random.nextDouble() * chosenBin.getDurationSec());
 
-            // 3. Pick exact second inside the chosen overlap
-            int exactMainActStart = chosenOverlap.startSec() +
-                    (int) (random.nextDouble() * (chosenOverlap.endSec() - chosenOverlap.startSec()));
+            // 3. Verify that this specific random second actually fits into one of the overlapping free windows!
+            boolean fitsInWindow = false;
+            for (DailyCalendar.TimeWindow overlap : validBins.get(chosenBin)) {
+                if (exactMainActStart >= overlap.startSec() && exactMainActStart <= overlap.endSec()) {
+                    fitsInWindow = true;
+                    break;
+                }
+            }
+
+            if (!fitsInWindow) {
+                tourFits[i] = false;
+                continue; // The random second fell outside the free time! Mark invalid and let the 100-loop try again!
+            }
 
             chosenStartTimes[i] = exactMainActStart;
             tourFits[i] = true;
