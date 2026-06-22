@@ -48,6 +48,7 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ExperiencedPlansService;
 import org.matsim.pt.routes.TransitPassengerRoute;
+import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import java.io.IOException;
@@ -131,6 +132,50 @@ public class PtLinkVolumeAnalyzer {
         new NetworkWriter(railNet).write(outputfile + "_rail_network.xml.gz");
     }
 
+    private static <T extends Number> void writeDetailedFile(String outputfile, double scalefactor, Map<Id<Link>, T> ptVolumes, Map<Id<Link>, Map<Id<TransitLine>, Long>> ptVolumesPerLine, Network ptNetwork) {
+        try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile)) {
+            for (Entry<Id<Link>, T> e : ptVolumes.entrySet()) {
+                Id<Link> currentLinkId = e.getKey();
+                int scaledVolume = (int) Math.round(e.getValue().doubleValue() * scalefactor);
+                Link l = ptNetwork.getLinks().get(currentLinkId);
+                if (l != null) {
+                    l.getAttributes().putAttribute(VOLUME, scaledVolume);
+
+                    // Set per-line volume attributes
+                    Map<Id<TransitLine>, Long> lineVolumes = ptVolumesPerLine.get(currentLinkId);
+                    if (lineVolumes != null) {
+                        for (Entry<Id<TransitLine>, Long> lineEntry : lineVolumes.entrySet()) {
+                            int scaledLineVolume = (int) Math.round(lineEntry.getValue() * scalefactor);
+                            l.getAttributes().putAttribute(VOLUME + "_" + lineEntry.getKey().toString(), scaledLineVolume);
+                        }
+                    }
+
+                    writer.set(LINK_ID_SIM, currentLinkId.toString());
+                    writer.set(VOLUME, Integer.toString(scaledVolume));
+
+                    var visumNodeAndLink = MaviHelper.extractVisumNodeAndLinkId(currentLinkId);
+                    if (visumNodeAndLink != null) {
+                        writer.set(FROMNODENO, Integer.toString(visumNodeAndLink.getFirst()));
+                        writer.set(LINK_NO, Integer.toString(visumNodeAndLink.getSecond()));
+                    } else {
+                        writer.set(FROMNODENO, "0");
+                        writer.set(LINK_NO, "0");
+                    }
+                    writer.writeRow();
+                } else {
+                    log.warn("Could not find link " + currentLinkId + ". Skipping.");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        new NetworkWriter(ptNetwork).write(outputfile + "_network.xml.gz");
+        NetworkFilterManager nfm2 = new NetworkFilterManager(ptNetwork, new NetworkConfigGroup());
+        nfm2.addLinkFilter(link -> link.getAllowedModes().contains(PTSubModes.RAIL));
+        Network railNet = nfm2.applyFilters();
+        new NetworkWriter(railNet).write(outputfile + "_rail_network.xml.gz");
+    }
+
     public static void main(String[] args) {
         // Example usage
         String folderPrefix = args[0];
@@ -158,6 +203,7 @@ public class PtLinkVolumeAnalyzer {
         analyzer.writePtLinkUsage(folderPrefix + "pt_volumes_rewritten.att", scaleFactor, experiencedPlans);
     }
 
+
     public Map<Id<Link>, Long> analysePtLinkUsage(Map<Id<Person>,Plan> experiencedPlans) {
         Map<Id<Link>, Long> ptUsage = experiencedPlans.values()
                 .stream()
@@ -168,6 +214,22 @@ public class PtLinkVolumeAnalyzer {
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
         return ptUsage;
 
+    }
+
+    public Map<Id<Link>, Map<Id<TransitLine>, Long>> analysePtLinkUsagePerLine(Map<Id<Person>, Plan> experiencedPlans) {
+        Map<Id<Link>, Map<Id<TransitLine>, Long>> ptUsagePerLine = new HashMap<>();
+        experiencedPlans.values()
+                .stream()
+                .flatMap(p -> TripStructureUtils.getLegs(p).stream())
+                .filter(l -> SBBModes.PT_PASSENGER_MODES.contains(l.getMode()))
+                .map(l -> (TransitPassengerRoute) l.getRoute())
+                .forEach(route -> {
+                    Id<TransitLine> lineId = route.getLineId();
+                    for (Id<Link> linkId : railTripsAnalyzer.getPtLinkIdsTraveledOn(route)) {
+                        ptUsagePerLine.computeIfAbsent(linkId, k -> new HashMap<>()).merge(lineId, 1L, Long::sum);
+                    }
+                });
+        return ptUsagePerLine;
     }
 
     public Map<Id<Link>, Double> analysePtLinkUsageincludingDNWV(Map<Id<Person>, Plan> experiencedPlans) {
@@ -211,9 +273,21 @@ public class PtLinkVolumeAnalyzer {
         Network ptNetwork = nfm.applyFilters();
         var ptVolumes = analysePtLinkUsage(experiencedPlans);
         writeFile(outputfile, scalefactor, ptVolumes, ptNetwork);
+
+        var ptVolumesPerLine = analysePtLinkUsagePerLine(experiencedPlans);
+        NetworkFilterManager nfmDetailed = new NetworkFilterManager(network, new NetworkConfigGroup());
+        nfmDetailed.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
+        Network ptNetworkDetailed = nfmDetailed.applyFilters();
+        writeDetailedFile(outputfile + "_detailed", scalefactor, ptVolumes, ptVolumesPerLine, ptNetworkDetailed);
+
         var ptVolumesIncludingDNWV = analysePtLinkUsageincludingDNWV(experiencedPlans);
         if (ptVolumesIncludingDNWV != null) {
             writeFile(outputfile + "_dnwv", scalefactor, ptVolumesIncludingDNWV, ptNetwork);
+
+            NetworkFilterManager nfmDnwvDetailed = new NetworkFilterManager(network, new NetworkConfigGroup());
+            nfmDnwvDetailed.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
+            Network ptNetworkDnwvDetailed = nfmDnwvDetailed.applyFilters();
+            writeDetailedFile(outputfile + "_dnwv_detailed", scalefactor, ptVolumesIncludingDNWV, ptVolumesPerLine, ptNetworkDnwvDetailed);
         }
     }
 
