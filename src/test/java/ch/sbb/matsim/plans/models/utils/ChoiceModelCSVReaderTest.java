@@ -2,6 +2,9 @@ package ch.sbb.matsim.plans.models.utils;
 
 import ch.sbb.matsim.plans.models.utilitycomponents.*;
 import org.junit.jupiter.api.Test;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.core.population.PopulationUtils;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -72,4 +75,81 @@ class ChoiceModelCSVReaderTest {
         assertTrue(ga.getComponents().stream().anyMatch(c -> c instanceof BoxCoxComponent));
         assertTrue(ga.getComponents().stream().anyMatch(c -> c instanceof PiecewiseComponent));
     }
+
+    @Test
+    void testReadRegressionModelWithScaledAttributeExpression() throws IOException {
+        String csvContent = """
+                type;attribute;values;lambda;value
+                linear;demand;/1000000.0;;2.0
+                boxcox;;demand*0.000001;0;3.0
+                """;
+
+        Path tempFile = Files.createTempFile("utility_model_scale_test", ".csv");
+        try (FileWriter writer = new FileWriter(tempFile.toFile())) {
+            writer.write(csvContent);
+        }
+
+        UtilityCalculator model = ChoiceModelCSVReader.readRegressionModelFromCSV(tempFile.toString());
+        Person person = PopulationUtils.getFactory().createPerson(Id.createPersonId("test"));
+        person.getAttributes().putAttribute("demand", 2_000_000.0);
+
+        double result = model.calculate(person);
+        double expected = 2.0 * 2.0 + (Math.log(2.0) * 3.0);
+        assertEquals(expected, result, 1e-9);
+
+        Files.deleteIfExists(tempFile);
+    }
+
+    @Test
+    void testConditionOrSyntaxWithPipe() throws IOException {
+        String csvContent = """
+                type;attribute;values;lambda;value
+                condition;pt_subscr;==GA|==VA|==HTV;;1.5
+                """;
+
+        Path tempFile = Files.createTempFile("utility_model_condition_or_test", ".csv");
+        try (FileWriter writer = new FileWriter(tempFile.toFile())) {
+            writer.write(csvContent);
+        }
+
+        UtilityCalculator model = ChoiceModelCSVReader.readRegressionModelFromCSV(tempFile.toString());
+
+        Person gaPerson = PopulationUtils.getFactory().createPerson(Id.createPersonId("ga"));
+        gaPerson.getAttributes().putAttribute("pt_subscr", "GA");
+        assertEquals(1.5, model.calculate(gaPerson), 1e-9);
+
+        Person vaPerson = PopulationUtils.getFactory().createPerson(Id.createPersonId("va"));
+        vaPerson.getAttributes().putAttribute("pt_subscr", "VA");
+        assertEquals(1.5, model.calculate(vaPerson), 1e-9);
+
+        Person nonePerson = PopulationUtils.getFactory().createPerson(Id.createPersonId("none"));
+        nonePerson.getAttributes().putAttribute("pt_subscr", "none");
+        assertEquals(0.0, model.calculate(nonePerson), 1e-9);
+
+        Files.deleteIfExists(tempFile);
+    }
+
+    @Test
+    void testScaledAttributeExpressionInAttributeColumn() throws IOException {
+        String csvContent = """
+                type;attribute;values;lambda;value
+                boxcox;demand/1000000;;1;3.0
+                """;
+
+        Path tempFile = Files.createTempFile("utility_model_attribute_scale_test", ".csv");
+        try (FileWriter writer = new FileWriter(tempFile.toFile())) {
+            writer.write(csvContent);
+        }
+
+        UtilityCalculator model = ChoiceModelCSVReader.readRegressionModelFromCSV(tempFile.toString());
+        Person person = PopulationUtils.getFactory().createPerson(Id.createPersonId("attribute-scale"));
+        person.getAttributes().putAttribute("demand", 2_000_000.0);
+
+        double result = model.calculate(person);
+        double expected = ((Math.pow(2.0, 1.0) - 1.0) / 1.0) * 3.0;
+        assertEquals(expected, result, 1e-9);
+
+        Files.deleteIfExists(tempFile);
+    }
+
 }

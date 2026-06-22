@@ -62,7 +62,6 @@ public class SynpopConstants {
     public static final String NOGA_CODE = "noga_code";
     public static final String SECTOR = "sector";
     public static final String RELATIVE_ATTRACTION = "relative_attraction";
-    public static final String NET_DIST_SCHOOL_PTSUBSCR = "net_dist_school_ptsubscr";
     public static final String NET_DIST_SCHOOL = "network_distance_school";
     public static final String NET_DIST_WORK = "network_distance_work";
     public static final String LEVEL_OF_EMPLOYMENT_CAT = "level_of_employment_cat";

@@ -34,7 +34,7 @@ public class CompareActivityDurations {
         String oldPlansFile = args.length >= 2
                 ? args[1]
                 : "/Users/joschka.bischoff/Desktop/106_release.plans.xml.gz";
-        Path outputDir = args.length >= 3 ? Path.of(args[2]) : Path.of("/Volumes/mobi/40_Projekte/20250408_mobi_plans_6.0/test_input_synpop/output/");
+        Path outputDir = args.length >= 3 ? Path.of(args[2]) : Path.of("/Users/joschka.bischoff/Desktop/");
 
         RunStats newStats = readRunStats(newPlansFile);
         RunStats oldStats = readRunStats(oldPlansFile);
@@ -72,6 +72,14 @@ public class CompareActivityDurations {
             for (PlanElement planElement : plan.getPlanElements()) {
                 if (!(planElement instanceof Activity activity)) {
                     continue;
+                }
+                if (activity.getType().equals("home")){
+                   if (activity.getStartTime().isUndefined()) {
+                       activity.setStartTime(activity.getEndTime().orElse(24*3600));
+                   }
+                   if (activity.getEndTime().isUndefined()) {
+                       activity.setEndTime(activity.getStartTime().seconds());
+                   }
                 }
                 if (!activity.getStartTime().isDefined() || !activity.getEndTime().isDefined()) {
                     continue;

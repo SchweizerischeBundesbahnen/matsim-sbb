@@ -102,12 +102,11 @@ public class StartTimeChoiceModel implements ModelStep {
             double durBeforeMain = calculateDurationBeforeMain(tour);
             double durAfterMain = estimateTotalTourDuration(tour) - durBeforeMain;
 
-            TimeSeriesRule rule = findMatchingRule(person, tour, rulesMap);
+            TimeSeriesRule rule = findMatchingRule(person, tour.getMainActivityType(), calculateDistanceBeforeMain(tour), rulesMap);
             if (rule == null) {
-                tourFits[i] = false; continue; // Skip invalid tours!
+                tourFits[i] = false; continue;
             }
 
-            // Group overlaps by the TimeBin to match Python exactly
             Map<TimeBin, List<DailyCalendar.TimeWindow>> validBins = new LinkedHashMap<>();
             double totalWeight = 0.0;
 
@@ -121,23 +120,21 @@ public class StartTimeChoiceModel implements ModelStep {
                         int overlapEnd = Math.min(constrainedEnd, bin.endTimeSec());
 
                         if (overlapEnd > overlapBegin && bin.probability() > 0) {
-                            // If this bin hasn't been added yet, add its raw probability to the total weight!
                             if (!validBins.containsKey(bin)) {
                                 totalWeight += bin.probability();
                                 validBins.put(bin, new ArrayList<>());
                             }
-                            // Save the actual overlapping window so we can pick a random second inside it
                             validBins.get(bin).add(new DailyCalendar.TimeWindow(overlapBegin, overlapEnd));
                         }
                     }
                 }
             }
 
-            if (validBins.isEmpty()) {
-                tourFits[i] = false; continue; // Tour cannot fit!
+            if (validBins.isEmpty() || totalWeight <= 0.0) {
+                tourFits[i] = false;
+                continue;
             }
 
-            // 1. Roll the dice to pick the Time Bin (using raw CSV probability!)
             double r = random.nextDouble() * totalWeight;
             double cumulative = 0.0;
             TimeBin chosenBin = null;
@@ -149,39 +146,88 @@ public class StartTimeChoiceModel implements ModelStep {
                     break;
                 }
             }
-            if (chosenBin == null) chosenBin = validBins.keySet().iterator().next(); // Fallback
+            if (chosenBin == null) chosenBin = validBins.keySet().iterator().next();
 
-            // 2. Pick exact second inside the ENTIRE ORIGINAL BIN (Matches Python exactly)
-            int exactMainActStart = chosenBin.startTimeSec() +
-                    (int) (random.nextDouble() * chosenBin.getDurationSec());
+            List<DailyCalendar.TimeWindow> overlaps = validBins.get(chosenBin);
+            DailyCalendar.TimeWindow chosenOverlap = overlaps.get(random.nextInt(overlaps.size()));
 
-            // 3. Verify that this specific random second actually fits into one of the overlapping free windows!
-            boolean fitsInWindow = false;
-            for (DailyCalendar.TimeWindow overlap : validBins.get(chosenBin)) {
-                if (exactMainActStart >= overlap.startSec() && exactMainActStart <= overlap.endSec()) {
-                    fitsInWindow = true;
-                    break;
-                }
-            }
-
-            if (!fitsInWindow) {
-                tourFits[i] = false;
-                continue; // The random second fell outside the free time! Mark invalid and let the 100-loop try again!
-            }
+            int exactMainActStart = chosenOverlap.startSec() +
+                    (int) (random.nextDouble() * chosenOverlap.getDuration());
 
             chosenStartTimes[i] = exactMainActStart;
             tourFits[i] = true;
             numValidTours++;
 
-            // 4. Block the calendar
-            calendar.blockTime(exactMainActStart - (int) durBeforeMain, exactMainActStart + (int) durAfterMain);
+            int tourLeaveHomeTime = exactMainActStart - (int) durBeforeMain;
+            calendar.blockTime(tourLeaveHomeTime, exactMainActStart + (int) durAfterMain);
 
-            // 5. Score
+            // ---------------------------------------------------------
+            // THE FIX: SCORE EVERY ACTIVITY IN THE TOUR, NOT JUST MAIN!
+            // ---------------------------------------------------------
+
+            // 1. Score the Main Activity
             double probPostChoice = (3600.0 / chosenBin.getDurationSec()) * chosenBin.probability();
             totalDayScore += Math.exp(probPostChoice * rule.expBeta());
+
+            // 2. Score the Outbound Stops
+            int currentStopStartTime = tourLeaveHomeTime;
+            for (var pe : tour.getTourElements()) {
+                if (pe == tour.getMainActivities().get(0)) break; // Reached Main Activity
+
+                if (pe instanceof org.matsim.api.core.v01.population.Leg leg) {
+                    currentStopStartTime += leg.getTravelTime().orElse(0.0);
+                } else if (pe instanceof org.matsim.api.core.v01.population.Activity act) {
+                    totalDayScore += getScoreForStop(person, act.getType(), currentStopStartTime, rulesMap);
+                    currentStopStartTime += act.getMaximumDuration().orElse(0.0);
+                }
+            }
+
+            // 3. Score the Subtours and Inbound Stops
+            currentStopStartTime = exactMainActStart + (int) tour.getMainActivities().get(0).getMaximumDuration().orElse(0.0);
+            boolean pastMain = false;
+            for (var pe : tour.getTourElements()) {
+                if (pe == tour.getMainActivities().get(0)) { pastMain = true; continue; }
+                if (!pastMain) continue;
+
+                if (pe instanceof org.matsim.api.core.v01.population.Leg leg) {
+                    currentStopStartTime += leg.getTravelTime().orElse(0.0);
+                } else if (pe instanceof org.matsim.api.core.v01.population.Activity act) {
+                    totalDayScore += getScoreForStop(person, act.getType(), currentStopStartTime, rulesMap);
+                    currentStopStartTime += act.getMaximumDuration().orElse(0.0);
+                }
+            }
+            // ---------------------------------------------------------
         }
 
         return new CandidateSchedule(totalDayScore, chosenStartTimes, tourFits, numValidTours);
+    }
+
+    private double getScoreForStop(Person person, String activityType, int startTimeSec, Map<String, List<TimeSeriesRule>> rulesMap) {
+        // Stops don't use the full distance routing in Visum's time-series assignment, they usually evaluate at distance 0.0
+        TimeSeriesRule rule = findMatchingRule(person, activityType, 0.0, rulesMap);
+        if (rule == null) return 0.0;
+
+        // Find which bin the start time falls into
+        for (TimeBin bin : rule.timeBins()) {
+            if (startTimeSec >= bin.startTimeSec() && startTimeSec <= bin.endTimeSec()) {
+                double probPostChoice = (3600.0 / bin.getDurationSec()) * bin.probability();
+                return Math.exp(probPostChoice * rule.expBeta());
+            }
+        }
+        return 0.0; // Fell outside of known bins
+    }
+
+    // Updated Helper Signature to be reusable:
+    private TimeSeriesRule findMatchingRule(Person person, String activityType, double incomingDistance, Map<String, List<TimeSeriesRule>> rulesMap) {
+        List<TimeSeriesRule> rules = rulesMap.get(activityType);
+        if (rules == null || rules.isEmpty()) return null;
+
+        for (TimeSeriesRule rule : rules) {
+            if (rule.condition().test(person, incomingDistance)) {
+                return rule;
+            }
+        }
+        return null;
     }
     private double calculateDurationBeforeMain(Tour tour) {
         double durationBefore = 0.0;
@@ -223,24 +269,6 @@ public class StartTimeChoiceModel implements ModelStep {
         return cumulativeDistance;
     }
 
-    // Helper Record for the intersection math
-    private record ValidIntersection(int overlapBegin, int overlapEnd, TimeBin bin, double weight) {}
-
-    // Helper to find the matching rule evaluating the incoming trip distance
-    private TimeSeriesRule findMatchingRule(Person person, Tour tour, Map<String, List<TimeSeriesRule>> rulesMap) {
-        List<TimeSeriesRule> rules = rulesMap.get(tour.getMainActivityType());
-        if (rules == null || rules.isEmpty()) return null;
-
-        // The distance of the trip leading TO the main activity
-        double incomingDistance = calculateDistanceBeforeMain(tour);
-
-        for (TimeSeriesRule rule : rules) {
-            if (rule.condition().test(person, incomingDistance)) {
-                return rule;
-            }
-        }
-        return null;
-    }
     private void applyScheduleToMATSimPlan(Person person, List<Tour> tours, CandidateSchedule bestSchedule) {
         PopulationFactory factory = PopulationUtils.getFactory();
         Plan plan = factory.createPlan();

@@ -56,7 +56,6 @@ public class MobilityToolOwnershipModel implements ModelStep {
 
     @Override
     public void run() {
-        addAdditionalAttributes();
         runDrivingLicenseModel();
         runCarsPerHouseholdModel();
         runPublicTransportSubscription();
@@ -73,8 +72,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
                 .filter(person -> AttributeUtils.getAsInteger(person,SynpopConstants.AGE,-1)>=18)
                 .forEach(
                         person -> {
-                            double netDistanceSchool = AttributeUtils.getAsDouble(person,SynpopConstants.NET_DIST_SCHOOL,0.0);
-                            person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, netDistanceSchool/10_000.0); //in km divided by 10
+                            person.getAttributes().putAttribute("net_dist_school_ptsubscr",AttributeUtils.getAsDouble(person,SynpopConstants.NET_DIST_SCHOOL,0)/10000.0);
                             String ptSubscription = ptSubscriptionModelAdults.calculate(person);
                             person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, ptSubscription);
                             }
@@ -102,11 +100,11 @@ public class MobilityToolOwnershipModel implements ModelStep {
         scenario.getPopulation().getPersons().values().parallelStream()
                 .forEach(
                         person -> {
-                            person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, 0.0);
                             String ptSubscription;
                             if (AttributeUtils.getAsInteger(person,SynpopConstants.AGE,-1) < 18) {
                                 ptSubscription = ptSubscriptionModelMinors.calculate(person);
                             } else {
+                                person.getAttributes().putAttribute("net_dist_school_ptsubscr",0);
                                 ptSubscription = ptSubscriptionModelAdults.calculate(person);
                             }
                             person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, ptSubscription);
@@ -165,18 +163,6 @@ public class MobilityToolOwnershipModel implements ModelStep {
 
     }
 
-
-    private void addAdditionalAttributes() {
-        zones.getZones().forEach(zone -> {
-            Double accsib_car = (Double) zone.getAttributes().getAttribute(ZonalAttributes.ACCSIB_CAR);
-            Double accsib_pt = (Double) zone.getAttributes().getAttribute(ZonalAttributes.ACCSIB_PT);
-            Double accsib_mul = (Double) zone.getAttributes().getAttribute(ZonalAttributes.ACCSIB_MUL);
-            zone.getAttributes().putAttribute(ZonalAttributes.ACC_CAR_SC, accsib_car / 1_000_000.0);
-            zone.getAttributes().putAttribute(ZonalAttributes.ACC_MUL_SC, accsib_mul / 1_000_000.0);
-            zone.getAttributes().putAttribute(ZonalAttributes.ACC_PT_SC, accsib_pt / 1_000_000.0);
-
-        });
-    }
 
     @Override
     public String getName() {

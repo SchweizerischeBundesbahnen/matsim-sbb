@@ -261,7 +261,6 @@ public class SynPopUtils {
         TreeMap<Integer, Integer> levelOfEmploymentCategories = new TreeMap<>(SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT_BOUNDS);
         scenario.getPopulation().getPersons().values().parallelStream().forEach(person -> {
             person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL, 0.0);
-            person.getAttributes().putAttribute(SynpopConstants.NET_DIST_SCHOOL_PTSUBSCR, 0.0);
             person.getAttributes().putAttribute(SynpopConstants.NET_DIST_WORK, 0.0);
             person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, false);
             int loe = ((Number) person.getAttributes().getAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT)).intValue();

@@ -4,9 +4,7 @@ public class ZonalAttributes {
     public static final String ACCSIB_CAR = "accsib_car";
     public static final String ACCSIB_MUL = "accsib_mul";
     public static final String ACCSIB_PT = "accsib_pt";
-    public static final String ACC_CAR_SC = "acc_car_sc";
     public static final String ACC_MUL_SC = "acc_mul_sc";
-    public static final String ACC_PT_SC = "acc_pt_sc";
 
 
     public static final String AGGLO_ID = "agglo_id";
