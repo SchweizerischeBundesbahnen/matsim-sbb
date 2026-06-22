@@ -1,6 +1,5 @@
 package ch.sbb.matsim.zones;
 
-import org.apache.logging.log4j.LogManager;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
@@ -21,7 +20,7 @@ public class AttributableZone implements Zone {
             this.geometry = (Geometry) feature.getDefaultGeometry();
             feature.getFeatureType().getAttributeDescriptors().forEach(attributeDescriptor -> {
                 String name = attributeDescriptor.getLocalName();
-                if (name.equals("geometry")) {
+                if (name.equals("geometry") || name.equals("the_geom") || name.equals("geom")) {
                     // Skip the geometry attribute, as we already have it in geometry.
                     return;
                 }
@@ -41,11 +40,7 @@ public class AttributableZone implements Zone {
 
     @Override
     public Object getAttribute(String name) {
-        Object o = this.attributes.getAttribute(name);
-        if (o == null) {
-            LogManager.getLogger(getClass()).warn("Attribute " + name + " not found in zones. Will return null");
-        }
-        return o;
+        return this.attributes.getAttribute(name);
     }
 
     @Override

@@ -1,0 +1,22 @@
+package ch.sbb.matsim.plans.models.utilitycomponents;
+
+import ch.sbb.matsim.plans.constants.SynpopConstants;
+import org.junit.jupiter.api.Test;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.core.population.PopulationUtils;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class LogarithmicComponentTest {
+
+    @Test
+    void testCalculate() {
+        LogarithmicComponent calculator = new LogarithmicComponent("age", 0.5,false);
+        Person person = PopulationUtils.getFactory().createPerson(Id.createPersonId(0));
+        person.getAttributes().putAttribute(SynpopConstants.AGE, 40);
+        double result = calculator.calculate(person);
+        assertEquals(73.7777589, result, 0.01);
+    }
+
+}

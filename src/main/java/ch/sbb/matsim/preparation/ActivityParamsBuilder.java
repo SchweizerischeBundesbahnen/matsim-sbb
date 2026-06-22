@@ -15,23 +15,23 @@ public class ActivityParamsBuilder {
 			final ActivityParams params = new ActivityParams(type);
 			params.setMinimalDuration(10 * 60.0);
 			params.setTypicalDuration(40 * 60.0);
-            params.setScoringThisActivityAtAll(false);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(false);
+			config.scoring().addActivityParams(params);
 		}
 		{
 			String type = SBBActivities.freight;
 			final ActivityParams params = new ActivityParams(type);
 			params.setTypicalDuration(12 * 3600.0);
-            params.setScoringThisActivityAtAll(false);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(false);
+			config.scoring().addActivityParams(params);
 		}
 
 		{
 			String type = SBBActivities.cbHome;
 			final ActivityParams params = new ActivityParams(type);
 			params.setTypicalDuration(12 * 3660.0);
-            params.setScoringThisActivityAtAll(false);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(false);
+			config.scoring().addActivityParams(params);
 		}
 
 		// home
@@ -39,8 +39,8 @@ public class ActivityParamsBuilder {
 			String type = SBBActivities.home + "_" + ii;
 			final ActivityParams params = new ActivityParams(type);
 			params.setTypicalDuration(ii * 60.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		for (long ii = 30; ii <= 1440; ii += 30) {
@@ -49,11 +49,17 @@ public class ActivityParamsBuilder {
 				final ActivityParams params = new ActivityParams(type);
 				params.setTypicalDuration(ii * 60.0);
 				params.setLatestStartTime(yy * 3600.0);
-                params.setScoringThisActivityAtAll(true);
-                config.scoring().addActivityParams(params);
+				params.setScoringThisActivityAtAll(true);
+				config.scoring().addActivityParams(params);
 			}
 		}
-
+		{
+			String type = SBBActivities.home ;
+			final ActivityParams params = new ActivityParams(type);
+			params.setTypicalDuration(8 * 60.0);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
+		}
 		// work
 		for (long ii = 30; ii <= 960; ii += 30) {
 			String type = SBBActivities.work + "_" + ii;
@@ -61,8 +67,8 @@ public class ActivityParamsBuilder {
 			params.setTypicalDuration(ii * 60.0);
 			params.setOpeningTime(4 * 3600.0);
 			params.setClosingTime(23 * 3600.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		for (long ii = 30; ii <= 960; ii += 30) {
@@ -73,8 +79,8 @@ public class ActivityParamsBuilder {
 			params.setOpeningTime(6.45 * 3600.0);
 			params.setLatestStartTime(7.45 * 3600.0);
 			params.setClosingTime(23 * 3600.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		for (long ii = 30; ii <= 960; ii += 30) {
@@ -85,8 +91,8 @@ public class ActivityParamsBuilder {
 			params.setOpeningTime(12.5 * 3600.0);
 			params.setLatestStartTime(13.75 * 3600.0);
 			params.setClosingTime(23 * 3600.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		// education
@@ -96,8 +102,8 @@ public class ActivityParamsBuilder {
 			params.setTypicalDuration(ii * 60.0);
 			params.setOpeningTime(6 * 3600.0);
 			params.setClosingTime(21 * 3600.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		for (long ii = 30; ii <= 960; ii += 30) {
@@ -108,8 +114,8 @@ public class ActivityParamsBuilder {
 			params.setOpeningTime(7.5 * 3600.0);
 			params.setLatestStartTime(8.25 * 3600.0);
 			params.setClosingTime(21 * 3600.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		for (long ii = 30; ii <= 960; ii += 30) {
@@ -120,8 +126,8 @@ public class ActivityParamsBuilder {
 			params.setOpeningTime(12.75 * 3600.0);
 			params.setLatestStartTime(13.25 * 3600.0);
 			params.setClosingTime(21 * 3600.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		// business
@@ -131,8 +137,8 @@ public class ActivityParamsBuilder {
 			params.setTypicalDuration(ii * 60.0);
 			params.setOpeningTime(4 * 3600.0);
 			params.setClosingTime(23 * 3600.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		// leisure
@@ -142,8 +148,8 @@ public class ActivityParamsBuilder {
 			params.setTypicalDuration(ii * 60.0);
 			params.setOpeningTime(4 * 3600.0);
 			params.setClosingTime(24 * 3600.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		// shopping
@@ -153,8 +159,8 @@ public class ActivityParamsBuilder {
 			params.setTypicalDuration(ii * 60.0);
 			params.setOpeningTime(5 * 3600.0);
 			params.setClosingTime(22 * 3600.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		// accompany
@@ -162,8 +168,8 @@ public class ActivityParamsBuilder {
 			String type = SBBActivities.accompany + "_" + ii;
 			final ActivityParams params = new ActivityParams(type);
 			params.setTypicalDuration(ii * 60.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 
 		// other
@@ -171,16 +177,16 @@ public class ActivityParamsBuilder {
 			String type = SBBActivities.other + "_" + ii;
 			final ActivityParams params = new ActivityParams(type);
 			params.setTypicalDuration(ii * 60.0);
-            params.setScoringThisActivityAtAll(true);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(true);
+			config.scoring().addActivityParams(params);
 		}
 	}
 
 	public static void buildStageActivityModeParams(Config config) {
 		for (String stageActivityType : SBBActivities.stageActivityTypeList) {
 			final ActivityParams params = new ActivityParams(stageActivityType);
-            params.setScoringThisActivityAtAll(false);
-            config.scoring().addActivityParams(params);
+			params.setScoringThisActivityAtAll(false);
+			config.scoring().addActivityParams(params);
 		}
 	}
 }

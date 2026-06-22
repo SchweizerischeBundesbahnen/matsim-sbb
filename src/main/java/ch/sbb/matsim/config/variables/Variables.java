@@ -38,8 +38,31 @@ public class Variables {
     public static final String GA = "GA";
     public static final String VA = "VA";
     public static final String HTA = "HTA";
+    public static final String HTV = "HTV";
+
+    public static final String MATRICES = "matrices";
+    public static final String SLICE = "slice";
+
+    public enum PTSubscriptionType {
+        NONE("NONE"),
+        GA("GA"),
+        VA("VA"),
+        HTA("HTA"),
+        HTV("HTV");
+
+        private final String value;
+
+        PTSubscriptionType(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
 
     public static final String ZONE_ID = "zone_id";
+    public static final String ZONES = "zones";
     public static final String MS_REGION = "ms_region";
     public static final String T_ZONE = "tZone";
 
@@ -70,7 +93,7 @@ public class Variables {
 
     public static final List<Id<TransitStopFacility>> EXCEPTIONAL_CH_STOPS = List.of(Id.create("1618", TransitStopFacility.class));
 
-    public static final Set<String> DEFAULT_PERSON_ATTRIBUTES = Set.of("age_cat", CAR_AVAIL, "current_edu", "level_of_employment_cat", PT_SUBSCRIPTION, "residence_msr_id", "residence_zone_id");
+    public static final Set<String> DEFAULT_PERSON_ATTRIBUTES = Set.of("age_cat", CAR_AVAIL, "current_edu", "level_of_employment_cat", PT_SUBSCRIPTION, "residence_amr_id", "residence_zone_id");
     public static final String MUN_NAME = "mun_name";
     public static final String ACCESS_CONTROLLED = "accessControlled";
 

@@ -63,7 +63,7 @@ public final class ZonesLoader {
 		ZonesImpl zones = new ZonesImpl(Id.create(id, Zones.class));
 		Name layerName = null;
 		if (!FilenameUtils.getExtension(filename).equals("shp")) {
-			layerName = new NameImpl(FilenameUtils.getBaseName(filename));
+			layerName = new NameImpl(Variables.ZONES);
 		}
 		for (SimpleFeature sf : GeoFileReader.getAllFeatures(filename, layerName)) {
 			String zoneId = noZoneId ? null : sf.getAttribute(idAttribute).toString();

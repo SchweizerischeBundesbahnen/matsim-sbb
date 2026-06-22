@@ -96,6 +96,7 @@ public class DemandAggregator {
 
     }
 
+
     public static void main(String[] args) {
         String experiencedPlansFile = args[0];
         String transitScheduleFile = args[1];
@@ -103,7 +104,9 @@ public class DemandAggregator {
         String networkFile = args[3];
         String aggregationId = args[4];
         double scaleFactor = Double.parseDouble(args[5]);
-        String outputFile = args[6];
+        String populationFile = args[6];
+        String outputFile = args[7];
+
 
         ZonesCollection zonesCollection = new ZonesCollection();
         zonesCollection.addZones(ZonesLoader.loadZones("zones", zonesShapeFile, "zone_id"));
@@ -111,6 +114,8 @@ public class DemandAggregator {
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
         new MatsimNetworkReader(scenario.getNetwork()).readFile(networkFile);
         new PopulationReader(scenario).readFile(experiencedPlansFile);
+        Scenario scenario2 = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+        new PopulationReader(scenario2).readFile(populationFile);
         PostProcessingConfigGroup ppcg = new PostProcessingConfigGroup();
         ppcg.setRailMatrixAggregate(aggregationId);
         ppcg.setZonesId("zones");
@@ -119,9 +124,9 @@ public class DemandAggregator {
         IdMap<Person, Plan> experiencedPlans = new IdMap<>(Person.class);
         scenario.getPopulation().getPersons().values().stream()
                 .forEach(person -> experiencedPlans.put(person.getId(), person.getSelectedPlan()));
-
+        demandAggregator.population = scenario2.getPopulation();
         demandAggregator.aggregateAndWriteMatrix(scaleFactor, outputFile, outputFile.replace(".csv", ".stationToStation.csv.gz"), outputFile.replace(".csv", ".stationToStationFQ.csv.gz"),
-                outputFile.replace(".csv", ".tripsPerMun.csv.gz"), outputFile.replace(".csv", ".tripsPerAmr.csv.gz"), experiencedPlans);
+                outputFile.replace(".csv", ".tripsPerMun.csv.gz"), outputFile.replace(".csv", ".tripsPerAmr.csv"), experiencedPlans);
 
 
     }
@@ -136,8 +141,8 @@ public class DemandAggregator {
         aggregateRailDemand(scalefactor, experiencedPlans.values());
         var railDemandMatrix = prepareRailMatrix(false);
         var railDemandFQMatrix = prepareRailMatrix(true);
-        writeMatrix(railDemandMatrix, outputMatrixFile);
-        writeMatrix(railDemandFQMatrix, outputMatrixFile.replace(".csv", "_fqOnly.csv"));
+        writeMatrix(railDemandMatrix, outputMatrixFile, aggregateZones);
+        writeMatrix(railDemandFQMatrix, outputMatrixFile.replace(".csv", "_fqOnly.csv"), aggregateZones);
 
         LOG.info("aggregating Trip Demand");
         aggregateTripDemand(scalefactor, experiencedPlans);
@@ -327,7 +332,7 @@ public class DemandAggregator {
         }
     }
 
-    private void writeMatrix(float[][] matrix, String outputfile) {
+    public static void writeMatrix(float[][] matrix, String outputfile, ArrayList<String> aggregateZones) {
         List<String> header = new ArrayList<>();
         header.add("from");
         header.addAll(aggregateZones);
@@ -409,7 +414,7 @@ public class DemandAggregator {
         }
     }
 
-    private static class StringNumberComparator implements Comparator<String> {
+    public static class StringNumberComparator implements Comparator<String> {
 
         @Override
         public int compare(String s, String t1) {

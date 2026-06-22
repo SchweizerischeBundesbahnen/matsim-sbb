@@ -25,6 +25,7 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressPar
 import ch.sbb.matsim.config.variables.SBBActivities;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -134,7 +135,7 @@ public class ScenarioConsistencyChecker {
 					checkPassed = false;
 				}
 			}
-            if (!String.valueOf(p.getAttributes().getAttribute(Variables.CAR_AVAIL)).equals(Variables.AVAIL_TRUE)) {
+            if (!AttributeUtils.hasCarAvailable(p)) {
 				var usesCar = TripStructureUtils.getLegs(p.getSelectedPlan()).stream().anyMatch(leg -> leg.getMode().equals(SBBModes.CAR));
 				if (usesCar) {
 					LOGGER.error("Person " + p.getId() + " has no car available, but at least one car trip in initial plan");
@@ -175,9 +176,9 @@ public class ScenarioConsistencyChecker {
 		boolean setProperly = switch (carModeAllowedSetting) {
 			case always -> true;
 			case carAvailable ->
-                    scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.AVAIL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.CAR_AVAIL))));
+                    scenario.getPopulation().getPersons().values().stream().anyMatch(person -> AttributeUtils.hasCarAvailable(person));
 			case licenseAvailable ->
-                    scenario.getPopulation().getPersons().values().stream().anyMatch(person -> Variables.AVAIL_TRUE.equals(String.valueOf(person.getAttributes().getAttribute(Variables.HIGHEST_EDUCATION))));
+                    scenario.getPopulation().getPersons().values().stream().anyMatch(person -> AttributeUtils.hasDrivingLicense(person));
 
 
 		};

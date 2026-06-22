@@ -139,7 +139,7 @@ public class RunSBB {
 		SBBXY2LinksAssigner.run(scenario.getPopulation(), scenario.getNetwork(), scenario.getConfig().network());
 		LinkToStationsAssigner.runAssignment(scenario);
 		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
-		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation());
+		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation(),scenario.getConfig());
 		ZonesModule.addZonestoScenario(scenario);
 		TransferTimeChecker.addAdditionalTransferTimes(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);

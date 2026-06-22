@@ -16,7 +16,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.routes.TransitPassengerRoute;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,15 +29,18 @@ public class AnalyseTransitGEDomestic {
         Set<Id<TransitLine>> linesOfInterest = Set.of(Id.create("M1_EV",TransitLine.class),Id.create("SBB_AK35k_001-D-11501",TransitLine.class),Id.create("SBB_AK35k_041-C-01127",TransitLine.class));
         Set<Id<Zone>> zonesOfInterest = zones.getZones().stream().filter(zone -> "25".equals(String.valueOf(zone.getAttribute("kt_id")))).map(Zone::getId).collect(Collectors.toSet());
         Map<Id<TransitLine>, DescriptiveStatistics> distancesPerLine = linesOfInterest.stream().collect(Collectors.toMap(transitLineId ->  transitLineId, _ -> new DescriptiveStatistics()));
+        Map<Id<TransitLine>, DescriptiveStatistics> segmentsPerLine = linesOfInterest.stream().collect(Collectors.toMap(transitLineId ->  transitLineId, _ -> new DescriptiveStatistics()));
         Map<Id<TransitLine>, DescriptiveStatistics> distancesPerLineOnly = linesOfInterest.stream().collect(Collectors.toMap(transitLineId ->  transitLineId, _ -> new DescriptiveStatistics()));
         DescriptiveStatistics ptDist = new DescriptiveStatistics();
+        DescriptiveStatistics ptSegments  = new DescriptiveStatistics();
         for (Person person : scenario.getPopulation().getPersons().values()){
             Plan plan = person.getSelectedPlan();
             TripStructureUtils.getTrips(plan).stream()
                     .filter(trip -> trip.getLegsOnly().stream().anyMatch(leg -> leg.getRoutingMode().equals(SBBModes.PT)))
-                    .filter(trip -> isABoolean(trip, zonesOfInterest, zones))
+                    .filter(trip -> isEntirelyInZones(trip, zonesOfInterest, zones))
                     .forEach(trip -> {
                                 double ptDistance = trip.getLegsOnly().stream().filter(leg -> leg.getRoute() instanceof TransitPassengerRoute).mapToDouble(leg -> leg.getRoute().getDistance()).sum();
+                                long ptSegmentsInTrip = trip.getLegsOnly().stream().filter(leg -> leg.getRoute() instanceof TransitPassengerRoute).count();
                                 Set<Id<TransitLine>> collectedLinesOfInterest = new HashSet<>();
                                 trip.getLegsOnly().stream().filter(leg -> leg.getRoute() instanceof TransitPassengerRoute)
                                         .filter(leg -> linesOfInterest.contains(((TransitPassengerRoute) leg.getRoute()).getLineId()))
@@ -50,8 +52,10 @@ public class AnalyseTransitGEDomestic {
                                             }
                                         );
                                 ptDist.addValue(ptDistance);
+                                ptSegments.addValue(ptSegmentsInTrip);
                                 for (Id<TransitLine> lineId : collectedLinesOfInterest) {
                                     distancesPerLine.get(lineId).addValue(ptDistance);
+                                    segmentsPerLine.get(lineId).addValue(ptSegmentsInTrip);
                                 }
                             }
                         );
@@ -61,21 +65,23 @@ public class AnalyseTransitGEDomestic {
             System.out.println(l.getKey());
             System.out.println("total pt distance" + distancesPerLine.get(l.getKey()).getMean());
             System.out.println("line pt distance" + distancesPerLineOnly.get(l.getKey()).getMean());
+            System.out.println("number of segments" + segmentsPerLine.get(l.getKey()).getMean());
             System.out.println(distancesPerLine.get(l.getKey()).getN()*4);
 
         }
         System.out.println("PT Distance overall");
         System.out.println(ptDist.getMean());
+        System.out.println(ptSegments.getMean());
         System.out.println(ptDist.getN()*4);
 
         }
 
-    private static boolean isABoolean(TripStructureUtils.Trip trip, Set<Id<Zone>> zonesOfInterest, Zones zones) {
+    private static boolean isEntirelyInZones(TripStructureUtils.Trip trip, Set<Id<Zone>> zonesOfInterest, Zones zones) {
         Zone originZone = zones.findZone(trip.getOriginActivity().getCoord());
         Zone destinationZone = zones.findZone(trip.getDestinationActivity().getCoord());
         if (originZone == null || destinationZone == null) {
             return false;}
-        return zonesOfInterest.contains(originZone.getId()) && zonesOfInterest.contains(destinationZone.getId());
+        return zonesOfInterest.contains(originZone.getId()) || zonesOfInterest.contains(destinationZone.getId());
     }
 
 }

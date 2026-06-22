@@ -1,5 +1,6 @@
 package ch.sbb.matsim.preparation.slicer;
 
+import ch.sbb.matsim.config.variables.Variables;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -22,7 +23,7 @@ class PopulationSlicerByAttributeTest {
         var fac = population.getFactory();
         for (int i = 0; i < 1000; i++) {
             Person p = fac.createPerson(Id.createPersonId(i));
-            p.getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, i % 200);
+            p.getAttributes().putAttribute(Variables.SLICE, i % 200);
             population.addPerson(p);
         }
         return population;
@@ -70,7 +71,7 @@ class PopulationSlicerByAttributeTest {
     @Test
     public void testNoAttributeSet() {
         Population population = getPopulation();
-        population.getPersons().get(Id.createPersonId(21)).getAttributes().removeAttribute(PopulationSlicerByAttribute.SLICE);
+        population.getPersons().get(Id.createPersonId(21)).getAttributes().removeAttribute(Variables.SLICE);
         PopulationSlicerByAttribute.filterPopulationBySlice(population, 3, 0.25);
         assertEquals(1000, population.getPersons().size());
 

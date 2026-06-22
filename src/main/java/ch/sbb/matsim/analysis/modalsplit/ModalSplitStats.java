@@ -552,7 +552,7 @@ public class ModalSplitStats {
 
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             // skip home office activities, it seems that the facility id can be null
-            if (trip.getOriginActivity().getFacilityId() != null || trip.getDestinationActivity().getFacilityId() != null) {
+            if (trip.getOriginActivity().getFacilityId() != null && trip.getDestinationActivity().getFacilityId() != null) {
                 if (trip.getOriginActivity().getFacilityId().equals(trip.getDestinationActivity().getFacilityId())) {
                     continue;
                 }
@@ -719,7 +719,7 @@ public class ModalSplitStats {
         String subpopulation = getSubpopulation(attributes);
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             // skip home office activities, it seems that the facility id can be null
-            if (trip.getOriginActivity().getFacilityId() != null || trip.getDestinationActivity().getFacilityId() != null) {
+            if (trip.getOriginActivity().getFacilityId() != null && trip.getDestinationActivity().getFacilityId() != null) {
                 if (trip.getOriginActivity().getFacilityId().equals(trip.getDestinationActivity().getFacilityId())) {
                     continue;
                 }
@@ -919,7 +919,7 @@ public class ModalSplitStats {
         Attributes attributes = this.population.getPersons().get(entry.getKey()).getAttributes();
         for (Trip trip : TripStructureUtils.getTrips(entry.getValue())) {
             // skip home office activities, it seems that the facility id can be null
-            if (trip.getOriginActivity().getFacilityId() != null || trip.getDestinationActivity().getFacilityId() != null) {
+            if (trip.getOriginActivity().getFacilityId() != null && trip.getDestinationActivity().getFacilityId() != null) {
                 if (trip.getOriginActivity().getFacilityId().equals(trip.getDestinationActivity().getFacilityId())) {
                     continue;
                 }

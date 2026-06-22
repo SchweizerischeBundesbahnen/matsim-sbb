@@ -2,7 +2,6 @@ package ch.sbb.matsim.projects.valais2050;
 
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
-import ch.sbb.matsim.preparation.slicer.PopulationSlicerByAttribute;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -63,7 +62,7 @@ public class GenerateAdditionalTourists {
             plan.addLeg(populationFactory.createLeg(SBBModes.PT));
             plan.addActivity(populationFactory.createActivityFromCoord("Exogeneous", tripEndCoord));
             PopulationUtils.putSubpopulation(person, Variables.TOURISM_RAIL);
-            person.getAttributes().putAttribute(PopulationSlicerByAttribute.SLICE, agentNo % 200);
+            person.getAttributes().putAttribute(Variables.SLICE, agentNo % 200);
         }
     }
 

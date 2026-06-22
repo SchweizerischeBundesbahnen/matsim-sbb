@@ -18,7 +18,10 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.router.TripStructureUtils.StageActivityHandling;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PrepareActivitiesInPlans {
 
@@ -32,14 +35,15 @@ public class PrepareActivitiesInPlans {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new PopulationReader(scenario).readFile(pathIn);
 
-		overwriteActivitiesInPlans(scenario.getPopulation());
+		overwriteActivitiesInPlans(scenario.getPopulation(),config);
 		ActivityParamsBuilder.buildActivityParams(config);
 
 		new ConfigWriter(config).write(configOut);
 		new PopulationWriter(scenario.getPopulation()).write(pathOut);
 	}
 
-	public static void overwriteActivitiesInPlans(Population population) {
+	public static void overwriteActivitiesInPlans(Population population, Config config) {
+		Set<String> allActivityTypes = new HashSet<>();
 		for (Person p : population.getPersons().values()) {
 			if (PopulationUtils.getSubpopulation(p).equals(Variables.REGULAR)) {
 				for (Plan plan : p.getPlans()) {
@@ -134,9 +138,18 @@ public class PrepareActivitiesInPlans {
 							act.setType(type);
 						}
 					}
+					TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities).stream().map(Activity::getType).forEach(allActivityTypes::add);
+
 				}
 			}
+
 		}
+		var allTypesInConfig = config.scoring().getActivityTypes();
+		Set<String> notFoundActivityTypes = allActivityTypes.stream().filter(type->!allTypesInConfig.contains(type)).collect(Collectors.toSet());
+		if (!notFoundActivityTypes.isEmpty()) {
+			throw new RuntimeException("Activity types are not in scoring: " + notFoundActivityTypes);
+		}
+
 	}
 
 	private static void processOvernightAct(Activity firstAct, Activity lastAct) {
