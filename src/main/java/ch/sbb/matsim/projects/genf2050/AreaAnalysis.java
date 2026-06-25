@@ -54,13 +54,13 @@ public class AreaAnalysis {
         String root = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/sim/";
 
         //runs.put("ref_runde_2", root + "ref_runde_2");
-        runs.put("var_dorciere_metro_as_other", root + "var_dorciere_metro_as_other");
-        runs.put("var_cornavin_metro_as_other", root + "var_cornavin_metro_as_other");
-        runs.put("var_eaux_vives_re_metro_as_other", root + "var_eaux_vives_re_metro_as_other");
+        runs.put("var_cornavin_re_metro_as_other_jun26", root + "var_cornavin_re_metro_as_other_jun26");
+        //runs.put("var_cornavin_metro_as_other", root + "var_cornavin_metro_as_other");
+        //runs.put("var_eaux_vives_re_metro_as_other", root + "var_eaux_vives_re_metro_as_other");
 
         String roadNet = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/streets/output/network.xml.gz";
         String zonesFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/kanton_GE.shp";
-        String outputFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/perimeter-ge2.csv";
+        String outputFile = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/Auswertungen/perimeter-ge3.csv";
         Network network = NetworkUtils.createNetwork();
         new MatsimNetworkReader(network).readFile(roadNet);
         Zones zones = ZonesLoader.loadZones(Variables.ZONE_ID, zonesFile);
