@@ -7,6 +7,7 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
@@ -604,7 +605,7 @@ public class ModalSplitStats {
             // car available
             String carAva = "0";
             if (attributes.getAttribute(Variables.CAR_AVAIL) != null) {
-                carAva = attributes.getAttribute(Variables.CAR_AVAIL).toString();
+                carAva =  AttributeUtils.hasSomething(Variables.CAR_AVAIL,attributes)?"1":"0";
             }
             for (String attCarAva : carAvailable) {
                 if ((Variables.CAR_AVAIL + "_" + carAva).equals(attCarAva)) {

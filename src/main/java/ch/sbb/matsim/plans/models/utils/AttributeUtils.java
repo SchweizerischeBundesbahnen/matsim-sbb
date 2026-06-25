@@ -3,6 +3,7 @@ package ch.sbb.matsim.plans.models.utils;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import org.matsim.utils.objectattributes.attributable.Attributable;
+import org.matsim.utils.objectattributes.attributable.Attributes;
 
 public final class AttributeUtils {
 
@@ -75,12 +76,18 @@ public final class AttributeUtils {
     }
 
     public static boolean hasSomething(Attributable attributable, String attributeName) {
-        Object val = attributable.getAttributes().getAttribute(attributeName);
+        Attributes attributes = attributable.getAttributes();
+        return hasSomething(attributeName, attributes);
+    }
+
+    public static boolean hasSomething(String attributeName, Attributes attributes) {
+        Object val = attributes.getAttribute(attributeName);
         if (val == null) {
             return false;
         }
         if (val instanceof Boolean b) {
-            return b.booleanValue(); }
+            return b.booleanValue();
+        }
         if (val instanceof Number) {
             return ((Number) val).intValue() != 0;
         }
@@ -89,9 +96,11 @@ public final class AttributeUtils {
                 return true;
             }
             else if ("0".equals(val.toString())) {
-                return false; }
+                return false;
+            }
             else {
-                return Boolean.parseBoolean(val.toString()); }
+                return Boolean.parseBoolean(val.toString());
+            }
         }
         return false;
     }
