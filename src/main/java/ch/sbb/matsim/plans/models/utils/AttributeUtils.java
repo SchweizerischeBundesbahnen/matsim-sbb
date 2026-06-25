@@ -1,6 +1,5 @@
 package ch.sbb.matsim.plans.models.utils;
 
-import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 import org.matsim.utils.objectattributes.attributable.Attributes;
@@ -25,17 +24,21 @@ public final class AttributeUtils {
         }
 
         Object val = attributable.getAttributes().getAttribute(attributeName);
-        if (val == null) {
-            return defaultValue;
-        }
-        if (val instanceof Number) {
-            return ((Number) val).doubleValue();
-        }
-        if (val instanceof String) {
-            try {
-                return Double.parseDouble((String) val);
-            } catch (NumberFormatException ignored) {
-                // Fall through to return defaultValue
+        switch (val) {
+            case null -> {
+                return defaultValue;
+            }
+            case Number number -> {
+                return number.doubleValue();
+            }
+            case String s -> {
+                try {
+                    return Double.parseDouble(s);
+                } catch (NumberFormatException ignored) {
+                    // Fall through to return defaultValue
+                }
+            }
+            default -> {
             }
         }
         return defaultValue;
@@ -50,16 +53,20 @@ public final class AttributeUtils {
         }
 
         Object val = attributable.getAttributes().getAttribute(attributeName);
-        if (val == null) {
-            return defaultValue;
-        }
-        if (val instanceof Number) {
-            return ((Number) val).intValue();
-        }
-        if (val instanceof String) {
-            try {
-                return Integer.parseInt((String) val);
-            } catch (NumberFormatException ignored) {
+        switch (val) {
+            case null -> {
+                return defaultValue;
+            }
+            case Number number -> {
+                return number.intValue();
+            }
+            case String s -> {
+                try {
+                    return Integer.parseInt(s);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            default -> {
             }
         }
         return defaultValue;
@@ -82,24 +89,26 @@ public final class AttributeUtils {
 
     public static boolean hasSomething(String attributeName, Attributes attributes) {
         Object val = attributes.getAttribute(attributeName);
-        if (val == null) {
-            return false;
-        }
-        if (val instanceof Boolean b) {
-            return b.booleanValue();
-        }
-        if (val instanceof Number) {
-            return ((Number) val).intValue() != 0;
-        }
-        if (val instanceof String) {
-            if ("1".equals(val.toString())) {
-                return true;
-            }
-            else if ("0".equals(val.toString())) {
+        switch (val) {
+            case null -> {
                 return false;
             }
-            else {
-                return Boolean.parseBoolean(val.toString());
+            case Boolean b -> {
+                return b;
+            }
+            case Number number -> {
+                return number.intValue() == 1;
+            }
+            case String s -> {
+                if ("1".equals(s)) {
+                    return true;
+                } else if ("0".equals(s)) {
+                    return false;
+                } else {
+                    return Boolean.parseBoolean(s);
+                }
+            }
+            default -> {
             }
         }
         return false;
