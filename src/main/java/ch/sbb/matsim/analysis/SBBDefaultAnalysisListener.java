@@ -105,7 +105,9 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                 String putSurveyNew = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("putSurvey.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "putSurvey.csv");
                 String railTripsFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("SBB_railDemandReport.csv")
-                        : controlerIO.getIterationFilename(event.getIteration(), "SBB_railDemandReport.csv");
+                        : controlerIO.getIterationFilename(event.getIteration(), "lineDemandReport.csv");
+                String lineDemandFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("SBB_railDemandReport.csv")
+                        : controlerIO.getIterationFilename(event.getIteration(), "lineDemandReport.csv");
                 String railDemandAggregateFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandAggregate.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "railDemandAggregate.csv");
                 String railDemandStationToStation = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("railDemandStationToStation.csv.gz")
@@ -129,7 +131,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                 String modalSpliteFileName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("")
                         : controlerIO.getIterationFilename(event.getIteration(), "");
 
-                railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, scalefactor);
+                railDemandReporting.calcAndwriteIterationDistanceReporting(railTripsFilename, lineDemandFilename,scalefactor);
                 demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, railDemandStationToStationFQ, tripsPerMunFile, tripsPerAmrFile);
                 ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
                 putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
