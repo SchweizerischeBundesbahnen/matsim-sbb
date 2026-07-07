@@ -150,10 +150,17 @@ public class SBBCharyparNagelScoringParametersForPerson implements ScoringParame
 				}
 
 				String personAttribute = personAttributeObj.toString();
+				if (personAttributeObj instanceof Boolean) {
+					personAttribute = (Boolean) personAttributeObj ? "1" : "0";
+				}
 
 				SBBBehaviorGroupsConfigGroup.PersonGroupValues pgt = bgp.getPersonGroupByAttribute(personAttribute);
 				if (pgt == null) {
-					continue;
+					if (personAttributeObj instanceof Boolean) {
+						personAttribute = (Boolean) personAttributeObj ? "1" : "0";
+						pgt = bgp.getPersonGroupByAttribute(personAttribute);
+						if (pgt == null) { continue;}
+					} else continue;
 				}
 
 				SBBBehaviorGroupsConfigGroup.ModeCorrection modeCorrection = pgt.getModeCorrectionsForMode(mode);

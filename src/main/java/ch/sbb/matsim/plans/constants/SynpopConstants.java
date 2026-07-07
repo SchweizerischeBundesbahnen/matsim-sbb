@@ -18,7 +18,7 @@ public class SynpopConstants {
     public static final String LEVEL_OF_EMPLOYMENT = "level_of_employment";
     public static final String AGE = "age";
     public static final String IS_SWISS = "is_swiss";
-    public static final String HAS_DRIVING_LICENSE = "has_driving_license";
+    public static final String HAS_DRIVING_LICENSE = Variables.HAS_DRIVING_LICENSE;
     public static final String ANALYSIS_SUBPOPULATION = "analysis_subpopulation";
     public static final String IS_EMPLOYED = "is_employed";
     public static final String LOE_GROUP = "loe_group";

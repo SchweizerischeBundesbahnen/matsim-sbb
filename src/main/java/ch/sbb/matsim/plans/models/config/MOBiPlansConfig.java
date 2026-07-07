@@ -1,6 +1,9 @@
 package ch.sbb.matsim.plans.models.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
@@ -62,7 +65,59 @@ public record MOBiPlansConfig (
      */
     public static MOBiPlansConfig readFromYaml(String filePath) throws IOException {
         ObjectMapper mapper = new YAMLMapper();
-        return mapper.readValue(new File(filePath), MOBiPlansConfig.class);
+
+        try {
+            return mapper.readValue(new File(filePath), MOBiPlansConfig.class);
+        } catch (JsonParseException e) {
+            throw new IOException(buildYamlErrorMessage(filePath, e.getOriginalMessage(), e.getLocation()), e);
+        } catch (JsonMappingException e) {
+            throw new IOException(buildYamlErrorMessage(filePath, e.getOriginalMessage(), e.getLocation()), e);
+        }
+    }
+
+    private static String buildYamlErrorMessage(String filePath, String originalMessage, JsonLocation location) {
+        String lower = originalMessage == null ? "" : originalMessage.toLowerCase();
+
+        String locationText = "";
+        if (location != null) {
+            locationText = "At line %d, column %d.%n%n".formatted(location.getLineNr(), location.getColumnNr());
+        }
+
+        boolean likelyBackslashProblem =
+                lower.contains("escape") ||
+                        lower.contains("unknown escape") ||
+                        lower.contains("unrecognized character escape") ||
+                        lower.contains("quoted") ||
+                        lower.contains("character '\\\\'");
+
+        if (likelyBackslashProblem) {
+            return """
+                Failed to parse YAML file: %s
+
+                %sThe YAML likely contains a Windows path inside a double-quoted string.
+                In YAML, backslashes in double quotes are treated as escape characters.
+
+                Fix options:
+                1. Use single quotes:
+                   zonesFile: 'D:\\mobi\\project\\file.gpkg'
+
+                2. Escape backslashes:
+                   zonesFile: "D:\\\\mobi\\\\project\\\\file.gpkg"
+
+                3. Use forward slashes:
+                   zonesFile: D:/mobi/project/file.gpkg
+
+                Original parser message:
+                %s
+                """.formatted(filePath, locationText, originalMessage);
+        }
+
+        return """
+            Failed to parse YAML file: %s
+
+            %sOriginal parser message:
+            %s
+            """.formatted(filePath, locationText, originalMessage);
     }
 
 

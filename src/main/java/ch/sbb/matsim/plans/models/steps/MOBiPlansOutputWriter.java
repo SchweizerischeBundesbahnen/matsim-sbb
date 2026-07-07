@@ -186,6 +186,16 @@ public class MOBiPlansOutputWriter implements ModelStep {
                     if (ageCat != -1){
                         person.getAttributes().putAttribute(SynpopConstants.AGE_CAT, SynpopConstants.AGE_CATEGORIES.get(ageCat));
                     }
+                    int loeCat = AttributeUtils.getAsInteger(person,SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT,-1);
+                    if (loeCat != -1){
+                        person.getAttributes().putAttribute(SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT, SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT_CATEGORIES.get(loeCat));
+                    }
+                    int eduCat = AttributeUtils.getAsInteger(person,SynpopConstants.CURRENT_EDU,-1);
+                    if (eduCat != -1){
+                        person.getAttributes().putAttribute(SynpopConstants.CURRENT_EDU, SynpopConstants.CURRENT_EDU_CATEGORIES.get(eduCat));
+
+                    }
+
 
                 }
         );
