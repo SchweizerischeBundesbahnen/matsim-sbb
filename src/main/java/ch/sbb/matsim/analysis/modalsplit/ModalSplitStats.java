@@ -835,7 +835,13 @@ public class ModalSplitStats {
                                         if (!att.isEmpty()) {
                                             att.append("_");
                                         }
-                                        att.append(variable).append("_").append(attributes.getAttribute(variable).toString());
+                                        String attValue = attributes.getAttribute(variable).toString();
+                                        if (variable.equals(Variables.PT_SUBSCRIPTION)) {
+                                            attValue = attValue.toUpperCase();
+                                        } else if (variable.equals(Variables.CAR_AVAIL)) {
+                                            attValue = AttributeUtils.hasSomething(Variables.CAR_AVAIL,attributes)?"1":"0";
+                                        }
+                                        att.append(variable).append("_").append(attValue);
                                     }
                                 }
                                 if (att.toString().equals(value)) {
