@@ -17,6 +17,7 @@ public final class MSVariables {
     public static final String ptSubNone = Variables.PT_SUBSCRIPTION + separator + Variables.PT_SUBSCRIPTION_NONE;
     public static final String ptSubGA = Variables.PT_SUBSCRIPTION + separator + Variables.GA;
     public static final String ptSubVA = Variables.PT_SUBSCRIPTION + separator + Variables.VA;
+    public static final String ptSubHTV = Variables.PT_SUBSCRIPTION + separator + Variables.HTV;
     public static final String ptSubHTA = Variables.PT_SUBSCRIPTION + separator + Variables.HTA;
     public static final String carNone = carAvailableTrue + separator + ptSubNone;
     public static final String carGa = carAvailableTrue + separator + ptSubGA;
