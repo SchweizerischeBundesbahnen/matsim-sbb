@@ -138,7 +138,7 @@ public class Accessibility {
 				Id<TransitStopFacility> egressStopId = egressEntry.getKey();
 				Double egressTime = egressEntry.getValue();
 				SwissRailRaptorCore.TravelInfo info = tree.get(egressStopId);
-				if (info != null && !info.isWalkOnly()) {
+				if (info != null && !info.isWalkOnly) {
 					Double accessTime = accessTimes.get(info.departureStop);
 					ODConnection connection = new ODConnection(info.ptDepartureTime, info.ptTravelTime, accessTime, egressTime, info.transferCount, info);
 					connections.add(connection);
@@ -1027,7 +1027,7 @@ public class Accessibility {
 							for (Map<Id<TransitStopFacility>, SwissRailRaptorCore.TravelInfo> tree : trees) {
 								Id<TransitStopFacility> egressStopId = toStop.getId();
 								SwissRailRaptorCore.TravelInfo info = tree.get(egressStopId);
-								if (info != null && !info.isWalkOnly()) {
+								if (info != null && !info.isWalkOnly) {
 									ODConnection connection = new ODConnection(info.ptDepartureTime, info.ptTravelTime, 0, 0, info.transferCount, info);
 									connections.add(connection);
 								}
@@ -1299,7 +1299,7 @@ public class Accessibility {
 				for (Map<Id<TransitStopFacility>, SwissRailRaptorCore.TravelInfo> tree : trees) {
 					Id<TransitStopFacility> egressStopId = toStop.getId();
 					SwissRailRaptorCore.TravelInfo info = tree.get(egressStopId);
-					if (info != null && !info.isWalkOnly()) {
+					if (info != null && !info.isWalkOnly) {
 						ODConnection connection = new ODConnection(info.ptDepartureTime, info.ptTravelTime, 0, 0, info.transferCount, info);
 						connections.add(connection);
 					}

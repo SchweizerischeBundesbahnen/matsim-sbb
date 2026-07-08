@@ -13,6 +13,7 @@ import ch.sbb.matsim.analysis.tripsandlegsanalysis.*;
 import ch.sbb.matsim.config.*;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SamplesizeFactors;
+import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.intermodal.IntermodalModule;
 import ch.sbb.matsim.mobsim.qsim.SBBTransitModule;
 import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEngineQSimModule;
@@ -32,12 +33,15 @@ import ch.sbb.matsim.s3.S3Downloader;
 import ch.sbb.matsim.scoring.SBBScoringFunctionFactory;
 import ch.sbb.matsim.utils.ScenarioConsistencyChecker;
 import ch.sbb.matsim.vehicles.CreateAgentVehicles;
+import ch.sbb.matsim.zones.Zones;
+import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
 import com.google.inject.Provides;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.analysis.TripsAndLegsWriter;
 import org.matsim.analysis.TripsAndLegsWriter.CustomTripsWriterExtension;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
 import org.matsim.contrib.parking.parkingcost.module.ParkingCostModule;
@@ -134,13 +138,13 @@ public class RunSBB {
 
 	public static void addSBBDefaultScenarioModules(Scenario scenario) {
 		PostProcessingConfigGroup postProcessingConfigGroup = ConfigUtils.addOrGetModule(scenario.getConfig(), PostProcessingConfigGroup.class);
+		ZonesModule.addZonestoScenario(scenario);
 		PopulationSlicerByAttribute.filterPopulationBySlice(scenario.getPopulation(), postProcessingConfigGroup.getPopulationSlice(), postProcessingConfigGroup.getSimulationSampleSize());
-		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork(), scenario.getConfig());
+		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork(), scenario.getConfig(), ((ZonesCollection) scenario.getScenarioElement(ZonesModule.SBB_ZONES)).getZones(Id.create(Variables.ZONES,Zones.class)));
 		SBBXY2LinksAssigner.run(scenario.getPopulation(), scenario.getNetwork(), scenario.getConfig().network());
 		LinkToStationsAssigner.runAssignment(scenario);
 		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
 		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation(),scenario.getConfig());
-		ZonesModule.addZonestoScenario(scenario);
 		TransferTimeChecker.addAdditionalTransferTimes(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
 		IntermodalModule.prepareIntermodalScenario(scenario);
@@ -161,7 +165,7 @@ public class RunSBB {
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
-				addControlerListenerBinding().to(SBBDefaultAnalysisListener.class);
+				addControllerListenerBinding().to(SBBDefaultAnalysisListener.class);
 				addPlanStrategyBinding(DefaultPlanStrategiesModule.DefaultStrategy.SubtourModeChoice).toProvider(SBBSubtourModeChoice.class);
 				bind(PermissibleModesCalculator.class).to(SBBPermissibleModesCalculator.class).asEagerSingleton();
 				bind(AnalysisMainModeIdentifier.class).to(SBBAnalysisMainModeIdentifier.class);
@@ -199,7 +203,7 @@ public class RunSBB {
 				ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
 				if (convergenceStatsConfig.isActivateConvergenceStats()) {
 					ConvergenceStats convergenceStats = new ConvergenceStats(this.getConfig());
-					addControlerListenerBinding().toInstance(convergenceStats);
+					addControllerListenerBinding().toInstance(convergenceStats);
 				}
 
 			}

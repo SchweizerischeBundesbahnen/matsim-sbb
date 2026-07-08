@@ -3,6 +3,7 @@ package ch.sbb.matsim.routing.pt.raptor;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -268,6 +269,11 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         if (cache != null && cellInBound(cell)) {
             int[] cellCache = cache[cell];
             double travelTime = mode.equals(SBBModes.BIKEFEEDER) ? cellCache[2] : cellCache[0];
+            //Optimistic approach: Assume car travel times for ebike45 in access-egress
+            if (AttributeUtils.hasEbike45(person) && mode.equals(SBBModes.BIKEFEEDER)) {
+                travelTime = Math.min(cellCache[0], cellCache[2]);
+            }
+
             double travelDistance = mode.equals(SBBModes.BIKEFEEDER) ? cellCache[3] : cellCache[1];
             Integer accessTime = this.accessTimesAtStops.get(transitStopFacilityId).get(mode);
             if (accessTime == null) {
@@ -281,6 +287,9 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             double egressTime = NetworkUtils.getLinkEgressTime(scenario.getNetwork().getLinks().get(actFacility.getLinkId()), mode).seconds();
             double travelDistance = routedLeg.getRoute().getDistance();
             double travelTime = routedLeg.getRoute().getTravelTime().seconds();
+            if (AttributeUtils.hasEbike45(person) && mode.equals(SBBModes.BIKEFEEDER)) {
+                travelTime = travelTime / 1.5;
+            }
             double accessTime = NetworkUtils.getLinkAccessTime(scenario.getNetwork().getLinks().get(stopFacility.getLinkId()), mode).seconds();
             return new RouteCharacteristics(travelDistance, accessTime, egressTime, travelTime);
 

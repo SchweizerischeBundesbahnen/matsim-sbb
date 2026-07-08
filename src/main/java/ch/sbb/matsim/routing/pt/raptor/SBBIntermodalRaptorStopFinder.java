@@ -95,8 +95,8 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
             return stops.stream().map(stop -> {
 				double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
 				double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-				double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
-				return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
+				double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(SBBModes.ACCESS_EGRESS_WALK);
+				return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, SBBModes.ACCESS_EGRESS_WALK);
 			}).collect(Collectors.toList());
 		}
 	}

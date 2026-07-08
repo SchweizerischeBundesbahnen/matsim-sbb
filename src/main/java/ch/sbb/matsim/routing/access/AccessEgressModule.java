@@ -2,6 +2,7 @@ package ch.sbb.matsim.routing.access;
 
 import ch.sbb.matsim.config.SBBAccessTimeConfigGroup;
 import ch.sbb.matsim.config.SBBIntermodalConfiggroup;
+import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.routing.network.SBBNetworkRoutingConfigGroup;
@@ -11,6 +12,7 @@ import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -41,7 +43,7 @@ public class AccessEgressModule extends AbstractModule {
 				.filter(sbbIntermodalModeParameterSet -> sbbIntermodalModeParameterSet.isRoutedOnNetwork() && sbbIntermodalModeParameterSet.getAccessTimeZoneId() != null)
 				.forEach(sbbIntermodalModeParameterSet -> accessTimeParameters.put(sbbIntermodalModeParameterSet.getMode(), sbbIntermodalModeParameterSet.getAccessTimeZoneId()));
 		Set<String> detourParams = sbbIntermodalConfigGroup.getModeParameterSets().stream()
-				.map(sbbIntermodalModeParameterSet -> sbbIntermodalModeParameterSet.getDetourFactorZoneId())
+				.map(SBBIntermodalModeParameterSet::getDetourFactorZoneId)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toSet());
 
@@ -52,7 +54,7 @@ public class AccessEgressModule extends AbstractModule {
 		}
 
 		for (var l : scenario.getNetwork().getLinks().values()) {
-			Zone zone = zones.findZone(l.getCoord());
+			Zone zone = getZone(l, zones);
 
 			for (var entry : accessTimeParameters.entrySet()) {
 				String mode = entry.getKey();
@@ -88,6 +90,27 @@ public class AccessEgressModule extends AbstractModule {
 			NetworkUtils.setLinkEgressTime(l, SBBModes.BIKEFEEDER, 1.0);
 			l.getAttributes().putAttribute(IS_CH, isInCH);
 		}
+	}
+
+	/*
+	 * Get the zone of a link. If the link has no zone,
+	*  find the zone by the link's coordinates and set the id as an attribute of the link.
+	*
+	*/
+	public static Zone getZone(Link l, Zones zones) {
+		Zone zone;
+		Object o = l.getAttributes().getAttribute(Variables.ZONE_ID);
+		if (o != null) {
+			Id<Zone> zoneId = Id.create(o.toString(), Zone.class);
+			zone = zones.getZone(zoneId);
+		} else {
+			zone = zones.findZone(l.getCoord());
+			if (zone != null) {
+				l.getAttributes().putAttribute(Variables.ZONE_ID, zone.getId());
+			}
+
+		}
+		return zone;
 	}
 
 
