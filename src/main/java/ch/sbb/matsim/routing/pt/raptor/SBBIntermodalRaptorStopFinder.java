@@ -5,6 +5,7 @@ import ch.sbb.matsim.config.SBBIntermodalModeParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 import ch.sbb.matsim.config.variables.SBBModes;
+import ch.sbb.matsim.plans.synpop.SynPopUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -15,7 +16,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.gbl.MatsimRandom;
+import org.matsim.core.controler.MatsimServices;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.DefaultRoutingRequest;
@@ -45,17 +46,18 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 	private final Map<String, SBBIntermodalModeParameterSet> intermodalModeParams;
     private final Map<String, ThreadLocal<RoutingModule>> routingModules;
 	private final TransitSchedule transitSchedule;
-	private final Random random = MatsimRandom.getLocalInstance();
 	private final AccessEgressRouteCache accessEgressRouteCache;
 	private final IntermodalAccessEgressParameterSet walkParameterset;
+	private final MatsimServices services;
 
 	@Inject
 	public SBBIntermodalRaptorStopFinder(Config config, RaptorIntermodalAccessEgress intermodalAE,
 										 Map<String, Provider<RoutingModule>> routingModuleProviders,
-										 TransitSchedule transitSchedule, AccessEgressRouteCache accessEgressRouteCache) {
+										 TransitSchedule transitSchedule, AccessEgressRouteCache accessEgressRouteCache, MatsimServices services) {
 		this.intermodalAE = intermodalAE;
 		this.transitSchedule = transitSchedule;
 		this.accessEgressRouteCache = accessEgressRouteCache;
+		this.services = services;
 
 		SBBIntermodalConfiggroup intermodalConfigGroup = ConfigUtils.addOrGetModule(config, SBBIntermodalConfiggroup.class);
 		this.intermodalModeParams = intermodalConfigGroup.getModeParameterSets().stream().collect(Collectors.toMap(SBBIntermodalModeParameterSet::getMode, set -> set, (a, b) -> a));
@@ -137,6 +139,7 @@ public class SBBIntermodalRaptorStopFinder implements RaptorStopFinder {
 					}
 					break;
 				case RandomSelectOneModePerRoutingRequestAndDirection:
+					Random random = SynPopUtils.getRandom(person.getId(), "SBBIntermodalStopFinder|" + direction + "|" + (long) departureTime + "|it" +services.getIterationNumber());
 					int counter = 0;
 					do {
 						int rndSelector = random.nextInt(filteredParameterSet.size());
