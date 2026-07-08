@@ -27,6 +27,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -59,6 +60,8 @@ public class RailDemandReporting {
     private final Map<String, MutableDouble> pkmSparte = new TreeMap<>();
     private final Map<String, MutableDouble> pkmLfpCat = new TreeMap<>();
     private final Map<String, MutableDouble> pkmAbgrenzung = new TreeMap<>();
+    private final Map<Id<TransitLine>, DescriptiveStatistics> lineDistances = new HashMap<>();
+
 
     private final Map<Id<TransitLine>, String> lineSparte = new HashMap<>();
     private final Map<Id<TransitLine>, String> lineLfpCat = new HashMap<>();
@@ -89,15 +92,15 @@ public class RailDemandReporting {
         runId = config.controller().getRunId() != null ? config.controller().getRunId() : "";
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
 
         String folderPrefix = args[0];
         double scaleFactor = Double.parseDouble(args[1]);
-        String outputFile = args[2];
-        String zonesFile = args[3];
-        
+
+        String zonesFile = args[2];
+        String outputFile = args[3];
         // optional argument for overwriting the transit schedule file
-        String overwriteScheduleFile = args[4];
+        String overwriteScheduleFile = args.length > 4 ? args[4] : null;
         
         ZonesCollection zonesCollection = new ZonesCollection();
         zonesCollection.addZones(ZonesLoader.loadZones("zones", zonesFile));
@@ -120,7 +123,7 @@ public class RailDemandReporting {
         new PopulationReader(scenario).readFile(experiencedPlansFile);
         RailTripsAnalyzer railTripsAnalyzer = new RailTripsAnalyzer(scenario.getTransitSchedule(), scenario.getNetwork(), zonesCollection);
         RailDemandReporting railDemandReporting = new RailDemandReporting(railTripsAnalyzer, scenario.getTransitSchedule(), scenario.getConfig());
-        railDemandReporting.calcAndWriteDistanceReporting(outputFile, scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(Collectors.toSet()), scaleFactor);
+        railDemandReporting.calcAndWriteDistanceReporting(outputFile+"railDemandReport.csv",outputFile+"lineDemandReport.csv", scenario.getPopulation().getPersons().values().stream().map(HasPlansAndId::getSelectedPlan).collect(Collectors.toSet()), scaleFactor);
     }
 
     private void reset() {
@@ -129,6 +132,7 @@ public class RailDemandReporting {
         pkmLfpCat.values().forEach(d -> d.setValue(0));
         modeDistances.values().forEach(d -> d.setValue(0));
         modeBoardings.values().forEach(d -> d.setValue(0));
+        lineDistances.clear();
         fqDistance = .0;
         fqTrips = 0;
         domesticFQDistance = 0;
@@ -137,14 +141,47 @@ public class RailDemandReporting {
         railDistance = 0.0;
     }
 
-    private void calcAndWriteDistanceReporting(String outputfile, Collection<Plan> plans, double scaleFactor) {
+    private void calcAndWriteDistanceReporting(String raildemandReportFile, String lineReportFile, Collection<Plan> plans, double scaleFactor) {
         reset();
         aggregateRailDistances(plans);
-        writeRailDistanceReporting(outputfile, scaleFactor);
+        writeRailDistanceReporting(raildemandReportFile, scaleFactor);
+        writeLineDemandReport(lineReportFile,scaleFactor);
+
     }
 
-    public void calcAndwriteIterationDistanceReporting(String outputfile, double scaleFactor) {
-        calcAndWriteDistanceReporting(outputfile, experiencedPlansService.getExperiencedPlans().values(), scaleFactor);
+    private void writeLineDemandReport(String lineReportFile, double scaleFactor) {
+        String[] columns = new String[]{runIDName, "lineId", "mode", "distance_km", "boardings"};
+        try (CSVWriter writer = new CSVWriter(null, columns, lineReportFile)) {
+            var sortedEntries = lineDistances.entrySet().stream()
+                    .sorted(Comparator
+                            .comparingInt((Entry<Id<TransitLine>, DescriptiveStatistics> entry) -> modeOrder(line2Mode.get(entry.getKey())))
+                            .thenComparing(entry -> entry.getKey().toString(), String.CASE_INSENSITIVE_ORDER))
+                    .toList();
+
+            for (var entry : sortedEntries) {
+                writer.set(runIDName, runId);
+                writer.set("lineId", entry.getKey().toString());
+                writer.set("mode", line2Mode.get(entry.getKey()));
+                writer.set("distance_km", String.valueOf((int) Math.round(scaleFactor*0.001 * entry.getValue().getSum())));
+                writer.set("boardings", String.valueOf((int) Math.round(scaleFactor * entry.getValue().getN())));
+                writer.writeRow();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static int modeOrder(String mode) {
+        return switch (mode) {
+            case "rail" -> 0;
+            case "tram" -> 1;
+            case "bus" -> 2;
+            default -> 3;
+        };
+    }
+
+    public void calcAndwriteIterationDistanceReporting(String raildemandReportFile, String lineReportFile, double scaleFactor) {
+        calcAndWriteDistanceReporting(raildemandReportFile, lineReportFile, experiencedPlansService.getExperiencedPlans().values(), scaleFactor);
     }
 
     private void writeRailDistanceReporting(String outputFile, double scaleFactor) {
@@ -278,6 +315,8 @@ public class RailDemandReporting {
             String mode = line2Mode.get(route.getLineId());
             modeDistances.get(mode).add(route.getDistance());
             modeBoardings.get(mode).increment();
+            lineDistances.computeIfAbsent(route.getLineId(), _-> new DescriptiveStatistics()).addValue(route.getDistance());
+
 
         }
     }
