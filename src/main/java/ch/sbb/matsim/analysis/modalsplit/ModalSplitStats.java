@@ -615,9 +615,12 @@ public class ModalSplitStats {
                 }
             }
             // pt subscription
-            String ptSub = "none";
+            String ptSub = "NONE";
             if (attributes.getAttribute(Variables.PT_SUBSCRIPTION) != null) {
-                ptSub = attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString();
+                ptSub = attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString().toUpperCase();
+                if (ptSub.equals("HTV")) {
+                    ptSub = "VA";
+                }
             }
             for (String attPtSub : ptSubscription) {
                 if ((Variables.PT_SUBSCRIPTION + "_" + ptSub).equals(attPtSub)) {
