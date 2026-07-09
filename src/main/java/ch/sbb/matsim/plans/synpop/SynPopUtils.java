@@ -3,7 +3,6 @@ package ch.sbb.matsim.plans.synpop;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
-import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
 import ch.sbb.matsim.plans.models.utils.AttributeUtils;
 import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
@@ -13,13 +12,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.facilities.ActivityFacilitiesFactory;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.households.Household;
-import org.matsim.utils.objectattributes.attributable.Attributable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -155,8 +152,37 @@ public class SynPopUtils {
 
     public static void setCarAvailableForPopulation(Scenario scenario) {
         log.info("Setting car availability for population...");
+        List<Person> students = new ArrayList<>();
+        List<Person> studentsInHouseholdsWithCars = new ArrayList<>();
         for (Person person : scenario.getPopulation().getPersons().values()) {
-            Boolean hasDrivingLicense = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
+            if (AttributeUtils.getAsInteger(person, SynpopConstants.CURRENT_EDU, -1) == 4) {
+                students.add(person);
+                Integer numberOfCars = (Integer) ((Household) person.getAttributes().getAttribute(SynpopConstants.HOUSEHOLD)).getAttributes().getAttribute(SynpopConstants.NB_OF_CARS);
+                if (numberOfCars != null && numberOfCars > 0) {
+                    studentsInHouseholdsWithCars.add(person);
+                }
+            }
+        }
+        studentsInHouseholdsWithCars.sort(Comparator.comparingDouble(person -> SynPopUtils.getRandom(person.getId(), "car_availability_students").nextDouble()));
+
+        int targetStudentCarAvailability = (int) Math.round(students.size() * 0.15);
+        int selectedStudents = Math.min(targetStudentCarAvailability, studentsInHouseholdsWithCars.size());
+        Set<Id<Person>> studentsWithCarAvailability = new HashSet<>();
+        for (int i = 0; i < selectedStudents; i++) {
+            studentsWithCarAvailability.add(studentsInHouseholdsWithCars.get(i).getId());
+        }
+
+        if (selectedStudents < targetStudentCarAvailability) {
+            log.warn("Could not reach 15% student car availability because only {} students are in households with cars (target: {}).", selectedStudents, targetStudentCarAvailability);
+        }
+
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+            if (AttributeUtils.getAsInteger(person, SynpopConstants.CURRENT_EDU, -1) == 4) {
+                person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, studentsWithCarAvailability.contains(person.getId()));
+                continue;
+            }
+
+            Boolean hasDrivingLicense = AttributeUtils.hasDrivingLicense(person);
             if (hasDrivingLicense) {
                 Integer numberOfCars = (Integer) ((Household) person.getAttributes().getAttribute(SynpopConstants.HOUSEHOLD)).getAttributes().getAttribute(SynpopConstants.NB_OF_CARS);
                 if (numberOfCars != null && numberOfCars > 0) {
@@ -164,6 +190,8 @@ public class SynPopUtils {
                 } else {
                     person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, false);
                 }
+            } else {
+                person.getAttributes().putAttribute(SynpopConstants.CAR_AVAILABLE, false);
             }
         }
         log.info("Done. Setting car availability for population.");

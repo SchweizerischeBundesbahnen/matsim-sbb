@@ -105,17 +105,17 @@ public class RailDemandReporting {
         ZonesCollection zonesCollection = new ZonesCollection();
         zonesCollection.addZones(ZonesLoader.loadZones("zones", zonesFile));
 
-        String experiencedPlansFile = folderPrefix + "output_experienced_plans.xml.gz";
+        String experiencedPlansFile = folderPrefix + "output_experienced_plans.xml.zst";
         
         String transitScheduleFile = null;
         if (overwriteScheduleFile == null || overwriteScheduleFile.isEmpty()) {
         	// use the output transit schedule file
-            transitScheduleFile = folderPrefix + "output_transitSchedule.xml.gz";
+            transitScheduleFile = folderPrefix + "output_transitSchedule.xml.zst";
 		} else {
 			// use the overwrite transit schedule file
 			transitScheduleFile = overwriteScheduleFile;
 		}
-        String networkFile = folderPrefix + "output_network.xml.gz";
+        String networkFile = folderPrefix + "output_network.xml.zst";
 
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
