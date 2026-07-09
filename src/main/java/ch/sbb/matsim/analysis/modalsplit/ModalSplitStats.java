@@ -615,9 +615,12 @@ public class ModalSplitStats {
                 }
             }
             // pt subscription
-            String ptSub = "NONE";
+            String ptSub = "none";
             if (attributes.getAttribute(Variables.PT_SUBSCRIPTION) != null) {
                 ptSub = attributes.getAttribute(Variables.PT_SUBSCRIPTION).toString().toUpperCase();
+                if ("NONE".equalsIgnoreCase(ptSub)) {
+                    ptSub = "none";
+                }
                 if (ptSub.equals("HTV")) {
                     ptSub = "VA";
                 }
@@ -837,7 +840,9 @@ public class ModalSplitStats {
                                         }
                                         String attValue = attributes.getAttribute(variable).toString();
                                         if (variable.equals(Variables.PT_SUBSCRIPTION)) {
-                                            attValue = attValue.toUpperCase();
+                                            if ("NONE".equals(attValue)) {
+                                                attValue = "none";
+                                            }
                                         } else if (variable.equals(Variables.CAR_AVAIL)) {
                                             attValue = AttributeUtils.hasSomething(Variables.CAR_AVAIL,attributes)?"1":"0";
                                         }
