@@ -84,7 +84,7 @@ class PedestrianSpeedModelTest {
         assertNotNull(speedAttr, "Pedestrian speed should be assigned to the person.");
 
         double speed = (double) speedAttr;
-        double expectedSpeed = 4.272817801 + (40 * -0.012615335) + 0.18746851 + 0.105214335;
+        double expectedSpeed = (4.272817801 + (40 * -0.012615335) + 0.18746851 + 0.105214335)/3.6;
 
         assertEquals(expectedSpeed, speed, 0.000001);
     }
