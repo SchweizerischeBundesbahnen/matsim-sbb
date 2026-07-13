@@ -195,10 +195,10 @@ public class RunSBB {
 				if (useServiceQuality) {
 					bind(RaptorInVehicleCostCalculator.class).toInstance(inVehicleCostCalculator);
 				}
-				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
-				if (parkCostConfig.useParkingCost) {
-					install(new ParkingCostModule());
-				}
+//				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
+//				if (parkCostConfig.useParkingCost) {
+//					install(new ParkingCostModule());
+//				}
 
 				ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
 				if (convergenceStatsConfig.isActivateConvergenceStats()) {

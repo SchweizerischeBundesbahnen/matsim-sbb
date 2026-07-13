@@ -97,6 +97,12 @@
 
         <dependency>
             <groupId>org.matsim.contrib</groupId>
+            <artifactId>distributed-simulation</artifactId>
+            <version>${matsim.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.matsim.contrib</groupId>
             <artifactId>av</artifactId>
             <version>${matsim.version}</version>
         </dependency>

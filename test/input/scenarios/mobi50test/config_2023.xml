@@ -101,7 +101,7 @@
                 "useful for visualization or analysis purposes. Defaults to 0. `0' disables the creation of events completely. -->
         <param name="createLinkEventsInterval" value="&iterations;"/>
         <!-- Leg modes used by the created transit drivers that should be simulated strictly according to the schedule. -->
-        <param name="deterministicServiceModes" value="bus,other,rail,tram"/>
+        <param name="deterministicServiceModes" value="bus_route,other_route,rail_route,tram_route"/>
     </module>
 
     <module name="replanningAnnealer">
@@ -124,6 +124,27 @@
         </parameterset>
     </module>
 
+    <module name="dsim" >
+        <!-- End time of the simulation. Default: 24:00:00 -->
+        <param name="endTime" value="32:00:00" />
+        <!-- Link dynamics determine how vehicles can overtake. Options: [FIFO, PassingQ, Seepage(not implemented)], Default: PassingQ -->
+        <param name="linkDynamics" value="PassingQ" />
+        <!-- Modes which are simulated on the network. All other modes, expect pt will be teleported. Default: car -->
+        <param name="networkModes" value="car" />
+        <!-- Partitioning strategy for the network. Options: [none, bisect, metis], default: 'bisect' -->
+        <param name="partitioning" value="bisect" />
+        <!-- Start time of the simulation. Default: 00:00:00 -->
+        <param name="startTime" value="00:00:00" />
+        <!-- Stuck time [s] after which a vehicle is pushed onto the next link regardless of available capacity. Default: 30 -->
+        <param name="stuckTime" value="30.0" />
+        <!-- Number of threads to use for execution. If <= 0, the number of available processors is used. -->
+        <param name="threads" value="1" />
+        <!-- Traffic dynamics determine how storage capacities and inflow capacities are freed. Options: [queue, kinematicWaves, withHoles (not implemented), Default: kinematicWaves -->
+        <param name="trafficDynamics" value="kinematicWaves" />
+        <!-- Determines how agents can access vehicles when starting a trip. Options=[teleport, wait (not implemented), exception], Default: teleport -->
+        <param name="vehicleBehavior" value="teleport" />
+    </module>
+
     <module name="changeMode">
         <!-- Defines whether car availability is considered be considered or not. An agent has no car only if it has no license, or never access to a car. Default: true -->
         <param name="ignoreCarAvailability" value="true"/>
@@ -141,7 +162,7 @@
         <!-- Defines which mobility simulation will be used. Currently supported: qsim JDEQSim hermes
         Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
         For 'qsim', add a module 'qsim' to the config. -->
-        <param name="mobsim" value="hermes"/>
+        <param name="mobsim" value="dsim"/>
         <param name="outputDirectory" value="&output_folder;"/>
         <!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
         <param name="overwriteFiles" value="deleteDirectoryIfExists"/>
@@ -185,7 +206,7 @@
         <param name="defaultDelimiter" value=";"/>
         <param name="insistingOnDeprecatedConfigVersion" value="true"/>
         <!-- "global" number of threads.  This number is used, e.g., for replanning, but NOT in the mobsim.  This can typically be set to as many cores as you have available, or possibly even slightly more. -->
-        <param name="numberOfThreads" value="18"/>
+        <param name="numberOfThreads" value="2"/>
         <param name="randomSeed" value="4711"/>
     </module>
     <module name="hermes">
@@ -212,7 +233,7 @@
         <!-- Size of the events Queue. Increase for very large scenarios -->
         <param name="eventsQueueSize" value="131072"/>
         <!-- Number of threads for parallel events handler. _null_ means the framework decides by itself. 0 is currently not possible. -->
-        <param name="numberOfThreads" value="4"/>
+        <param name="numberOfThreads" value="2"/>
         <!-- If enabled, each event handler is assigned to its own thread. Note that enabling this feature disabled the numberOfThreads option! This feature is still experimental! -->
         <param name="oneThreadPerHandler" value="true"/>
         <!-- If enabled, it is ensured that all events that are created during a time step of the mobility simulation are processed before the next time step is simulated. E.g. neccessary when within-day replanning is used. -->
@@ -322,6 +343,12 @@
         </parameterset>
         <parameterset type="teleportedModeParameters">
             <param name="beelineDistanceFactor" value="1.3"/>
+            <param name="mode" value="non_network_walk"/>
+            <param name="teleportedModeFreespeedFactor" value="null"/>
+            <param name="teleportedModeSpeed" value="1.3055555556"/>
+        </parameterset>
+        <parameterset type="teleportedModeParameters">
+            <param name="beelineDistanceFactor" value="1.3"/>
             <param name="mode" value="walk_main"/>
             <param name="teleportedModeFreespeedFactor" value="null"/>
             <param name="teleportedModeSpeed" value="1.3055555556"/>
@@ -335,7 +362,7 @@
         <!-- [comma-separated list] Defines which modes are congested modes. Technically, these are the modes that the departure handler of the netsimengine handles.  Effective cell size, effective lane width, flow capacity factor, and storage capacity factor need to be set with diligence.  Need to be vehicular modes to make sense. -->
         <param name="mainMode" value="car"/>
         <!-- Number of threads used for the QSim.  Note that this setting is independent from the "global" threads setting.  In contrast to earlier versions, the non-parallel special version is no longer there. -->
-        <param name="numberOfThreads" value="18"/>
+        <param name="numberOfThreads" value="1"/>
         <!-- Boolean. `true': stuck vehicles are removed, aborting the plan; `false': stuck vehicles are forced into the next link. `false' is probably the better choice. -->
         <param name="removeStuckVehicles" value="false"/>
         <!-- Possible values: minOfEndtimeAndMobsimFinished, onlyUseEndtime -->
@@ -467,19 +494,19 @@
         <param name="useIntermodalAccessEgress" value="true"/>
         <param name="useModeMappingForPassengers" value="true"/>
         <parameterset type="modeMapping">
-            <param name="routeMode" value="rail"/>
+            <param name="routeMode" value="rail_route"/>
             <param name="passengerMode" value="rail"/>
         </parameterset>
         <parameterset type="modeMapping">
-            <param name="routeMode" value="tram"/>
+            <param name="routeMode" value="tram_route"/>
             <param name="passengerMode" value="tram"/>
         </parameterset>
         <parameterset type="modeMapping">
-            <param name="routeMode" value="bus"/>
+            <param name="routeMode" value="bus_route"/>
             <param name="passengerMode" value="bus"/>
         </parameterset>
         <parameterset type="modeMapping">
-            <param name="routeMode" value="other"/>
+            <param name="routeMode" value="other_route"/>
             <param name="passengerMode" value="other"/>
         </parameterset>
         <param name="useRangeQuery" value="false"/>
