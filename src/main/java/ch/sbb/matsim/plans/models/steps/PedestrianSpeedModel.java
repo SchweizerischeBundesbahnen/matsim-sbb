@@ -31,7 +31,7 @@ public class PedestrianSpeedModel implements ModelStep{
                 .stream()
                 .filter(person -> new PopulationSampler.ActivePersonPredicate().test(person))
                 .forEach(person -> {
-            double walkSpeed = pedestrianSpeedModel.calculate(person);
+            double walkSpeed = pedestrianSpeedModel.calculate(person) / 3.6;
             person.getAttributes().putAttribute(SynpopConstants.PEDESTRIAN_SPEED,walkSpeed);
         });
     }
