@@ -31,6 +31,7 @@ public class SBBModes {
 	public static final List<String> TRAIN_STATION_MODES = List.of(WALK_FOR_ANALYSIS, PT, PTSubModes.RAIL, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> TRAIN_STATION_ORIGDEST_MODES = List.of(WALK_FOR_ANALYSIS, PTSubModes.BUS, PTSubModes.OTHER, PTSubModes.TRAM);
 	public static final List<String> PT_PASSENGER_MODES = List.of(PT, RAIL, BUS, TRAM, OTHER);
+	public static final List<String> PT_ROUTING_MODES = List.of(PTRoutingModes.RAIL_ROUTE, PTRoutingModes.BUS_ROUTE, PTRoutingModes.TRAM_ROUTE, PTRoutingModes.OTHER_ROUTE);
 	public static final List<String> PT_FEEDER_MODES = List.of(AVFEEDER, RIDEFEEDER, CARFEEDER, BIKEFEEDER);
 
 	public static boolean isPTMode(String mode) {
@@ -52,6 +53,20 @@ public class SBBModes {
 		}
 
 		private PTSubModes() {
+		}
+	}
+	public static class PTRoutingModes {
+		public static final String RAIL_ROUTE = "rail_route";
+		public static final String TRAM_ROUTE = "tram_route";
+		public static final String BUS_ROUTE = "bus_route";
+		public static final String OTHER_ROUTE = "other_route"; // example for "other": Seilbahn, Gondelbahn, Schiff, ...
+		public final static Set<String> routingModes;
+
+		static {
+			routingModes = Set.of(RAIL_ROUTE, TRAM_ROUTE, BUS_ROUTE, OTHER_ROUTE);
+		}
+
+		private PTRoutingModes() {
 		}
 	}
 }

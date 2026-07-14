@@ -36,7 +36,6 @@ import ch.sbb.matsim.vehicles.CreateAgentVehicles;
 import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesCollection;
 import ch.sbb.matsim.zones.ZonesModule;
-import com.google.inject.Provides;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.analysis.TripsAndLegsWriter;
@@ -45,19 +44,19 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.parking.parkingcost.config.ParkingCostConfigGroup;
 import org.matsim.contrib.parking.parkingcost.module.ParkingCostModule;
+import org.matsim.core.communication.NullCommunicator;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
-import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
 import org.matsim.core.population.algorithms.PermissibleModesCalculator;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.router.AnalysisMainModeIdentifier;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.ScoringFunctionFactory;
+import org.matsim.dsim.DistributedContext;
 
 /**
  * @author denism
@@ -131,7 +130,7 @@ public class RunSBB {
 		addSBBDefaultScenarioModules(scenario);
 		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
 		// controler
-		Controler controler = new Controler(scenario);
+		Controler controler = new Controler(scenario, DistributedContext.create(new NullCommunicator(), config));
 		addSBBDefaultControlerModules(controler);
 		controler.run();
 	}
@@ -143,7 +142,8 @@ public class RunSBB {
 		LinkToFacilityAssigner.run(scenario.getActivityFacilities(), scenario.getNetwork(), scenario.getConfig(), ((ZonesCollection) scenario.getScenarioElement(ZonesModule.SBB_ZONES)).getZones(Id.create(Variables.ZONES,Zones.class)));
 		SBBXY2LinksAssigner.run(scenario.getPopulation(), scenario.getNetwork(), scenario.getConfig().network());
 		LinkToStationsAssigner.runAssignment(scenario);
-		NetworkMerger.mergeTransitNetworkFromSupplyConfig(scenario);
+		TransitSchedulePreparation.mergeTransitNetworkFromSupplyConfig(scenario);
+		TransitSchedulePreparation.setRoutedModesToDifferentModes(scenario);
 		PrepareActivitiesInPlans.overwriteActivitiesInPlans(scenario.getPopulation(),scenario.getConfig());
 		TransferTimeChecker.addAdditionalTransferTimes(scenario);
 		SBBNetworkRoutingModule.prepareScenario(scenario);
@@ -186,6 +186,10 @@ public class RunSBB {
 				install(new ZonesModule(scenario));
 				install(new SBBNetworkRoutingModule());
 				install(new AccessEgressModule());
+				if (!config.controller().getMobsim().equals("hermes")) {
+					installQSimModule(new SBBTransitEngineQSimModule());
+				}
+
 				Config config = getConfig();
 
 				SBBCapacityDependentRoutingConfigGroup capacityDependentRoutingConfigGroup = ConfigUtils.addOrGetModule(config, ch.sbb.matsim.config.SBBCapacityDependentRoutingConfigGroup.class);
@@ -195,10 +199,10 @@ public class RunSBB {
 				if (useServiceQuality) {
 					bind(RaptorInVehicleCostCalculator.class).toInstance(inVehicleCostCalculator);
 				}
-//				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
-//				if (parkCostConfig.useParkingCost) {
-//					install(new ParkingCostModule());
-//				}
+				ParkingCostConfigGroup parkCostConfig = ConfigUtils.addOrGetModule(config, ParkingCostConfigGroup.class);
+				if (parkCostConfig.useParkingCost) {
+					install(new ParkingCostModule());
+				}
 
 				ConvergenceConfigGroup convergenceStatsConfig = ConfigUtils.addOrGetModule(config, ConvergenceConfigGroup.class);
 				if (convergenceStatsConfig.isActivateConvergenceStats()) {
@@ -208,14 +212,11 @@ public class RunSBB {
 
 			}
 
-			@Provides
-			QSimComponentsConfig provideQSimComponentsConfig() {
-				QSimComponentsConfig components = new QSimComponentsConfig();
-				new StandardQSimComponentConfigurator(config).configure(components);
-				new SBBTransitEngineQSimModule().configure(components);
-				return components;
-			}
 		});
+		if (!config.controller().getMobsim().equals("hermes")) {
+			controler.configureQSimComponents(components ->
+				new SBBTransitEngineQSimModule().configure(components));
+		}
 		controler.addOverridingModule(new IntermodalModule());
 
 

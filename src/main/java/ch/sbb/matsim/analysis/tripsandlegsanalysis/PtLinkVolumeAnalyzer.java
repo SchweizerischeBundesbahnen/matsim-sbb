@@ -83,7 +83,7 @@ public class PtLinkVolumeAnalyzer {
         this.population = population;
         this.ptlinks = network.getLinks().values()
                 .stream()
-                .filter(l -> l.getAllowedModes().stream().anyMatch(m -> SBBModes.PT_PASSENGER_MODES.contains(m)))
+                .filter(l -> l.getAllowedModes().stream().anyMatch(m -> SBBModes.PT_ROUTING_MODES.contains(m)))
                 .map(Identifiable::getId)
                 .collect(Collectors.toSet());
 

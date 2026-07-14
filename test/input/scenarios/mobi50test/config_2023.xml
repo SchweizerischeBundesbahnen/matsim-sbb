@@ -138,7 +138,7 @@
         <!-- Stuck time [s] after which a vehicle is pushed onto the next link regardless of available capacity. Default: 30 -->
         <param name="stuckTime" value="30.0" />
         <!-- Number of threads to use for execution. If <= 0, the number of available processors is used. -->
-        <param name="threads" value="1" />
+        <param name="threads" value="8" />
         <!-- Traffic dynamics determine how storage capacities and inflow capacities are freed. Options: [queue, kinematicWaves, withHoles (not implemented), Default: kinematicWaves -->
         <param name="trafficDynamics" value="kinematicWaves" />
         <!-- Determines how agents can access vehicles when starting a trip. Options=[teleport, wait (not implemented), exception], Default: teleport -->
@@ -162,7 +162,7 @@
         <!-- Defines which mobility simulation will be used. Currently supported: qsim JDEQSim hermes
         Depending on the chosen mobsim, you'll have to add additional config modules to configure the corresponding mobsim.
         For 'qsim', add a module 'qsim' to the config. -->
-        <param name="mobsim" value="dsim"/>
+        <param name="mobsim" value="qsim"/>
         <param name="outputDirectory" value="&output_folder;"/>
         <!-- Possible values: failIfDirectoryExists, overwriteExistingFiles, deleteDirectoryIfExists -->
         <param name="overwriteFiles" value="deleteDirectoryIfExists"/>
@@ -228,14 +228,10 @@
         <param name="inputNetworkFile" value="&road_network;/network.xml.gz"/>
     </module>
     <module name="eventsManager">
-        <!-- Estimated number of events during mobsim run. An optional optimization hint for the framework. -->
-        <param name="estimatedNumberOfEvents" value="null"/>
-        <!-- Size of the events Queue. Increase for very large scenarios -->
-        <param name="eventsQueueSize" value="131072"/>
         <!-- Number of threads for parallel events handler. _null_ means the framework decides by itself. 0 is currently not possible. -->
-        <param name="numberOfThreads" value="2"/>
+        <param name="numberOfThreads" value="8"/>
         <!-- If enabled, each event handler is assigned to its own thread. Note that enabling this feature disabled the numberOfThreads option! This feature is still experimental! -->
-        <param name="oneThreadPerHandler" value="true"/>
+        <param name="oneThreadPerHandler" value="false"/>
         <!-- If enabled, it is ensured that all events that are created during a time step of the mobility simulation are processed before the next time step is simulated. E.g. neccessary when within-day replanning is used. -->
         <param name="synchronizeOnSimSteps" value="false"/>
     </module>

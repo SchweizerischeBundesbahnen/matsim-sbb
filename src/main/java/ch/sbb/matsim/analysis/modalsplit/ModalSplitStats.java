@@ -250,11 +250,11 @@ public class ModalSplitStats {
                         Route route = leg.getRoute();
                         String startTrainStationId = String.valueOf(getStartTrainFacility(route).getAttributes().getAttribute(STOP_NO));
                         String endTrainStationId = String.valueOf(getEndTrainFacility(route).getAttributes().getAttribute(STOP_NO));
-                        String subMode = getModeOfTransitRoute(leg.getRoute());
+                        String subMode = leg.getMode();
                         Leg legAfter = getLegAfter(legs, legs.indexOf(leg));
                         if (railTripsAnalyzer.hasFQRelevantLeg(List.of((TransitPassengerRoute) leg.getRoute()))) {
                             if (isPtMode(legBefore) &&
-                                    getModeOfTransitRoute(legBefore.getRoute()).equals(PTSubModes.RAIL) &&
+                                    leg.getMode().equals(PTSubModes.RAIL) &&
                                     subMode.equals(PTSubModes.RAIL)) {
                                 if (!getEndTrainFacility(legBefore.getRoute()).getAttributes().getAttribute(STOP_NO).toString().equals(startTrainStationId)) {
                                     trainStationMap.get(startTrainStationId).addUmsteigerTyp5b();
@@ -267,7 +267,7 @@ public class ModalSplitStats {
                                 trainStationMap.get(startTrainStationId).addQuellEinsteiger();
                             }
                             if (isPtMode(legAfter) &&
-                                    getModeOfTransitRoute(legAfter.getRoute()).equals(PTSubModes.RAIL) &&
+                                   legAfter.getMode().equals(PTSubModes.RAIL) &&
                                     subMode.equals(PTSubModes.RAIL)) {
                                 if (!getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute(STOP_NO).toString().equals(endTrainStationId)) {
                                     trainStationMap.get(endTrainStationId).addUmsteigerTyp5a();
@@ -280,10 +280,10 @@ public class ModalSplitStats {
                                 trainStationMap.get(endTrainStationId).addZielAussteiger();
                             }
                         } else {
-                            if (getModeOfTransitRoute(legBefore.getRoute()) != null && getModeOfTransitRoute(legBefore.getRoute()).equals(PTSubModes.RAIL) && subMode.equals(PTSubModes.RAIL)) {
+                            if (legBefore != null && legBefore.getMode().equals(PTSubModes.RAIL) && subMode.equals(PTSubModes.RAIL)) {
                                 trainStationMap.get(startTrainStationId).addUmsteigerAndereAndere();
                             }
-                            if (getModeOfTransitRoute(legAfter.getRoute()) != null && getModeOfTransitRoute(legAfter.getRoute()).equals(PTSubModes.RAIL) && subMode.equals(PTSubModes.RAIL)) {
+                            if (legAfter != null && legAfter.equals(PTSubModes.RAIL) && subMode.equals(PTSubModes.RAIL)) {
                                 trainStationMap.get(endTrainStationId).addUmsteigerAndereAndere();
                             }
                         }
@@ -320,7 +320,7 @@ public class ModalSplitStats {
 
                         StopStation startStopStation = stopStationsMap.get(startStopStationFacility.getId());
                         startStopStation.addEntered();
-                        String subPTMode = getModeOfTransitRoute(leg.getRoute());
+                        String subPTMode = leg.getMode();
                         boolean isRailLeg = (subPTMode.equals(PTSubModes.RAIL));
                         if (isRailLeg) {
                             startStopStation.setRailStation();
@@ -330,15 +330,15 @@ public class ModalSplitStats {
                         }
                         if (legBefore != null) {
                             if (isPtMode(legBefore)) {
-                                subPTMode = getModeOfTransitRoute(legBefore.getRoute());
+                                subPTMode = legBefore.getMode();
                                 startStopStation.getEnteredMode()[possibleModesAtStop.indexOf(subPTMode)]++;
                                 if (getEndTrainFacility(legBefore.getRoute()).getAttributes().getAttribute(STOP_NO).equals(startStopStationFacility.getAttributes().getAttribute(STOP_NO))) {
                                     if (getEndTrainFacility(legBefore.getRoute()).equals(startStopStationFacility)) {
-                                        if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
+                                        if (leg.getMode().equals(PTSubModes.RAIL) &&
                                                 subPTMode.equals(PTSubModes.RAIL)) {
                                             startStopStation.addUmstiegeBahnBahn();
                                         }
-                                    } else if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
+                                    } else if (leg.getMode().equals(PTSubModes.RAIL) &&
                                             subPTMode.equals(PTSubModes.RAIL)) {
                                         startStopStation.addUmsteigeAHPBahn();
                                     }
@@ -362,15 +362,16 @@ public class ModalSplitStats {
                         Leg legAfter = getLegAfter(legs, currentLegIndex);
                         if (legAfter != null) {
                             if (isPtMode(legAfter)) {
-                                subPTMode = getModeOfTransitRoute(legAfter.getRoute());
-                                endStopStation.getExitedMode()[possibleModesAtStop.indexOf(subPTMode)]++;
+                                subPTMode = legAfter.getMode();
+                                int i = possibleModesAtStop.indexOf(subPTMode);
+                                endStopStation.getExitedMode()[i]++;
                                 if (getStartTrainFacility(legAfter.getRoute()).getAttributes().getAttribute(STOP_NO).equals(endStopStationFacility.getAttributes().getAttribute(STOP_NO))) {
                                     if (getStartTrainFacility(legAfter.getRoute()).equals(endStopStationFacility)) {
-                                        if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
+                                        if (leg.getMode().equals(PTSubModes.RAIL) &&
                                                 subPTMode.equals(PTSubModes.RAIL)) {
                                             endStopStation.addUmstiegeBahnBahn();
                                         }
-                                    } else if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL) &&
+                                    } else if (leg.getMode().equals(PTSubModes.RAIL) &&
                                             subPTMode.equals(PTSubModes.RAIL)) {
                                         endStopStation.addUmsteigeBahnAHP();
                                     }
@@ -415,7 +416,7 @@ public class ModalSplitStats {
             for (Leg leg : trip.getLegsOnly()) {
                 if (isPtMode(leg)) {
                     TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
-                    if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                    if (leg.getMode().equals(PTSubModes.RAIL)) {
                         tmpIsRail = true;
 
                     }
@@ -480,8 +481,7 @@ public class ModalSplitStats {
                 if (isPtMode(leg)) {
                     distance += leg.getRoute().getDistance() / 1000;
                     ptLegs++;
-                    TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
-                    if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                    if (leg.getMode().equals(PTSubModes.RAIL)) {
                         railLegs++;
                     }
 
@@ -572,8 +572,7 @@ public class ModalSplitStats {
 
             for (Leg leg : trip.getLegsOnly()) {
                 if (isPtMode(leg)) {
-                    TransitPassengerRoute route = (TransitPassengerRoute) leg.getRoute();
-                    if (getModeOfTransitRoute(route).equals(PTSubModes.RAIL)) {
+                    if (leg.getMode().equals(PTSubModes.RAIL)) {
                         railDistance += leg.getRoute().getDistance() / 1000;
                         tmpIsRail = true;
                     }
@@ -701,7 +700,7 @@ public class ModalSplitStats {
     private int findFirstRailLeg(List<Leg> legs){
         for (Leg leg : legs) {
             if (isPtMode(leg)) {
-                if (getModeOfTransitRoute(leg.getRoute()).equals(SBBModes.PTSubModes.RAIL)) {
+                if (leg.getMode().equals(SBBModes.PTSubModes.RAIL)) {
                     return legs.indexOf(leg);
                 }
             }
@@ -713,7 +712,7 @@ public class ModalSplitStats {
         int lastLeg = -1;
         for (Leg leg : legs) {
             if (isPtMode(leg)) {
-                if (getModeOfTransitRoute(leg.getRoute()).equals(SBBModes.PTSubModes.RAIL)) {
+                if (leg.getMode().equals(SBBModes.PTSubModes.RAIL)) {
                     lastLeg =  legs.indexOf(leg);
                 }
             }
@@ -747,7 +746,7 @@ public class ModalSplitStats {
                             distanceEnter += leg.getRoute().getDistance();
                         }
                         if (isPtMode(leg)) {
-                            String subPTMode = getModeOfTransitRoute(leg.getRoute());
+                            String subPTMode = leg.getMode();
                             subPTModeEntered = feederModesMap.get(subPTMode);
                         } else {
                             if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
@@ -764,7 +763,7 @@ public class ModalSplitStats {
                             distanceExit += leg.getRoute().getDistance();
                         }
                         if (isPtMode(leg)) {
-                            String subPTMode = getModeOfTransitRoute(leg.getRoute());
+                            String subPTMode = leg.getMode();
                             subPTModeExited = feederModesMap.get(subPTMode);
                         } else {
                             if (!leg.getMode().contains(SBBModes.WALK_FOR_ANALYSIS)) {
@@ -1658,11 +1657,11 @@ public class ModalSplitStats {
         return transitSchedule.getFacilities().get(transitPassengerRoute.getEgressStopId());
     }
 
-    private String getModeOfTransitRoute(Route route) {
-        if (route instanceof TransitPassengerRoute) {
-            return transitSchedule.getTransitLines().get(((TransitPassengerRoute) route).getLineId()).getRoutes().get(((TransitPassengerRoute) route).getRouteId()).getTransportMode();
-        }
-        return null;
-    }
+//    private String getModeOfTransitRoute(Route route) {
+//        if (route instanceof TransitPassengerRoute) {
+//            return transitSchedule.getTransitLines().get(((TransitPassengerRoute) route).getLineId()).getRoutes().get(((TransitPassengerRoute) route).getRouteId()).getTransportMode();
+//        }
+//        return null;
+//    }
 
 }
