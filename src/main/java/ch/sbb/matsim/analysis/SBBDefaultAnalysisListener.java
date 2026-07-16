@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.matsim.analysis.TripsAndLegsWriter;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.groups.ControllerConfigGroup;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationEndsEvent;
@@ -33,6 +34,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     private final OutputDirectoryHierarchy controlerIO;
     private final ControllerConfigGroup config;
     private final PostProcessingConfigGroup ppConfig;
+    private final IterationLinkAnalyzer iterationLinkAnalyser;
 
     @Inject
     private DemandAggregator demandAggregator;
@@ -60,6 +62,9 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     @Inject
     private TripsAndLegsWriter.CustomTripsWriterExtension sbbTripsExtension;
 
+    @Inject
+    private EventsManager eventsManager;
+
     private final CarLinkAnalysis carLinkAnalysis;
 
 
@@ -75,6 +80,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
         this.config = config;
         this.ppConfig = ppConfig;
         this.carLinkAnalysis = new CarLinkAnalysis(ppConfig, scenario, iterationLinkAnalyzer);
+        this.iterationLinkAnalyser = iterationLinkAnalyzer;
     }
 
     @Override
@@ -145,6 +151,7 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
             String carVolumesFile = controlerIO.getOutputFilename("car_volumes_daily.csv.gz");
             carLinkAnalysis.writeMultiIterationCarStats(carVolumesFile, event.getIteration());
         }
+        eventsManager.removeHandler(iterationLinkAnalyser);
     }
 
     @Override
@@ -152,5 +159,9 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
         if (this.config.getWriteTripsInterval() > 0 && (event.getIteration() % this.config.getWriteTripsInterval() == 0)) {
             ((SBBTripsExtension) sbbTripsExtension).prepareAddtionalTripAttributes();
         }
+        if (ppConfig.getDailyLinkVolumes() || (this.config.getWriteTripsInterval() > 0 && (event.getIteration() % this.config.getWriteTripsInterval() == 0))) {
+            eventsManager.addHandler(iterationLinkAnalyser);
+        }
+
     }
 }

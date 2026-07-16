@@ -186,7 +186,7 @@ public class CarLinkAnalysis {
     record VirtualVisumLink(int fromNode, int toNode, int visumLinkNo) {
     }
 
-    static class LinkStorage {
+    public static class LinkStorage {
 
         private final static Logger log = LogManager.getLogger(LinkStorage.class);
 
