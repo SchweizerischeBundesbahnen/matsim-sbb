@@ -182,7 +182,7 @@ public class SynPopUtils {
                 continue;
             }
 
-            Boolean hasDrivingLicense = AttributeUtils.hasDrivingLicense(person);
+            boolean hasDrivingLicense = AttributeUtils.hasDrivingLicense(person);
             if (hasDrivingLicense) {
                 Integer numberOfCars = (Integer) ((Household) person.getAttributes().getAttribute(SynpopConstants.HOUSEHOLD)).getAttributes().getAttribute(SynpopConstants.NB_OF_CARS);
                 if (numberOfCars != null && numberOfCars > 0) {
