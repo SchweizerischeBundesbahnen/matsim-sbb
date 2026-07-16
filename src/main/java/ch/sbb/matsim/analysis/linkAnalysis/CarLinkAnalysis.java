@@ -22,7 +22,6 @@ package ch.sbb.matsim.analysis.linkAnalysis;
 import ch.sbb.matsim.analysis.linkAnalysis.IterationLinkAnalyzer.AnalysisVehicleType;
 import ch.sbb.matsim.config.PostProcessingConfigGroup;
 import ch.sbb.matsim.config.variables.SBBModes;
-import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.mavi.MaviHelper;
 import ch.sbb.matsim.plans.models.utils.AttributeUtils;
@@ -181,9 +180,6 @@ public class CarLinkAnalysis {
                 }
             }
         }
-    }
-
-    record VirtualVisumLink(int fromNode, int toNode, int visumLinkNo) {
     }
 
     public static class LinkStorage {
