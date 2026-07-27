@@ -130,7 +130,12 @@ public class RunSBB {
 		addSBBDefaultScenarioModules(scenario);
 		ScenarioConsistencyChecker.checkScenarioConsistency(scenario);
 		// controler
-		Controler controler = new Controler(scenario, DistributedContext.create(new NullCommunicator(), config));
+		Controler controler;
+		if (config.controller().getMobsim().equals("dsim")) {
+		controler =new Controler(scenario, DistributedContext.create(new NullCommunicator(), config));
+		} else {
+			controler = new Controler(scenario);
+		}
 		addSBBDefaultControlerModules(controler);
 		controler.run();
 	}
