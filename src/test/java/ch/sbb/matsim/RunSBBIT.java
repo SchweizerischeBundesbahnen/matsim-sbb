@@ -13,10 +13,9 @@ public class RunSBBIT {
 	public void runSBBIt() {
 		System.setProperty("matsim.preferLocalDtds", "true");
 		Config config = RunSBB.buildConfig("test/input/scenarios/mobi50test/config_2023.xml");
-
+		config.controller().setMobsim("qsim");
 		config.scoring().setWriteExperiencedPlans(true);
-		config.scoring().setExplainScores(true);
-		config.controller().setLastIteration(10);
+		config.controller().setLastIteration(1);
 		RunSBB.run(config);
 
     }
