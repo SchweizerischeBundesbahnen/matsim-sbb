@@ -219,7 +219,8 @@ public class RunSBB {
 
 		});
 		if (!config.controller().getMobsim().equals("hermes")) {
-			controler.configureQSimComponents(components ->
+            //noinspection deprecation
+            controler.configureQSimComponents(components ->
 				new SBBTransitEngineQSimModule().configure(components));
 		}
 		controler.addOverridingModule(new IntermodalModule());
