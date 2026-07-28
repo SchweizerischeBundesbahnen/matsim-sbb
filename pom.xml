@@ -59,7 +59,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>2027.0-PR5058</matsim.version>
+        <matsim.version>2027.0-PR5080</matsim.version>
         <junit.version>5.10.2</junit.version>
         <geotools.version>34.0</geotools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -342,6 +342,9 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>ch.sbb.matsim.RunSBB</mainClass>
+                                    <manifestEntries>
+                                        <Multi-Release>true</Multi-Release>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                         </configuration>
