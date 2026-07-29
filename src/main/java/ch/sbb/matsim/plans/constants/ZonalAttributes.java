@@ -1,6 +1,5 @@
 package ch.sbb.matsim.plans.constants;
 
-import ch.sbb.matsim.zones.AttributableZone;
 
 import java.util.List;
 

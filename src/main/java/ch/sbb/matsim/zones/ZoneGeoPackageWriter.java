@@ -359,7 +359,7 @@ public class ZoneGeoPackageWriter {
             log.error("No zones to write to CSV.");
             return;
         }
-        Set<String> attributeNames = new TreeSet<>(zones.getZones().stream().flatMap(zone -> zone.getAttributes().getAsMap().keySet().stream()).collect(Collectors.toSet()));
+        Set<String> attributeNames = zones.getZones().stream().flatMap(zone -> zone.getAttributes().getAsMap().keySet().stream()).collect(Collectors.toCollection(TreeSet::new));
         attributeNames.remove("geometry"); // Exclude geometry attribute
         attributeNames.remove(SHAPE_FILE_GEOM_NAME); // Exclude geometry attribute
         attributeNames.remove("zone_id");
