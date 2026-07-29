@@ -112,12 +112,12 @@ public class ZoneGeoPackageWriter {
                     GeometryFactory gf = poly.getFactory();
                     return gf.createMultiPolygon(new Polygon[]{poly});
                 }
-                case MultiPolygon multiPolygon -> {
+                case MultiPolygon _ -> {
                     return geometry;
                 }
 
                 // If other geometry types appear, try to convert polygons inside (best-effort)
-                case GeometryCollection geometryCollection -> {
+                case GeometryCollection _ -> {
                     List<Polygon> polys = new ArrayList<>();
                     for (int i = 0; i < geometry.getNumGeometries(); i++) {
                         Geometry g = geometry.getGeometryN(i);
@@ -220,7 +220,6 @@ public class ZoneGeoPackageWriter {
 
         // Fallback: if target is assignable from value, return it; else use toString for String bindings, else null
         if (binding.isInstance(val)) return val;
-        if (binding == String.class) return val.toString();
 
         log.debug("Fallback: attribute '{}' with binding {} cannot accept value of type {} -> using null", attrName, binding.getSimpleName(), val.getClass().getSimpleName());
         return null;
