@@ -45,7 +45,7 @@ class SynPopUtilsTest {
                 .filter(this::hasCarAvailable)
                 .count();
 
-        assertEquals(3, studentsWithCarAvailable, "15% von 20 Studierenden sollten ein verfuegbares Auto haben.");
+        assertEquals(4, studentsWithCarAvailable, "20% von 20 Studierenden sollten ein verfuegbares Auto haben.");
 
         scenario.getPopulation().getPersons().values().stream()
                 .filter(this::hasCarAvailable)

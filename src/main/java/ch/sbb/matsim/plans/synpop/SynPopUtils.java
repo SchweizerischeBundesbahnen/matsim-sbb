@@ -165,7 +165,7 @@ public class SynPopUtils {
         }
         studentsInHouseholdsWithCars.sort(Comparator.comparingDouble(person -> SynPopUtils.getRandom(person.getId(), "car_availability_students").nextDouble()));
 
-        int targetStudentCarAvailability = (int) Math.round(students.size() * 0.15);
+        int targetStudentCarAvailability = (int) Math.round(students.size() * 0.20);
         int selectedStudents = Math.min(targetStudentCarAvailability, studentsInHouseholdsWithCars.size());
         Set<Id<Person>> studentsWithCarAvailability = new HashSet<>();
         for (int i = 0; i < selectedStudents; i++) {
@@ -173,7 +173,7 @@ public class SynPopUtils {
         }
 
         if (selectedStudents < targetStudentCarAvailability) {
-            log.warn("Could not reach 15% student car availability because only {} students are in households with cars (target: {}).", selectedStudents, targetStudentCarAvailability);
+            log.warn("Could not reach 20% student car availability because only {} students are in households with cars (target: {}).", selectedStudents, targetStudentCarAvailability);
         }
 
         for (Person person : scenario.getPopulation().getPersons().values()) {
@@ -182,7 +182,7 @@ public class SynPopUtils {
                 continue;
             }
 
-            Boolean hasDrivingLicense = AttributeUtils.hasDrivingLicense(person);
+            boolean hasDrivingLicense = AttributeUtils.hasDrivingLicense(person);
             if (hasDrivingLicense) {
                 Integer numberOfCars = (Integer) ((Household) person.getAttributes().getAttribute(SynpopConstants.HOUSEHOLD)).getAttributes().getAttribute(SynpopConstants.NB_OF_CARS);
                 if (numberOfCars != null && numberOfCars > 0) {
