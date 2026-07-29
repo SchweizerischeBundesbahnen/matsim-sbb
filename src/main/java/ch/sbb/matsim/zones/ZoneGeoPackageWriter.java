@@ -297,15 +297,9 @@ public class ZoneGeoPackageWriter {
             }
             if (v instanceof Double || v instanceof Float) { anyDouble = true; continue; }
             switch (v) {
-                case Number number -> {
-                    anyDouble = true;
-                }
-                case Date date -> {
-                    anyDate = true;
-                }
-                case Boolean b -> {
-                    anyBoolean = true;
-                }
+                case Number _ -> anyDouble = true;
+                case Date _ -> anyDate = true;
+                case Boolean _ -> anyBoolean = true;
                 case String string -> {
                     String s = string.trim();
                     if (s.isEmpty()) continue;
