@@ -1,5 +1,9 @@
 package ch.sbb.matsim.plans.constants;
 
+import ch.sbb.matsim.zones.AttributableZone;
+
+import java.util.List;
+
 public class ZonalAttributes {
     public static final String ACCSIB_CAR = "accsib_car";
     public static final String ACCSIB_MUL = "accsib_mul";
@@ -79,4 +83,77 @@ public class ZonalAttributes {
 
 
     public static final String MOTORISATION_LEVEL = "motorisation_level" ;
+    public static final String LANGUAGE = "language";
+
+    public static List<String> attributesForExport = List.of(
+            ZONE_ID,
+            ATTR_A,
+            ATTR_B,
+            ATTR_EC,
+            ATTR_L,
+            ATTR_O,
+            ATTR_S,
+            ACCSIB_CAR,
+            ACCSIB_MUL,
+            ACCSIB_PT,
+            AGGLO_ID,
+            AGGLO_NAME,
+            AMGR_ID,
+            AMGR_NAME,
+            AMR_ID,
+            AMR_NAME,
+            AREA_LAND,
+            AT_CAR,
+            AT_RIDE,
+            DENSITY,
+            FTE_ENDO,
+            FTE_TOTAL,
+            JOBS_ENDO,
+            JOBS_EXO,
+            JOBS_TOTAL,
+            KT_ID,
+            KT_NAME,
+            LANGUAGE,
+            MOTORISATION_LEVEL,
+            MSR_ID,
+            MSR_NAME,
+            MUN_ID,
+            MUN_NAME,
+            NUTS2,
+            NUTS3,
+            PC_CAR,
+            PC_RIDE,
+            POP_0017,
+            POP_1824,
+            POP_2544,
+            POP_4564,
+            POP_6574,
+            POP_75XX,
+            POP_APPR,
+            POP_CARAVL,
+            POP_CARS,
+            POP_DL,
+            POP_EBIKE45,
+            POP_EMPL,
+            POP_GA,
+            POP_HT,
+            POP_PUP_1,
+            POP_PUP_2,
+            POP_STUD_3,
+            POP_TOTAL,
+            POP_VA,
+            POP_VA_HT,
+            SCHL_APPR,
+            SCHL_ENR_1,
+            SCHL_ENR_2,
+            SCHL_ENR_3,
+            SL3_ID,
+            SL3_NAME,
+            VISIT_L,
+            VISIT_S,
+            VISIT_S_LT,
+            VISIT_S_ST,
+            ZONE_INDEX,
+            ZONE_NAME
+    );
 }

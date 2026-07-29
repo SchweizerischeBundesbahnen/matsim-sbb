@@ -51,7 +51,6 @@ public class MOBiPlansOutputWriter implements ModelStep {
             Variables.PT_SUBSCRIPTION,
             SynpopConstants.RESIDENCE_ZONE_ID,
             SynpopConstants.RESIDENCE_AMR_ID,
-            "residence_msr_id",
             SynpopConstants.AGE_CAT,
             SynpopConstants.CURRENT_EDU,
             SynpopConstants.CURRENT_JOB_RANK,
@@ -74,14 +73,29 @@ public class MOBiPlansOutputWriter implements ModelStep {
 
         new FacilitiesWriter(scenario.getActivityFacilities()).write(outputDirPrefix+"facilities.xml.zst");
         new HouseholdsWriterV10(scenario.getHouseholds()).writeFile(outputDirPrefix+"households.xml.zst");
+        ZoneGeoPackageWriter.writeAttributesToCSV(zones, outputDirPrefix+"mobi_zones_all_attributes.csv");
+        stripZonalAttributes(zones);
         ZoneGeoPackageWriter.writeGeoPackage(zones, outputDirPrefix+"mobi_zones.gpkg");
         ZoneGeoPackageWriter.writeAttributesToCSV(zones, outputDirPrefix+"mobi_zones.csv");
+
+
         writePopulationAttributes(scenario.getPopulation(),outputDirPrefix+"population_attributes.csv.zst");
         /*
         produce a plans file with only those attributes needed in MATSim
          */
         Population reducedPopulation = reducePopulation();
         new PopulationWriter(reducedPopulation).write(outputDirPrefix+"plans.xml.zst");
+    }
+
+    private void stripZonalAttributes(Zones zones) {
+        zones.getZones().forEach(zone -> {
+            Set<String> attributes = new HashSet<>(zone.getAttributes().getAsMap().keySet());
+            for (var attribute : attributes){
+                if (!ZonalAttributes.attributesForExport.contains(attribute)){
+                    zone.getAttributes().removeAttribute(attribute);
+                }
+            }
+        });
     }
 
     private void writePopulationAttributes(Population population, String outputFile) {
@@ -150,7 +164,6 @@ public class MOBiPlansOutputWriter implements ModelStep {
                     if (zone != null) {
                         person.getAttributes().putAttribute(SynpopConstants.RESIDENCE_ZONE_ID, zone.getId().toString());
                         person.getAttributes().putAttribute(SynpopConstants.RESIDENCE_AMR_ID, zone.getAttributes().getAttribute(ZonalAttributes.AMR_ID).toString());
-                        person.getAttributes().putAttribute("residence_msr_id", zone.getAttributes().getAttribute(ZonalAttributes.MSR_ID).toString());
                     }
                     Set<String> attributes = new HashSet<>(person.getAttributes().getAsMap().keySet());
                     Set<String> attributesToKeep = findAttributesToKeep(attributes);
