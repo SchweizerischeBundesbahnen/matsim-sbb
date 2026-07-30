@@ -45,25 +45,48 @@ public class BusinessesReader {
 
                 for (int i = 0; i < rowCount; i++) {
                     Id<ActivityFacility> facilityId = Id.create(getVectorValue(businessIdVector, i).toString(), ActivityFacility.class);
+                    if (xCoordVector.isNull(i) || yCoordVector.isNull(i)) {
+                        throw new IllegalStateException("Missing coordinate for business " + facilityId + " at row " + i);
+                    }
                     Coord coord = new Coord(xCoordVector.get(i), yCoordVector.get(i));
                     var facility = facilities.getFactory().createActivityFacility(facilityId, coord);
-                    facility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, String.valueOf(getVectorValue(zoneIdVector, i)));
+                    facility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, getVectorValue(zoneIdVector, i).toString());
                     facility.getAttributes().putAttribute(SynpopConstants.NOGA_CODE, getVectorValue(nogaCodeVector, i));
-                    Object fteEndo = getVectorValue(fteEndoVector, i);
+
+                    Object fteEndoO = getVectorValue(fteEndoVector, i);
+                    double fteEndo = fteEndoO == null ? 0.0 : ((Number) fteEndoO).doubleValue();
                     facility.getAttributes().putAttribute(SynpopConstants.FTE_ENDO, fteEndo);
-                    Object fteExo = getVectorValue(fteExoVector, i);
+
+                    Object fteExoO = getVectorValue(fteExoVector, i);
+                    double fteExo = fteExoO == null ? 0.0 : ((Number) fteExoO).doubleValue();  // fixed
                     facility.getAttributes().putAttribute(SynpopConstants.FTE_EXO, fteExo);
+
                     facility.getAttributes().putAttribute(SynpopConstants.JOBS_ENDO, getVectorValue(jobsEndoVector, i));
                     facility.getAttributes().putAttribute(SynpopConstants.JOBS_EXO, getVectorValue(jobsExoVector, i));
                     facility.getAttributes().putAttribute(SynpopConstants.SCHOOL_TYPE, getVectorValue(schoolTypeVector, i));
-                    facility.getAttributes().putAttribute(SynpopConstants.SECTOR, getVectorValue(sectorVector, i));
+                    Object sectorVectorValue = getVectorValue(sectorVector, i);
+                    int sector;
+                    if (sectorVectorValue == null) {
+                        throw new IllegalStateException("Sector is null for facility " + facilityId);
+                    } else if (sectorVectorValue instanceof String s) {
+                        sector = SynpopConstants.getCodeOrFail(SynpopConstants.SECTORS_REVERSE, s, SynpopConstants.SECTOR);
+                    } else if (sectorVectorValue instanceof Number n) {
+                        sector = n.intValue();
+                    } else {
+                        throw new IllegalStateException("Unexpected sector type: " + sectorVectorValue.getClass()
+                                + " (value=" + sectorVectorValue + ")");
+                    }
+                    facility.getAttributes().putAttribute(SynpopConstants.SECTOR, sector);
+
+
                     if (attractionVector != null) {
                         facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, getVectorValue(attractionVector, i));
                     } else {
-                        facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, (double)fteEndo+(double)fteExo);
+                        facility.getAttributes().putAttribute(SynpopConstants.RELATIVE_ATTRACTION, fteEndo + fteExo);
                     }
                     facilities.addActivityFacility(facility);
                 }
+
             }
 
 
@@ -73,6 +96,9 @@ public class BusinessesReader {
     }
 
     private static Object getVectorValue(ValueVector vector, int index) {
+        if (vector.isNull(index)) {
+            return null;
+        }
         return switch (vector) {
             case Float8Vector v -> v.get(index);
             case IntVector v -> v.get(index);

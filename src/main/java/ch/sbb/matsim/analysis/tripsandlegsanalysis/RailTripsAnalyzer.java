@@ -19,6 +19,7 @@
 
 package ch.sbb.matsim.analysis.tripsandlegsanalysis;
 
+import ch.sbb.matsim.config.variables.SBBModes;
 import ch.sbb.matsim.config.variables.SBBModes.PTSubModes;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.zones.Zone;
@@ -63,7 +64,7 @@ public class RailTripsAnalyzer {
         this.schedule = schedule;
         railLines = schedule.getTransitLines().values()
                 .stream()
-                .filter(l -> l.getRoutes().values().stream().anyMatch(transitRoute -> transitRoute.getTransportMode().equals(PTSubModes.RAIL)))
+                .filter(l -> l.getRoutes().values().stream().anyMatch(transitRoute -> transitRoute.getTransportMode().equals(PTSubModes.RAIL)||transitRoute.getTransportMode().equals(SBBModes.PTRoutingModes.RAIL_ROUTE)))
                 .map(Identifiable::getId)
                 .collect(Collectors.toSet());
         fqStops = schedule.getFacilities().values()
@@ -73,7 +74,7 @@ public class RailTripsAnalyzer {
                 .collect(Collectors.toSet());
         railStops = railLines.stream()
                 .flatMap(lid -> schedule.getTransitLines().get(lid).getRoutes().values().stream())
-                .filter(transitRoute -> transitRoute.getTransportMode().equals(PTSubModes.RAIL))
+                .filter(transitRoute -> transitRoute.getTransportMode().equals(PTSubModes.RAIL)||transitRoute.getTransportMode().equals(SBBModes.PTRoutingModes.RAIL_ROUTE))
                 .flatMap(transitRoute -> transitRoute.getStops().stream())
                 .map(transitRouteStop -> transitRouteStop.getStopFacility().getId())
                 .collect(Collectors.toSet());
@@ -226,7 +227,7 @@ public class RailTripsAnalyzer {
     private double calcSwissSectionofInternationalJourney(Id<TransitRoute> routeId, Id<TransitLine> transitLineId, Id<TransitStopFacility> accessStopId, Id<TransitStopFacility> egressStopId) {
         TransitRoute transitRoute = this.schedule.getTransitLines().get(transitLineId).getRoutes().get(routeId);
         Gbl.assertNotNull(transitRoute);
-        if (!transitRoute.getTransportMode().equals(PTSubModes.RAIL)) {
+        if (!transitRoute.getTransportMode().equals(PTSubModes.RAIL)||transitRoute.getTransportMode().equals(SBBModes.PTRoutingModes.RAIL_ROUTE)) {
             return 0.0;
         }
         int startIndex = transitRoute.getStops().stream().map(s -> s.getStopFacility().getId()).collect(Collectors.toList()).indexOf(accessStopId);

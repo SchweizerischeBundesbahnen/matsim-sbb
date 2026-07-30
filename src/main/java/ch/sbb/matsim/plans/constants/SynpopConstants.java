@@ -155,8 +155,23 @@ public class SynpopConstants {
             "primary", 1,
             "secondary", 2,
             "tertiary_college", 3,
-            "tertiary_university", 4
+            "tertiary_university", 4,
+            "tertiary",4 //für Prognose
     );
+    public static final Map<String, Integer> SECTORS_REVERSE = Map.ofEntries(
+            Map.entry("agriculture", 1),
+            Map.entry("production", 2),
+            Map.entry("wholesale", 3),
+            Map.entry("retail", 4),
+            Map.entry("gastronomy", 5),
+            Map.entry("finance", 6),
+            Map.entry("services fC", 7),
+            Map.entry("other services", 8),
+            Map.entry("other", 9),
+            Map.entry("non movers", 10),
+            Map.entry("null", 99)
+    );
+
     // ----------------------------
     // Current education
     // ----------------------------

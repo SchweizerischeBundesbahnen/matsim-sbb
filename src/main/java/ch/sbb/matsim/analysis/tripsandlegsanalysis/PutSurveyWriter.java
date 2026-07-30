@@ -290,7 +290,7 @@ public class PutSurveyWriter {
                                         putSurveyEntry.purpose = purpose;
                                         putSurveyEntry.direction = direction;
                                         tripEntry.add(putSurveyEntry);
-                                        if (transitRoute.getTransportMode().equals(PTSubModes.RAIL)) {
+                                        if (transitRoute.getTransportMode().equals(PTSubModes.RAIL)||transitRoute.getTransportMode().equals(SBBModes.PTRoutingModes.RAIL_ROUTE)) {
                                             isRail = true;
                                             lastRailLeg = putSurveyEntry;
                                             railEgressDist = 0.;
