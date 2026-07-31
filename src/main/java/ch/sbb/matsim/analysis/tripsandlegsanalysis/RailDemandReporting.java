@@ -67,7 +67,7 @@ public class RailDemandReporting {
     private final Map<Id<TransitLine>, String> lineLfpCat = new HashMap<>();
     private final Map<Id<TransitLine>, String> lineAbgrenzung = new HashMap<>();
     private final Map<Id<TransitLine>, String> line2Mode = new HashMap<>();
-    private final Map<String, MutableDouble> modeDistances = new HashMap<>();
+    private final Map<String, MutableDouble> modeDistances = new TreeMap<>();
     private final Map<String, MutableInt> modeBoardings = new HashMap<>();
 
     @Inject
