@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.sbb</groupId>
     <artifactId>matsim-sbb</artifactId>
-    <version>5.3.7</version>
+    <version>5.3.8-SNAPSHOT</version>
     <name>MATSim SBB Project</name>
     <packaging>jar</packaging>
 
@@ -59,7 +59,7 @@
     </repositories>
 
     <properties>
-        <matsim.version>2027.0-PR5080</matsim.version>
+        <matsim.version>2027.0-PR5092</matsim.version>
         <arrow.version>19.0.0</arrow.version>
         <junit.version>5.10.2</junit.version>
         <geotools.version>34.0</geotools.version>
@@ -67,6 +67,18 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.release>25</maven.compiler.release>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.22.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
 
@@ -147,6 +159,12 @@
             <artifactId>arrow-compression</artifactId>
             <version>${arrow.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+
+
         <dependency>
             <groupId>net.objecthunter</groupId>
             <artifactId>exp4j</artifactId>
