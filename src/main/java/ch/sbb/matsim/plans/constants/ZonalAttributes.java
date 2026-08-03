@@ -19,6 +19,9 @@ public class ZonalAttributes {
     public static final String AREA_LAND = "area_land";
     public static final String AT_CAR = "at_car";
     public static final String AT_RIDE = "at_ride";
+    public static final String AT_AVTAXI = "at_avtaxi";
+    public static final String AT_AVFEED = "at_avfeed";
+    public static final String AVFEED_DT = "avfeed_dt";
     public static final String CAR_TTIMES = "car_ttimes";
     public static final String DENSITY = "density";
     public static final String FTE_ENDO = "fte_endo";
@@ -104,6 +107,9 @@ public class ZonalAttributes {
             AREA_LAND,
             AT_CAR,
             AT_RIDE,
+            AT_AVFEED,
+            AT_AVTAXI,
+            AVFEED_DT,
             DENSITY,
             FTE_ENDO,
             FTE_TOTAL,
