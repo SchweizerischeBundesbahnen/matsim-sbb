@@ -26,6 +26,8 @@ public class ZoneGeoPackageWriter {
 
     public static final String GEOMETRY = "geometry";
     public static final String SHAPE_FILE_GEOM_NAME = "the_geom";
+    // Attribute names that must be excluded when writing GeoPackage, as they conflict with internal GeoPackage columns
+    private static final Set<String> EXCLUDED_ATTRIBUTES = Set.of(GEOMETRY, SHAPE_FILE_GEOM_NAME, "fid", "geom");
 
     public static void writeGeoPackage(Zones zones, String outputFile) {
         writeGeoPackage(zones, outputFile, 2056); // Default EPSG code for CH1903+ / LV95
@@ -70,6 +72,7 @@ public class ZoneGeoPackageWriter {
         }
     }
 
+
     private static Collection<SimpleFeature> buildFeaturesFromAttributes(List<AttributableZone> zones, int epsg, String layerName) throws FactoryException {
         SimpleFeatureType featureType = createFeatureType(zones, epsg, layerName);
         SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(featureType);
@@ -77,7 +80,7 @@ public class ZoneGeoPackageWriter {
 
         List<String> attributeNames = featureType.getAttributeDescriptors().stream()
                 .map(AttributeDescriptor::getLocalName)
-                .filter(name -> !name.equals(GEOMETRY) && !name.equals(SHAPE_FILE_GEOM_NAME))
+                .filter(name -> !EXCLUDED_ATTRIBUTES.contains(name))
                 .toList();
 
         for (AttributableZone zone : zones) {
@@ -98,7 +101,9 @@ public class ZoneGeoPackageWriter {
                 Object normalized = normalizeValueForDescriptor(val, descriptor, attr);
                 featureBuilder.set(attr, normalized);
             }
-            SimpleFeature feature = featureBuilder.buildFeature(zone.getId().toString());
+            // Use null as feature ID so GeoTools generates auto-increment integer FIDs
+            // (GeoPackage requires integer primary keys for fid). Zone ID is stored as a regular attribute.
+            SimpleFeature feature = featureBuilder.buildFeature(null);
             features.add(feature);
         }
         return features;
@@ -239,7 +244,7 @@ public class ZoneGeoPackageWriter {
             Map<String, Object> map = zone.getAttributes().getAsMap();
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 String attr = entry.getKey();
-                if (SHAPE_FILE_GEOM_NAME.equals(attr) || GEOMETRY.equals(attr)) continue;
+                if (EXCLUDED_ATTRIBUTES.contains(attr)) continue;
                 valuesPerAttr.computeIfAbsent(attr, _ -> new ArrayList<>()).add(entry.getValue());
             }
         }
