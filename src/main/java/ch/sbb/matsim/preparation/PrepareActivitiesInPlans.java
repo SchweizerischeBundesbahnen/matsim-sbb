@@ -65,44 +65,11 @@ public class PrepareActivitiesInPlans {
 						double startTime = act.getStartTime().orElse(0.0);
 						double duration = endTime - startTime;
 
-						String baseType = act.getType();
-
-						switch (baseType) {
-							case SBBActivities.home -> {
-								act.getAttributes().putAttribute(
-										ScoringConfigGroup.ActivityParams.TYPICAL_DURATION,
-										duration);
-								// home bekommt ggf. ein latestStartTime-Suffix im Typ
-								if (startTime >= (16.0 * 3600) && startTime < (19.0 * 3600)) {
-									double hours = startTime / 3600.0;
-									double yy = ((int) (hours + 0.25));
-									act.setType(SBBActivities.home + "_" + yy);
-								}
-								// else: Typ bleibt "home"
-							}
-							case SBBActivities.work -> {
-								act.getAttributes().putAttribute(
-										ScoringConfigGroup.ActivityParams.TYPICAL_DURATION,
-                                        duration);
-								if (startTime >= (6.25 * 3600) && startTime <= (8.25 * 3600)) {
-									act.setType(SBBActivities.work + "_mp");
-								} else if (startTime >= (12.5 * 3600) && startTime <= (13.75 * 3600)) {
-									act.setType(SBBActivities.work + "_np");
-								}
-								// else: Typ bleibt "work"
-							}
-							case SBBActivities.education -> {
-								act.getAttributes().putAttribute(
-										ScoringConfigGroup.ActivityParams.TYPICAL_DURATION,
-                                        duration);
-								if (startTime >= (6.75 * 3600) && startTime <= (8.5 * 3600)) {
-									act.setType(SBBActivities.education + "_mp");
-								} else if (startTime >= (12.5 * 3600) && startTime <= (13.5 * 3600)) {
-									act.setType(SBBActivities.education + "_np");
-								}
-								// else: Typ bleibt "education"
-							}
-							case SBBActivities.business,
+						switch (act.getType()) {
+							case SBBActivities.home,
+								 SBBActivities.work,
+								 SBBActivities.education,
+								 SBBActivities.business,
 								 SBBActivities.leisure,
 								 SBBActivities.other,
 								 SBBActivities.shopping,
@@ -110,7 +77,6 @@ public class PrepareActivitiesInPlans {
 									act.getAttributes().putAttribute(
 											ScoringConfigGroup.ActivityParams.TYPICAL_DURATION,
 											duration);
-
 						}
 					}
 					TripStructureUtils.getActivities(plan, StageActivityHandling.ExcludeStageActivities)
@@ -130,26 +96,12 @@ public class PrepareActivitiesInPlans {
 
 	private static void processOvernightAct(Activity firstAct, Activity lastAct) {
 		if (firstAct.getType().equals(SBBActivities.home) && lastAct.getType().equals(SBBActivities.home)) {
-			double lastActStartTime = lastAct.getStartTime().seconds();
 			double totDuration = (firstAct.getEndTime().seconds() + 24 * 3600.0) - lastAct.getStartTime().seconds();
 			if (totDuration <= 0) {
 				totDuration = 1;
 			}
-
-
-			if (lastActStartTime >= (16.0 * 3600) && lastActStartTime < (19.0 * 3600)) {
-				double hours = lastActStartTime / 3600.0;
-				double yy = ((int) hours) / 1.0 + 1.0;
-				String type = SBBActivities.home + "_" + yy;
-				firstAct.setType(type);
-				lastAct.setType(type);
-			}
-			// else: beide behalten Typ "home"
-
-			firstAct.getAttributes().putAttribute(
-					ScoringConfigGroup.ActivityParams.TYPICAL_DURATION, totDuration);
-			lastAct.getAttributes().putAttribute(
-					ScoringConfigGroup.ActivityParams.TYPICAL_DURATION, totDuration);
+			firstAct.getAttributes().putAttribute(ScoringConfigGroup.ActivityParams.TYPICAL_DURATION, totDuration);
+			lastAct.getAttributes().putAttribute(ScoringConfigGroup.ActivityParams.TYPICAL_DURATION, totDuration);
 		}
 	}
 
