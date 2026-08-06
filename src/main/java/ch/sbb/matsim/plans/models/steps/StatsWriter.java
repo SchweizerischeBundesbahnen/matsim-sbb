@@ -381,7 +381,7 @@ public class StatsWriter implements ModelStep {
                                       DoubleAdder[][] sums, LongAdder[][] counts) {
         List<String> variable_names = new ArrayList<>(nVars + 1);
         for (int v = 0; v < nVars; v++) variable_names.add(s.variables.get(v).name);
-        String outputFile = config.data().outputBaseDir() + "/" + config.models().run_id() + "." + s.name.replace(" ", "_") + ".csv";
+        String outputFile = config.data().outputBaseDir() + "/" + config.models().run_id() + "." + s.table_ref + "_" + s.name.replace(" ", "_") + ".csv";
         variable_names.addFirst("Name");
         try (CSVWriter csvWriter = new CSVWriter("", variable_names.toArray(String[]::new), outputFile)) {
             for (int groupIndex = 0; groupIndex < nGroups; groupIndex++) {
