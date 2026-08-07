@@ -29,6 +29,7 @@ import java.util.Map;
 
 public class SamplesizeFactors {
 
+    private final static Map<Double, Double> qsimFlowCapacityFactor;
     private final static Map<Double, Double> qsimStorageCapacityFactor;
     private final static Map<Double, Double> hermesStorageCapacityFactor;
     private final static Map<Double, Double> hermesFlowCapacityFactor;
@@ -40,6 +41,14 @@ public class SamplesizeFactors {
         qsimStorageCapacityFactor.put(0.05, 0.05);
         qsimStorageCapacityFactor.put(0.033, 0.033);
         qsimStorageCapacityFactor.put(0.01, 0.01);
+
+        qsimFlowCapacityFactor = new HashMap<>();
+        qsimFlowCapacityFactor.put(0.25, 0.25);
+        qsimFlowCapacityFactor.put(0.10, 0.10);
+        qsimFlowCapacityFactor.put(0.05, 0.05);
+        qsimFlowCapacityFactor.put(0.033, 0.036);
+        qsimFlowCapacityFactor.put(0.01, 0.02);
+        qsimFlowCapacityFactor.put(0.005, 0.02);
 
         hermesStorageCapacityFactor = new HashMap<>();
         hermesStorageCapacityFactor.put(0.10, 0.20);
@@ -62,6 +71,11 @@ public class SamplesizeFactors {
         return f != null ? f : sampleSize;
     }
 
+    public static double getQsimFlowCapacityFactor(double sampleSize) {
+        Double f = qsimFlowCapacityFactor.get(sampleSize);
+        return f != null ? f : sampleSize;
+    }
+
     public static double getHermesStorageCapacityFactor(double sampleSize) {
         Double f = hermesStorageCapacityFactor.get(sampleSize);
         return f != null ? f : sampleSize;
@@ -76,7 +90,8 @@ public class SamplesizeFactors {
         var log = LogManager.getLogger(SamplesizeFactors.class);
         double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         log.info("Setting flow and storage capacity factors according to sample size: " + sampleSize);
-        config.qsim().setFlowCapFactor(sampleSize);
+        final double qsimFlowCapacityFactor = getQsimFlowCapacityFactor(sampleSize);
+        config.qsim().setStorageCapFactor(qsimFlowCapacityFactor);
         final double qsimStorageCapacityFactor = getQsimStorageCapacityFactor(sampleSize);
         config.qsim().setStorageCapFactor(qsimStorageCapacityFactor);
         final double hermesFlowCapacityFactor = getHermesFlowCapacityFactor(sampleSize);
