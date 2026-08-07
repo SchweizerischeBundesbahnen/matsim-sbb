@@ -92,7 +92,7 @@ public class SamplesizeFactors {
         double sampleSize = ConfigUtils.addOrGetModule(config, PostProcessingConfigGroup.class).getSimulationSampleSize();
         log.info("Setting flow and storage capacity factors according to sample size: " + sampleSize);
         final double qsimFlowCapacityFactor = getQsimFlowCapacityFactor(sampleSize);
-        config.qsim().setStorageCapFactor(qsimFlowCapacityFactor);
+        config.qsim().setFlowCapFactor(qsimFlowCapacityFactor);
         final double qsimStorageCapacityFactor = getQsimStorageCapacityFactor(sampleSize);
         config.qsim().setStorageCapFactor(qsimStorageCapacityFactor);
         final double hermesFlowCapacityFactor = getHermesFlowCapacityFactor(sampleSize);
