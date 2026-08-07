@@ -237,12 +237,18 @@ public class XLSXScoringParser {
 								raptorConfigGroup.setTransferPenaltyMaxCost(-1.0 * paramValue);
 								break;
 							case MODE_TO_MODE_TRANSFER_PENALTY_RAIL_X:
-								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.RAIL, SBBModes.PTSubModes.BUS, -paramValue));
-								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.BUS, SBBModes.PTSubModes.RAIL, -paramValue));
-								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.RAIL, SBBModes.PTSubModes.TRAM, -paramValue));
-								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.TRAM, SBBModes.PTSubModes.RAIL, -paramValue));
-								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.RAIL, SBBModes.PTSubModes.OTHER, -paramValue));
-								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(SBBModes.PTSubModes.OTHER, SBBModes.PTSubModes.RAIL, -paramValue));
+                                Map<String, String> modeMapping = Map.of(
+                                        SBBModes.PTSubModes.RAIL, SBBModes.PTSubModes.RAIL + "_route",
+                                        SBBModes.PTSubModes.BUS, SBBModes.PTSubModes.BUS + "_route",
+                                        SBBModes.PTSubModes.OTHER, SBBModes.PTSubModes.OTHER + "_route",
+                                        SBBModes.PTSubModes.TRAM, SBBModes.PTSubModes.TRAM + "_route"
+                                );
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(modeMapping.get(SBBModes.PTSubModes.RAIL), modeMapping.get(SBBModes.PTSubModes.BUS), -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(modeMapping.get(SBBModes.PTSubModes.BUS), modeMapping.get(SBBModes.PTSubModes.RAIL), -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(modeMapping.get(SBBModes.PTSubModes.RAIL), modeMapping.get(SBBModes.PTSubModes.TRAM), -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(modeMapping.get(SBBModes.PTSubModes.TRAM), modeMapping.get(SBBModes.PTSubModes.RAIL), -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(modeMapping.get(SBBModes.PTSubModes.RAIL), modeMapping.get(SBBModes.PTSubModes.OTHER), -paramValue));
+								raptorConfigGroup.addModeToModeTransferPenalty(new SwissRailRaptorConfigGroup.ModeToModeTransferPenalty(modeMapping.get(SBBModes.PTSubModes.OTHER), modeMapping.get(SBBModes.PTSubModes.RAIL), -paramValue));
 								break;
 							default:
 								log.error("Unsupported parameter: " + rowLabel);
