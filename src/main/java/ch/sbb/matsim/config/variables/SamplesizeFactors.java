@@ -100,7 +100,7 @@ public class SamplesizeFactors {
         final double hermesStorageCapacityFactor = getHermesStorageCapacityFactor(sampleSize);
         config.hermes().setStorageCapacityFactor(hermesStorageCapacityFactor);
         config.counts().setCountsScaleFactor(1.0/sampleSize);
-        log.info("QSIM flowCapacity: " + sampleSize);
+        log.info("QSIM flowCapacity: " + qsimFlowCapacityFactor);
         log.info("QSIM storageCapacity: " + qsimStorageCapacityFactor);
         log.info("HERMES flowCapacity: " + hermesFlowCapacityFactor);
         log.info("HERMES storageCapacity: " + hermesStorageCapacityFactor);
