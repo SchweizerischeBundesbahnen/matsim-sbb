@@ -2,8 +2,8 @@ package ch.sbb.matsim.plans.constants;
 
 import ch.sbb.matsim.config.variables.Variables;
 
-//import java.util.Arrays;
-//import java.util.List;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public final class SynpopConstants {
@@ -13,18 +13,18 @@ public final class SynpopConstants {
     public static final String PERSON_ID = "person_id";
     public static final String HOUSEHOLD_ID = "household_id";
     public static final String HOUSEHOLD = "household";
-//    public static final String POSITION_IN_BUS = "position_in_bus";
+    public static final String POSITION_IN_BUS = "position_in_bus";
     public static final String HIGHEST_EDUCATION = "highest_education";
-//    public static final String POSITION_IN_EDU = "position_in_edu";
-//    public static final String NATION = "nation";
+    public static final String POSITION_IN_EDU = "position_in_edu";
+    public static final String NATION = "nation";
     public static final String LANGUAGE = "language";
     public static final String LEVEL_OF_EMPLOYMENT = "level_of_employment";
     public static final String AGE = "age";
     public static final String IS_SWISS = "is_swiss";
     public static final String HAS_DRIVING_LICENSE = Variables.HAS_DRIVING_LICENSE;
     public static final String ANALYSIS_SUBPOPULATION = "analysis_subpopulation";
-//    public static final String IS_EMPLOYED = "is_employed";
-//    public static final String LOE_GROUP = "loe_group";
+    public static final String IS_EMPLOYED = "is_employed";
+    public static final String LOE_GROUP = "loe_group";
     public static final String CURRENT_EDU = "current_edu";
     public static final String CURRENT_JOB_RANK = "current_job_rank";
     public static final String IS_APPRENTICE = "is_apprentice";
@@ -72,16 +72,16 @@ public final class SynpopConstants {
 
 
 
-//    public static final List<String> RAW_SYNPOP_ATTRIBUTES = Arrays.asList(
-//            PERSON_ID, HOUSEHOLD_ID, POSITION_IN_BUS, HIGHEST_EDUCATION, POSITION_IN_EDU,
-//            NATION, LANGUAGE, LEVEL_OF_EMPLOYMENT, AGE, IS_SWISS,
-//            ANALYSIS_SUBPOPULATION, IS_EMPLOYED, CURRENT_EDU,
-//            CURRENT_JOB_RANK, IS_APPRENTICE);
-//    public static final List<String> RAW_BUSINESSES_ATTRIBUTES = Arrays.asList(
-//            ZONE_ID, JOBS_ENDO, FTE_ENDO, JOBS_EXO, FTE_EXO,
-//            SCHOOL_TYPE, XCOORD, YCOORD, NOGA_CODE, SECTOR);
-//    public static final List<String> RAW_HOUSEHOLD_ATTRIBUTES = Arrays.asList(
-//            HOUSEHOLD_ID, ZONE_ID, XCOORD, YCOORD);
+    public static final List<String> RAW_SYNPOP_ATTRIBUTES = Arrays.asList(
+            PERSON_ID, HOUSEHOLD_ID, POSITION_IN_BUS, HIGHEST_EDUCATION, POSITION_IN_EDU,
+            NATION, LANGUAGE, LEVEL_OF_EMPLOYMENT, AGE, IS_SWISS,
+            ANALYSIS_SUBPOPULATION, IS_EMPLOYED, CURRENT_EDU,
+            CURRENT_JOB_RANK, IS_APPRENTICE);
+    public static final List<String> RAW_BUSINESSES_ATTRIBUTES = Arrays.asList(
+            ZONE_ID, JOBS_ENDO, FTE_ENDO, JOBS_EXO, FTE_EXO,
+            SCHOOL_TYPE, XCOORD, YCOORD, NOGA_CODE, SECTOR);
+    public static final List<String> RAW_HOUSEHOLD_ATTRIBUTES = Arrays.asList(
+            HOUSEHOLD_ID, ZONE_ID, XCOORD, YCOORD);
 
 
     public static final String NB_OF_KIDS = "nb_of_kids";
@@ -105,24 +105,24 @@ public final class SynpopConstants {
             5, "65_to_74",
             6, "75_to_XX"
     );
-//    public static final Map<String, Integer> AGE_CATEGORY_REVERSE = Map.of(
-//            "0_to_17", 1,
-//            "18_to_24", 2,
-//            "25_to_44", 3,
-//            "45_to_64", 4,
-//            "65_to_74", 5,
-//            "75_to_XX", 6
-//    );
+    public static final Map<String, Integer> AGE_CATEGORY_REVERSE = Map.of(
+            "0_to_17", 1,
+            "18_to_24", 2,
+            "25_to_44", 3,
+            "45_to_64", 4,
+            "65_to_74", 5,
+            "75_to_XX", 6
+    );
     // ----------------------------
     // Language
     // ----------------------------
-//    public static final Map<Integer, String> LANGUAGE_CATEGORIES = Map.of(
-//            1, "german",
-//            2, "french",
-//            3, "italian",
-//            4, "romansh",
-//            5, "other"
-//    );
+    public static final Map<Integer, String> LANGUAGE_CATEGORIES = Map.of(
+            1, "german",
+            2, "french",
+            3, "italian",
+            4, "romansh",
+            5, "other"
+    );
     public static final Map<String, Integer> LANGUAGE_REVERSE = Map.of(
             "german", 1,
             "french", 2,
@@ -148,12 +148,12 @@ public final class SynpopConstants {
     // ----------------------------
     // Highest education
     // ----------------------------
-//    public static final Map<Integer, String> HIGHEST_EDUCATION_CATEGORIES = Map.of(
-//            1, "primary",
-//            2, "secondary",
-//            3, "tertiary_college",
-//            4, "tertiary_university"
-//    );
+    public static final Map<Integer, String> HIGHEST_EDUCATION_CATEGORIES = Map.of(
+            1, "primary",
+            2, "secondary",
+            3, "tertiary_college",
+            4, "tertiary_university"
+    );
     public static final Map<String, Integer> HIGHEST_EDUCATION_REVERSE = Map.of(
             "primary", 1,
             "secondary", 2,
@@ -197,12 +197,12 @@ public final class SynpopConstants {
     // ----------------------------
     // Current job rank
     // ----------------------------
-//    public static final Map<Integer, String> CURRENT_JOB_RANK_CATEGORIES = Map.of(
-//            0, "null",
-//            1, "apprentice",
-//            2, "employee",
-//            3, "management"
-//    );
+    public static final Map<Integer, String> CURRENT_JOB_RANK_CATEGORIES = Map.of(
+            0, "null",
+            1, "apprentice",
+            2, "employee",
+            3, "management"
+    );
     public static final Map<String, Integer> CURRENT_JOB_RANK_REVERSE = Map.of(
             "null", 0,
             "apprentice", 1,

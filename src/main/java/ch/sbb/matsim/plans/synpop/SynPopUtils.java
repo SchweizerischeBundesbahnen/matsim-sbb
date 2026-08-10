@@ -38,10 +38,6 @@ public final class SynPopUtils {
     private SynPopUtils() {
     }
 
-//    public static void setAttribute(Person person, String attributeName, Object attribute) {
-//        person.getAttributes().putAttribute(attributeName, attribute);
-//    }
-
     public static void linkHouseholdsAndPopulation(Scenario scenario) {
         for (Person person : scenario.getPopulation().getPersons().values()) {
             var householdId = Id.create((String) person.getAttributes().getAttribute(SynpopConstants.HOUSEHOLD_ID), Household.class);
@@ -247,55 +243,55 @@ public final class SynPopUtils {
         log.info("Done. Aggregating mobility tools per zone.");
     }
 
-//    public static void aggregatePrimaryLocationChoicePerZone(Scenario scenario) {
-//        log.info("Aggregating primary location choices per zone...");
-//        Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
-//        Map<Id<Zone>, PrimaryLocationCount> zoneMap = zones.getZones().stream().collect(HashMap::new, (map, zone) -> map.put(zone.getId(), new PrimaryLocationCount()), HashMap::putAll);
-//        for (Person person : scenario.getPopulation().getPersons().values()) {
-//            String workZoneNo = (String) person.getAttributes().getAttribute("work_zone_no");
-//            String schoolZoneNo = (String) person.getAttributes().getAttribute("school_zone_no");
-//            if (workZoneNo != null) {
-//                zoneMap.get(Id.create(workZoneNo, Zone.class)).workCount.incrementAndGet();
-//            }
-//            if (schoolZoneNo != null) {
-//                zoneMap.get(Id.create(schoolZoneNo, Zone.class)).schoolCount.incrementAndGet();
-//            }
-//
-//        }
-//        for (Entry<Id<Zone>, PrimaryLocationCount> entry : zoneMap.entrySet()) {
-//            Zone zone = zones.getZone(entry.getKey());
-//            PrimaryLocationCount count = entry.getValue();
-//            zone.getAttributes().putAttribute("pop_work", count.workCount.get());
-//            zone.getAttributes().putAttribute("pop_school", count.schoolCount.get());
-//        }
-//        log.info("Done.");
-//    }
+    public static void aggregatePrimaryLocationChoicePerZone(Scenario scenario) {
+        log.info("Aggregating primary location choices per zone...");
+        Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
+        Map<Id<Zone>, PrimaryLocationCount> zoneMap = zones.getZones().stream().collect(HashMap::new, (map, zone) -> map.put(zone.getId(), new PrimaryLocationCount()), HashMap::putAll);
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+            String workZoneNo = (String) person.getAttributes().getAttribute("work_zone_no");
+            String schoolZoneNo = (String) person.getAttributes().getAttribute("school_zone_no");
+            if (workZoneNo != null) {
+                zoneMap.get(Id.create(workZoneNo, Zone.class)).workCount.incrementAndGet();
+            }
+            if (schoolZoneNo != null) {
+                zoneMap.get(Id.create(schoolZoneNo, Zone.class)).schoolCount.incrementAndGet();
+            }
 
-//    public static void linkZonesToFacilities(Scenario scenario, boolean allowNullZones) {
-//        log.info("Matching facilities to zones...");
-//        final boolean[] warnedAboutNullZones = {false};
-//        Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
-//        scenario.getActivityFacilities().getFacilities().values().parallelStream().forEach(activityFacility -> {
-//            Zone zone = zones.findZone(activityFacility.getCoord());
-//            if (zone != null) {
-//                activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE, zone);
-//                activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, zone.getId().toString());
-//            } else {
-//                if (allowNullZones) {
-//                    activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE, null);
-//                    activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, null);
-//                    if (!warnedAboutNullZones[0]) {
-//                        log.warn("Some facilities have no zone assigned. This should only be allowed in test cases.");
-//                        warnedAboutNullZones[0] = true;
-//                    }
-//                } else {
-//                    throw new RuntimeException("Some facilities have no zone and this is not allowed.");
-//                }
-//            }
-//
-//        });
-//        log.info("Done.");
-//    }
+        }
+        for (Entry<Id<Zone>, PrimaryLocationCount> entry : zoneMap.entrySet()) {
+            Zone zone = zones.getZone(entry.getKey());
+            PrimaryLocationCount count = entry.getValue();
+            zone.getAttributes().putAttribute("pop_work", count.workCount.get());
+            zone.getAttributes().putAttribute("pop_school", count.schoolCount.get());
+        }
+        log.info("Done.");
+    }
+
+    public static void linkZonesToFacilities(Scenario scenario, boolean allowNullZones) {
+        log.info("Matching facilities to zones...");
+        final boolean[] warnedAboutNullZones = {false};
+        Zones zones = (Zones) scenario.getScenarioElement(Variables.ZONES);
+        scenario.getActivityFacilities().getFacilities().values().parallelStream().forEach(activityFacility -> {
+            Zone zone = zones.findZone(activityFacility.getCoord());
+            if (zone != null) {
+                activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE, zone);
+                activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, zone.getId().toString());
+            } else {
+                if (allowNullZones) {
+                    activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE, null);
+                    activityFacility.getAttributes().putAttribute(SynpopConstants.ZONE_ID, null);
+                    if (!warnedAboutNullZones[0]) {
+                        log.warn("Some facilities have no zone assigned. This should only be allowed in test cases.");
+                        warnedAboutNullZones[0] = true;
+                    }
+                } else {
+                    throw new RuntimeException("Some facilities have no zone and this is not allowed.");
+                }
+            }
+
+        });
+        log.info("Done.");
+    }
 
 
     public static void setDefaultAttributes(Scenario scenario) {
@@ -373,8 +369,8 @@ public final class SynPopUtils {
         }
     }
 
-//    static class PrimaryLocationCount {
-//        AtomicInteger workCount = new AtomicInteger();
-//        AtomicInteger schoolCount = new AtomicInteger();
-//    }
+    static class PrimaryLocationCount {
+        AtomicInteger workCount = new AtomicInteger();
+        AtomicInteger schoolCount = new AtomicInteger();
+    }
 }

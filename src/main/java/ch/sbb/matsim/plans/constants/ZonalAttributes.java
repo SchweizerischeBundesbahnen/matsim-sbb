@@ -25,7 +25,7 @@ public final class ZonalAttributes {
     public static final String AT_AVTAXI = "at_avtaxi";
     public static final String AT_AVFEED = "at_avfeed";
     public static final String AVFEED_DT = "avfeed_dt";
-//    public static final String CAR_TTIMES = "car_ttimes";
+    public static final String CAR_TTIMES = "car_ttimes";
     public static final String DENSITY = "density";
     public static final String FTE_ENDO = "fte_endo";
     public static final String FTE_TOTAL = "fte_total";
@@ -62,9 +62,9 @@ public final class ZonalAttributes {
     public static final String POP_TOTAL = "pop_total";
     public static final String POP_VA = "pop_va";
     public static final String POP_VA_HT = "pop_va_ht";
-//    public static final String PT_FREQNCY = "pt_freqncy";
-//    public static final String PT_TRSFERS = "pt_trsfers";
-//    public static final String PT_TTIMES = "pt_ttimes";
+    public static final String PT_FREQNCY = "pt_freqncy";
+    public static final String PT_TRSFERS = "pt_trsfers";
+    public static final String PT_TTIMES = "pt_ttimes";
     public static final String SCHL_APPR = "schl_appr";
     public static final String SCHL_ENR_1 = "schl_enr_1";
     public static final String SCHL_ENR_2 = "schl_enr_2";
