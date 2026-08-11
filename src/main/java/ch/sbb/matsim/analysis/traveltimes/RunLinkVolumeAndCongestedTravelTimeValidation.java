@@ -40,7 +40,7 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 	public static final String SIMVALUE = "SIMVALUE";
 	public static final String HOUR = "HOUR";
 
-	public static void main(String[] args) throws IOException {
+	static void main(String[] args) throws IOException {
 		String simFolder = args[0];
 		String runId = args[1];
 		String countsFile = args[2];
@@ -48,22 +48,24 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 		double scaleFactor = Double.parseDouble(args[4]);
 		String travelTimeRelations = args[5];
 		double startTime = Double.parseDouble(args[6]);
-		new RunLinkVolumeAndCongestedTravelTimeValidation().run(simFolder, runId, countsFile, outputFolder, scaleFactor, startTime, travelTimeRelations);
+		new RunLinkVolumeAndCongestedTravelTimeValidation().run(simFolder, runId, countsFile, outputFolder, scaleFactor);
 
 	}
 
-	public void run(String simFolder, String runId, String countsFile, String outputFolder, double scalefactor, double startTime, String travelTimeRelationsFile) throws IOException {
+	public void run(String simFolder, String runId, String countsFile, String outputFolder, double scalefactor) throws IOException {
 		Files.createDirectories(Paths.get(outputFolder));
 		Network network = NetworkUtils.createNetwork();
-		new MatsimNetworkReader(network).readFile(simFolder + "/" + runId + ".output_network.xml.gz");
-		Config config = ConfigUtils.loadConfig(simFolder + "/" + runId + ".output_config.xml");
+		String networkFile = resolveFileWithOptionalCompression(simFolder + "/" + runId + ".output_network.xml");
+		new MatsimNetworkReader(network).readFile(networkFile);
+		String configFile = resolveFileWithOptionalCompression(simFolder + "/" + runId + ".output_config.xml");
+		Config config = ConfigUtils.loadConfig(configFile);
 		TravelTimeCalculator.Builder builder = new TravelTimeCalculator.Builder(network);
 		builder.configure(config.travelTimeCalculator());
 		TravelTimeCalculator ttc = builder.build();
 
 		Counts<Link> counts = new Counts<>();
 		new MatsimCountsReader(counts).readFile(countsFile);
-		final Map<Id<Link>, int[]> countsLinks = counts.getCounts().keySet().stream().collect(Collectors.toMap(p -> p, p -> new int[24]));
+		final Map<Id<Link>, int[]> countsLinks = counts.getCounts().keySet().stream().collect(Collectors.toMap(p -> p, _ -> new int[24]));
 		EventsManager eventsManager = EventsUtils.createEventsManager(ConfigUtils.createConfig());
 		eventsManager.addHandler(ttc);
 		eventsManager.addHandler((LinkEnterEventHandler) event -> {
@@ -76,12 +78,22 @@ public class RunLinkVolumeAndCongestedTravelTimeValidation {
 				counts1[hour]++;
 			}
 		});
-		new MatsimEventsReader(eventsManager).readFile(simFolder + "/" + runId + ".output_events.xml.gz");
+		String eventsFile = resolveFileWithOptionalCompression(simFolder + "/" + runId + ".output_events.xml");
+		new MatsimEventsReader(eventsManager).readFile(eventsFile);
 		writeCountsComparisons(outputFolder, scalefactor, network, counts, countsLinks);
 		TransportModeNetworkFilter networkFilter = new TransportModeNetworkFilter(network);
 		Network carNet = NetworkUtils.createNetwork();
 		networkFilter.filter(carNet, Collections.singleton(SBBModes.CAR));
 
+	}
+
+	private static String resolveFileWithOptionalCompression(String baseFile) {
+		for (String candidate : List.of(baseFile + ".zst", baseFile + ".gz", baseFile)) {
+			if (Files.exists(Paths.get(candidate))) {
+				return candidate;
+			}
+		}
+		throw new IllegalArgumentException("Could not find input file. Tried: " + baseFile + ".zst, " + baseFile + ".gz, " + baseFile);
 	}
 
 	public void writeCountsComparisons(String outputFolder, double scalefactor, Network network, Counts<Link> counts, Map<Id<Link>, int[]> countsLinks) {
