@@ -70,6 +70,7 @@ public final class ZonesLoader {
 			Zone zone = new AttributableZone(noZoneId ? null : Id.create(zoneId, Zone.class), sf);
 			zones.add(zone);
 		}
+		LogManager.getLogger(ZonesLoader.class).info("Loaded zones: " + zones.getZones().size() + " from file " + filename);
 		return zones;
 	}
 }
