@@ -41,7 +41,7 @@ public class SamplesizeFactors {
         qsimStorageCapacityFactor.put(0.05, 0.05);
         qsimStorageCapacityFactor.put(0.033, 0.036);
         qsimStorageCapacityFactor.put(0.01, 0.02);
-        qsimStorageCapacityFactor.put(0.005, 0.02);
+        qsimStorageCapacityFactor.put(0.005, 0.022);
 
         qsimFlowCapacityFactor = new HashMap<>();
         qsimFlowCapacityFactor.put(0.25, 0.25);
