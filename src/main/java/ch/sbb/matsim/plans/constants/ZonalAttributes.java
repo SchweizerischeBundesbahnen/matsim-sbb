@@ -3,7 +3,10 @@ package ch.sbb.matsim.plans.constants;
 
 import java.util.List;
 
-public class ZonalAttributes {
+public final class ZonalAttributes {
+    private ZonalAttributes() {
+    }
+
     public static final String ACCSIB_CAR = "accsib_car";
     public static final String ACCSIB_MUL = "accsib_mul";
     public static final String ACCSIB_PT = "accsib_pt";

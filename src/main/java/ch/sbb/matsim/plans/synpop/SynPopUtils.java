@@ -1,6 +1,7 @@
 package ch.sbb.matsim.plans.synpop;
 
 import ch.sbb.matsim.config.variables.Variables;
+import ch.sbb.matsim.config.variables.Variables.PTSubscriptionType;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.utils.AttributeUtils;
@@ -8,6 +9,7 @@ import ch.sbb.matsim.zones.Zone;
 import ch.sbb.matsim.zones.Zones;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
@@ -18,15 +20,22 @@ import org.matsim.facilities.ActivityFacilitiesFactory;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.households.Household;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SynPopUtils {
+public final class SynPopUtils {
 
     private static final Logger log = LogManager.getLogger(SynPopUtils.class);
 
-    public static void setAttribute(Person person, String attributeName, Object attribute) {
-        person.getAttributes().putAttribute(attributeName, attribute);
+    private SynPopUtils() {
     }
 
     public static void linkHouseholdsAndPopulation(Scenario scenario) {
@@ -207,7 +216,7 @@ public class SynPopUtils {
             Boolean hasDrivingLicense = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_DRIVING_LICENSE);
             Boolean hasEbike = (Boolean) person.getAttributes().getAttribute(SynpopConstants.HAS_EBIKE45);
             Boolean carAvailable = (Boolean) person.getAttributes().getAttribute(SynpopConstants.CAR_AVAILABLE);
-            Variables.PTSubscriptionType ptSubscription = Variables.PTSubscriptionType.valueOf((String) person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION));
+            PTSubscriptionType ptSubscription = PTSubscriptionType.valueOf((String) person.getAttributes().getAttribute(Variables.PT_SUBSCRIPTION));
             mobilityToolCount.addMobilityTool(hasDrivingLicense != null && hasDrivingLicense, hasEbike != null && hasEbike, carAvailable != null && carAvailable, ptSubscription);
         }
         for (Household household : scenario.getHouseholds().getHouseholds().values()) {
@@ -217,7 +226,7 @@ public class SynPopUtils {
             mobilityToolCount.carCount().addAndGet(numberOfCars);
 
         }
-        for (Map.Entry<Id<Zone>, MobilityToolCount> entry : zoneMap.entrySet()) {
+        for (Entry<Id<Zone>, MobilityToolCount> entry : zoneMap.entrySet()) {
             Zone zone = zones.getZone(entry.getKey());
             MobilityToolCount mobilityToolCount = entry.getValue();
             zone.getAttributes().putAttribute(ZonalAttributes.POP_DL, mobilityToolCount.drivingLicenseCount().get());
@@ -249,7 +258,7 @@ public class SynPopUtils {
             }
 
         }
-        for (Map.Entry<Id<Zone>, PrimaryLocationCount> entry : zoneMap.entrySet()) {
+        for (Entry<Id<Zone>, PrimaryLocationCount> entry : zoneMap.entrySet()) {
             Zone zone = zones.getZone(entry.getKey());
             PrimaryLocationCount count = entry.getValue();
             zone.getAttributes().putAttribute("pop_work", count.workCount.get());
@@ -311,7 +320,16 @@ public class SynPopUtils {
 
         for (Household household : scenario.getHouseholds().getHouseholds().values()) {
             String facilityId = "hh_" + household.getId();
-            ActivityFacility activityFacility = factory.createActivityFacility(Id.create(facilityId, ActivityFacility.class), (Coord) household.getAttributes().getAttribute(SynpopConstants.COORD));
+            Id<ActivityFacility> activityFacilityId = Id.create(facilityId, ActivityFacility.class);
+            boolean warningShown = false;
+            if (scenario.getActivityFacilities().getFacilities().containsKey(activityFacilityId)) {
+                if (!warningShown)
+                {
+                    log.warn("Some facilities for households already exist. This should only be allowed in test cases.");
+                }
+                continue;
+            }
+            ActivityFacility activityFacility = factory.createActivityFacility(activityFacilityId, (Coord) household.getAttributes().getAttribute(SynpopConstants.COORD));
             scenario.getActivityFacilities().addActivityFacility(activityFacility);
             household.getAttributes().putAttribute(SynpopConstants.FACILITY, activityFacility);
         }
@@ -324,7 +342,7 @@ public class SynPopUtils {
             this(new AtomicInteger(), new AtomicInteger(), new AtomicInteger(), new AtomicInteger(), new AtomicInteger(), new AtomicInteger(), new AtomicInteger(), new AtomicInteger());
         }
 
-        void addMobilityTool(boolean hasDrivingLicense, boolean hasEbike, boolean hasCarAvailable, Variables.PTSubscriptionType ptSubscription) {
+        void addMobilityTool(boolean hasDrivingLicense, boolean hasEbike, boolean hasCarAvailable, PTSubscriptionType ptSubscription) {
             if (hasDrivingLicense) {
                 drivingLicenseCount.incrementAndGet();
             }
@@ -344,6 +362,7 @@ public class SynPopUtils {
                         vaCount.incrementAndGet();
                         htCount.incrementAndGet();
                     }
+                    default -> throw new IllegalStateException("Unexpected value: " + ptSubscription);
                 }
             }
 
