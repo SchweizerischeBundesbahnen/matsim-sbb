@@ -6,7 +6,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class SynpopConstants {
+public final class SynpopConstants {
+    private SynpopConstants() {
+    }
+
     public static final String PERSON_ID = "person_id";
     public static final String HOUSEHOLD_ID = "household_id";
     public static final String HOUSEHOLD = "household";
