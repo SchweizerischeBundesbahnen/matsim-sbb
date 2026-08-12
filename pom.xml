@@ -134,10 +134,10 @@
             <artifactId>sbb-extensions</artifactId>
             <version>${matsim.version}</version>
         </dependency>
-        <dependency> <!-- MATSim uses Guice .0 which uses guava 19.0, but av/drvp requires a newer guava version it seems -->
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.5.0-jre</version>
+            <version>33.6.0-jre</version>
         </dependency>
         <dependency>
             <groupId>org.apache.arrow</groupId>
