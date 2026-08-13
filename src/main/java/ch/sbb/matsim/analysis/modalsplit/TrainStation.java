@@ -13,6 +13,8 @@ public class TrainStation {
     private final String stopCode;
     private int zielAussteiger = 0;
     private int quellEinsteiger = 0;
+    private int gesamtEinsteiger = 0;
+    private int gesamtAussteiger = 0;
     private int umsteigerTyp5a = 0;
     private int umsteigerSimbaSimba = 0;
     private int umsteigerSimbaAndere = 0;
@@ -40,6 +42,14 @@ public class TrainStation {
     }
     public void addQuellEinsteiger() {
         quellEinsteiger++;
+    }
+
+    public void addGesamtEinsteiger() {
+        gesamtEinsteiger++;
+    }
+
+    public void addGesamtAussteiger() {
+        gesamtAussteiger++;
     }
 
     public void addUmsteigerTyp5a() {
@@ -86,6 +96,18 @@ public class TrainStation {
 
     public int getQuellEinsteiger() {
         return quellEinsteiger;
+    }
+
+    public int getGesamtEinsteiger() {
+        return gesamtEinsteiger;
+    }
+
+    public int getGesamtAussteiger() {
+        return gesamtAussteiger;
+    }
+
+    public int getSummeEinAussteiger() {
+        return gesamtEinsteiger + gesamtAussteiger;
     }
 
     public int getUmsteigerTyp5a() {

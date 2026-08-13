@@ -16,6 +16,7 @@ import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static ch.sbb.matsim.analysis.modalsplit.MSVariables.*;
 import static ch.sbb.matsim.config.variables.SBBModes.PT;
@@ -35,6 +36,7 @@ public class TrainStationCollector implements TripDataCollector {
 
     /** One entry per STOP_NO (station cluster), initialised from the schedule. */
     private final Map<String, TrainStation> trainStationMap;
+    private final Set<String> railStationIds;
 
     public TrainStationCollector(TransitSchedule transitSchedule,
                                   Zones zones,
@@ -42,6 +44,7 @@ public class TrainStationCollector implements TripDataCollector {
         this.transitSchedule = transitSchedule;
         this.railTripsAnalyzer = railTripsAnalyzer;
         this.trainStationMap = buildTrainStationMap(zones);
+        this.railStationIds = RailStationUtils.buildRailStationIds(transitSchedule);
     }
 
     // -------------------------------------------------------------------------
@@ -63,6 +66,11 @@ public class TrainStationCollector implements TripDataCollector {
                     TransitStopFacility endFacility   = PtLegUtils.egressStop(leg, transitSchedule);
                     String startStationId = stopNo(startFacility);
                     String endStationId   = stopNo(endFacility);
+
+                    if (PtLegUtils.isRailLeg(leg)) {
+                        trainStationMap.get(startStationId).addGesamtEinsteiger();
+                        trainStationMap.get(endStationId).addGesamtAussteiger();
+                    }
 
                     Leg legAfter = PtLegUtils.nextNonWalkLeg(legs, legs.indexOf(leg));
 
@@ -87,6 +95,7 @@ public class TrainStationCollector implements TripDataCollector {
     public void write(String outputBaseDir, String runId, double sampleSize) {
         final String[] columns = {
                 runID, "HST_Nummer", "Code", "Zone",
+                "Gesamt_Einsteiger", "Gesamt_Aussteiger", "Summe_EinAussteiger",
                 "Ziel_Aussteiger", "Quell_Einsteiger",
                 "Umsteiger_Typ_5a", "Umsteiger_Typ_5b",
                 "Umsteiger_Simba_Simba", "Umsteiger_Simba_Andere",
@@ -96,10 +105,21 @@ public class TrainStationCollector implements TripDataCollector {
         try (CSVWriter writer = new CSVWriter("\uFEFF", columns,
                 outputBaseDir + oNTrainStrationsCount)) {
             for (TrainStation station : trainStationMap.values()) {
+                if (!railStationIds.contains(station.getHstNummer())) {
+                    continue;
+                }
+
+                int gesamtEinsteiger = (int) (station.getGesamtEinsteiger() / sampleSize);
+                int gesamtAussteiger = (int) (station.getGesamtAussteiger() / sampleSize);
+                int summeEinAussteiger = (int) (station.getSummeEinAussteiger() / sampleSize);
+
                 writer.set(runID,              runId);
                 writer.set("HST_Nummer",       station.getHstNummer());
                 writer.set("Code",             station.getStopCode());
                 writer.set("Zone",             station.getZoneId());
+                writer.set("Gesamt_Einsteiger", Integer.toString(gesamtEinsteiger));
+                writer.set("Gesamt_Aussteiger", Integer.toString(gesamtAussteiger));
+                writer.set("Summe_EinAussteiger", Integer.toString(summeEinAussteiger));
                 writer.set("Ziel_Aussteiger",  Integer.toString((int) (station.getZielAussteiger()       / sampleSize)));
                 writer.set("Quell_Einsteiger", Integer.toString((int) (station.getQuellEinsteiger()      / sampleSize)));
                 writer.set("Umsteiger_Typ_5a", Integer.toString((int) (station.getUmsteigerTyp5a()       / sampleSize)));
@@ -181,5 +201,6 @@ public class TrainStationCollector implements TripDataCollector {
         }
         return result;
     }
+
 }
 

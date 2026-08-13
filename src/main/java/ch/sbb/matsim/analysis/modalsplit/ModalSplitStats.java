@@ -44,7 +44,7 @@ public class ModalSplitStats {
     static final List<String> ANALYSIS_SUBPOPULATIONS = List.of(
             Variables.REGULAR, Variables.AIRPORT_RAIL, Variables.AIRPORT_ROAD,
             Variables.CB_RAIL, Variables.CB_ROAD, Variables.TOURISM_RAIL,
-            Variables.FREIGHT_ROAD, "foreign", Variables.CB_COMMUTER,
+            Variables.FREIGHT_ROAD, Variables.CB_COMMUTER,
             Variables.LIECHTENSTEIN, Variables.TOURIST);
 
     @Inject private ExperiencedPlansService experiencedPlansService;
@@ -86,7 +86,6 @@ public class ModalSplitStats {
 
         Map<String, Integer> modesMap       = ModalSplitCollector.buildModesMapStatic(config);
         Map<String, Integer> modesInclRailFQ = buildModesInclRailFQ(modesMap);
-
         List<TripDataCollector> collectors = List.of(
                 new StopBoardingCollector(transitSchedule, zones, railTripsAnalyzer, feederModes),
                 new TrainStationCollector(transitSchedule, zones, railTripsAnalyzer),

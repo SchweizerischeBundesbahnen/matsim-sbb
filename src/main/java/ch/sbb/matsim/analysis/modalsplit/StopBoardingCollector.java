@@ -37,6 +37,7 @@ public class StopBoardingCollector implements TripDataCollector {
 
     /** Modes appearing in the transit schedule per stop, derived once at construction. */
     private final Map<Id<TransitStopFacility>, Set<String>> actualModesAtStop;
+    private final Set<Id<TransitStopFacility>> railStopIds;
 
     /** One entry per stop facility, initialised from the schedule. */
     private final Map<Id<TransitStopFacility>, StopStation> stopStationsMap;
@@ -54,6 +55,7 @@ public class StopBoardingCollector implements TripDataCollector {
         this.possibleOriginDestinationModesAtStop = new ArrayList<>(origDestSet);
 
         this.actualModesAtStop = buildActualModesAtStop();
+        this.railStopIds = RailStationUtils.buildRailStopIds(transitSchedule);
         this.stopStationsMap = buildStopStationMap();
     }
 
@@ -83,17 +85,19 @@ public class StopBoardingCollector implements TripDataCollector {
 
                     // ---------- boarding at start facility ----------
                     StopStation startStation = stopStationsMap.get(startFacility.getId());
-                    startStation.addEntered();
-                    if (isRailLeg) startStation.setRailStation();
-                    if (isFQ) startStation.addEnteredFQ();
+                    if (isRailLeg) {
+                        startStation.addEntered();
+                        if (isFQ) startStation.addEnteredFQ();
+                    }
 
                     recordEntryMode(startStation, startFacility, leg, legBefore);
 
                     // ---------- alighting at end facility ----------
                     StopStation endStation = stopStationsMap.get(endFacility.getId());
-                    endStation.addExited();
-                    if (isRailLeg) endStation.setRailStation();
-                    if (isFQ) endStation.addExitedFQ();
+                    if (isRailLeg) {
+                        endStation.addExited();
+                        if (isFQ) endStation.addExitedFQ();
+                    }
 
                     Leg legAfter = PtLegUtils.nextNonWalkLeg(legs, legs.indexOf(leg));
                     recordExitMode(endStation, endFacility, leg, legAfter);
@@ -249,7 +253,11 @@ public class StopBoardingCollector implements TripDataCollector {
         Map<Id<TransitStopFacility>, StopStation> result = new HashMap<>();
         for (TransitStopFacility f : transitSchedule.getFacilities().values()) {
             Zone zone = zones.findZone(f.getCoord());
-            result.put(f.getId(), new StopStation(f, zone));
+            StopStation station = new StopStation(f, zone);
+            if (railStopIds.contains(f.getId())) {
+                station.setRailStation();
+            }
+            result.put(f.getId(), station);
         }
         return result;
     }
