@@ -1,13 +1,10 @@
 package ch.sbb.matsim.analysis.modalsplit;
 
 import ch.sbb.matsim.zones.Zone;
-import java.util.ArrayList;
-import java.util.List;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class TrainStation {
 
-    private final List<TransitStopFacility> stops = new ArrayList<>();
     private final Zone zone;
     private final String hstNummer;
     private final String stopCode;
@@ -31,10 +28,6 @@ public class TrainStation {
             this.stopCode = codeAttribute.toString();
         }
         this.zone = zone;
-    }
-
-    public void addStop(TransitStopFacility transitStopFacility) {
-        stops.add(transitStopFacility);
     }
 
     public void addZielAussteiger() {

@@ -197,10 +197,9 @@ public class TrainStationCollector implements TripDataCollector {
         for (TransitStopFacility f : transitSchedule.getFacilities().values()) {
             String id = stopNo(f);
             Zone zone = zones.findZone(f.getCoord());
-            result.computeIfAbsent(id, _ -> new TrainStation(f, zone)).addStop(f);
+            result.computeIfAbsent(id, _ -> new TrainStation(f, zone));
         }
         return result;
     }
 
 }
-
