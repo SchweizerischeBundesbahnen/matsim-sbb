@@ -94,7 +94,7 @@ public class TrainStationCollector implements TripDataCollector {
     @Override
     public void write(String outputBaseDir, String runId, double sampleSize) {
         final String[] columns = {
-                runID, "HST_Nummer", "Code", "Zone",
+                runID, "HST_Nummer", "Code", "Name,","Zone",
                 "Gesamt_Einsteiger", "Gesamt_Aussteiger", "Summe_EinAussteiger",
                 "Ziel_Aussteiger", "Quell_Einsteiger",
                 "Umsteiger_Typ_5a", "Umsteiger_Typ_5b",
@@ -115,6 +115,7 @@ public class TrainStationCollector implements TripDataCollector {
 
                 writer.set(runID,              runId);
                 writer.set("HST_Nummer",       station.getHstNummer());
+                writer.set("Name",             station.getStationName());
                 writer.set("Code",             station.getStopCode());
                 writer.set("Zone",             station.getZoneId());
                 writer.set("Gesamt_Einsteiger", Integer.toString(gesamtEinsteiger));

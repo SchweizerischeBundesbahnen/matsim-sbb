@@ -8,6 +8,7 @@ public class TrainStation {
     private final Zone zone;
     private final String hstNummer;
     private final String stopCode;
+    private final String stationName;
     private int zielAussteiger = 0;
     private int quellEinsteiger = 0;
     private int gesamtEinsteiger = 0;
@@ -21,6 +22,8 @@ public class TrainStation {
 
     public TrainStation(TransitStopFacility transitStopFacility, Zone zone) {
         this.hstNummer = transitStopFacility.getAttributes().getAttribute("02_Stop_No").toString();
+        Object nameAttribute = transitStopFacility.getAttributes().getAttribute("04_Stop_Name");
+        this.stationName = nameAttribute==null?transitStopFacility.getName():nameAttribute.toString();
         Object codeAttribute = transitStopFacility.getAttributes().getAttribute("03_Stop_Code");
         if (codeAttribute == null) {
             this.stopCode = "NA";
@@ -81,6 +84,10 @@ public class TrainStation {
     }
     public String getStopCode() {
         return stopCode;
+    }
+
+    public String getStationName() {
+        return stationName;
     }
 
     public int getZielAussteiger() {
