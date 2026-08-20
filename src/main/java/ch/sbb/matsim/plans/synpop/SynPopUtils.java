@@ -362,6 +362,7 @@ public final class SynPopUtils {
                         vaCount.incrementAndGet();
                         htCount.incrementAndGet();
                     }
+                    case NONE -> {}
                     default -> throw new IllegalStateException("Unexpected value: " + ptSubscription);
                 }
             }
