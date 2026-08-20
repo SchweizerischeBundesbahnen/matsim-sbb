@@ -33,9 +33,31 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Compares the "Frequenz-Querschnitt" (FQ / paxflow) rail demand from a Visum HDF5 matrix against the
+ * MOBi station-to-station rail demand and generates additional single-trip PT agents for the demand that
+ * MOBi is missing (i.e. where the paxflow exceeds the MOBi demand).
+ * <p>
+ * Two modes of operation exist depending on {@code aggregationAttribute}:
+ * <ul>
+ *     <li><b>Stop-to-stop</b> ({@code aggregationAttribute == null}): the difference is evaluated and
+ *         materialised directly per stop pair.</li>
+ *     <li><b>Zone-aggregated</b> ({@code aggregationAttribute != null}): demand is first aggregated to a
+ *         zonal attribute, the missing demand is computed per zone pair and then distributed back onto the
+ *         individual stop pairs proportionally to their own missing demand.</li>
+ * </ul>
+ * Generated agents get a single PT trip between activities placed at facilities near the origin/destination
+ * stop; the departure time slice is drawn weighted by the time-sliced FQ demand.
+ */
 public class CompareRailDemandFQ {
 
     private static final Logger logger = LogManager.getLogger(CompareRailDemandFQ.class);
+    /** Name of the daily-total ("DWV") demand dataset inside the HDF5 {@code data} group. */
+    private static final String DWV_MATRIX_NAME = "206";
+    /** Number of intra-day time slices in the HDF5 matrix (slices 1..143, i.e. 10-minute bins). */
+    private static final int NUM_TIME_SLICES = 144;
+    /** Length of one time slice in seconds (10 minutes). */
+    private static final int SECONDS_PER_TIME_SLICE = 600;
     final Map<String, Integer> zonalLookup = new HashMap<>();
     private final String identifier;
     private final Random random = MatsimRandom.getRandom();
@@ -53,6 +75,11 @@ public class CompareRailDemandFQ {
     private final double threshold = 1500.0;
     private int additionalPerson = 0;
 
+    /**
+     * @param identifier           prefix used for generated person ids and the CSV output
+     * @param aggregationAttribute  zone attribute to aggregate demand on, or {@code null} for a pure
+     *                              stop-to-stop comparison
+     */
     public CompareRailDemandFQ(String identifier, String aggregationAttribute) {
         this.identifier = identifier;
         this.aggregationAttribute = aggregationAttribute;
@@ -60,6 +87,21 @@ public class CompareRailDemandFQ {
     }
 
 
+    /**
+     * Command-line entry point. Expects the following positional arguments:
+     * <ol start="0">
+     *     <li>path to the FQ paxflow HDF5 matrix</li>
+     *     <li>zone-to-stop-id mapping CSV</li>
+     *     <li>whitelist stop CSV</li>
+     *     <li>MOBi station-to-station demand CSV</li>
+     *     <li>transit schedule XML</li>
+     *     <li>facilities XML</li>
+     *     <li>identifier (person id / CSV prefix)</li>
+     *     <li>zones file</li>
+     *     <li>aggregation attribute, or {@code "-"} for none</li>
+     *     <li>output population file</li>
+     * </ol>
+     */
     public static void main(String[] args) throws IOException {
         String matrixFilePath = args[0];
         String zoneToStopIdFilePath = args[1];
@@ -88,6 +130,11 @@ public class CompareRailDemandFQ {
         return scenario;
     }
 
+    /**
+     * Loads schedule and facilities into the scenario and, if a {@link #aggregationAttribute} is set,
+     * tags every transit stop facility with the corresponding zone attribute value (or
+     * {@link Variables#DEFAULT_OUTSIDE_ZONE} if it lies outside any zone).
+     */
     private void prepareScenario(String transitScheduleFile, String facilitiesFile, String zonesFile) {
         new TransitScheduleReader(scenario).readFile(transitScheduleFile);
         new MatsimFacilitiesReader(scenario).readFile(facilitiesFile);
@@ -104,6 +151,10 @@ public class CompareRailDemandFQ {
         }
     }
 
+    /**
+     * Reads the MOBi station-to-station rail demand CSV. Only relations where both stops are part of the
+     * whitelist ({@link #stopsFilter}) are kept.
+     */
     private void readMobiDemandFile(String filename) {
         try (CSVReader csvReader = new CSVReader(filename, ";")) {
             Map<String, String> row;
@@ -121,6 +172,11 @@ public class CompareRailDemandFQ {
         }
     }
 
+    /**
+     * Reads the whitelist of stops to consider. Each row also carries a {@code destination_scale_only}
+     * flag; flagged stops ({@link #stopsWithDestinationScalingOnly}) are excluded when they appear on both
+     * ends of a relation. Stops not present in the schedule are logged as invalid.
+     */
     private void readWhitelistStopFile(String fileName) {
         Set<Id<TransitStopFacility>> invalidStops = new HashSet<>();
         try (CSVReader csvReader = new CSVReader(fileName, ";")) {
@@ -149,12 +205,17 @@ public class CompareRailDemandFQ {
     }
 
 
+    /**
+     * Reads the FQ paxflow matrices from the HDF5 file: the daily total ({@link #DWV_MATRIX_NAME}) and the
+     * per-time-slice matrices (1..{@link #NUM_TIME_SLICES}-1), plus the zone-id lookup used to translate
+     * zone ids into matrix indices.
+     */
     public void readMatrix(String filePath) {
 
         try (HdfFile hdfFile = new HdfFile(Paths.get(filePath))) {
             Group data = (Group) hdfFile.getChild("data");
-            fqDemandDWV = (double[][]) ((Dataset) data.getChild("206")).getData();
-            for (int i = 1; i < 144; i++) {
+            fqDemandDWV = (double[][]) ((Dataset) data.getChild(DWV_MATRIX_NAME)).getData();
+            for (int i = 1; i < NUM_TIME_SLICES; i++) {
                 logger.info(i);
                 fqDemandPerTimeSlice.put(i, (double[][]) ((Dataset) data.getChild(Integer.toString(i))).getData());
             }
@@ -169,6 +230,10 @@ public class CompareRailDemandFQ {
         }
     }
 
+    /**
+     * Reads the mapping from stop id to the list of zone ids feeding that stop. Used to aggregate the
+     * zone-based FQ matrix demand onto stops.
+     */
     public void readZoneToStopIdMap(String csvFilePath) {
         stopIdToZonesMap = new HashMap<>();
         try (CSVReader csvReader = new CSVReader(csvFilePath, ";")) {
@@ -184,6 +249,11 @@ public class CompareRailDemandFQ {
         }
     }
 
+    /**
+     * Core comparison: computes the missing rail demand (FQ paxflow minus MOBi demand) and generates
+     * additional single-trip agents for it. In zone-aggregated mode the missing zone-pair demand is
+     * distributed onto the underlying stop pairs proportionally to their individual missing demand.
+     */
     private void compareDemand() {
         Map<Id<TransitStopFacility>, Map<Id<TransitStopFacility>, Double>> missingStopToStopDemand = new HashMap<>();
         for (var fromStopId : this.stopsFilter) {
@@ -204,8 +274,8 @@ public class CompareRailDemandFQ {
                 if (aggregationAttribute != null) {
                     String fromZone = fromStopFacility.getAttributes().getAttribute(aggregationAttribute).toString();
                     String toZone = toStopFacility.getAttributes().getAttribute(aggregationAttribute).toString();
-                    aggregatedMobiDemand.computeIfAbsent(fromZone, k -> new HashMap<>()).put(toZone, mobiDemand);
-                    aggregatedPaxflow.computeIfAbsent(fromZone, k -> new HashMap<>()).put(toZone, paxFlowDemand);
+                    aggregatedMobiDemand.computeIfAbsent(fromZone, k -> new HashMap<>()).merge(toZone, mobiDemand, Double::sum);
+                    aggregatedPaxflow.computeIfAbsent(fromZone, k -> new HashMap<>()).merge(toZone, paxFlowDemand, Double::sum);
 
                 } else if (difference > 1.0) {
                     addAdditionalDemand(fromStopId, toStopId, difference);
@@ -225,6 +295,14 @@ public class CompareRailDemandFQ {
                             .mapToDouble(entry -> entry.getValue())
                             .filter(value -> value > 0.)
                             .sum();
+                    if (aggregatedStopTopStopDemandMissing <= 0.0) {
+                        // No positive stop-to-stop missing demand to distribute the zonal difference onto.
+                        // Dividing by this would yield an infinite scale factor and an endless agent-generation
+                        // loop, so we skip this zone pair.
+                        logger.warn("Skipping zone pair from: " + fromZone + " to: " + toZone
+                                + " - positive zonal difference (" + difference + ") but no positive stop-to-stop missing demand to scale.");
+                        continue;
+                    }
                     double scaleFactor = difference / aggregatedStopTopStopDemandMissing;
                     logger.info("from zone: " + fromZone + " to zone: " + toZone + " scale factor: " + scaleFactor);
                     for (var fromStopId : this.stopsFilter) {
@@ -249,6 +327,10 @@ public class CompareRailDemandFQ {
         }
     }
 
+    /**
+     * Generates {@code difference} single-trip agents between the two stops. The integer part produces one
+     * agent each; the fractional remainder is realised stochastically.
+     */
     private void addAdditionalDemand(Id<TransitStopFacility> fromStopId, Id<TransitStopFacility> toStopId, double difference) {
         WeightedRandomSelection<Integer> timeSliceSelector = generateTimeSliceSelector(fromStopId, toStopId);
         int timeSlice = timeSliceSelector.select();
@@ -261,6 +343,11 @@ public class CompareRailDemandFQ {
         }
     }
 
+    /**
+     * Draws a random coordinate from an activity facility within {@link #threshold} metres of the stop.
+     * Falls back to the stop coordinate itself if no facility is close enough. The lookup per stop is
+     * cached in {@link #facilitiesAroundStops}.
+     */
     private Coord drawCoordFromFacilityAroundStop(Id<TransitStopFacility> stopId) {
         var stop = scenario.getTransitSchedule().getFacilities().get(stopId);
         List<Id<ActivityFacility>> facilitiesAroundStop = this.facilitiesAroundStops.computeIfAbsent(stopId, transitStopFacilityId -> {
@@ -275,6 +362,11 @@ public class CompareRailDemandFQ {
         }
     }
 
+    /**
+     * Creates a single person with one PT trip from the origin to the destination stop. The origin
+     * activity end time is derived from the time slice (slice * {@link #SECONDS_PER_TIME_SLICE}) with a
+     * random negative jitter of up to 25 minutes.
+     */
     private void generateSingleTripAgent(Id<TransitStopFacility> fromStopId, Id<TransitStopFacility> toStopId, int timeSlice) {
         var factory = scenario.getPopulation().getFactory();
         var person = factory.createPerson(Id.createPersonId(identifier + "_add_" + additionalPerson + "_" + fromStopId + "_" + toStopId));
@@ -286,7 +378,7 @@ public class CompareRailDemandFQ {
         if (fromActivityCoord == null) return;
         var fromActivity = factory.createActivityFromCoord("Exogenous", fromActivityCoord);
         fromActivity.getAttributes().putAttribute(Variables.MOBiTripAttributes.PURPOSE, "Fr");
-        fromActivity.setEndTime(Math.max(0, timeSlice * 600 - random.nextInt(1500)));
+        fromActivity.setEndTime(Math.max(0, timeSlice * SECONDS_PER_TIME_SLICE - random.nextInt(1500)));
 
         Coord toActivityCoord = drawCoordFromFacilityAroundStop(toStopId);
         if (toActivityCoord == null) return;
@@ -298,6 +390,10 @@ public class CompareRailDemandFQ {
         scenario.getPopulation().addPerson(person);
     }
 
+    /**
+     * Builds a weighted random selector over time slices for a given stop pair, weighting each slice by its
+     * FQ demand between the associated zones.
+     */
     private WeightedRandomSelection<Integer> generateTimeSliceSelector(Id<TransitStopFacility> fromStopId, Id<TransitStopFacility> toStopId) {
         WeightedRandomSelection<Integer> selector = new WeightedRandomSelection<>(random);
         var fromStopZones = this.stopIdToZonesMap.get(fromStopId);
@@ -311,6 +407,9 @@ public class CompareRailDemandFQ {
         return selector;
     }
 
+    /**
+     * Sums the matrix demand over all origin/destination zone combinations of the two stops.
+     */
     private double getMultipleZonesDemand(List<Integer> fromStopZones, List<Integer> toStopZones, double[][] fqDemand) {
         double totalDemand = 0.0;
         for (var fromZone : fromStopZones) {

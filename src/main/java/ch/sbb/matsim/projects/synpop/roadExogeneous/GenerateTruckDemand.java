@@ -45,18 +45,19 @@ public class GenerateTruckDemand {
         prepareZoneAggregates();
     }
 
-    public static void main(String[] args) throws IOException {
-        String inputZonesFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\zones\\34_release.mobi-zones.shp";
-        String npvmMatrixFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20241104_MOBi_5.1\\plans_exogenous\\GV\\input\\LI2017_LWLZ2023.omx";
-        String foreignConnectorsLocationFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\MIV international\\input\\Anbindungen_Pseudozonen_Ausland.csv";
-        String timeDistributionFile = "\\\\wsbbrz0283\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\MIV international\\input\\2016_Ganglinie.csv";
-        String inputFacilitiesFile = "c:\\devsbb\\tmp\\34_release.facilities.xml.gz";
-        String outputPopulationFile = "c:\\devsbb\\freight.xml.gz";
-        String outputPopulationCSVFile = "c:\\devsbb\\freight_road.csv.gz";
+    static void main(String[] args) throws IOException {
+        String inputZonesFile = "/Users/joschka.bischoff/Desktop/zones/mobi_base_zones.gpkg";
+        String npvmMatrixFile = "/Users/joschka.bischoff/Desktop/LI_LW_LZ_NPVM2023.omx";
+//        String npvmMatrixFile = "/Volumes/mobi/40_Projekte/20260513_MOBi_5.2/2023/exogenous/freight/LI_LW_LZ_NPVM2023.omx";
+        String foreignConnectorsLocationFile = "/Volumes/mobi/50_Ergebnisse/MOBi_5.0/plans_exogeneous/MIV international/input/Anbindungen_Pseudozonen_Ausland.csv";
+        String timeDistributionFile = "/Volumes/mobi/40_Projekte/20260513_MOBi_5.2/2023/exogenous/freight/Ganglinie_angepasst.csv";
+        String inputFacilitiesFile = "/Volumes/mobi/40_Projekte/20260513_MOBi_5.2/2023/plans/117_skims/output/117_skims.facilities.xml.zst";
+        String outputPopulationFile = "/Users/joschka.bischoff/tmp/freight/freight.xml.gz";
+        String outputPopulationCSVFile = "/Users/joschka.bischoff/tmp/freight/freight_road.csv.gz";
 
         Random random = MatsimRandom.getRandom();
         Map<String, String> matricesToModeMap = Map.of("10", "LI", "11", "LW", "12", "LZ");
-        Map<String, Double> growthRates = Map.of("10", 1.16, "11", 1.0, "12", 1.0);
+        Map<String, Double> growthRates = Map.of("10", 1.0, "11", 1.0, "12", 1.0);
         Zones zones = ZonesLoader.loadZones("zones", inputZonesFile);
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         new MatsimFacilitiesReader(scenario).readFile(inputFacilitiesFile);

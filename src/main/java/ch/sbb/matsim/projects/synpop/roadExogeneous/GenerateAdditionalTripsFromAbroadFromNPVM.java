@@ -31,15 +31,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-/*
-    This scripts takes:
-    - the cross-border endogenous demand ("Grenzgaenger")
-    - the cross-border demand from the NPVM
-    - If two zones show insufficient or no endogenous demand, additional single-trip agents are generated
-
+/**
+ * Generates additional cross-border road single-trip agents based on the NPVM demand matrix.
+ * <p>
+ * The class compares two sources of cross-border ("Grenzgaenger") road demand:
+ * <ul>
+ *     <li>the <b>endogenous</b> demand already present in the MATSim population
+ *         (regular subpopulation, {@code car}/{@code ride} trips), aggregated per zone group;</li>
+ *     <li>the <b>exogenous</b> demand taken from the NPVM origin-destination matrix
+ *         ({@link #MATRIX_NAME}).</li>
+ * </ul>
+ * Where the NPVM demand exceeds the endogenous demand between two zone aggregates, the difference
+ * ("missing demand") is disaggregated onto individual zones (weighted by population) and materialised
+ * as single-trip agents via {@link SingleTripAgentCreator}.
  */
 public class GenerateAdditionalTripsFromAbroadFromNPVM {
+    /** Name of the NPVM OD matrix inside the OMX file that holds the relevant cross-border road demand. */
     public static final String MATRIX_NAME = "7";
+    /**
+     * Highest zone id that is still considered domestic (Switzerland). Zones with an id strictly greater
+     * than this value are treated as foreign; a relation is only relevant for cross-border demand if at
+     * least one of its endpoints is a foreign zone.
+     */
+    private static final int MAX_DOMESTIC_ZONE_ID = 730101001;
     private final OMXODParser omxodParser;
     private final Population population;
     private final List<String> relevantModes;
@@ -53,6 +67,15 @@ public class GenerateAdditionalTripsFromAbroadFromNPVM {
     private final Map<String, Map<String, Double>> missingDemand = new HashMap<>();
     private final double growthFactor;
 
+    /**
+     * @param omxodParser   parser holding the opened NPVM OD matrix
+     * @param population     MATSim population used to derive the endogenous cross-border demand
+     * @param relevantModes  modes counted as road demand (typically {@code car} and {@code ride})
+     * @param zones          zone system used for spatial lookups and aggregation
+     * @param sampleFactor   scaling factor of the population sample (1 = 100% sample)
+     * @param random         random source (shared with the weighted zone selections)
+     * @param growthFactor   multiplicative factor applied to the missing demand (scenario growth)
+     */
     GenerateAdditionalTripsFromAbroadFromNPVM(OMXODParser omxodParser, Population population, List<String> relevantModes, Zones zones, int sampleFactor, Random random, double growthFactor) {
         this.growthFactor = growthFactor;
         this.omxodParser = omxodParser;
@@ -69,16 +92,16 @@ public class GenerateAdditionalTripsFromAbroadFromNPVM {
     }
 
     public static void main(String[] args) {
-        String inputPopulationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2030\\plans\\v1_synpopTest\\output\\01_synpopTest.plans.xml.gz";
-        String inputFacilitiesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2030\\plans\\v1_synpopTest\\output\\01_synpopTest.facilities.xml.gz";
-        String inputZonesFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2030\\plans\\v1_synpopTest\\output\\01_synpopTest.mobi-zones.shp";
-        String npvmMatrixFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\NPVM_2017_7_QZD.omx";
-        String outputMissingDemandStatsFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\output\\missingDemand_amr.csv";
-        String foreignConnectorsLocationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\Anbindungen_Pseudozonen_Ausland.csv";
-        String timeDistributionFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\2016_Ganglinie.csv";
-        String outputPopulationFile = "\\\\wsbbrz0283\\mobi\\40_Projekte\\20240816_Prognose_LFP25\\2030\\plans_exogenous\\cb_road.xml.gz";
-        int sampleFactor = 10;
-        double growthFactor = 1.50;
+        String inputPopulationFile = "D:\\mobi\\40_Projekte\\20260513_MOBi_5.2\\2023\\plans\\117_skims\\output\\117_skims.plans.xml.zst";
+        String inputFacilitiesFile = "D:\\mobi\\40_Projekte\\20260513_MOBi_5.2\\2023\\plans\\117_skims\\output\\117_skims.facilities.xml.zst";
+        String inputZonesFile = "D:\\mobi\\40_Projekte\\20260513_MOBi_5.2\\2023\\plans\\117_skims\\output\\117_skims.mobi_zones.gpkg";
+        String npvmMatrixFile = "D:\\mobi\\40_Projekte\\20260513_MOBi_5.2\\2023\\exogenous\\freight\\7QZD_LI_LW_LZ_NPVM2023.omx";
+        String outputMissingDemandStatsFile = "D:\\mobi\\40_Projekte\\20260513_MOBi_5.2\\2023\\exogenous\\cb_roadmissingDemand_amr.csv";
+        String foreignConnectorsLocationFile = "D:\\mobi\\50_Ergebnisse\\MOBi_5.0\\plans_exogeneous\\MIV international\\input\\Anbindungen_Pseudozonen_Ausland.csv";
+        String timeDistributionFile = "D:\\mobi\\40_Projekte\\20260513_MOBi_5.2\\2023\\exogenous\\freight\\Ganglinie_angepasst.csv";
+        String outputPopulationFile = "D:\\mobi\\40_Projekte\\20260513_MOBi_5.2\\2023\\exogenous\\cb_road.xml.gz";
+        int sampleFactor = 1;
+        double growthFactor = 1.00;
 
 
         Random random = MatsimRandom.getRandom();
@@ -103,6 +126,17 @@ public class GenerateAdditionalTripsFromAbroadFromNPVM {
 
     }
 
+    /**
+     * Distributes the aggregate "missing demand" onto concrete origin/destination zones.
+     * <p>
+     * The (scaled) number of trips per aggregate relation is turned into integer trips; a fractional
+     * remainder is realised stochastically (e.g. 2.3 trips -> 2 trips plus a 30% chance of a third).
+     * For each trip an origin and destination zone are drawn from the population-weighted distribution
+     * of the respective aggregate. Non-positive missing demand is implicitly ignored because the loop
+     * body never executes for {@code trips <= 0}.
+     *
+     * @return nested map origin zone -> destination zone -> number of generated trips
+     */
     private Map<Id<Zone>, Map<Id<Zone>, Double>> disaggregateMissingDemand() {
         Map<Id<Zone>, Map<Id<Zone>, Double>> disaggregatedMissingDemand = new HashMap<>();
         for (var fromAgg : this.missingDemand.entrySet()) {
@@ -125,6 +159,13 @@ public class GenerateAdditionalTripsFromAbroadFromNPVM {
         return disaggregatedMissingDemand;
     }
 
+    /**
+     * Writes an aggregate origin/destination report of the (signed) missing demand to a CSV file.
+     * Only relations with an absolute value greater than 1 are written.
+     *
+     * @param demandAggregation aggregate origin -> destination -> demand value
+     * @param fileName          target CSV file
+     */
     private void writeMissingDemandReport(Map<String, Map<String, Double>> demandAggregation, String fileName) {
         try (CSVWriter writer = new CSVWriter(List.of("from", "to", "value"), fileName)) {
             for (var e : demandAggregation.entrySet()) {
@@ -142,23 +183,32 @@ public class GenerateAdditionalTripsFromAbroadFromNPVM {
         }
     }
 
+    /**
+     * Builds, per zone aggregate, a population-weighted random selection of its member zones. This is
+     * later used to draw concrete origin/destination zones when disaggregating the missing demand.
+     */
     private void prepareZonalDistributions() {
         List<Id<Zone>> allZoneIds = omxodParser.getAllZoneIdsInLookup();
         for (var zoneId : allZoneIds) {
             String aggregate = SingleTripAgentCreator.getAggregateZone(zones, zoneId);
             Zone zone = zones.getZone(zoneId);
-            double weight = Math.max(zone != null ? (Integer) zone.getAttribute("pop_total") : 1.0, 1.0);
+            double weight = Math.max(zone != null ? ((Number) zone.getAttribute("pop_total")).longValue() : 1.0, 1.0);
             weightedZonesPerAggregate.computeIfAbsent(aggregate, a -> new WeightedRandomSelection<>(random)).add(zoneId, weight);
         }
     }
 
+    /**
+     * Computes, per aggregate origin/destination relation, the demand that the NPVM matrix contains on
+     * top of the already existing endogenous demand ({@code missing = npvm - endogenous}). Only relations
+     * touching at least one foreign zone (id &gt; {@link #MAX_DOMESTIC_ZONE_ID}) are considered.
+     */
     public void calculateMissingDemand() {
         logger.info("Calculating missing demand.");
         List<Id<Zone>> allZoneIds = omxodParser.getAllZoneIdsInLookup();
         for (var fromZoneId : allZoneIds) {
             String fromAggregate = SingleTripAgentCreator.getAggregateZone(zones, fromZoneId);
             for (var toZoneId : allZoneIds) {
-                if (Integer.parseInt(fromZoneId.toString()) > 730101001 || Integer.parseInt(toZoneId.toString()) > 730101001) {
+                if (Integer.parseInt(fromZoneId.toString()) > MAX_DOMESTIC_ZONE_ID || Integer.parseInt(toZoneId.toString()) > MAX_DOMESTIC_ZONE_ID) {
                     String toAggregate = SingleTripAgentCreator.getAggregateZone(zones, toZoneId);
                     double npvmValue = omxodParser.getMatrixValue(fromZoneId, toZoneId, MATRIX_NAME);
                     double endogenousValue = endogenousDemand.getOrDefault(fromAggregate, new HashMap<>()).getOrDefault(toAggregate, new MutableInt()).doubleValue();
@@ -171,6 +221,11 @@ public class GenerateAdditionalTripsFromAbroadFromNPVM {
     }
 
 
+    /**
+     * Aggregates the endogenous cross-border road demand from the regular subpopulation. For every
+     * relevant trip the origin/destination zones are looked up, mapped to their aggregates and counted
+     * (scaled by {@link #sampleFactor}).
+     */
     private void analyzeEndogenousDemand() {
         logger.info("Analyzing endogenous demand.");
 

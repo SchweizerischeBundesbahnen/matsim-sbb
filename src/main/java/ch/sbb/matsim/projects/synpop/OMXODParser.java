@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 
+import java.lang.reflect.Array;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,9 +25,9 @@ public class OMXODParser {
 
     public static void main(String[] args) {
         var parser = new OMXODParser();
-        parser.openMatrix("\\\\wsbbrz0283\\mobi\\40_Projekte\\20240207_MOBi_5.0\\plans_exogeneous\\MIV international\\input\\NPVM_2017_7_QZD.omx");
-        System.out.println(parser.getMatrixValue("531001001", "900099606", "7"));
-        System.out.println(Arrays.stream(parser.getMatrixRow("531001001", "7")).sum());
+        parser.openMatrix("/Users/joschka.bischoff/Desktop/LI_LW_LZ_NPVM2023.omx");
+        System.out.println(parser.getMatrixValue("531001001", "900099606", "10"));
+        System.out.println(Arrays.stream(parser.getMatrixRow("531001001", "10")).sum());
     }
 
 
@@ -50,13 +51,16 @@ public class OMXODParser {
             Map<String, Node> indexes = lookups.getChildren();
             Dataset lookup = (Dataset) indexes.values().stream().findFirst().orElseThrow();
             Class<?> t = lookup.getJavaType();
-            if (t != int.class) {
-                throw new RuntimeException("Only int[] lookups are supported");
-            }
-            int[] lookupValues = (int[]) lookup.getData();
-            for (int i = 0; i < lookupValues.length; i++) {
-                zonalLookup.put(String.valueOf(lookupValues[i]), i);
+            Object lookupData = lookup.getData();
 
+            if (!t.isPrimitive() || !(t == int.class || t == long.class)) {
+                throw new IllegalArgumentException("Unsupported lookup type: " + t.getName());
+            }
+
+            int length = Array.getLength(lookupData);
+            for (int i = 0; i < length; i++) {
+                Number value = (Number) Array.get(lookupData, i);
+                zonalLookup.put(value.toString(), i);
             }
 
         }
