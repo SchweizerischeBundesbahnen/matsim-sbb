@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CSVReader implements AutoCloseable {
@@ -59,7 +61,7 @@ public class CSVReader implements AutoCloseable {
 			throw new IOException("CSV file is empty: missing header line.");
 		}
 		this.currentLineNumber = 1;
-		this.columns = line.split(this.splitBy);
+		this.columns = parseCsvLine(line);
 		//if column is not in contructor defined, we take it from the csv
 		this.columns = Arrays.stream(this.columns).map(item -> item.replace("\"", "")).toArray(String[]::new);
 	}
@@ -92,7 +94,7 @@ public class CSVReader implements AutoCloseable {
 		this.currentLineNumber++;
 
 		Map<String, String> currentRow = new HashMap<>();
-		String[] parts = line.split(this.splitBy, -1);
+		String[] parts = parseCsvLine(line);
 		if (parts.length != this.columns.length) {
 			throw new IOException("Malformed CSV in '" + this.csvSource + "' at line " + this.currentLineNumber
 				+ ": expected " + this.columns.length + " columns but found " + parts.length + ".");
@@ -103,6 +105,47 @@ public class CSVReader implements AutoCloseable {
 			currentRow.put(column, value);
 		}
 		return currentRow;
+	}
+
+	/**
+	 * Goal: ignoring the ";" inside quotes ("..."), as in the NOVA code file.
+	 */
+	private String[] parseCsvLine(String line) throws IOException {
+		List<String> values = new ArrayList<>();
+		StringBuilder currentValue = new StringBuilder();
+		boolean inQuotes = false;
+		int delimiterLength = this.splitBy.length();
+
+		for (int i = 0; i < line.length(); i++) {
+			char ch = line.charAt(i);
+			if (ch == '"') {
+				if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+					currentValue.append('"');
+					i++;
+				} else {
+					inQuotes = !inQuotes;
+				}
+				continue;
+			}
+
+			if (!inQuotes && delimiterLength > 0 && i + delimiterLength <= line.length()
+					&& line.startsWith(this.splitBy, i)) {
+				values.add(currentValue.toString());
+				currentValue.setLength(0);
+				i += delimiterLength - 1;
+				continue;
+			}
+
+			currentValue.append(ch);
+		}
+
+		if (inQuotes) {
+			throw new IOException("Malformed CSV in '" + this.csvSource + "' at line " + this.currentLineNumber
+					+ ": unterminated quoted field.");
+		}
+
+		values.add(currentValue.toString());
+		return values.toArray(String[]::new);
 	}
 
 	@Override
