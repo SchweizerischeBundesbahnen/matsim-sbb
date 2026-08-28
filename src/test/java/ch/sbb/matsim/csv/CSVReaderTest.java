@@ -66,4 +66,30 @@ public class CSVReaderTest {
 		new File("testfile.csv").delete();
 	}
 
+	@Test
+	public void throwsOnMalformedRow() throws Exception {
+		BufferedWriter writer = new BufferedWriter(new FileWriter("testfile_malformed.csv"));
+		writer.write("A;B\n1;2\n3\n");
+		writer.close();
+
+		try (CSVReader reader = new CSVReader("testfile_malformed.csv", ";")) {
+			Map<String, String> row1 = reader.readLine();
+			Assertions.assertNotNull(row1);
+			Assertions.assertThrows(java.io.IOException.class, reader::readLine);
+		}
+
+		new File("testfile_malformed.csv").delete();
+	}
+
+	@Test
+	public void throwsOnEmptyCsv() throws Exception {
+		BufferedWriter writer = new BufferedWriter(new FileWriter("testfile_empty.csv"));
+		writer.write("");
+		writer.close();
+
+		Assertions.assertThrows(java.io.IOException.class, () -> new CSVReader("testfile_empty.csv", ";"));
+
+		new File("testfile_empty.csv").delete();
+	}
+
 }

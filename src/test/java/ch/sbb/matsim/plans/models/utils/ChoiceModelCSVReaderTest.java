@@ -1,6 +1,11 @@
 package ch.sbb.matsim.plans.models.utils;
 
-import ch.sbb.matsim.plans.models.utilitycomponents.*;
+import ch.sbb.matsim.plans.models.utilitycomponents.BoxCoxComponent;
+import ch.sbb.matsim.plans.models.utilitycomponents.ConstantComponent;
+import ch.sbb.matsim.plans.models.utilitycomponents.LinearComponent;
+import ch.sbb.matsim.plans.models.utilitycomponents.PiecewiseComponent;
+import ch.sbb.matsim.plans.models.utilitycomponents.PredicateComponent;
+import ch.sbb.matsim.plans.models.utilitycomponents.UtilityCalculator;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
@@ -13,6 +18,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ChoiceModelCSVReaderTest {
@@ -146,9 +152,42 @@ class ChoiceModelCSVReaderTest {
         person.getAttributes().putAttribute("demand", 2_000_000.0);
 
         double result = model.calculate(person);
-        double expected = ((Math.pow(2.0, 1.0) - 1.0) / 1.0) * 3.0;
+        double expected = (Math.pow(2.0, 1.0) - 1.0) * 3.0;
         assertEquals(expected, result, 1e-9);
 
+        Files.deleteIfExists(tempFile);
+    }
+
+    @Test
+    void testReadChoiceModelFromCSVThrowsOnMissingRequiredColumns() throws IOException {
+        String csvContent = """
+                type;values;lambda;beta_GA
+                constant;;;-8.0
+                """;
+
+        Path tempFile = Files.createTempFile("utility_model_missing_columns", ".csv");
+        try (FileWriter writer = new FileWriter(tempFile.toFile())) {
+            writer.write(csvContent);
+        }
+
+        assertThrows(IllegalArgumentException.class, () -> ChoiceModelCSVReader.readChoiceModelFromCSV(tempFile.toString()));
+        Files.deleteIfExists(tempFile);
+    }
+
+    @Test
+    void testReadChoiceModelFromCSVThrowsOnMalformedCsvRow() throws IOException {
+        String csvContent = """
+                type;attribute;values;lambda;beta_GA
+                constant;;;;-8.0
+                condition;age;>=18,<35
+                """;
+
+        Path tempFile = Files.createTempFile("utility_model_malformed", ".csv");
+        try (FileWriter writer = new FileWriter(tempFile.toFile())) {
+            writer.write(csvContent);
+        }
+
+        assertThrows(RuntimeException.class, () -> ChoiceModelCSVReader.readChoiceModelFromCSV(tempFile.toString()));
         Files.deleteIfExists(tempFile);
     }
 
