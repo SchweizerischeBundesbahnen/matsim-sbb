@@ -7,7 +7,6 @@ import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
@@ -16,13 +15,11 @@ import java.util.stream.Collectors;
 public class LogitSelector implements ChoiceSelector {
 
     private final Map<String, UtilityCalculator> calculators;
-    private final double scaleParameter;
     private final String modelName;
     private final static Logger log = LogManager.getLogger(LogitSelector.class);
 
-    public LogitSelector(Map<String, UtilityCalculator> calculators, double scaleParameter, String modelName) {
+    public LogitSelector(Map<String, UtilityCalculator> calculators, String modelName) {
         this.calculators = calculators;
-        this.scaleParameter = scaleParameter;
         this.modelName = modelName;
     }
 
@@ -51,11 +48,10 @@ public class LogitSelector implements ChoiceSelector {
                 u = Double.NEGATIVE_INFINITY; // Treat NaN as impossible
             }
 
-            double scaledU = scaleParameter * u;
-            rawUtilities.put(entry.getKey(), scaledU);
+            rawUtilities.put(entry.getKey(), u);
 
-            if (scaledU > maxUtility) {
-                maxUtility = scaledU;
+            if (u > maxUtility) {
+                maxUtility = u;
             }
         }
 

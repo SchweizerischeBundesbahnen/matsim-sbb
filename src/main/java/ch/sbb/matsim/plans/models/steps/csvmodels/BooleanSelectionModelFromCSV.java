@@ -19,7 +19,7 @@ public class BooleanSelectionModelFromCSV implements ChoiceModel {
      */
     public BooleanSelectionModelFromCSV(String csvDefinitionFile, String name) {
         var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(csvDefinitionFile);
-        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, name);
+        this.selector = new LogitSelector(calculatorsPerAlternative, name);
     }
 
     @Override
