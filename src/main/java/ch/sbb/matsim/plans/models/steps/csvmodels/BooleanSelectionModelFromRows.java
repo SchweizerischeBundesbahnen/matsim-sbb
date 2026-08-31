@@ -19,7 +19,7 @@ public class BooleanSelectionModelFromRows implements ChoiceModel {
      */
     public BooleanSelectionModelFromRows(ArrayList<Map<String, String>> rows, String name) {
         var calculatorsPerAlternative = ChoiceModelCSVReader.getChoiceModelFromRows(rows);
-        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, name);
+        this.selector = new LogitSelector(calculatorsPerAlternative, name);
     }
 
     @Override
