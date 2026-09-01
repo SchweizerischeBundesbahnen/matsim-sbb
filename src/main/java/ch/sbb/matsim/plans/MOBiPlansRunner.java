@@ -25,6 +25,7 @@ public class MOBiPlansRunner implements Runnable{
     public static final String ZONE_BASED_ACCESSIBILITIES = "zone_based_accessibilities";
     public static final String MOBILITY_TOOL_OWNERSHIP_MODEL = "mobility_tool_ownership_model";
     public static final String PRIMARY_LOCATION_CHOICE = "primary_location_choice_model";
+    public static final String HOME_WORK_PT_ATTRIBUTES = "home_work_pt_attributes_generation";
     public static final String ITERATTIVE_DAILY_PLAN_GENERATION = "iterative_daily_plan_generation";
     public static final String RAIL_ACCESS_CHOICESET = "rail_access_choiceset";
     public static final String WRITE_OUTPUTS = "write_outputs";
@@ -47,6 +48,7 @@ public class MOBiPlansRunner implements Runnable{
             MOBILITY_TOOL_OWNERSHIP_MODEL,
             POPULATION_SAMPLING,
             PRIMARY_LOCATION_CHOICE,
+            HOME_WORK_PT_ATTRIBUTES,
             WORK_FROM_HOME,
             ITERATTIVE_DAILY_PLAN_GENERATION,
             INITIAL_MODE_CHOICE,
