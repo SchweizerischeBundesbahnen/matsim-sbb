@@ -76,6 +76,11 @@ public final class StreetNetworkExporter {
         removeIrrelevantLinks(network, zones);
         setAccessControlled(network);
         setModes(network, zones);
+        if (streetsExporterConfigGroup.getTypeLookupFile() != null) {
+            AdaptNPVMStreetsToMOBi.adjustSpeedsAndCapacities(streetsExporterConfigGroup.getTypeLookupFileURL(config.getContext()).getPath(), network);
+        } else {
+            LogManager.getLogger(StreetNetworkExporter.class).warn("No type lookup file provided, not adjusting speeds and capacities.");
+        }
 
         if (streetsExporterConfigGroup.getSmallRoadSpeedFactor() < 1.0 || streetsExporterConfigGroup.getMainRoadSpeedFactor() < 1.0) {
             ReduceNetworkSpeeds reduceNetworkSpeeds = new ReduceNetworkSpeeds(network, zones, streetsExporterConfigGroup.getSmallRoadSpeedFactor(),
