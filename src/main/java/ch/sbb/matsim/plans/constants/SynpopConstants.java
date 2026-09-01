@@ -45,12 +45,6 @@ public final class SynpopConstants {
     public static final String RESIDENCE_AMR_ID = "residence_amr_id";
     public static final String RESIDENCE_ZONE_ID = "residence_zone_id";
     public static final String AGE_CAT = "age_cat";
-
-
-
-
-
-
     public static final String XCOORD = "xcoord";
     public static final String YCOORD = "ycoord";
     public static final String COORD = "coord";
@@ -69,7 +63,12 @@ public final class SynpopConstants {
     public static final String NET_DIST_WORK = "network_distance_work";
     public static final String LEVEL_OF_EMPLOYMENT_CAT = "level_of_employment_cat";
     public static final String PEDESTRIAN_SPEED = "pedestrian_speed";
-
+    public static final String PT_TRAVEL_TIME_SCHOOL = "pt_travel_time_school";
+    public static final String PT_ACCESS_TIME_SCHOOL = "pt_access_time_school";
+    public static final String PT_TRANSFERS_SCHOOL = "pt_transfers_school";
+    public static final String PT_TRAVEL_TIME_WORK = "pt_travel_time_work";
+    public static final String PT_ACCESS_TIME_WORK = "pt_access_time_work";
+    public static final String PT_TRANSFERS_WORK = "pt_transfers_work";
 
 
     public static final List<String> RAW_SYNPOP_ATTRIBUTES = Arrays.asList(
