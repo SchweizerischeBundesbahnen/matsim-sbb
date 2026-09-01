@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -51,8 +50,8 @@ class InitialModeChoiceModelTest {
         // 1. Thread Config
         MOBiPlansConfig.DataConfig dataConfig = new MOBiPlansConfig.DataConfig(
                 List.of(), null, null, null, null, null, null, null,
-                "dummy/path", null, null, null, null, null,null
-        );
+                "dummy/path", null, null, null, null, null,null,
+                null);
         MOBiPlansConfig.ModelsConfig modelsConfig = new MOBiPlansConfig.ModelsConfig(
                 1, 1.0, false, "test_run", null,null,null
         );

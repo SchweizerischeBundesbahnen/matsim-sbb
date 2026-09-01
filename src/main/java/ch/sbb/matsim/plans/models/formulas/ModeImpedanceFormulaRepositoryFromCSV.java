@@ -27,7 +27,7 @@ public class ModeImpedanceFormulaRepositoryFromCSV implements ModeImpedanceFormu
 
     @Inject
     public ModeImpedanceFormulaRepositoryFromCSV(MOBiPlansConfig config, DemandStrataRegistry demandStrataRegistry) {
-        String filePath = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString();
+        String filePath = config.data().modeImpedanceFormulaFile() != null? config.data().modeImpedanceFormulaFile() : Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CHOICE_MODELS).resolve(MOBiPlansConfig.MODE_IMPEDANCE_FORMULAS).toString();
         try (CSVReader csvReader = new CSVReader(filePath, ";")) {
             Map<String, String> record;
             while ((record = csvReader.readLine()) != null && !record.isEmpty()) {
