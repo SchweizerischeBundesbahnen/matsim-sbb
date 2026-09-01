@@ -17,7 +17,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationWriter;
@@ -103,6 +107,7 @@ public class MOBiPlansOutputWriter implements ModelStep {
         List<String> allAttributes = population.getPersons().values().parallelStream()
                 .flatMap(person -> person.getAttributes().getAsMap().keySet().stream())
                 .distinct()
+                .filter(attr -> !attr.equals(SynpopConstants.ZONE))  // avoiding having 2 zone_id variables
                 .sorted()
                 .toList();
 
