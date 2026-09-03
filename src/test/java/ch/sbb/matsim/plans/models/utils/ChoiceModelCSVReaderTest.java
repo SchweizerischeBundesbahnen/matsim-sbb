@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.households.Household;
+import org.matsim.households.HouseholdImpl;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -154,6 +156,37 @@ class ChoiceModelCSVReaderTest {
         double result = model.calculate(person);
         double expected = (Math.pow(2.0, 1.0) - 1.0) * 3.0;
         assertEquals(expected, result, 1e-9);
+
+        Files.deleteIfExists(tempFile);
+    }
+
+    @Test
+    void testConditionSupportsArithmeticNestedAttributes() throws IOException {
+        String csvContent = """
+                type;attribute;values;lambda;value
+                condition;household.nb_of_kids+household.nb_of_adults;==1;;2.0
+                """;
+
+        Path tempFile = Files.createTempFile("utility_model_condition_expression", ".csv");
+        try (FileWriter writer = new FileWriter(tempFile.toFile())) {
+            writer.write(csvContent);
+        }
+
+        UtilityCalculator model = ChoiceModelCSVReader.readRegressionModelFromCSV(tempFile.toString());
+
+        Person singleAdult = PopulationUtils.getFactory().createPerson(Id.createPersonId("single"));
+        Household oneAdult = new HouseholdImpl(Id.create("hh1", Household.class));
+        oneAdult.getAttributes().putAttribute("nb_of_kids", 0);
+        oneAdult.getAttributes().putAttribute("nb_of_adults", 1);
+        singleAdult.getAttributes().putAttribute("household", oneAdult);
+        assertEquals(2.0, model.calculate(singleAdult), 1e-9);
+
+        Person twoPersons = PopulationUtils.getFactory().createPerson(Id.createPersonId("couple"));
+        Household couple = new HouseholdImpl(Id.create("hh2", Household.class));
+        couple.getAttributes().putAttribute("nb_of_kids", 1);
+        couple.getAttributes().putAttribute("nb_of_adults", 1);
+        twoPersons.getAttributes().putAttribute("household", couple);
+        assertEquals(0.0, model.calculate(twoPersons), 1e-9);
 
         Files.deleteIfExists(tempFile);
     }
