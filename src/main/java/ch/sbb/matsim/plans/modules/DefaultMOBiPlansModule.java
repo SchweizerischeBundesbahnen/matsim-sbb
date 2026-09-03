@@ -76,9 +76,19 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(StatsWriter.class);
         multibinder.addBinding().to(MergeExogenousPlans.class);
         multibinder.addBinding().to(AddAdditionalTripVariables.class);
+
+
+
+
     }
 
     public Scenario getScenario() {
         return scenario;
+    }
+
+    @Provides
+    @Singleton
+    public DemandStrataRegistry provideDemandStrataRegistry() {
+        return StrataConfigLoader.createAndLoad(config);
     }
 }
