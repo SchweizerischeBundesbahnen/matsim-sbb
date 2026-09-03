@@ -9,7 +9,6 @@ import ch.sbb.matsim.plans.models.steps.AddAdditionalTripVariables;
 import ch.sbb.matsim.plans.models.steps.AssignFacilityLocations;
 import ch.sbb.matsim.plans.models.steps.CalcZonalAttributes;
 import ch.sbb.matsim.plans.models.steps.CombinedDestinationAndDurationChoiceModel;
-import ch.sbb.matsim.plans.models.steps.HomeWorkPtAttributesGeneration;
 import ch.sbb.matsim.plans.models.steps.InitialModeChoiceModel;
 import ch.sbb.matsim.plans.models.steps.IterativeDailyPlanGenerationOrchestrator;
 import ch.sbb.matsim.plans.models.steps.MOBiPlansOutputWriter;
@@ -27,7 +26,6 @@ import ch.sbb.matsim.plans.models.steps.ZoneBasedAccessibilities;
 import ch.sbb.matsim.plans.models.steps.demandstrata.DemandStrataRegistry;
 import ch.sbb.matsim.plans.models.steps.demandstrata.StrataConfigLoader;
 import ch.sbb.matsim.plans.models.steps.starttimechoice.StartTimeChoiceModel;
-import ch.sbb.matsim.plans.models.steps.MOBiPlansOutputWriter;
 import ch.sbb.matsim.plans.synpop.loading.SynpopLoader;
 import ch.sbb.matsim.zones.Zones;
 import com.google.inject.AbstractModule;
@@ -65,7 +63,6 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(ZoneBasedAccessibilities.class);
         multibinder.addBinding().to(MobilityToolOwnershipModel.class);
         multibinder.addBinding().to(PrimaryLocationChoiceModel.class);
-        multibinder.addBinding().to(HomeWorkPtAttributesGeneration.class);
         multibinder.addBinding().to(MOBiPlansOutputWriter.class);
         multibinder.addBinding().to(PopulationSampler.class);
         multibinder.addBinding().to(IterativeDailyPlanGenerationOrchestrator.class);
@@ -79,19 +76,9 @@ public class DefaultMOBiPlansModule extends AbstractModule {
         multibinder.addBinding().to(StatsWriter.class);
         multibinder.addBinding().to(MergeExogenousPlans.class);
         multibinder.addBinding().to(AddAdditionalTripVariables.class);
-
-
-
-
     }
 
     public Scenario getScenario() {
         return scenario;
-    }
-
-    @Provides
-    @Singleton
-    public DemandStrataRegistry provideDemandStrataRegistry() {
-        return StrataConfigLoader.createAndLoad(config);
     }
 }

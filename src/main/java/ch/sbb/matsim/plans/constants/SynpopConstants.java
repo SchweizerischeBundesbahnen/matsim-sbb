@@ -24,7 +24,6 @@ public final class SynpopConstants {
     public static final String HAS_DRIVING_LICENSE = Variables.HAS_DRIVING_LICENSE;
     public static final String ANALYSIS_SUBPOPULATION = "analysis_subpopulation";
     public static final String IS_EMPLOYED = "is_employed";
-    public static final String LOE_GROUP = "loe_group";
     public static final String CURRENT_EDU = "current_edu";
     public static final String CURRENT_JOB_RANK = "current_job_rank";
     public static final String IS_APPRENTICE = "is_apprentice";
@@ -40,6 +39,7 @@ public final class SynpopConstants {
     public static final String NO_TOT_TOURS = "no_tot_tours";
     public static final String SCHOOL_ZONE = "school_zone";
     public static final String WORK_ZONE = "work_zone";
+    public static final String WORK_ZONE_NO = "work_zone_no";
     public static final String ORIGINAL_WORK_ZONE = "original_work_zone";
     public static final String ACTIVE_IN_MODEL = "active_in_model";
     public static final String RESIDENCE_AMR_ID = "residence_amr_id";
@@ -69,18 +69,6 @@ public final class SynpopConstants {
     public static final String PT_TRAVEL_TIME_WORK = "pt_travel_time_work";
     public static final String PT_ACCESS_TIME_WORK = "pt_access_time_work";
     public static final String PT_TRANSFERS_WORK = "pt_transfers_work";
-
-
-    public static final List<String> RAW_SYNPOP_ATTRIBUTES = Arrays.asList(
-            PERSON_ID, HOUSEHOLD_ID, POSITION_IN_BUS, HIGHEST_EDUCATION, POSITION_IN_EDU,
-            NATION, LANGUAGE, LEVEL_OF_EMPLOYMENT, AGE, IS_SWISS,
-            ANALYSIS_SUBPOPULATION, IS_EMPLOYED, CURRENT_EDU,
-            CURRENT_JOB_RANK, IS_APPRENTICE);
-    public static final List<String> RAW_BUSINESSES_ATTRIBUTES = Arrays.asList(
-            ZONE_ID, JOBS_ENDO, FTE_ENDO, JOBS_EXO, FTE_EXO,
-            SCHOOL_TYPE, XCOORD, YCOORD, NOGA_CODE, SECTOR);
-    public static final List<String> RAW_HOUSEHOLD_ATTRIBUTES = Arrays.asList(
-            HOUSEHOLD_ID, ZONE_ID, XCOORD, YCOORD);
 
 
     public static final String NB_OF_KIDS = "nb_of_kids";

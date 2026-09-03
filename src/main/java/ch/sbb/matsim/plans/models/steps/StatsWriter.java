@@ -1,7 +1,10 @@
 package ch.sbb.matsim.plans.models.steps;
 
+import static ch.sbb.matsim.plans.stats.LookupFormulaParser.parseFormula;
+
 import ch.sbb.matsim.csv.CSVWriter;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
+import ch.sbb.matsim.plans.constants.SynpopConstants;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.utils.BuildPredicate;
 import ch.sbb.matsim.plans.models.utils.ExpressionEvaluator;
@@ -14,6 +17,22 @@ import ch.sbb.matsim.zones.Zones;
 import ch.sbb.matsim.zones.ZonesLoader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.DoubleAdder;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Scenario;
@@ -26,19 +45,6 @@ import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.utils.objectattributes.attributable.Attributable;
 import org.matsim.utils.objectattributes.attributable.Attributes;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.DoubleAdder;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static ch.sbb.matsim.plans.stats.LookupFormulaParser.parseFormula;
 
 public class StatsWriter implements ModelStep {
     private static final Logger log = LogManager.getLogger(StatsWriter.class);
@@ -879,9 +885,6 @@ public class StatsWriter implements ModelStep {
             if (person.getAttributes().getAttribute("active_in_model") == null) {
                 person.getAttributes().putAttribute("active_in_model", true);
             }
-            if (person.getAttributes().getAttribute("is_working_from_home") == null) {
-                person.getAttributes().putAttribute("is_working_from_home", false);
-            }
             if (person.getAttributes().getAttribute("age") == null) {
                 person.getAttributes().putAttribute("age", 50);
                 if ("65_to_74".equals(person.getAttributes().getAttribute("age_cat")) | "75_to_xx".equals(person.getAttributes().getAttribute("age_cat")))
@@ -894,20 +897,6 @@ public class StatsWriter implements ModelStep {
                     for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan)) {
                         if (trip.getDestinationActivity().getType().toLowerCase().contains("work")) {
                             person.getAttributes().putAttribute("current_job_rank", 1);
-                            Zone destZone = (Zone) trip.getDestinationActivity().getAttributes().getAttribute(CombinedDestinationAndDurationChoiceModel.ASSIGNED_ZONE);
-                            if (destZone == null) {
-                                destZone = zones.findZone(trip.getDestinationActivity().getCoord());
-                                if (destZone == null) {
-                                    break;
-                                }
-                            }
-                            if (trip.getDestinationActivity().getFacilityId() == trip.getOriginActivity().getFacilityId()) {
-                                person.getAttributes().putAttribute("is_working_from_home", true);
-                                person.getAttributes().putAttribute("work_zone_no", destZone.getId().toString());
-                            } else {
-                                person.getAttributes().putAttribute("work_zone_no", destZone.getId().toString());
-                                person.getAttributes().putAttribute("original_work_zone", destZone);
-                            }
                             break;
                         }
                     }
@@ -966,11 +955,11 @@ public class StatsWriter implements ModelStep {
                 Object currentJobRank = person.getAttributes().getAttribute("current_job_rank");
                 try {
                     double jobRank = Double.parseDouble(currentJobRank.toString());
-                    if (!result.containsKey("work_zone_no")) {
-                        if (jobRank > 0 && person.getAttributes().getAttribute("work_zone_no") == null) {
+                    if (!result.containsKey(SynpopConstants.WORK_ZONE_NO)) {
+                        if (jobRank > 0 && person.getAttributes().getAttribute(SynpopConstants.WORK_ZONE_NO) == null) {
                             LogManager.getLogger(StatsWriter.class)
-                                    .warn("Person {} is employed but missing required attribute 'work_zone_no'", person.getId());
-                            result.put("work_zone_no", true);
+                                    .warn("Person {} is employed but missing required attribute '{}'", person.getId(), SynpopConstants.WORK_ZONE_NO);
+                            result.put(SynpopConstants.WORK_ZONE_NO, true);
                         }
                     }
                 } catch (NumberFormatException e) {
