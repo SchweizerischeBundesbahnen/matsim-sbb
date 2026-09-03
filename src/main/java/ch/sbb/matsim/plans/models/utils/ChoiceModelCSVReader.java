@@ -2,6 +2,7 @@ package ch.sbb.matsim.plans.models.utils;
 
 import ch.sbb.matsim.csv.CSVReader;
 import ch.sbb.matsim.plans.models.resolver.AttributeResolver;
+import ch.sbb.matsim.plans.models.resolver.ExpressionAttributeResolver;
 import ch.sbb.matsim.plans.models.resolver.NestedAttributeResolver;
 import ch.sbb.matsim.plans.models.resolver.ScaledAttributeResolver;
 import ch.sbb.matsim.plans.models.utilitycomponents.BoxCoxComponent;
@@ -297,7 +298,8 @@ public final class ChoiceModelCSVReader {
             conditions.add(actual -> disjunctionConditions.stream().anyMatch(predicate -> predicate.test(actual)));
         }
 
-        return new PredicateComponent(attributes, conditions, beta);
+            AttributeResolver conditionResolver = new ExpressionAttributeResolver(new NestedAttributeResolver());
+            return new PredicateComponent(attributes, conditions, beta, conditionResolver);
     }
 
     private static ParsedConditionToken parseConditionToken(String token, String sourceExpression) {
@@ -313,17 +315,21 @@ public final class ChoiceModelCSVReader {
     }
 
     private static boolean evaluateAtomicCondition(Object actual, String operator, String valueLiteral, boolean nullable) {
-        if (actual == null) {
-            if (nullable) {
-                return false;
+        switch (actual) {
+            case null -> {
+                if (nullable) {
+                    return false;
+                }
+                throw new IllegalArgumentException("Attribute must be a numeric or String value, but is null.");
             }
-            throw new IllegalArgumentException("Attribute must be a numeric or String value, but is null.");
-        }
-        if (actual instanceof Number numberValue) {
-            return compareNumeric(numberValue.doubleValue(), operator, valueLiteral);
-        }
-        if (actual instanceof String stringValue) {
-            return compareString(stringValue, operator, valueLiteral);
+            case Number numberValue -> {
+                return compareNumeric(numberValue.doubleValue(), operator, valueLiteral);
+            }
+            case String stringValue -> {
+                return compareString(stringValue, operator, valueLiteral);
+            }
+            default -> {
+            }
         }
         throw new IllegalArgumentException("Attribute must be a numeric or String value, but is of type "
             + actual.getClass().getSimpleName() + ".");
