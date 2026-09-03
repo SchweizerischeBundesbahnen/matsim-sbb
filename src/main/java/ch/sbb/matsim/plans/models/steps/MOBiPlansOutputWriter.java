@@ -113,6 +113,7 @@ public class MOBiPlansOutputWriter implements ModelStep {
         List<String> allAttributes = population.getPersons().values().parallelStream()
                 .flatMap(person -> person.getAttributes().getAsMap().keySet().stream())
                 .distinct()
+                .filter(attr -> !attr.equals(SynpopConstants.ZONE))  // avoiding having 2 zone_id variables
                 .sorted()
                 .toList();
 
