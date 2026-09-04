@@ -6,8 +6,11 @@ package ch.sbb.matsim.config;
 
 import ch.sbb.matsim.zones.Zones;
 import org.matsim.api.core.v01.Id;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
+import java.net.URL;
 import java.util.Map;
 
 public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
@@ -32,6 +35,19 @@ public class PostProcessingConfigGroup extends ReflectiveConfigGroup {
 	private boolean writeAnalsysis = true;
 	private String railMatrixAggregate = "amgr_id";
 	private Boolean dailylinkVolumes = false;
+
+	@Parameter
+	@Comment("Screenline geoJSON File.")
+	private String screenlinesFile;
+
+	public URL getScreenLinesFileURL(Config context) {
+		if (screenlinesFile == null) return null;
+		return ConfigGroup.getInputFileURL(context.getContext(), screenlinesFile);
+	}
+
+	public void setScreenlinesFile(String screenlinesFile) {
+		this.screenlinesFile = screenlinesFile;
+	}
 
 	public PostProcessingConfigGroup() {
 		super(GROUP_NAME);
