@@ -17,7 +17,7 @@ public class IntegerSelectionModelFromCSV implements ChoiceModel {
 
     public IntegerSelectionModelFromCSV(String csvDefinitionsFile, String name) {
         var calculatorsPerAlternative = ChoiceModelCSVReader.readChoiceModelFromCSV(csvDefinitionsFile);
-        this.selector = new LogitSelector(calculatorsPerAlternative, 1.0, name);
+        this.selector = new LogitSelector(calculatorsPerAlternative, name);
 
     }
 

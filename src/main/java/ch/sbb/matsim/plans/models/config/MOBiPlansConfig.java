@@ -140,7 +140,7 @@ public record DataConfig(
         String school_enr_apprentices,
         String foreign_attractions,
         String zone_informations,
-        String exogenousPlansFolder) {
+        String exogenousPlansFolder, String modeImpedanceFormulaFile) {
 }
     public record ModelsConfig(
             Integer threads,

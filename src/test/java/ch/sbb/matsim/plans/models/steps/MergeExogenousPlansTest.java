@@ -42,8 +42,8 @@ class MergeExogenousPlansTest {
         Files.createDirectories(exogenousFolder);
 
         MOBiPlansConfig.DataConfig dataConfig = new MOBiPlansConfig.DataConfig(
-                List.of(), null, null, null, null, null, null, null, null, null, null, null, null, null,exogenousFolder.toString()
-        );
+                List.of(), null, null, null, null, null, null, null, null, null, null, null, null, null,exogenousFolder.toString(),
+                null);
         // Force the config to return our temp directory using an anonymous subclass or mock (if records allow)
         // Since records are immutable, we just map it. Assuming exogenousPlansFolder() is exposed in your config.
         config = new MOBiPlansConfig(dataConfig,new MOBiPlansConfig.ModelsConfig(null,null,null,null,null,null,null));

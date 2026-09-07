@@ -42,6 +42,8 @@
         <param name="writeDefaultAnalysis" value="true"/>
         <param name="zoneAttribute" value="zone_id"/>
         <param name="zonesId" value="zones"/>
+        <param name="screenlinesFile" value="screenlines.geojson"/>
+
     </module>
 
     <module name="SBBAccessTime">

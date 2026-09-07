@@ -17,7 +17,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.*;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.io.PopulationWriter;
@@ -57,7 +61,13 @@ public class MOBiPlansOutputWriter implements ModelStep {
             SynpopConstants.LEVEL_OF_EMPLOYMENT_CAT,
             SynpopConstants.PEDESTRIAN_SPEED,
             Variables.SUBPOPULATION,
-            Variables.SLICE);
+            Variables.SLICE,
+            SynpopConstants.PT_TRAVEL_TIME_SCHOOL,
+            SynpopConstants.PT_ACCESS_TIME_SCHOOL,
+            SynpopConstants.PT_TRANSFERS_SCHOOL,
+            SynpopConstants.PT_TRAVEL_TIME_WORK,
+            SynpopConstants.PT_ACCESS_TIME_WORK,
+            SynpopConstants.PT_TRANSFERS_WORK);
     List<String> activityAttributesToKeep =  List.of(Variables.MOBiTripAttributes.PURPOSE,Variables.MOBiTripAttributes.DIRECTION, Variables.MOBiTripAttributes.DNWV_FACTOR);
 
 
@@ -103,6 +113,7 @@ public class MOBiPlansOutputWriter implements ModelStep {
         List<String> allAttributes = population.getPersons().values().parallelStream()
                 .flatMap(person -> person.getAttributes().getAsMap().keySet().stream())
                 .distinct()
+                .filter(attr -> !attr.equals(SynpopConstants.ZONE))  // avoiding having 2 zone_id variables
                 .sorted()
                 .toList();
 

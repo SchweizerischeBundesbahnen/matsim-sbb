@@ -52,6 +52,8 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
     private TripsAndDistanceStats tripsAndDistanceStats;
     @Inject
     private ActivityWriter activityWriter;
+    @Inject
+    private ScreenlineAnalyzer screenlineAnalyzer;
 
     @Inject
     private ModalSplitStats modalSplitStats;
@@ -124,8 +126,8 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "tripsPerMun.csv.gz");
                 String tripsPerAmrFile = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("tripsPerAmr.csv")
                         : controlerIO.getIterationFilename(event.getIteration(), "tripsPerAmr.csv");
-                String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes.att")
-                        : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes.att");
+                String ptLinkUsageFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("ptlinkvolumes")
+                        : controlerIO.getIterationFilename(event.getIteration(), "ptlinkvolumes");
                 String carVolumesName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("car_volumes.att")
                         : controlerIO.getIterationFilename(event.getIteration(), "car_volumes.att");
                 String tripsAndDistanceStatsName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("trips_distance_stats.csv")
@@ -136,15 +138,18 @@ public class SBBDefaultAnalysisListener implements IterationEndsListener, Startu
                         : controlerIO.getIterationFilename(event.getIteration(), "matsim_activities.csv.gz");
                 String modalSpliteFileName = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("")
                         : controlerIO.getIterationFilename(event.getIteration(), "");
+                String screenlinesFilename = event.getIteration() == this.config.getLastIteration() ? controlerIO.getOutputFilename("screenlines.csv")
+                        : controlerIO.getIterationFilename(event.getIteration(), "screenlines.csv");
 
                 railDemandReporting.calcAndwriteIterationDistanceReporting(raildemandReportFilename, lineDemandFilename,scalefactor);
                 demandAggregator.aggregateAndWriteMatrix(scalefactor, railDemandAggregateFilename, railDemandStationToStation, railDemandStationToStationFQ, tripsPerMunFile, tripsPerAmrFile);
-                ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
+                var ptVolumes = ptLinkVolumeAnalyzer.writePtLinkUsage(ptLinkUsageFilename, scalefactor);
                 putSurveyWriter.collectAndWritePUTSurvey(putSurveyNew);
                 carLinkAnalysis.writeSingleIterationStreetStats(carVolumesName);
                 tripsAndDistanceStats.analyzeAndWriteStats(fullTripsAndDistanceStatsName, tripsAndDistanceStatsName);
                 activityWriter.writeActivities(activityFilename);
                 modalSplitStats.analyzeAndWriteStats(modalSpliteFileName);
+                screenlineAnalyzer.writeScreenlineResults(screenlinesFilename,scalefactor,iterationLinkAnalyser.getIterationCounts(), ptVolumes);
             }
         }
         if (ppConfig.getDailyLinkVolumes()) {

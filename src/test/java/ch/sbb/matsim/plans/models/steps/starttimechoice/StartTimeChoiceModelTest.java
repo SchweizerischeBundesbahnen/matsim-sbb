@@ -68,8 +68,8 @@ class StartTimeChoiceModelTest {
                 null, // school_enr_apprentices
                 null, // foreign_attractions
                 null,
-                null// zone_informations
-        );
+                null,// zone_informations
+                null);
         MOBiPlansConfig.ModelsConfig modelsConfig = new MOBiPlansConfig.ModelsConfig(
                 1, // threads
                 1.0, // sampleSize

@@ -85,8 +85,8 @@ public class StopBoardingCollector implements TripDataCollector {
 
                     // ---------- boarding at start facility ----------
                     StopStation startStation = stopStationsMap.get(startFacility.getId());
+                    startStation.addEntered();
                     if (isRailLeg) {
-                        startStation.addEntered();
                         if (isFQ) startStation.addEnteredFQ();
                     }
 
@@ -94,8 +94,8 @@ public class StopBoardingCollector implements TripDataCollector {
 
                     // ---------- alighting at end facility ----------
                     StopStation endStation = stopStationsMap.get(endFacility.getId());
+                    endStation.addExited();
                     if (isRailLeg) {
-                        endStation.addExited();
                         if (isFQ) endStation.addExitedFQ();
                     }
 

@@ -92,7 +92,7 @@ public class PtLinkVolumeAnalyzer {
     }
 
     private static <T extends Number> void writeFile(String outputfile, double scalefactor, Map<Id<Link>, T> ptVolumes, Network ptNetwork) {
-        try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile)) {
+        try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile+".att")) {
             for (Entry<Id<Link>, T> e : ptVolumes.entrySet()) {
                 Id<Link> currentLinkId = e.getKey();
                 int scaledVolume = (int) Math.round(e.getValue().doubleValue() * scalefactor);
@@ -173,7 +173,7 @@ public class PtLinkVolumeAnalyzer {
     }
 
     private static <T extends Number, U extends Number> void writeDetailedFile(String outputfile, double scalefactor, Map<Id<Link>, T> ptVolumes, Map<Id<Link>, Map<Id<TransitLine>, U>> ptVolumesPerLine, Network ptNetwork) {
-        try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile)) {
+        try (CSVWriter writer = new CSVWriter(HEADER, VOLUMES_COLUMNS, outputfile+".att")) {
             for (Entry<Id<Link>, T> e : ptVolumes.entrySet()) {
                 Id<Link> currentLinkId = e.getKey();
                 int scaledVolume = (int) Math.round(e.getValue().doubleValue() * scalefactor);
@@ -340,14 +340,18 @@ public class PtLinkVolumeAnalyzer {
 
     }
 
-    public void writePtLinkUsage(String outputfile, double scalefactor, Map <Id<Person>, Plan> experiencedPlans) {
+    public Map<Id<Link>, Long> writePtLinkUsage(String outputfile, double scalefactor, Map <Id<Person>, Plan> experiencedPlans) {
         NetworkFilterManager nfm = new NetworkFilterManager(network, new NetworkConfigGroup());
         nfm.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
         Network ptNetwork = nfm.applyFilters();
-        var ptVolumes = analysePtLinkUsage(experiencedPlans);
+        var ptVolumesPerLine = analysePtLinkUsagePerLine(experiencedPlans);
+        Map<Id<Link>, Long> ptVolumes = ptVolumesPerLine.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue().values().stream().mapToLong(Long::longValue).sum()
+                ));
         writeFile(outputfile, scalefactor, ptVolumes, ptNetwork);
 
-        var ptVolumesPerLine = analysePtLinkUsagePerLine(experiencedPlans);
         NetworkFilterManager nfmDetailed = new NetworkFilterManager(network, new NetworkConfigGroup());
         nfmDetailed.addLinkFilter(l -> this.ptlinks.contains(l.getId()));
         Network ptNetworkDetailed = nfmDetailed.applyFilters();
@@ -362,6 +366,7 @@ public class PtLinkVolumeAnalyzer {
             Network ptNetworkDnwvDetailed = nfmDnwvDetailed.applyFilters();
             writeDetailedFile(outputfile + "_dnwv_detailed", scalefactor, ptVolumesIncludingDNWV.total(), ptVolumesIncludingDNWV.perLine(), ptNetworkDnwvDetailed);
         }
+        return ptVolumes;
     }
 
     /**
@@ -371,8 +376,8 @@ public class PtLinkVolumeAnalyzer {
     public record PtVolumes(Map<Id<Link>, Double> total, Map<Id<Link>, Map<Id<TransitLine>, Double>> perLine) {
     }
 
-    public void writePtLinkUsage(String outputfile, double scalefactor) {
-        writePtLinkUsage(outputfile, scalefactor, experiencedPlansService.getExperiencedPlans());
+    public Map<Id<Link>, Long> writePtLinkUsage(String outputfile, double scalefactor) {
+       return writePtLinkUsage(outputfile, scalefactor, experiencedPlansService.getExperiencedPlans());
     }
 
 }
