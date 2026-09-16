@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
     public static final double CAR_FREESPEED_TRAVELTIME_FACTOR = 1.25;
-    final double bikeFreespeed = 16 / 3.6;
+    final double bikeFreespeed = 17 / 3.6;
     private Network carnet;
     private Network bikenet;
     private final int gridsizeInM = 200;

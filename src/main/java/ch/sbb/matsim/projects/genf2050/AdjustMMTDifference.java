@@ -20,7 +20,7 @@ public class AdjustMMTDifference {
     static Random r = MatsimRandom.getRandom();
     static void main() {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-        new PopulationReader(scenario).readFile("/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/sim/var_ev/var_ktge.plans_cut_orig.xml.gz");
+        new PopulationReader(scenario).readFile("/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/plans/l7/output/l7.plans.xml.gz");
         Coord startCoord = new Coord(2495156.720000,1120976.590000);
         Coord endCoord = new Coord(2500795.900000,	1117500.850000);
         var fac = scenario.getPopulation().getFactory();
@@ -45,7 +45,7 @@ public class AdjustMMTDifference {
             scenario.getPopulation().addPerson(p);
 
         }
-        new PopulationWriter(scenario.getPopulation()).write("/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/sim/var_ev/var_ktge.plans_cut.xml.gz");
+        new PopulationWriter(scenario.getPopulation()).write("/Users/joschka.bischoff/tmp/l7.plans-mmt-diff-added.xml.zst");
     }
 
     private static Coord varyCoord(Coord startCoord, double diameter) {
