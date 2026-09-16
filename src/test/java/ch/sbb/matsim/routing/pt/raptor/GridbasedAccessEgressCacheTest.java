@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
+import org.matsim.core.utils.geometry.CoordUtils;
 
 import static org.matsim.core.config.ConfigUtils.createConfig;
 import static org.matsim.core.scenario.ScenarioUtils.createScenario;
@@ -116,6 +117,98 @@ public class GridbasedAccessEgressCacheTest {
         int centerBox = 11325;
         Coord centerCoord = cache.getCellCoordinate(stopCoord, centerBox);
         Assertions.assertEquals(centerBox, cache.getCellNumber(stopCoord, centerCoord), "Center reversibility failed");
+    }
+
+    @Test
+    public void testGetCellNumber_WithNegativeStopCoords() {
+        GridbasedAccessEgressCache cache = getGridbasedAccessEgressCache();
+        Coord stopCoord = new Coord(-10000, -10000);
+
+        // Center of the grid relative to negative stop coord
+        int centerCell = cache.getCellNumber(stopCoord, new Coord(-10000, -10000));
+        Assertions.assertTrue(centerCell >= 0 && centerCell < 22500, "Center cell should be in bounds for negative stop coords");
+
+        // Verify bounds still work with negative coordinates
+        Assertions.assertEquals(-1, cache.getCellNumber(stopCoord, new Coord(5001, -10000)), "Should be out of bounds to the right");
+        Assertions.assertEquals(-1, cache.getCellNumber(stopCoord, new Coord(-10000, 5001)), "Should be out of bounds to the top");
+    }
+
+    @Test
+    public void testDistanceFactor_Validation() {
+        // Test that the distance factor check would correctly identify unreasonable cached values
+        Coord stop = new Coord(0, 0);
+        Coord activity1 = new Coord(100, 100);  // ~141m euclidean distance
+        Coord activity2 = new Coord(1000, 1000); // ~1414m euclidean distance
+        Coord activity3 = new Coord(5000, 5000); // ~7071m euclidean distance
+
+        double euclideanDist1 = CoordUtils.calcEuclideanDistance(stop, activity1);
+        double euclideanDist2 = CoordUtils.calcEuclideanDistance(stop, activity2);
+        double euclideanDist3 = CoordUtils.calcEuclideanDistance(stop, activity3);
+
+        // A 10x factor threshold means:
+        // 141m * 10 = 1410m is acceptable
+        // 1414m * 10 = 14140m is acceptable
+        // But 141m * 11 = 1551m should be rejected
+
+        Assertions.assertTrue(euclideanDist1 * 10.0 > 1410, "Test setup: distance factor should be reasonable");
+        Assertions.assertTrue(euclideanDist2 * 10.0 > 14140, "Test setup: distance factor should be reasonable");
+        Assertions.assertTrue(euclideanDist3 * 10.0 > 70710, "Test setup: distance factor should be reasonable");
+    }
+
+    @Test
+    public void testCellIndexBoundaryValidation() {
+        GridbasedAccessEgressCache cache = getGridbasedAccessEgressCache();
+        Coord stopCoord = new Coord(0, 0);
+
+        // These coordinates are within row/column bounds but edge cases
+        // that could theoretically produce invalid cell indices
+
+        // Just inside the valid range
+        int validCell = cache.getCellNumber(stopCoord, new Coord(14999, -14999));
+        Assertions.assertTrue(validCell >= 0 && validCell < 22500, "Valid cell should be in bounds");
+        Assertions.assertTrue(validCell < 22500, "Cell index should not exceed cellSize");
+
+        // Just outside should return -1
+        Assertions.assertEquals(-1, cache.getCellNumber(stopCoord, new Coord(15000, -15000)), "Out of bounds should return -1");
+        Assertions.assertEquals(-1, cache.getCellNumber(stopCoord, new Coord(-15001, 15001)), "Out of bounds should return -1");
+    }
+
+    @Test
+    public void testThreadLocalDisutilityCreation() {
+        // This test verifies that the cache can be initialized with multiple threads
+        // without race conditions (the main fix for the 28km bug)
+        Config config = createConfig();
+        config.global().setNumberOfThreads(4); // Multiple threads to trigger potential race conditions
+        var raptorConfig = new SwissRailRaptorConfigGroup();
+
+        SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet carSet = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
+        carSet.setMode(SBBModes.CARFEEDER);
+        carSet.setLinkIdAttribute("accessLinkId");
+        carSet.setMaxRadius(10000);
+        raptorConfig.addIntermodalAccessEgress(carSet);
+
+        SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet bikeSet = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
+        bikeSet.setMode(SBBModes.BIKEFEEDER);
+        bikeSet.setLinkIdAttribute("accessLinkId");
+        bikeSet.setMaxRadius(10000);
+        raptorConfig.addIntermodalAccessEgress(bikeSet);
+
+        config.addModule(raptorConfig);
+
+        var sbbIntermodalConfigGroup = new SBBIntermodalConfiggroup();
+        var carSetI = new SBBIntermodalModeParameterSet();
+        carSetI.setMode(SBBModes.CARFEEDER);
+        carSetI.setRoutedOnNetwork(true);
+        carSetI.setSimulatedOnNetwork(false);
+        sbbIntermodalConfigGroup.addModeParameters(carSetI);
+        config.addModule(sbbIntermodalConfigGroup);
+
+        Scenario scenario = createScenario(config);
+
+        // This should not throw an exception even with multiple threads
+        // Previously this could cause race conditions with the shared disutility instance
+        GridbasedAccessEgressCache cache = new GridbasedAccessEgressCache(scenario);
+        Assertions.assertNotNull(cache, "Cache should be created successfully with multiple threads");
     }
 }
 

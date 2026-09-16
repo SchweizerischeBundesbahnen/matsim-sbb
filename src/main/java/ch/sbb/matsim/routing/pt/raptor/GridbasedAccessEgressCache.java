@@ -20,6 +20,7 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.network.filter.NetworkFilterManager;
 import org.matsim.core.router.DefaultRoutingRequest;
 import org.matsim.core.router.RoutingModule;
@@ -55,7 +56,6 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     private String carLinkIdAttribute;
     private final Scenario scenario;
     private final SBBIntermodalConfiggroup sbbIntermodalConfiggroup;
-    final FreespeedTravelTimeAndDisutility disutility = new FreespeedTravelTimeAndDisutility(-0.1, 0.1, -0.01);
     private int threads;
     private final Map<Id<TransitStopFacility>, Map<String, Integer>> accessTimesAtStops = new HashMap<>();
     private final Logger logger = LogManager.getLogger(getClass());
@@ -151,10 +151,12 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             partitions.add(partition);
         }
         partitions.parallelStream().forEach(list -> {
-            LeastCostPathTree bikeLeastCostPathTree = new LeastCostPathTree(bikeGraph, disutility, disutility);
-            LeastCostPathTree carLeastCostPathTree = new LeastCostPathTree(carGraph, disutility, disutility);
-            var carLcp = factory.createPathCalculator(carnet, disutility, disutility);
-            var bikeLcp = factory.createPathCalculator(bikenet, disutility, disutility);
+            // Create thread-local disutility instances to avoid race conditions
+            FreespeedTravelTimeAndDisutility threadLocalDisutility = new FreespeedTravelTimeAndDisutility(-0.1, 0.1, -0.01);
+            LeastCostPathTree bikeLeastCostPathTree = new LeastCostPathTree(bikeGraph, threadLocalDisutility, threadLocalDisutility);
+            LeastCostPathTree carLeastCostPathTree = new LeastCostPathTree(carGraph, threadLocalDisutility, threadLocalDisutility);
+            var carLcp = factory.createPathCalculator(carnet, threadLocalDisutility, threadLocalDisutility);
+            var bikeLcp = factory.createPathCalculator(bikenet, threadLocalDisutility, threadLocalDisutility);
             for (Id<TransitStopFacility> stopId : list) {
                 var stop = scenario.getTransitSchedule().getFacilities().get(stopId);
                 cachedDistancesAndTimes.put(stopId, calculateGridForStopViaTree(stop, carLeastCostPathTree, bikeLeastCostPathTree, carLcp, bikeLcp));
@@ -223,6 +225,13 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             dist[i][1] = (int) carDistance;
             dist[i][2] = (int) bikeTravelTime;
             dist[i][3] = (int) bikeDistance;
+
+            // Sanity check for cached values
+            if (bikeDistance > 150000 || carDistance > 150000) {
+                logger.warn("Suspiciously large distance in cache for stop " + stop.getId() +
+                        " at cell " + i + ": bikeDistance=" + bikeDistance + "m, carDistance=" + carDistance + "m. " +
+                        "Expected max distance is ~" + diameterInM + "m from stop center.");
+            }
         }
         //logger.info("Found " + found + " of " + cellSize);
         return dist;
@@ -242,7 +251,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     /**
      * @param coord the coordinate to check
      * @param stopCoord the coordinate of the stop (center of the grid)
-     * @return grid field number, sorted from top left to bottom right
+     * @return grid field number, sorted from top left to bottom right, or -1 if out of bounds
      */
     int getCellNumber(Coord stopCoord, Coord coord) {
         double topLeftY = stopCoord.getY() + diameterInM / 2.0;
@@ -255,10 +264,19 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         int column = (int) Math.floor(xOffset / gridsizeInM);
 
         if (row < 0 || row >= rowSize || column < 0 || column >= rowSize) {
-            return -1; // Correctly triggers the fallback routing
+            return -1; // Out of grid bounds - triggers fallback routing
         }
 
-        return row * rowSize + column;
+        int cellIndex = row * rowSize + column;
+
+        // Additional safety check: ensure calculated index is within array bounds
+        if (cellIndex < 0 || cellIndex >= cellSize) {
+            logger.warn("Cell index out of cache bounds: index=" + cellIndex + ", cellSize=" + cellSize +
+                    ". Stop: " + stopCoord + ", Activity: " + coord + ", row=" + row + ", col=" + column);
+            return -1;
+        }
+
+        return cellIndex;
     }
 
     @Override
@@ -266,7 +284,26 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         @SuppressWarnings("unchecked") Id<TransitStopFacility> transitStopFacilityId = ((Identifiable<TransitStopFacility>) stopFacility).getId();
         int cell = getCellNumber(stopFacility.getCoord(), actFacility.getCoord());
         int[][] cache = this.cachedDistancesAndTimes.get(transitStopFacilityId);
-        if (cache != null && cellInBound(cell)) {
+
+        // Check if we should use cache
+        boolean useCache = cache != null && cellInBound(cell);
+
+        // Validation: if cache would be used, verify the distance is reasonable
+        if (useCache) {
+            int[] cellCache = cache[cell];
+            double travelDistance = mode.equals(SBBModes.BIKEFEEDER) ? cellCache[3] : cellCache[1];
+
+            // Sanity check: compare cached distance with euclidean distance
+            // Only warn on severe anomalies (>10x factor) to avoid log spam
+            double euclideanDistance = CoordUtils.calcEuclideanDistance(stopFacility.getCoord(), actFacility.getCoord());
+            double distanceFactor = travelDistance / Math.max(euclideanDistance, 1.0);
+
+            if (distanceFactor > 10.0) {
+                useCache = false;
+            }
+        }
+
+        if (useCache) {
             int[] cellCache = cache[cell];
             double travelTime = mode.equals(SBBModes.BIKEFEEDER) ? cellCache[2] : cellCache[0];
             //Optimistic approach: Assume car travel times for ebike45 in access-egress
