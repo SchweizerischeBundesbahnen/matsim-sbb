@@ -7,9 +7,14 @@ import ch.sbb.matsim.config.variables.SBBModes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.utils.geometry.CoordUtils;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.matsim.core.config.ConfigUtils.createConfig;
 import static org.matsim.core.scenario.ScenarioUtils.createScenario;
@@ -166,7 +171,6 @@ public class GridbasedAccessEgressCacheTest {
         // Just inside the valid range
         int validCell = cache.getCellNumber(stopCoord, new Coord(14999, -14999));
         Assertions.assertTrue(validCell >= 0 && validCell < 22500, "Valid cell should be in bounds");
-        Assertions.assertTrue(validCell < 22500, "Cell index should not exceed cellSize");
 
         // Just outside should return -1
         Assertions.assertEquals(-1, cache.getCellNumber(stopCoord, new Coord(15000, -15000)), "Out of bounds should return -1");
@@ -209,6 +213,35 @@ public class GridbasedAccessEgressCacheTest {
         // Previously this could cause race conditions with the shared disutility instance
         GridbasedAccessEgressCache cache = new GridbasedAccessEgressCache(scenario);
         Assertions.assertNotNull(cache, "Cache should be created successfully with multiple threads");
+    }
+
+    @Test
+    public void testFormatSuspiciousDistancesReport_ListsUniqueStopsOnly() {
+        GridbasedAccessEgressCache cache = getGridbasedAccessEgressCache();
+
+        List<GridbasedAccessEgressCache.SuspiciousDistanceOccurrence> suspiciousDistances = List.of(
+                new GridbasedAccessEgressCache.SuspiciousDistanceOccurrence(Id.create("stop-2", TransitStopFacility.class), 11, 180000, 1200),
+                new GridbasedAccessEgressCache.SuspiciousDistanceOccurrence(Id.create("stop-1", TransitStopFacility.class), 7, 900, 190000),
+                new GridbasedAccessEgressCache.SuspiciousDistanceOccurrence(Id.create("stop-2", TransitStopFacility.class), 42, 181000, 1300)
+        );
+
+        String report = cache.formatSuspiciousDistancesReport(suspiciousDistances);
+
+        Assertions.assertEquals("Stops with very large distances in cache: stop-1, stop-2", report, "Report should contain each affected stop exactly once");
+    }
+
+    @Test
+    public void testCreateStopPartitions_CoversAllStopsIncludingRemainder() {
+        List<Id<TransitStopFacility>> stops = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            stops.add(Id.create("stop-" + i, TransitStopFacility.class));
+        }
+
+        List<List<Id<TransitStopFacility>>> partitions = GridbasedAccessEgressCache.createStopPartitions(stops, 3);
+
+        Assertions.assertEquals(3, partitions.size(), "Ten stops with three threads should create three partitions");
+        Assertions.assertEquals(10, partitions.stream().mapToInt(List::size).sum(), "All stops must be covered by the partitions");
+        Assertions.assertEquals(stops, partitions.stream().flatMap(List::stream).toList(), "Partitioning must preserve stop order without dropping the remainder");
     }
 }
 

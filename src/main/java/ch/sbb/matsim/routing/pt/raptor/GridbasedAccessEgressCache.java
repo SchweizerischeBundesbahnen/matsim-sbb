@@ -37,15 +37,19 @@ import org.matsim.vehicles.Vehicle;
 import org.matsim.vehicles.VehicleType;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
     public static final double CAR_FREESPEED_TRAVELTIME_FACTOR = 1.25;
+    private static final double SUSPICIOUS_DISTANCE_THRESHOLD_M = 150_000;
     final double bikeFreespeed = 17 / 3.6;
     private Network carnet;
     private Network bikenet;
@@ -56,7 +60,7 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
     private String carLinkIdAttribute;
     private final Scenario scenario;
     private final SBBIntermodalConfiggroup sbbIntermodalConfiggroup;
-    private int threads;
+    private final int threads;
     private final Map<Id<TransitStopFacility>, Map<String, Integer>> accessTimesAtStops = new HashMap<>();
     private final Logger logger = LogManager.getLogger(getClass());
     private Vehicle bike;
@@ -132,24 +136,20 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
 
 
     void calculateGridTraveltimesViaTree() {
+        if (cachedStops.isEmpty()) {
+            logger.info("No stops matched the intermodal cache filter. Skipping cache structure build.");
+            return;
+        }
         Gbl.printMemoryUsage();
         bikenet.getLinks().values().stream().filter(link -> link.getFreespeed() > bikeFreespeed).forEach(link -> link.setFreespeed(bikeFreespeed));
         SpeedyGraph carGraph = SpeedyGraphBuilder.build(carnet, SBBModes.CAR);
         SpeedyGraph bikeGraph = SpeedyGraphBuilder.build(bikenet, SBBModes.BIKE);
         SpeedyALTFactory factory = new SpeedyALTFactory();
+        ConcurrentLinkedQueue<SuspiciousDistanceOccurrence> suspiciousDistances = new ConcurrentLinkedQueue<>();
         logger.info("Building Cache Structure for " + cachedStops.size() + " stops.");
 
         Gbl.printMemoryUsage();
-        List<List<Id<TransitStopFacility>>> partitions = new ArrayList<>();
-        if (cachedStops.size() < threads) {
-            threads = Math.max(cachedStops.size(), 1);
-        }
-        int size = cachedStops.size() / threads;
-        for (int i = 0; i < threads; i++) {
-            int toIndex = Math.min((i + 1) * size, cachedStops.size());
-            List<Id<TransitStopFacility>> partition = cachedStops.subList(i * size, toIndex);
-            partitions.add(partition);
-        }
+        List<List<Id<TransitStopFacility>>> partitions = createStopPartitions(cachedStops, threads);
         partitions.parallelStream().forEach(list -> {
             // Create thread-local disutility instances to avoid race conditions
             FreespeedTravelTimeAndDisutility threadLocalDisutility = new FreespeedTravelTimeAndDisutility(-0.1, 0.1, -0.01);
@@ -159,15 +159,31 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             var bikeLcp = factory.createPathCalculator(bikenet, threadLocalDisutility, threadLocalDisutility);
             for (Id<TransitStopFacility> stopId : list) {
                 var stop = scenario.getTransitSchedule().getFacilities().get(stopId);
-                cachedDistancesAndTimes.put(stopId, calculateGridForStopViaTree(stop, carLeastCostPathTree, bikeLeastCostPathTree, carLcp, bikeLcp));
+                cachedDistancesAndTimes.put(stopId, calculateGridForStopViaTree(stop, carLeastCostPathTree, bikeLeastCostPathTree, carLcp, bikeLcp, suspiciousDistances));
             }
 
         });
+        logSuspiciousDistances(suspiciousDistances);
 
     }
 
+    static List<List<Id<TransitStopFacility>>> createStopPartitions(List<Id<TransitStopFacility>> stops, int threads) {
+        if (stops.isEmpty()) {
+            return List.of();
+        }
+        int effectiveThreads = Math.min(Math.max(threads, 1), stops.size());
+        int partitionSize = (int) Math.ceil((double) stops.size() / effectiveThreads);
+        List<List<Id<TransitStopFacility>>> partitions = new ArrayList<>(effectiveThreads);
+        for (int fromIndex = 0; fromIndex < stops.size(); fromIndex += partitionSize) {
+            int toIndex = Math.min(fromIndex + partitionSize, stops.size());
+            partitions.add(stops.subList(fromIndex, toIndex));
+        }
+        return partitions;
+    }
 
-    int[][] calculateGridForStopViaTree(TransitStopFacility stop, LeastCostPathTree carLeastCostPathTree, LeastCostPathTree bikeLeastCostPathTree, LeastCostPathCalculator carlcp, LeastCostPathCalculator bikelcp) {
+
+    int[][] calculateGridForStopViaTree(TransitStopFacility stop, LeastCostPathTree carLeastCostPathTree, LeastCostPathTree bikeLeastCostPathTree, LeastCostPathCalculator carlcp, LeastCostPathCalculator bikelcp,
+                                         ConcurrentLinkedQueue<SuspiciousDistanceOccurrence> suspiciousDistances) {
         Object carLinkAttr = stop.getAttributes().getAttribute(carLinkIdAttribute);
         Link carFromLink = carLinkAttr != null
                 ? carnet.getLinks().get(Id.createLinkId(String.valueOf(carLinkAttr)))
@@ -227,14 +243,32 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
             dist[i][3] = (int) bikeDistance;
 
             // Sanity check for cached values
-            if (bikeDistance > 150000 || carDistance > 150000) {
-                logger.warn("Suspiciously large distance in cache for stop " + stop.getId() +
-                        " at cell " + i + ": bikeDistance=" + bikeDistance + "m, carDistance=" + carDistance + "m. " +
-                        "Expected max distance is ~" + diameterInM + "m from stop center.");
+            if (bikeDistance > SUSPICIOUS_DISTANCE_THRESHOLD_M || carDistance > SUSPICIOUS_DISTANCE_THRESHOLD_M) {
+                suspiciousDistances.add(new SuspiciousDistanceOccurrence(stop.getId(), i, bikeDistance, carDistance));
             }
         }
         //logger.info("Found " + found + " of " + cellSize);
         return dist;
+    }
+
+    void logSuspiciousDistances(ConcurrentLinkedQueue<SuspiciousDistanceOccurrence> suspiciousDistances) {
+        if (suspiciousDistances.isEmpty()) {
+            return;
+        }
+        logger.warn(formatSuspiciousDistancesReport(suspiciousDistances.stream()
+                .sorted(Comparator.comparing((SuspiciousDistanceOccurrence occurrence) -> occurrence.stopId().toString())
+                        .thenComparingInt(SuspiciousDistanceOccurrence::cell))
+                .toList()));
+    }
+
+    String formatSuspiciousDistancesReport(List<SuspiciousDistanceOccurrence> suspiciousDistances) {
+        return "Stops with very large distances in cache: " + suspiciousDistances.stream()
+                .map(SuspiciousDistanceOccurrence::stopId)
+                .filter(Objects::nonNull)
+                .map(Id::toString)
+                .distinct()
+                .sorted()
+                .collect(Collectors.joining(", "));
     }
 
     Coord getCellCoordinate(Coord stopCoord, int i) {
@@ -337,6 +371,9 @@ public class GridbasedAccessEgressCache implements AccessEgressRouteCache {
         return (cell >= 0 && cell < cellSize);
     }
 
+    record SuspiciousDistanceOccurrence(Id<TransitStopFacility> stopId, int cell, double bikeDistance, double carDistance) {
+
+    }
 
 
 }
