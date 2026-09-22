@@ -26,6 +26,7 @@ public class AdjustMMTDifference {
         var fac = scenario.getPopulation().getFactory();
         for (int i = 0; i < 9800; i++) {
             Person p = fac.createPerson(Id.createPersonId("p_ma_"+i));
+            p.getAttributes().putAttribute("slice", i%50);
             p.getAttributes().putAttribute("subpopulation", Variables.CB_RAIL);
             Plan plan = fac.createPlan();
             Coord homeCoord = varyCoord(startCoord, 800);
