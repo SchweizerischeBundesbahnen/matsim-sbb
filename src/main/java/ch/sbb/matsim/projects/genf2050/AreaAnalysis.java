@@ -18,6 +18,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.io.PopulationReader;
+import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.tabularFileParser.TabularFileParser;
@@ -54,7 +55,7 @@ public class AreaAnalysis {
         String root = "/Volumes/mobi/40_Projekte/20251005_GE_2050_plus/sim/";
 
         //runs.put("ref_runde_2", root + "ref_runde_2");
-        runs.put("var_cornavin_re_metro_as_other_jun26", root + "var_cornavin_re_metro_as_other_jun26");
+        runs.put("var_cornavin_L7_v2", root + "var_cornavin_L7_v2");
         //runs.put("var_cornavin_metro_as_other", root + "var_cornavin_metro_as_other");
         //runs.put("var_eaux_vives_re_metro_as_other", root + "var_eaux_vives_re_metro_as_other");
 
@@ -237,7 +238,7 @@ public class AreaAnalysis {
             String ptNet = path + "/output/" + runId + ".ptlinkvolumes.att_network.xml.gz";
             String scheduleFile = path + "/output/" + runId + ".output_transitSchedule.xml.gz";
             String carVolumesFile = path + "/output/" + runId + ".car_volumes.att";
-            String outputPopulation = path + "/output/" + runId + ".output_plans.xml.gz";
+            String outputPopulation = "/Users/joschka.bischoff/Desktop/var_cornavin_L7_v2.output_plans.xml.gz";
             Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
             new TransitScheduleReader(scenario).readFile(scheduleFile);
             Set<Id<Link>> metroLinkIds = scenario.getTransitSchedule().getTransitLines().values().stream()
@@ -256,11 +257,29 @@ public class AreaAnalysis {
             List<Link> relevantPtLinks = ptNetwork.getLinks().values().stream().filter(link -> (double) link.getAttributes().getAttribute(IS_IN) > 0.0).collect(Collectors.toList());
             String attribute = "VOLUME";
             System.out.println(attribute);
-            new PopulationReader(scenario).readFile(outputPopulation);
+
             log.info("Processing walk and bike...");
             List<String> slowModes = List.of(SBBModes.WALK_MAIN_MAINMODE, SBBModes.BIKE);
+            StreamingPopulationReader spr = new StreamingPopulationReader(scenario);
             AtomicDouble walkKM = new AtomicDouble();
             AtomicDouble bikeKM = new AtomicDouble();
+            spr.addAlgorithm(person -> {
+                        TripStructureUtils.getTrips(person.getSelectedPlan()).stream()
+                        .filter(trip -> trip.getLegsOnly().stream().anyMatch(leg -> slowModes.contains(leg.getMode())))
+                        .filter(trip -> zones.findZone(trip.getOriginActivity().getCoord()) != null && zones.findZone(trip.getDestinationActivity().getCoord()) != null)
+                        .forEach(trip -> {
+                            for (var leg : trip.getLegsOnly()) {
+                                if (leg.getMode().equals(SBBModes.WALK_MAIN_MAINMODE)) {
+                                    walkKM.addAndGet(leg.getRoute().getDistance()/samplesize);
+                                } else if (leg.getMode().equals(SBBModes.BIKE)) {
+                                    bikeKM.addAndGet(leg.getRoute().getDistance()/samplesize);
+                                }
+                            }
+                        });
+
+            });
+            spr.readFile(outputPopulation);
+
             scenario.getPopulation().getPersons().values()
                     .parallelStream()
                     .map(person -> person.getSelectedPlan())
