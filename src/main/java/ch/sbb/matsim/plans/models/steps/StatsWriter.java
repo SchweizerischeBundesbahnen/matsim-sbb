@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Predicate;
@@ -48,6 +49,7 @@ import org.matsim.utils.objectattributes.attributable.Attributes;
 
 public class StatsWriter implements ModelStep {
     private static final Logger log = LogManager.getLogger(StatsWriter.class);
+    private final int threads;
     Scenario scenario;
     MOBiPlansConfig config;
     Zones zones;
@@ -65,6 +67,7 @@ public class StatsWriter implements ModelStep {
         this.config = config;
         this.zones = zones;
         attributableProvider = new Attributables.AttributableProvider(zones);
+        this.threads = config.models().threads();
     }
 
     // ---- Per-sheet precomputed state (kept across the single person loop) ----
@@ -138,6 +141,14 @@ public class StatsWriter implements ModelStep {
 
     @Override
     public void run() {
+        try (ForkJoinPool pool = new ForkJoinPool(threads)) {
+            pool.submit(this::runInternal).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Parallel execution failed in StatsWriter", e);
+        }
+    }
+
+    private void runInternal() {
         Path reportsFolder = Paths.get(config.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_REPORTS);
         String reportConfigFilePath = reportsFolder.resolve(MOBiPlansConfig.REPORT_CONFIG_JSON).toString();
 
@@ -738,8 +749,8 @@ public class StatsWriter implements ModelStep {
                             double idx = expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(person, indexVars));
                             double col = expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(person, columnVars));
                             double val = isSum ? expressionEvaluator.evaluate(attribute, collectAttributeStrings(person, attrVars)) : 1.0;
-                            acc.computeIfAbsent(idx, k -> new ConcurrentHashMap<>())
-                               .computeIfAbsent(col, k -> new DoubleAdder())
+                            acc.computeIfAbsent(idx, _ -> new ConcurrentHashMap<>())
+                               .computeIfAbsent(col, _ -> new DoubleAdder())
                                .add(val);
                         });
                 break;
@@ -752,8 +763,8 @@ public class StatsWriter implements ModelStep {
                             double idx = expressionEvaluator.evaluate(indexFormula, collectAttributeStrings(zone, indexVars));
                             double col = expressionEvaluator.evaluate(columnFormula, collectAttributeStrings(zone, columnVars));
                             double val = isSum ? expressionEvaluator.evaluate(attribute, collectAttributeStrings(zone, attrVars)) : 1.0;
-                            acc.computeIfAbsent(idx, k -> new ConcurrentHashMap<>())
-                               .computeIfAbsent(col, k -> new DoubleAdder())
+                            acc.computeIfAbsent(idx, _ -> new ConcurrentHashMap<>())
+                               .computeIfAbsent(col, _ -> new DoubleAdder())
                                .add(val);
                         });
                 break;
@@ -807,24 +818,6 @@ public class StatsWriter implements ModelStep {
             if (att_value == null) continue;
             if (!(att_value instanceof Number)) continue;
             result.put(variable, ((Number) att_value).doubleValue());
-        }
-        return result;
-    }
-
-    private static Map<String, Double> collectAttributeStrings(Attributable obj, Iterable<String> variables, Class<? extends Attributable> clazz) {
-        Map<String, Double> result = new HashMap<>();
-        if (obj == null || variables == null) return result;
-
-        Attributes attrs = obj.getAttributes();
-        for (String variable : variables) {
-            if (variable == null) continue;
-            if (attrs.getAttribute(variable) != null) {
-                Object att_value = attrs.getAttribute(variable);
-                if (att_value == null) continue;
-                if (!(att_value instanceof Number)) continue;
-                Double value = Double.valueOf(att_value.toString());
-                result.put(variable, value);
-            }
         }
         return result;
     }

@@ -3,7 +3,6 @@ package ch.sbb.matsim.plans.models.steps;
 import ch.sbb.matsim.config.variables.Variables;
 import ch.sbb.matsim.plans.MOBiPlansRunner;
 import ch.sbb.matsim.plans.constants.SynpopConstants;
-import ch.sbb.matsim.plans.constants.ZonalAttributes;
 import ch.sbb.matsim.plans.models.config.MOBiPlansConfig;
 import ch.sbb.matsim.plans.models.steps.csvmodels.BooleanSelectionModelFromCSV;
 import ch.sbb.matsim.plans.models.steps.csvmodels.IntegerSelectionModelFromCSV;
@@ -19,6 +18,7 @@ import org.matsim.api.core.v01.Scenario;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.nio.file.Paths;
 import java.nio.file.Path;
@@ -35,7 +35,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
     final Scenario scenario;
     final MOBiPlansConfig mobiPlansConfig;
     final Zones zones;
-    private final String name = MOBiPlansRunner.MOBILITY_TOOL_OWNERSHIP_MODEL;
+    private final int threads;
 
     @Inject
     public MobilityToolOwnershipModel(Scenario scenario, MOBiPlansConfig mobiPlansConfig, Zones zones) {
@@ -48,6 +48,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
         carsPerHouseholdModel = new IntegerSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV).toString(), MOBiPlansConfig.CARS_PER_HOUSEHOLD_CSV);
         ptSubscriptionModelAdults = new StringSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.PT_SUBSCRIPTION_ADULTS_CSV).toString(), MOBiPlansConfig.PT_SUBSCRIPTION_ADULTS_CSV);
         ptSubscriptionModelMinors = new StringSelectionModelFromCSV(modelFolder.resolve(MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV).toString(), MOBiPlansConfig.PT_SUBSCRIPTION_MINORS_CSV);
+        this.threads= mobiPlansConfig.models().threads();
     }
 
     private static final Logger logger = LogManager.getLogger(MobilityToolOwnershipModel.class);
@@ -56,60 +57,65 @@ public class MobilityToolOwnershipModel implements ModelStep {
 
     @Override
     public void run() {
-        runDrivingLicenseModel();
-        runCarsPerHouseholdModel();
-        runPublicTransportSubscription();
-        runEBikeOwnershipModel();
+        try (ForkJoinPool pool = new ForkJoinPool(threads)) {
+            pool.submit(() -> {
+                runDrivingLicenseModel();
+                runCarsPerHouseholdModel();
+                runPublicTransportSubscription();
+                runEBikeOwnershipModel();
+            }).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Parallel execution failed in MobilityToolOwnershipModel", e);
+        }
         SynPopUtils.setCarAvailableForPopulation(scenario);
         SynPopUtils.aggregateMobilityToolsPerZone(scenario);
-
     }
 
-    public void rerunForStudentsAfterPrimaryLocationChoice(){
+    public void rerunForStudentsAfterPrimaryLocationChoice() {
         logger.info("Starting public transport subscription calculation for students after PrimaryLocationChoice...");
-        scenario.getPopulation().getPersons().values().parallelStream()
-                .filter(person -> (AttributeUtils.getAsDouble(person,SynpopConstants.NET_DIST_SCHOOL,0.0) > 0.0))
-                .filter(person -> AttributeUtils.getAsInteger(person,SynpopConstants.AGE,-1)>=18)
-                .forEach(
-                        person -> {
-                            person.getAttributes().putAttribute("net_dist_school_ptsubscr",AttributeUtils.getAsDouble(person,SynpopConstants.NET_DIST_SCHOOL,0)/10000.0);
+        try (ForkJoinPool pool = new ForkJoinPool(threads)) {
+            pool.submit(() ->
+                scenario.getPopulation().getPersons().values().parallelStream()
+                        .filter(person -> (AttributeUtils.getAsDouble(person, SynpopConstants.NET_DIST_SCHOOL, 0.0) > 0.0))
+                        .filter(person -> AttributeUtils.getAsInteger(person, SynpopConstants.AGE, -1) >= 18)
+                        .forEach(person -> {
+                            person.getAttributes().putAttribute("net_dist_school_ptsubscr", AttributeUtils.getAsDouble(person, SynpopConstants.NET_DIST_SCHOOL, 0) / 10000.0);
                             String ptSubscription = ptSubscriptionModelAdults.calculate(person);
                             person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, ptSubscription);
-                            }
-                );
+                        })
+            ).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Parallel execution failed in rerunForStudentsAfterPrimaryLocationChoice", e);
+        }
         logger.info("Finished public transport subscription calculation for students.");
         SynPopUtils.aggregateMobilityToolsPerZone(scenario);
     }
 
     private void runEBikeOwnershipModel() {
         scenario.getPopulation().getPersons().values().parallelStream()
-                .forEach(
-                        person -> {
-                            boolean hasEbike45 = false;
-                            if (AttributeUtils.getAsInteger(person,SynpopConstants.AGE,-1) > 13) {
-                                hasEbike45 = ebikeModel.calculate(person);
-                            }
-                            person.getAttributes().putAttribute(SynpopConstants.HAS_EBIKE45, hasEbike45);
-                        }
-                );
+                .forEach(person -> {
+                    boolean hasEbike45 = false;
+                    if (AttributeUtils.getAsInteger(person, SynpopConstants.AGE, -1) > 13) {
+                        hasEbike45 = ebikeModel.calculate(person);
+                    }
+                    person.getAttributes().putAttribute(SynpopConstants.HAS_EBIKE45, hasEbike45);
+                });
         logger.info("Finished e-bike calculation.");
     }
 
     private void runPublicTransportSubscription() {
         logger.info("Starting public transport subscription calculation...");
         scenario.getPopulation().getPersons().values().parallelStream()
-                .forEach(
-                        person -> {
-                            String ptSubscription;
-                            if (AttributeUtils.getAsInteger(person,SynpopConstants.AGE,-1) < 18) {
-                                ptSubscription = ptSubscriptionModelMinors.calculate(person);
-                            } else {
-                                person.getAttributes().putAttribute("net_dist_school_ptsubscr",0);
-                                ptSubscription = ptSubscriptionModelAdults.calculate(person);
-                            }
-                            person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, ptSubscription);
-                        }
-                );
+                .forEach(person -> {
+                    String ptSubscription;
+                    if (AttributeUtils.getAsInteger(person, SynpopConstants.AGE, -1) < 18) {
+                        ptSubscription = ptSubscriptionModelMinors.calculate(person);
+                    } else {
+                        person.getAttributes().putAttribute("net_dist_school_ptsubscr", 0);
+                        ptSubscription = ptSubscriptionModelAdults.calculate(person);
+                    }
+                    person.getAttributes().putAttribute(Variables.PT_SUBSCRIPTION, ptSubscription);
+                });
         logger.info("Finished public transport subscription calculation.");
     }
 
@@ -118,21 +124,19 @@ public class MobilityToolOwnershipModel implements ModelStep {
         AtomicInteger householdWithCars = new AtomicInteger(0);
         logger.info("Starting cars per household calculation...");
         scenario.getHouseholds().getHouseholds().values().parallelStream()
-                .forEach(household ->
-                        {
-                            Integer numberOfCars = 0;
-                            if (AttributeUtils.getAsInteger(household,SynpopConstants.NB_OF_DRIVING_LICENSES,0)> 0) {
-                                numberOfCars = carsPerHouseholdModel.calculate(household);
-                            }
-                            household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS, numberOfCars);
-                            double numberOfAdults = AttributeUtils.getAsInteger(household,SynpopConstants.NB_OF_ADULTS,0);
-                            household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS_PER_ADULT, numberOfCars / Math.max(numberOfAdults, 1));
-                            cars.addAndGet(numberOfCars);
-                            if (numberOfCars > 0) {
-                                householdWithCars.incrementAndGet();
-                            }
-                        }
-                );
+                .forEach(household -> {
+                    Integer numberOfCars = 0;
+                    if (AttributeUtils.getAsInteger(household, SynpopConstants.NB_OF_DRIVING_LICENSES, 0) > 0) {
+                        numberOfCars = carsPerHouseholdModel.calculate(household);
+                    }
+                    household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS, numberOfCars);
+                    double numberOfAdults = AttributeUtils.getAsInteger(household, SynpopConstants.NB_OF_ADULTS, 0);
+                    household.getAttributes().putAttribute(SynpopConstants.NB_OF_CARS_PER_ADULT, numberOfCars / Math.max(numberOfAdults, 1));
+                    cars.addAndGet(numberOfCars);
+                    if (numberOfCars > 0) {
+                        householdWithCars.incrementAndGet();
+                    }
+                });
         logger.info("Number of cars: " + cars.get());
         logger.info("Number of households with cars: " + householdWithCars.get());
     }
@@ -166,6 +170,7 @@ public class MobilityToolOwnershipModel implements ModelStep {
 
     @Override
     public String getName() {
+        String name = MOBiPlansRunner.MOBILITY_TOOL_OWNERSHIP_MODEL;
         return name;
     }
 }

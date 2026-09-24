@@ -92,22 +92,28 @@ public class CombinedDestinationAndDurationChoiceModel {
         log.info("Starting Combined Destination and Duration Choice Model...");
         Instant start = Instant.now();
         log.info("Building Blended Travel Time Matrix for {} zones...", zoneList.size());
-        this.blendedTravelTimes = buildBlendedTravelTimeMatrix();
-        log.info("Finished building Blended Travel Time Matrix in {}.", Duration.between(start, Instant.now()));
-        String secondaryKalifCsvPath = Paths.get(mobiPlansConfig.data().modelBaseDir())
-                .resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CONFIG)
-                .resolve(MOBiPlansConfig.SECONDARY_ACTIVITY_CHOICE_KALIF_EXPRESSIONS_CSV)
-                .toString();
-        this.kalifMatrixCache = new SecondaryKalifMatrixCache(secondaryKalifCsvPath, matrices, zoneList, zoneIndexMap);
-        this.logsumCache = new SecondaryDestinationLogsumCache(matrices, formulaRepository, new ExpressionEvaluator(), zoneList);
-        this.logsumCache.precomputeAll(SBBActivities.secondaryActivities, demandStrataRegistry.getSecondaryDestinationStratas());
-        log.info("Pre-caching Zonal Attractions for fast lookups...");
-        this.zoneAttractions = new float[ACTIVITY_TYPES.length][zoneList.size()];
-        for (int aIdx = 0; aIdx < ACTIVITY_TYPES.length; aIdx++) {
-            String attrName = getAttractionAttributeName(ACTIVITY_TYPES[aIdx]);
-            for (int zIdx = 0; zIdx < zoneList.size(); zIdx++) {
-                this.zoneAttractions[aIdx][zIdx] = (float) AttributeUtils.getAsDouble(zoneList.get(zIdx), attrName, 0.0);
-            }
+        try (ForkJoinPool pool = new ForkJoinPool(threads)) {
+            pool.submit(() -> {
+                this.blendedTravelTimes = buildBlendedTravelTimeMatrix();
+                log.info("Finished building Blended Travel Time Matrix in {}.", Duration.between(start, Instant.now()));
+                String secondaryKalifCsvPath = Paths.get(mobiPlansConfig.data().modelBaseDir())
+                        .resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CONFIG)
+                        .resolve(MOBiPlansConfig.SECONDARY_ACTIVITY_CHOICE_KALIF_EXPRESSIONS_CSV)
+                        .toString();
+                this.kalifMatrixCache = new SecondaryKalifMatrixCache(secondaryKalifCsvPath, matrices, zoneList, zoneIndexMap);
+                this.logsumCache = new SecondaryDestinationLogsumCache(matrices, formulaRepository, new ExpressionEvaluator(), zoneList);
+                this.logsumCache.precomputeAll(SBBActivities.secondaryActivities, demandStrataRegistry.getSecondaryDestinationStratas());
+                log.info("Pre-caching Zonal Attractions for fast lookups...");
+                this.zoneAttractions = new float[ACTIVITY_TYPES.length][zoneList.size()];
+                for (int aIdx = 0; aIdx < ACTIVITY_TYPES.length; aIdx++) {
+                    String attrName = getAttractionAttributeName(ACTIVITY_TYPES[aIdx]);
+                    for (int zIdx = 0; zIdx < zoneList.size(); zIdx++) {
+                        this.zoneAttractions[aIdx][zIdx] = (float) AttributeUtils.getAsDouble(zoneList.get(zIdx), attrName, 0.0);
+                    }
+                }
+            }).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Parallel execution failed in CombinedDestinationAndDurationChoiceModel.prepare()", e);
         }
 
     }
@@ -384,7 +390,6 @@ public class CombinedDestinationAndDurationChoiceModel {
             if (oohTime <= oohBudgetHours) {
                 winningDurIdx = durIdx;
                 winningDestIdx = destIdx;
-                bestOohTime = oohTime;
                 foundValidPlan = true;
                 break; // Found one!
             }
@@ -484,16 +489,16 @@ private float[][] buildBlendedTravelTimeMatrix() {
             // --- 1. Calculate Car Travel Time ---
             // Python: car_travel_times_sym * 60 + at_car(O) + at_car(D) + 60 * pc_car * 2 * 0.047 / 0.125
             double pcCar = AttributeUtils.getAsDouble(destination, ZonalAttributes.PC_CAR, 0.0);
-            double carTT = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase(), 0.0)
+            double carTT = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_TRAVEL_TIMES.name().toLowerCase())
                     + atCarOrigin + atCarDest
                     + 60.0 * pcCar * 2.0 * 0.047 / 0.125;
 
             // --- 2. Calculate PT Travel Time ---
             // Python: 60 * (train + bus + access + egress + transfers * 5)
-            double ptTT = getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TOTAL.name().toLowerCase(), 0.0)
-                    + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_ACCESS_TIME.name().toLowerCase(), 0.0)
-                    + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_EGRESS_TIME.name().toLowerCase(), 0.0)
-                    + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_TRANSFERS.name().toLowerCase(), 0.0) * 5.0 * 60.0;
+            double ptTT = getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_TRAVEL_TIMES_TOTAL.name().toLowerCase())
+                    + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_ACCESS_TIME.name().toLowerCase())
+                    + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_EGRESS_TIME.name().toLowerCase())
+                    + getMetric(metrics, MatrixNames.TravelMetricsMatrices.PT_TRANSFERS.name().toLowerCase()) * 5.0 * 60.0;
 
             // --- 3. Blending Logic (np.where nesting) ---
             double blended;
@@ -506,7 +511,7 @@ private float[][] buildBlendedTravelTimeMatrix() {
             }
 
             // --- 4. Short Distance Penalty ---
-            double distance = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase(), 0.0);
+            double distance = getMetric(metrics, MatrixNames.TravelMetricsMatrices.CAR_NET_DISTANCE.name().toLowerCase());
             if (distance < 1500) {
                 blended = distance / 1.66667; //assumed speed of 1.66667 m/s (6 km/h) for very short trips
             }
@@ -620,8 +625,8 @@ private String getAttractionAttributeName(String activityType) {
     };
 }
 
-    private double getMetric(Map<String, Double> metrics, String key, double defaultValue) {
-    return metrics != null ? metrics.getOrDefault(key, defaultValue) : defaultValue;
+    private double getMetric(Map<String, Double> metrics, String key) {
+    return metrics != null ? metrics.getOrDefault(key, 0.0) : 0.0;
 }
     public void cleanup() {
         // Nullify the heavy matrices

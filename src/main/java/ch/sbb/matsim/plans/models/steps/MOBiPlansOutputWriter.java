@@ -110,7 +110,7 @@ public class MOBiPlansOutputWriter implements ModelStep {
 
     private void writePopulationAttributes(Population population, String outputFile) {
         LOG.info("Writing population attributes to "+outputFile);
-        List<String> allAttributes = population.getPersons().values().parallelStream()
+        List<String> allAttributes = population.getPersons().values().stream()
                 .flatMap(person -> person.getAttributes().getAsMap().keySet().stream())
                 .distinct()
                 .filter(attr -> !attr.equals(SynpopConstants.ZONE))  // avoiding having 2 zone_id variables

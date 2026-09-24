@@ -45,7 +45,7 @@ public class PrimaryLocationChoiceModel implements ModelStep{
     private final Zones zones;
     private final Matrices matrices;
     private final ModeImpedanceFormulaRepository formulaRepository;
-    private final ExpressionEvaluator expressionEvaluator;
+    private final ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator();
     private final PrimaryLocationChoiceConfig primaryLocationChoiceConfig;
     private final DemandStrataRegistry demandStrataRegistry;
     private static final Logger logger = LogManager.getLogger(PrimaryLocationChoiceModel.class);
@@ -63,7 +63,6 @@ public class PrimaryLocationChoiceModel implements ModelStep{
         this.formulaRepository = formulaRepository;
         this.primaryLocationChoiceConfig = PrimaryLocationChoiceConfig.readFromYamlFile(Paths.get(moBiPlansConfig.data().modelBaseDir()).resolve(MOBiPlansConfig.MODEL_BASE_FOLDER_CONFIG).resolve(MOBiPlansConfig.PRIMARY_LOCATION_CHOICE_CONFIG_YAML).toString());
         this.demandStrataRegistry = demandStrataRegistry;
-        this.expressionEvaluator = new ExpressionEvaluator();
         this.writeDetailedAnalysis = moBiPlansConfig.models().write_analysis();
         this.customThreadPool = new ForkJoinPool(moBiPlansConfig.models().threads());
         this.outputDir = moBiPlansConfig.data().outputBaseDir();
